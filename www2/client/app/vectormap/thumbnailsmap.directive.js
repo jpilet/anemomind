@@ -12,44 +12,15 @@ angular.module('www2App')
         function initializeCanvas() {
           canvas = new CanvasTilesRenderer({
             canvas: element.children()[0],
-            url: function(scale, x, y) { 
-              // The token corresponds to account anemojp on mapbox.
-	      /*
-              return "http://a.tiles.wmflabs.org/bw-mapnik/"
-                + scale + "/" + x + "/" + y + ".png";
-              */
-              return "//api.tiles.mapbox.com/v4/anemojp.d4524095/"
-                + scale + "/" + x + "/" + y
-                + ".png32?access_token="
-                + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
-            },
             token: Auth.getToken(),
             disabledZoom:true,
             maxNumCachedTiles: 256,
-            initialLocation: scope.mapLocation,
-            onLocationChange: function(canvasTilesRenderer) {
-              $timeout(function() {
-                scope.mapLocation = canvasTilesRenderer.getLocation();
-              });
-            }
+            initialLocation: scope.mapLocation
           });
 
 
           scope.pathLayer = canvas.layers[1];
 
-          if (scope.selectedCurve) {
-              scope.pathLayer.selectCurve(scope.selectedCurve);
-              scope.plotData = scope.pathLayer.getPointsForCurve(scope.selectedCurve);
-          }
-
-
-          scope.pathLayer.onDataArrived = function() {
-            $timeout(function() {
-              if (scope.selectedCurve) {
-                scope.plotData = scope.pathLayer.getPointsForCurve(scope.selectedCurve);
-              }
-            });
-          };
 
 
   
@@ -68,9 +39,10 @@ angular.module('www2App')
             },
             true // deep object compare
           );
-  
+
+          //
+          // force height for this element   
           element.css('height','100%');
-          element.css('background-color','#ff0033 !important');
           angular.element($window).bind('resize', function () {
             scope.$apply();
           });
@@ -81,36 +53,15 @@ angular.module('www2App')
 
 
         function updateTileUrl() {
-          function makeTileUrlFunc(boatId, starts, end) {
-            if (starts) {
-              return function (scale, x, y) {
-                return "/api/tiles/raw/"
-                  + scale + '/' + x + '/' + y + '/' + boatId + '/'
-                  + starts + '/' + end;
-              };
-            } else {
-              return function (scale, x, y) {
-                return "/api/tiles/raw/"
-                  + scale + '/' + x + '/' + y + '/' + boatId;
-              };
-            }
-          }
-          if (scope.selectedCurve) {
-            var startsAfter = curveStartTimeStr(scope.selectedCurve);
-            var endsBefore = curveEndTimeStr(scope.selectedCurve);
-          } else {
-            var startsAfter = undefined;
-            var endsBefore = undefined;
-          }
-            
-          scope.pathLayer.setUrl(makeTileUrlFunc(scope.boat._id,
-                                                 startsAfter,
-                                                 endsBefore));
+
+          var startsAfter = curveStartTimeStr(scope.selectedCurve);
+          var endsBefore = curveEndTimeStr(scope.selectedCurve);            
+          scope.pathLayer.selectCurve(scope.selectedCurve);
+          scope.pathLayer.buildUrl(scope.boat._id,startsAfter,endsBefore);
+
         }
 
 
-        scope.plotData = [];
-        scope.currentTime = undefined;
 
         attrs.$observe('thumbnailsmap',function(curve) {
           var options={curve:curve,boatId:attrs.boatId};

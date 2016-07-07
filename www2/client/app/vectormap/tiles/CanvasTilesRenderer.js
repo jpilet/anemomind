@@ -28,6 +28,11 @@ function CanvasTilesRenderer(params) {
   
   this.params.downgradeIfSlowerFPS = params.downgradeIfSlowerFPS || 20;
   
+  if(!this.params.url){
+    this.params.url=CanvasTilesRenderer.mapboxUrlBuilder;
+  }
+
+
   this.layers = [
     new TileLayer(params, this),
     new VectorTileLayer(params, this)
@@ -61,7 +66,7 @@ function CanvasTilesRenderer(params) {
     t.refresh();
   },
   this.params.width,
-  this.params.height, true);
+  this.params.height, this.params.disabledZoom);
 
 
   this.pinchZoom.minScale = this.params.minScale;
@@ -78,6 +83,27 @@ function CanvasTilesRenderer(params) {
   };
   this.setLocation(location);
 }
+
+//
+// default mapbox URL builder 
+CanvasTilesRenderer.mapboxUrlBuilder=function (scale, x, y) {
+  // The token corresponds to account anemojp on mapbox.
+  // return "http://a.tiles.wmflabs.org/bw-mapnik/"
+  //   + scale + "/" + x + "/" + y + ".png";
+  // */
+
+  //
+  // TODO this should not be there!
+  var token=".png32?access_token="+
+            "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
+  var url=[
+    "//api.tiles.mapbox.com/v4/anemojp.d4524095",
+    scale,x,y
+  ].join('/');
+
+  return url+token;
+}
+
 
 /** Get the current view location.
  *
