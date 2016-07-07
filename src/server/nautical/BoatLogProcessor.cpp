@@ -6,11 +6,12 @@
 #include "BoatLogProcessor.h"
 
 
-#include <device/Arduino/libraries/TargetSpeed/TargetSpeed.h>
-#include <fstream>
-#include <iostream>
 #include <Poco/File.h>
 #include <Poco/JSON/Stringifier.h>
+#include <device/Arduino/libraries/TargetSpeed/TargetSpeed.h>
+#include <device/anemobox/simulator/SimulateBox.h>
+#include <fstream>
+#include <iostream>
 #include <server/common/ArgMap.h>
 #include <server/common/Env.h>
 #include <server/common/HierarchyJson.h>
@@ -19,13 +20,16 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
-#include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/DownsampleGps.h>
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavJson.h>
-#include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/TargetSpeed.h>
+#include <server/nautical/calib/Calibrator.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
+#include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/tiles/NavTileUploader.h>
+#include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
 
 #include <server/common/Json.impl.h> // This one should probably be the last one.
@@ -40,11 +44,14 @@ using namespace sail;
 using namespace std;
 
 namespace {
-  TargetSpeed makeTargetSpeedTable(bool isUpwind,
+
+
+void collectSpeedSamplesGrammar(
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
       const NavDataset& allnavs,
-      std::string description) {
-
+      std::string description,
+      Array<Velocity<>> *twsResult,
+      Array<Velocity<>> *vmgResult) {
     // TODO: How to best select upwind/downwind navs? Is the grammar reliable for this?
     //   Maybe replace AWA by TWA in order to label states in Grammar001.
     Array<std::pair<TimeStamp, TimeStamp>> sel =
@@ -71,12 +78,80 @@ namespace {
       }
     }
 
-    Array<Velocity<>> twsArr = twsArray.get();
-    Array<Velocity<>> vmgArr = vmgArray.get();
+    *twsResult = twsArray.get();
+    *vmgResult = vmgArray.get();
 
-    LOG(INFO) << "makeTargetSpeedTable: " << (isUpwind ? "upwind" : "downwind")
+    LOG(INFO) << __FUNCTION__ << ": "
       << " " << description << ": " << sel.size() << " legs "
-      << twsArr.size() << " measures";
+      << twsResult->size() << " measures";
+}
+
+
+void collectSpeedSamplesBlind(const NavDataset& navs,
+                              bool isUpwind,
+                              Array<Velocity<>> *twsResult,
+                              Array<Velocity<>> *vmgResult) {
+  TimedSampleRange<Angle<double>> allTwa = navs.samples<TWA>();
+  TimedSampleRange<Velocity<double>> allGpsSpeed = navs.samples<GPS_SPEED>();
+  TimedSampleRange<Velocity<double>> allVmg = navs.samples<VMG>();
+  TimedSampleRange<Velocity<double>> allTws = navs.samples<TWS>();
+
+  ArrayBuilder<Velocity<double>> twsArray;
+  ArrayBuilder<Velocity<double>> vmgArray;
+
+  if (allGpsSpeed.size() == 0) {
+    return;
+  }
+
+  const Duration<> maxDelta = Duration<>::seconds(3);
+
+  for (int i = 0; i < allGpsSpeed.size(); ++i) {
+    TimeStamp time = allGpsSpeed[i].time;
+    Velocity<double> speed = allGpsSpeed[i].value;
+    if (speed < Velocity<>::knots(.7)) {
+      // the boat is almost static... let's ignore this measure.
+      continue;
+    }
+    Optional<TimedValue<Velocity<>>> tws = allTws.evaluate(time);
+    Optional<TimedValue<Velocity<>>> vmg = allVmg.evaluate(time);
+    Optional<TimedValue<Angle<>>> twa = allTwa.evaluate(time);
+
+    if (tws.undefined() || vmg.undefined() || twa.undefined()
+        || fabs(tws.get().time - time) > maxDelta
+        || fabs(vmg.get().time - time) > maxDelta
+        || fabs(twa.get().time - time) > maxDelta) {
+      // measures do not align... ignore.
+      continue;
+    }
+    bool upwind = cos(twa.get().value) > 0;
+
+    if (isUpwind == upwind) {
+      twsArray.add(tws.get().value);
+      // vmg is negative for downwind sailing, but the TargetSpeed logic
+      // only handles positive values. Therefore, take the abs value.
+      vmgArray.add(fabs(vmg.get().value));
+    }
+  }
+  *twsResult = twsArray.get();
+  *vmgResult = vmgArray.get();
+
+  LOG(INFO) << __FUNCTION__ << ": " << (isUpwind ? "upwind" : "downwind")
+    << twsResult->size() << " measures";
+}
+
+  TargetSpeed makeTargetSpeedTable(bool isUpwind,
+      std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
+      const NavDataset& allnavs,
+      std::string description) {
+    Array<Velocity<>> twsArr;
+    Array<Velocity<>> vmgArr;
+
+    if (0) {
+      collectSpeedSamplesGrammar(tree, nodeinfo, allnavs, description,
+                                 &twsArr, &vmgArr);
+    } else {
+      collectSpeedSamplesBlind(allnavs, isUpwind, &twsArr, &vmgArr);
+    }
 
     // TODO: Adapt these values to the amount of recorded data.
     Velocity<double> minvel = Velocity<double>::knots(0);
@@ -156,6 +231,7 @@ namespace {
 
     return true;
   }
+
 }
 
 void dispTargetSpeedTable(const char *label, const TargetSpeedTable &table, FP8_8 *data) {
@@ -217,26 +293,99 @@ Poco::Path getDstPath(ArgMap &amap) {
   }
 }
 
-int continueProcessBoatLogs(ArgMap &amap) {
-  ENTERSCOPE("Anemomind boat log processor");
-  bool debug = amap.optionProvided("--debug");
-  Nav::Id id = getBoatId(amap);
-  auto navs = downSampleGpsTo1Hz(loadNavs(amap, id));
-  auto dstPath = getDstPath(amap);
-  std::stringstream msg;
-  msg << "Process " << getNavSize(navs) << " navs with boatid=" <<
-      id << " and save results to " << dstPath.toString();
-  SCOPEDMESSAGE(INFO, msg.str());
-  if (processBoatData(debug, id, navs, dstPath, "all")) {
-    if (debug) {
-      visualizeBoatDat(dstPath);
-    }
-    return 0;
+struct GrammarRunner {
+  WindOrientedGrammarSettings settings;
+  WindOrientedGrammar grammar;
+
+  GrammarRunner() : grammar(settings) { }
+  std::shared_ptr<HTree> parse(const NavDataset& navs) {
+    std::shared_ptr<HTree> fulltree = grammar.parse(navs);
+    return fulltree;
   }
-  return -1;
+};
+
+struct BoatLogProcessor {
+  bool process(ArgMap* amap);
+  void readArgs(ArgMap* amap);
+
+  bool _debug;
+  Nav::Id _boatid;
+  Poco::Path _dstPath;
+  TileGeneratorParameters _tileParams;
+  GrammarRunner _grammar;
+  bool _generateTiles;
+};
+
+//
+// high-level processing logic
+//
+// The goal of this function is to stay small and easy to read,
+// while explicitely showing what is going on.
+// Parameters such as path to files are passed implicitely (as struct
+// members), while raw and derived data are kept in local variables,
+// to improve data flow readability.
+bool BoatLogProcessor::process(ArgMap* amap) {
+  TimeStamp start = TimeStamp::now();
+
+  readArgs(amap);
+
+  NavDataset raw = loadNavs(*amap, _boatid);
+
+  NavDataset resampled = downSampleGpsTo1Hz(raw);
+
+  // Note: the grammar does not have access to proper true wind.
+  // It has to do its own estimate.
+  std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
+
+  Calibrator calibrator(_grammar.grammar);
+  std::ofstream boatDatFile(_dstPath.append("boat.dat").toString());
+
+  // Calibrate. TODO: use filtered data instead of resampled.
+  if (calibrator.calibrate(resampled, fulltree, _boatid)) {
+      calibrator.saveCalibration(&boatDatFile);
+  } else {
+    LOG(WARNING) << "Calibration failed. Using default calib values.";
+    calibrator.clear();
+  }
+  NavDataset simulated = calibrator.simulate(resampled);
+
+  outputTargetSpeedTable(_debug, fulltree, _grammar.grammar.nodeInfo(),
+                         simulated, &boatDatFile);
+
+  // write calibration and target speed to disk
+  boatDatFile.close();
+
+  if (_debug) {
+    visualizeBoatDat(_dstPath);
+  }
+
+  if (_generateTiles) {
+    Array<NavDataset> rawSessions =
+      extractAll("Sailing", simulated, _grammar.grammar, fulltree);
+
+    // GPS filtering: eliminates bad speed surprises
+    Array<NavDataset> filteredSessions = filterSessions(rawSessions);
+
+    if (!generateAndUploadTiles(_boatid, filteredSessions, _tileParams)) {
+      LOG(ERROR) << "generateAndUpload: tile generation failed";
+      return false;
+    }
+  }
+
+  LOG(INFO) << "Processing time for " << _boatid << ": "
+    << (TimeStamp::now() - start).seconds() << " seconds.";
+  return true;
+}
+
+void BoatLogProcessor::readArgs(ArgMap* amap) {
+  _debug = amap->optionProvided("--debug");
+  _boatid = getBoatId(*amap);
+  _dstPath = getDstPath(*amap);
+  _generateTiles = amap->optionProvided("-t");
 }
 
 int mainProcessBoatLogs(int argc, const char **argv) {
+  BoatLogProcessor processor;
   ArgMap amap;
   amap.setHelpInfo("Help for boat log processor");
 
@@ -260,6 +409,31 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.disableFreeArgs();
 
+  TileGeneratorParameters* params = &processor._tileParams;
+
+  amap.registerOption("-t", "Generate vector tiles and upload to mongodb")
+    .setArgCount(0);
+  amap.registerOption("--host", "MongoDB hostname").store(&params->dbHost);
+  amap.registerOption("--scale", "max scale level").store(&params->maxScale);
+  amap.registerOption("--maxpoints",
+                      "downsample curves if they have more than <maxpoints> points")
+    .store(&params->maxNumNavsPerSubCurve);
+
+  amap.registerOption("--db", "Name of the db, such as 'anemomind' or 'anemomind-dev'")
+      .setArgCount(1)
+      .store(&params->dbName);
+
+  amap.registerOption("-u", "username for db connection")
+      .setArgCount(1)
+      .store(&params->user);
+
+  amap.registerOption("-p", "password for db connection")
+      .setArgCount(1)
+      .store(&params->passwd);
+
+  amap.registerOption("--clean", "Clean all tiles for this boat before starting");
+
+
   auto status = amap.parse(argc, argv);
   switch (status) {
    case ArgMap::Error:
@@ -267,7 +441,7 @@ int mainProcessBoatLogs(int argc, const char **argv) {
    case ArgMap::Done:
      return 0;
    case ArgMap::Continue:
-     return continueProcessBoatLogs(amap);
+     return processor.process(&amap) ? 0 : 1;
    default:
      LOG(FATAL) << "Unhandled ParseStatus code";
      return -1;
@@ -279,15 +453,5 @@ bool processBoatDataFullFolder(bool debug, Poco::Path dataPath) {
   return processBoatData(debug, boatId, LogLoader::loadNavDataset(dataPath),
       PathBuilder(dataPath).pushDirectory("processed").get(), "all");
 }
-
-
-
-
-
-
-
-
-
-
 
 } /* namespace sail */

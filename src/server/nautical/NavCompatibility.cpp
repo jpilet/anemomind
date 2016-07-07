@@ -42,7 +42,7 @@ namespace {
   }
 
   void  insertNavsIntoDispatcher(const Array<Nav> &navs, Dispatcher *dst) {
-    LOG(FATAL) << __FUNCTION__ << ": should not be called!";
+    //LOG(FATAL) << __FUNCTION__ << ": should not be called!";
 
     std::string srcOurs("NavDevice");
     std::string srcExternal("NavExternal");
@@ -496,16 +496,17 @@ Length<double> computeTrajectoryLength(NavDataset navs) {
 
 // TODO: Return a timestamp instead, it makes more sense with our
 // Dispatcher-based representation.
-int findMaxSpeedOverGround(NavDataset navs) {
-  if (getNavSize(navs) == 0) {
+int findMaxSpeedOverGround(const Array<Nav>& navs) {
+  if (navs.size() == 0) {
     return -1;
   }
   auto marg = Duration<double>::minutes(2.0);
-  Span<TimeStamp> validTime(getFirst(navs).time() + marg, getLast(navs).time() - marg);
+  Span<TimeStamp> validTime(navs.first().time() + marg,
+                            navs.last().time() - marg);
   int bestIndex = -1;
   auto maxSOG = Velocity<double>::knots(-1.0);
-  for (int i = 0; i < getNavSize(navs); ++i) {
-    const Nav nav = getNav(navs, i);
+  for (int i = 0; i < navs.size(); ++i) {
+    const Nav& nav = navs[i];
     Velocity<double> sog = nav.gpsSpeed();
     if (!isNaN(sog) && maxSOG < sog && validTime.contains(nav.time())) {
       maxSOG = sog;

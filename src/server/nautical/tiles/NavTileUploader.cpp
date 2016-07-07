@@ -151,17 +151,17 @@ Angle<T> average(const Angle<T>& a, const Angle<T>& b) {
   return motion.angle();
 }
 
-BSONObj locationForSession(const NavDataset& navs) {
-  if (getNavSize(navs) == 0) {
+BSONObj locationForSession(const Array<Nav>& navs) {
+  if (navs.size() == 0) {
     return BSONObj();
   }
 
-  Angle<double> minLat(getNav(navs, 0).geographicPosition().lat());
-  Angle<double> minLon(getNav(navs, 0).geographicPosition().lon());
-  Angle<double> maxLat(getNav(navs, 0).geographicPosition().lat());
-  Angle<double> maxLon(getNav(navs, 0).geographicPosition().lon());
+  Angle<double> minLat(navs[0].geographicPosition().lat());
+  Angle<double> minLon(navs[0].geographicPosition().lon());
+  Angle<double> maxLat(navs[0].geographicPosition().lat());
+  Angle<double> maxLon(navs[0].geographicPosition().lon());
   
-  for (auto nav: Range(navs)) {
+  for (auto nav: navs) {
     minLat = std::min(minLat, nav.geographicPosition().lat());
     maxLat = std::max(maxLat, nav.geographicPosition().lat());
     minLon = std::min(minLon, nav.geographicPosition().lon());
@@ -184,15 +184,16 @@ BSONObj locationForSession(const NavDataset& navs) {
 }
 
 // Returns average wind speed and average wind direction.
-Optional<HorizontalMotion<double>> averageWind(const NavDataset& navs) {
+Optional<HorizontalMotion<double>> averageWind(const Array<Nav>& navs) {
   int num = 0;
   HorizontalMotion<double> sum = HorizontalMotion<double>::zero();
   Velocity<double> sumSpeed = Velocity<double>::knots(0);
 
   auto marg = Duration<double>::minutes(5.0);
-  Span<TimeStamp> validTime(getFirst(navs).time() + marg, getLast(navs).time());
+  Span<TimeStamp> validTime(navs.first().time() + marg,
+                            navs.last().time());
 
-  for (auto nav: Range(navs)) {
+  for (auto nav: navs) {
     if (!validTime.contains(nav.time())) {
       continue;
     }
@@ -231,17 +232,17 @@ Optional<HorizontalMotion<double>> averageWind(const NavDataset& navs) {
 
 // Returns the strongest wind and the corresponding nav index.
 // If no wind information is present, the returned index is -1.
-std::pair<Velocity<double>, int> indexOfStrongestWind(const NavDataset& navs) {
+std::pair<Velocity<double>, int> indexOfStrongestWind(const Array<Nav>& navs) {
   std::pair<Velocity<double>, int> result(Velocity<double>::knots(0), -1);
 
   auto marg = Duration<double>::minutes(5.0);
-  Span<TimeStamp> validTime(getFirst(navs).time() + marg, getLast(navs).time());
+  Span<TimeStamp> validTime(navs.first().time() + marg,
+                            navs.last().time());
 
   std::vector<std::pair<Velocity<double>, int>> speedArray;
 
-  int n = getNavSize(navs);
-  for (int i = 0; i < n; ++i) {
-    const Nav& nav = getNav(navs, i);
+  for (int i = 0; i < navs.size(); ++i) {
+    const Nav& nav = navs[i];
 
     // If the boat is not moving, the strongest wind is not so interesting.
     // The following if avoids most outliers.
@@ -270,18 +271,16 @@ std::pair<Velocity<double>, int> indexOfStrongestWind(const NavDataset& navs) {
 BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
-    NavDataset navs) {
-  LOG(INFO) << "Make BSON session";
-  LOG(INFO) << navs;
-
+    NavDataset navs,
+    const Array<Nav>& navArray) {
   BSONObjBuilder session;
   session.append("_id", curveId);
   session.append("boat", OID(boatId));
   session.append("trajectoryLength",
       computeTrajectoryLength(navs).nauticalMiles());
-  int maxSpeedIndex = findMaxSpeedOverGround(navs);
+  int maxSpeedIndex = findMaxSpeedOverGround(navArray);
   if (maxSpeedIndex >= 0) {
-    auto nav = getNav(navs, maxSpeedIndex);
+    const Nav& nav = navArray[maxSpeedIndex];
     auto speedKnots = nav.gpsSpeed().knots();
     auto timeOfMax = nav.time();
     if (!isFinite(speedKnots)) {
@@ -299,20 +298,20 @@ BSONObj makeBsonSession(
     LOG(WARNING) << "No max speed found";
   }
 
-  auto startTime = getFirst(navs).time();
+  auto startTime = navArray[0].time();
   if (startTime.undefined()) {
     LOG(FATAL) << "Start time is undefined";
   }
   append(session, "startTime", startTime);
 
-  auto endTime = getLast(navs).time();
+  auto endTime = navArray.last().time();
   if (endTime.undefined()) {
     LOG(FATAL) << "End time is undefined";
   }
   append(session, "endTime", endTime);
-  session.append("location", locationForSession(navs));
+  session.append("location", locationForSession(navArray));
 
-  auto wind = averageWind(navs);
+  auto wind = averageWind(navArray);
   if (wind.defined()) {
     session.append("avgWindSpeed", calcTws(wind()).knots());
     session.append("avgWindDir", calcTwdir(wind()).degrees());
@@ -320,10 +319,10 @@ BSONObj makeBsonSession(
     LOG(WARNING) << "No average wind";
   }
 
-  std::pair<Velocity<double>, int> strongestWind = indexOfStrongestWind(navs);
+  std::pair<Velocity<double>, int> strongestWind = indexOfStrongestWind(navArray);
   if (strongestWind.second >= 0) {
     session.append("strongestWindSpeed", strongestWind.first.knots());
-    append(session, "strongestWindTime", getNav(navs, strongestWind.second).time());
+    append(session, "strongestWindTime", navArray[strongestWind.second].time());
   } else {
     LOG(WARNING) << "No strongest wind";
   }
@@ -411,7 +410,7 @@ bool generateAndUploadTiles(std::string boatId,
         return false;
       }
     }
-    BSONObj session = makeBsonSession(curveId, boatId, curve);
+    BSONObj session = makeBsonSession(curveId, boatId, curve, navs);
     if (!insertSession(session, params, &db)) {
       return false;
     }

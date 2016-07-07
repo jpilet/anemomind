@@ -77,6 +77,20 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
   return result.get();
 }
 
+Array<NavDataset> filterSessions(const Array<NavDataset>& sessions) {
+  return filter(sail::map(sessions, filterNavs).toArray(),
+          [](NavDataset ds) {
+      if (getNavSize(ds) == 0) {
+        LOG(WARNING) << "Omitting dataset with 0 navs";
+        return false;
+      } else if (!isValid(ds.dispatcher().get())) {
+        LOG(WARNING) << "Omitting invalid dataset";
+        return false;
+      }
+      return true;
+    });
+}
+
 void processTiles(const TileGeneratorParameters &params,
     std::string boatId, std::string navPath,
     std::string boatDat, std::string polarDat) {
@@ -95,7 +109,7 @@ void processTiles(const TileGeneratorParameters &params,
     auto simulated = SimulateBox(boatDat, rawNavs0);
     if (simulated.isDefaultConstructed()) {
       LOG(WARNING) << "Simulation failed";
-      return;
+      simulated = rawNavs0;
     }
 
     LOG(INFO) << "Filtered";
@@ -114,18 +128,7 @@ void processTiles(const TileGeneratorParameters &params,
       LOG(INFO) << session;
     }
 
-    Array<NavDataset> sessions =
-      filter(sail::map(extracted, filterNavs).toArray(),
-          [](NavDataset ds) {
-      if (getNavSize(ds) == 0) {
-        LOG(WARNING) << "Omitting dataset with 0 navs";
-        return false;
-      } else if (!isValid(ds.dispatcher().get())) {
-        LOG(WARNING) << "Omitting invalid dataset";
-        return false;
-      }
-      return true;
-    });
+    Array<NavDataset> sessions = filterSessions(extracted);
 
     if (sessions.empty()) {
       LOG(WARNING) << "No sessions";
