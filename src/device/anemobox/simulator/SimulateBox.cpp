@@ -113,11 +113,11 @@ NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
   auto srcName = std::string("Simulated ") + estimator.sourceName();
   auto src = ds.dispatcher().get();
 
+  copyPriorities(src, replay);
   generateComputeCallbacks(src, replay, [&]() {
     estimator.compute(srcName);
   });
 
-  copyPriorities(src, replay);
   replay->setSourcePriority(srcName, replay->sourcePriority(estimator.sourceName()) + 1);
   return NavDataset(std::shared_ptr<Dispatcher>(replay));
 }
