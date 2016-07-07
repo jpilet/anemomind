@@ -175,14 +175,12 @@ TEST(LoggerTest, ReadInteger0) {
   std::remove(filename);
   auto value = readIntegerFromTextFile(filename);
   EXPECT_FALSE(value.defined());
-  std::remove(filename);
 }
 
 TEST(LoggerTest, ReadInteger1) {
   const char filename[] = "/tmp/here_there_is_an_integer_i_hope.txt";
-  std::remove(filename);
   {
-    std::ofstream file(filename);
+    std::ofstream file(filename, std::ios_base::trunc);
     file << 119;
   }
   auto value = readIntegerFromTextFile(filename);
@@ -193,9 +191,8 @@ TEST(LoggerTest, ReadInteger1) {
 
 TEST(LoggerTest, ReadInteger2) {
   const char filename[] = "/tmp/here_there_is_an_integer_i_hope_with_whitespace.txt";
-  std::remove(filename);
   {
-    std::ofstream file(filename);
+    std::ofstream file(filename, std::ios_base::trunc);
     file << "  " << 119 << "\n ";
   }
   auto value = readIntegerFromTextFile(filename);
