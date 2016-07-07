@@ -26,7 +26,6 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/plot/extra.h>
 #include <string>
-#include <server/nautical/common.h>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -41,7 +40,7 @@ using namespace NavCompat;
 
 namespace {
   string showWind(const HorizontalMotion<double>& wind) {
-    Angle<> twdir = computeTwdirFromTrueWind<double>(wind);
+    Angle<> twdir = wind.angle() + Angle<>::degrees(180);
     return stringFormat("%3.0f/%4.1fkn",
                         twdir.positiveMinAngle().degrees(),
                         wind.norm().knots());
