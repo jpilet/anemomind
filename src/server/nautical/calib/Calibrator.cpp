@@ -15,6 +15,7 @@
 #include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <device/Arduino/libraries/FixedPoint/FixedPoint.h>
 #include <device/Arduino/libraries/TrueWindEstimator/InstrumentFilter.h>
+#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <iostream>
 #include <server/common/ArrayBuilder.h>
@@ -26,7 +27,6 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/plot/extra.h>
 #include <string>
-#include <server/nautical/common.h>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -41,7 +41,7 @@ using namespace NavCompat;
 
 namespace {
   string showWind(const HorizontalMotion<double>& wind) {
-    Angle<> twdir = computeTwdirFromTrueWind<double>(wind);
+    Angle<> twdir = calcTwdir(wind);
     return stringFormat("%3.0f/%4.1fkn",
                         twdir.positiveMinAngle().degrees(),
                         wind.norm().knots());
