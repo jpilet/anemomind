@@ -4,7 +4,7 @@ var anemonode = require('../build/Release/anemonode');
 function medianDeltaTime(src, hlen) {
   assert(src.length);
   assert(src.value);
-  assert(src.time);n
+  assert(src.time);
   assert(typeof(hlen) == 'number');
   var n = Math.min(hlen, src.length());
   var deltas = [];
