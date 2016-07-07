@@ -175,6 +175,7 @@ TEST(LoggerTest, ReadInteger0) {
   std::remove(filename);
   auto value = readIntegerFromTextFile(filename);
   EXPECT_FALSE(value.defined());
+  std::remove(filename);
 }
 
 TEST(LoggerTest, ReadInteger1) {
@@ -187,6 +188,7 @@ TEST(LoggerTest, ReadInteger1) {
   auto value = readIntegerFromTextFile(filename);
   EXPECT_TRUE(value.defined());
   EXPECT_EQ(value.get(), 119);
+  std::remove(filename);
 }
 
 TEST(LoggerTest, ReadInteger2) {
@@ -199,4 +201,5 @@ TEST(LoggerTest, ReadInteger2) {
   auto value = readIntegerFromTextFile(filename);
   EXPECT_TRUE(value.defined());
   EXPECT_EQ(value.get(), 119);
+  std::remove(filename);
 }
