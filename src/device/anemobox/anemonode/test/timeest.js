@@ -44,8 +44,6 @@ describe('timeest', function() {
     assert(timeest.medianDeltaTime(src, 30) == expectedOffsetMilliseconds);
 
     var expectedTime = new Date(1467881037966 + (3000 + 11)*1000);
-    console.log('Expected time: ' + expectedTime);
-    console.log('Estimated time: ' + timeest.estimateTime(src, 4));
     assert(timeest.estimateTime(src, 4).getTime() == expectedTime.getTime());
     
   });

@@ -1,12 +1,11 @@
 var assert = require('assert');
-
-//var anemonode = require('../build/Release/anemonode');
+var anemonode = require('../build/Release/anemonode');
 
 function medianDeltaTime(src, hlen) {
   assert(src.length);
   assert(src.value);
   assert(src.time);n
-  assert(hlen);
+  assert(typeof(hlen) == 'number');
   var n = Math.min(hlen, src.length());
   var deltas = [];
   for (var i = 0 ; i < n; ++i) {
@@ -27,13 +26,13 @@ function estimateTime(src, hlen) {
   if (src.length() == 0) {
     return new Date();
   } else {
-    var offset = medianDeltaTime(src, hlen);
     var sys = src.time(0);
-
-    console.log('Offset = ' + offset);
-    console.log('Sys = ' + sys);
-
-    return new Date(sys.getTime() + offset);
+    var offset = medianDeltaTime(src, hlen);
+    if (offset == null) {
+      return sys;
+    } else {
+      return new Date(sys.getTime() + offset);
+    }
   }
 }
 
