@@ -153,7 +153,6 @@ void collectSpeedSamplesBlind(const NavDataset& navs,
       collectSpeedSamplesBlind(allnavs, isUpwind, &twsArr, &vmgArr);
     }
 
-
     // TODO: Adapt these values to the amount of recorded data.
     Velocity<double> minvel = Velocity<double>::knots(0);
     Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES-1);
