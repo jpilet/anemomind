@@ -153,6 +153,11 @@ std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
     Dispatcher *srcDispatcher,
     std::function<bool(DataCode, const std::string&)> filter);
 
+
+void exportDispatcherToTextFiles(const std::string &filenamePrefix,
+    TimeStamp from, TimeStamp to,
+    const Dispatcher *d);
+
 class ReplayDispatcher : public Dispatcher {
  public:
 
