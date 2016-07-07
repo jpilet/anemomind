@@ -15,6 +15,7 @@
 #include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <device/Arduino/libraries/FixedPoint/FixedPoint.h>
 #include <device/Arduino/libraries/TrueWindEstimator/InstrumentFilter.h>
+#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <iostream>
 #include <server/common/ArrayBuilder.h>
@@ -40,7 +41,7 @@ using namespace NavCompat;
 
 namespace {
   string showWind(const HorizontalMotion<double>& wind) {
-    Angle<> twdir = wind.angle() + Angle<>::degrees(180);
+    Angle<> twdir = calcTwdir(wind);
     return stringFormat("%3.0f/%4.1fkn",
                         twdir.positiveMinAngle().degrees(),
                         wind.norm().knots());
