@@ -42,6 +42,16 @@ using namespace std;
 
 namespace {
 
+
+struct SpeedRatio {
+  TimeStamp time;
+  double ratio = 0.0;
+
+  bool operator<(const SpeedRatio &other) const {
+    return ratio < other.ratio;
+  }
+};
+
 void collectSpeedSamplesGrammar(
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
       const NavDataset& allnavs,
@@ -50,6 +60,9 @@ void collectSpeedSamplesGrammar(
       Array<Velocity<>> *vmgResult) {
     // TODO: How to best select upwind/downwind navs? Is the grammar reliable for this?
     //   Maybe replace AWA by TWA in order to label states in Grammar001.
+
+    SpeedRatio r;
+
     Array<std::pair<TimeStamp, TimeStamp>> sel =
       markNavsByDesc(tree, nodeinfo, allnavs, description);
 
@@ -66,10 +79,19 @@ void collectSpeedSamplesGrammar(
         Optional<TimedValue<Velocity<>>> tws = twsLeg.evaluate(time);
         Optional<TimedValue<Velocity<>>> vmg = vmgLeg.evaluate(time);
         if (tws.defined() && vmg.defined()) {
-          twsArray.add(tws.get().value);
+
+          auto tws0 = tws.get().value;
+          auto vmg0 = fabs(vmg.get().value);
+
+          SpeedRatio sr;
+          sr.time = time;
+          sr.ratio = vmg0/tws0;
+          r = std::max(r, sr);
+
+          twsArray.add(tws0);
           // vmg is negative for downwind sailing, but the TargetSpeed logic
           // only handles positive values. Therefore, take the abs value.
-          vmgArray.add(fabs(vmg.get().value));
+          vmgArray.add(vmg0);
         }
       }
     }
@@ -80,8 +102,56 @@ void collectSpeedSamplesGrammar(
     LOG(INFO) << __FUNCTION__ << ": "
       << " " << description << ": " << sel.size() << " legs "
       << twsResult->size() << " measures";
+
+
+    std::cout << "Max speed ratio " << r.ratio << " at " << r.time << std::endl;
+    Duration<double> marg = Duration<double>::minutes(2.0);
+    exportDispatcherToTextFiles(
+        "/tmp/targetspeeddata.txt",
+        r.time - marg,
+        r.time + marg,
+        allnavs.dispatcher().get());
 }
 
+/*struct TargetSpeedSample {
+  Velocity<double> tws, vmg;
+};
+
+Array<TargetSpeedSample> collectTargetSpeedSamples(
+    const NavDataset &ds, bool isUpwind) {
+  TimedSampleRange<Angle<double>> allTwa = navs.samples<TWA>();
+  TimedSampleRange<Velocity<double>> allGpsSpeed = navs.samples<GPS_SPEED>();
+  TimedSampleRange<Velocity<double>> allTws = navs.samples<TWS>();
+
+  ArrayBuilder<TargetSpeedSample> dst;
+
+  const Duration<> maxDelta = Duration<>::seconds(3);
+
+  for (int i = 0; i < allGpsSpeed.size(); ++i) {
+    TimeStamp time = allGpsSpeed[i].time;
+    Velocity<double> speed = allGpsSpeed[i].value;
+    if (speed < Velocity<>::knots(.7)) {
+      // the boat is almost static... let's ignore this measure.
+      continue;
+    }
+    Optional<TimedValue<Velocity<>>> tws = allTws.evaluate(time);
+    Optional<TimedValue<Angle<>>> twa = allTwa.evaluate(time);
+
+    if (tws.undefined()  || twa.undefined()
+        || fabs(tws.get().time - time) > maxDelta
+        || fabs(twa.get().time - time) > maxDelta) {
+      // measures do not align... ignore.
+      continue;
+    }
+
+    bool upwind = cos(twa.get().value) > 0;
+
+    if (isUpwind == upwind) {
+      vmg
+    }
+  }
+  return dst.get();
+}*/
 
 void collectSpeedSamplesBlind(const NavDataset& navs,
                               bool isUpwind,
@@ -135,6 +205,25 @@ void collectSpeedSamplesBlind(const NavDataset& navs,
     << twsResult->size() << " measures";
 }
 
+
+void plotTwsAndVmgSamples(const Array<Velocity<double> > &tws,
+                      const Array<Velocity<double> > &vmg) {
+
+  int n = tws.size();
+  CHECK(n == vmg.size());
+
+
+  MDArray2d dst(n, 2);
+  for (int i = 0; i < n; i++) {
+    dst(i, 0) = tws[i].knots();
+    dst(i, 1) = vmg[i].knots();
+  }
+
+  GnuplotExtra plot;
+  plot.plot(dst);
+  plot.show();
+}
+
   TargetSpeed makeTargetSpeedTable(
       bool isUpwind,
       VmgSampleSelection vmgSampleSelection,
@@ -153,6 +242,9 @@ void collectSpeedSamplesBlind(const NavDataset& navs,
         collectSpeedSamplesBlind(allnavs, isUpwind, &twsArr, &vmgArr);
         break;
     }
+    CHECK(twsArr.size() == vmgArr.size());
+
+    plotTwsAndVmgSamples(twsArr, vmgArr);
 
     // TODO: Adapt these values to the amount of recorded data.
     Velocity<double> minvel = Velocity<double>::knots(0);
@@ -275,6 +367,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     LOG(WARNING) << "Calibration failed. Using default calib values.";
     calibrator.clear();
   }
+
   NavDataset simulated = calibrator.simulate(resampled);
 
   if (_saveSimulated.size() > 0) {
