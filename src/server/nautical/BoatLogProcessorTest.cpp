@@ -32,19 +32,20 @@ TEST(BoatLogProcessor, ProcessingTest) {
   EXPECT_TRUE(Poco::File(srcpath).exists());
   EXPECT_TRUE(Poco::File(srcpath).isDirectory());
 
+
   BoatLogProcessor processor;
   
+  PathBuilder output = PathBuilder::makeDirectory(srcpath);
+  Poco::Path boatDatPath = output.makeFile("boat.dat").get();
   std::string srcPathStr(srcpath.toString());
+  std::string dstPathStr(output.get().toString());
   const char* argv[] = {
-    "--dir",
-    srcPathStr.c_str()
+    "processBoatLog", "--dir", srcPathStr.c_str(),
+    "--dst", dstPathStr.c_str()
   };
 
-  mainProcessBoatLogs(2, argv);
+  mainProcessBoatLogs(sizeof(argv) / sizeof(char *), argv);
 
-  PathBuilder output = PathBuilder::makeDirectory(srcpath).pushDirectory("processed");
-
-  Poco::Path boatDatPath = output.makeFile("boat.dat").get();
   EXPECT_TRUE(Poco::File(boatDatPath).exists());
 
   TargetSpeedTable table;

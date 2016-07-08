@@ -266,7 +266,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
 
   Calibrator calibrator(_grammar.grammar);
-  std::ofstream boatDatFile(_dstPath.append("boat.dat").toString());
+  std::ofstream boatDatFile(_dstPath.toString() + "/boat.dat");
 
   // Calibrate. TODO: use filtered data instead of resampled.
   if (calibrator.calibrate(resampled, fulltree, _boatid)) {
@@ -320,6 +320,15 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _generateTiles = amap->optionProvided("-t");
   _vmgSampleSelection = (amap->optionProvided("--vmg:blind") ?
     VMG_SAMPLES_BLIND : VMG_SAMPLES_FROM_GRAMMAR);
+
+  if (_debug) {
+    LOG(INFO) << "BoatLogProcessor:\n"
+      << "boat: " << _boatid << "\n"
+      << "dst: " << _dstPath.toString() << "\n"
+      << (_generateTiles ? "gen tiles" : " no tile gen") << "\n"
+      << (_vmgSampleSelection == VMG_SAMPLES_FROM_GRAMMAR ?
+          "grammar vmg samples" : "blind vmg samples");
+  }
 }
 
 int mainProcessBoatLogs(int argc, const char **argv) {
