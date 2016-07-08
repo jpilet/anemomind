@@ -43,22 +43,22 @@ function medianDeltaTimeMemoized(src, hlen, t) {
 }
 
 
-function estimateTime(src, hlen) {
+function estimateTime(currentSystemTime, src, hlen) {
+  assert(currentSystemTime instanceof Date);
   if (src.length() == 0) {
-    return new Date();
+    return currentSystemTime;
   } else {
-    var sys = src.time(0);
-    var offset = medianDeltaTimeMemoized(src, hlen, sys);
+    var offset = medianDeltaTimeMemoized(src, hlen, currentSystemTime);
     if (offset == null) {
-      return sys;
+      return currentSystemTime;
     } else {
-      return new Date(sys.getTime() + offset);
+      return new Date(currentSystemTime.getTime() + offset);
     }
   }
 }
 
 function estimateTimeFromDispatcher() {
-  return estimateTime(anemonode.dispatcher.value.dateTime, historyLength);
+  return estimateTime(new Date(), anemonode.dispatcher.value.dateTime, historyLength);
 }
 
 module.exports.estimateTimeFromDispatcher = estimateTimeFromDispatcher;

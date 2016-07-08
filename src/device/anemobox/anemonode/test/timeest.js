@@ -43,12 +43,17 @@ describe('timeest', function() {
     assert(timeest.medianDeltaTime(src, sysSeconds.length-1) == expectedOffsetMilliseconds);
     assert(timeest.medianDeltaTime(src, 30) == expectedOffsetMilliseconds);
 
+    var currentSystemTime = new Date(1467881037966 + 11*1000);
+
     var expectedTime = new Date(1467881037966 + (3000 + 11)*1000);
-    assert(timeest.estimateTime(src, 4).getTime() == expectedTime.getTime());
+
+    assert(timeest.estimateTime(currentSystemTime, src, 4).getTime()
+           == expectedTime.getTime());
 
     // Run same query again to check that the memoized version works
-    assert(timeest.estimateTime(src, 4).getTime() == expectedTime.getTime());
-    assert(timeest.estimateTime(src, 4).getTime() == expectedTime.getTime());
-    
+    assert(timeest.estimateTime(currentSystemTime, src, 4).getTime() 
+           == expectedTime.getTime());
+    assert(timeest.estimateTime(currentSystemTime, src, 4).getTime() 
+           == expectedTime.getTime());
   });
 });
