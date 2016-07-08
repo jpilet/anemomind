@@ -45,6 +45,10 @@ describe('timeest', function() {
 
     var expectedTime = new Date(1467881037966 + (3000 + 11)*1000);
     assert(timeest.estimateTime(src, 4).getTime() == expectedTime.getTime());
+
+    // Run same query again to check that the memoized version works
+    assert(timeest.estimateTime(src, 4).getTime() == expectedTime.getTime());
+    assert(timeest.estimateTime(src, 4).getTime() == expectedTime.getTime());
     
   });
 });

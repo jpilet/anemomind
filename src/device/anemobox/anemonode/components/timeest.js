@@ -1,6 +1,13 @@
 var assert = require('assert');
 var anemonode = require('../build/Release/anemonode');
 
+
+// Settings
+var cacheExpiryThreshold = 1000;
+var historyLength = 60;
+
+
+
 function medianDeltaTime(src, hlen) {
   assert(src.length);
   assert(src.value);
@@ -22,12 +29,26 @@ function medianDeltaTime(src, hlen) {
   return undefined;
 }
 
+
+var cache = null;
+
+function medianDeltaTimeMemoized(src, hlen, t) {
+  if (cache == null || Math.abs(cache.time - t) > cacheExpiryThreshold) {
+    cache = {
+      time: t,
+      offset: medianDeltaTime(src, hlen)
+    };
+  }
+  return cache.offset;
+}
+
+
 function estimateTime(src, hlen) {
   if (src.length() == 0) {
     return new Date();
   } else {
     var sys = src.time(0);
-    var offset = medianDeltaTime(src, hlen);
+    var offset = medianDeltaTimeMemoized(src, hlen, sys);
     if (offset == null) {
       return sys;
     } else {
@@ -35,8 +56,6 @@ function estimateTime(src, hlen) {
     }
   }
 }
-
-var historyLength = 60;
 
 function estimateTimeFromDispatcher() {
   return estimateTime(anemonode.dispatcher.value.dateTime, historyLength);
