@@ -4,6 +4,8 @@
  */
 
 #include <device/anemobox/DispatcherUtils.h>
+
+#include <device/anemobox/logger/Logger.h>
 #include <server/common/logging.h>
 #include <server/nautical/AbsoluteOrientation.h>
 #include <fstream>
@@ -766,6 +768,18 @@ void ReplayDispatcher::visitTimeouts() {
   for (auto to: toRemove) {
     _timeouts.erase(to);
   }
+}
+
+bool saveDispatcher(const std::string& filename, const Dispatcher& nav) {
+  ReplayDispatcher replay;
+  Logger logger(&replay);
+
+  replay.replay(&nav);
+
+  LogFile logged;
+  logger.flushTo(&logged);
+
+  return Logger::save(filename, logged);
 }
 
 

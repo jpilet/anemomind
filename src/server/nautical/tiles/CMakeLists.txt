@@ -32,29 +32,21 @@ if (MongoDB_LIBRARIES)
 
                        )
 
-  add_executable(tiles_generateAndUpload
-                 generateAndUpload.cpp
-                )
-  target_link_libraries(tiles_generateAndUpload
-                        common_ArgMap
-                        common_logging
-                        nautical_tiles_TileUtils
-                       )
-
   add_library(nautical_tiles_TileUtils
               TileUtils.h
               TileUtils.cpp
              )
   target_link_libraries(nautical_tiles_TileUtils
                         anemobox_SimulateBox
-                        tiles_NavTileUploader
                         common_ArgMap
                         common_logging
-                        math_hmm_StateAssign
-                        logimport_LogLoader
-                        nautical_grammars_WindOrientedGrammar
-                        ${MongoDB_LIBRARIES}
                         filters_SmoothGpsFilter
+                        logimport_LogLoader
+                        math_hmm_StateAssign
+                        nautical_downsamplegps
+                        nautical_grammars_WindOrientedGrammar
+                        tiles_NavTileUploader
+                        ${MongoDB_LIBRARIES}
                        )
 
 

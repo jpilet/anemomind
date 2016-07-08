@@ -211,7 +211,8 @@ class ReplayDispatcher : public Dispatcher {
    TimeStamp _currentTime;
  };
  
+bool saveDispatcher(const std::string& filename, const Dispatcher& nav);
 
-}
+}  // namespace sail
 
 #endif /* DEVICE_ANEMOBOX_DISPATCHERUTILS_H_ */

@@ -19,6 +19,7 @@ target_link_libraries(calib_Calibrator
                       common_Histogram
                       common_math
                       nautical_FlowErrors
+                      nautical_downsamplegps
                       nautical_grammars_WindOrientedGrammar
                       plot_gnuplot
                      )

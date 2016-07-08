@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <server/nautical/Nav.h>
 #include <server/nautical/grammars/Grammar.h>
 #include <server/nautical/grammars/AngleCost.h>
 
