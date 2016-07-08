@@ -19,7 +19,7 @@ SRC_DIR="@CMAKE_SOURCE_DIR@"
 BIN_DIR="@CMAKE_BINARY_DIR@"
 
 datasetsDir="${SRC_DIR}/datasets"
-boats="Irene psaros33_Banque_Sturdza"
+boats="AlinghiGC32 Irene psaros33_Banque_Sturdza"
 
 # Insert (or get) test user
 
@@ -44,14 +44,23 @@ for i in ${boats}; do
     boatid=$(mongo --quiet anemomind-dev --eval "print(db.boats.find({name:'${i}'})[0]._id + '')")
   fi
 
+  if test -d "${datasetsDir}/$i/logs"; then
+    boatdir="${datasetsDir}/$i/logs"
+  else
+    boatdir="${datasetsDir}/$i"
+  fi
+
+  test -d "${boatdir}/processed" || mkdir "${boatdir}/processed"
+
   echo "Processing boat log for ${i} (id ${boatid})"
   "${BIN_DIR}/src/server/nautical/nautical_processBoatLogs" \
     --boatid "${boatid}" \
-    --dir "${datasetsDir}/$i" \
+    --dir "${boatdir}" \
+    --dst "${boatdir}/processed" \
     --clean \
     -t \
     || true
 
-  "${BIN_DIR}/src/server/nautical/nautical_catTargetSpeed" --id "${boatid}" "${datasetsDir}/$i/processed/boat.dat" | mongo anemomind-dev
+  "${BIN_DIR}/src/server/nautical/nautical_catTargetSpeed" --id "${boatid}" "${boatdir}/processed/boat.dat" | mongo anemomind-dev
 
 done
