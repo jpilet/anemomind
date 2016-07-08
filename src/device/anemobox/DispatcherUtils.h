@@ -144,7 +144,7 @@ std::set<DataCode> listDataCodesWithDifferences(
     const std::map<DataCode, std::map<std::string,
           std::shared_ptr<DispatchData>>> &B);
 
-void copyPriorities(Dispatcher *src, Dispatcher *dst);
+void copyPriorities(const Dispatcher *src, Dispatcher *dst);
 
 typedef std::function<void(const std::shared_ptr<Dispatcher> &,
         DataCode, const std::string &)> ReplayVisitor;
