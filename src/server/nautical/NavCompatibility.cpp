@@ -42,7 +42,7 @@ namespace {
   }
 
   void  insertNavsIntoDispatcher(const Array<Nav> &navs, Dispatcher *dst) {
-    //LOG(FATAL) << __FUNCTION__ << ": should not be called!";
+    LOG(ERROR) << __FUNCTION__ << " is obsolete and should not be called!";
 
     std::string srcOurs("NavDevice");
     std::string srcExternal("NavExternal");

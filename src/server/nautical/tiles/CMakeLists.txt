@@ -32,15 +32,6 @@ if (MongoDB_LIBRARIES)
 
                        )
 
-  add_executable(tiles_generateAndUpload
-                 generateAndUpload.cpp
-                )
-  target_link_libraries(tiles_generateAndUpload
-                        common_ArgMap
-                        common_logging
-                        nautical_tiles_TileUtils
-                       )
-
   add_library(nautical_tiles_TileUtils
               TileUtils.h
               TileUtils.cpp

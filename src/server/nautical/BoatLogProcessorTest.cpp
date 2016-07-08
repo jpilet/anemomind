@@ -31,7 +31,17 @@ TEST(BoatLogProcessor, ProcessingTest) {
   Poco::Path srcpath = getTempDataPath();
   EXPECT_TRUE(Poco::File(srcpath).exists());
   EXPECT_TRUE(Poco::File(srcpath).isDirectory());
-  processBoatDataFullFolder(false, srcpath);
+
+  BoatLogProcessor processor;
+  
+  std::string srcPathStr(srcpath.toString());
+  const char* argv[] = {
+    "--dir",
+    srcPathStr.c_str()
+  };
+
+  mainProcessBoatLogs(2, argv);
+
   PathBuilder output = PathBuilder::makeDirectory(srcpath).pushDirectory("processed");
 
   Poco::Path boatDatPath = output.makeFile("boat.dat").get();
@@ -41,5 +51,5 @@ TEST(BoatLogProcessor, ProcessingTest) {
   EXPECT_TRUE(loadTargetSpeedTable(boatDatPath.toString().c_str(), &table));
 
   EXPECT_NEAR(2, (double)table._upwind[4], 0.5);
-  EXPECT_NEAR(-1, (double)table._downwind[4], 0.5);
+  EXPECT_NEAR(2, (double)table._downwind[4], 0.5);
 }
