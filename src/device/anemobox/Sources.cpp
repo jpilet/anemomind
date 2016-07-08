@@ -21,8 +21,7 @@ const char internalRegex[] =
 const char externalRegex[] =
   "(^NavExternal$)"
   "|(^NMEA2000/.*)"
-  "|(^NMEA0183: .*)"
-  "|(^NMEA0183$)"
+  "|(^NMEA0183.*)"
   "|(^NMEA0183 input reparsed$)"
   "|(^CUPS$)"
   "|(^CSV imported$)"

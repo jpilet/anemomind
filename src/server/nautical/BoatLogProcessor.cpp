@@ -12,7 +12,6 @@
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <fstream>
 #include <iostream>
-#include <server/common/ArgMap.h>
 #include <server/common/Env.h>
 #include <server/common/HierarchyJson.h>
 #include <server/common/Json.h>
@@ -26,9 +25,7 @@
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
-#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/logimport/LogLoader.h>
-#include <server/nautical/tiles/NavTileUploader.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
 
@@ -44,7 +41,6 @@ using namespace sail;
 using namespace std;
 
 namespace {
-
 
 void collectSpeedSamplesGrammar(
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
@@ -139,18 +135,23 @@ void collectSpeedSamplesBlind(const NavDataset& navs,
     << twsResult->size() << " measures";
 }
 
-  TargetSpeed makeTargetSpeedTable(bool isUpwind,
+  TargetSpeed makeTargetSpeedTable(
+      bool isUpwind,
+      VmgSampleSelection vmgSampleSelection,
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
       const NavDataset& allnavs,
       std::string description) {
     Array<Velocity<>> twsArr;
     Array<Velocity<>> vmgArr;
 
-    if (0) {
-      collectSpeedSamplesGrammar(tree, nodeinfo, allnavs, description,
-                                 &twsArr, &vmgArr);
-    } else {
-      collectSpeedSamplesBlind(allnavs, isUpwind, &twsArr, &vmgArr);
+    switch (vmgSampleSelection) {
+      case VMG_SAMPLES_FROM_GRAMMAR:
+        collectSpeedSamplesGrammar(tree, nodeinfo, allnavs, description,
+                                   &twsArr, &vmgArr);
+        break;
+      case VMG_SAMPLES_BLIND:
+        collectSpeedSamplesBlind(allnavs, isUpwind, &twsArr, &vmgArr);
+        break;
     }
 
     // TODO: Adapt these values to the amount of recorded data.
@@ -165,9 +166,12 @@ void collectSpeedSamplesBlind(const NavDataset& navs,
       std::shared_ptr<HTree> tree,
       Array<HNode> nodeinfo,
       NavDataset navs,
+      VmgSampleSelection vmgSampleSelection,
       std::ofstream *file) {
-    TargetSpeed uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
-    TargetSpeed dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
+    TargetSpeed uw = makeTargetSpeedTable(true, vmgSampleSelection,
+                                          tree, nodeinfo, navs, "upwind-leg");
+    TargetSpeed dw = makeTargetSpeedTable(false, vmgSampleSelection,
+                                          tree, nodeinfo, navs, "downwind-leg");
 
     if (debug) {
       LOG(INFO) << "Upwind";
@@ -179,60 +183,7 @@ void collectSpeedSamplesBlind(const NavDataset& navs,
     saveTargetSpeedTableChunk(file, uw, dw);
   }
 
-  void makeBoatDatFile(
-      bool debug,
-      NavDataset src,
-      PathBuilder outdir,
-      std::shared_ptr<HTree> fulltree, Nav::Id boatId, WindOrientedGrammar g) {
-    ENTERSCOPE("Output boat.dat with target speed data.");
-    std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
-
-    Calibrator calibrator(g);
-
-    NavDataset simulated = src;
-    if (calibrator.calibrate(src, fulltree, boatId)) {
-      calibrator.saveCalibration(&boatDatFile);
-      simulated = calibrator.simulate(src);
-    } else {
-        LOG(WARNING) << "Calibration failed. Using default calib values.";
-        calibrator.clear();
-        simulated = calibrator.simulate(src);
-    }
-    assert(getNavSize(simulated) == getNavSize(src));
-
-    outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), simulated, &boatDatFile);
-  }
-
-  bool processBoatData(bool debug, Nav::Id boatId, NavDataset navs, Poco::Path dstPath, std::string filenamePrefix) {
-    ENTERSCOPE("processBoatData");
-    if (getNavSize(navs) == 0) {
-      LOG(ERROR) << "No data to process.";
-      return false;
-    }
-    SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
-        getNavSize(navs), getFirst(navs).time().toString().c_str(),
-        getLast(navs).time().toString().c_str()));
-
-    SCOPEDMESSAGE(INFO, "Parse data...");
-    WindOrientedGrammarSettings settings;
-    WindOrientedGrammar g(settings);
-    std::shared_ptr<HTree> fulltree = g.parse(navs);
-    SCOPEDMESSAGE(INFO, "done.");
-
-    Poco::File buildDir(dstPath);
-
-    // It could be that the directory already exists, and in that case,
-    // we are going to overwrite previous data.
-    buildDir.createDirectory();
-
-    PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
-
-    makeBoatDatFile(debug, navs, outdir, fulltree, boatId, g);
-
-    return true;
-  }
-
-}
+}  // namespace
 
 void dispTargetSpeedTable(const char *label, const TargetSpeedTable &table, FP8_8 *data) {
   MDArray2d x(table.NUM_ENTRIES, 2);
@@ -293,29 +244,6 @@ Poco::Path getDstPath(ArgMap &amap) {
   }
 }
 
-struct GrammarRunner {
-  WindOrientedGrammarSettings settings;
-  WindOrientedGrammar grammar;
-
-  GrammarRunner() : grammar(settings) { }
-  std::shared_ptr<HTree> parse(const NavDataset& navs) {
-    std::shared_ptr<HTree> fulltree = grammar.parse(navs);
-    return fulltree;
-  }
-};
-
-struct BoatLogProcessor {
-  bool process(ArgMap* amap);
-  void readArgs(ArgMap* amap);
-
-  bool _debug;
-  Nav::Id _boatid;
-  Poco::Path _dstPath;
-  TileGeneratorParameters _tileParams;
-  GrammarRunner _grammar;
-  bool _generateTiles;
-};
-
 //
 // high-level processing logic
 //
@@ -338,7 +266,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
 
   Calibrator calibrator(_grammar.grammar);
-  std::ofstream boatDatFile(_dstPath.append("boat.dat").toString());
+  std::ofstream boatDatFile(_dstPath.toString() + "/boat.dat");
 
   // Calibrate. TODO: use filtered data instead of resampled.
   if (calibrator.calibrate(resampled, fulltree, _boatid)) {
@@ -349,8 +277,16 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   }
   NavDataset simulated = calibrator.simulate(resampled);
 
-  outputTargetSpeedTable(_debug, fulltree, _grammar.grammar.nodeInfo(),
-                         simulated, &boatDatFile);
+  if (_saveSimulated.size() > 0) {
+    saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
+  }
+
+  outputTargetSpeedTable(_debug, 
+                         fulltree,
+                         _grammar.grammar.nodeInfo(),
+                         simulated,
+                         _vmgSampleSelection,
+                         &boatDatFile);
 
   // write calibration and target speed to disk
   boatDatFile.close();
@@ -382,6 +318,17 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _boatid = getBoatId(*amap);
   _dstPath = getDstPath(*amap);
   _generateTiles = amap->optionProvided("-t");
+  _vmgSampleSelection = (amap->optionProvided("--vmg:blind") ?
+    VMG_SAMPLES_BLIND : VMG_SAMPLES_FROM_GRAMMAR);
+
+  if (_debug) {
+    LOG(INFO) << "BoatLogProcessor:\n"
+      << "boat: " << _boatid << "\n"
+      << "dst: " << _dstPath.toString() << "\n"
+      << (_generateTiles ? "gen tiles" : " no tile gen") << "\n"
+      << (_vmgSampleSelection == VMG_SAMPLES_FROM_GRAMMAR ?
+          "grammar vmg samples" : "blind vmg samples");
+  }
 }
 
 int mainProcessBoatLogs(int argc, const char **argv) {
@@ -391,6 +338,10 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--debug", "Display debug information and visualization")
     .setArgCount(0);
+
+  amap.registerOption("--saveSimulated <file.log>",
+                      "Save dispatcher in the given file after simulation")
+    .store(&processor._saveSimulated);
 
   amap.registerOption("--boatid", "Id of the boat")
       .setArgCount(1);
@@ -406,6 +357,10 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--dst", "Destination directory path")
     .setArgCount(1);
+
+  amap.registerOption(
+      "--vmg:blind", "Instead of using grammar to find legs for vmg samples, use everything.")
+    .setArgCount(0);
 
   amap.disableFreeArgs();
 
@@ -446,12 +401,6 @@ int mainProcessBoatLogs(int argc, const char **argv) {
      LOG(FATAL) << "Unhandled ParseStatus code";
      return -1;
   };
-}
-
-bool processBoatDataFullFolder(bool debug, Poco::Path dataPath) {
-  auto boatId = Nav::debuggingBoatId();
-  return processBoatData(debug, boatId, LogLoader::loadNavDataset(dataPath),
-      PathBuilder(dataPath).pushDirectory("processed").get(), "all");
 }
 
 } /* namespace sail */
