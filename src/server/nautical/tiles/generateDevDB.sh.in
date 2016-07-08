@@ -50,6 +50,8 @@ for i in ${boats}; do
     boatdir="${datasetsDir}/$i"
   fi
 
+  test -d "${boatdir}/processed" || mkdir "${boatdir}/processed"
+
   echo "Processing boat log for ${i} (id ${boatid})"
   "${BIN_DIR}/src/server/nautical/nautical_processBoatLogs" \
     --boatid "${boatid}" \
