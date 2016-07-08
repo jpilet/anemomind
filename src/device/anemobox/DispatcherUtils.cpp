@@ -351,7 +351,7 @@ std::shared_ptr<DispatchData> mergeChannels(DataCode code,
 }
 
 
-void copyPriorities(Dispatcher *src, Dispatcher *dst) {
+void copyPriorities(const Dispatcher *src, Dispatcher *dst) {
   for (auto kv: src->sourcePriority()) {
     dst->setSourcePriority(kv.first, kv.second);
   }
@@ -725,6 +725,8 @@ void ReplayDispatcher::replay(const Dispatcher *src) {
   if (src == nullptr) {
     return;
   }
+
+  copyPriorities(src, this);
 
   std::vector<ValueToPublish::Ptr> allValues;
   ValueCollector collector(&allValues);

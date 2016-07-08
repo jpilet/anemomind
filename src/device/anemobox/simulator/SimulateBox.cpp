@@ -105,21 +105,20 @@ NavDataset SimulateBox(const std::string& boatDat, const NavDataset &ds) {
 }
 
 NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
-  auto replay = new ReplayDispatcher();
-  DispatcherTrueWindEstimator estimator(replay);
+  auto replay = std::make_shared<ReplayDispatcher>();
+  DispatcherTrueWindEstimator estimator(replay.get());
   if (!estimator.loadCalibration(boatDat)) {
     return NavDataset();
   }
   auto srcName = std::string("Simulated ") + estimator.sourceName();
   auto src = ds.dispatcher().get();
 
-  copyPriorities(src, replay);
-  generateComputeCallbacks(src, replay, [&]() {
+  generateComputeCallbacks(src, replay.get(), [&]() {
     estimator.compute(srcName);
   });
 
   replay->setSourcePriority(srcName, replay->sourcePriority(estimator.sourceName()) + 1);
-  return NavDataset(std::shared_ptr<Dispatcher>(replay));
+  return NavDataset(std::static_pointer_cast<Dispatcher>(replay));
 }
 
 }  // namespace sail
