@@ -32,7 +32,7 @@ if (MongoDB_BUILD_FROM_SOURCES)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND cd "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
         && test "-f" "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/lib/libmongoclient.a"
-        || scons "--prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
+        || scons --ssl "--prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
         --c++11=on --disable-warnings-as-errors=on
         "--cpppath=${Boost_INCLUDE_DIR}"
         "--libpath=${Boost_LIBRARY_DIRS}"

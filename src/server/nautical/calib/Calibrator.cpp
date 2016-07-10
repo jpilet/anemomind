@@ -151,7 +151,13 @@ void Calibrator::addTack(int pos, double weight) {
 
   TimeStamp tackTime = timeAt(_allnavs, pos);
   TimeStamp beginning = timeAt(_allnavs, 0);
-  TimeStamp end = timeAt(_allnavs, getNavSize(_allnavs) - 1);
+  int size = getNavSize(_allnavs);
+
+  if (size <= 0) {
+    LOG(ERROR) << "trying to add a maneuver on an empty navigation!";
+    return;
+  }
+  TimeStamp end = timeAt(_allnavs, size - 1);
 
   if ((tackTime < beginning + length + delta)
        || (tackTime > end - length - delta)) {
@@ -166,6 +172,11 @@ void Calibrator::addTack(int pos, double weight) {
                                      tackTime - delta);
   NavDataset afterds = _allnavs.slice(max(beginning, tackTime + delta - largeMargin),
                                     tackTime + delta + length);
+
+  if (getNavSize(afterds) == 0 || getNavSize(beforeds) == 0) {
+    LOG(WARNING) << "Ignoring invalid manoeuver: got empty nav array.";
+    return;
+  }
 
   Nav after = getLast(afterds);
   Nav before = getLast(beforeds);

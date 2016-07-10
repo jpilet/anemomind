@@ -7,6 +7,8 @@
 export BIN="/home/anemomind/bin"
 export LOG_DIR="/home/anemomind/userlogs/anemologs"
 export PROCESSED_DIR="/home/anemomind/processed"
+export SRC_ROOT=$(dirname "$0")/../../../
+export BUILD_ROOT=${SRC_ROOT}/build
 
 log() {
   echo $(date +"%Y-%m-%d %T") $*
@@ -24,6 +26,11 @@ else
 export NOINFO="--noinfo"
 fi
 
+safeRun() {
+  loginfo "Running: " $*
+  timeout 30m $*
+}
+
 processBoat() {
 
   local boatdir=$1
@@ -35,10 +42,12 @@ processBoat() {
 
   if [ -e "${lastprocess}" ] && ls -lR "${boatdir}" | md5sum | diff -q "${lastprocess}" - ; then
     # checksum OK, nothing to do.
-    #echo "Skipping boat: ${boat}"
+    loginfo "Skipping boat: ${boat}"
     true
   else
     # checksum not present or not up to date: need recompute.
+
+    loginfo "Recomputing for boat: ${boat}"
 
     local boatdat="${boatprocessdir}/processed/boat.dat"
     [ -f "${boatdat}" ] && rm -f "${boatdat}"
@@ -51,44 +60,29 @@ processBoat() {
     # directory.
     [ -L "${boatprocessdir}/logs" ] || ln -s "${boatdir}" "${boatprocessdir}/logs"
 
-    loginfo running "${BIN}"/processBoatLogs ${NOINFO} --dir "${boatprocessdir}"
-    if timeout 30m "${BIN}"/processBoatLogs ${NOINFO} --dir "${boatprocessdir}" ; then
+    local processed="${boatprocessdir}/processed"
+    test -d "${processed}" || mkdir "${processed}"
 
-      # Upload the tiles to the database
-      loginfo running "${BIN}"/tiles_generateAndUpload \
-	--boatDat ${boatdat} \
-	--id ${boatid} \
-	--navpath "${boatprocessdir}" \
+    
+    if safeRun "${BUILD_ROOT}"/src/server/nautical/nautical_processBoatLogs \
+        ${NOINFO} \
+        --dir "${boatprocessdir}" \
+        --dst "${processed}" \
+        --boatid "${boatid}" \
+        -t --clean \
 	--db anemomind \
         -u anemomindprod -p asjdhse5sdas \
-        --clean \
-        ${NOINFO} \
-	--scale 20 
-
-      if timeout 2h "${BIN}"/tiles_generateAndUpload \
-	--boatDat ${boatdat} \
-	--id ${boatid} \
-	--navpath "${boatprocessdir}" \
-	--db anemomind \
-        -u anemomindprod -p asjdhse5sdas \
-        --clean \
-        ${NOINFO} \
 	--scale 20 ; then
 
-        loginfo tiles_generateAndUpload success
-
-	if [ -f "${boatdat}" ] ; then
-          # If a boat.dat file has been generated, mail it to the anemobox.
-	  cat "${boatdat}" | ssh anemomind@anemolab.com NODE_ENV=production \
-            node /home/xa4/anemomind/www2/utilities/SendBoatData.js \
-            "${boatid}" /dev/stdin /home/anemobox/boat.dat || true
-        fi
-
-        # Recompute worked. Update the checksum.
-        ls -lR "${boatdir}" | md5sum > "${lastprocess}"
-      else
-        log "tile_generateAndUpload FAILED for ${boatid}"
+      if [ -f "${boatdat}" ] ; then
+        # If a boat.dat file has been generated, mail it to the anemobox.
+        cat "${boatdat}" | ssh anemomind@anemolab.com NODE_ENV=production \
+          node /home/xa4/anemomind/www2/utilities/SendBoatData.js \
+          "${boatid}" /dev/stdin /home/anemobox/boat.dat || true
       fi
+
+      # Recompute worked. Update the checksum.
+      ls -lR "${boatdir}" | md5sum > "${lastprocess}"
     else
       log "processBoatLogs FAILED for ${boatprocessdir}. Skipping upload."
     fi
@@ -100,6 +94,7 @@ processBoat() {
 export -f processBoat
 export -f log
 export -f loginfo
+export -f safeRun
 
 # Make sure we have a ssh tunnel to anemolab DB
 #ps aux | grep autossh | grep -q anemolab || (autossh -T -N -L 27017:localhost:27017 jpilet@anemolab.com &)
@@ -115,4 +110,4 @@ parallel -j 3 processBoat ::: "${LOG_DIR}/"*
 
 kill $SSH_TUNNEL_PID
 
-"${BIN}"/uploadVmgTable.sh
+safeRun "${BIN}"/uploadVmgTable.sh
