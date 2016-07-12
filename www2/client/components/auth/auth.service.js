@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .factory('Auth', function Auth($location, $rootScope, $http, User, $cookieStore, $q, $timeout) {
+  .factory('Auth', function Auth($location, $rootScope, $http, User, $cookieStore, $q, $log) {
     var currentUser = {};
     if($cookieStore.get('token')) {
       currentUser = User.get();
@@ -30,6 +30,7 @@ angular.module('www2App')
           currentUser.$promise.then(function() {
             //
             // wait for user data to synchronize all $scope.$watch(Auth.isLoggedIn)
+            $log.log('-- auth',currentUser.email);
             deferred.resolve(data);
             cb();
           });

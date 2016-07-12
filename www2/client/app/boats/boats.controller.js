@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('BoatsCtrl', function ($scope, $http, $stateParams, socket, boatList,Auth) {
+  .controller('BoatsCtrl', function ($scope, $http, $stateParams, socket, boatList,Auth,$log) {
     $scope.isLoggedIn = Auth.isLoggedIn();
 
     $scope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
@@ -13,6 +13,7 @@ angular.module('www2App')
     boatList.boats().then(function(boats) {
       $scope.boats = boats;
 
+      $log.log('-- boat.ctrl',boats.length);
 
       //
       // display selected boat

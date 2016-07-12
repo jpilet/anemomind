@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .service('boatList', function (Auth, $http, $q,socket, $rootScope) {
+  .service('boatList', function (Auth, $http, $q,socket, $rootScope,$log) {
     var boats = [ ];
     var boatDict = { };
     var curves = { };
@@ -75,6 +75,7 @@ angular.module('www2App')
           //
           // time to resolve promise
           $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
+          $log.log('-- boats.service',boats.length);
           deferred.resolve(boats);            
         });
 
