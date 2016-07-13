@@ -14,11 +14,41 @@
 namespace sail {
 namespace ProtobufLogLoader {
 
+namespace {
+  struct OffsetWithFitnessError {
+    OffsetWithFitnessError() {
+      defaultConstructed = true;
+      offset = Duration<double>::seconds(0.0);
+      averageErrorFromMedian = std::numeric_limits<double>::infinity();
+      priority = (-std::numeric_limits<int>::max());
+    }
+
+    OffsetWithFitnessError(Duration<double> dur, double e, int p) :
+      offset(dur), averageErrorFromMedian(e), priority(p),
+      defaultConstructed(false) {}
+
+    bool defaultConstructed;
+    int priority;
+    Duration<double> offset;
+    double averageErrorFromMedian;
+
+    std::pair<int, double> makePairToMinimize() const {
+      // First, try to minimize the **negated** priority (which is the same as maximizing the priority)
+      // Second, try to minimize the error
+      return std::make_pair(-priority, averageErrorFromMedian);
+    }
+
+    bool operator<(const OffsetWithFitnessError &e) const {
+      return makePairToMinimize() < e.makePairToMinimize();
+    }
+  };
+}
+
 /**
  * Log file loading coded in our format (using protobuf)
  */
 template <typename T>
-void addToVector(const ValueSet &src, Duration<double> offset,
+void addToVector(const ValueSet &src, const OffsetWithFitnessError &offset,
     std::deque<TimedValue<T> > *dst) {
   std::vector<TimeStamp> timeVector;
   std::vector<T> dataVector;
@@ -27,7 +57,7 @@ void addToVector(const ValueSet &src, Duration<double> offset,
   auto n = dataVector.size();
   if (n == dataVector.size()) {
     for (size_t i = 0; i < n; i++) {
-      dst->push_back(TimedValue<T>(timeVector[i] + offset, dataVector[i]));
+      dst->push_back(TimedValue<T>(timeVector[i] + offset.offset, dataVector[i]));
     }
   } else {
     LOG(WARNING) << "Incompatible time and data vector sizes. Ignore this data.";
@@ -47,7 +77,7 @@ void analyzeTimes(const std::vector<TimeStamp> times) {
 }
 
 void loadTextData(const ValueSet &stream, LogAccumulator *dst,
-    Duration<double> offset) {
+    const OffsetWithFitnessError &offset) {
   vector<TimeStamp> times;
   Logger::unpackTime(stream, &times);
 
@@ -66,7 +96,7 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
     Nmea0183Loader::Nmea0183LogLoaderAdaptor adaptor(&parser, dst, dstSourceName);
     for (int i = 0; i < n; i++) {
       auto rawTime = times[i];
-      auto t = times[i] + offset;
+      auto t = times[i] + offset.offset;
       parser.setProtobufTime(t);
       adaptor.setTime(t);
       streamToNmeaParser(stream.text(i), &parser, &adaptor);
@@ -75,7 +105,7 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
 }
 
 void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
-    Duration<double> offset) {
+    const OffsetWithFitnessError &offset) {
 #define ADD_VALUES_TO_VECTOR(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   if (stream.shortname() == SHORTNAME) {addToVector<TYPE>(stream, offset, &(dst->_##HANDLE##sources[stream.source()]));}
       FOREACH_CHANNEL(ADD_VALUES_TO_VECTOR)
@@ -84,31 +114,6 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
 }
 
 namespace {
-  struct OffsetWithFitnessError {
-    OffsetWithFitnessError() {
-      offset = Duration<double>::seconds(0.0);
-      averageErrorFromMedian = std::numeric_limits<double>::infinity();
-      priority = (-std::numeric_limits<int>::max());
-    }
-
-    OffsetWithFitnessError(Duration<double> dur, double e, int p) :
-      offset(dur), averageErrorFromMedian(e), priority(p) {
-    }
-
-    int priority;
-    Duration<double> offset;
-    double averageErrorFromMedian;
-
-    std::pair<int, double> makePairToMinimize() const {
-      // First, try to minimize the **negated** priority (which is the same as maximizing the priority)
-      // Second, try to minimize the error
-      return std::make_pair(-priority, averageErrorFromMedian);
-    }
-
-    bool operator<(const OffsetWithFitnessError &e) const {
-      return makePairToMinimize() < e.makePairToMinimize();
-    }
-  };
 
   OffsetWithFitnessError computeTimeOffset(const ValueSet &stream) {
     std::vector<Duration<double> > diffs;
@@ -140,13 +145,13 @@ namespace {
     return OffsetWithFitnessError();
   }
 
-  Duration<double> computeTimeOffset(const LogFile &data) {
+  OffsetWithFitnessError computeTimeOffset(const LogFile &data) {
     OffsetWithFitnessError offset;
     for (int i = 0; i < data.stream_size(); i++) {
       auto c = computeTimeOffset(data.stream(i));
       offset = std::min(offset, c);
     }
-    return offset.offset;
+    return offset;
   }
 }
 
