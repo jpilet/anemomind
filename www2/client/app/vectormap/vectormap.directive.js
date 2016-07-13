@@ -12,17 +12,6 @@ angular.module('www2App')
         function initializeCanvas() {
           canvas = new CanvasTilesRenderer({
             canvas: element.children()[0],
-            url: function(scale, x, y) { 
-              // The token corresponds to account anemojp on mapbox.
-	      /*
-              return "http://a.tiles.wmflabs.org/bw-mapnik/"
-                + scale + "/" + x + "/" + y + ".png";
-              */
-              return "//api.tiles.mapbox.com/v4/anemojp.d4524095/"
-                + scale + "/" + x + "/" + y
-                + ".png32?access_token="
-                + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
-            },
             token: Auth.getToken(),
             maxNumCachedTiles: 256,
             initialLocation: scope.mapLocation,
@@ -78,20 +67,6 @@ angular.module('www2App')
           };
 
           function updateTileUrl() {
-            function makeTileUrlFunc(boatId, starts, end) {
-              if (starts) {
-                return function (scale, x, y) {
-                  return "/api/tiles/raw/"
-                    + scale + '/' + x + '/' + y + '/' + boatId + '/'
-                    + starts + '/' + end;
-                };
-              } else {
-                return function (scale, x, y) {
-                  return "/api/tiles/raw/"
-                    + scale + '/' + x + '/' + y + '/' + boatId;
-                };
-              }
-            }
             if (scope.selectedCurve) {
               var startsAfter = curveStartTimeStr(scope.selectedCurve);
               var endsBefore = curveEndTimeStr(scope.selectedCurve);
@@ -100,9 +75,7 @@ angular.module('www2App')
               var endsBefore = undefined;
             }
               
-            scope.pathLayer.setUrl(makeTileUrlFunc(scope.boat._id,
-                                                   startsAfter,
-                                                   endsBefore));
+            scope.pathLayer.buildUrl(scope.boat._id,startsAfter,endsBefore);
           }
 
           scope.$watch('selectedCurve', function(newValue, oldValue) {

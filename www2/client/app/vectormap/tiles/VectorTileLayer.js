@@ -71,6 +71,20 @@ function VectorTileLayer(params, renderer) {
 
 }
 
+VectorTileLayer.prototype.buildUrl = function(boatId,starts,end) {
+  var params=[boatId], url;
+  if(starts){
+    params.concat(starts,end);
+  }
+  //
+  // nice way to build url
+  url=function(scale,x,y) {
+    return ["/api/tiles/raw",scale,x,y].concat(params).join('/')
+  };
+
+  this.setUrl(url);
+}
+
 VectorTileLayer.prototype.setUrl = function(url) {
   if (this.url == url) {
     return;
