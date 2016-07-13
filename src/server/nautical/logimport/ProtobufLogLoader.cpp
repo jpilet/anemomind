@@ -56,7 +56,7 @@ namespace {
   }
 
   double initializeSlope(const Arrayd &values) {
-    int preferredStep = 1;
+    int preferredStep = 3;
     int maxStep = values.size() - 1;
     int step = std::min(preferredStep, maxStep);
     int n = values.size() - step;
@@ -64,12 +64,15 @@ namespace {
     std::vector<double> steps;
     steps.reserve(n);
     for (int i = 0; i < n; i++) {
-      steps.push_back((values[i+step] - values[i])/step);
+      auto slopeValue = (values[i+step] - values[i])/step;
+      steps.push_back(slopeValue);
     }
     assert(steps.size() == n);
-    auto middle = steps.begin() + steps.size()/2;
-    std::nth_element(steps.begin(), steps.end(), middle);
-    return *middle;
+
+    auto middle = steps.begin() + n/2;
+    std::nth_element(steps.begin(), middle, steps.end());
+    double slope = *middle;
+    return slope;
   }
 
   struct IndexedTimeStamp {
@@ -90,7 +93,7 @@ namespace {
     }
     assert(times2.size() == times.size());
     auto middle = times2.begin() + n/2;
-    std::nth_element(times2.begin(), times2.end(), middle);
+    std::nth_element(times2.begin(), middle, times2.end());
     return *middle;
   }
 }
@@ -104,11 +107,32 @@ void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
       secondsToOffset[i] = ((*times)[i] - median.time).seconds();
     }
 
-    double slope = initializeSlope(secondsToOffset);
+    double initSlope = initializeSlope(secondsToOffset);
 
+    auto initialLineFit = LineKM(initSlope, -initSlope*median.index);
     auto index2timeSeconds = fitStraightLineRobustly(
-        LineKM(slope, -slope*median.index),
+        initialLineFit,
         secondsToOffset, LineFitSettings());
+
+    Duration<double> maxGap = Duration<double>::minutes(5.0);
+    int badCounter = 0;
+
+    for (int i = 0; i < n; i++) {
+      auto &time = (*times)[i];
+      auto predicted = Duration<double>::seconds(index2timeSeconds(i)) + median.time;
+      auto gap = fabs(time - predicted);
+      if (maxGap < gap) {
+        badCounter++;
+        time = predicted;
+      }
+    }
+    if (0 < badCounter) {
+      LOG(WARNING) << "When loading some log file, " << badCounter <<
+          " of " << n <<
+          " times for some channel were really bad and had to be fixed.";
+      LOG(INFO) << "Initial line fit: " << initialLineFit;
+      LOG(INFO) << "Optimized line fit: " << index2timeSeconds;
+    }
   }
 }
 
