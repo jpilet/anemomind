@@ -14,6 +14,7 @@
 #include <server/math/QuadForm.h>
 #include <vector>
 #include <server/common/ArrayIO.h>
+#include <server/common/Span.h>
 
 namespace sail {
 namespace ProtobufLogLoader {
@@ -129,6 +130,16 @@ namespace {
  * 'y' in the vector that fit very badly with this line.
  */
 bool regularizeTimesInPlace(std::vector<TimeStamp> *times) {
+
+  Span<Duration<double> > validSamplingPeriods(
+      Duration<double>::seconds(0.001),
+      Duration<double>::seconds(60));
+
+  Span<TimeStamp> validTimes(TimeStamp::UTC(2014, 1, 1, 1, 0, 0),
+
+                             // This is not that nice :-(
+                             TimeStamp::UTC(2034, 1, 1, 1, 0, 0));
+
   int n = times->size();
   if (2 <= n) {
     auto median = getMedianTimeStamp(*times);
@@ -148,6 +159,13 @@ bool regularizeTimesInPlace(std::vector<TimeStamp> *times) {
       return false;
     }
     auto index2timeSeconds = index2timeSeconds0.get();
+
+    auto samplingPeriod = Duration<double>::seconds(index2timeSeconds.getK());
+    if (!validSamplingPeriods.contains(samplingPeriod)) {
+      LOG(ERROR) << "Fitted sampling period "
+          << samplingPeriod.seconds() << " seconds out of bounds";
+      return false;
+    }
 
     Duration<double> maxGap = Duration<double>::minutes(5.0);
     int badCounter = 0;
@@ -170,6 +188,14 @@ bool regularizeTimesInPlace(std::vector<TimeStamp> *times) {
       LOG(INFO) << "   Offset time stamp: " << median.time;
       LOG(INFO) << "   The adjusted vector spans times from "
           << times->front() << " to " << times->back();
+    }
+    if (!validTimes.contains(times->front()) || !validTimes.contains(times->back())) {
+      LOG(ERROR) << "Rejected, because the time is out of bounds";
+      return false;
+    }
+    if (0.1*n < badCounter) {
+      LOG(ERROR) << "In fact, the proportion of bad samples is unacceptable.";
+      return false;
     }
   }
   return true;
