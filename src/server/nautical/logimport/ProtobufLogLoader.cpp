@@ -9,13 +9,70 @@
 #include <server/nautical/logimport/LogAccumulator.h>
 #include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/common/logging.h>
+#include <server/common/LineKM.h>
+#include <server/math/Majorize.h>
+#include <server/math/QuadForm.h>
 #include <vector>
 
 namespace sail {
 namespace ProtobufLogLoader {
 
-void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
 
+namespace {
+
+  struct LineFitSettings {
+    int iterations = 30;
+    double threshold = 1.0e-6;
+    double reg = 1.0e-12;
+  };
+
+
+  LineKM iterateRobustFit(
+      bool weighted,
+      const Arrayd &values,
+      const LineKM &line,
+      const LineFitSettings &settings) {
+    sail::LineFitQF qf = sail::LineFitQF::makeReg(settings.reg);
+    int n = values.size();
+    std::cout << "Info, starting at line " << line << std::endl;
+    for (int i = 0; i < n; i++) {
+      auto weight = weighted?
+          MajQuad::majorizeAbs(values[i] - line(i), settings.threshold).a : 1.0;
+      qf += weight*sail::LineFitQF::fitLine(i, values[i]);
+
+      std::cout << "  i=" << i << " weight=" << weight << " err=" << values[i] - line(i) << std::endl;
+    }
+    double km[2] = {0, 0};
+    qf.minimize2x1(km);
+    return LineKM(km[0], km[1]);
+  }
+
+  LineKM fitStraightLineRobustly(const Arrayd &values,
+      const LineFitSettings &settings) {
+    LineKM line(0.0, values.size()-1, values.first(), values.last());
+    for (int i = 0; i < settings.iterations; i++) {
+      line = iterateRobustFit(0 < i, values, line, settings);
+    }
+    return line;
+  }
+
+}
+
+void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
+  int n = times->size();
+  if (0 < n) {
+    std::vector<TimeStamp> partiallySorted = *times;
+    auto middle = partiallySorted.begin() + n/2;
+    std::nth_element(partiallySorted.begin(), partiallySorted.end(), middle);
+
+    TimeStamp offset = *middle;
+    Arrayd secondsToOffset(n);
+    for (int i = 0; i < n; i++) {
+      secondsToOffset[i] = ((*times)[i] - offset).seconds();
+    }
+    auto index2timeSeconds = fitStraightLineRobustly(
+        secondsToOffset, LineFitSettings());
+  }
 }
 
 namespace {
