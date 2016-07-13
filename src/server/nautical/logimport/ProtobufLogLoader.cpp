@@ -13,12 +13,16 @@
 #include <server/math/Majorize.h>
 #include <server/math/QuadForm.h>
 #include <vector>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 namespace ProtobufLogLoader {
 
 
 namespace {
+
+  const char badTimeMsg[] =
+      "The times in this channel were so crappy that we will just drop them!";
 
   struct LineFitSettings {
     int iterations = 4;
@@ -27,38 +31,55 @@ namespace {
   };
 
 
-  LineKM iterateRobustFit(
+  Optional<LineKM> iterateRobustFit(
       const Arrayd &values,
       const LineKM &line,
       const LineFitSettings &settings) {
     sail::LineFitQF qf = sail::LineFitQF::makeReg(settings.reg);
     int n = values.size();
-    std::cout << "  --- Line " << line << std::endl;
     for (int i = 0; i < n; i++) {
       auto weight =
           MajQuad::majorizeAbs(values[i] - line(i), settings.threshold).a;
       qf += weight*sail::LineFitQF::fitLine(i, values[i]);
     }
     double km[2] = {0, 0};
-    qf.minimize2x1(km);
+    if (!qf.minimize2x1(km)) {
+      LOG(WARNING) << "Failed to minimize quadratic form from "
+          << values.size() << " values starting from " << line;
+      if (n < 30) {
+        std::stringstream ss;
+        for (auto v: values) {
+          ss << v << " ";
+        }
+        LOG(WARNING) << "  The values were " << ss.str();
+      }
+      return Optional<LineKM>();
+    }
     return LineKM(km[0], km[1]);
   }
 
-  LineKM fitStraightLineRobustly(
+  Optional<LineKM> fitStraightLineRobustly(
       const LineKM &init,
       const Arrayd &values,
       const LineFitSettings &settings) {
     LineKM line = init;
     for (int i = 0; i < settings.iterations; i++) {
-      line = iterateRobustFit(values, line, settings);
+      auto l = iterateRobustFit(values, line, settings);
+      if (l.defined()) {
+        line = l.get();
+      } else {
+        return Optional<LineKM>();
+      }
     }
     return line;
   }
 
   double initializeSlope(const Arrayd &values) {
+    CHECK(2 <= values.size());
     int preferredStep = 3;
     int maxStep = values.size() - 1;
     int step = std::min(preferredStep, maxStep);
+    CHECK(1 <= step);
     int n = values.size() - step;
 
     std::vector<double> steps;
@@ -107,9 +128,9 @@ namespace {
  * This function robustly finds 'k' and 'm' and adjusts all times
  * 'y' in the vector that fit very badly with this line.
  */
-void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
+bool regularizeTimesInPlace(std::vector<TimeStamp> *times) {
   int n = times->size();
-  if (0 < n) {
+  if (2 <= n) {
     auto median = getMedianTimeStamp(*times);
     Arrayd secondsToOffset(n);
     for (int i = 0; i < n; i++) {
@@ -119,9 +140,14 @@ void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
     double initSlope = initializeSlope(secondsToOffset);
 
     auto initialLineFit = LineKM(initSlope, -initSlope*median.index);
-    auto index2timeSeconds = fitStraightLineRobustly(
+    auto index2timeSeconds0 = fitStraightLineRobustly(
         initialLineFit,
         secondsToOffset, LineFitSettings());
+
+    if (!index2timeSeconds0.defined()) {
+      return false;
+    }
+    auto index2timeSeconds = index2timeSeconds0.get();
 
     Duration<double> maxGap = Duration<double>::minutes(5.0);
     int badCounter = 0;
@@ -142,8 +168,11 @@ void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
       LOG(INFO) << "   Initial line fit: " << initialLineFit;
       LOG(INFO) << "   Optimized line fit: " << index2timeSeconds;
       LOG(INFO) << "   Offset time stamp: " << median.time;
+      LOG(INFO) << "   The adjusted vector spans times from "
+          << times->front() << " to " << times->back();
     }
   }
+  return true;
 }
 
 namespace {
@@ -188,7 +217,10 @@ void addToVector(const ValueSet &src, const OffsetWithFitnessError &offset,
   ValueSetToTypedVector<T>::extract(src, &dataVector);
 
   if (offset.defaultConstructed) {
-    regularizeTimesInPlace(&timeVector);
+    if (!regularizeTimesInPlace(&timeVector)) {
+      LOG(ERROR) << badTimeMsg;
+      return;
+    }
   }
 
   auto n = dataVector.size();
@@ -219,9 +251,10 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
   Logger::unpackTime(stream, &times);
 
   if (offset.defaultConstructed) {
-    regularizeTimesInPlace(&times);
+    if (!regularizeTimesInPlace(&times)) {
+      LOG(ERROR) << badTimeMsg;
+    }
   }
-  analyzeTimes(times);
 
   auto n = stream.text_size();
   if (n == 0) {

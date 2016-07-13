@@ -101,7 +101,7 @@ TEST(LoggerTest, RegularizeTimeInPlace) {
   times[0] = TimeStamp::UTC(2070, 5, 4, 19, 22, 0);
   times[4] = TimeStamp::UTC(2048, 5, 4, 19, 22, 0);
 
-  ProtobufLogLoader::regularizeTimesInPlace(&times);
+  EXPECT_TRUE(ProtobufLogLoader::regularizeTimesInPlace(&times));
 
   for (int i = 0; i < n; i++) {
     auto diff = times[i] - indexToTime(i);

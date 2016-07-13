@@ -14,7 +14,7 @@ namespace sail {
 struct LogAccumulator;
 namespace ProtobufLogLoader {
 
-void regularizeTimesInPlace(std::vector<TimeStamp> *times);
+bool regularizeTimesInPlace(std::vector<TimeStamp> *times);
 
 void load(const LogFile &data, LogAccumulator *dst);
 bool load(const std::string &filename, LogAccumulator *dst);
