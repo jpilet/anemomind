@@ -118,6 +118,21 @@ namespace {
     std::nth_element(times2.begin(), middle, times2.end());
     return *middle;
   }
+
+  Span<TimeStamp> validTimes(TimeStamp::UTC(2014, 1, 1, 1, 0, 0),
+
+                             // This is not that nice :-(
+                             TimeStamp::UTC(2034, 1, 1, 1, 0, 0));
+
+  bool allTimesAreValid(const std::vector<TimeStamp> &times) {
+    for (auto t: times) {
+      if (!validTimes.contains(t)) {
+        LOG(ERROR) << "Invalid time: " << t;
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 /*
@@ -129,16 +144,11 @@ namespace {
  * This function robustly finds 'k' and 'm' and adjusts all times
  * 'y' in the vector that fit very badly with this line.
  */
-bool regularizeTimesInPlace(std::vector<TimeStamp> *times) {
+bool regularizeTimesInPlace_(std::vector<TimeStamp> *times) {
 
   Span<Duration<double> > validSamplingPeriods(
       Duration<double>::seconds(0.001),
       Duration<double>::seconds(60));
-
-  Span<TimeStamp> validTimes(TimeStamp::UTC(2014, 1, 1, 1, 0, 0),
-
-                             // This is not that nice :-(
-                             TimeStamp::UTC(2034, 1, 1, 1, 0, 0));
 
   int n = times->size();
   if (2 <= n) {
@@ -189,16 +199,17 @@ bool regularizeTimesInPlace(std::vector<TimeStamp> *times) {
       LOG(INFO) << "   The adjusted vector spans times from "
           << times->front() << " to " << times->back();
     }
-    if (!validTimes.contains(times->front()) || !validTimes.contains(times->back())) {
-      LOG(ERROR) << "Rejected, because the time is out of bounds";
-      return false;
-    }
-    if (0.1*n < badCounter) {
+    if (0.2*n < badCounter) {
       LOG(ERROR) << "In fact, the proportion of bad samples is unacceptable.";
       return false;
     }
   }
   return true;
+}
+
+bool regularizeTimesInPlace(std::vector<TimeStamp> *times) {
+  auto result = regularizeTimesInPlace_(times);
+  return result && allTimesAreValid(*times);
 }
 
 namespace {
@@ -242,6 +253,7 @@ void addToVector(const ValueSet &src, const OffsetWithFitnessError &offset,
   ValueSetToTypedVector<TimeStamp>::extract(src, &timeVector);
   ValueSetToTypedVector<T>::extract(src, &dataVector);
 
+  CHECK(offset.defaultConstructed);
   if (offset.defaultConstructed) {
     if (!regularizeTimesInPlace(&timeVector)) {
       LOG(ERROR) << badTimeMsg;
@@ -276,6 +288,7 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
   vector<TimeStamp> times;
   Logger::unpackTime(stream, &times);
 
+  CHECK(offset.defaultConstructed);
   if (offset.defaultConstructed) {
     if (!regularizeTimesInPlace(&times)) {
       LOG(ERROR) << badTimeMsg;
