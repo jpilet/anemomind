@@ -21,70 +21,93 @@ namespace ProtobufLogLoader {
 namespace {
 
   struct LineFitSettings {
-    int iterations = 30;
+    int iterations = 4;
     double threshold = 1.0e-9;
     double reg = 1.0e-12;
   };
 
 
   LineKM iterateRobustFit(
-      bool weighted,
       const Arrayd &values,
       const LineKM &line,
       const LineFitSettings &settings) {
     sail::LineFitQF qf = sail::LineFitQF::makeReg(settings.reg);
     int n = values.size();
-    std::cout << "Info, starting at line " << line << std::endl;
+    std::cout << "  --- Line " << line << std::endl;
     for (int i = 0; i < n; i++) {
-      auto weight = weighted?
-          MajQuad::majorizeAbs(values[i] - line(i), settings.threshold).a : 1.0;
+      auto weight =
+          MajQuad::majorizeAbs(values[i] - line(i), settings.threshold).a;
       qf += weight*sail::LineFitQF::fitLine(i, values[i]);
-
-      std::cout << "  i=" << i << " weight=" << weight << " err=" << values[i] - line(i) << std::endl;
     }
     double km[2] = {0, 0};
     qf.minimize2x1(km);
     return LineKM(km[0], km[1]);
   }
 
-  LineKM fitStraightLineRobustly(const Arrayd &values,
+  LineKM fitStraightLineRobustly(
+      const LineKM &init,
+      const Arrayd &values,
       const LineFitSettings &settings) {
-    LineKM line(0.0, values.size()-1, values.first(), values.last());
+    LineKM line = init;
     for (int i = 0; i < settings.iterations; i++) {
-      line = iterateRobustFit(0 < i, values, line, settings);
+      line = iterateRobustFit(values, line, settings);
     }
     return line;
   }
 
   double initializeSlope(const Arrayd &values) {
-    int n = values.size() - 1;
+    int preferredStep = 1;
+    int maxStep = values.size() - 1;
+    int step = std::min(preferredStep, maxStep);
+    int n = values.size() - step;
+
     std::vector<double> steps;
     steps.reserve(n);
     for (int i = 0; i < n; i++) {
-      steps.push_back(values[i+1] - values[i]);
+      steps.push_back((values[i+step] - values[i])/step);
     }
+    assert(steps.size() == n);
     auto middle = steps.begin() + steps.size()/2;
     std::nth_element(steps.begin(), steps.end(), middle);
     return *middle;
   }
 
+  struct IndexedTimeStamp {
+    int index;
+    TimeStamp time;
+
+    bool operator<(const IndexedTimeStamp &other) const {
+      return time < other.time;
+    }
+  };
+
+  IndexedTimeStamp getMedianTimeStamp(const std::vector<TimeStamp> &times) {
+    int n = times.size();
+    std::vector<IndexedTimeStamp> times2;
+    times2.reserve(n);
+    for (int i = 0; i < n; i++) {
+      times2.push_back(IndexedTimeStamp{i, times[i]});
+    }
+    assert(times2.size() == times.size());
+    auto middle = times2.begin() + n/2;
+    std::nth_element(times2.begin(), times2.end(), middle);
+    return *middle;
+  }
 }
 
 void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
   int n = times->size();
   if (0 < n) {
-    std::vector<TimeStamp> partiallySorted = *times;
-    auto middle = partiallySorted.begin() + n/2;
-    std::nth_element(partiallySorted.begin(), partiallySorted.end(), middle);
-
-    TimeStamp offset = *middle;
+    auto median = getMedianTimeStamp(*times);
     Arrayd secondsToOffset(n);
     for (int i = 0; i < n; i++) {
-      secondsToOffset[i] = ((*times)[i] - offset).seconds();
+      secondsToOffset[i] = ((*times)[i] - median.time).seconds();
     }
+
     double slope = initializeSlope(secondsToOffset);
-    std::cout << "The slope is " << slope << std::endl;
+
     auto index2timeSeconds = fitStraightLineRobustly(
+        LineKM(slope, -slope*median.index),
         secondsToOffset, LineFitSettings());
   }
 }
