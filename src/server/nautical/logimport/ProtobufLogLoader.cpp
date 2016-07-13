@@ -22,7 +22,7 @@ namespace {
 
   struct LineFitSettings {
     int iterations = 30;
-    double threshold = 1.0e-6;
+    double threshold = 1.0e-9;
     double reg = 1.0e-12;
   };
 
@@ -56,6 +56,18 @@ namespace {
     return line;
   }
 
+  double initializeSlope(const Arrayd &values) {
+    int n = values.size() - 1;
+    std::vector<double> steps;
+    steps.reserve(n);
+    for (int i = 0; i < n; i++) {
+      steps.push_back(values[i+1] - values[i]);
+    }
+    auto middle = steps.begin() + steps.size()/2;
+    std::nth_element(steps.begin(), steps.end(), middle);
+    return *middle;
+  }
+
 }
 
 void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
@@ -70,6 +82,8 @@ void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
     for (int i = 0; i < n; i++) {
       secondsToOffset[i] = ((*times)[i] - offset).seconds();
     }
+    double slope = initializeSlope(secondsToOffset);
+    std::cout << "The slope is " << slope << std::endl;
     auto index2timeSeconds = fitStraightLineRobustly(
         secondsToOffset, LineFitSettings());
   }
