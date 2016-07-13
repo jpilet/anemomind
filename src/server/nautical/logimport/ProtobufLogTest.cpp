@@ -7,6 +7,7 @@
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 #include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/logimport/ProtobufLogLoader.h>
 #include <device/anemobox/FakeClockDispatcher.h>
 #include <device/anemobox/logger/Logger.h>
 
@@ -76,6 +77,33 @@ TEST(LoggerTest, LogTime) {
     auto x = aws[i];
     EXPECT_NEAR((x.time - trueGpsTime(i)).seconds(), 0.0, 1.0e-6);
     EXPECT_NEAR(aws[i].value.metersPerSecond(), 0.4*i, 0.01);
+  }
+}
+
+namespace {
+  TimeStamp indexToTime(int index) {
+    return TimeStamp::UTC(2016, 7, 13, 19, 22, 0) + double(index)*Duration<double>::seconds(2.4);
+  }
+}
+
+TEST(LoggerTest, RegularizeTimeInPlace) {
+  auto s = Duration<double>::seconds(1.0);
+
+
+  int n = 12;
+  std::vector<TimeStamp> times;
+  for (int i = 0; i < n; i++) {
+    times.push_back(indexToTime(i));
+  }
+
+  // One of the times is bad.
+  times[4] = TimeStamp::UTC(2048, 5, 4, 19, 22, 0);
+
+  ProtobufLogLoader::regularizeTimesInPlace(&times);
+
+  for (int i = 0; i < n; i++) {
+    auto diff = times[i] - indexToTime(i);
+    EXPECT_NEAR(diff.seconds(), 0.0, 0.001);
   }
 }
 

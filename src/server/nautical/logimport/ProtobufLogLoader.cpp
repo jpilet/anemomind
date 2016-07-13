@@ -14,6 +14,10 @@
 namespace sail {
 namespace ProtobufLogLoader {
 
+void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
+
+}
+
 namespace {
   struct OffsetWithFitnessError {
     OffsetWithFitnessError() {
@@ -54,6 +58,11 @@ void addToVector(const ValueSet &src, const OffsetWithFitnessError &offset,
   std::vector<T> dataVector;
   ValueSetToTypedVector<TimeStamp>::extract(src, &timeVector);
   ValueSetToTypedVector<T>::extract(src, &dataVector);
+
+  if (offset.defaultConstructed) {
+    regularizeTimesInPlace(&timeVector);
+  }
+
   auto n = dataVector.size();
   if (n == dataVector.size()) {
     for (size_t i = 0; i < n; i++) {
@@ -81,6 +90,9 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
   vector<TimeStamp> times;
   Logger::unpackTime(stream, &times);
 
+  if (offset.defaultConstructed) {
+    regularizeTimesInPlace(&times);
+  }
   analyzeTimes(times);
 
   auto n = stream.text_size();
