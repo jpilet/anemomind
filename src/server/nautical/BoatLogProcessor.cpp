@@ -258,8 +258,12 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   readArgs(amap);
 
   NavDataset raw = loadNavs(*amap, _boatid);
+  auto rawf = raw.fitBounds();
+  std::cout << "Raw bounds: " << rawf.lowerBound() << " to " << rawf.upperBound() << std::endl;
 
   NavDataset resampled = downSampleGpsTo1Hz(raw);
+  auto resampledf = resampled.fitBounds();
+  std::cout << "Resambled bounds: " << resampledf.lowerBound() << " to " << resampledf.upperBound() << std::endl;
 
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
