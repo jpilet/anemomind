@@ -34,10 +34,24 @@ void addToVector(const ValueSet &src, Duration<double> offset,
   }
 }
 
+void analyzeTimes(const std::vector<TimeStamp> times) {
+  int n = times.size() - 1;
+  Duration<double> maxStep = Duration<double>::seconds(0.0);
+  for (int i = 0; i < n; i++) {
+    maxStep = std::max(maxStep, times[i] - times[i+1]);
+  }
+
+  if (maxStep > Duration<double>::hours(2.0)) {
+    std::cout << "Max step backwards in time: " << maxStep.seconds() << std::endl;
+  }
+}
+
 void loadTextData(const ValueSet &stream, LogAccumulator *dst,
     Duration<double> offset) {
   vector<TimeStamp> times;
   Logger::unpackTime(stream, &times);
+
+  analyzeTimes(times);
 
   auto n = stream.text_size();
   if (n == 0) {
@@ -51,6 +65,7 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
     Nmea0183Loader::LogLoaderNmea0183Parser parser(dst, dstSourceName);
     Nmea0183Loader::Nmea0183LogLoaderAdaptor adaptor(&parser, dst, dstSourceName);
     for (int i = 0; i < n; i++) {
+      auto rawTime = times[i];
       auto t = times[i] + offset;
       parser.setProtobufTime(t);
       adaptor.setTime(t);
