@@ -253,7 +253,6 @@ void addToVector(const ValueSet &src, const OffsetWithFitnessError &offset,
   ValueSetToTypedVector<TimeStamp>::extract(src, &timeVector);
   ValueSetToTypedVector<T>::extract(src, &dataVector);
 
-  CHECK(offset.defaultConstructed);
   if (offset.defaultConstructed) {
     if (!regularizeTimesInPlace(&timeVector)) {
       LOG(ERROR) << badTimeMsg;
@@ -288,7 +287,6 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
   vector<TimeStamp> times;
   Logger::unpackTime(stream, &times);
 
-  CHECK(offset.defaultConstructed);
   if (offset.defaultConstructed) {
     if (!regularizeTimesInPlace(&times)) {
       LOG(ERROR) << badTimeMsg;
@@ -322,7 +320,7 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
   if (stream.shortname() == SHORTNAME) {addToVector<TYPE>(stream, offset, &(dst->_##HANDLE##sources[stream.source()]));}
       FOREACH_CHANNEL(ADD_VALUES_TO_VECTOR)
 #undef  ADD_VALUES_TO_VECTOR
-  loadTextData(stream, dst, offset);
+  //loadTextData(stream, dst, offset);
 }
 
 namespace {
