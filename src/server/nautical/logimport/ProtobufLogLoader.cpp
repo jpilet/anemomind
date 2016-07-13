@@ -98,6 +98,15 @@ namespace {
   }
 }
 
+/*
+ * We would expect that in most cases, an index 'x'
+ * in a vector of timestamps 'y' maps to 'y' as
+ *
+ *    y = k*x + m
+ *
+ * This function robustly finds 'k' and 'm' and adjusts all times
+ * 'y' in the vector that fit very badly with this line.
+ */
 void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
   int n = times->size();
   if (0 < n) {
@@ -129,9 +138,10 @@ void regularizeTimesInPlace(std::vector<TimeStamp> *times) {
     if (0 < badCounter) {
       LOG(WARNING) << "When loading some log file, " << badCounter <<
           " of " << n <<
-          " times for some channel were really bad and had to be fixed.";
-      LOG(INFO) << "Initial line fit: " << initialLineFit;
-      LOG(INFO) << "Optimized line fit: " << index2timeSeconds;
+          " times for some channel were really bad and had to be adjusted.";
+      LOG(INFO) << "   Initial line fit: " << initialLineFit;
+      LOG(INFO) << "   Optimized line fit: " << index2timeSeconds;
+      LOG(INFO) << "   Offset time stamp: " << median.time;
     }
   }
 }
