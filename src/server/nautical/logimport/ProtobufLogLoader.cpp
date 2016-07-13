@@ -320,7 +320,7 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
   if (stream.shortname() == SHORTNAME) {addToVector<TYPE>(stream, offset, &(dst->_##HANDLE##sources[stream.source()]));}
       FOREACH_CHANNEL(ADD_VALUES_TO_VECTOR)
 #undef  ADD_VALUES_TO_VECTOR
-  //loadTextData(stream, dst, offset);
+  loadTextData(stream, dst, offset);
 }
 
 namespace {
