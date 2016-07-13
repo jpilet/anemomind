@@ -23,8 +23,11 @@ angular.module('www2App', [
       // Add authorization token to headers
       request: function (config) {
         config.headers = config.headers || {};
-        if ($cookieStore.get('token')) {
-          config.headers.Authorization = 'Bearer ' + $cookieStore.get('token');
+        var token=$cookieStore.get('token');
+
+        console.log('--------- token',token)
+        if (token) {
+          config.headers.Authorization = 'Bearer ' + token;
         }
         return config;
       },
