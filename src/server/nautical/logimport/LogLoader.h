@@ -8,6 +8,7 @@
 
 #include <server/nautical/NavDataset.h>
 #include <server/nautical/logimport/LogAccumulator.h>
+#include <server/nautical/logimport/LogLoaderSettings.h>
 
 namespace Poco {class Path;}
 
@@ -28,6 +29,9 @@ class LogFile;
  */
 class LogLoader {
  public:
+  LogLoader(const LogLoaderSettings &settings
+      = LogLoaderSettings());
+
   // Load a file.
   bool loadFile(const std::string &filename);
 
@@ -37,8 +41,10 @@ class LogLoader {
 
   // Conveniency functions when there is just one thing
   // to load.
-  static NavDataset loadNavDataset(const std::string &name);
-  static NavDataset loadNavDataset(const Poco::Path &name);
+  static NavDataset loadNavDataset(const std::string &name, const LogLoaderSettings &settings
+      = LogLoaderSettings());
+  static NavDataset loadNavDataset(const Poco::Path &name, const LogLoaderSettings &settings
+      = LogLoaderSettings());
 
   void addToDispatcher(Dispatcher *dst) const;
   NavDataset makeNavDataset() const;
@@ -51,6 +57,7 @@ class LogLoader {
   void load(const LogFile &data);
 
  private:
+  LogLoaderSettings _settings;
   LogAccumulator _acc;
   void loadValueSet(const ValueSet &set);
   void loadTextData(const ValueSet &stream);

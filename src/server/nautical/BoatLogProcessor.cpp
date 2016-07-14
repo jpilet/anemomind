@@ -258,7 +258,6 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   readArgs(amap);
 
   NavDataset raw = loadNavs(*amap, _boatid);
-
   NavDataset resampled = downSampleGpsTo1Hz(raw);
 
   // Note: the grammar does not have access to proper true wind.
@@ -279,6 +278,14 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
+  }
+
+  if (_debug) {
+    auto bounds = resampled.computeBounds();
+    if (bounds.initialized()) {
+      LOG(INFO) << "Measurements spanning " <<
+          bounds.minv() << " to " << bounds.maxv() << std::endl;
+    }
   }
 
   outputTargetSpeedTable(_debug, 

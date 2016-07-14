@@ -9,6 +9,7 @@ add_library(logimport_ProtobufLogLoader
 target_link_libraries(logimport_ProtobufLogLoader
                       anemobox_Logger
                       anemobox_Dispatcher
+                      logimport_TimeReconstructor
                      )  
 
 add_library(logimport_Nmea0183Loader
@@ -150,3 +151,18 @@ target_link_libraries(logimport_summary
                       logimport_LogLoader
                       nautical_NavDataset
                      )
+
+add_library(logimport_TimeReconstructor
+            TimeReconstructor.h
+            TimeReconstructor.cpp
+            )
+
+target_link_libraries(logimport_TimeReconstructor
+                      common_logging
+                      common_TimeStamp
+                     )
+cxx_test(logimport_TimeReconstructorTest
+         TimeReconstructorTest.cpp
+         logimport_TimeReconstructor
+         gtest_main
+         )

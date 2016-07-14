@@ -22,7 +22,8 @@ TEST(ScreenRecordingTest, screenAtTest) {
   NavDataset navs = LogLoader::loadNavDataset(nmeaFile);
 
   int n = getNavSize(navs);
-  EXPECT_EQ(11, n);
+  EXPECT_LE(10, n);
+  EXPECT_LE(n, 11);
   int failureCount = 0;
   for (int i = 0; i < n; ++i) {
     ScreenInfo info;

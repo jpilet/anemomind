@@ -7,6 +7,7 @@
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 #include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/logimport/ProtobufLogLoader.h>
 #include <device/anemobox/FakeClockDispatcher.h>
 #include <device/anemobox/logger/Logger.h>
 
@@ -24,10 +25,12 @@ TEST(ProtobufLogTest, LoadAFile) {
 }
 
 TEST(ProtobufLogTest, LoadRudderData) {
-  auto data = LogLoader::loadNavDataset(
+  LogLoader loader(LogLoaderSettings::relaxed());
+  loader.load(
       PathBuilder::makeDirectory(Env::SOURCE_DIR)
         .pushDirectory("datasets")
         .pushDirectory("boat55dc89e6838caff0240960a9_rudder").get());
+  auto data = loader.makeNavDataset();
   EXPECT_LT(12/*sufficiently large*/, data.samples<RUDDER_ANGLE>().size());
 }
 

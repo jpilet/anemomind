@@ -8,6 +8,7 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/common/string.h>
 #include <server/nautical/NavCompatibility.h>
+#include <server/nautical/logimport/Nmea0183Loader.h>
 
 using namespace sail;
 
@@ -19,7 +20,7 @@ namespace {
 }
 
 TEST(Nmea0183Test, TestComplete) {
-  LogLoader loader;
+  LogLoader loader(LogLoaderSettings::relaxed());
   loader.loadNmea0183(&testfile001);
   auto navs = loader.makeNavDataset();
   EXPECT_GE(getNavSize(navs), 0); // Number of times RMC occurs in the string to be parsed
@@ -32,7 +33,7 @@ namespace {
 }
 
 TEST(Nmea0183Test, TestComplete2) {
-  LogLoader loader;
+  LogLoader loader(LogLoaderSettings::relaxed());
   loader.loadNmea0183(&testfile002);
   auto navs = loader.makeNavDataset();
   EXPECT_GE(getNavSize(navs), 0);
@@ -43,10 +44,15 @@ TEST(Nmea0183Test, TestIncomplete) {
   const char dataOneTimeStamp[] = "$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileOneTimeStamp(dataOneTimeStamp);
 
-  LogLoader loader;
+  LogLoader loader(LogLoaderSettings::relaxed());
   loader.loadNmea0183(&testfileOneTimeStamp);
   auto navs = loader.makeNavDataset();
-  EXPECT_EQ(getNavSize(navs), 1);
+
+
+  // One timestamp is too little to assign values to measurements.
+  EXPECT_EQ(getNavSize(navs), 0);
+
+/*
   auto nav = getNav(navs, 0);
   EXPECT_TRUE(isFinite(nav.geographicPosition().lon()));
   EXPECT_TRUE(isFinite(nav.geographicPosition().lat()));
@@ -61,7 +67,7 @@ TEST(Nmea0183Test, TestIncomplete) {
   EXPECT_FALSE(isFinite(nav.externalTwa()));
   EXPECT_FALSE(isFinite(nav.externalTws()));
   EXPECT_FALSE(isFinite(nav.externalTwdir()));
-  EXPECT_FALSE(isFinite(nav.aws()));
+  EXPECT_FALSE(isFinite(nav.aws()));*/
 }
 
 
@@ -69,27 +75,15 @@ TEST(Nmea0183Test, TestSkipDueToLongThreshold) {
   /*
    * Nmea data with 3 time-pos sentences.
    *
-   *
-   * OBSOLETE: The first time-pos sentence should be dropped, because whatever
-   * OBSOLETE: data preceding it (none in this case) could be arbitrarily old.
-   *
-   * OBSOLETE: The last time-pos sentence occurs more than 2 minutes after the time-pos sentence before.
-   * OBSOLETE: Therefore, the time of the data collected in between cannot be assigned a sufficiently accurate time.
-   *
-   * Explanation: There will be as many navs as there are time-pos sequences.
-   * If a sample read from a log file is considered unreliable, it is simply
-   * not put in the channel of the dispatcher when the log file is loaded.
-   *
-   *
    */
   const char dataWithALongGap[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                          "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                          "$IIRMC,114104,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileWithALongGap(dataWithALongGap);
-  LogLoader loader;
+  LogLoader loader(LogLoaderSettings::relaxed());
   loader.loadNmea0183(&testfileWithALongGap);
   auto navs = loader.makeNavDataset();
-  EXPECT_EQ(getNavSize(navs), 3);
+  EXPECT_LE(1, getNavSize(navs));
 }
 
 
@@ -108,10 +102,37 @@ TEST(Nmea0183Test, TestIncludeLastTwo) {
                                         "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                                         "$IIRMC,113904,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileWithoutLongGap(dataWithoutLongGap);
-  LogLoader loader;
+  LogLoader loader(LogLoaderSettings::relaxed());
   loader.loadNmea0183(&testfileWithoutLongGap);
   auto navs = loader.makeNavDataset();
-  EXPECT_EQ(getNavSize(navs), 3);
+  EXPECT_LE(2, getNavSize(navs));
+}
+
+TEST(Nmea0183, Reconstructor) {
+  Nmea0183Loader::Nmea0183Reconstructor rec;
+  rec.addValue<AWA>(Angle<double>::degrees(1.0));
+  rec.addValue<DATE_TIME>(TimeStamp::UTC(2016, 7, 14, 17, 23, 0));
+  rec.addValue<AWA>(Angle<double>::degrees(2.0));
+  rec.addValue<AWA>(Angle<double>::degrees(3.0));
+  rec.addValue<AWA>(Angle<double>::degrees(4.0));
+  rec.addValue<DATE_TIME>(TimeStamp::UTC(2016, 7, 14, 17, 23, 4));
+  rec.addValue<AWA>(Angle<double>::degrees(1.0));
+
+
+  LogAccumulator acc;
+  EXPECT_TRUE(rec.reconstructAndOutput(
+        "test", &acc, TimeReconstructorSettings()));
+
+  auto awaSources = acc.getAWAsources();
+  EXPECT_EQ(1, awaSources->size());
+  EXPECT_EQ(1, awaSources->count("test"));
+  auto awa = awaSources->find("test")->second;
+  EXPECT_EQ(awa.size(), 3);
+  for (int i = 0; i < 3; i++) {
+    TimedValue<Angle<double> > x = awa[i];
+    EXPECT_EQ(x.time, TimeStamp::UTC(2016, 7, 14, 17, 23, 1 + i));
+    EXPECT_NEAR(x.value.degrees(), i+2, 1.0e-5);
+  }
 }
 
 

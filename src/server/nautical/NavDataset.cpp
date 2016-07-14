@@ -202,10 +202,19 @@ namespace {
   };
 }
 
-NavDataset NavDataset::fitBounds() const {
+Span<TimeStamp> NavDataset::computeBounds() const {
   BoundVisitor visitor;
   visitDispatcherChannels(_dispatcher.get(), &visitor);
-  return NavDataset(_dispatcher, _merged, visitor.lowerBound(), visitor.upperBound());
+  return visitor.lowerBound().defined() && visitor.upperBound().defined()?
+    Span<TimeStamp>(visitor.lowerBound(), visitor.upperBound())
+    : Span<TimeStamp>();
+}
+
+NavDataset NavDataset::fitBounds() const {
+  auto bds = computeBounds();
+  return bds.initialized()?
+      NavDataset(_dispatcher, _merged, bds.minv(), bds.maxv())
+      : NavDataset();
 }
 
 void NavDataset::outputSummary(std::ostream *dst) const {

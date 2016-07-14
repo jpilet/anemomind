@@ -9,14 +9,16 @@
 #define SERVER_NAUTICAL_LOGIMPORT_PROTOBUFLOGLOADER_H_
 
 #include <device/anemobox/logger/Logger.h>
+#include <server/nautical/logimport/LogLoaderSettings.h>
 
 namespace sail {
 struct LogAccumulator;
 namespace ProtobufLogLoader {
 
-
-void load(const LogFile &data, LogAccumulator *dst);
-bool load(const std::string &filename, LogAccumulator *dst);
+void load(const LogFile &data, LogAccumulator *dst,
+    const LogLoaderSettings &settings);
+bool load(const std::string &filename, LogAccumulator *dst,
+    const LogLoaderSettings &settings);
 
 }
 } /* namespace sail */

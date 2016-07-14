@@ -146,7 +146,8 @@ namespace {
   template <DataCode Code>
   Optional<typename TypeForCode<Code>::type> getValue(
       const NavDataset &src, const TimeStamp &time) {
-    auto nearest = src.samples<Code>().nearest(time);
+    const auto &samples = src.samples<Code>();
+    auto nearest = samples.nearest(time);
     if (nearest.defined()) {
       if (fabs(nearest.get().time - time) < maxMergeDif) {
         return Optional<typename TypeForCode<Code>::type>(nearest.get().value);
@@ -158,7 +159,9 @@ namespace {
   template<DataCode code, class T>
   void setNavValue(const NavDataset &dataset, TimeStamp time, Nav *dst, void (Nav::* set)(T)) {
       auto x = getValue<code>(dataset, time);
-      if (x.defined()) { ((*dst).*set)(x()); }
+      if (x.defined()) {
+        ((*dst).*set)(x());
+      }
   }
 
   template <DataCode Code>
