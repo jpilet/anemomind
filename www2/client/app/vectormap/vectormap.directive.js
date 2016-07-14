@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('vectormap', function ($timeout, $window, boatList) {
+  .directive('vectormap', function ($timeout, $window, boatList, Auth) {
     return {
       template: '<canvas style="width:100%;height:100%"></canvas>',
       restrict: 'EA',
@@ -23,6 +23,7 @@ angular.module('www2App')
                 + ".png32?access_token="
                 + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
             },
+            token: Auth.getToken(),
             maxNumCachedTiles: 256,
             initialLocation: scope.mapLocation,
             onLocationChange: function(canvasTilesRenderer) {

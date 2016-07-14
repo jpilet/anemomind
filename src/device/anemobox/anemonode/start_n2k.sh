@@ -23,7 +23,7 @@ IP=${BIN}/ip
 
 # do we need to configure can0?
 if ! (ifconfig | grep -q can0) ; then
-  $IP link set can0 type can bitrate 250000 triple-sampling on
+  $IP link set can0 type can bitrate 250000 triple-sampling on restart-ms 100
   while ! $IP link set can0 up; do sleep 1; done
   $IP link set can0 j1939 on
   $IP addr add j1939 name $ADDR dev can0

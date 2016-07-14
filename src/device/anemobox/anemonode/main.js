@@ -20,6 +20,7 @@ var withHttp = true;
 var withIMU = true;
 var withCUPS = false;
 var withNMEA2000 = true;
+var withWatchdog = true;
 
 var spiBugDetected = false;
 
@@ -134,13 +135,7 @@ function startLogging() {
 }
 
 if (withLogger) {
-  config.get(function(err, config) {
-    if (config && config.boatId) {
-      startLogging();
-    } else {
-      console.log('Not logging because the box is not assigned to any boat.');
-    }
-  });
+  startLogging();
 }
 
 require('./components/RpcAssignBoat').register(btrpcFuncTable);
@@ -170,4 +165,8 @@ if (withNMEA2000) {
       logger.flush();
     }
   });
+}
+
+if (withWatchdog) {
+  require('./components/watchdog.js').startWatchdog();
 }

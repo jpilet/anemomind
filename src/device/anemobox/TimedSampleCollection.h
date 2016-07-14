@@ -5,35 +5,14 @@
 #include <deque>
 #include <server/common/Optional.h>
 #include <server/common/TimeStamp.h>
+#include <server/common/TimedValue.h>
+#include <server/nautical/types/SampledSignal.h>
 #include <iostream>
 
 namespace sail {
 
-template <typename T>
-struct TimedValue {
-  TimedValue() {}
-  TimedValue(TimeStamp time, T value) : time(time), value(value) { }
-
-  TimeStamp time;
-  T value;
-
-  bool operator < (const TimedValue<T>& other) const {
-    return time < other.time;
-  }
-};
-
-template <typename T>
-bool operator<(const TimedValue<T> &a, TimeStamp b) {
-  return a.time < b;
-}
-
-template <typename T>
-bool operator<(const TimeStamp &a, const TimedValue<T> &b) {
-  return a < b.time;
-}
-
 template<typename T>
-class TimedSampleCollection {
+class TimedSampleCollection : public SampledSignal<T> {
  public:
    typedef std::deque<TimedValue<T>> TimedVector;
 
@@ -75,7 +54,12 @@ class TimedSampleCollection {
      trim();
    }
 
-   size_t size() const { return _samples.size(); }
+   size_t size() const override { return _samples.size(); }
+
+   TimedValue<T> operator[](int i) const override {
+     return _samples[i];
+   }
+
    bool empty() const { return _samples.empty(); }
    T lastValue() const { return _samples.back().value; }
    TimeStamp lastTimeStamp() const { return _samples.back().time; }

@@ -1,14 +1,11 @@
 // Data source: NMEA0183
 
 var SerialPort = require("serialport").SerialPort
-var fs = require('fs');
 
 var nmea0183Port;
 
 function init(nmea0183PortPath) {
-  // Let flow control make the port work.
-  fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_pinmux', 'mode0', function() {});
-  fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_value', 'high', function() {});
+  require('./components/pinconfig').activateNmea0183();
 
   var port = new SerialPort(nmea0183PortPath, {
     baudrate: 4800

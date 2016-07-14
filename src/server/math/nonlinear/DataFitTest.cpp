@@ -50,7 +50,6 @@ TEST(DataFit, QuadraticFit) {
   }
   irls::Settings settings;
   settings.iters = 20;
-  settings.logWeighting = false;
   auto results = DataFit::quadraticFitWithInliers(n, observations, 0.2, 2, 1.0, settings);
 
   for (int i = 0; i < n; i++) {

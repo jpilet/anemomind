@@ -12,15 +12,15 @@ using namespace NavCompat;
 
 namespace {
 
-NavDataset makeTileElement(TileKey tileKey,
-                           const NavDataset& navs,
+Array<Nav> makeTileElement(TileKey tileKey,
+                           const Array<Nav>& navs,
                            int maxNumNavs) {
-  if (getNavSize(navs) <= maxNumNavs) {
+  if (navs.size() <= maxNumNavs) {
     return navs;
   }
 
   CurveSimplifier curve(false);
-  for (const Nav& nav : Range(navs)) {
+  for (const Nav& nav : navs) {
     curve.addPoint(
        posToTileX(0, nav.geographicPosition()), 
        posToTileY(0, nav.geographicPosition()));
@@ -28,12 +28,12 @@ NavDataset makeTileElement(TileKey tileKey,
   std::vector<int> priorities = curve.priorities();
 
   ArrayBuilder<Nav> result;
-  for (int i = 0; i < getNavSize(navs); ++i) {
+  for (int i = 0; i < navs.size(); ++i) {
     if (priorities[i] < maxNumNavs) {
-      result.add(getNav(navs, i));
+      result.add(navs[i]);
     }
   }
-  return fromNavs(result.get());
+  return result.get();
 }
 
 } // namespace
@@ -62,18 +62,18 @@ std::string TileKey::stringKey() const {
   return stringFormat("s%dx%dy%d", _scale, _x, _y);
 }
 
-Array<NavDataset> generateTiles(TileKey tileKey,
-                                const NavDataset& navs,
+Array<Array<Nav>> generateTiles(TileKey tileKey,
+                                const Array<Nav>& navs,
                                 int maxNumNavs) {
-  Array<bool> inOrOut = toArray(map(Range(navs),
+  Array<bool> inOrOut = toArray(map(navs,
       [&] (const Nav& nav) -> bool {
           return tileKey.contains(nav.geographicPosition());
       }));
-  ArrayBuilder<NavDataset> result;
+  ArrayBuilder<Array<Nav>> result;
 
   // The curve might enter and leave the tile multiple times.
   // Group together consecutive points that are in the tile.
-  int n = getNavSize(navs);
+  int n = navs.size();
   for (int i = 0; i < n; /*The missing inc here is not a bug!*/) {
     int first = inOrOut.sliceFrom(i).find(true);
     if (first == -1) {
@@ -89,16 +89,16 @@ Array<NavDataset> generateTiles(TileKey tileKey,
     }
 
     if (end > first) {
-      result.add(makeTileElement(tileKey, slice(navs, first, end), maxNumNavs));
+      result.add(makeTileElement(tileKey, navs.slice(first, end), maxNumNavs));
     }
     i = end;
   }
   return result.get();
 }
 
-std::set<TileKey> tilesForNav(const NavDataset& navs, int maxScale) {
+std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale) {
   std::set<TileKey> result;
-  for (const Nav& nav : Range(navs)) {
+  for (const Nav& nav : navs) {
     for (int scale = 0; scale < maxScale; scale++) {
       result.insert(TileKey::fromPos(scale, nav.geographicPosition()));
     }

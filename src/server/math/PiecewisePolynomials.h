@@ -124,7 +124,7 @@ namespace INTERNAL {
           Joint() : _left(-1), _middle(-1), _right(-1), _increase(NAN) {}
 
           Joint(int left, int middle, int right, Integral1d<QuadForm<N, 1> > itg) :
-            _left(left), _middle(middle), _right(right), _itg(itg) {
+            _itg(itg), _left(left), _middle(middle), _right(right) {
             computeIncrease();
           }
 
@@ -367,7 +367,8 @@ template <int N>
 Array<Piece<N> > optimizeForSegmentCount(Arrayd X, Arrayd Y,
     int sampleCount, LineKM sampleToX, int segmentCount) {
   using namespace INTERNAL;
-  Integral1d<QuadForm<N, 1> > itg(buildQfs<N>(X, Y, sampleCount, sampleToX));
+  Integral1d<QuadForm<N, 1> > itg(
+      buildQfs<N>(X, Y, sampleCount, sampleToX), QuadForm<N, 1>(0.0));
   Joints<N> joints(itg);
   int remainingJointCount = segmentCount-1;
   auto merges = joints.buildMerges(remainingJointCount);

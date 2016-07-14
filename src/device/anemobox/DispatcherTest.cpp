@@ -1,8 +1,13 @@
 #include <device/anemobox/Dispatcher.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gmock/gmock-matchers.h>
+#include <gmock/gmock-more-matchers.h>
 
 using namespace sail;
+
+using ::testing::ResultOf;
+using ::testing::DoubleEq;
 
 TEST(DispatcherTest, SingleValTest) {
   Dispatcher dispatcher;
@@ -61,5 +66,68 @@ TEST(DispatcherTest, InsertValues) {
 
   EXPECT_EQ(3, dispatcher.get<AWA>()->dispatcher()->values().size());
   EXPECT_NEAR(16, dispatcher.val<AWA>().degrees(), 1e-6);
+}
+
+class MockListener : public Listener<Angle<>> {
+public:
+    MOCK_METHOD1(onNewValue, void(const ValueDispatcher<Angle<>> &));
+};
+
+double degrees(const ValueDispatcher<Angle<>>& d) {
+    EXPECT_TRUE(d.hasValue());
+    return d.lastValue().degrees();
+}
+
+TEST(DispatcherTest, Publish) {
+    Dispatcher dispatcher;
+    MockListener listener;
+    dispatcher.get<AWA>()->dispatcher()->subscribe(&listener);
+    
+    EXPECT_CALL(listener, onNewValue(ResultOf(degrees, DoubleEq(7))));
+    dispatcher.publishValue(AWA, "test", Angle<>::degrees(7));
+    
+    // Different channel, should not call onNewValue
+    dispatcher.publishValue(GPS_BEARING, "test", Angle<>::degrees(3));
+
+    // Second value on AWA channel, should call onNewValue
+    EXPECT_CALL(listener, onNewValue(ResultOf(degrees, DoubleEq(9))));
+    dispatcher.publishValue(AWA, "test", Angle<>::degrees(9));
+}
+
+TEST(DispatcherTest, TestValueFromSourceAt) {
+  Dispatcher dispatcher;
+
+  TimeStamp base = TimeStamp::now();
+  TimedSampleCollection<Angle<double>>::TimedVector values;
+
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(0), Angle<>::degrees(17)));
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(1), Angle<>::degrees(18)));
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(2), Angle<>::degrees(19)));
+
+  // 98 sec Gap
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(100), Angle<>::degrees(3)));
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(101), Angle<>::degrees(2)));
+                                       
+  dispatcher.insertValues<Angle<double>>(AWA, "source", values);
+
+  Duration<> limit = Duration<>::seconds(2);
+  Optional<Angle<>> r =
+    dispatcher.valueFromSourceAt<AWA>("source", base + Duration<>::seconds(1.3), limit);
+  EXPECT_TRUE(r.defined());
+  EXPECT_NEAR(r.get().degrees(), 18, 1e-5);
+
+  // try to lookup within the gap
+  r = dispatcher.valueFromSourceAt<AWA>("source", base + Duration<>::seconds(60), limit);
+  EXPECT_FALSE(r.defined());
+
+  // lookup after the gap
+  r = dispatcher.valueFromSourceAt<AWA>("source", base + Duration<>::seconds(100), limit);
+  EXPECT_TRUE(r.defined());
+  EXPECT_NEAR(r.get().degrees(), 3, 1e-5);
 }
 

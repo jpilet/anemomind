@@ -10,10 +10,10 @@
 #include <Eigen/SparseCore>
 #include <server/common/Array.h>
 #include <server/common/Span.h>
-#include <ceres/ceres.h>
 #include <server/common/math.h>
 #include <server/math/Majorize.h>
 #include <server/math/QuadForm.h>
+#include <server/math/lapack/BandMatrix.h>
 
 namespace sail {
 namespace irls {
@@ -53,8 +53,6 @@ struct Settings {
  // I guess this is a suitable final weight in most cases.
  // Not much need to tune it.
  double finalWeight = 10000;
-
- bool logWeighting = true;
 };
 
 typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> DiagMat;
@@ -103,6 +101,9 @@ class WeightingStrategy {
   virtual void apply(
       double constraintWeight,
       const Arrayd &residuals, QuadCompiler *dst) = 0;
+
+  virtual void initialize(const Settings &s, QuadCompiler *dst) = 0;
+
   virtual ~WeightingStrategy() {}
 
   typedef std::shared_ptr<WeightingStrategy> Ptr;
@@ -121,6 +122,12 @@ class WeightingStrategyArray : public WeightingStrategy {
       double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) {
     for (T &s: _strategies) {
       s.apply(constraintWeight, residuals, dst);
+    }
+  }
+
+  void initialize(const Settings &s, QuadCompiler *dst) {
+    for (T &x: _strategies) {
+      x.initialize(s, dst);
     }
   }
 
@@ -150,6 +157,8 @@ class ConstraintGroup : public WeightingStrategy {
   void apply(
         double constraintWeight,
         const Arrayd &residuals, QuadCompiler *dst);
+
+  void initialize(const Settings &s, QuadCompiler *dst);
  private:
   Array<Spani> _spans;
   int _activeCount;
@@ -165,14 +174,16 @@ class BinaryConstraintGroup : public WeightingStrategy {
 
   void apply(double constraintWeight,
       const Arrayd &residuals, QuadCompiler *dst);
+
+  void initialize(const Settings &s, QuadCompiler *dst);
  private:
   Spani _a, _b;
 };
 
 class NonNegativeConstraint : public WeightingStrategy {
  public:
-  NonNegativeConstraint() : _index(-1), _lastWeight(0) {}
-  NonNegativeConstraint(int index) : _index(index), _lastWeight(0) {}
+  NonNegativeConstraint() : _lastWeight(0), _index(-1) {}
+  NonNegativeConstraint(int index) :  _lastWeight(0), _index(index) {}
   void apply(
     double constraintWeight,
     const Arrayd &residuals, QuadCompiler *dst) {
@@ -194,6 +205,10 @@ class NonNegativeConstraint : public WeightingStrategy {
 
   }
 
+  void initialize(const Settings &s, QuadCompiler *dst) {
+    dst->setWeight(_index, s.initialWeight);
+  }
+
   static WeightingStrategy::Ptr make(int index);
   static WeightingStrategy::Ptr make(Arrayi inds);
  private:
@@ -212,6 +227,10 @@ class Constant : public WeightingStrategy {
     dst->addQuad(_index, _quad);
   }
 
+  void initialize(const Settings &s, QuadCompiler *dst) {
+    dst->setWeight(_index, s.finalWeight);
+  }
+
   static WeightingStrategy::Ptr make(Arrayi inds, MajQuad quad);
   static WeightingStrategy::Ptr make(int index, MajQuad quad);
  private:
@@ -224,16 +243,65 @@ struct Results {
  Eigen::VectorXd residuals;
 };
 
-Results solveFull(const Eigen::SparseMatrix<double> &A,
+/********************************************************************
+ *
+ * General sparse problems
+ *
+ */
+Results solve(const Eigen::SparseMatrix<double> &A,
     const Eigen::VectorXd &B,
     Array<std::shared_ptr<WeightingStrategy> > strategies,
     Settings settings);
 
-Eigen::VectorXd solve(
-    const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
-    WeightingStrategies strategies,
-    Settings settings);
 
+
+
+
+
+/*********************************************************************
+ *
+ * Problems that result in a band matrix
+ *
+ */
+class DenseBlock {
+public:
+  virtual int lhsCols() const = 0;
+  virtual int rhsCols() const = 0;
+  virtual int requiredRows() const = 0;
+  virtual int requiredCols() const = 0;
+
+  virtual void accumulateWeighted(const Eigen::VectorXd &weights,
+      BandMatrix<double> *AtA, MDArray2d *AtB) const = 0;
+
+  int minDiagWidth() const;
+
+  virtual void eval(const Eigen::MatrixXd &X,
+      Eigen::VectorXd *residuals) const = 0;
+
+  typedef std::shared_ptr<DenseBlock> Ptr;
+  virtual ~DenseBlock() {}
+};
+
+
+Eigen::Map<Eigen::MatrixXd,
+  Eigen::Unaligned,
+    Eigen::Stride<Eigen::Dynamic, 1> > bandMatrixView(
+        BandMatrix<double> *src, int N, int offset);
+
+Eigen::Map<Eigen::MatrixXd,
+    Eigen::Unaligned, Eigen::OuterStride<> > arrayView(
+        MDArray2d *X, int rows, int cols, int rowOffsest);
+
+
+struct ResultsMat {
+  Eigen::MatrixXd X;
+  Eigen::VectorXd residuals;
+};
+
+ResultsMat solveBanded(int aRows, int aCols,
+    const sail::Array<DenseBlock::Ptr> &blocks,
+    Array<std::shared_ptr<WeightingStrategy> > strategies,
+    Settings settings);
 
 }
 }

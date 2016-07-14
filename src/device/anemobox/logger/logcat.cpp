@@ -65,6 +65,23 @@ void formatValues(const vector<TimeStamp>& times,
     result->push_back(TimedString(times[i], s.str()));
   }
 }
+
+template <>
+void formatValues<TimeStamp>(const vector<TimeStamp>& times,
+                             const vector<TimeStamp>& values,
+                             const string& name,
+                             vector<TimedString>* result) {
+  if (times.size() != values.size()) {
+    LOG(WARNING) << "time and value array do not have the same size!";
+  }
+  const int len = min(times.size(), values.size());
+  for (int i = 0; i < len; ++i) {
+    ostringstream s;
+    s << name << ": " << values[i].fullPrecisionString();
+    result->push_back(TimedString(times[i], s.str()));
+  }
+}
+
   
 void streamCat(const ValueSet& valueSet, vector<TimedString>* entries) {
   vector<TimeStamp> times;
@@ -99,6 +116,11 @@ void streamCat(const ValueSet& valueSet, vector<TimedString>* entries) {
     vector<AbsoluteOrientation> values;
     Logger::unpack(valueSet.orient(), &values);
     formatValues(times, values, prefix, entries);
+  }
+  if (valueSet.exttimes_size() > 0) {
+    vector<TimeStamp> extTimes;
+    Logger::unpack(valueSet.exttimes(), &extTimes);
+    formatValues(times, extTimes, prefix, entries);
   }
 
   for (int i = 0; i < valueSet.text_size(); ++i) {

@@ -60,11 +60,13 @@ class ValueDispatcher {
   ValueDispatcher(Clock* clock, int bufferLength)
     : values_(bufferLength), clock_(clock) { }
 
-  void subscribe(Listener<T> *listener) { 
+  void subscribe(Listener<T> *listener) {
     listeners_.insert(listener);
     listener->listen(this);
   }
-  int unsubscribe(Listener<T> *listener) { return listeners_.erase(listener); }
+  int unsubscribe(Listener<T> *listener) {
+    return listeners_.erase(listener);
+  }
 
   virtual void setValue(T value);
 
@@ -79,6 +81,12 @@ class ValueDispatcher {
   }
 
   virtual Clock* clock() const { return clock_; }
+
+  const std::set<Listener<T> *> &listeners() const {
+    return listeners_;
+  }
+
+  virtual ~ValueDispatcher() {}
  protected:
   std::set<Listener<T> *> listeners_;
   TimedSampleCollection<T> values_;
@@ -163,7 +171,7 @@ class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
 
   bool hasDispatcher() const { return _forward != nullptr; }
 
-
+  virtual ~ValueDispatcherProxy() {}
  protected:
   virtual void onNewValue(const ValueDispatcher<T> &dispatcher) {
     Listener<T>::safelyNotifyListenerSet(this->listeners_, *this);

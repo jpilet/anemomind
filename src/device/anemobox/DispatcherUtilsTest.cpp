@@ -8,10 +8,13 @@
 
 using namespace sail;
 
-TEST(DispatcherUtilsTest, Merging) {
+namespace {
   auto offset = sail::TimeStamp::UTC(2016, 02, 26, 16, 4, 0);
   auto s = Duration<double>::seconds(1.0);
   auto kn = Velocity<double>::knots(1.0);
+}
+
+TEST(DispatcherUtilsTest, Merging) {
 
   const DataCode Code = AWS;
   typedef TypeForCode<Code>::type T;
@@ -48,6 +51,119 @@ TEST(DispatcherUtilsTest, Merging) {
 }
 
 
+
+
+namespace {
+  std::shared_ptr<DispatchData> ptr(unsigned long tag) {
+    return std::shared_ptr<DispatchData>((DispatchData *)tag,
+        [](DispatchData *x) {});
+  }
+
+  std::shared_ptr<DispatchData> get(const std::map<DataCode, std::map<std::string,
+      std::shared_ptr<DispatchData>>> &src, DataCode c,
+      const std::string &s) {
+    auto x = src.find(c);
+    if (x != src.end()) {
+      auto y = x->second.find(s);
+      if (y != x->second.end()) {
+        return y->second;
+      }
+    }
+    return std::shared_ptr<DispatchData>();
+  }
+}
+
+TEST(DispatcherUtilsTest, MergeDispatchDataMapsTest) {
+  EXPECT_EQ(ptr(0xBEEF), ptr(0xBEEF));
+  EXPECT_NE(ptr(0xBEEF), ptr(0xDEAD));
+
+
+  std::map<DataCode, std::map<std::string,
+            std::shared_ptr<DispatchData>>> A{
+    {GPS_POS, {{"a", ptr(0xDEADBEEF)}}},
+    {GPS_SPEED, {{"b", ptr(0xDEAD)}}}
+  };
+
+  std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> B{
+    {GPS_POS, {{"a", ptr(0xBEEF)}}},
+    {GPS_BEARING, {{"c", ptr(0xF00D)}}}
+  };
+
+  auto C = mergeDispatchDataMaps(A, B);
+  EXPECT_EQ(ptr(0xBEEF), get(C, GPS_POS, "a"));
+  EXPECT_EQ(ptr(0xDEAD), get(C, GPS_SPEED, "b"));
+  EXPECT_EQ(ptr(0xF00D), get(C, GPS_BEARING, "c"));
+
+
+  {
+    auto difs = listDataCodesWithDifferences(A, B);
+    EXPECT_EQ(difs.size(), 3);
+    EXPECT_EQ(difs.count(GPS_POS), 1);
+    EXPECT_EQ(difs.count(GPS_SPEED), 1);
+    EXPECT_EQ(difs.count(GPS_BEARING), 1);
+  }{
+    auto difs = listDataCodesWithDifferences(A, A);
+    EXPECT_EQ(difs.size(), 0);
+  }{
+    auto difs = listDataCodesWithDifferences(A, C);
+    EXPECT_EQ(difs.size(), 2);
+    EXPECT_EQ(difs.count(GPS_POS), 1);
+    EXPECT_EQ(difs.count(GPS_BEARING), 1);
+  }{
+    auto difs = listDataCodesWithDifferences(B, C);
+    EXPECT_EQ(difs.size(), 1);
+    EXPECT_EQ(difs.count(GPS_SPEED), 1);
+  }
+}
+
+TEST(DisaptcherUtilsTest, TestSomeMore) {
+  const DataCode Code = AWS;
+  typedef TypeForCode<Code>::type T;
+  typedef TimedSampleCollection<T>::TimedVector TimedVector;
+
+  TimedVector A{
+    {offset + 0.3*s,    3.0*kn},
+    {offset + 0.6*s,    4.0*kn},
+    {offset + 1233.0*s, 13.0*kn}
+  };
+  auto a = makeDispatchDataFromSamples<Code>("A", A);
+
+  TimedVector B{
+    {offset + 0.4*s,    17.0*kn}
+  };
+  auto b = makeDispatchDataFromSamples<Code>("B", B);
+
+  TimedVector A2{
+    {offset + 0.4*s,    17.0*kn}
+  };
+  auto a2 = makeDispatchDataFromSamples<Code>("A", A2);
+
+  auto d0 = std::make_shared<Dispatcher>();
+  EXPECT_EQ(0, d0->allSources().size());
+  std::shared_ptr<Dispatcher> d1 = mergeDispatcherWithDispatchDataMap(d0.get(), {
+       {Code, {{"A", a},
+               {"B", b}}
+       }
+    });
+  d1->setSourcePriority("A", 119);
+
+  EXPECT_EQ(0, d0->allSources().size());
+  EXPECT_EQ(2, countChannels(d1.get()));
+  EXPECT_EQ(a, d1->dispatchDataForSource(Code, "A"));
+  EXPECT_EQ(b, d1->dispatchDataForSource(Code, "B"));
+  std::shared_ptr<Dispatcher> d2 = mergeDispatcherWithDispatchDataMap(d1.get(), {
+       {Code, {{"A", a2}}},
+    });
+  EXPECT_EQ(d2->sourcePriority("A"), 119);
+
+  EXPECT_EQ(a, d1->dispatchDataForSource(Code, "A"));
+  EXPECT_EQ(b, d1->dispatchDataForSource(Code, "B"));
+
+  EXPECT_EQ(a2, d2->dispatchDataForSource(Code, "A"));
+  EXPECT_EQ(b, d1->dispatchDataForSource(Code, "B"));
+}
+
 TEST(DispatcherUtilsTest, Replay) {
   Dispatcher d;
   auto offset = TimeStamp::UTC(2016, 3, 19, 14, 19, 0);
@@ -66,7 +182,7 @@ TEST(DispatcherUtilsTest, Replay) {
 
   class AwaListener : public Listener<Angle<double> > {
   public:
-    AwaListener(Dispatcher *src, Dispatcher *dst) : _src(src), _dst(dst), _counter(0) {}
+    AwaListener(Dispatcher *dst) : _dst(dst), _counter(0) {}
 
     void onNewValue(const ValueDispatcher<Angle<double> > &dispatcher) {
       _counter++;
@@ -78,12 +194,12 @@ TEST(DispatcherUtilsTest, Replay) {
       _dst->publishValue<T>(AWA, "dst", 3.0*data.back().value);
     }
 
-    Dispatcher *_src, *_dst;
+    Dispatcher *_dst;
     int _counter;
   };
 
-  ReplayDispatcher2 d2;
-  AwaListener awaListener(&d, &d2);
+  ReplayDispatcher d2;
+  AwaListener awaListener(&d2);
   d2.get<AWA>()->dispatcher()->subscribe(&awaListener);
   d2.replay(&d);
 

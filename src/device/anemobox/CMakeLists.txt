@@ -21,6 +21,7 @@ target_link_libraries(anemobox_Dispatcher
 cxx_test(anemobox_DispatcherTest DispatcherTest.cpp
          anemobox_Dispatcher
          gtest_main
+         gmock
         )
 
 add_library(anemobox_Nmea0183Source
@@ -102,6 +103,8 @@ add_library(anemobox_DispatcherUtils
            
 target_link_libraries(anemobox_DispatcherUtils
                       anemobox_Dispatcher
+                      nautical_AbsoluteOrientation
+                      anemobox_Logger
                      )
 
 cxx_test(anemobox_DispatcherUtilsTest
@@ -109,3 +112,18 @@ cxx_test(anemobox_DispatcherUtilsTest
          anemobox_DispatcherUtils
          gtest_main
         )        
+
+add_library(anemobox_Sources
+            Sources.h
+            Sources.cpp
+           )
+target_link_libraries(anemobox_Sources
+                      common_logging
+                     )
+
+cxx_test(anemobox_SourcesTest
+         SourcesTest.cpp
+         anemobox_Sources
+         gtest_main
+        )
+

@@ -55,8 +55,7 @@ var sendInvitationEmail = function(email, boat, hasAnAccount) {
 
 // Get list of boats
 exports.index = function(req, res) {
-  if (!req.user) { return res.sendStatus(401); }
-  access.readableBoats(req.user.id)
+  access.readableBoats(req)
   .then(function (boats) {
     res.status(200).json(boats);
   })
@@ -144,7 +143,7 @@ exports.inviteUser = function(req, res) {
   if (req.body._id) { delete req.body._id; }
   if (!req.body.email) { return res.sendStatus(401); }
 
-  var invitedEmail = req.body.email;
+  var invitedEmail = req.body.email.toLowerCase();
   var invitedAdmin = (req.body.admin?true:false);
 
   if (invitedEmail == req.user.email) { return res.sendStatus(200); }

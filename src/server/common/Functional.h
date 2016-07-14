@@ -107,7 +107,7 @@ class Mapped {
  public:
   typedef Mapped<ResultType> ThisType;
 
-  Mapped(std::function<ResultType(int)> f, int size) : _f(f), _size(size) {}
+  Mapped(std::function<ResultType(int)> f, int size) : _size(size), _f(f) {}
 
   int size() const {
     return _size;
@@ -164,10 +164,9 @@ auto map(CollectionA X, CollectionB Y, Function f) -> decltype(vmap(f, X, Y)) {
 
 // Filter
 template <typename Function, typename Collection>
-auto filter(Collection X, Function f) -> Array<decltype(X[0])> {
+auto filter(Collection X, Function f) -> Array<decltype(copyOf(X[0]))> {
   int n = X.size();
-  int counter = 0;
-  ArrayBuilder<decltype(X[0])> Y(n);
+  ArrayBuilder<decltype(copyOf(X[0]))> Y(n);
   for (int i = 0; i < n; i++) {
     if (f(X[i])) {
       Y.add(X[i]);

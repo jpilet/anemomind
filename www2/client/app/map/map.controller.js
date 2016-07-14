@@ -51,19 +51,25 @@ angular.module('www2App')
       $scope.endTime = curveEndTime($scope.selectedCurve);
     }
 
-    if ($stateParams.c) {
-      $scope.selectedCurve = $stateParams.c;
-      setSelectTime();
+    function parseParams() {
+      if ($location.search().c) {
+        $scope.selectedCurve = $location.search().c;
+        setSelectTime();
+      }
+
+      if ($location.search().l) {
+        var entries = $location.search().l.split(',');
+        $scope.mapLocation = {
+          x: parseFloat(entries[0]),
+          y: parseFloat(entries[1]),
+          scale: parseFloat(entries[2])
+        };
+      }
     }
 
-    if ($stateParams.l) {
-      var entries = $stateParams.l.split(',');
-      $scope.mapLocation = {
-        x: parseFloat(entries[0]),
-        y: parseFloat(entries[1]),
-        scale: parseFloat(entries[2])
-      };
-    }
+    parseParams();
+    // Catches browser history navigation events (back,..)
+    $scope.$on('$locationChangeSuccess', parseParams);
 
     $http.get('/api/boats/' + $stateParams.boatId)
     .success(function(data, status, headers, config) {
@@ -77,7 +83,7 @@ angular.module('www2App')
       'gpsSpeed' : 'Speed over ground (GPS)',
       'devicePerf' : 'VMG performance',
       'aws' : 'Apparent wind speed',
-      'deviceTws' : 'True wind speed (Anemomind)',
+      'tws' : 'True wind speed (Anemomind)',
       'externalTws' : 'True wind speed (onboard instruments)',
       'watSpeed': 'Water speed',
       'deviceVmg': 'VMG',
@@ -206,12 +212,14 @@ angular.module('www2App')
       $scope.currentPoint = pointAtTime(time);
 
       $scope.vmgPerf = perfAtPoint($scope.currentPoint);
+      $scope.awa = getPointValue(['awa']);
+      $scope.aws =  getPointValue(['aws']);
       $scope.twa = getPointValue(['twa', 'externalTwa']);
-      $scope.tws =  getPointValue(['twa', 'externalTws']);
+      $scope.tws =  getPointValue(['tws', 'externalTws']);
       $scope.gpsSpeed = getPointValue(['gpsSpeed']);
       $scope.twdir = twdir();
       $scope.gpsBearing = getPointValue(['gpsBearing']);
-      $scope.deviceVmg = getPointValue(['deviceVmg']);
+      $scope.deviceVmg = getPointValue(['vmg', 'deviceVmg']);
       if ($scope.deviceVmg) {
         $scope.deviceVmg = Math.abs($scope.deviceVmg);
       }
@@ -221,6 +229,27 @@ angular.module('www2App')
     $scope.replaySpeed = 8;
     $scope.slower = function() { $scope.replaySpeed /= 2; }
     $scope.faster = function() { $scope.replaySpeed *= 2; }
+    $scope.cutBefore = function() {
+      if ($scope.selectedCurve && $scope.currentTime) {
+        $scope.selectedCurve = makeCurveId(
+            $scope.boat._id,
+            $scope.currentTime,
+            $scope.endTime);
+        setSelectTime();
+        $location.search('c', $scope.selectedCurve);
+      }
+    };
+    $scope.cutAfter = function() {
+      if ($scope.selectedCurve && $scope.currentTime) {
+        $scope.selectedCurve = makeCurveId(
+            $scope.boat._id,
+            $scope.startTime,
+            $scope.currentTime);
+        setSelectTime();
+        $location.search('c', $scope.selectedCurve);
+      }
+    };
+
 
     $scope.mapActive = true;
     $scope.graphActive = true;

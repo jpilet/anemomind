@@ -52,7 +52,8 @@ namespace sail {
   X(DATE_TIME, 12, "dateTime", TimeStamp, "GPS date and time (UTC)") \
   X(TARGET_VMG, 13, "targetVmg", Velocity<>, "Target VMG") \
   X(VMG, 14, "vmg", Velocity<>, "VMG") \
-  X(ORIENT, 15, "orient", AbsoluteOrientation, "Absolute anemobox orientation")
+  X(ORIENT, 15, "orient", AbsoluteOrientation, "Absolute anemobox orientation") \
+  X(RUDDER_ANGLE, 16, "rudderAngle", Angle<>, "Rudder angle")
 
 enum DataCode {
 #define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
@@ -117,13 +118,16 @@ class TypedDispatchData : public DispatchData {
   }
 };
 
+namespace {
+  static const int defaultDispatcherBufferLength = 1024;
+}
+
 template <typename T>
 class TypedDispatchDataReal : public TypedDispatchData<T> {
  public:
-  static const int defaultBufferLength = 1024;
   TypedDispatchDataReal(DataCode nature,
                         std::string source,
-                        Clock* clock, int bufferLength = defaultBufferLength)
+                        Clock* clock, int bufferLength)
      : TypedDispatchData<T>(nature, source),
      _dispatcher(clock, bufferLength) { }
 
@@ -198,7 +202,7 @@ TypedDispatchData<typename TypeForCode<Code>::type>* toTypedDispatchData(Dispatc
 class Dispatcher : public Clock {
  public:
   Dispatcher();
-  static const int minPriority = std::numeric_limits<int>::min();
+  static const int defaultPriority = 0;
 
   //! Get a pointer to the default anemobox dispatcher.
   static Dispatcher *global();
@@ -211,12 +215,13 @@ class Dispatcher : public Clock {
   }
 
   // Returns null if not exist
-  std::shared_ptr<DispatchData> dispatchDataForSource(DataCode code, const std::string& source);
+  std::shared_ptr<DispatchData> dispatchDataForSource(DataCode code, const std::string& source) const;
+
+  virtual int maxBufferLength() const {return defaultDispatcherBufferLength;}
 
   // Return or create a DispatchData for the given source.
   template <typename T>
-  TypedDispatchData<T>* createDispatchDataForSource(
-      DataCode code, const std::string& source, int size = TypedDispatchDataReal<T>::defaultBufferLength);
+  TypedDispatchData<T>* createDispatchDataForSource(DataCode code, const std::string& source, int size);
 
   DispatchData* dispatchData(DataCode code) const {
     auto it = _currentSource.find(code);
@@ -238,8 +243,21 @@ class Dispatcher : public Clock {
   }
 
   template <DataCode Code>
+  TypedDispatchData<typename TypeForCode<Code>::type>* get(
+      const std::string& source) const {
+    return toTypedDispatchData<Code>(dispatchDataForSource(Code, source));
+  }
+
+
+  template <DataCode Code>
   const TimedSampleCollection<typename TypeForCode<Code>::type> &values() const {
     return get<Code>()->dispatcher()->values();
+  }
+
+  template <DataCode Code>
+  const TimedSampleCollection<typename TypeForCode<Code>::type> &values(
+      const std::string& source) const {
+    return get<Code>(source)->dispatcher()->values();
   }
 
   // Temporary method when treating it as a dataset.
@@ -278,17 +296,19 @@ class Dispatcher : public Clock {
   template <typename T>
   void publishValue(DataCode code, const std::string& source, T value) {
     TypedDispatchData<T>* dispatchData =
-      createDispatchDataForSource<T>(code, source);
+      createDispatchDataForSource<T>(code, source, maxBufferLength());
     dispatchData->setValue(value);
   }
 
   template <typename T>
   void insertValues(DataCode code, const std::string& source,
                     const typename TimedSampleCollection<T>::TimedVector& values) {
-    TypedDispatchData<T>* dispatchData =
-      createDispatchDataForSource<T>(code, source, values.size());
+    if (!values.empty()) {
+      TypedDispatchData<T>* dispatchData =
+        createDispatchDataForSource<T>(code, source, values.size());
 
-    dispatchData->dispatcher()->insert(values);
+      dispatchData->dispatcher()->insert(values);
+    }
   }
 
   template<class T>
@@ -306,7 +326,7 @@ class Dispatcher : public Clock {
   }
 
   bool prefers(DispatchData* a, DispatchData* b);
-  int sourcePriority(const std::string& source);
+  int sourcePriority(const std::string& source) const;
   const std::map<std::string, int> &sourcePriority() const {
     return _sourcePriority;
   }
@@ -317,6 +337,30 @@ class Dispatcher : public Clock {
 
   void set(DataCode code, const std::string &srcName,
       const std::shared_ptr<DispatchData> &d);
+
+  template<DataCode Code>
+  Optional<typename TypeForCode<Code>::type> valueFromSourceAt(
+      const std::string& source, TimeStamp time,
+      Duration<> maxDelta) const {
+    typedef typename TypeForCode<Code>::type T;
+    TypedDispatchData<T>* tdd =
+      toTypedDispatchData<Code>(dispatchDataForSource(Code, source).get());
+    if (tdd == nullptr) {
+      return Optional<T>();
+    }
+    const TimedSampleCollection<T>& data = tdd->dispatcher()->values();
+    auto nearest = findNearestTimedValue<T>(
+        data.samples().begin(), data.samples().end(), time);
+    if (nearest.defined()
+        && fabs(nearest.get().time - time) < maxDelta) {
+      return Optional<T>(nearest.get().value);
+    } else {
+      return Optional<T>();
+    }
+  }
+
+  int maxPriority() const;
+
  private:
   static Dispatcher *_globalInstance;
 

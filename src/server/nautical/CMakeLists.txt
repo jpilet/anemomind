@@ -3,13 +3,10 @@ add_subdirectory("tgtspeed")
 add_subdirectory("synthtest")
 add_subdirectory("tiles")
 add_subdirectory("logimport")
-
-
-add_library(nautical_Ecef
-            Ecef.h
-            Ecef.cpp)
-
-target_link_libraries(nautical_Ecef common_math)
+add_subdirectory("calib")
+add_subdirectory("filters")
+add_subdirectory("types")
+add_subdirectory("segment")
 
 
 add_library(nautical_nav
@@ -19,6 +16,7 @@ add_library(nautical_nav
         
 target_link_libraries(nautical_nav
                       common_Array
+                      common_TimeStamp
                      )
   
 
@@ -26,6 +24,7 @@ target_link_libraries(nautical_nav
 cxx_test(nautical_BoatLogProcessorTest
          BoatLogProcessorTest.cpp
          nautical_BoatLogProcessor
+         device_TargetSpeed
          common_Env
          gtest_main
         )
@@ -86,19 +85,7 @@ cxx_test(nautical_NavJsonTest
          nautical_NavCompatibility
          gtest_main
         )
-        
-        
-cxx_test(nautical_SpeedCalibTest
-         SpeedCalibTest.cpp
-         gtest_main
-        )        
-
-
-cxx_test(nautical_CorrectorTest
-         CorrectorTest.cpp
-         gtest_main
-         )
-
+               
 #################################################################
 ### CalibrationExamples
 #################################################################
@@ -113,7 +100,6 @@ cxx_test(nautical_NavTest
 
 cxx_test(nautical_WGS84Test
             WGS84Test.cpp
-            nautical_Ecef
             common_Function
             common_LineKM
             gtest_main)
@@ -129,11 +115,13 @@ target_link_libraries(nautical_BoatLogProcessor
                       common_logging
                       device_ChunkFile
                       math_hmm_StateAssign
-                      nautical_Calibrator
+                      calib_Calibrator
                       nautical_HTreeJson
                       nautical_NavJson
                       nautical_TargetSpeed
+                      nautical_downsamplegps
                       nautical_grammars_WindOrientedGrammar
+                      nautical_tiles_TileUtils
                       common_ArgMap
                       plot_gnuplot
                       common_ScopedLog
@@ -150,28 +138,6 @@ target_link_libraries(nautical_processBoatLogs
                      )              
 
 
-add_library(nautical_Calibrator
-            Calibrator.h
-            Calibrator.cpp
-           )
-target_link_libraries(nautical_Calibrator
-                      anemobox_SimulateBox
-                      common_Histogram
-                      common_math
-                      nautical_FlowErrors
-                      nautical_grammars_WindOrientedGrammar
-                      plot_gnuplot
-                     )
-target_depends_on_ceres(nautical_Calibrator)
-
-add_executable(nautical_BasicCalibrate
-               BasicCalibrate.cpp)
-target_link_libraries(nautical_BasicCalibrate
-                      common_Env
-                      common_logging
-                      nautical_Calibrator
-                      logimport_LogLoader
-                     )
 
 
 add_library(nautical_GeographicReference
@@ -219,14 +185,6 @@ target_link_libraries(nautical_GeographicReferenceJson
                     nautical_GeographicPositionJson
                    )
 
-add_library(nautical_ParametricHorizontalMotion
-            ParametricHorizontalMotion.h
-            ParametricHorizontalMotion.cpp
-           )
-target_link_libraries(nautical_ParametricHorizontalMotion 
-                      common_Uniform
-                     )
-
 add_executable(nautical_SaveMatrix
                SaveMatrix.cpp
               )
@@ -260,56 +218,6 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_ChunkFile
                      )
 
-add_library(nautical_FilteredNavData
-            FilteredNavData.cpp
-            FilteredNavData.h
-           )
-
-target_link_libraries(nautical_FilteredNavData
-                      math_CleanNumArray
-                      common_logging
-                      nautical_nav
-                      plot_gnuplot
-                      math_nonlinear_GeneralizedTV
-                      common_MeanAndVar
-                      common_ScopedLog
-                     )
-
-                     
-add_executable(nautical_FilteredNavDataDemo
-               FilteredNavDataDemo.cpp
-              )
-target_link_libraries(nautical_FilteredNavDataDemo
-                      logimport_TestdataNavs
-                      common_ArgMap
-                      plot_gnuplot
-                      common_Span
-                      nautical_TemporalSplit
-                      math_CleanNumArray
-                      math_nonlinear_GeneralizedTVAuto
-                      nautical_FilteredNavData
-                     )     
-                     
-
-
-add_library(nautical_TemporalSplit
-            TemporalSplit.h
-            TemporalSplit.cpp
-           )
-target_link_libraries(nautical_TemporalSplit
-                      nautical_nav
-                      common_logging
-                     )           
-            
-add_executable(nautical_RaceOverview
-               RaceOverview.cpp
-              )
-target_link_libraries(nautical_RaceOverview
-                      logimport_TestdataNavs
-                      nautical_TemporalSplit
-                     )
-                      
-                                           
 add_library(nautical_FlowErrors
             FlowErrors.h
             FlowErrors.cpp
@@ -318,57 +226,7 @@ target_link_libraries(nautical_FlowErrors
                       common_MeanAndVar
                      )     
                      
-add_library(nautical_MinCovCalib
-            MinCovCalib.h
-            MinCovCalib.cpp
-           )
-target_depends_on_ceres(nautical_MinCovCalib)
-target_link_libraries(nautical_MinCovCalib
-                      common_Progress
-                      nautical_FilteredNavData
-                     )
 
-add_executable(nautical_EvalCalib
-               EvalCalib.cpp
-              )
-target_link_libraries(nautical_EvalCalib
-                      nautical_MinCovCalib
-                      nautical_Calibrator
-                      nautical_CalibrationBenchmark
-                      common_ArgMap
-                     )              
-
-add_library(nautical_CalibrationBenchmark 
-            CalibrationBenchmark.h
-            CalibrationBenchmark.cpp
-           )      
-           
-target_link_libraries(nautical_CalibrationBenchmark                         
-                      nautical_synthtest_NavalSimulationPrecomp
-                      common_EnvUtil
-                      logimport_LogLoader
-                     )
-
-
-add_library(nautical_GpsFilter
-            GpsFilter.h
-            GpsFilter.cpp
-           )
-target_link_libraries(nautical_GpsFilter
-                      nautical_NavCompatibility
-                      nautical_GeographicReference
-                      math_nonlinear_DataFit
-                     )   
-                     
-cxx_test(nautical_GpsFilterTest
-         GpsFilterTest.cpp
-         nautical_GpsFilter
-         gtest_main
-         common_Env
-         common_PathBuilder
-         plot_gnuplot
-         logimport_LogLoader
-        )                             
 add_executable(nautical_exportNavs
                exportNavs.cpp
               )
@@ -376,7 +234,7 @@ add_executable(nautical_exportNavs
 target_link_libraries(nautical_exportNavs
                       common_logging
                       common_ArgMap
-                      nautical_Calibrator
+                      calib_Calibrator
                       logimport_LogLoader
                      )              
 
@@ -393,21 +251,6 @@ cxx_test(nautical_NavToNmeaTest NavToNmeaTest.cpp
          )
 
          
-add_executable(nautical_exploreData
-               exploreData.cpp
-              )
-              
-target_link_libraries(nautical_exploreData
-                      common_ArgMap
-                      nautical_nav
-                      common_PathBuilder
-                      math_CleanNumArray
-                      common_Span
-                      nautical_GeographicReference
-                      nautical_NavCompatibility
-                      logimport_LogLoader
-                     )
-
 add_executable(nautical_catTargetSpeed
                catTargetSpeed.cpp
               )
@@ -424,6 +267,7 @@ add_library(nautical_NavDataset
 target_link_libraries(nautical_NavDataset
                       anemobox_Dispatcher      
                       anemobox_DispatcherUtils                
+                      anemobox_Sources
                      )           
 
 cxx_test(nautical_NavDatasetTest
@@ -437,13 +281,47 @@ add_library(nautical_NavCompatibility
             NavCompatibility.cpp
            )
 target_link_libraries(nautical_NavCompatibility
-                      nautical_nav
-                      nautical_NavDataset
-                      common_LineKM
-                      common_TimeStamp
-                      plot_gnuplot
-                      nautical_Ecef
-                      common_PeriodicSpan
                       anemobox_Dispatcher                      
+                      anemobox_Sources
+                      common_LineKM
+                      common_PeriodicSpan
+                      common_TimeStamp
+                      nautical_NavDataset
+                      nautical_nav
+                      plot_gnuplot
                      )
 
+add_library(nautical_AbsoluteOrientation
+  AbsoluteOrientation.h
+  AbsoluteOrientation.cpp
+  )
+
+add_library(nautical_InvWGS84
+            InvWGS84.h
+            InvWGS84.cpp
+           )
+
+target_depends_on_ceres(nautical_InvWGS84)
+
+cxx_test(nautical_InvWGS84Test
+         InvWGS84Test.cpp
+         gtest_main
+         nautical_InvWGS84
+        )
+
+add_library(nautical_Visualize
+  Visualize.h
+  Visualize.cpp
+  )
+
+target_link_libraries(nautical_Visualize
+  plot_Plot
+  )
+
+add_library(nautical_downsamplegps
+            DownsampleGps.h
+            DownsampleGps.cpp
+           )
+target_link_libraries(nautical_downsamplegps
+                      nautical_NavDataset
+                      )

@@ -17,9 +17,13 @@ namespace sail {
 // A more accurate and safe type than time_t in <ctime>
 class TimeStamp {
  public:
-
+  // Input arguments *must* be a valid timestamp
   static TimeStamp UTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
-            unsigned int hour, unsigned int minute, double seconds);
+      unsigned int hour, unsigned int minute, double seconds);
+
+  // If input arguments are invalid, an undefined timestamp is returned.
+  static TimeStamp tryUTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
+      unsigned int hour, unsigned int minute, double seconds);
 
   static TimeStamp date(int year_ad, unsigned int month_1to12, unsigned int day_1to31);
 
@@ -37,6 +41,7 @@ class TimeStamp {
   bool operator>(const TimeStamp &x) const {return x < (*this);}
   bool operator<=(const TimeStamp &x) const {return !(x < (*this));}
   bool operator>=(const TimeStamp &x) const {return !((*this) < x);}
+  TimeStamp& operator += (Duration<> delta) { return *this = *this + delta; }
 
   TimeStamp(); // Default contructor of an object with defined() returning false.
 
@@ -79,6 +84,9 @@ TimeStamp operator+(const Duration<double> &a, const TimeStamp &b);
 
 std::ostream &operator<<(std::ostream &s, const TimeStamp &t);
 
+TimeStamp latest(const TimeStamp &a, const TimeStamp &b);
+TimeStamp earliest(const TimeStamp &a, const TimeStamp &b);
+
 class Clock {
  public:
   virtual ~Clock() { }
@@ -88,6 +96,9 @@ class Clock {
 void sleep(Duration<double> duration);
 
 bool isFinite(const TimeStamp &x);
+
+TimeStamp minDefined(TimeStamp a, TimeStamp b);
+TimeStamp maxDefined(TimeStamp a, TimeStamp b);
 
 } /* namespace sail */
 

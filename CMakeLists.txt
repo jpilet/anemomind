@@ -6,6 +6,8 @@
 #
 cmake_minimum_required(VERSION 2.8.11)
 
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 include("cmake/FindCXXFeatures.cmake")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_COMPILER_FLAGS}")
 
@@ -19,6 +21,9 @@ if (${FULL_BUILD})
   include("cmake/ceres-solver.cmake")
   include("cmake/FindMongoDB.cmake")
   include("cmake/FindF2C.cmake")
+
+  find_package(Eigen3 REQUIRED)
+  include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
   find_package(LAPACK REQUIRED)
   find_package(BLAS REQUIRED)

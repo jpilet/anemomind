@@ -225,19 +225,6 @@ cxx_test(common_pocoTest
 target_depends_on_poco_json(common_pocoTest) 
 endif ()
 
-add_library(common_ConcatFunction
-            ConcatFunction.h
-            ConcatFunction.cpp
-           )
-target_link_libraries(common_ConcatFunction
-                      common_Function
-                     )                
-cxx_test(common_ConcatFunctionTest
-         ConcatFunctionTest.cpp
-         common_ConcatFunction
-         gtest_main
-        )
-
 add_library(common_Histogram
             Histogram.cpp
             Histogram.h
@@ -378,3 +365,20 @@ cxx_test(common_numericsTest
          numericsTest.cpp
          gtest_main
         )        
+
+cxx_test(common_TimedValuePairsTest
+         TimedValuePairsTest.cpp
+         gtest_main
+         common_TimeStamp
+         common_logging
+        )
+
+cxx_test(common_AbstractArray
+         AbstractArrayTest.cpp
+         gtest_main
+        )
+
+cxx_test(common_PositiveModTest
+         PositiveModTest.cpp
+         gtest_main
+        )

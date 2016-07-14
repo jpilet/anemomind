@@ -4,11 +4,12 @@
  */
 
 #include "CommonRaceGrammar.h"
-#include <server/nautical/grammars/StaticCostFactory.h>
 #include <server/common/HNodeGroup.h>
-#include <server/math/hmm/StateAssign.h>
 #include <server/common/SharedPtrUtils.h>
+#include <server/math/hmm/StateAssign.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/nautical/grammars/HintedStateAssignFactory.h>
+#include <server/nautical/grammars/StaticCostFactory.h>
 
 namespace sail {
 

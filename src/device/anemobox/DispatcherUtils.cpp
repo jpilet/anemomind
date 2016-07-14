@@ -5,6 +5,11 @@
 
 #include <device/anemobox/DispatcherUtils.h>
 
+#include <device/anemobox/logger/Logger.h>
+#include <server/common/logging.h>
+#include <server/nautical/AbsoluteOrientation.h>
+#include <fstream>
+
 namespace sail {
 
 
@@ -18,8 +23,19 @@ class DispVisitor {
     const std::shared_ptr<DispatchData> &raw,
     const TimedSampleCollection<T> &coll) {
 
+    auto x = toTypedDispatchData<Code>(raw.get())->dispatcher();
+
+    int prio = _d->sourcePriority(sourceName);
+
     *_dst << "\n  Channel of type " << shortName << " named "
-        << sourceName << " with " << coll.size() << " samples.";
+        << sourceName << " (prio: " << prio << ")"
+        << " with " << coll.size() << " samples with "
+        << x->listeners().size() << " listeners (";
+    for (const auto &y: x->listeners()) {
+      *_dst << y << " ";
+    }
+
+     *_dst << ")";
 
   }
  private:
@@ -68,6 +84,64 @@ int countValues(const Dispatcher *d) {
   ValueCounterVisitor visitor;
   visitDispatcherChannelsConst<ValueCounterVisitor>(d, &visitor);
   return visitor.counter;
+}
+
+namespace {
+
+  template <typename T>
+  bool isValidColl(const TimedSampleCollection<T> &coll) {
+    const auto &samples = coll.samples();
+    int n = samples.size();
+    int last = n - 1;
+    for (int i = 0; i < n; i++) {
+      auto x = samples[i];
+      if (!isFinite(x.value)) {
+        LOG(WARNING) << "Sample " << i << " is not finite";
+        return false;
+      }
+      if (!x.time.defined()) {
+        LOG(WARNING) << "Sample " << i << " has undefined time";
+        return false;
+      }
+      if (i < last) {
+        auto y = samples[i + 1];
+        if (y.time.defined()) {
+          if (!(x.time <= y.time)) {
+            LOG(WARNING) << "Time stamp at time " << i << " ("
+                << x.time.toString() << ") does not precede that of its successor ("
+                << y.time.toString() << ")";
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  class ValidVisitor {
+  public:
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+      const std::shared_ptr<DispatchData> &raw,
+      const TimedSampleCollection<T> &coll) {
+        auto v = isValidColl(coll);
+        if (!v) {
+          LOG(WARNING) << "Collection of type " << shortName << " from source "
+              << sourceName << " is not valid, see explanations above.";
+          LOG(WARNING) << "It has " << coll.size() << " samples";
+          valid = false;
+        }
+    }
+
+    bool valid = true;
+  private:
+  };
+}
+
+bool isValid(const Dispatcher *d) {
+  ValidVisitor v;
+  visitDispatcherChannelsConst<ValidVisitor>(d, &v);
+  return v.valid;
 }
 
 std::ostream &operator<<(std::ostream &s, const Dispatcher &d) {
@@ -212,7 +286,7 @@ namespace {
   void addSample(std::vector<PrioritizedSample<T> > *dst, const PrioritizedSample<T> &x) {
     while (!dst->empty()) {
       auto &b = dst->back();
-      bool closeToEachOther = std::abs((b.data.time - x.data.time).seconds()) < maxMergeDifSeconds;
+      bool closeToEachOther = fabs(b.data.time - x.data.time) < maxMergeDif;
       if (closeToEachOther) {
         if (x.priority == b.priority) {
           break;
@@ -279,7 +353,7 @@ std::shared_ptr<DispatchData> mergeChannels(DataCode code,
 }
 
 
-void copyPriorities(Dispatcher *src, Dispatcher *dst) {
+void copyPriorities(const Dispatcher *src, Dispatcher *dst) {
   for (auto kv: src->sourcePriority()) {
     dst->setSourcePriority(kv.first, kv.second);
   }
@@ -327,6 +401,260 @@ std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src) {
   }, true);
 }
 
+std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>>
+  mergeDispatchDataMaps(
+      const std::map<DataCode, std::map<std::string,
+        std::shared_ptr<DispatchData>>> &a,
+      const std::map<DataCode, std::map<std::string,
+        std::shared_ptr<DispatchData>>> &b) {
+  std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>>
+    dst = a;
+  for (const auto &codeAndSourceMap: b) {
+    auto code = codeAndSourceMap.first;
+
+    auto &dstAtCode = dst[code];
+    for (const auto &sourceAndData: codeAndSourceMap.second) {
+      dstAtCode[sourceAndData.first] = sourceAndData.second;
+    }
+  }
+  return dst;
+}
+
+
+namespace {
+  class PriorityVisitor {
+   public:
+    PriorityVisitor(Dispatcher *src, Dispatcher *dst) :
+        _src(src), _dst(dst) {}
+
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+      const std::shared_ptr<DispatchData> &raw,
+      const TimedSampleCollection<T> &coll) {
+      _dst->setSourcePriority(sourceName, _src->sourcePriority(sourceName));
+    }
+   private:
+    Dispatcher *_src, *_dst;
+  };
+}
+
+std::shared_ptr<Dispatcher> mergeDispatcherWithDispatchDataMap(
+    Dispatcher *srcDispatcher,
+    const std::map<DataCode, std::map<std::string,
+      std::shared_ptr<DispatchData>>> &toAdd) {
+  auto merged = mergeDispatchDataMaps(srcDispatcher->allSources(), toAdd);
+
+  auto dst = std::make_shared<Dispatcher>();
+  for (const auto &codeAndSources: merged) {
+    auto code = codeAndSources.first;
+    for (const auto &sourceAndData: codeAndSources.second) {
+      dst->set(code, sourceAndData.first, sourceAndData.second);
+    }
+  }
+
+  // Copy the priorities from the source dispatcher
+  PriorityVisitor visitor(srcDispatcher, dst.get());
+  visitDispatcherChannels(srcDispatcher, &visitor);
+
+  return dst;
+}
+
+std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
+    Dispatcher *srcDispatcher,
+    std::function<bool(DataCode, const std::string&)> filter) {
+
+  std::shared_ptr<Dispatcher> dst = std::make_shared<Dispatcher>();
+  for (const auto &codeAndSources: srcDispatcher->allSources()) {
+    auto code = codeAndSources.first;
+    for (const auto &sourceAndData: codeAndSources.second) {
+      if (filter(code, sourceAndData.first)) {
+        dst->set(code, sourceAndData.first, sourceAndData.second);
+      }
+    }
+  }
+
+  copyPriorities(srcDispatcher, dst.get());
+
+  return dst;
+}
+
+
+namespace {
+  template <typename T>
+  struct ValueExporter {
+    static const bool active = false;
+
+    double toNumber(const T &x) {
+      return 0.0;
+    }
+
+    static const char *getUnitLabel() {return nullptr;}
+  };
+
+  template <>
+  struct ValueExporter<Velocity<double> > {
+
+    static const bool active = true;
+
+    static double toNumber(const Velocity<double> &v) {
+      return v.metersPerSecond();
+    }
+
+    static const char *getUnitLabel() {return "meters per second";}
+  };
+
+  template <>
+  struct ValueExporter<Angle<double> > {
+
+    static const bool active = true;
+
+    static double toNumber(const Angle<double> &x) {
+      return x.radians();
+    }
+
+    static const char *getUnitLabel() {return "radians";}
+  };
+
+  Duration<double> exportSamplingPeriod = Duration<double>::seconds(1.0);
+
+  template <typename T>
+  Optional<T> getValueCloseTo(const TimedSampleCollection<T> &coll, TimeStamp t) {
+    auto x0 = coll.nearestTimedValue(t);
+    if (x0.defined()) {
+      auto tv = x0.get();
+      if (fabs(tv.time - t) < Duration<double>::seconds(8.0)) {
+        return tv.value;
+      }
+    }
+    return Optional<T>();
+  }
+
+
+  namespace {
+    class ExportVisitor {
+     public:
+      ExportVisitor(const std::string &filename,
+          TimeStamp fromTime, TimeStamp toTime) :
+        _shortNameFile(filename + "_shortnames.txt"),
+        _sourceNameFile(filename + "_sourcenames.txt"),
+        _dataFile(filename + "_data.txt"),
+        _unitFile(filename + "_units.txt"), _fromTime(fromTime), _toTime(toTime) {
+
+        // The first row is the time.
+        _shortNameFile << "TIME\n";
+        _sourceNameFile << "ExportVisitor\n";
+        _unitFile << "Seconds\n";
+        for (auto t = _fromTime; t < _toTime; t = t + exportSamplingPeriod) {
+          _dataFile << t.toSecondsSince1970() << " ";
+        }
+        _dataFile << std::endl;
+      }
+
+      template <DataCode Code, typename T>
+      void visit(const char *shortName, const std::string &sourceName,
+        const std::shared_ptr<DispatchData> &raw,
+        const TimedSampleCollection<T> &coll) {
+        ValueExporter<T> exporter;
+        if (exporter.active) {
+          _unitFile << exporter.getUnitLabel() << "\n";
+          _shortNameFile << shortName << "\n";
+          _sourceNameFile << sourceName << "\n";
+          for (auto t = _fromTime; t < _toTime; t = t + exportSamplingPeriod) {
+            auto x0 = getValueCloseTo(coll, t);
+            if (x0.defined()) {
+              _dataFile << exporter.toNumber(x0.get()) << " ";
+            } else {
+              _dataFile << "NAN ";
+            }
+          }
+          _dataFile << std::endl;
+        }
+      }
+     private:
+      std::ofstream _shortNameFile, _sourceNameFile, _dataFile, _unitFile;
+      TimeStamp _fromTime, _toTime;
+    };
+  }
+}
+
+void exportDispatcherToTextFiles(const std::string &filenamePrefix,
+    TimeStamp from, TimeStamp to,
+    const Dispatcher *d) {
+  ExportVisitor visitor(filenamePrefix, from, to);
+  visitDispatcherChannelsConst(d, &visitor);
+}
+
+
+
+namespace {
+  const std::map<std::string,
+        std::shared_ptr<DispatchData>> *lookUpMap(
+            const std::map<DataCode, std::map<std::string,
+              std::shared_ptr<DispatchData>>> &A, DataCode c) {
+    auto f = A.find(c);
+    if (f == A.end()) {
+      return nullptr;
+    }
+    return &(f->second);
+  }
+
+  std::shared_ptr<DispatchData> getChannel(
+      const std::map<std::string,
+        std::shared_ptr<DispatchData>> *a, const std::string &x) {
+    auto f = a->find(x);
+    if (f == a->end()) {
+      return std::shared_ptr<DispatchData>();
+    }
+    return f->second;
+  }
+
+  bool equalSourceMaps(
+      const std::map<std::string,
+              std::shared_ptr<DispatchData>> *a,
+      const std::map<std::string,
+        std::shared_ptr<DispatchData>> *b) {
+    if (a == nullptr) {
+      return b == nullptr;
+    } else if (b == nullptr) {
+      return false;
+    }
+    std::set<std::string> allSources;
+    for (auto kv: *a) {
+      allSources.insert(kv.first);
+    }
+    for (auto kv: *b) {
+      allSources.insert(kv.first);
+    }
+    for (auto src: allSources) {
+      if (getChannel(a, src) != getChannel(b, src)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+std::set<DataCode> listDataCodesWithDifferences(
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &A,
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &B) {
+  std::set<DataCode> allDataCodes;
+  for (auto kv: A) {
+    allDataCodes.insert(kv.first);
+  }
+  for (auto kv: B) {
+    allDataCodes.insert(kv.first);
+  }
+  std::set<DataCode> difs;
+  for (auto code: allDataCodes) {
+    if (!equalSourceMaps(lookUpMap(A, code), lookUpMap(B, code))) {
+      difs.insert(code);
+    }
+  }
+  return difs;
+}
+
 
 namespace {
   struct ChannelInfo {
@@ -341,7 +669,7 @@ namespace {
   class ValueToPublish {
    public:
     virtual TimeStamp time() = 0;
-    virtual void publish(ReplayDispatcher2 *dst) = 0;
+    virtual void publish(ReplayDispatcher *dst) = 0;
     virtual ~ValueToPublish() {}
 
     virtual const ChannelInfo::Ptr &info() const = 0;
@@ -362,7 +690,7 @@ namespace {
 
     TimeStamp time() override {return _x.time;}
 
-    void publish(ReplayDispatcher2 *dst) {
+    virtual void publish(ReplayDispatcher *dst) override {
       dst->publishTimedValue<T>(_info->code, _info->name, _x);
     }
 
@@ -393,25 +721,66 @@ namespace {
   };
 }
 
-void ReplayDispatcher2::replay(const Dispatcher *other, 
-                               const std::function<void(DataCode, const std::string &src)> &cb) {
-  if (other == nullptr) {
+ReplayDispatcher::ReplayDispatcher() : _counter(0) {}
+
+void ReplayDispatcher::replay(const Dispatcher *src) {
+  if (src == nullptr) {
     return;
   }
 
+  copyPriorities(src, this);
+
   std::vector<ValueToPublish::Ptr> allValues;
   ValueCollector collector(&allValues);
-  visitDispatcherChannelsConst(other, &collector);
+  visitDispatcherChannelsConst(src, &collector);
   std::sort(allValues.begin(), allValues.end(), before);
   for (auto x: allValues) {
     x->publish(this);
-    if (cb) {
-      auto c = x->info();
-      cb(c->code, c->name);
-    }
+  }
+  finishTimeouts();
+}
+
+void ReplayDispatcher::setTimeout(std::function<void()> cb, double delayMS) {
+  if (_currentTime.defined()) {
+    _counter++;
+    auto next = _currentTime + Duration<double>::milliseconds(delayMS);
+    _timeouts.insert(Timeout{_counter, next, cb});
   }
 }
 
+void ReplayDispatcher::finishTimeouts() {
+  for (auto to: _timeouts) {
+    to.cb();
+  }
+  _timeouts = std::set<Timeout>();
+}
+
+void ReplayDispatcher::visitTimeouts() {
+  std::vector<Timeout> toRemove;
+  if (_currentTime.defined()) {
+    for (auto to: _timeouts) {
+      if (to.time <= _currentTime) {
+        to.cb();
+        toRemove.push_back(to);
+      }
+    }
+  }
+  for (auto to: toRemove) {
+    _timeouts.erase(to);
+  }
+}
+
+bool saveDispatcher(const std::string& filename, const Dispatcher& nav) {
+  ReplayDispatcher replay;
+  Logger logger(&replay);
+
+  replay.replay(&nav);
+
+  LogFile logged;
+  logger.flushTo(&logged);
+
+  return Logger::save(filename, logged);
+}
 
 
 }

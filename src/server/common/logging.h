@@ -55,6 +55,14 @@ class LogMessage {
   LogMessage& operator<<(double value);
   LogMessage& operator<<(long long value);
 
+  template <typename T>
+  LogMessage& operator<<(const T& x) {
+    std::stringstream ss;
+    ss << x;
+    message_ += ss.str();
+    return *this;
+  }
+
  private:
   friend class LogFinisher;
   void Finish();
@@ -65,6 +73,7 @@ class LogMessage {
 
   std::string message_;
 };
+
 
 // Thrown by  LogMessage::Finish() if level_ is LOGLEVEL_FATAL
 class LogMessageException {

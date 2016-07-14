@@ -46,7 +46,6 @@ class Span {
   Span(T value) : _minv(value), _maxv(value), _initialized(true) {}
   Span(Array<T> arr) {
     _initialized = false;
-    int count = arr.size();
     for (auto e: arr) {
       extend(e);
     }
@@ -189,12 +188,6 @@ typedef Span<int> Spani;
 
 std::ostream &operator<<(std::ostream &s, const Span<int> &x);
 std::ostream &operator<<(std::ostream &s, const Span<double> &x);
-
-template <typename T> class Length;
-typedef Span<Length<double> > LengthSpan;
-
-template <typename T> class Duration;
-typedef Span<Duration<double> > TimeSpan;
 
 } /* namespace sail */
 

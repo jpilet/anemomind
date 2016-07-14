@@ -10,13 +10,12 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/HNodeGroup.h>
 #include <server/common/logging.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/nautical/grammars/StaticCostFactory.h>
 #include <server/nautical/grammars/HintedStateAssignFactory.h>
 #include <server/common/SharedPtrUtils.h>
 
 namespace sail {
-
-using namespace NavCompat;
 
 
 WindOrientedGrammarSettings::WindOrientedGrammarSettings() {
@@ -228,9 +227,7 @@ namespace {
   }
 
   int mapToRawMinorState(const Nav &nav) {
-    return mapToRawMinorState(
-        toFinite(nav.twaFromTrueWindOverGround().degrees(),
-            nav.externalTwa().degrees()));
+    return mapToRawMinorState(nav.bestTwaEstimate().degrees());
   }
 }
 
@@ -339,7 +336,8 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
 
 std::shared_ptr<HTree> WindOrientedGrammar::parse(NavDataset navs0,
     Array<UserHint> hints) {
-  auto navs = makeArray(navs0);
+  auto navs = NavCompat::makeArray(navs0);
+  LOG(INFO) << "Sampled " << navs.size() << " navs";
   if (navs.empty()) {
     return std::shared_ptr<HTree>();
   }
