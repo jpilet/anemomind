@@ -22,17 +22,18 @@
 namespace sail {
 
 
+LogLoader::LogLoader(const LogLoaderSettings &settings) : _settings(settings) {}
 
 bool LogLoader::loadFile(const std::string &filename) {
   std::string ext = toLower(Poco::Path(filename).getExtension());
   if (ext == "txt") {
-    Nmea0183Loader::loadNmea0183File(filename, &_acc);
+    Nmea0183Loader::loadNmea0183File(filename, &_acc, _settings);
     return true;
   } else if (ext == "csv") {
     loadCsv(filename, &_acc);
     return true;
   } else if (ext == "log") {
-    return ProtobufLogLoader::load(filename, &_acc);
+    return ProtobufLogLoader::load(filename, &_acc, _settings);
   } else {
     LOG(ERROR) << filename << ": unknown log file extension.";
     return false;
@@ -41,7 +42,8 @@ bool LogLoader::loadFile(const std::string &filename) {
 
 void LogLoader::loadNmea0183(std::istream *s) {
   Nmea0183Loader::loadNmea0183Stream(s, &_acc,
-      Nmea0183Loader::getDefaultSourceName());
+      Nmea0183Loader::getDefaultSourceName(),
+      _settings);
 }
 
 void LogLoader::load(const std::string &name) {
@@ -49,7 +51,7 @@ void LogLoader::load(const std::string &name) {
 }
 
 void LogLoader::load(const LogFile &data) {
-  ProtobufLogLoader::load(data, &_acc);
+  ProtobufLogLoader::load(data, &_acc, _settings);
 }
 
 void LogLoader::load(const Poco::Path &name) {
@@ -69,14 +71,16 @@ void LogLoader::load(const Poco::Path &name) {
   }, settings);
 }
 
-NavDataset LogLoader::loadNavDataset(const std::string &name) {
-  LogLoader loader;
+NavDataset LogLoader::loadNavDataset(const std::string &name,
+    const LogLoaderSettings &settings) {
+  LogLoader loader(settings);
   loader.load(name);
   return loader.makeNavDataset();
 }
 
-NavDataset LogLoader::loadNavDataset(const Poco::Path &name) {
-  LogLoader loader;
+NavDataset LogLoader::loadNavDataset(const Poco::Path &name,
+    const LogLoaderSettings &settings) {
+  LogLoader loader(settings);
   loader.load(name);
   return loader.makeNavDataset();
 }

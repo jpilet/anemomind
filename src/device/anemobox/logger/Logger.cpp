@@ -212,7 +212,9 @@ namespace {
     std::int64_t time = 0;
     for (int i = 0; i < times.size(); ++i) {
       time += times.Get(i);
-      result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
+      auto t = TimeStamp::fromMilliSecondsSince1970(time);
+      CHECK(t < TimeStamp::UTC(2020, 1, 1, 1, 1, 1));
+      result->push_back(t);
     }
   }
 }

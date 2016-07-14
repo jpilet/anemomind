@@ -20,6 +20,7 @@
 #include <server/common/TimeStamp.h>
 #include <device/anemobox/TimedSampleCollection.h>
 #include <server/nautical/types/SampledSignal.h>
+#include <server/common/Span.h>
 
 
 namespace sail {
@@ -173,6 +174,7 @@ public:
   TimeStamp upperBound() const;
   Duration<double> duration() const;
 
+  Span<TimeStamp> computeBounds() const;
   NavDataset fitBounds() const;
 
   // Return a range of samples given the code.

@@ -207,10 +207,11 @@ NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
     state_ = NP_STATE_CHECKSUM_2;
     break;
 
-  case NP_STATE_CHECKSUM_2 :
+  case NP_STATE_CHECKSUM_2 : {
     receivedChecksum_ |= HexDigitToInt(input);
 
-    if(ignoreWrongChecksum_ || checksum_ == receivedChecksum_) {
+    bool lastChecksumWasGood = checksum_ == receivedChecksum_;
+    if(ignoreWrongChecksum_ || lastChecksumWasGood) {
       ret = processCommand();
     } else {
       numErr_++;
@@ -218,7 +219,7 @@ NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
     state_ = NP_STATE_SOM;
 
     break;
-
+  }
   default:
     state_ = NP_STATE_SOM;
   }
