@@ -208,8 +208,9 @@ bool regularizeTimesInPlace_(std::vector<TimeStamp> *times) {
 }
 
 bool regularizeTimesInPlace(std::vector<TimeStamp> *times) {
-  auto result = regularizeTimesInPlace_(times);
-  return result && allTimesAreValid(*times);
+  //auto result = regularizeTimesInPlace_(times);
+  //return result && allTimesAreValid(*times);
+  return true;
 }
 
 namespace {
@@ -250,7 +251,17 @@ void addToVector(const ValueSet &src, const OffsetWithFitnessError &offset,
     std::deque<TimedValue<T> > *dst) {
   std::vector<TimeStamp> timeVector;
   std::vector<T> dataVector;
+
+
   ValueSetToTypedVector<TimeStamp>::extract(src, &timeVector);
+
+  //LOG(INFO) << "Loaded " << timeVector.size() << " times";
+  for (auto t: timeVector) {
+    CHECK(t < TimeStamp::UTC(2020, 1, 1, 1, 1, 1));
+  }
+
+
+
   ValueSetToTypedVector<T>::extract(src, &dataVector);
 
   if (offset.defaultConstructed) {
@@ -320,7 +331,7 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
   if (stream.shortname() == SHORTNAME) {addToVector<TYPE>(stream, offset, &(dst->_##HANDLE##sources[stream.source()]));}
       FOREACH_CHANNEL(ADD_VALUES_TO_VECTOR)
 #undef  ADD_VALUES_TO_VECTOR
-  loadTextData(stream, dst, offset);
+  //loadTextData(stream, dst, offset);
 }
 
 namespace {

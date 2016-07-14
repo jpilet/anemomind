@@ -265,6 +265,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   auto resampledf = resampled.fitBounds();
   std::cout << "Resambled bounds: " << resampledf.lowerBound() << " to " << resampledf.upperBound() << std::endl;
 
+  CHECK(false);
+
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
   std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
