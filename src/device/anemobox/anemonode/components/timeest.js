@@ -61,6 +61,8 @@ function estimateTimeFromDispatcher() {
   return estimateTime(new Date(), anemonode.dispatcher.value.dateTime, historyLength);
 }
 
+global.getEstimatedTime = estimateTimeFromDispatcher;
+
 module.exports.estimateTimeFromDispatcher = estimateTimeFromDispatcher;
 module.exports.medianDeltaTime = medianDeltaTime;
 module.exports.estimateTime = estimateTime;

@@ -16,7 +16,7 @@ assert('9' < 'a');
 assert((9).toString(16) < (10).toString(16));
 
 function getCurrentTime() {
-    return global.getCurrentTime? global.getCurrentTime() : new Date();
+    return global.getEstimatedTime? global.getEstimatedTime() : new Date();
 }
 
 // 64 bits = 8 bytes = 16 hexadecimal digits

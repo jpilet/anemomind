@@ -74,5 +74,16 @@ it(
 		}
 	    }
 	);
+
+	describe('Global time', function() {
+	    global.getEstimatedTime = function() {
+		return new Date(119);
+	    }
+
+	    var t = bigint.makeFromTime(8);
+	    assert(t == '00000077');
+
+	    global.getEstimatedTime = null;
+	});
     }
 );
