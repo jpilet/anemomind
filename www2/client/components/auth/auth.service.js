@@ -32,9 +32,8 @@ angular.module('www2App')
             // wait for user data to synchronize all $scope.$watch(Auth.isLoggedIn)
             $log.log('-- auth',currentUser.email);
             deferred.resolve(data);
-            cb();
+            return cb();
           });
-          return;
         }).
         error(function(err) {
           this.logout();

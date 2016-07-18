@@ -25,7 +25,6 @@ angular.module('www2App', [
         config.headers = config.headers || {};
         var token=$cookieStore.get('token');
 
-        console.log('--------- token',token)
         if (token) {
           config.headers.Authorization = 'Bearer ' + token;
         }

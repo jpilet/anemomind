@@ -40,10 +40,10 @@ angular.module('www2App')
     function update() {
       //
       // if this promise is already deferred
-      if(promise.$$state.status){
-        deferred = $q.defer();  
-        promise=deferred.promise;      
-      }
+      // if(promise.$$state.status){
+      //   deferred = $q.defer();  
+      //   promise=deferred.promise;      
+      // }
 
       // Specifically ask for public boat, too.
       // We could have a user option to hide public boats.
@@ -75,7 +75,7 @@ angular.module('www2App')
           //
           // time to resolve promise
           $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
-          $log.log('-- boats.service',boats.length);
+          $log.log('-- boatList.update',boats.length);
           deferred.resolve(boats);            
         });
 
@@ -114,6 +114,7 @@ angular.module('www2App')
         // force update boats
         deferred = $q.defer();  
         promise=deferred.promise;      
+        $log.log('-- boatList.watch.isLoggedIn',newVal);
         update();    
       }
     });

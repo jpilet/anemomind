@@ -1,7 +1,7 @@
 'use strict';
 
 var app = angular.module('www2App')
-  .directive('boatSummary', function ($rootScope, $location, $interpolate, boatList, Auth) {
+  .directive('boatSummary', function ($rootScope, $location, $interpolate, boatList, Auth, $log) {
     var storedPageSize={};
 
     return {
@@ -24,6 +24,8 @@ var app = angular.module('www2App')
           //
           // be sure that boats are ready
           boatList.boats().then(function (boats) {
+            $log.log('-- boatSummary.update',boats.length);
+
             scope.boat = boatList.boat(scope.boatId);
             scope.sessions = boatList.sessionsForBoat(scope.boatId);
 

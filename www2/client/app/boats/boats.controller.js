@@ -13,7 +13,7 @@ angular.module('www2App')
     boatList.boats().then(function(boats) {
       $scope.boats = boats;
 
-      $log.log('-- boat.ctrl',boats.length);
+      $log.log('-- boat.ctrl',boats.length, boatList.getDefaultBoat()._id);
 
       //
       // display selected boat
