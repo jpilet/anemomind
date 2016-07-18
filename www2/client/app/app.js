@@ -14,8 +14,27 @@ angular.module('www2App', [
     $urlRouterProvider
       .otherwise('/');
 
+    // IE Caching issue for $http
+    // - http://benjii.me/2014/07/ie-is-caching-my-angular-requests-to-asp-net-mvc/
+    // - http://stackoverflow.com/questions/16098430/angular-ie-caching-issue-for-http
+    //
+    // Initialize get if not there
+    if (!$httpProvider.defaults.headers.get) {
+        $httpProvider.defaults.headers.get = {};
+    }
+
+    // Enables Request.IsAjaxRequest() in ASP.NET MVC
+    $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
+
+    // Disable IE ajax request caching
+    $httpProvider.defaults.headers.get['If-Modified-Since'] = '0';
+
     $locationProvider.html5Mode(true);
     $httpProvider.interceptors.push('authInterceptor');
+
+
+
+
   })
 
   .factory('authInterceptor', function ($rootScope, $q, $cookieStore, $location) {
