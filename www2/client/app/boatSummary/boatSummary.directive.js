@@ -23,6 +23,7 @@ var app = angular.module('www2App')
           scope.pageSize=storedPageSize[scope.boatId]||2;
           //
           // be sure that boats are ready
+          $log.log('-- boatSummary.update.0');
           boatList.boats().then(function (boats) {
             $log.log('-- boatSummary.update',boats.length);
 

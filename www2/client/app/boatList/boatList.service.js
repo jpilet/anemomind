@@ -107,7 +107,7 @@ angular.module('www2App')
 
     //
     // init
-    update();
+    // update();
     $rootScope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
       if (newVal && newVal != oldVal) {
         //

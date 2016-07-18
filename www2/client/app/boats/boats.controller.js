@@ -9,11 +9,12 @@ angular.module('www2App')
     });
 
     
+    $log.log('-- boat.ctrl.0');
 
     boatList.boats().then(function(boats) {
       $scope.boats = boats;
 
-      $log.log('-- boat.ctrl',boats.length, boatList.getDefaultBoat()._id);
+      $log.log('-- boat.ctrl.1',boats.length);
 
       //
       // display selected boat
