@@ -180,7 +180,7 @@ app.directive('boatMainImage', ['$parse', function($parse) {
     'background-color':'transparent',
     'background-position': '50% 20%',
     'height':'100%'
-  }, defaultImage="/assets/images/boat-sample.png";    
+  }, defaultImage="/assets/images/boat-sample.jpg";    
 
   return {
     restrict: 'A',
