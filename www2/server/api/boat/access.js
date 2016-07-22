@@ -47,7 +47,9 @@ function userCanAccessBoatId(checkAccess, userid, boatid) {
 module.exports.readableBoats = function(req) {
   return Q.Promise(function(resolve, reject) {
     var query;
-    if (req.user) {
+    if (req.user && req.user.role == 'admin') {
+      query = {};
+    } else if (req.user) {
       var user = mongoose.Types.ObjectId(req.user.id);
       query = {
         $or: [

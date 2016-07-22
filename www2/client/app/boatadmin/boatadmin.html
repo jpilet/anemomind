@@ -4,9 +4,10 @@
   <p ng-hide="isAdmin()">This page is restricted to administrators.</p>
 
   <div class="panel panel-default">
-    <div class="panel-body">
-      <a href="/boatadmin/boxexec">see all remote command executions</a>
-    </div>
+    <ul>
+      <li><a href="/boatadmin/boxexec">see all remote command executions</a></li>
+      <li><a href="/boatadmin/updates">manage updates</a></li>
+    </ul>
   </div>
 
   <div class="panel panel-default">
@@ -20,8 +21,8 @@
   <ul class="list-group">
     <li class="list-group-item" ng-repeat="boat in boats">
         <input type="checkbox" ng-model="boat.selected"/>
-        <strong>{{boat.name}}</strong><br>
-        <span class="text-muted">{{boat.type}} {{boat.sailnumber}} {{ boat.anemobox}}</span>
+        <strong>{{boat.name}}</strong> {{boat._id }} <br>
+        <span class="text-muted">{{boat.type}} {{boat.sailnumber}} {{ boat.anemobox}} {{boat.firmwareVersion}} </span>
         <span class="pull-right">
           <a ng-click="delete(boat)" class="trash"><span class="glyphicon glyphicon-trash"></span></a>
         </span>
@@ -36,4 +37,19 @@
     <button class="btn btn-default" ng-click="sendCommand('js')">Run javascript on selected boats</button>
   </div>
 
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div>
+        <label for="selectUpdate">Send update</label>:
+        <select id="selectUpdate" ng-model="selectedUpdate" ng-options="update.name for update in updates">
+        <option value="">-- select update --</option>
+        </select>
+      </div>
+
+      <pre>{{ selectedUpdate.deploy }}</pre>
+
+      <button class="btn btn-default" ng-click="sendUpdate()">send remote update: {{ selectedUpdate.name }}</button>
+      <p>{{ updateStatus }}</p>
+    </div>
+  </div>
 </div>
