@@ -4,6 +4,7 @@ var i2c = i2cModule.i2c;
 var anemonode = require('../build/Release/anemonode');
 var fs = require('fs');
 var Q = require('q');
+var sync = require('./fssync.js').sync;
 
 var calibFile = "/home/anemobox/imu.cal";
 
@@ -210,6 +211,7 @@ function saveCalib(done) {
       if(err) {
         return console.log(err);
       }
+      sync();
       calibrationSaved = true;
       console.log('IMU calibration SAVED.');
     }); 

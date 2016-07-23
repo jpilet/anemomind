@@ -1,6 +1,7 @@
 var fs = require('fs');
 var EventEmitter = require('events');
 var util = require('util');
+var sync = require('./fssync.js').sync;
 
 function ConfigEventEmitter() {
     EventEmitter.call(this);
@@ -41,6 +42,10 @@ function write(config, cb) {
         cb(err, undefined);
       }
     }
+
+    // config file has been written
+    // but cache remains. Let's tell the OS to flush caches.
+    sync();
 
     // We clone the config object to avoid bad surprises.
     globalConfig = clone(config);
