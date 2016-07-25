@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <device/anemobox/BinarySignal.h>
 #include <device/anemobox/TimedSampleCollection.h>
 #include <server/nautical/AbsoluteOrientation.h>
 #include <server/nautical/GeographicPosition.h>
@@ -143,6 +144,7 @@ typedef ValueDispatcher<Length<double>> LengthDispatcher;
 typedef ValueDispatcher<GeographicPosition<double>> GeoPosDispatcher;
 typedef ValueDispatcher<TimeStamp> TimeStampDispatcher;
 typedef ValueDispatcher<AbsoluteOrientation> AbsoluteOrientationDispatcher;
+typedef ValueDispatcher<BinaryEdge> BinaryEdgeDispatcher;
 
 template <typename T>
 class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {

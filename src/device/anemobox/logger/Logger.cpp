@@ -282,5 +282,13 @@ void Logger::unpackTime(const ValueSet& valueSet,
   unpackTimeSub(getBestKnownTimeStamps(valueSet), result);
 }
 
+void Logger::unpack(const BinaryEdgeValueSet& values,
+                    std::vector<BinaryEdge>* result) {
+  result->clear();
+  result->resize(values.edges_size());
+  for (int i = 0; i < values.edges_size(); ++i) {
+    (*result)[i] = values.edges(i) ? BinaryEdge::ToOn : BinaryEdge::ToOff;
+  }
+}
 
 }  // namespace sail

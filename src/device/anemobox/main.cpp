@@ -31,6 +31,10 @@ void print(const TimeStampDispatcher &timeStamp) {
   std::cout << timeStamp.lastValue().toString();
 }
 
+void print(const BinaryEdgeDispatcher& e) {
+  std::cout << (e.lastValue() == BinaryEdge::ToOn ? "start" : "end");
+}
+
 void print(const AbsoluteOrientationDispatcher &orientDisp) {
   auto orient = orientDisp.lastValue();
   std::cout << "Orient(heading=" << orient.heading
@@ -98,6 +102,13 @@ class PrintUpdates : public DispatchDataVisitor {
     _orientPrinters.push_back(valuePrinter);
   }
 
+  virtual void run(DispatchBinaryEdge *value) {
+    auto valuePrinter =
+      make_shared<PrintListener<BinaryEdge>>(value->description());
+    value->dispatcher()->subscribe(valuePrinter.get());
+    _binPrinters.push_back(valuePrinter);
+  }
+
  private:
   std::vector<std::shared_ptr<PrintListener<Angle<double>>>> _anglePrinters;
   std::vector<std::shared_ptr<PrintListener<Velocity<double>>>> _velocityPrinters;
@@ -105,6 +116,7 @@ class PrintUpdates : public DispatchDataVisitor {
   std::vector<std::shared_ptr<PrintListener<GeographicPosition<double>>>> _geoPosPrinters;
   std::vector<std::shared_ptr<PrintListener<TimeStamp>>> _timeStampPrinters;
   std::vector<std::shared_ptr<PrintListener<AbsoluteOrientation>>> _orientPrinters;
+  std::vector<std::shared_ptr<PrintListener<BinaryEdge>>> _binPrinters;
 };
 
 }  // namespace
