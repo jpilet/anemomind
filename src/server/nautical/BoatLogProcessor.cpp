@@ -321,6 +321,8 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _vmgSampleSelection = (amap->optionProvided("--vmg:blind") ?
     VMG_SAMPLES_BLIND : VMG_SAMPLES_FROM_GRAMMAR);
 
+  _tileParams.fullClean = amap->optionProvided("--clean");
+
   if (_debug) {
     LOG(INFO) << "BoatLogProcessor:\n"
       << "boat: " << _boatid << "\n"
