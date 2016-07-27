@@ -10,7 +10,7 @@ var RemoteOps = require('./remoteOps');
 
 // Gets a list of Boxexecs
 exports.index = function(req, res) {
-  BoxExec.find(req.params, function(err, boxexecs) {
+  BoxExec.find(req.query, function(err, boxexecs) {
     if(err) return res.status(500).send(err);
     res.status(200).json(boxexecs);
   });

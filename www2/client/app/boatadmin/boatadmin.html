@@ -5,7 +5,7 @@
 
   <div class="panel panel-default">
     <ul>
-      <li><a href="/boatadmin/boxexec">see all remote command executions</a></li>
+      <li><a href="/boatadmin/boxexec/">see all remote command executions</a></li>
       <li><a href="/boatadmin/updates">manage updates</a></li>
     </ul>
   </div>
@@ -21,7 +21,9 @@
   <ul class="list-group">
     <li class="list-group-item" ng-repeat="boat in boats">
         <input type="checkbox" ng-model="boat.selected"/>
-        <strong>{{boat.name}}</strong> {{boat._id }} <br>
+        <strong>{{boat.name}}</strong> {{boat._id }}
+        <span>[<a href="/boatadmin/boxexec/{{boat._id}}">execs</a>]</span>
+        <br>
         <span class="text-muted">{{boat.type}} {{boat.sailnumber}} {{ boat.anemobox}} {{boat.firmwareVersion}} </span>
         <span class="pull-right">
           <a ng-click="delete(boat)" class="trash"><span class="glyphicon glyphicon-trash"></span></a>

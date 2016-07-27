@@ -17,6 +17,11 @@ module.exports.userCanRead = function(user, boat) {
   if (!user || !user.id || !boat) {
     return false;
   }
+
+  if (user.role == 'admin') {
+    return true;
+  }
+
   var userId = mongoose.Types.ObjectId(user.id);
 
   return (boat.admins && (_.findIndex(boat.admins, userId) >= 0))
@@ -27,6 +32,11 @@ module.exports.userCanWrite = function(user, boat) {
   if (!user || !user.id || !boat || !boat.admins) {
     return false;
   }
+
+  if (user.role == 'admin') {
+    return true;
+  }
+
   var userId = mongoose.Types.ObjectId(user.id);
   return _.findIndex(boat.admins, userId) >= 0;
 }
