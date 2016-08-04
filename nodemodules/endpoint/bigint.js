@@ -7,6 +7,7 @@
 
 
 var assert = require('assert');
+var timesrc = require('./timesrc.js');
 
 // Since the integers are just strings
 // that are sorted lexically by the characters,
@@ -14,10 +15,6 @@ var assert = require('assert');
 // the digit of 10.
 assert('9' < 'a');
 assert((9).toString(16) < (10).toString(16));
-
-function getCurrentTime() {
-    return global.getEstimatedTime? global.getEstimatedTime() : new Date();
-}
 
 // 64 bits = 8 bytes = 16 hexadecimal digits
 var int64width = 16;
@@ -79,7 +76,7 @@ function padWith0(x, w) {
 // Make an integer based on the current time,
 // that is the number of milliseconds since 1970.
 function makeFromTime(width) {
-    var x = getCurrentTime().getTime().toString(16);
+    var x = timesrc.get().getTime().toString(16);
     return padWith0(x, withDefaultWidth(width));
 }
 

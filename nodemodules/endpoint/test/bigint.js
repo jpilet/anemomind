@@ -1,5 +1,6 @@
 var assert = require('assert');
 var bigint = require('../bigint.js');
+var timesrc = require('../timesrc.js');
 
 
 function implies(a, b) {
@@ -76,14 +77,14 @@ it(
 	);
 
 	describe('Global time', function() {
-	    global.getEstimatedTime = function() {
+	    timesrc.get = function() {
 		return new Date(119);
 	    }
 
 	    var t = bigint.makeFromTime(8);
 	    assert(t == '00000077');
 
-	    global.getEstimatedTime = null;
+	    timesrc.reset();
 	});
     }
 );
