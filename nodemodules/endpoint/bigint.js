@@ -76,7 +76,7 @@ function padWith0(x, w) {
 // Make an integer based on the current time,
 // that is the number of milliseconds since 1970.
 function makeFromTime(width) {
-    var x = timesrc.get().getTime().toString(16);
+    var x = timesrc.now().getTime().toString(16);
     return padWith0(x, withDefaultWidth(width));
 }
 

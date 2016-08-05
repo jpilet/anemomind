@@ -77,7 +77,7 @@ it(
 	);
 
 	describe('Global time', function() {
-	    timesrc.get = function() {
+	    timesrc.now = function() {
 		return new Date(119);
 	    }
 
