@@ -1,7 +1,7 @@
 var assert = require('assert');
 var anemonode = require('../build/Release/anemonode');
 var timesrc = require('endpoint/timesrc.js')
-
+var prodassert = require('./prodassert.js').prodassert;
 
 // Settings
 var cacheExpiryThreshold = 1000;
@@ -10,10 +10,10 @@ var historyLength = 60;
 
 
 function medianDeltaTime(src, hlen) {
-  assert(src.length);
-  assert(src.value);
-  assert(src.time);
-  assert(typeof(hlen) == 'number');
+  prodassert(src.length);
+  prodassert(src.value);
+  prodassert(src.time);
+  prodassert(typeof(hlen) == 'number');
   var n = Math.min(hlen, src.length());
   var deltas = [];
   for (var i = 0 ; i < n; ++i) {
@@ -45,7 +45,7 @@ function medianDeltaTimeMemoized(src, hlen, t) {
 
 
 function estimateTime(currentSystemTime, src, hlen) {
-  assert(currentSystemTime instanceof Date);
+  prodassert(currentSystemTime instanceof Date);
   if (src.length() == 0) {
     return currentSystemTime;
   } else {
