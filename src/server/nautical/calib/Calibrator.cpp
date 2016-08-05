@@ -15,12 +15,14 @@
 #include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <device/Arduino/libraries/FixedPoint/FixedPoint.h>
 #include <device/Arduino/libraries/TrueWindEstimator/InstrumentFilter.h>
+#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <iostream>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/Histogram.h>
 #include <server/common/math.h>
 #include <server/common/string.h>
+#include <server/nautical/DownsampleGps.h>
 #include <server/nautical/FlowErrors.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/plot/extra.h>
@@ -39,14 +41,14 @@ using namespace NavCompat;
 
 namespace {
   string showWind(const HorizontalMotion<double>& wind) {
-    double degrees = wind.angle().degrees();
+    Angle<> twdir = calcTwdir(wind);
     return stringFormat("%3.0f/%4.1fkn",
-                        positiveMod(degrees, 360.0),
+                        twdir.positiveMinAngle().degrees(),
                         wind.norm().knots());
   }
 
-  Angle<double> externalTrueWindDirection(NavDataset nav) {
-    return getLast(nav).externalTwa() + getLast(nav).magHdg();
+  Angle<double> externalTrueWindDirection(const Nav& nav) {
+    return nav.externalTwa() + nav.gpsBearing();
   }
 
   template <typename T, int N>
@@ -113,8 +115,8 @@ class TackCost {
       *sumKnots = std::fabs((windAfter.norm() - windBefore.norm()).knots());
       
       *sumExternalDegrees = std::fabs(
-          externalTrueWindDirection(_beforeNav).directionDifference(
-              externalTrueWindDirection(_afterNav)).degrees());
+          externalTrueWindDirection(getLast(_beforeNav)).directionDifference(
+              externalTrueWindDirection(getLast(_afterNav))).degrees());
       *sumExternalKnots = std::fabs(
           (getLast(_beforeNav).externalTws() - getLast(_afterNav).externalTws()).knots());
     }
@@ -144,39 +146,71 @@ class TackCost {
 };
 
 void Calibrator::addTack(int pos, double weight) {
-  const int length = 5;
-  const int delta = 20;
-  if ((pos < length + delta) || (pos > getNavSize(_allnavs) - length - delta)) {
+  const Duration<> length = Duration<>::seconds(5);
+  const Duration<> delta = Duration<>::seconds(20);
+
+  TimeStamp tackTime = timeAt(_allnavs, pos);
+  TimeStamp beginning = timeAt(_allnavs, 0);
+  int size = getNavSize(_allnavs);
+
+  if (size <= 0) {
+    LOG(ERROR) << "trying to add a maneuver on an empty navigation!";
+    return;
+  }
+  TimeStamp end = timeAt(_allnavs, size - 1);
+
+  if ((tackTime < beginning + length + delta)
+       || (tackTime > end - length - delta)) {
     LOG(WARNING) << "Ignoring maneuver too close to beginning or end of recording";
     return;
   }
 
-  const int largeMargin = 500;
-  NavDataset before = slice(_allnavs, max(0, pos - delta - largeMargin),
-                                     pos - delta);
-  NavDataset after = slice(_allnavs, max(0, pos + delta - largeMargin),
-                                    pos + delta + length);
+  //LOG(INFO) << "maneuver at: " << tackTime << " with weight " << weight;
 
+  const Duration<> largeMargin = Duration<>::minutes(3);
+  NavDataset beforeds = _allnavs.slice(maxDefined(beginning, tackTime - delta - largeMargin),
+                                     tackTime - delta);
+  NavDataset afterds = _allnavs.slice(max(beginning, tackTime + delta - largeMargin),
+                                    tackTime + delta + length);
+
+  if (getNavSize(afterds) == 0 || getNavSize(beforeds) == 0) {
+    LOG(WARNING) << "Ignoring invalid manoeuver: got empty nav array.";
+    return;
+  }
+
+  Nav after = getLast(afterds);
+  Nav before = getLast(beforeds);
+
+  /*
   Duration<double> deltaTime = getFirst(after).time() - getLast(before).time();
   if (deltaTime > Duration<>::minutes(3)) {
     LOG(WARNING) << "Ignoring maneuver with a long time gap.";
     return;
   }
+  */
 
   const Velocity<double> minWindSpeed = Velocity<double>::knots(2.0);
-  if (getLast(after).aws() < minWindSpeed ||
-      getLast(before).aws() < minWindSpeed) {
+  if (after.aws() < minWindSpeed || before.aws() < minWindSpeed) {
     // less than 2 knots of wind is not a useful measure.
     return;
   }
   
+  /*
   if (fabs(externalTrueWindDirection(before).directionDifference(
           externalTrueWindDirection(after)).degrees()) > 30.0) {
     // Tacktick is off by more than 30 degrees: something funny is going on.
+    auto twdirBefore = externalTrueWindDirection(before);
+    auto twdirAfter = externalTrueWindDirection(after);
+    LOG(INFO) << "Between " << before.time().toString() << " and "
+      << after.time().toString() << ", estimate of twdir delta: "
+      << fabs(twdirBefore.directionDifference(twdirAfter).degrees())
+      << ": TWDIR before: " << twdirBefore.degrees() 
+      << ": TWDIR after: " << twdirAfter.degrees();
     return;
   }
+  */
 
-  TackCost *cost = new TackCost(before, after, weight);
+  TackCost *cost = new TackCost(beforeds, afterds, weight);
   _maneuvers.push_back(cost);
   CostFunction* cost_function =
       new AutoDiffCostFunction<
@@ -248,9 +282,15 @@ string Calibrator::description(std::shared_ptr<HTree> tree) {
   return _grammar.nodeInfo()[tree->index()].description();
 }
 
+
 bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   // Load data.
-  NavDataset allnavs = LogLoader::loadNavDataset(dataPath);
+  NavDataset raw = LogLoader::loadNavDataset(dataPath);
+  NavDataset allnavs = downSampleGpsTo1Hz(raw);
+
+  // The code expect a 1 Hz postion sampling.
+  // This function downsamples the data if required.
+
   if (getNavSize(allnavs) == 0) {
     return false;
   }

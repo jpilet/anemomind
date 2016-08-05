@@ -4,8 +4,11 @@
  */
 
 #include <device/anemobox/DispatcherUtils.h>
+
+#include <device/anemobox/logger/Logger.h>
 #include <server/common/logging.h>
 #include <server/nautical/AbsoluteOrientation.h>
+#include <fstream>
 
 namespace sail {
 
@@ -350,7 +353,7 @@ std::shared_ptr<DispatchData> mergeChannels(DataCode code,
 }
 
 
-void copyPriorities(Dispatcher *src, Dispatcher *dst) {
+void copyPriorities(const Dispatcher *src, Dispatcher *dst) {
   for (auto kv: src->sourcePriority()) {
     dst->setSourcePriority(kv.first, kv.second);
   }
@@ -474,6 +477,114 @@ std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
 
   return dst;
 }
+
+
+namespace {
+  template <typename T>
+  struct ValueExporter {
+    static const bool active = false;
+
+    double toNumber(const T &x) {
+      return 0.0;
+    }
+
+    static const char *getUnitLabel() {return nullptr;}
+  };
+
+  template <>
+  struct ValueExporter<Velocity<double> > {
+
+    static const bool active = true;
+
+    static double toNumber(const Velocity<double> &v) {
+      return v.metersPerSecond();
+    }
+
+    static const char *getUnitLabel() {return "meters per second";}
+  };
+
+  template <>
+  struct ValueExporter<Angle<double> > {
+
+    static const bool active = true;
+
+    static double toNumber(const Angle<double> &x) {
+      return x.radians();
+    }
+
+    static const char *getUnitLabel() {return "radians";}
+  };
+
+  Duration<double> exportSamplingPeriod = Duration<double>::seconds(1.0);
+
+  template <typename T>
+  Optional<T> getValueCloseTo(const TimedSampleCollection<T> &coll, TimeStamp t) {
+    auto x0 = coll.nearestTimedValue(t);
+    if (x0.defined()) {
+      auto tv = x0.get();
+      if (fabs(tv.time - t) < Duration<double>::seconds(8.0)) {
+        return tv.value;
+      }
+    }
+    return Optional<T>();
+  }
+
+
+  namespace {
+    class ExportVisitor {
+     public:
+      ExportVisitor(const std::string &filename,
+          TimeStamp fromTime, TimeStamp toTime) :
+        _shortNameFile(filename + "_shortnames.txt"),
+        _sourceNameFile(filename + "_sourcenames.txt"),
+        _dataFile(filename + "_data.txt"),
+        _unitFile(filename + "_units.txt"), _fromTime(fromTime), _toTime(toTime) {
+
+        // The first row is the time.
+        _shortNameFile << "TIME\n";
+        _sourceNameFile << "ExportVisitor\n";
+        _unitFile << "Seconds\n";
+        for (auto t = _fromTime; t < _toTime; t = t + exportSamplingPeriod) {
+          _dataFile << t.toSecondsSince1970() << " ";
+        }
+        _dataFile << std::endl;
+      }
+
+      template <DataCode Code, typename T>
+      void visit(const char *shortName, const std::string &sourceName,
+        const std::shared_ptr<DispatchData> &raw,
+        const TimedSampleCollection<T> &coll) {
+        ValueExporter<T> exporter;
+        if (exporter.active) {
+          _unitFile << exporter.getUnitLabel() << "\n";
+          _shortNameFile << shortName << "\n";
+          _sourceNameFile << sourceName << "\n";
+          for (auto t = _fromTime; t < _toTime; t = t + exportSamplingPeriod) {
+            auto x0 = getValueCloseTo(coll, t);
+            if (x0.defined()) {
+              _dataFile << exporter.toNumber(x0.get()) << " ";
+            } else {
+              _dataFile << "NAN ";
+            }
+          }
+          _dataFile << std::endl;
+        }
+      }
+     private:
+      std::ofstream _shortNameFile, _sourceNameFile, _dataFile, _unitFile;
+      TimeStamp _fromTime, _toTime;
+    };
+  }
+}
+
+void exportDispatcherToTextFiles(const std::string &filenamePrefix,
+    TimeStamp from, TimeStamp to,
+    const Dispatcher *d) {
+  ExportVisitor visitor(filenamePrefix, from, to);
+  visitDispatcherChannelsConst(d, &visitor);
+}
+
+
 
 namespace {
   const std::map<std::string,
@@ -617,6 +728,8 @@ void ReplayDispatcher::replay(const Dispatcher *src) {
     return;
   }
 
+  copyPriorities(src, this);
+
   std::vector<ValueToPublish::Ptr> allValues;
   ValueCollector collector(&allValues);
   visitDispatcherChannelsConst(src, &collector);
@@ -655,6 +768,18 @@ void ReplayDispatcher::visitTimeouts() {
   for (auto to: toRemove) {
     _timeouts.erase(to);
   }
+}
+
+bool saveDispatcher(const std::string& filename, const Dispatcher& nav) {
+  ReplayDispatcher replay;
+  Logger logger(&replay);
+
+  replay.replay(&nav);
+
+  LogFile logged;
+  logger.flushTo(&logged);
+
+  return Logger::save(filename, logged);
 }
 
 

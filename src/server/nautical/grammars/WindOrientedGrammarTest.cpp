@@ -4,12 +4,14 @@
  */
 
 #include <server/nautical/grammars/WindOrientedGrammar.h>
+
+#include <gtest/gtest.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/logimport/LogLoader.h>
-#include <gtest/gtest.h>
-#include <server/nautical/grammars/TreeExplorer.h>
 #include <server/common/string.h>
+#include <server/nautical/NavCompatibility.h>
+#include <server/nautical/grammars/TreeExplorer.h>
+#include <server/nautical/logimport/LogLoader.h>
 
 using namespace sail;
 using namespace sail::NavCompat;

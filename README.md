@@ -141,4 +141,9 @@ sudo scons -j 20 --cache LINKFLAGS=-fuse-ld=gold --c++11=on CCFLAGS="-Wno-unused
 More information here: https://github.com/mongodb/mongo-cxx-driver/wiki/Download-and-Compile-the-Legacy-Driver#scons-options-when-compiling-the-c-driver. Note in particular that even if our code builds with this driver, it may still crash (with a segfault at runtime), in particular if **the C++ standard** differes between the different compiled code, as explained under *Important note about C++11/C++14*.
 
 ### Mac OSX
+
 TODO
+
+```
+brew install suite-sparse
+```

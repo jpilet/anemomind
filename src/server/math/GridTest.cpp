@@ -8,7 +8,6 @@
 #include "gtest/gtest.h"
 #include "../common/BBox.h"
 #include "Grid.h"
-#include "mathutils.h"
 
 using namespace sail;
 

@@ -126,6 +126,7 @@ describe('GET /api/boats', function() {
 
   after(function(done) {
     testUtils.cleanup();
+    done();
   });
 });
 

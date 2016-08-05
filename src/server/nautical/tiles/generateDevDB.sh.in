@@ -19,7 +19,7 @@ SRC_DIR="@CMAKE_SOURCE_DIR@"
 BIN_DIR="@CMAKE_BINARY_DIR@"
 
 datasetsDir="${SRC_DIR}/datasets"
-boats="Irene psaros33_Banque_Sturdza"
+boats="AlinghiGC32 Irene psaros33_Banque_Sturdza"
 
 # Insert (or get) test user
 
@@ -33,6 +33,10 @@ if [ $R -ne 0 ]; then
   testUserId=$(mongo --quiet anemomind-dev --eval "print(db.users.find({email:'test@anemomind.com'})[0]._id + '')")
 fi
 
+mongo --quiet anemomind-dev --eval "db.users.insert({name:'Test Admin','provider' : 'local', 'name' : 'test admin', 'email' : 'admin@anemomind.com', 'hashedPassword' : 'bj0zHvlC/YIzEFOU7nKwr+OHEzSzfdFA9PMmsPGnWITGHp1zlL+29oa049o6FvuR2ofd8wOx2nBc5e2n2FIIsg==', 'salt' : 'bGwuseqg/L/do6vLH2sPVA==', 'role' : 'admin' });" || true
+
+adminUserId=$(mongo --quiet anemomind-dev --eval "print(db.users.find({email:'admin@anemomind.com'})[0]._id + '')")
+
 for i in ${boats}; do
   echo Searching boat: $i
   set +e
@@ -44,11 +48,23 @@ for i in ${boats}; do
     boatid=$(mongo --quiet anemomind-dev --eval "print(db.boats.find({name:'${i}'})[0]._id + '')")
   fi
 
-  echo "Processing boat log for ${i} (id ${boatid})"
-  "${BIN_DIR}/src/server/nautical/nautical_processBoatLogs" --dir "${datasetsDir}/$i"
+  if test -d "${datasetsDir}/$i/logs"; then
+    boatdir="${datasetsDir}/$i/logs"
+  else
+    boatdir="${datasetsDir}/$i"
+  fi
 
-  echo "Generating tiles for ${i}"
-  "${BIN_DIR}/src/server/nautical/tiles/tiles_generateAndUpload" \
-    --boatDat "${datasetsDir}/$i/processed/boat.dat" \
-    --id "${boatid}" --navpath "${datasetsDir}/$i"
+  test -d "${boatdir}/processed" || mkdir "${boatdir}/processed"
+
+  echo "Processing boat log for ${i} (id ${boatid})"
+  "${BIN_DIR}/src/server/nautical/nautical_processBoatLogs" \
+    --boatid "${boatid}" \
+    --dir "${boatdir}" \
+    --dst "${boatdir}/processed" \
+    --clean \
+    -t \
+    || true
+
+  "${BIN_DIR}/src/server/nautical/nautical_catTargetSpeed" --id "${boatid}" "${boatdir}/processed/boat.dat" | mongo anemomind-dev
+
 done

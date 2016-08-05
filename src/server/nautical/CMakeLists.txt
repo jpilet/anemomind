@@ -24,6 +24,7 @@ target_link_libraries(nautical_nav
 cxx_test(nautical_BoatLogProcessorTest
          BoatLogProcessorTest.cpp
          nautical_BoatLogProcessor
+         device_TargetSpeed
          common_Env
          gtest_main
         )
@@ -118,7 +119,9 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_HTreeJson
                       nautical_NavJson
                       nautical_TargetSpeed
+                      nautical_downsamplegps
                       nautical_grammars_WindOrientedGrammar
+                      nautical_tiles_TileUtils
                       common_ArgMap
                       plot_gnuplot
                       common_ScopedLog
@@ -314,3 +317,11 @@ add_library(nautical_Visualize
 target_link_libraries(nautical_Visualize
   plot_Plot
   )
+
+add_library(nautical_downsamplegps
+            DownsampleGps.h
+            DownsampleGps.cpp
+           )
+target_link_libraries(nautical_downsamplegps
+                      nautical_NavDataset
+                      )

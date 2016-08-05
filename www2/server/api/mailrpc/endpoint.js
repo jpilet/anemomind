@@ -44,7 +44,8 @@ var testing = (process.env.NODE_ENV == 'development');
 // If not, produce an error object.
 function acquireEndpointAccess(user, endpointName, cb) {
   var errorObject = {statusCode: 403,
-		     message: "Unauthorized access to " + endpointName};
+		     message: "Unauthorized access to " + endpointName
+                        + " by user: " + user.name + "(" + user.id + ")" };
   if (testing && endpointName == 'b') { // Used by iPhone unit tests.
     cb();
   } else {

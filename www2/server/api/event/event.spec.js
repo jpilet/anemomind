@@ -113,7 +113,7 @@ describe('GET /api/events', function() {
       });
   });
 
-  it('should list the test note and the public note', function(done) {
+  it('should list the test note but not the public note', function(done) {
      server
       .get('/api/events')
       .set('Authorization', 'Bearer ' + token)
@@ -123,10 +123,8 @@ describe('GET /api/events', function() {
            return done(err);
         }
         res.body.should.be.instanceof(Array);
-        res.body.should.have.length(2);
+        res.body.should.have.length(1);
         res.body[0].should.have.property('comment');
-        res.body[1].should.have.property('comment');
-        res.body[0]._id.should.not.equal(res.body[1]._id);
         done();
       });
   });
@@ -141,9 +139,7 @@ describe('GET /api/events', function() {
            return done(err);
         }
         res.body.should.be.instanceof(Array);
-        res.body.should.have.length(1);
-        res.body[0].should.have.property('comment');
-        res.body[0].comment.should.equal('Public comment');
+        res.body.should.have.length(0);
         done();
       });
   });

@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <device/anemobox/Dispatcher.h>
-#include <logger.pb.h>
+#include <device/anemobox/logger/logger.pb.h>
 #include <boost/signals2/connection.hpp>
 #include <map>
 #include <memory>
