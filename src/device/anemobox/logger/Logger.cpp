@@ -11,7 +11,6 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <google/protobuf/io/gzip_stream.h>
 #include <server/common/Optional.h>
-#include <regex>
 
 using namespace google::protobuf::io;
 using namespace boost::iostreams;
