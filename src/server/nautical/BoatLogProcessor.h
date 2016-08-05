@@ -42,6 +42,7 @@ struct BoatLogProcessor {
   bool _generateTiles;
   VmgSampleSelection _vmgSampleSelection;
   std::string _saveSimulated;
+  bool _gpsFilter;
 };
 
 int mainProcessBoatLogs(int argc, const char **argv);

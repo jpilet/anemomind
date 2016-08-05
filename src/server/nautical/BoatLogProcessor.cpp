@@ -300,7 +300,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
       extractAll("Sailing", simulated, _grammar.grammar, fulltree);
 
     // GPS filtering: eliminates bad speed surprises
-    Array<NavDataset> filteredSessions = filterSessions(rawSessions);
+    Array<NavDataset> filteredSessions =
+      (_gpsFilter ? filterSessions(rawSessions) : rawSessions);
 
     if (!generateAndUploadTiles(_boatid, filteredSessions, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
@@ -320,6 +321,8 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _generateTiles = amap->optionProvided("-t");
   _vmgSampleSelection = (amap->optionProvided("--vmg:blind") ?
     VMG_SAMPLES_BLIND : VMG_SAMPLES_FROM_GRAMMAR);
+
+  _gpsFilter = !amap->optionProvided("--no-gps-filter");
 
   _tileParams.fullClean = amap->optionProvided("--clean");
 
@@ -363,6 +366,8 @@ int mainProcessBoatLogs(int argc, const char **argv) {
   amap.registerOption(
       "--vmg:blind", "Instead of using grammar to find legs for vmg samples, use everything.")
     .setArgCount(0);
+
+  amap.registerOption("--no-gps-filter", "skip gps filtering").setArgCount(0);
 
   amap.disableFreeArgs();
 
