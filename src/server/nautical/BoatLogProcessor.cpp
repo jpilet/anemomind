@@ -323,6 +323,7 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
     VMG_SAMPLES_BLIND : VMG_SAMPLES_FROM_GRAMMAR);
 
   _gpsFilter = !amap->optionProvided("--no-gps-filter");
+
   _tileParams.fullClean = amap->optionProvided("--clean");
 
   if (_debug) {

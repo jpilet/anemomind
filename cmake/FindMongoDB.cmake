@@ -12,6 +12,8 @@ set(MongoDB_BUILD_FROM_SOURCES "YES")
 
 find_package(Boost COMPONENTS filesystem regex thread system REQUIRED)
 
+find_package(OpenSSL)
+
 if (MongoDB_BUILD_FROM_SOURCES)
 
   message(STATUS "Building mongodb in ${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src")
@@ -29,6 +31,7 @@ if (MongoDB_BUILD_FROM_SOURCES)
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
 
+        UPDATE_COMMAND ""
         CONFIGURE_COMMAND ""
         BUILD_COMMAND cd "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
         && test "-f" "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/lib/libmongoclient.a"
@@ -48,7 +51,7 @@ if (MongoDB_BUILD_FROM_SOURCES)
   set_property(TARGET mongoclient PROPERTY IMPORTED_LOCATION  "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/lib/libmongoclient.a")
   add_dependencies(mongoclient mongodb_ext)
 
-  set (MongoDB_LIBRARIES mongoclient)
+  set (MongoDB_LIBRARIES mongoclient ${OPENSSL_LIBRARIES})
 
 else (MongoDB_BUILD_FROM_SOURCES)
 

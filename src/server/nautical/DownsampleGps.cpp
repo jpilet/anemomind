@@ -6,13 +6,21 @@ namespace sail {
 
 namespace {
 
+bool validPos(const GeographicPosition<double>& pos) {
+  return fabs(pos.lat()) > Angle<double>::degrees(1e-5)
+    && fabs(pos.lon()) > Angle<double>::degrees(1e-5);
+}
+
 TimedSampleCollection<GeographicPosition<double> >
   downSamplePosTo1Hz(const SampledSignal<GeographicPosition<double> >& pos) {
   TimedSampleCollection<GeographicPosition<double> > dst;
 
+  Duration<> almostOneSec = Duration<>::seconds(.99);
+
   for (int i = 0; i < pos.size(); ++i) {
-    if (i == 0
-        || ((pos[i].time - dst.lastTimeStamp()) >= Duration<>::seconds(.99))) {
+    if (validPos(pos[i].value)
+        && (dst.size() == 0
+            || ((pos[i].time - dst.lastTimeStamp()) >= almostOneSec))) {
       dst.append(pos[i]);
     }
   }
