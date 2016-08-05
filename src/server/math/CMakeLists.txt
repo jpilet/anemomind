@@ -1,12 +1,3 @@
-add_library(math_mathutils
-            mathutils.cpp
-            mathutils.h
-           )
-target_link_libraries(math_mathutils
-                      common_Array
-                     )
-target_depends_on_armadillo(math_mathutils)
-
 add_library(math_armaadolc
             armaadolc.cpp
             armaadolc.h
@@ -35,12 +26,6 @@ cxx_test(math_LUTest
          math_LU
          gtest_main
         )                           
-
-cxx_test(math_mathutilsTest
-         mathutilsTest.cpp
-         math_mathutils
-         gtest_main
-        )                   
 
 add_library(math_Grid
             Grid.cpp
