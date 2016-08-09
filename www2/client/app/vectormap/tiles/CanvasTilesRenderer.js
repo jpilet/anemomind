@@ -26,11 +26,11 @@ function CanvasTilesRenderer(params) {
   this.params.height = this.params.height || 1;
   this.params.minScale = this.params.minScale || 0;
   
-  this.params.downgradeIfSlowerFPS = params.downgradeIfSlowerFPS || 20;
-  
+  this.params.downgradeIfSlowerFPS = params.downgradeIfSlowerFPS || 15;
+  this.params.downsampleDuringMotion = false;
+
   this.layers = [
-    new TileLayer(params, this),
-    new VectorTileLayer(params, this)
+    new TileLayer(params, this)
   ];
 
   this.canvasWidth = -1;
@@ -63,6 +63,11 @@ function CanvasTilesRenderer(params) {
   this.params.width,
   this.params.height);
   this.pinchZoom.minScale = this.params.minScale;
+  if (this.params.maxScale) { this.pinchZoom.maxScale = this.params.maxScale; }
+  if (this.params.maxX) { this.pinchZoom.maxX = this.params.maxX; }
+  if (this.params.maxY) { this.pinchZoom.maxY = this.params.maxY; }
+  if (this.params.minX) { this.pinchZoom.minX = this.params.minX; }
+  if (this.params.minY) { this.pinchZoom.minY = this.params.minY; }
 
   // We are ready, let's allow drawing.  
   this.inDraw = false;
@@ -76,6 +81,11 @@ function CanvasTilesRenderer(params) {
   };
   this.setLocation(location);
 }
+
+CanvasTilesRenderer.prototype.addLayer = function(layer) {
+  this.layers.push(layer);
+  this.refreshIfNotMoving();
+};
 
 /** Get the current view location.
  *
@@ -220,11 +230,12 @@ CanvasTilesRenderer.prototype.draw = function() {
   // Clear the canvas
   var context = canvas.getContext('2d');
 
-  this.clearBorder(context);
-
   for (var i in this.layers) {
     this.layers[i].draw(canvas, pinchZoom, bboxTopLeft, bboxBottomRight);
   }
+  this.clearBorder(context);
+
+
 
   // Rendering resolution is decreased during motion.
   // To render high-res after a motion, we detect motion end
@@ -265,9 +276,9 @@ CanvasTilesRenderer.prototype.draw = function() {
 CanvasTilesRenderer.prototype.clearBorder = function(context) {
   var canvas = this.canvas;
 
-  var topLeft = this.pinchZoom.viewerPosFromWorldPos(0, 0);
-  var bottomRight = this.pinchZoom.viewerPosFromWorldPos(this.params.width,
-                                               this.params.height);
+  var topLeft = this.pinchZoom.viewerPosFromWorldPos(this.pinchZoom.topLeftWorld());
+  var bottomRight = this.pinchZoom.viewerPosFromWorldPos(
+      this.pinchZoom.bottomRightWorld());
 
   context.fillStyle = 'white';
   if (topLeft.x > 0) {

@@ -61,15 +61,31 @@ PinchZoom.prototype.viewerPosFromWorldPos = function(x, y) {
   return this.transform.transform(x, y);
 };
 
-PinchZoom.prototype.isMoving = function() {
-    var count = 0;
+PinchZoom.prototype.worldDistanceFromViewerDistance = function(d) {
+  // W(x) - W(x+d)
+  // = A * x + b - (A * (x + d) + b)
+  // = A * x + b - A * x - A * d - b
+  // = -A * d
+  return this.transform.getInverse().matrix[0] * d;
+};
 
-    for (var i in this.ongoingTouches) {
-        if (this.ongoingTouches[i]) {
-            ++count;
-        }
+PinchZoom.prototype.viewerDistanceFromWorldDistance = function(d) {
+  return this.transform.matrix[0] * d;
+}
+
+PinchZoom.prototype.isMoving = function() {
+  // We're moving if at least one touch moved at least 1 pixel
+  for (var i in this.ongoingTouches) {
+    var touch = this.ongoingTouches[i];
+    if (touch && touch.currentViewerPos) {
+      var dist = Utils.distance(touch.currentViewerPos,
+                                touch.startViewerPos);
+      if (dist > 1) {
+        return true;
+      }
     }
-    return count > 0;
+  }
+  return false;
 };
 
 PinchZoom.prototype.handleDoubleClic = function(viewerPos) {
@@ -181,6 +197,7 @@ startWorldPos: this.worldPosFromViewerPos(viewerPos.x, viewerPos.y),
 PinchZoom.prototype.handleEnd = function(event) {
   event.preventDefault();
 
+
   if (event.touches.length == 0) {
     // No finger left on the screen. Was it a single tap?
     var now = event.timeStamp;
@@ -217,9 +234,12 @@ PinchZoom.prototype.handleMove = function(event) {
 		}
 		var touch = this.ongoingTouches[touches[i].identifier];
 		
+                touch.currentViewerPos =
+                  Utils.eventPosInElementCoordinates(touches[i], this.element);
+
 		// Every touch is a constraint
 		constraints.push({
-			viewer: Utils.eventPosInElementCoordinates(touches[i], this.element),
+			viewer: touch.currentViewerPos,
 			world: touch.startWorldPos,
 		});
   }
@@ -262,9 +282,6 @@ PinchZoom.prototype.processConstraints = function(constraints) {
     T[2] = r[1];
     T[5] = r[2];    
 
-    this.enforceConstraints(newTransform);
-
-    // If enforceConstraints changed scale, we need to reset translation.
     var c = {
       world: {
         x: (constraints[0].world.x + constraints[1].world.x) / 2,
@@ -275,16 +292,21 @@ PinchZoom.prototype.processConstraints = function(constraints) {
         y: (constraints[0].viewer.y + constraints[1].viewer.y) / 2,
       }
     };
+
+    this.enforceConstraints(newTransform, c.world);
+
+    // If enforceConstraints changed scale, we need to reset translation.
     T[2] = c.viewer.x - (T[0] * c.world.x + T[1] * c.world.y);
     T[5] = c.viewer.y - (T[3] * c.world.x + T[4] * c.world.y);
 
   } else if (constraints.length == 1) {
+    var c = constraints[0];
+
     // Make sure the scale is within bounds.
-    this.enforceConstraints(newTransform);
+    this.enforceConstraints(newTransform, c.world);
 
     // scroll: Solve A* world + X = viewer
     // -> X = viewer - A * world
-    var c = constraints[0];
     T[2] = c.viewer.x - (T[0] * c.world.x + T[1] * c.world.y);
     T[5] = c.viewer.y - (T[3] * c.world.x + T[4] * c.world.y);
   }
@@ -294,12 +316,46 @@ PinchZoom.prototype.processConstraints = function(constraints) {
   this.checkAndApplyTransform(newTransform);
 };
 
-PinchZoom.prototype.enforceConstraints = function (newTransform) {
+function minDefined(a, b) {
+  if (a == undefined) { return b; }
+  if (b == undefined) { return a; }
+  return Math.min(a, b);
+}
+
+function maxDefined(a, b) {
+  if (a == undefined) { return b; }
+  if (b == undefined) { return a; }
+  return Math.max(a, b);
+}
+
+PinchZoom.prototype.topLeftWorld = function() {
+  return {
+    x: maxDefined(this.minX, 0),
+    y: maxDefined(this.minY, 0)
+  };
+}
+
+PinchZoom.prototype.bottomRightWorld = function() {
+  return {
+      x: minDefined(this.maxX, this.worldWidth),
+      y: minDefined(this.maxY, this.worldHeight)
+  };
+}
+
+PinchZoom.prototype.enforceConstraints = function (newTransform, focusPoint) {
   var T = newTransform.matrix;
 
-  var boundScaleX = this.element.width / this.worldWidth;
-  var boundScaleY = this.element.height / this.worldHeight;
+  var topLeftWorld = this.topLeftWorld();
+  var bottomRightWorld = this.bottomRightWorld();
+  var worldWidth = bottomRightWorld.x - topLeftWorld.x;
+  var worldHeight = bottomRightWorld.y - topLeftWorld.y;
+  var boundScaleX = this.element.width / worldWidth;
+  var boundScaleY = this.element.height / worldHeight;
   var scaleBound = Math.min(boundScaleX, boundScaleY);
+
+  if (this.maxScale) {
+    scaleBound = Math.max(scaleBound, this.element.width / this.maxScale);
+  }
 
   var scale = T[0];
   var scaleFactor = 1.0;
@@ -307,8 +363,11 @@ PinchZoom.prototype.enforceConstraints = function (newTransform) {
     scaleFactor = scaleBound / scale;
   }
 
-  if (this.minScale > 0) {
-      var maxScale = this.element.width / this.minScale;
+  var minScale = maxDefined(
+      this.minScale, this.dynamicMinScale(focusPoint));
+
+  if (minScale > 0) {
+      var maxScale = this.element.width / minScale;
       if (scale > maxScale) {
           scaleFactor = maxScale / scale;
       }
@@ -318,17 +377,31 @@ PinchZoom.prototype.enforceConstraints = function (newTransform) {
   T[2] *= scaleFactor;
   T[5] *= scaleFactor;
     
-  if (T[2] > 0) T[2] = 0;
-  if (T[5] > 0) T[5] = 0;    
-  
-  var bottomright = newTransform.transform(this.worldWidth, this.worldHeight);
-  if (bottomright.x < this.element.width) {
-    var center = (T[2] == 0 ? .5 : 1);
-    T[2] += center * (this.element.width - bottomright.x);      
+  var topleft = newTransform.transform(this.topLeftWorld());
+  var bottomright = newTransform.transform(this.bottomRightWorld());
+  var width = bottomright.x - topleft.x;
+  var height = bottomright.y - topleft.y;
+
+  if (width < this.element.width) {
+    T[2] = (T[2] - topleft.x) + (this.element.width - width) / 2;
+  } else {
+    if (topleft.x > 0) {
+      T[2] -= topleft.x;
+    }
+    if (bottomright.x < this.element.width) {
+      T[2] += this.element.width - bottomright.x;
+    }
   }
-  if (bottomright.y < this.element.height) {
-    var center = (T[5] == 0 ? .5 : 1);
-    T[5] += center * (this.element.height - bottomright.y);      
+
+  if (height < this.element.height) {
+    T[5] = (T[5] - topleft.y) + (this.element.height - height) / 2;
+  } else {
+    if (topleft.y > 0) {
+      T[5] -= topleft.y;
+    }
+    if (bottomright.y < this.element.height) {
+      T[5] += this.element.height - bottomright.y;
+    }
   }
 };
   
@@ -349,4 +422,20 @@ PinchZoom.prototype.handleSingleClic = function(mousePos) {
   if (this.onClic) {
     this.onClic(mousePos, this);
   }
-}
+};
+
+PinchZoom.prototype.dynamicMinScale = function(focusPoint) {
+  if (focusPoint == undefined) {
+    return undefined;
+  }
+  var canvas = this.element;
+  var layers = canvas.canvasTilesRenderer.layers;
+
+  var minScale;
+  for (var i in layers) {
+    if (layers[i].minScaleAt) {
+      minScale = maxDefined(minScale, layers[i].minScaleAt(canvas, focusPoint));
+    }
+  }
+  return minScale;
+};
