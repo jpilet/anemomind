@@ -78,7 +78,7 @@ else()
 endif()
 
 if (HAVE_CLOCK_GETTIME)
-  add_definitions(HAVE_CLOCK_GETTIME)
+  add_definitions(-DHAVE_CLOCK_GETTIME)
 endif()
 
 add_library(common_TimeStamp
