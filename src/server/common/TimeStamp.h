@@ -93,6 +93,13 @@ class Clock {
   virtual TimeStamp currentTime() { return TimeStamp::now(); }
 };
 
+class MonotonicClock {
+ public:
+  virtual ~MonotonicClock() { }
+  static TimeStamp now();
+  virtual TimeStamp currentTime() { return MonotonicClock::now(); }
+};
+
 void sleep(Duration<double> duration);
 
 bool isFinite(const TimeStamp &x);
