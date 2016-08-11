@@ -1,5 +1,6 @@
 var anemonode = require('../build/Release/anemonode');
 var mkdirp = require('mkdirp');
+var sync = require('./fssync.js').sync;
 
 var logger;
 module.exports.flush = function() {};
@@ -13,6 +14,8 @@ function startLogging(logRoot, logInterval, cb) {
 	if (err) {
 	  console.log(err);
 	} else {
+          // flush disk caches
+          sync();
 	  cb(path);
 	}
       });
