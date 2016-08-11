@@ -64,6 +64,23 @@ add_library(common_ScopedLog
             ScopedLog.cpp)
 target_link_libraries(common_ScopedLog common_logging)
 
+
+# clock_gettime is linux-specific and might be in libc or librt.
+include(CheckFunctionExists)
+include(CheckLibraryExists)
+check_library_exists(rt clock_gettime "time.h" HAVE_CLOCK_GETTIME)
+set(CLOCK_GETTIME_LIB "")
+if (HAVE_CLOCK_GETTIME)
+    set(CLOCK_GETTIME_LIB "rt")
+else()
+    # might also be in libc
+    check_library_exists(c clock_gettime "" HAVE_CLOCK_GETTIME)
+endif()
+
+if (HAVE_CLOCK_GETTIME)
+  add_definitions(-DHAVE_CLOCK_GETTIME)
+endif()
+
 add_library(common_TimeStamp
             TimeStamp.h
             TimeStamp.cpp
@@ -71,6 +88,7 @@ add_library(common_TimeStamp
 target_link_libraries(common_TimeStamp
                       common_logging
                       common_string
+                      ${CLOCK_GETTIME_LIB}
                      )           
 cxx_test(common_TimeStampTest
          TimeStampTest.cpp

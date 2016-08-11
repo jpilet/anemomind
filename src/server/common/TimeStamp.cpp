@@ -12,6 +12,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#ifdef HAVE_CLOCK_GETTIME
+#include <time.h>
+#endif
+
 namespace sail {
 
 
@@ -259,6 +263,18 @@ TimeStamp maxDefined(TimeStamp a, TimeStamp b) {
   } else {
     return b;
   }
+}
+
+TimeStamp MonotonicClock::now() {
+#ifdef HAVE_CLOCK_GETTIME
+  struct timespec t;
+  clock_gettime(CLOCK_MONOTONIC, &t);
+  return TimeStamp::fromMilliSecondsSince1970(
+      int64_t(t.tv_sec) * 1000 + int64_t(t.tv_nsec) / 1000000);
+#else
+  LOG(FATAL) << "MonotonicClock: clock_gettime is not available.";
+  return TimeStamp();
+#endif
 }
 
 } /* namespace sail */
