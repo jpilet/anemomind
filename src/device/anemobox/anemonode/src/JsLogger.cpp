@@ -1,5 +1,7 @@
 #include <device/anemobox/anemonode/src/JsLogger.h>
 
+#include <device/anemobox/anemonode/src/anemonode.h>
+
 using namespace v8;
 
 namespace sail {
@@ -10,8 +12,8 @@ class FlushWorker : public NanAsyncWorker {
  public:
   FlushWorker(NanCallback *callback, std::string filename)
     : NanAsyncWorker(callback),
-      _filename(filename),
-      _result(false) { }
+      _result(false),
+      _filename(filename) { }
 
   LogFile* dataContainer() { return &_data; }
 
@@ -43,7 +45,7 @@ v8::Persistent<v8::FunctionTemplate> logger_constructor;
 
 }  // namespace
 
-JsLogger::JsLogger() : _logger(Dispatcher::global()) { }
+JsLogger::JsLogger() : _logger(globalAnemonodeDispatcher) { }
 
 void JsLogger::Init(v8::Handle<v8::Object> target) {
   NanScope();
