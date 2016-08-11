@@ -275,13 +275,14 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     LOG(WARNING) << "Calibration failed. Using default calib values.";
     calibrator.clear();
   }
+  std::cout << "Simulate" << std::endl;
   NavDataset simulated = calibrator.simulate(resampled);
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
   }
 
-  outputTargetSpeedTable(_debug, 
+  /*outputTargetSpeedTable(_debug,
                          fulltree,
                          _grammar.grammar.nodeInfo(),
                          simulated,
@@ -291,13 +292,22 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   // write calibration and target speed to disk
   boatDatFile.close();
 
+  std::cout << "Visualize boat dat" << std::endl;
   if (_debug) {
     visualizeBoatDat(_dstPath);
-  }
+  }*/
 
+  std::cout << "Generate tiles" << std::endl;
   if (_generateTiles) {
     Array<NavDataset> rawSessions =
       extractAll("Sailing", simulated, _grammar.grammar, fulltree);
+
+    for (auto s0: rawSessions) {
+    	auto s = s0.fitBounds();
+    	std::cout << "------> SESSION from "
+    			<< s.lowerBound() << " to " << s.upperBound()
+				<< std::endl;
+    }
 
     // GPS filtering: eliminates bad speed surprises
     Array<NavDataset> filteredSessions =
@@ -307,6 +317,14 @@ bool BoatLogProcessor::process(ArgMap* amap) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
       return false;
     }
+
+    for (auto f0: filteredSessions) {
+      Array<Nav> navs = makeArray(f0);
+      std::cout << "FILTERED SESSION " <<
+    		navs.first().time() << " to "
+			<< navs.last().time() << std::endl;
+    }
+
   }
 
   LOG(INFO) << "Processing time for " << _boatid << ": "
