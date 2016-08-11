@@ -66,7 +66,7 @@ function CanvasTilesRenderer(params) {
 
   ['maxScale', 'maxX', 'maxY', 'minX', 'minY'].forEach(function(key) {
     if (key in t.params) {
-      t.pinchZoom[key] = this.params[key];
+      t.pinchZoom[key] = t.params[key];
     }
   });
 
