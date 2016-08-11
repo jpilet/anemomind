@@ -59,7 +59,9 @@ function estimateTime(currentSystemTime, src, hlen) {
 }
 
 function estimateTimeFromDispatcher() {
-  return estimateTime(new Date(), anemonode.dispatcher.value.dateTime, historyLength);
+  return estimateTime(anemonode.currentTime(),
+                      anemonode.dispatcher.values.dateTime,
+                      historyLength);
 }
 
 timesrc.now = estimateTimeFromDispatcher;
@@ -67,3 +69,4 @@ timesrc.now = estimateTimeFromDispatcher;
 module.exports.estimateTimeFromDispatcher = estimateTimeFromDispatcher;
 module.exports.medianDeltaTime = medianDeltaTime;
 module.exports.estimateTime = estimateTime;
+module.exports.now = estimateTimeFromDispatcher;

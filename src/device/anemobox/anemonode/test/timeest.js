@@ -1,5 +1,6 @@
 var timeest = require('../components/timeest');
 var assert = require('assert');
+var should = require('should');
 
 function MockChannel(sysSeconds, gpsSeconds) {
   assert(sysSeconds.length == gpsSeconds.length);
@@ -56,4 +57,25 @@ describe('timeest', function() {
     assert(timeest.estimateTime(currentSystemTime, src, 4).getTime() 
            == expectedTime.getTime());
   });
+
+  it ('should return a ref date published to the Dispatcher', function(done) {
+    var ref = new Date("Thu Jul 6 2016 13:45:34 GMT+0200 (CEST)");
+
+    var anemonode = require('../build/Release/anemonode');
+    anemonode.dispatcher.values.dateTime.setValue("test", ref);
+
+    var estimated = timeest.now();
+
+    (estimated.getTime()).should.be.approximately(ref.getTime(), 2);
+
+    var delay = 100;
+    setTimeout(function() {
+      var estimated = timeest.now();
+      // 100 ms should have passed.
+      (estimated.getTime()).should.be.approximately(ref.getTime() + delay, 20);
+      done();
+    }, 100);
+
+  });
 });
+

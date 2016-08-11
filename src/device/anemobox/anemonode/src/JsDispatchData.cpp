@@ -154,9 +154,18 @@ class SetValueVisitor : public DispatchDataVisitor {
     error_ = "set GeoPos from javascript is not implemented yet in " __FILE__;
     success_ = false;
   }
-  virtual void run(DispatchTimeStampData *) {
-    error_ = "set TimeStamp from javascript is not implemented yet in " __FILE__;
-    success_ = false;
+  virtual void run(DispatchTimeStampData *dateTime) {
+    if (!value_->IsDate()) {
+      error_ = "Expecting a Date object";
+      success_ = false;
+    } else {
+      double millisSinceEpoch = value_->ToNumber()->Value();
+      dispatcher_->publishValue(
+          dateTime->dataCode(),
+          source_.c_str(),
+          TimeStamp::fromMilliSecondsSince1970(millisSinceEpoch));
+      success_ = true;
+    }
   }
 
   virtual void run(DispatchAbsoluteOrientationData *orientDispatch) {
