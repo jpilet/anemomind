@@ -63,11 +63,12 @@ function CanvasTilesRenderer(params) {
   this.params.width,
   this.params.height);
   this.pinchZoom.minScale = this.params.minScale;
-  if (this.params.maxScale) { this.pinchZoom.maxScale = this.params.maxScale; }
-  if (this.params.maxX) { this.pinchZoom.maxX = this.params.maxX; }
-  if (this.params.maxY) { this.pinchZoom.maxY = this.params.maxY; }
-  if (this.params.minX) { this.pinchZoom.minX = this.params.minX; }
-  if (this.params.minY) { this.pinchZoom.minY = this.params.minY; }
+
+  ['maxScale', 'maxX', 'maxY', 'minX', 'minY'].forEach(function(key) {
+    if (key in t.params) {
+      t.pinchZoom[key] = this.params[key];
+    }
+  });
 
   // We are ready, let's allow drawing.  
   this.inDraw = false;
