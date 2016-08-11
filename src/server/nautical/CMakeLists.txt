@@ -325,3 +325,14 @@ add_library(nautical_downsamplegps
 target_link_libraries(nautical_downsamplegps
                       nautical_NavDataset
                       )
+                      
+add_executable(nautical_numerobisTest
+  numerobisTest.cpp
+  )
+  
+target_link_libraries(nautical_numerobisTest
+	logimport_LogLoader
+	filters_SmoothGpsFilter
+	plot_gnuplot
+	)
+

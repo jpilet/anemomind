@@ -29,7 +29,8 @@ struct GpsFilterResults {
 CeresTrajectoryFilter::Settings makeDefaultSettings();
 
 GpsFilterResults filterGpsData(const NavDataset &ds,
-    const CeresTrajectoryFilter::Settings &settings = makeDefaultSettings());
+    const CeresTrajectoryFilter::Settings &settings
+	= makeDefaultSettings());
 
 }
 
