@@ -160,6 +160,8 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
   Duration<double> samplingPeriod = Duration<double>::seconds(1.0);
 
   auto motions = GpsUtils::getGpsMotions(ds);
+  //Array<TimedValue<HorizontalMotion<double> > > motions;
+
   auto positions = ds.samples<GPS_POS>();
   if (positions.empty()) {
     LOG(ERROR) << "No GPS positions in dataset, cannot filter";

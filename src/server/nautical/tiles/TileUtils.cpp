@@ -42,7 +42,7 @@ NavDataset filterNavs(NavDataset navs) {
   auto refTime = TimeStamp::UTC(2016, 5, 20, 14, 34, 6);
 
   auto time = results.filteredLocalPositions.first().time;
-  outputLocalPositions("/Users/jonas/Downloads/filtered_gps_data_"
+  outputLocalPositions("/Users/jonas/Downloads/filtered_gps_data3_"
       + time.toIso8601String()
       + ".txt", refTime, results.filteredLocalPositions);
 

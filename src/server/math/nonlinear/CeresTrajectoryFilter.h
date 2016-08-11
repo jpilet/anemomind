@@ -257,9 +257,12 @@ typename Types<N>::TimedPositionArray filter(
   for (auto motion: motions) {
     int intervalIndex = findIntervalWithTolerance(samples, motion.time);
     if (intervalIndex != -1) {
-      problem.AddResidualBlock(makeMotionCost<N>(
-          samples[intervalIndex+1] - samples[intervalIndex], motion),
-          loss, X[intervalIndex].data(), X[intervalIndex+1].data());
+      Duration<double> dur = samples[intervalIndex+1] - samples[intervalIndex];
+      if (dur < Duration<double>::minutes(1.0)) {
+        problem.AddResidualBlock(makeMotionCost<N>(
+            dur, motion),
+            loss, X[intervalIndex].data(), X[intervalIndex+1].data());
+      }
     }
   }
 
