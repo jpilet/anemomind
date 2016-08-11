@@ -26,7 +26,7 @@ using namespace node;
 
 namespace sail {
 
-Dispatcher *globalAnemonodeDispatcher = 0;
+Dispatcher *globalAnemonodeDispatcher = nullptr;
 
 }  // namespace sail
 
