@@ -28,6 +28,12 @@ struct GpsFilterResults {
 
 CeresTrajectoryFilter::Settings makeDefaultSettings();
 
+void outputLocalPositions(
+    std::string filename,
+    TimeStamp refTime,
+  const Array<CeresTrajectoryFilter::Types<2>
+    ::TimedPosition> &X);
+
 GpsFilterResults filterGpsData(const NavDataset &ds,
     const CeresTrajectoryFilter::Settings &settings
 	= makeDefaultSettings());

@@ -11,19 +11,6 @@
 
 using namespace sail;
 
-void outputLocalPositions(
-		std::string filename,
-		TimeStamp refTime,
-	const Array<CeresTrajectoryFilter::Types<2>
-		::TimedPosition> &X) {
-	std::ofstream file(filename);
-	for (auto x: X) {
-		file << (x.time - refTime).seconds()
-				<< " " << x.value[0].meters()
-				<< " " << x.value[1].meters() << std::endl;
-	}
-}
-
 MDArray2d getPositions(Array<CeresTrajectoryFilter::Types<2>
 	::TimedPosition> X) {
   MDArray2d dst(X.size(), 2);
@@ -50,7 +37,7 @@ int main() {
 
 	auto results = filterGpsData(ds);
 
-	auto refTime = TimeStamp::UTC(2016, 5, 20, 13, 50, 8);
+	auto refTime = TimeStamp::UTC(2016, 5, 20, 14, 34, 6);
 
 	outputLocalPositions("/tmp/numerobis_raw.txt",
 			refTime, results.rawLocalPositions);

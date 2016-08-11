@@ -32,10 +32,23 @@ NavDataset filterNavs(NavDataset navs) {
     return NavDataset();
   }
 
+  auto gpsPositions = results.getGlobalPositions();
+
   NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
-      results.getGlobalPositions());
+      gpsPositions);
+
+  auto refTime = TimeStamp::UTC(2016, 5, 20, 14, 34, 6);
+
+  auto time = results.filteredLocalPositions.first().time;
+  outputLocalPositions("/Users/jonas/Downloads/filtered_gps_data_"
+      + time.toIso8601String()
+      + ".txt", refTime, results.filteredLocalPositions);
+
+  outputLocalPositions("/Users/jonas/Downloads/raw_gps_data_"
+      + time.toIso8601String()
+      + ".txt", refTime, results.rawLocalPositions);
 
   return cleanGps;
 }

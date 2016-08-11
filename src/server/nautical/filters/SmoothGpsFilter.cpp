@@ -136,6 +136,19 @@ Array<CeresTrajectoryFilter::Types<2>::TimedPosition> removePositionsFarAway(
   return dst.get();
 }
 
+void outputLocalPositions(
+    std::string filename,
+    TimeStamp refTime,
+  const Array<CeresTrajectoryFilter::Types<2>
+    ::TimedPosition> &X) {
+  std::ofstream file(filename);
+  for (auto x: X) {
+    file << (x.time - refTime).seconds()
+        << " " << x.value[0].meters()
+        << " " << x.value[1].meters() << std::endl;
+  }
+}
+
 GpsFilterResults filterGpsData(const NavDataset &ds,
     const CeresTrajectoryFilter::Settings &settings) {
 
