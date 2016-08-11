@@ -19,6 +19,9 @@ void addTimeStampToRepeatedFields(
     google::protobuf::RepeatedField<std::int64_t> *dst,
     TimeStamp);
 
+Optional<int64_t> readIntegerFromTextFile(const std::string &filename);
+
+
 // Listen and save a single stream of values.
 class LoggerValueListener:
   public Listener<Angle<double>>,
@@ -53,7 +56,7 @@ public:
 
   void addTimestamp(const TimeStamp& timestamp) {
     addTimeStampToRepeatedFields(&timestampBase,
-        _valueSet.mutable_timestamps(), timestamp);
+        _valueSet.mutable_timestampssinceboot(), timestamp);
   }
 
   static void accumulateAngle(const Angle<> &angle, int *base, AngleValueSet* set) {
@@ -148,10 +151,7 @@ class Logger {
   void flushTo(LogFile* container);
 
   // Convenience function to call flushTo, nextFilename and save.
-  bool flushAndSave(const std::string& folder, std::string *savedFilename = 0);
-
-  // Generate a new filename to save the next logfile to.
-  static std::string nextFilename(const std::string& folder);
+  bool flushAndSaveToFile(const std::string& filename);
 
   void logText(const std::string& streamName, const std::string& content);
 

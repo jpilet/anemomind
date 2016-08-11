@@ -98,7 +98,7 @@ function openNewEndpoint(endpointName, cb) {
           if (err) {
             cb(err);
           } else {
-            schema.makeVerbose(endpoint);
+            //schema.makeVerbose(endpoint);
             endpoint.addPacketHandler(
               script.makeScriptRequestHandler(triggerSync));
             endpoint.addPacketHandler(

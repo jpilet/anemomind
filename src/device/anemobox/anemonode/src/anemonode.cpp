@@ -12,6 +12,8 @@
 #include <device/anemobox/anemonode/src/JsNmea2000Source.h>
 #include <device/anemobox/anemonode/src/JsEstimator.h>
 #include <device/anemobox/anemonode/src/JsLogger.h>
+#include <device/anemobox/anemonode/src/anemonode.h>
+#include <server/common/TimeStamp.h>
 
 #include <iostream>
 #include <vector>
@@ -22,7 +24,18 @@ using namespace sail;
 using namespace v8;
 using namespace node;
 
+namespace sail {
+
+Dispatcher *globalAnemonodeDispatcher = nullptr;
+
+}  // namespace sail
+
 namespace {
+
+class MonotonicClockDispatcher : public Dispatcher {
+  public:
+    virtual TimeStamp currentTime() { return MonotonicClock::now(); }
+};
 
 NAN_METHOD(adjTime) {
   NanScope();
@@ -47,15 +60,21 @@ NAN_METHOD(adjTime) {
 NAN_METHOD(currentTime) {
   NanScope();
 
-  //TimeStamp now = Dispatcher::global()->currentTime();
-  TimeStamp now = TimeStamp::now();
-  NanReturnValue(NanNew<Date>(now.toMilliSecondsSince1970()));
+  if (globalAnemonodeDispatcher) {
+    TimeStamp now = globalAnemonodeDispatcher->currentTime();
+    NanReturnValue(NanNew<Date>(now.toMilliSecondsSince1970()));
+  } else {
+    NanReturnUndefined();
+  }
 }
 
 }  // namespace
 
 void RegisterModule(Handle<Object> target) {
-  JsDispatcher::Init(Dispatcher::global(), target);
+  Dispatcher *dispatcher = new MonotonicClockDispatcher();
+  globalAnemonodeDispatcher = dispatcher;
+
+  JsDispatcher::Init(dispatcher, target);
   JsNmea0183Source::Init(target);
   JsNmea2000Source::Init(target);
   JsLogger::Init(target);

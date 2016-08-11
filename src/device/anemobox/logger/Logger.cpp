@@ -10,6 +10,7 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <google/protobuf/io/gzip_stream.h>
+#include <server/common/Optional.h>
 
 using namespace google::protobuf::io;
 using namespace boost::iostreams;
@@ -17,6 +18,36 @@ using namespace boost::iostreams::gzip;
 using namespace std;
 
 namespace sail {
+
+Optional<int64_t> readIntegerFromTextFile(const std::string &filename) {
+  std::ifstream file(filename);
+  try {
+    int64_t value = -1;
+    file >> value;
+
+    if (value >= 0) { // We cannot have negative boot count, right?
+      // Everything went well
+      return value;
+    }
+
+  } catch (const std::exception &e) {}
+
+  // Whenever there is no valid value available.
+  return Optional<int64_t>();
+}
+
+namespace {
+  Optional<int64_t> getBootCount() {
+    // See anemonode/run.sh:
+    const char bootCountFilename[] = "/home/anemobox/bootcount";
+
+    static Optional<int64_t> value =
+        readIntegerFromTextFile(bootCountFilename);
+
+    return value;
+  }
+}
+
 
 void addTimeStampToRepeatedFields(
     std::int64_t *base,
@@ -41,12 +72,34 @@ Logger::Logger(Dispatcher* dispatcher) :
   subscribe();
 }
 
+namespace {
+
+  const google::protobuf::RepeatedField<std::int64_t> &getBestKnownTimeStamps(
+      const ValueSet &x) {
+    return x.timestamps().size() > x.timestampssinceboot().size()?
+      x.timestamps()
+      : x.timestampssinceboot();
+  }
+
+  bool hasTimeStamps(const ValueSet &x) {
+    return getBestKnownTimeStamps(x).size() > 0;
+  }
+}
+
+
 void Logger::flushTo(LogFile* container) {
   // Clear content.
   *container = LogFile();
+
+  {
+    auto bc = getBootCount();
+    if (bc.defined()) {
+      container->set_bootcount(bc.get());
+    }
+  }
  
   for (auto ptr : _listeners) {
-    if (ptr->valueSet().timestamps_size() > 0) {
+    if (hasTimeStamps(ptr->valueSet())) {
       // the priority is set every time flushTo is called, since the 
       // priority in the dispatcher can change.
       // We do not log exactly when the priority changed, though.
@@ -57,19 +110,15 @@ void Logger::flushTo(LogFile* container) {
     ptr->clear();
   }
   for (auto it = _textLoggers.begin();  it != _textLoggers.end(); ++it) {
-    if (it->second.valueSet().timestamps_size() > 0) {
+    if (hasTimeStamps(it->second.valueSet())) {
       container->add_text()->Swap(it->second.mutable_valueSet());
     }
     it->second.clear();
   }
 }
 
-std::string Logger::nextFilename(const std::string& folder) {
-  return folder + int64ToHex(TimeStamp::now().toSecondsSince1970()) + ".log";
-}
 
-bool Logger::flushAndSave(const std::string& folder,
-                          std::string *savedFilename) {
+bool Logger::flushAndSaveToFile(const std::string& filename) {
   LogFile container;
 
   flushTo(&container);
@@ -79,14 +128,9 @@ bool Logger::flushAndSave(const std::string& folder,
     return false;
   }
 
-  std::string filename = nextFilename(folder);
-
   if (!save(filename, container)) {
     LOG(ERROR) << "Failed to save log file.";
     return false;
-  }
-  if (savedFilename) {
-    *savedFilename = filename;
   }
   return true;
 }
@@ -224,7 +268,7 @@ void Logger::unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
 
 void Logger::unpackTime(const ValueSet& valueSet,
                         std::vector<TimeStamp>* result) {
-  unpackTimeSub(valueSet.timestamps(), result);
+  unpackTimeSub(getBestKnownTimeStamps(valueSet), result);
 }
 
 

@@ -1,7 +1,9 @@
 #include <device/anemobox/anemonode/src/JsNmea2000Source.h>
-#include <device/anemobox/Dispatcher.h>
 
+#include <device/anemobox/Dispatcher.h>
+#include <device/anemobox/anemonode/src/anemonode.h>
 #include <iostream>
+
 using namespace std;
 
 using namespace v8;
@@ -13,7 +15,7 @@ v8::Persistent<v8::FunctionTemplate> nmea2000_constructor;
 }  // namespace
 
 JsNmea2000Source::JsNmea2000Source()
-  : _nmea2000(Dispatcher::global()) { }
+  : _nmea2000(globalAnemonodeDispatcher) { }
 
 void JsNmea2000Source::Init(v8::Handle<v8::Object> target) {
   NanScope();
