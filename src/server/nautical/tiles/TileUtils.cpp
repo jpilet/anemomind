@@ -32,6 +32,7 @@ NavDataset filterNavs(NavDataset navs) {
     return NavDataset();
   }
 
+  // TODO: Putting back the result here, do we make a lot more memory?
   NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",

@@ -14,6 +14,7 @@
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/common/Progress.h>
 #include <server/common/TimedTypedefs.h>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -256,6 +257,49 @@ GpsFilterResults mergeSubResults(
   };
 }
 
+Span<TimeStamp> getTimeSpan(const Array<TimeStamp> &times) {
+  return Span<TimeStamp>(times.first(), times.last());
+}
+
+void splitTimeSpan(const Span<TimeStamp> &span,
+    Duration<double> idealDur,
+    ArrayBuilder<TimeStamp> *dst) {
+  auto dur = span.maxv() - span.minv();
+  if (0 < dur.seconds()) {
+    int sliceCount = std::max(1, int(ceil(dur/idealDur)));
+    int splitCount = sliceCount - 1;
+    if (0 < splitCount) {
+      Duration<double> step = (1.0/sliceCount)*dur;
+      for (int i = 1; i <= splitCount; i++) {
+        dst->add(span.minv() + double(i)*step);
+      }
+    }
+  }
+}
+
+Array<TimeStamp> listSplittingTimeStampsNotTooLong(
+    const Array<TimeStamp> &times, Duration<double> threshold,
+    Duration<double> problemDur) {
+  auto splits0 = listSplittingTimeStamps(times, threshold);
+  auto preliminaryTimeSlices = applySplits(times, splits0);
+
+  ArrayBuilder<TimeStamp> splitsBuilder;
+  for (auto x: splits0) {
+    splitsBuilder.add(x);
+  }
+  for (auto slice: preliminaryTimeSlices) {
+    if (!slice.empty()) {
+      auto span = getTimeSpan(slice);
+      splitTimeSpan(span, problemDur, &splitsBuilder);
+    }
+  }
+
+  auto splits = splitsBuilder.get();
+  std::sort(splits.begin(), splits.end());
+  return splits;
+}
+
+
 GpsFilterResults filterGpsData(const NavDataset &ds,
     const CeresTrajectoryFilter::Settings &settings) {
 
@@ -282,9 +326,12 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
       samplingPeriod);
 
   auto subProblemThreshold = Duration<double>::minutes(3.0);
+  auto subProblemLength = Duration<double>::hours(4.0);
 
-  auto splits = listSplittingTimeStamps(samplingTimes,
-      subProblemThreshold);
+  auto splits = listSplittingTimeStampsNotTooLong(samplingTimes,
+      subProblemThreshold, subProblemLength);
+
+  CHECK(std::is_sorted(splits.begin(), splits.end()));
 
   auto rawLocalPositions = getLocalPositions(geoRef, positions);
 
