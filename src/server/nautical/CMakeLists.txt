@@ -325,3 +325,11 @@ add_library(nautical_downsamplegps
 target_link_libraries(nautical_downsamplegps
                       nautical_NavDataset
                       )
+
+add_executable(nautical_investigateMemoryIssue
+  investigateMemoryIssue.cpp
+  )
+
+target_link_libraries(nautical_investigateMemoryIssue
+  logimport_LogLoader
+  )                       
