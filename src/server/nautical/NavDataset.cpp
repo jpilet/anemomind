@@ -274,9 +274,10 @@ NavDataset NavDataset::stripChannel(DataCode code) const {
   return NavDataset(
       cloneAndfilterDispatcher(
           _dispatcher.get(),
-          [code](DataCode testedCode, const std::string&) { return testedCode != code; }
-          ),
-      std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
+          [code](DataCode testedCode, const std::string&) {
+            return testedCode != code;
+          }),
+      resetMergedChannels(_merged, std::set<DataCode>{code}),
       _lowerBound,
       _upperBound);
 }
