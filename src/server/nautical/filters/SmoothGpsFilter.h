@@ -28,9 +28,15 @@ struct GpsFilterResults {
 
 CeresTrajectoryFilter::Settings makeDefaultSettings();
 
+Array<TimeStamp> listSplittingTimeStamps(const Array<TimeStamp> &timeStamps,
+    Duration<double> threshold);
+
 GpsFilterResults filterGpsData(const NavDataset &ds,
     const CeresTrajectoryFilter::Settings &settings = makeDefaultSettings());
 
+template <typename T>
+Array<Array<T> > applySplits(const Array<T> &src,
+    const Array<TimeStamp> &splits);
 }
 
 #endif /* SERVER_NAUTICAL_FILTERS_SMOOTHGPSFILTER_H_ */

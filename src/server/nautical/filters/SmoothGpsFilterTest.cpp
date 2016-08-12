@@ -193,3 +193,58 @@ TEST(SmoothGpsFilterTest, TestIt) {
   EXPECT_LT(60, corrCounter);
 }
 
+namespace {
+  auto offset = TimeStamp::UTC(2016, 8, 12, 10, 17, 0);
+  auto s = Duration<double>::seconds(1.0);
+
+  TimeStamp lt(double t) {
+    return offset + t*s;
+  }
+
+  TimedValue<int> tvi(double t, int x) {
+    return TimedValue<int>{lt(t), x};
+  }
+
+
+}
+
+namespace sail {
+  bool operator==(const TimedValue<int> &a, const TimedValue<int> &b) {
+    return a.time == b.time && a.value == b.value;
+  }
+}
+
+TEST(SmoothGpsFilter, SplittingTimeStamps) {
+  Array<TimeStamp> T{lt(0.0), lt(0.3), lt(1.1)};
+  auto splits = listSplittingTimeStamps(T, 0.4*s);
+  EXPECT_EQ(splits.size(), 1);
+  EXPECT_NEAR((splits[0] - offset)/s, 0.7, 1.0e-6);
+}
+
+TEST(SmoothGpsFilter, ApplySplits) {
+  auto emptyArray = Array<TimedValue<int> >();
+  {
+      Array<TimeStamp> times;
+      Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
+      EXPECT_EQ((Array<Array<TimedValue<int>>>{values}),
+          applySplits(values, times));
+  }{
+    Array<TimeStamp> times{lt(-0.3)};
+    Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
+    EXPECT_EQ((Array<Array<TimedValue<int>>>{emptyArray, values}),
+        applySplits(values, times));
+  }{
+    Array<TimeStamp> times{lt(0.9)};
+    Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
+    EXPECT_EQ((Array<Array<TimedValue<int>>>{values, emptyArray}),
+        applySplits(values, times));
+  }{
+    Array<TimeStamp> times{lt(0.15)};
+    Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
+    EXPECT_EQ((Array<Array<TimedValue<int>>>{
+      Array<TimedValue<int>>{tvi(0.1, 3)},
+      Array<TimedValue<int>>{tvi(0.2, 4)},
+    }),
+    applySplits(values, times));
+  }
+}

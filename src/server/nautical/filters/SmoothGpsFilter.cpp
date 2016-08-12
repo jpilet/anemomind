@@ -136,6 +136,126 @@ Array<CeresTrajectoryFilter::Types<2>::TimedPosition> removePositionsFarAway(
   return dst.get();
 }
 
+GpsFilterResults solveGpsSubproblem(
+    const Array<TimeStamp> &samplingTimes,
+    const GeographicReference &geoRef,
+    const Array<CeresTrajectoryFilter::Types<2>::TimedPosition> rawLocalPositions,
+    const Array<TimedValue<HorizontalMotion<double>>> &motions,
+    const CeresTrajectoryFilter::Settings &settings) {
+  IndexableWrap<Array<TimeStamp>, TypeMode::ConstRef> times =
+        wrapIndexable<TypeMode::ConstRef>(samplingTimes);
+
+    Duration<double> dur = samplingTimes.last() - samplingTimes.first();
+
+
+    auto maxSpeed = Velocity<double>::knots(200.0);
+
+    // Since the geographic reference is located at the spatial median, where most of the points
+    // are, we can reject point whose local coordinates are too far away from that. This will
+    // probably work in most cases.
+    auto filteredRawPositions = removePositionsFarAway(rawLocalPositions, dur*maxSpeed);
+
+    IndexableWrap<Array<FTypes::TimedPosition>, TypeMode::Value> localPositions
+      = wrapIndexable<TypeMode::Value>(filteredRawPositions);
+
+    IndexableWrap<Array<FTypes::TimedMotion>, TypeMode::Value> localMotions
+      = wrapIndexable<TypeMode::Value>(toLocalMotions(motions));
+
+    using namespace CeresTrajectoryFilter;
+
+    typedef FTypes::TimedPosition TimedPosition;
+    typedef FTypes::TimedMotion TimedMotion;
+
+    const AbstractArray<TimeStamp> &t = times;
+    const AbstractArray<TimedPosition> &p = localPositions;
+    const AbstractArray<TimedMotion> &m = localMotions;
+
+    auto e = EmptyArray<FTypes::Position>();
+
+    Types<2>::TimedPositionArray filtered = CeresTrajectoryFilter::filter<2>(
+        t, p, m,
+        settings, e);
+    if (filtered.empty()) {
+      LOG(ERROR) << "Failed to filter GPS data";
+      return GpsFilterResults();
+    }
+
+    return GpsFilterResults{geoRef,
+      rawLocalPositions,
+      filtered};
+}
+
+Array<TimeStamp> listSplittingTimeStamps(const Array<TimeStamp> &timeStamps,
+    Duration<double> threshold) {
+  if (threshold <= Duration<double>::seconds(0.0)) {
+    return Array<TimeStamp>();
+  }
+
+  ArrayBuilder<TimeStamp> builder;
+  int n = timeStamps.size() - 1;
+  for (int i = 0; i < n; i++) {
+    auto from = timeStamps[i];
+    auto dur = timeStamps[i+1] - from;
+    if (dur > threshold) {
+      builder.add(from + 0.5*dur);
+    }
+  }
+  return builder.get();
+}
+
+// This function abstract *how* element should be added.
+// It *should* always be added, even if it empty.
+template <typename T>
+void addToArrayPolicy(ArrayBuilder<Array<T> > *dst, const Array<T> &x) {
+  dst->add(x);
+}
+
+// *always* returns ```splits.size() + 1``` slices of ```src```
+// Slices may be empty. That is important, because we apply this
+// function to several arrays and we want to align the slices of the
+// different arrays.
+template <typename T>
+Array<Array<T> > applySplits(const Array<T> &src,
+    const Array<TimeStamp> &splits) {
+  ArrayBuilder<Array<T>> dst;
+  int from = 0;
+  for (auto splittingTime: splits) {
+    int to = from;
+    while (to < src.size() && src[to] < splittingTime) {
+      to++;
+    }
+    addToArrayPolicy<T>(&dst, src.slice(from, to));
+    from = to;
+    if (from >= src.size()) {
+      break;
+    }
+  }
+  addToArrayPolicy<T>(&dst, src.slice(from, src.size()));
+  return dst.get();
+}
+
+// Force instantiation so that we can unit test this code
+// without having to expose the whole template in the header.
+template Array<Array<TimedValue<int> > >
+  applySplits(const Array<TimedValue<int> > &src,
+    const Array<TimeStamp> &splits);
+
+GpsFilterResults mergeSubResults(
+    const std::vector<GpsFilterResults> &subResults) {
+  if (subResults.empty()) {
+    return GpsFilterResults();
+  }
+  return GpsFilterResults{
+    subResults.front().geoRef,
+    concat(sail::map(subResults, [](const GpsFilterResults &r) {
+      return r.rawLocalPositions;
+    })),
+    concat(sail::map(subResults, [](const GpsFilterResults &r) {
+      return r.filteredLocalPositions;
+    })),
+  };
+}
+
 GpsFilterResults filterGpsData(const NavDataset &ds,
     const CeresTrajectoryFilter::Settings &settings) {
 
@@ -161,55 +281,36 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
   auto samplingTimes = buildSampleTimes(positionTimes, motionTimes,
       samplingPeriod);
 
-  if (samplingTimes.size() < 2) {
-    LOG(ERROR) << "Too few sampling times";
-    return GpsFilterResults();
-  }
+  auto subProblemThreshold = Duration<double>::minutes(3.0);
 
-  IndexableWrap<Array<TimeStamp>, TypeMode::ConstRef> times =
-      wrapIndexable<TypeMode::ConstRef>(samplingTimes);
+  auto splits = listSplittingTimeStamps(samplingTimes,
+      subProblemThreshold);
 
   auto rawLocalPositions = getLocalPositions(geoRef, positions);
 
-
-  Duration<double> dur = samplingTimes.last() - samplingTimes.first();
-
-
-  auto maxSpeed = Velocity<double>::knots(200.0);
-
-  // Since the geographic reference is located at the spatial median, where most of the points
-  // are, we can reject point whose local coordinates are too far away from that. This will
-  // probably work in most cases.
-  auto filteredRawPositions = removePositionsFarAway(rawLocalPositions, dur*maxSpeed);
-
-  IndexableWrap<Array<FTypes::TimedPosition>, TypeMode::Value> localPositions
-    = wrapIndexable<TypeMode::Value>(filteredRawPositions);
-
-  IndexableWrap<Array<FTypes::TimedMotion>, TypeMode::Value> localMotions
-    = wrapIndexable<TypeMode::Value>(toLocalMotions(motions));
-
-  using namespace CeresTrajectoryFilter;
-
-  typedef FTypes::TimedPosition TimedPosition;
-  typedef FTypes::TimedMotion TimedMotion;
-
-  const AbstractArray<TimeStamp> &t = times;
-  const AbstractArray<TimedPosition> &p = localPositions;
-  const AbstractArray<TimedMotion> &m = localMotions;
-
-  auto e = EmptyArray<FTypes::Position>();
-
-  Types<2>::TimedPositionArray filtered = CeresTrajectoryFilter::filter<2>(
-      t, p, m,
-      settings, e);
-  if (filtered.empty()) {
-    LOG(ERROR) << "Failed to filter GPS data";
-    return GpsFilterResults();
+  int expectedSliceCount = splits.size() + 1;
+  auto timeSlices = applySplits(samplingTimes, splits);
+  auto positionSlices = applySplits(rawLocalPositions, splits);
+  auto motionSlices = applySplits(motions, splits);
+  CHECK(expectedSliceCount == timeSlices.size());
+  CHECK(expectedSliceCount == positionSlices.size());
+  CHECK(expectedSliceCount == motionSlices.size());
+  std::vector<GpsFilterResults> subResults;
+  subResults.reserve(expectedSliceCount);
+  for (int i = 0; i < expectedSliceCount; i++) {
+    auto timeSlice = timeSlices[i];
+    auto positionSlice = positionSlices[i];
+    auto motionSlice = motionSlices[i];
+    if (2 <= timeSlice.size() && !positionSlice.empty()) {
+       auto subResult = solveGpsSubproblem(
+           timeSlice, geoRef, positionSlice,
+           motionSlice, settings);
+       if (!subResult.empty()) {
+         subResults.push_back(subResult);
+       }
+    }
   }
-
-  return GpsFilterResults{geoRef,
-    rawLocalPositions,
-    filtered};
+  return mergeSubResults(subResults);
 }
 
 }
