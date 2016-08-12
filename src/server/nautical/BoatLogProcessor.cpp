@@ -276,6 +276,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     calibrator.clear();
   }
   NavDataset simulated = calibrator.simulate(resampled);
+  simulated.mergeAll();
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
