@@ -33,12 +33,13 @@ NavDataset filterNavs(NavDataset navs) {
   }
 
   // TODO: Putting back the result here, do we make a lot more memory?
-  NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
+  /*NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
       results.getGlobalPositions());
 
-  return cleanGps;
+  return cleanGps;*/
+  return navs;
 }
 
 }  // namespace
