@@ -32,10 +32,10 @@ NavDataset filterNavs(NavDataset navs) {
     return NavDataset();
   }
 
-  NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
+  NavDataset cleanGps = navs.dup(); /*navs.replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
-      results.getGlobalPositions());
+      results.getGlobalPositions());*/
 
   return cleanGps;
 }

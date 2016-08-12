@@ -164,6 +164,23 @@ public:
     return result;
   }
 
+  //template<typename T>
+  NavDataset dup() const {
+
+      NavDataset result = NavDataset(
+          cloneAndfilterDispatcher(
+              _dispatcher.get(),
+              [](DataCode testedCode, const std::string&) { return true; }
+              ),
+          std::make_shared<std::map<
+            DataCode, std::shared_ptr<DispatchData> > >(*_merged),
+          _lowerBound,
+          _upperBound);
+
+      //result.dispatcher()->insertValues<T>(code, source, values);
+      return result;
+  }
+
   NavDataset stripChannel(DataCode code) const;
 
   bool hasLowerBound() const;
