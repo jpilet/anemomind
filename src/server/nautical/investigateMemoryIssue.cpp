@@ -22,6 +22,8 @@ int main() {
   int answer;
   std::cin >> answer;
 
+  ds.evaluateMerged();
+
   std::vector<NavDataset> shallowCopies;
   while (true) {
     auto copy = ds.dup();

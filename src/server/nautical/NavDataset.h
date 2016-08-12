@@ -197,10 +197,12 @@ public:
   TimedSampleRange<typename TypeForCode<Code>::type> samples() const {
     auto m = getMergedSamples<Code>();
     if (m == nullptr) {
+      std::cout << "---> no merged data\n";
       return TimedSampleRange<typename TypeForCode<Code>::type>();
     }
     const auto &v = m->samples();
     if (v.empty()) {
+      std::cout << "---> There is a collection but it is empty\n";
       return TimedSampleRange<typename TypeForCode<Code>::type>();
     }
     auto lower = (_lowerBound.defined()? std::lower_bound(v.begin(), v.end(), _lowerBound) : v.begin());
@@ -224,18 +226,28 @@ public:
   // Can used to check whether some processing step failed. That processing
   // step will then return 'NavDataset()', for which this method returns true.
   bool isDefaultConstructed() const;
+
+  void evaluateMerged() {
+#define EVAL_MERGED(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  getMergedSamples<HANDLE>();
+    FOREACH_CHANNEL(EVAL_MERGED)
+#undef EVAL_MERGED
+  }
 private:
   template <DataCode Code>
   const TimedSampleCollection<typename TypeForCode<Code>::type> *getMergedSamples() const {
     if (!_merged) { // Only when we have a default-constructed, completely empty object.
+      std::cout << "---> Default constructed\n";
       assert(!_dispatcher);
       return nullptr;
     }
     const auto &d = getMergedDispatchData(Code, _merged, _dispatcher);
     if (d) {
+      std::cout << "---> Got d\n";
       auto dp = d.get();
       return &(toTypedDispatchData<Code>(dp)->dispatcher()->values());
     }
+    std::cout << "---> No d\n";
     return nullptr;
   }
 
