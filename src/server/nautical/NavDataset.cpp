@@ -271,12 +271,16 @@ NavDataset NavDataset::stripChannel(DataCode code) const {
     return NavDataset();
   }
 
+  LOG(WARNING) << "Please fix the TODO here!";
   return NavDataset(
       cloneAndfilterDispatcher(
           _dispatcher.get(),
           [code](DataCode testedCode, const std::string&) { return testedCode != code; }
           ),
+
+      // TODO: We should do this in a more clever way!
       std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
+
       _lowerBound,
       _upperBound);
 }
