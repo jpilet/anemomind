@@ -110,7 +110,7 @@ Array<FTypes::TimedMotion> toLocalMotions(
   return dst;
 }
 
-CeresTrajectoryFilter::Settings makeDefaultSettings() {
+CeresTrajectoryFilter::Settings makeDefaultOptSettings() {
   CeresTrajectoryFilter::Settings settings;
   settings.huberThreshold = Length<double>::meters(12.0); // Sort of inlier threshold on the distance in meters
   settings.regWeight = 10.0;
@@ -142,7 +142,7 @@ GpsFilterResults solveGpsSubproblem(
     const GeographicReference &geoRef,
     const Array<CeresTrajectoryFilter::Types<2>::TimedPosition> rawLocalPositions,
     const Array<TimedValue<HorizontalMotion<double>>> &motions,
-    const CeresTrajectoryFilter::Settings &settings) {
+    const GpsFilterSettings &settings) {
   IndexableWrap<Array<TimeStamp>, TypeMode::ConstRef> times =
         wrapIndexable<TypeMode::ConstRef>(samplingTimes);
 
@@ -175,7 +175,7 @@ GpsFilterResults solveGpsSubproblem(
 
     Types<2>::TimedPositionArray filtered = CeresTrajectoryFilter::filter<2>(
         t, p, m,
-        settings, e);
+        settings.ceresSettings, e);
     if (filtered.empty()) {
       LOG(ERROR) << "Failed to filter GPS data";
       return GpsFilterResults();
@@ -301,14 +301,14 @@ Array<TimeStamp> listSplittingTimeStampsNotTooLong(
 
 
 GpsFilterResults filterGpsData(const NavDataset &ds,
-    const CeresTrajectoryFilter::Settings &settings) {
+    const GpsFilterSettings &settings) {
 
   if (ds.isDefaultConstructed()) {
     LOG(WARNING) << "Nothing to filter";
     return GpsFilterResults();
   }
 
-  Duration<double> samplingPeriod = Duration<double>::seconds(1.0);
+
 
   auto motions = GpsUtils::getGpsMotions(ds);
   auto positions = ds.samples<GPS_POS>();
@@ -323,13 +323,10 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
   auto motionTimes = getTimeStamps(motions);
 
   auto samplingTimes = buildSampleTimes(positionTimes, motionTimes,
-      samplingPeriod);
-
-  auto subProblemThreshold = Duration<double>::minutes(3.0);
-  auto subProblemLength = Duration<double>::hours(4.0);
+      settings.samplingPeriod);
 
   auto splits = listSplittingTimeStampsNotTooLong(samplingTimes,
-      subProblemThreshold, subProblemLength);
+      settings.subProblemThreshold, settings.subProblemLength);
 
   CHECK(std::is_sorted(splits.begin(), splits.end()));
 
