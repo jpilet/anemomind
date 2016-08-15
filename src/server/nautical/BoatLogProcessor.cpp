@@ -276,7 +276,20 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     calibrator.clear();
   }
   NavDataset simulated = calibrator.simulate(resampled);
+
+  /*
+Why this is needed:
+Whenever the NavDataset::samples<...> method is called, a merge is performed
+for that datacode using all the data of the underlying dispatcher
+(not limited in time). Several NavDatasets will be produced by in the following
+code by slicing up the full NavDataset. Before this slicing takes place,
+we want to merge the data, so that it doesn't have to be merged for every
+slice that produce. This saves us a lot of memory. If we decide to refactor
+this code some time, we should think carefully how we want to do the merging.
+   */
   simulated.mergeAll();
+
+
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
