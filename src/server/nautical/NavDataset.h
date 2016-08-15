@@ -207,6 +207,13 @@ public:
   // Can used to check whether some processing step failed. That processing
   // step will then return 'NavDataset()', for which this method returns true.
   bool isDefaultConstructed() const;
+
+  void mergeAll() {
+#define PERFORM_MERGE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  getMergedSamples<HANDLE>();
+    FOREACH_CHANNEL(PERFORM_MERGE)
+#undef PERFORM_MERGE
+  }
 private:
   template <DataCode Code>
   const TimedSampleCollection<typename TypeForCode<Code>::type> *getMergedSamples() const {
