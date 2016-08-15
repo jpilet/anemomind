@@ -10,7 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "deep-equal-ident": "^1.0.0",
-    "mocha": "^2.2.4",
     "traverse": "git+https://github.com/jankuca/js-traverse.git"
+  },
+  "devDependencies": {
+    "mocha": "^2.2.4"
   }
 }
