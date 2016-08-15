@@ -21,11 +21,6 @@ using namespace sail::NavCompat;
 namespace {
 
 NavDataset filterNavs(NavDataset navs) {
-  if (!isValid(navs.dispatcher().get())) {
-    LOG(FATAL) << "Called with invalid dispatcher, please fix the code calling this function";
-    return NavDataset();
-  }
-
   auto results = filterGpsData(navs);
   if (results.empty()) {
     LOG(ERROR) << "GPS filtering failed";
