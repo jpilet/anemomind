@@ -13,7 +13,7 @@ if false; then
 
   rm -fR node_modules/mail node_modules/endpoint || true
   export NODE_ENV=production
-  npm install
+  npm install --production
 
   node-gyp configure
   node-gyp build
@@ -25,7 +25,7 @@ if false; then
   ../canutils/compile-iproute2.sh
 fi
 
-EXCLUDE='--exclude=*.log --exclude=.*.sw[po] --exclude=src --exclude=*\.o --exclude=*.o.d --exclude=binding.gyp --exclude=README.md --exclude=install.sh --exclude=build/Release/obj --exclude=obj.target --exclude=*.node.d'
+EXCLUDE='--exclude=*.log --exclude=.*.sw[po] --exclude=src --exclude=*\.[oadh] --exclude=binding.gyp --exclude=README.md --exclude=install.sh --exclude=build/Release/obj --exclude=obj.target --exclude=*.target.mk --exclude=Makefile --exclude=*.tar.gz --exclude=*.gypi'
 
 git rev-parse HEAD > commit
 
