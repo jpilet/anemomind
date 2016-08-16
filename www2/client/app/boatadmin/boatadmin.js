@@ -7,5 +7,10 @@ angular.module('www2App')
         url: '/boatadmin',
         templateUrl: 'app/boatadmin/boatadmin.html',
         controller: 'BoatadminCtrl'
+      })
+      .state('boatadmin-updates', {
+        url: '/boatadmin/updates',
+        templateUrl: 'app/boatadmin/updates.html',
+        controller: 'UpdatesCtrl'
       });
   });
