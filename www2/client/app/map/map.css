@@ -9,24 +9,42 @@ height:100%;
   /* The flex css property needs prefixing for old browsers.
      Fortunately, autoprefixer can handle it for us.
   */
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
-  flex-direction: column;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
 }
 
 .mapAndGraphAndSidebar {
+  -webkit-flex: 1;
+  -ms-flex: 1;
   flex: 1;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
   flex-direction: row;
 }
 
 .mapAndGraph {
-  flex: 1;
+  -webkit-flex: 3;
+      -ms-flex: 3;
+          flex: 3;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
-  flex-direction: column;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
 }
 
 .map {
-  flex: 1;
+  -webkit-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
   position: relative;
   overflow: hidden;
 }
@@ -69,9 +87,13 @@ height:100%;
 }
 
 .graph {
-  flex-basis: 120px;
+  -webkit-flex-basis: 120px;
+      -ms-flex-preferred-size: 120px;
+          flex-basis: 120px;
   position: relative;
-  flex-grow: .1;
+  -webkit-flex-grow: .1;
+      -ms-flex-positive: .1;
+          flex-grow: .1;
 }
 
 perfplot {
@@ -91,16 +113,24 @@ perfplot {
 }
 
 .mapScreenContainer sidebar {
-  flex:.3;
+  -webkit-flex:1;
+      -ms-flex:1;
+          flex:1;
   overflow: auto;
 }
 
 .responsiveNavButtons {
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
-  flex-direction: row;
+  -webkit-flex-direction: row;
+      -ms-flex-direction: row;
+          flex-direction: row;
 }
 .flexOne {
-  flex: 1;
+  -webkit-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
 }
 
 /*==================================================*/
@@ -178,6 +208,7 @@ perfplot {
 #tabs {
   margin-left: auto;
   margin-right: auto;
+  max-width: 500px;
   top: 10px;
   right: 0px;
   z-index: 10;
