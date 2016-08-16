@@ -15,6 +15,15 @@
 
 namespace sail {
 
+CeresTrajectoryFilter::Settings makeDefaultOptSettings();
+
+struct GpsFilterSettings {
+  CeresTrajectoryFilter::Settings ceresSettings = makeDefaultOptSettings();
+  Duration<double> samplingPeriod = Duration<double>::seconds(1.0);
+  Duration<double> subProblemThreshold = Duration<double>::minutes(3.0);
+  Duration<double> subProblemLength = Duration<double>::hours(4.0);
+};
+
 struct GpsFilterResults {
   GeographicReference geoRef;
   Array<CeresTrajectoryFilter::Types<2>::TimedPosition>
@@ -26,11 +35,15 @@ struct GpsFilterResults {
   TimedSampleCollection<HorizontalMotion<double> >::TimedVector getGpsMotions() const;
 };
 
-CeresTrajectoryFilter::Settings makeDefaultSettings();
+Array<TimeStamp> listSplittingTimeStamps(const Array<TimeStamp> &timeStamps,
+    Duration<double> threshold);
 
 GpsFilterResults filterGpsData(const NavDataset &ds,
-    const CeresTrajectoryFilter::Settings &settings = makeDefaultSettings());
+    const GpsFilterSettings &settings = GpsFilterSettings());
 
+template <typename T>
+Array<Array<T> > applySplits(const Array<T> &src,
+    const Array<TimeStamp> &splits);
 }
 
 #endif /* SERVER_NAUTICAL_FILTERS_SMOOTHGPSFILTER_H_ */

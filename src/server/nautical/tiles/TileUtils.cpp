@@ -27,6 +27,9 @@ NavDataset filterNavs(NavDataset navs) {
     return NavDataset();
   }
 
+  // TODO: See issue https://github.com/jpilet/anemomind/issues/793#issuecomment-239423894.
+  // In short, we need to make sure that NavDataset::stripChannel doesn't
+  // throw away valid data that has already been merged.
   NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
