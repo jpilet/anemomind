@@ -82,6 +82,25 @@ this.Utils = {
     };
     Utils.assert(!isNaN(r.x) && !isNaN(r.y));
     return r;
+  },
+
+  latLonToWorld: function(coord) {
+    var lon = coord[0];
+    var lat = coord[1] * Math.PI / 180;
+    return {
+      x: (lon + 180) / 360,
+      y: ((1 - Math.log(Math.tan(lat) + 1 / Math.cos(lat)) / Math.PI) / 2)
+    };
+  },
+
+
+  worldToTile: function(scale, coord) {
+    var getTileX = function(unitX) { return  Math.floor(unitX * (1 << scale)); };
+    return {
+      scale: scale,
+      x: getTileX(coord.x),
+      y: getTileX(coord.y)
+    };
   }
 };
 
