@@ -1,5 +1,7 @@
 #include <device/anemobox/anemonode/src/JsLogger.h>
 
+#include <device/anemobox/anemonode/src/anemonode.h>
+
 using namespace v8;
 
 namespace sail {
@@ -8,15 +10,14 @@ namespace {
 
 class FlushWorker : public NanAsyncWorker {
  public:
-  FlushWorker(NanCallback *callback, std::string folder)
+  FlushWorker(NanCallback *callback, std::string filename)
     : NanAsyncWorker(callback),
-      _folder(folder),
-      _result(false) { }
+      _result(false),
+      _filename(filename) { }
 
   LogFile* dataContainer() { return &_data; }
 
   void Execute () {
-    _filename = Logger::nextFilename(_folder);
     _result = Logger::save(_filename, _data);
   }
 
@@ -35,7 +36,6 @@ class FlushWorker : public NanAsyncWorker {
   }
 
  private:
-  std::string _folder;
   LogFile _data;
   bool _result;
   std::string _filename;
@@ -45,7 +45,7 @@ v8::Persistent<v8::FunctionTemplate> logger_constructor;
 
 }  // namespace
 
-JsLogger::JsLogger() : _logger(Dispatcher::global()) { }
+JsLogger::JsLogger() : _logger(globalAnemonodeDispatcher) { }
 
 void JsLogger::Init(v8::Handle<v8::Object> target) {
   NanScope();
@@ -88,9 +88,9 @@ NAN_METHOD(JsLogger::flush) {
     NanReturnUndefined();
   }
 
-  v8::String::Utf8Value folder(args[0]->ToString());
+  v8::String::Utf8Value filename(args[0]->ToString());
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  FlushWorker* worker = new FlushWorker(callback, *folder);
+  FlushWorker* worker = new FlushWorker(callback, *filename);
   obj->_logger.flushTo(worker->dataContainer());
 
   NanAsyncQueueWorker(worker);

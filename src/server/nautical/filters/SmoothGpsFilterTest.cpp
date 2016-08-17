@@ -76,7 +76,46 @@ TimedSampleCollection<GeographicPosition<double> >::TimedVector applyOutliers(
   return corruptPositions;
 }
 
+TimeStamp timeStamp(double x) {
+  auto offset = TimeStamp::UTC(2016, 6, 8, 13, 52, 0);
+  return offset + Duration<double>::seconds(x);
 }
+
+
+CeresTrajectoryFilter::Types<2>::TimedPosition timedPos(double t, double x, double y) {
+  return CeresTrajectoryFilter::Types<2>::TimedPosition(timeStamp(t),
+      Vectorize<Length<double>, 2>{Length<double>::meters(x), Length<double>::meters(y)});
+}
+
+}
+
+TEST(SmoothGpsFilterTest, TestComputedMotions) {
+  auto deg = Angle<double>::degrees(1.0);
+
+  Array<CeresTrajectoryFilter::Types<2>::TimedPosition> raw{
+      timedPos(0, 3, 4),
+      timedPos(1, 3, -1)
+    };
+
+  Array<CeresTrajectoryFilter::Types<2>::TimedPosition> filtered{
+      timedPos(2, 3, 4),
+      timedPos(6, 7, 2)
+    };
+
+  GpsFilterResults results{
+    GeographicReference(GeographicPosition<double>(34.4*deg, 344.3*deg)),
+    raw, filtered
+  };
+
+  auto motions = results.getGpsMotions();
+  EXPECT_EQ(motions.size(), 1);
+  auto m = motions[0];
+
+  EXPECT_NEAR((m.time - timeStamp(4.0)).seconds(), 0.0, 1.0e-6);
+  EXPECT_NEAR(m.value[0].metersPerSecond(), 1.0, 1.0e-6);
+  EXPECT_NEAR(m.value[1].metersPerSecond(), -0.5, 1.0e-6);
+}
+
 
 TEST(SmoothGpsFilterTest, TestIt) {
   auto original = getPsarosTestData();
@@ -110,7 +149,7 @@ TEST(SmoothGpsFilterTest, TestIt) {
     GnuPlotModel model(2);
 
     makeTrajectoryPlot(filtered0.geoRef,
-        filteredPositions)->render(&model);
+        TimedSampleCollection<GeographicPosition<double>>(filteredPositions))->render(&model);
 
     makeTrajectoryPlot(filtered0.geoRef,
             originalPositions)->render(&model);
@@ -154,3 +193,58 @@ TEST(SmoothGpsFilterTest, TestIt) {
   EXPECT_LT(60, corrCounter);
 }
 
+namespace {
+  auto offset = TimeStamp::UTC(2016, 8, 12, 10, 17, 0);
+  auto s = Duration<double>::seconds(1.0);
+
+  TimeStamp lt(double t) {
+    return offset + t*s;
+  }
+
+  TimedValue<int> tvi(double t, int x) {
+    return TimedValue<int>{lt(t), x};
+  }
+
+
+}
+
+namespace sail {
+  bool operator==(const TimedValue<int> &a, const TimedValue<int> &b) {
+    return a.time == b.time && a.value == b.value;
+  }
+}
+
+TEST(SmoothGpsFilter, SplittingTimeStamps) {
+  Array<TimeStamp> T{lt(0.0), lt(0.3), lt(1.1)};
+  auto splits = listSplittingTimeStamps(T, 0.4*s);
+  EXPECT_EQ(splits.size(), 1);
+  EXPECT_NEAR((splits[0] - offset)/s, 0.7, 1.0e-6);
+}
+
+TEST(SmoothGpsFilter, ApplySplits) {
+  auto emptyArray = Array<TimedValue<int> >();
+  {
+      Array<TimeStamp> times;
+      Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
+      EXPECT_EQ((Array<Array<TimedValue<int>>>{values}),
+          applySplits(values, times));
+  }{
+    Array<TimeStamp> times{lt(-0.3)};
+    Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
+    EXPECT_EQ((Array<Array<TimedValue<int>>>{emptyArray, values}),
+        applySplits(values, times));
+  }{
+    Array<TimeStamp> times{lt(0.9)};
+    Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
+    EXPECT_EQ((Array<Array<TimedValue<int>>>{values, emptyArray}),
+        applySplits(values, times));
+  }{
+    Array<TimeStamp> times{lt(0.15)};
+    Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
+    EXPECT_EQ((Array<Array<TimedValue<int>>>{
+      Array<TimedValue<int>>{tvi(0.1, 3)},
+      Array<TimedValue<int>>{tvi(0.2, 4)},
+    }),
+    applySplits(values, times));
+  }
+}

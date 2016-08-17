@@ -204,9 +204,6 @@ class Dispatcher : public Clock {
   Dispatcher();
   static const int defaultPriority = 0;
 
-  //! Get a pointer to the default anemobox dispatcher.
-  static Dispatcher *global();
-
   const std::map<DataCode, std::shared_ptr<DispatchData>>& dispatchers()
     const { return _currentSource; }
 

@@ -28,5 +28,7 @@ TEST(NavTest, MaxSpeed) {
   c.setTime(offset + Duration<double>::minutes(24));
   c.setGpsSpeed(Velocity<double>::knots(30.1));
   c.setGeographicPosition(pos);
-  EXPECT_EQ(1, findMaxSpeedOverGround(fromNavs({a, b, c})));
+
+  Array<Nav> navs = {a, b, c};
+  EXPECT_EQ(1, findMaxSpeedOverGround(navs));
 }

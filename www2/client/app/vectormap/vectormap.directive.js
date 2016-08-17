@@ -22,29 +22,33 @@ angular.module('www2App')
             }
           });
 
+          scope.pathLayer = new VectorTileLayer({
+            maxNumCachedTiles: 512,
+            token: Auth.getToken()
+          }, canvas);
+          canvas.addLayer(scope.pathLayer);
+
           // A clic on the map selects a curve and sets current time.
           canvas.pinchZoom.onClic = function(pos) {
             var point = scope.pathLayer.findPointAt(
               pos.startWorldPos.x, pos.startWorldPos.y);
             if (point) {
               var dist = Utils.distance(
-                  pos.startViewerPos,
+                  canvas.pinchZoom.viewerPosFromWorldPos(pos.startWorldPos),
                   canvas.pinchZoom.viewerPosFromWorldPos(point.point.pos[0],
                                                        point.point.pos[1]));
-
               // This is a threshold, in pixels, to select a point.
-              if (dist < 20) {
+              if (dist < 20 * canvas.pixelRatio) {
                 if (!scope.selectedCurve) {
                   scope.selectedCurve = point.curveId;
                 }
                 scope.currentTime = point.point.time;
                 scope.currentPoint = point.point;
+                canvas.refresh();
               }
             }
             scope.$apply();
           };
-
-          scope.pathLayer = canvas.layers[1];
 
           if (scope.selectedCurve) {
               scope.pathLayer.selectCurve(scope.selectedCurve);

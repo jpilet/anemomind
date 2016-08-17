@@ -1,0 +1,30 @@
+Where it still fails:
+
+Boat:
+boat5576e98ea14d91730cadeed7
+Session:
+2015-06-26T10:11:21 to 2015-06-26T15:37:14
+Original calls:
+./filters_tryNewGpsFilter --path ~/data/datasets/boat5576e98ea14d91730cadeed7 --segment-reg 1000, followed by compare_filtered_and_raw_gps(4)
+Description:
+There is one point which is several hundred meters off the track.
+
+Boat:
+boat55a774ac16361494ab094dc7
+Session:
+2015-08-29T06:11:07 to 2015-08-30T05:14:11
+Original calls:
+./filters_tryNewGpsFilter --path /home/jonas/data/datasets/boat55a774ac16361494ab094dc7/ --segment-reg 1000, followed by compare_filtered_and_raw_gps(7)
+Description:
+The first point of the trajectory is way off from the rest. I think this is data where we have problems with the GPS
+
+Boat:
+boat573b14bbf437a48c0ce3ad54
+Session:
+2016-05-19T10:12:15 to 2016-05-20T16:11:54
+Original calls:
+./filters_tryNewGpsFilter --path ~/data/datasets/boat573b14bbf437a48c0ce3ad54/ --segment-reg 1000, followed by compare_filtered_and_raw_gps(1)
+Description:
+One point or so is several kilometers off the track.
+I think this is the session with the journalist sailing from Saint-Tropez and east-wards and then back. The session where we discovered the calibration issues.
+

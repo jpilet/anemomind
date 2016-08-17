@@ -34,3 +34,6 @@ nodemodules/*/node_modules
 src/device/anemobox/anemonode/bin
 src/device/anemobox/canutils/can-utils
 src/device/anemobox/canutils/iproute2
+
+datasets/*/processed
+datasets/*/logs/processed

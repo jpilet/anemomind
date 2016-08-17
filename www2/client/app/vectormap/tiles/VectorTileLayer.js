@@ -116,8 +116,8 @@ VectorTileLayer.prototype.draw = function(canvas, pinchZoom,
   
   var firstTileX = getTileX(Math.max(0, bboxTopLeft.x));
   var firstTileY = getTileY(Math.max(0, bboxTopLeft.y));
-  var lastTileX = getTileX(Math.min(this.params.width, bboxBottomRight.x));
-  var lastTileY = getTileY(Math.min(this.params.height, bboxBottomRight.y));
+  var lastTileX = getTileX(Math.min(this.renderer.params.width, bboxBottomRight.x));
+  var lastTileY = getTileY(Math.min(this.renderer.params.height, bboxBottomRight.y));
 
   Utils.assert(firstTileY != undefined);
 
@@ -681,51 +681,66 @@ VectorTileLayer.prototype.isHighlighted = function(curveId) {
     && this.highlight.endTime <= endTime;
 };
 
-VectorTileLayer.prototype.findPointAt = function(x, y) {
-  var p = {x: x, y: y};
+VectorTileLayer.prototype._closestPointInTile = function(x, y, key) {
+  if (!(key in this.tiles)) {
+    return undefined;
+  }
+
+  var tile = this.tiles[key];
+
+  if (tile.state != 'loaded') {
+    return undefined;
+  }
 
   if (this.selectedCurve) {
     var selectedTimeStart = curveStartTime(this.selectedCurve);
     var selectedTimeEnd = curveEndTime(this.selectedCurve);
   }
 
-  for (var scale = 20; scale >= 0; --scale) {
-    var xAtScale = Math.floor(x * (1 << scale));
-    var yAtScale = Math.floor(y * (1 << scale));
-    var key = scale + "," + xAtScale + "," + yAtScale;
+  var bestDist = 1e8;
+  var bestPoint = false;
+  var bestCurve;
+  var p = {x: x, y: y};
 
-    if (key in this.tiles && this.tiles[key].state == "loaded") {
-      var tile = this.tiles[key];
-      var bestDist = .25 / (1 << scale);
-      var bestPoint = false;
-      var bestCurve;
 
-      for (var curve in tile.data) {
-        for (var c in tile.data[curve].curves) {
-          var curveId = tile.data[curve].curves[c].curveId;
-          if (this.selectedCurve && !curveOverlap(this.selectedCurve, curveId)) {
-            continue;
-          }
-            var points = tile.data[curve].curves[c].points;
-          for (var i in points) {
-            if (this.selectedCurve
-                && (points[i].time < selectedTimeStart
-                    || points[i].time > selectedTimeEnd)) {
-              continue;
-            }
-            var dist = Utils.distance(p, {x: points[i].pos[0], y: points[i].pos[1]});
-            if (dist < bestDist) {
-              bestDist = dist;
-              bestPoint = points[i];
-              bestCurve = curveId;
-            }
-          }
+  for (var curve in tile.data) {
+    for (var c in tile.data[curve].curves) {
+      var curveId = tile.data[curve].curves[c].curveId;
+      if (this.selectedCurve && !curveOverlap(this.selectedCurve, curveId)) {
+        continue;
+      }
+        var points = tile.data[curve].curves[c].points;
+      for (var i in points) {
+        if (this.selectedCurve
+            && (points[i].time < selectedTimeStart
+                || points[i].time > selectedTimeEnd)) {
+          continue;
+        }
+        var dist = Utils.distance(p, {x: points[i].pos[0], y: points[i].pos[1]});
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestPoint = points[i];
+          bestCurve = curveId;
         }
       }
-      if (bestPoint) {
-        return { point: bestPoint, curveId: bestCurve };
-      }
-      return undefined;
     }
   }
+  if (bestPoint) {
+    return { point: bestPoint, curveId: bestCurve, dist: bestDist };
+  }
+}
+
+VectorTileLayer.prototype.findPointAt = function(x, y) {
+  var bestPoint;
+  // This exhaustive search could be optimized by searching nearest tiles
+  // first and skipping tiles far away.
+  // But since this function is called only when the user clics,
+  // speed does not matter. Result correctness is more important.
+  for (var key in this.tiles) {
+    var candidate = this._closestPointInTile(x, y, key);
+    if (candidate && (!bestPoint || bestPoint.dist > candidate.dist)) {
+      bestPoint = candidate;
+    }
+  }
+  return bestPoint;
 }

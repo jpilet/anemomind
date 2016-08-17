@@ -119,3 +119,41 @@ TEST(TrueWindEstimatorTest, TWACompare) {
     EXPECT_LE(getMedianAbsValue(difs).degrees(), 3.0);
   }
 }
+
+TEST(TrueWindEstimatorTest, AlinghiGC32Test) {
+  // Based on the data found here: https://github.com/jpilet/anemomind/issues/743#issuecomment-229959644
+  /*
+   *
+HERE ARE THE SOURCE MEASURES:
+  awa = 315.96 degrees
+  aws = 5.69 knots
+  gpsBearing = 23.59 degrees
+  gpsSpeed = 6.8 knots
+  gps-motion-x = 2.72129 knots
+  gps-motion-y = 6.23174 knots
+NAIVE TRUE WIND AT 2016-06-22T15:27:00
+  TWDIR: -100.823
+  TWA:   -124.413
+  TWS:   4.79461
+   */
+
+  Nav nav;
+  nav.setAwa(Angle<double>::degrees(315.96));
+  nav.setAws(Velocity<double>::knots(5.69));
+  nav.setGpsBearing(Angle<double>::degrees(23.59));
+  nav.setGpsSpeed(Velocity<double>::knots(6.8));
+
+  double parameters[TrueWindEstimator::NUM_PARAMS];
+      TrueWindEstimator::initializeParameters(parameters);
+  auto tw = TrueWindEstimator::computeTrueWind
+        <double>(parameters, nav);
+
+
+  auto twa = calcTwa(tw, nav.gpsBearing()).normalizedAt0();
+  auto tws = tw.norm();
+  auto twdir = (tw.angle() - Angle<double>::degrees(180)).normalizedAt0();
+
+  EXPECT_NEAR(twa.degrees(), -124.413, 0.01);
+  EXPECT_NEAR(tws.knots(), 4.79461, 0.01);
+  EXPECT_NEAR(twdir.degrees(), -100.823, 0.01);
+}

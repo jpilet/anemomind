@@ -73,3 +73,12 @@ TEST(TimeStampTest, Sleep) {
   EXPECT_LE(before + delta, after);
 }
 
+#ifdef HAVE_CLOCK_GETTIME
+TEST(TimeStampTest, MonotonicClock) {
+  TimeStamp before = MonotonicClock::now();
+  Duration<> delta = Duration<>::seconds(.1);
+  sleep(delta);
+  TimeStamp after = MonotonicClock::now();
+  EXPECT_NEAR((after - before).seconds(), .1, .01);
+}
+#endif

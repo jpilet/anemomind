@@ -10,6 +10,7 @@ var btrpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
 var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
+var withTimeEstimator = true;
 var withSetTime = true;
 var withBT = false;
 var echoGpsOnNmea = false;
@@ -20,6 +21,7 @@ var withHttp = true;
 var withIMU = true;
 var withCUPS = false;
 var withNMEA2000 = true;
+var withWatchdog = true;
 
 var spiBugDetected = false;
 
@@ -115,8 +117,12 @@ if (withSetTime) {
   require('./components/settime.js');
 }
 
+var getCurrentTime = withTimeEstimator? 
+    require('./components/timeest.js').estimateTimeFromDispatcher 
+    : function() {return new Date();};
+
 function startLogging() {
-  logger.startLogging(logRoot, logInterval, function(path) {
+  logger.startLogging(logRoot, logInterval, getCurrentTime, function(path) {
     if (withLocalEndpoint) {
       localEndpoint.postLogFile(path, function(err, remaining) {
         if (err) {
@@ -164,4 +170,8 @@ if (withNMEA2000) {
       logger.flush();
     }
   });
+}
+
+if (withWatchdog) {
+  require('./components/watchdog.js').startWatchdog();
 }

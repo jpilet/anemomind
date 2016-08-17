@@ -4,8 +4,6 @@
 
 namespace sail {
 
-Dispatcher *Dispatcher::_globalInstance = 0;
-
 const char* descriptionForCode(DataCode code) {
   switch (code) {
 #define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
@@ -33,13 +31,6 @@ Dispatcher::Dispatcher() {
       new DispatchDataProxy<TYPE>(HANDLE));
   FOREACH_CHANNEL(REGISTER_PROXY);
 #undef REGISTER_PROXY
-}
-
-Dispatcher *Dispatcher::global() {
-  if (!_globalInstance) {
-    _globalInstance = new Dispatcher();
-  }
-  return _globalInstance;
 }
 
   std::shared_ptr<DispatchData> Dispatcher::dispatchDataForSource(DataCode code, const std::string& source) const {

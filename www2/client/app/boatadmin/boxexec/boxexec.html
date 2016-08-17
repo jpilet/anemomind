@@ -1,6 +1,8 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
 <div class="container">
+  <h1 ng-show="boat">Remote executions for {{ boat.name }}</h1>
+  <h1 ng-hide="boat">Remote executions for all boats</h1>
   <ul class="list-group">
     <li class="list-group-item" ng-repeat="boxexec in boxexecs | orderBy:'-timeSent'">
       <p>Sent on {{ boxexec.timeSent | date:'medium' }} to {{ boxexec.boatId }}</p>

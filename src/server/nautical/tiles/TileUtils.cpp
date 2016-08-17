@@ -3,14 +3,16 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/tiles/TileUtils.h>
 #include <device/anemobox/simulator/SimulateBox.h>
-#include <server/nautical/tiles/NavTileUploader.h>
+#include <server/common/ArrayBuilder.h>
+#include <server/common/Functional.h>
+#include <server/common/logging.h>
+#include <server/nautical/DownsampleGps.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/logimport/LogLoader.h>
-#include <server/nautical/GpsFilter.h>
-#include <server/common/ArrayBuilder.h>
-#include <server/common/logging.h>
+#include <server/nautical/tiles/NavTileUploader.h>
+#include <server/nautical/tiles/TileUtils.h>
 
 namespace sail {
 
@@ -19,47 +21,21 @@ using namespace sail::NavCompat;
 namespace {
 
 NavDataset filterNavs(NavDataset navs) {
-  if (!isValid(navs.dispatcher().get())) {
-    LOG(FATAL) << "Called with invalid dispatcher, please fix the code calling this function";
+  auto results = filterGpsData(navs);
+  if (results.empty()) {
+    LOG(ERROR) << "GPS filtering failed";
     return NavDataset();
   }
 
-  GpsFilterSettings settings;
-
-  // Remove nulls positions from GPS streams
-  const TimedSampleRange<GeographicPosition<double>>& gpsPos =
-    navs.samples<GPS_POS>();
-  TimedSampleCollection<GeographicPosition<double>> filteredGpsPos;
-
-  for (int i = 0; i < gpsPos.size(); ++i) {
-    auto pos = gpsPos[i];
-    if (abs(pos.value.lat().degrees()) > 0.01
-        && abs(pos.value.lon().degrees()) > 0.01) {
-      filteredGpsPos.append(pos);
-    }
-  }
-
-  NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double>>(
+  // TODO: See issue https://github.com/jpilet/anemomind/issues/793#issuecomment-239423894.
+  // In short, we need to make sure that NavDataset::stripChannel doesn't
+  // throw away valid data that has already been merged.
+  NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
-      filteredGpsPos.samples()
-      );
+      results.getGlobalPositions());
 
-  auto results = GpsFilter::filter(cleanGps, settings);
-
-  if (!results.defined()) {
-    LOG(WARNING) << "Failed to apply GPS filter, returning empty result";
-    return NavDataset();
-  }
-  auto d = fromNavs(
-      makeArray(results.filteredNavs()).slice(results.inlierMask()));
-
-  if (!isValid(d.dispatcher().get())) {
-    LOG(WARNING) << "The dataset constructed from navs is not valid, returning empty result";
-    return NavDataset();
-  }
-
-  return d;
+  return cleanGps;
 }
 
 }  // namespace
@@ -99,10 +75,29 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
   return result.get();
 }
 
+Array<NavDataset> filterSessions(const Array<NavDataset>& sessions) {
+  return filter(sail::map(sessions, filterNavs).toArray(),
+          [](NavDataset ds) {
+      if (getNavSize(ds) == 0) {
+        LOG(WARNING) << "Omitting dataset with 0 navs";
+        return false;
+      } else if (!isValid(ds.dispatcher().get())) {
+        LOG(WARNING) << "Omitting invalid dataset";
+        return false;
+      }
+      return true;
+    });
+}
+
 void processTiles(const TileGeneratorParameters &params,
     std::string boatId, std::string navPath,
     std::string boatDat, std::string polarDat) {
-    auto rawNavs0 = LogLoader::loadNavDataset(navPath);
+
+    // Downsampling GPS should be avoided. However, the navCompat stuff still uses
+    // GPS sampling to iterate, and we need to have a bound on the frequency.
+    // TODO: Stop using makeArray(), getNav and other indexed access
+    // TODO: Stop downsampling GPS.
+    auto rawNavs0 = downSampleGpsTo1Hz(LogLoader::loadNavDataset(navPath));
 
     CHECK(isValid(rawNavs0.dispatcher().get())) << "The loaded data is invalid, please fix the code";
 
@@ -112,7 +107,7 @@ void processTiles(const TileGeneratorParameters &params,
     auto simulated = SimulateBox(boatDat, rawNavs0);
     if (simulated.isDefaultConstructed()) {
       LOG(WARNING) << "Simulation failed";
-      return;
+      simulated = rawNavs0;
     }
 
     LOG(INFO) << "Filtered";
@@ -131,18 +126,7 @@ void processTiles(const TileGeneratorParameters &params,
       LOG(INFO) << session;
     }
 
-    Array<NavDataset> sessions =
-      filter(map(extracted, filterNavs).toArray(),
-          [](NavDataset ds) {
-      if (getNavSize(ds) == 0) {
-        LOG(WARNING) << "Omitting dataset with 0 navs";
-        return false;
-      } else if (!isValid(ds.dispatcher().get())) {
-        LOG(WARNING) << "Omitting invalid dataset";
-        return false;
-      }
-      return true;
-    });
+    Array<NavDataset> sessions = filterSessions(extracted);
 
     if (sessions.empty()) {
       LOG(WARNING) << "No sessions";

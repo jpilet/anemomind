@@ -5,12 +5,13 @@
  *      Author: jonas
  */
 
+#include <fstream>
 #include <server/common/ArgMap.h>
-#include <server/nautical/filters/SmoothGpsFilter.h>
-#include <server/nautical/segment/SessionCut.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/logging.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/segment/SessionCut.h>
 
 using namespace sail;
 

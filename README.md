@@ -65,6 +65,7 @@ The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
   * ADOL-C
   * POCO
   * ceres
+  * mongodb c++ client
 
 ## Summary of steps to get started
 The following steps cover building and testing all the code:
@@ -119,26 +120,10 @@ If you used the second example for starting mongodb indirectly using grunt ```gr
 
 ## Platform specific notes
 
-### Platforms using GCC version 5.x (e.g. Ubuntu 15.10)
-Recent releases of GCC use a new ABI by default, in order
-to support C++11 features. Read about it here:
-
-http://developerblog.redhat.com/2015/02/05/gcc5-and-the-c11-abi/
-
-This may cause linking errors, when mixing code compiled using GCC 4.x and GCC 5.y.
-The sane way to deal with this is to either compile libraries from source using GCC 5
-or only use official packages in the package manager. With Ubuntu 15.10, the
-```libmongo-dev``` package is removed, so you will have to compile it. Getting the
-outdated prebuilt deb-package is not a good idea, because it is likely compiled with
-an outdated version of GCC. Instead, it is better to do this:
-```
-git clone https://github.com/mongodb/mongo-cxx-driver.git
-cd mongo-cxx-driver
-git checkout legacy
-scons -j 20 --cache LINKFLAGS=-fuse-ld=gold --c++11=on CCFLAGS="-Wno-unused-variable -Wno-maybe-uninitialized"
-sudo scons -j 20 --cache LINKFLAGS=-fuse-ld=gold --c++11=on CCFLAGS="-Wno-unused-variable -Wno-maybe-uninitialized" --prefix="/usr" install
-```
-More information here: https://github.com/mongodb/mongo-cxx-driver/wiki/Download-and-Compile-the-Legacy-Driver#scons-options-when-compiling-the-c-driver. Note in particular that even if our code builds with this driver, it may still crash (with a segfault at runtime), in particular if **the C++ standard** differes between the different compiled code, as explained under *Important note about C++11/C++14*.
-
 ### Mac OSX
+
 TODO
+
+```
+brew install suite-sparse
+```

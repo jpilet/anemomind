@@ -57,7 +57,8 @@ NavDataset::NavDataset(const std::shared_ptr<Dispatcher> &dispatcher,
 
   for (auto channel : dispatcher->allSources()) {
     for (auto source : channel.second) {
-      assert(classify(source.first) != SourceOrigin::UNKNOWN);
+      classify(source.first);
+      //LOG_IF(WARNING, classify(source.first) == SourceOrigin::UNKNOWN) << "Working with unknown source: " << source.first;
     }
   }
 }
@@ -270,12 +271,14 @@ NavDataset NavDataset::stripChannel(DataCode code) const {
     return NavDataset();
   }
 
+  LOG(WARNING) << "Please fix the TODO here!";
   return NavDataset(
       cloneAndfilterDispatcher(
           _dispatcher.get(),
-          [code](DataCode testedCode, const std::string&) { return testedCode != code; }
-          ),
-      std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
+          [code](DataCode testedCode, const std::string&) {
+            return testedCode != code;
+          }),
+      resetMergedChannels(_merged, std::set<DataCode>{code}),
       _lowerBound,
       _upperBound);
 }

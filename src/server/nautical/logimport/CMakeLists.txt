@@ -76,6 +76,7 @@ cxx_test(logs_ProtobufLogTest
          logimport_LogLoader
          common_Env
          common_PathBuilder
+         anemobox_Logger
          gtest_main
         )     
         

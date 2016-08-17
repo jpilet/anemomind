@@ -6,6 +6,7 @@
 #ifndef HINTEDSTATEASSIGNFACTORY_H_
 #define HINTEDSTATEASSIGNFACTORY_H_
 
+#include <server/nautical/Nav.h>
 #include <server/nautical/grammars/HintedStateAssign.h>
 #include <server/nautical/grammars/Grammar.h>
 

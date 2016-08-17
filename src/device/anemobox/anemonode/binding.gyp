@@ -11,9 +11,9 @@
             '../logger/logger.proto'
           ],
           'outputs': [
-            "<(SHARED_INTERMEDIATE_DIR)/logger.pb.cc"
+            "<(SHARED_INTERMEDIATE_DIR)/device/anemobox/logger/logger.pb.cc"
           ],
-          'action': ['protoc','-I..', '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/','../logger/logger.proto']
+          'action': ['protoc','-I..', '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/device/anemobox/','../logger/logger.proto']
         }
       ]
     },
@@ -67,14 +67,14 @@
         "../../../server/common/string.cpp",
         "../../../server/common/logging.h",
         "../../../server/common/logging.cpp",
-        "<(SHARED_INTERMEDIATE_DIR)/logger/logger.pb.cc"
+        "<(SHARED_INTERMEDIATE_DIR)/device/anemobox/logger/logger.pb.cc"
       ],
       "include_dirs": [
         "<!(node -e \"require('nan')\")",
         "../../..",
         "../../../../build/third-party/poco-install/include",
         "<(SHARED_INTERMEDIATE_DIR)",
-        "<(SHARED_INTERMEDIATE_DIR)/logger",
+        "<(SHARED_INTERMEDIATE_DIR)/device/anemobox",
       ], 
       'cflags_cc!': [ '-fno-rtti' ],
       "cflags_cc": [
@@ -92,10 +92,11 @@
           '<!@(pkg-config protobuf --cflags)'
         ]
       },
-      "defines": [ "ON_SERVER" ],
+      "defines": [ "ON_SERVER", "HAVE_CLOCK_GETTIME" ],
       "libraries" : [
         "<!@(pkg-config protobuf --libs-only-L)",
         "-lprotobuf",
+        "-lrt",
 	"-L/usr/lib",
 	"-lboost_iostreams",
 	"-lboost_iostreams-mt"
