@@ -25,7 +25,7 @@ module.exports = {
   endpointDir: '/var/mail2',
   backupDestination: 'anemomind@vtiger.anemomind.com:userlogs',
 
-  ssl: {
+  ssl_OFF: {
     key: '/etc/ssl/anemolab.com/anemolab.com.key',
     cert: '/etc/ssl/anemolab.com/anemolab.com.cert',
     ip: '0.0.0.0',
