@@ -213,10 +213,14 @@ Array<Spani> computeCalibrationGroups(
 
   for (int i = 0; i < n-1; i++) {
     std::cout << "Iteration " << i << std::endl;
+    std::cout << "Leaves: " << indexTree.leaves() << std::endl;
     auto shortest = durationTree.top();
-    std::cout << "Shortest: " << shortest << std::endl;
+    std::cout << "  Shortest: " << shortest << std::endl;
+    auto shortestDur = dur(shortest);
+    std::cout << "  Duration: " << shortestDur << std::endl;
     int shortestIndex = findIndex(indexTree, shortest.minv(), 0);
-    if (minCalibDur <= dur(shortest)) {
+    if (minCalibDur <= shortestDur) {
+      std::cout << "  long enought, we are done." << std::endl;
       break;
     }
     auto considerPair = [&](int current, int cand) {
