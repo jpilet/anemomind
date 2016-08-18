@@ -8,6 +8,8 @@
 #ifndef SERVER_COMMON_REDUCETREE_H_
 #define SERVER_COMMON_REDUCETREE_H_
 
+#include <server/common/Array.h>
+
 namespace sail {
 
 

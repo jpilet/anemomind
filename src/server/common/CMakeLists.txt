@@ -400,3 +400,8 @@ cxx_test(common_PositiveModTest
          PositiveModTest.cpp
          gtest_main
         )
+
+cxx_test(common_ReduceTreeTest
+  ReduceTreeTest.cpp
+  gtest_main
+  )
