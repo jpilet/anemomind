@@ -80,6 +80,7 @@ public:
   }
 
   T getNodeValue(int index) const {
+    assert(contains(index));
     return _allData[index];
   }
 
@@ -92,7 +93,7 @@ public:
   }
 
   bool contains(int i) const {
-    return i < _allData.size();
+    return _valid[i];
   }
 
   Array<T> leaves() const {
