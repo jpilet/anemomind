@@ -26,7 +26,7 @@ public:
         _reducer(reducer) {
     int n = initialData.size();
     int l = 0;
-    int r = 1;
+    int r = 0;
     while (r - l + 1 < n) {
       l = left(l);
       r = right(r);
@@ -35,8 +35,17 @@ public:
     _allData = Array<T>(totalSize);
     _leafOffset = l;
     _leaves = _allData.sliceFrom(_leafOffset);
+    assert(_leaves.size() == n);
     initialData.copyToSafe(_leaves);
     initializeTree(0);
+  }
+
+  const T &top() const {
+    return _allData[0];
+  }
+
+  Array<T> allData() const {
+    return _allData;
   }
 private:
   std::function<T(T, T)> _reducer;
