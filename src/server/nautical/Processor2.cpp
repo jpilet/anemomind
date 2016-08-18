@@ -11,7 +11,8 @@
 #include <server/common/PathBuilder.h>
 #include <server/common/PhysicalQuantityIO.h>
 #include <fstream>
-#include <unordered_map>
+#include <server/common/ReduceTree.h>
+
 
 namespace sail {
 namespace Processor2 {
@@ -105,18 +106,6 @@ namespace {
   Duration<double> dur(const Span<TimeStamp> &span) {
     return span.maxv() - span.minv();
   }
-
-  struct SpanCmp {
-    Array<Duration<double> > cumulative;
-
-    Duration<double> spanDur(Spani x) const {
-      return cumulative[x.maxv()] - cumulative[x.minv()];
-    }
-
-    bool operator()(Spani a, Spani b) const {
-      return spanDur(a) < spanDur(b);
-    }
-  };
 }
 
 Array<Spani> computeCalibrationGroups(
@@ -125,11 +114,29 @@ Array<Spani> computeCalibrationGroups(
   int n = timeSpans.size();
   Array<Duration<double> > cumulative(n+1);
   cumulative[0] = Duration<double>::seconds(0.0);
+  Array<Spani> spans(n);
   for (int i = 0; i < n; i++) {
     cumulative[i+1] = cumulative[i] + dur(timeSpans[i]);
+    spans[i] = Spani(i, i+1);
   }
-  SpanCmp spanCmp{cumulative};
 
+  auto dur = [&](Spani x) {
+    return cumulative[x.maxv()] - cumulative[x.minv()];
+  };
+
+  ReduceTree<Spani> indexTree(
+      [](Spani a, Spani b) {return Spani(a.minv(), b.maxv());},
+      spans);
+  ReduceTree<Spani> durationTree(
+      [&](Spani a, Spani b) {
+    return dur(a) < dur(b)? a : b;
+  }, spans);
+  for (int i = 0; i < n-1; i++) {
+    if (minCalibDur <= dur(durationTree.top())) {
+      break;
+    }
+
+  }
 }
 
 
