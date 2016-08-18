@@ -11,6 +11,7 @@
 #include <server/common/PathBuilder.h>
 #include <server/common/PhysicalQuantityIO.h>
 #include <fstream>
+#include <unordered_map>
 
 namespace sail {
 namespace Processor2 {
@@ -75,7 +76,6 @@ Array<Span<TimeStamp> > segmentSubSessions(
     auto dur = times[i+1] - times[i];
     if (settings.subSessionCut < dur) {
       cuts.push_back(i+1);
-      std::cout << "Gap of " << dur << std::endl;
     }
   }
   addUnique(&cuts, times.size());
@@ -99,6 +99,37 @@ void outputTimeSpansToFile(
         << timeSpans.size() << ": " << s.minv()
         << " to " << s.maxv() << std::endl;
   }
+}
+
+namespace {
+  Duration<double> dur(const Span<TimeStamp> &span) {
+    return span.maxv() - span.minv();
+  }
+
+  struct SpanCmp {
+    Array<Duration<double> > cumulative;
+
+    Duration<double> spanDur(Spani x) const {
+      return cumulative[x.maxv()] - cumulative[x.minv()];
+    }
+
+    bool operator()(Spani a, Spani b) const {
+      return spanDur(a) < spanDur(b);
+    }
+  };
+}
+
+Array<Spani> computeCalibrationGroups(
+  Array<Span<TimeStamp> > timeSpans,
+  Duration<double> minCalibDur) {
+  int n = timeSpans.size();
+  Array<Duration<double> > cumulative(n+1);
+  cumulative[0] = Duration<double>::seconds(0.0);
+  for (int i = 0; i < n; i++) {
+    cumulative[i+1] = cumulative[i] + dur(timeSpans[i]);
+  }
+  SpanCmp spanCmp{cumulative};
+
 }
 
 

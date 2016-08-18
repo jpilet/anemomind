@@ -38,6 +38,10 @@ void outputTimeSpansToFile(
     const std::string &filename,
     const Array<Span<TimeStamp> > &timeSpans);
 
+Array<Spani> computeCalibrationGroups(
+    Array<Span<TimeStamp> > timeSpans,
+    Duration<double> minCalibDur);
+
 }
 }
 
