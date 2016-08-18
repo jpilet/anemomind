@@ -104,10 +104,14 @@ void LogLoader::addToDispatcher(Dispatcher *dst) const {
 #undef  INSERT_VALUES
 }
 
-NavDataset LogLoader::makeNavDataset() const {
+std::shared_ptr<Dispatcher> LogLoader::makeDispatcher() const {
   auto d = std::make_shared<Dispatcher>();
   addToDispatcher(d.get());
-  return NavDataset(d);
+  return d;
+}
+
+NavDataset LogLoader::makeNavDataset() const {
+  return NavDataset(makeDispatcher());
 }
 
 }

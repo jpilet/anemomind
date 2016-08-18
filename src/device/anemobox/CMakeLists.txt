@@ -127,3 +127,13 @@ cxx_test(anemobox_SourcesTest
          gtest_main
         )
 
+add_library(anemobox_DispatcherJson
+  DispatcherJson.h
+  DispatcherJson.cpp
+  )
+
+target_link_libraries(anemobox_DispatcherJson
+	common_TimeStampJson
+    common_Json
+    anemobox_Dispatcher
+    )
