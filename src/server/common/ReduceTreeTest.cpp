@@ -17,9 +17,9 @@ TEST(ReduceTreeTest, SumTree) {
       [](int a, int b) {return a + b;}, numbers);
 
   EXPECT_EQ(tree.top(), 1 + 2 + 3 + 4 + 5);
-
-  for (auto x: tree.allData()) {
-    std::cout << " x = " << x << std::endl;
-  }
+  tree.setLeaf(4, 0);
+  EXPECT_EQ(tree.top(), 10);
+  tree.setLeaf(1, 0);
+  EXPECT_EQ(tree.top(), 8);
 }
 

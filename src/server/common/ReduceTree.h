@@ -47,6 +47,22 @@ public:
   Array<T> allData() const {
     return _allData;
   }
+
+  void setLeaf(int index0, const T &value) {
+    assert(0 <= index0);
+    assert(index0 < _leaves.size());
+    int index = _leafOffset + index0;
+    _allData[index] = value;
+    while (index != 0) {
+      index = parent(index);
+      auto result = _allData[left(index)];
+      int r = right(index);
+      if (r < _allData.size()) {
+        result = _reducer(result, _allData[r]);
+      }
+      _allData[index] = result;
+    }
+  }
 private:
   std::function<T(T, T)> _reducer;
   Array<T> _allData;
