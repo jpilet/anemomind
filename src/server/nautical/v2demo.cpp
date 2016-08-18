@@ -8,6 +8,8 @@
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 #include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/Processor2.h>
+#include <server/common/AbstractArray.h>
 
 using namespace sail;
 
@@ -19,8 +21,17 @@ int main(int argc, const char **argv) {
     .pushDirectory("logs").get().toString());
   auto ds = loader.makeNavDataset();
 
-  std::cout << "Loaded dataset" << std::endl;
-  ds.outputSummary(&std::cout);
+  Processor2::Settings settings;
+  auto timeStamps = Processor2::getAllGpsTimeStamps(ds.dispatcher().get());
+
+  std::cout << "Number of time stamps: "<< timeStamps.size() << std::endl;
+
+  auto subSessionSpans =
+      Processor2::segmentSubSessions(timeStamps, settings);
+
+  Processor2::outputTimeSpansToFile(
+      settings.makeLogFilename("subsessions.txt"),
+      subSessionSpans);
 
   return 0;
 }

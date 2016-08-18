@@ -334,4 +334,14 @@ target_link_libraries(nautical_v2demo
   common_Env
   logimport_LogLoader
   common_PathBuilder
+  nautical_Processor2
+  )
+
+add_library(nautical_Processor2
+  Processor2.h
+  Processor2.cpp
+  )
+
+target_link_libraries(nautical_Processor2
+  segment_SessionCut
   )
