@@ -271,7 +271,6 @@ NavDataset NavDataset::stripChannel(DataCode code) const {
     return NavDataset();
   }
 
-  LOG(WARNING) << "Please fix the TODO here!";
   return NavDataset(
       cloneAndfilterDispatcher(
           _dispatcher.get(),
