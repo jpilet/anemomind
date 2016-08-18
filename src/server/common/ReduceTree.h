@@ -20,7 +20,7 @@ public:
   static int left(int i) {return 2*i + 1;}
   static int right(int i) {return 2*i + 2;}
   static int parent(int i) {return (i - 1)/2;}
-  bool isRoot(int i) {return i == 0;}
+  static bool isRoot(int i) {return i == 0;}
 
   ReduceTree(std::function<T(T, T)> reducer,
       Array<T> initialData) :
@@ -32,7 +32,7 @@ public:
       l = left(l);
       r = right(r);
     }
-    int totalSize = r + 1;
+    int totalSize = l + n;
     _allData = Array<T>(totalSize);
     _leafOffset = l;
     _leaves = _allData.sliceFrom(_leafOffset);
@@ -58,7 +58,7 @@ public:
       index = parent(index);
       auto result = _allData[left(index)];
       int r = right(index);
-      if (r < _allData.size()) {
+      if (contains(r)) {
         result = _reducer(result, _allData[r]);
       }
       _allData[index] = result;
@@ -72,6 +72,18 @@ public:
   T getNodeValue(int index) const {
     return _allData[index];
   }
+
+  bool isInner(int i) const {
+    return i < _leafOffset;
+  }
+
+  bool isLeaf(int i) const {
+    return !isInner(i);
+  }
+
+  bool contains(int i) const {
+    return i < _allData.size();
+  }
 private:
   std::function<T(T, T)> _reducer;
   Array<T> _allData;
@@ -79,10 +91,10 @@ private:
   Array<T> _leaves;
 
   T initializeTree(int index) {
-    if (index < _leafOffset) {
+    if (isInner(index)) {
       auto result = initializeTree(left(index));
       int r = right(index);
-      if (r < _allData.size()) {
+      if (contains(r)) {
         result = _reducer(result, initializeTree(r));
       }
       _allData[index] = result;
