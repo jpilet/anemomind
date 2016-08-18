@@ -325,3 +325,13 @@ add_library(nautical_downsamplegps
 target_link_libraries(nautical_downsamplegps
                       nautical_NavDataset
                       )
+
+add_executable(nautical_v2demo
+  v2demo.cpp
+  )
+  
+target_link_libraries(nautical_v2demo
+  common_Env
+  logimport_LogLoader
+  common_PathBuilder
+  )
