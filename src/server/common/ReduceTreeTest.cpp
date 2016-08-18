@@ -17,9 +17,11 @@ TEST(ReduceTreeTest, SumTree) {
       [](int a, int b) {return a + b;}, numbers);
 
   EXPECT_EQ(tree.top(), 1 + 2 + 3 + 4 + 5);
-  tree.setLeaf(4, 0);
+  tree.setLeafValue(4, 0);
   EXPECT_EQ(tree.top(), 10);
-  tree.setLeaf(1, 0);
+  tree.setLeafValue(1, 0);
   EXPECT_EQ(tree.top(), 8);
+  EXPECT_EQ(1, tree.getLeafValue(0));
+  EXPECT_EQ(8, tree.getNodeValue(0));
 }
 

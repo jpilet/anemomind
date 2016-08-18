@@ -48,7 +48,7 @@ public:
     return _allData;
   }
 
-  void setLeaf(int index0, const T &value) {
+  void setLeafValue(int index0, const T &value) {
     assert(0 <= index0);
     assert(index0 < _leaves.size());
     int index = _leafOffset + index0;
@@ -62,6 +62,14 @@ public:
       }
       _allData[index] = result;
     }
+  }
+
+  T getLeafValue(int index) const {
+    return _leaves[index];
+  }
+
+  T getNodeValue(int index) const {
+    return _allData[index];
   }
 private:
   std::function<T(T, T)> _reducer;
