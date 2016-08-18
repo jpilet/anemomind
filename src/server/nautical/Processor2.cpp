@@ -12,7 +12,7 @@
 #include <server/common/PhysicalQuantityIO.h>
 #include <fstream>
 #include <server/common/ReduceTree.h>
-
+#include <server/common/logging.h>
 
 namespace sail {
 namespace Processor2 {
@@ -106,7 +106,56 @@ namespace {
   Duration<double> dur(const Span<TimeStamp> &span) {
     return span.maxv() - span.minv();
   }
+
+  struct SpanCand {
+    int index;
+    Duration<double> d;
+
+    bool operator<(const SpanCand &other) const {
+      return d < other.d;
+    }
+  };
+
+  int findIndex(const ReduceTree<Spani> &tree,
+      int indexToSearchFor, int nodeIndex) {
+    if (tree.isLeaf(nodeIndex)) {
+      return nodeIndex;
+    } else {
+      int leftIndex = tree.left(nodeIndex);
+      Spani leftSpan = tree.getNodeValue(leftIndex);
+      if (indexToSearchFor < leftSpan.minv()) {
+        return -1;
+      } else if (leftSpan.contains(indexToSearchFor)) {
+        return findIndex(tree, indexToSearchFor, leftIndex);
+      } else {
+        int rightIndex = tree.right(nodeIndex);
+        if (!tree.contains(rightIndex)) {
+          return -1;
+        } else {
+          Spani rightSpan = tree.getNodeValue(rightIndex);
+          if (rightSpan.contains(indexToSearchFor)) {
+            return findIndex(tree, indexToSearchFor, rightIndex);
+          } else {
+            return -1;
+          }
+        }
+      }
+    }
+  }
+
+  void mergeSpans(ReduceTree<Spani> *tree, int l, int r) {
+    auto a = tree->getNodeValue(l);
+    auto b = tree->getNodeValue(r);
+    tree->setNodeValue(l, Spani(a.minv(), b.maxv()));
+    tree->setNodeValue(r, Spani(b.maxv(), b.maxv()));
+  }
+
+  bool empty(Spani x) {
+    return x.width() == 0;
+  }
 }
+
+
 
 Array<Spani> computeCalibrationGroups(
   Array<Span<TimeStamp> > timeSpans,
@@ -129,14 +178,51 @@ Array<Spani> computeCalibrationGroups(
       spans);
   ReduceTree<Spani> durationTree(
       [&](Spani a, Spani b) {
-    return dur(a) < dur(b)? a : b;
+    if (empty(a)) {
+      return b;
+    } else if (empty(b)) {
+      return a;
+    } else {
+      return dur(a) < dur(b)? a : b;
+    }
   }, spans);
   for (int i = 0; i < n-1; i++) {
-    if (minCalibDur <= dur(durationTree.top())) {
+    auto shortest = durationTree.top();
+    int shortestIndex = findIndex(indexTree, shortest.minv(), 0);
+    if (minCalibDur <= dur(shortest)) {
       break;
     }
-
+    auto considerPair = [&](int current, int cand) {
+      int candSpanIndex = findIndex(indexTree, cand, 0);
+      if (candSpanIndex == -1) {
+        return SpanCand{-1, Duration<double>::seconds(
+            std::numeric_limits<double>::infinity())};
+      } else {
+        return SpanCand{candSpanIndex,
+          timeSpans[std::max(current, cand)].minv() -
+          timeSpans[std::min(current, cand)].maxv()};
+      }
+    };
+    auto best = std::min(
+        considerPair(shortest.minv(), shortest.minv()-1),
+        considerPair(shortest.maxv()-1, shortest.maxv()));
+    if (best.index == -1) {
+      LOG(FATAL) << "This should not happen";
+      break;
+    }
+    int l = std::min(shortestIndex, best.index);
+    int r = std::max(shortestIndex, best.index);
+    mergeSpans(&indexTree, l, r);
+    mergeSpans(&durationTree, l, r);
   }
+  auto leaves = indexTree.leaves();
+  ArrayBuilder<Spani> nonEmpty;
+  for (auto leaf: leaves) {
+    if (!empty(leaf)) {
+      nonEmpty.add(leaf);
+    }
+  }
+  return nonEmpty.get();
 }
 
 

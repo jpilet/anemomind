@@ -52,7 +52,11 @@ public:
   void setLeafValue(int index0, const T &value) {
     assert(0 <= index0);
     assert(index0 < _leaves.size());
-    int index = _leafOffset + index0;
+    setNodeValue(_leafOffset + index0, value);
+  }
+
+  void setNodeValue(int index, const T &value) {
+    assert(_leafOffset <= index);
     _allData[index] = value;
     while (!isRoot(index)) {
       index = parent(index);
@@ -83,6 +87,10 @@ public:
 
   bool contains(int i) const {
     return i < _allData.size();
+  }
+
+  Array<T> leaves() const {
+    return _leaves;
   }
 private:
   std::function<T(T, T)> _reducer;
