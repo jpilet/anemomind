@@ -345,3 +345,9 @@ add_library(nautical_Processor2
 target_link_libraries(nautical_Processor2
   segment_SessionCut
   )
+
+cxx_test(nautical_Processor2Test
+  Processor2Test.cpp
+  gtest_main
+  nautical_Processor2
+  )
