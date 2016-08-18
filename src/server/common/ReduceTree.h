@@ -39,12 +39,11 @@ public:
     _leaves = _allData.sliceFrom(_leafOffset);
     assert(_leaves.size() == n);
     initialData.copyToSafe(_leaves);
+    _valid[0] = true;
     for (int i = 0; i < n; i++) {
       markValid(_leafOffset + i);
     }
     initializeTree(0);
-
-    disp(0);
   }
 
   const T &top() const {
@@ -99,17 +98,6 @@ public:
   Array<T> leaves() const {
     return _leaves;
   }
-
-  void disp(int index, int depth = 0) const {
-    if (contains(index)) {
-      for (int i = 0; i < depth; i++) {
-        std::cout << "  ";
-      }
-      std::cout << _allData[index] << " (" << index << ")" << std::endl;
-      disp(left(index), depth+1);
-      disp(right(index), depth+1);
-    }
-  }
 private:
   std::function<T(T, T)> _reducer;
   Array<T> _allData;
@@ -122,27 +110,16 @@ private:
       _valid[i] = true;
       i = parent(i);
     }
-    _valid[0] = true;
   }
 
   T initializeTree(int index) {
     if (isInner(index)) {
       auto result = initializeTree(left(index));
       int r = right(index);
-      if (_valid[r]) {
+      if (contains(r)) {
         auto rightResult = initializeTree(r);
         result = _reducer(result, rightResult);
       }
-      std::cout << "Visit inner node " << index << std::endl;
-      std::cout << "  left: " << left(index) << std::endl;
-      std::cout << "  right: " << right(index) << std::endl;
-
-      /*std::cout << "Inner node " << index << " result: " << result << std::endl;
-      std::cout << "  leaf offset: " << _leafOffset << std::endl;
-      std::cout << "  Left index: " << left(index) << std::endl;
-      std::cout << "  Right index: " << right(index) << std::endl;
-      std::cout << "  Data size: " << _allData.size() << std::endl;*/
-
       _allData[index] = result;
       return result;
     } else {

@@ -195,17 +195,9 @@ Array<Spani> computeCalibrationGroups(
 
   ReduceTree<Spani> indexTree(
       [](Spani a, Spani b) {
-        auto res = Spani(a.minv(), b.maxv());
-        std::cout << "Reduce with " << a << " and " << b << std::endl;
-        std::cout << "  which yields " << res << std::endl;
-        return res;
+        return Spani(a.minv(), b.maxv());
       },
       spans);
-  std::cout << "Index tree leaves: " << indexTree.leaves() << std::endl;
-  std::cout << "Index tree nodes: " << indexTree.allData() << std::endl;
-  std::cout << "Built index tree with top " << indexTree.top() << std::endl;
-
-  return Array<Spani>();
 
   ReduceTree<Spani> durationTree(
       [&](Spani a, Spani b) {
@@ -217,6 +209,8 @@ Array<Spani> computeCalibrationGroups(
       return dur(a) < dur(b)? a : b;
     }
   }, spans);
+  std::cout << "Built reduce tree" << std::endl;
+
   for (int i = 0; i < n-1; i++) {
     std::cout << "Iteration " << i << std::endl;
     auto shortest = durationTree.top();
