@@ -332,4 +332,5 @@ add_executable(nautical_exportDispatcherJson
 target_link_libraries(nautical_exportDispatcherJson
   anemobox_DispatcherJson
   logimport_LogLoader
+  nautical_GeographicPositionJson
   )

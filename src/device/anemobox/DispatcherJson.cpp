@@ -7,6 +7,9 @@
 
 #include <device/anemobox/DispatcherJson.h>
 #include <device/anemobox/DispatcherUtils.h>
+#include <server/common/TimestampJson.h>
+#include <server/common/PhysicalQuantityJson.h>
+#include <server/nautical/GeographicPositionJson.h>
 #include <Poco/JSON/Stringifier.h>
 
 
@@ -29,39 +32,16 @@ Poco::Dynamic::Var makeEmptyObject() {
       new Poco::JSON::Object()));
 }
 
-template <typename T>
-struct TypeSerializer {
-  static bool const implemented = false;
-  static const char *unitTag() {return "notImplemented";}
-  static Poco::Dynamic::Var serialize(T) {return makeEmptyObject();}
-};
 
-template <>
-struct TypeSerializer<Angle<double> > {
-  static bool const implemented = true;
-  static const char *unitTag() {return "radians";}
-  static Poco::Dynamic::Var serialize(Angle<double> x) {
-    return x.radians();
-  }
-};
 
-template <>
-struct TypeSerializer<Velocity<double> > {
-  static bool const implemented = true;
-  static const char *unitTag() {return "metersPerSecond";}
-  static Poco::Dynamic::Var serialize(Velocity<double> x) {
-    return x.metersPerSecond();
-  }
-};
+Poco::Dynamic::Var serialize(const AbsoluteOrientation &x) {
+  Poco::JSON::Object::Ptr y(new Poco::JSON::Object());
+  y->set("heading", serialize(x.heading));
+  y->set("pitch", serialize(x.pitch));
+  y->set("roll", serialize(x.roll));
+  return Poco::Dynamic::Var(y);
+}
 
-template <>
-struct TypeSerializer<Length<double> > {
-  static bool const implemented = true;
-  static const char *unitTag() {return "meters";}
-  static Poco::Dynamic::Var serialize(Length<double> x) {
-    return x.meters();
-  }
-};
 
 // TODO: The other datatypes too.
 
@@ -69,8 +49,8 @@ struct TypeSerializer<Length<double> > {
 template <typename T>
 Poco::Dynamic::Var serializeTimedValue(const TimedValue<T> &x) {
   Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
-  arr->add(x.time.toIso8601String());
-  arr->add(TypeSerializer<T>::serialize(x.value));
+  arr->add(serialize(x.time));
+  arr->add(serialize(x.value));
   return Poco::Dynamic::Var(arr);
 }
 
@@ -85,13 +65,8 @@ Poco::Dynamic::Var serializeData(const TimedSampleCollection<T> &samples) {
 
 template <typename T>
 Poco::Dynamic::Var serializeForType(std::shared_ptr<DispatchData> d) {
-  Poco::JSON::Object::Ptr x(new Poco::JSON::Object());
-  x->set("unit", std::string(TypeSerializer<T>::unitTag()));
-  if (TypeSerializer<T>::implemented) {
-    x->set("data", serializeData<T>(dynamic_cast<TypedDispatchData<T>*>(d.get())
-        ->dispatcher()->values()));
-  }
-  return Poco::Dynamic::Var(x);
+  return serializeData<T>(dynamic_cast<TypedDispatchData<T>*>(d.get())
+      ->dispatcher()->values());
 }
 
 Poco::Dynamic::Var serialize(DataCode code, std::shared_ptr<DispatchData> d) {
