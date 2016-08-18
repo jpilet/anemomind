@@ -20,6 +20,7 @@ public:
   static int left(int i) {return 2*i + 1;}
   static int right(int i) {return 2*i + 2;}
   static int parent(int i) {return (i - 1)/2;}
+  bool isRoot(int i) {return i == 0;}
 
   ReduceTree(std::function<T(T, T)> reducer,
       Array<T> initialData) :
@@ -53,7 +54,7 @@ public:
     assert(index0 < _leaves.size());
     int index = _leafOffset + index0;
     _allData[index] = value;
-    while (index != 0) {
+    while (!isRoot(index)) {
       index = parent(index);
       auto result = _allData[left(index)];
       int r = right(index);
