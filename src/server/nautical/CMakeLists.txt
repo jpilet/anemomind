@@ -125,6 +125,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       plot_gnuplot
                       common_ScopedLog
                       logimport_LogLoader
+                      anemobox_DispatcherJson
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)

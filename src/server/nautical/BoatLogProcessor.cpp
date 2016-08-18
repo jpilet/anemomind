@@ -28,6 +28,7 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
+#include <device/anemobox/DispatcherJson.h>
 
 #include <server/common/Json.impl.h> // This one should probably be the last one.
 
@@ -258,8 +259,17 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   readArgs(amap);
 
   NavDataset raw = loadNavs(*amap, _boatid);
+  {
+    std::ofstream file("/Users/jonas/tmp/raw.json");
+    json::outputJson(raw.dispatcher().get(), &file);
+  }
+
 
   NavDataset resampled = downSampleGpsTo1Hz(raw);
+  {
+    std::ofstream file("/Users/jonas/tmp/resampled.json");
+    json::outputJson(resampled.dispatcher().get(), &file);
+  }
 
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
@@ -276,6 +286,11 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     calibrator.clear();
   }
   NavDataset simulated = calibrator.simulate(resampled);
+  {
+    std::ofstream file("/Users/jonas/tmp/simulated.json");
+    json::outputJson(simulated.dispatcher().get(), &file);
+  }
+
 
   /*
 Why this is needed:
