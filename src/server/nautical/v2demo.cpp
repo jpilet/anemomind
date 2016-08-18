@@ -33,6 +33,14 @@ int main(int argc, const char **argv) {
       settings.makeLogFilename("subsessions.txt"),
       subSessionSpans);
 
+  auto calibGroups = Processor2::computeCalibrationGroups(
+      subSessionSpans, settings.minCalibDur);
+
+  Processor2::outputCalibGroupsToFile(
+        settings.makeLogFilename("calibgroups.txt"),
+        calibGroups,
+        subSessionSpans);
+
   return 0;
 }
 

@@ -10,6 +10,7 @@
 #include <device/anemobox/DispatcherUtils.h>
 #include <server/common/PathBuilder.h>
 #include <server/common/PhysicalQuantityIO.h>
+#include <server/common/ArrayIO.h>
 #include <fstream>
 #include <server/common/ReduceTree.h>
 #include <server/common/logging.h>
@@ -102,6 +103,22 @@ void outputTimeSpansToFile(
   }
 }
 
+void outputCalibGroupsToFile(
+      const std::string &filename,
+      const Array<Spani> &groups,
+      const Array<Span<TimeStamp> > sessions) {
+  std::ofstream file(filename);
+  for (int i = 0; i < groups.size(); i++) {
+    file << "Group " << i+1 << " of " << groups.size() << std::endl;
+    auto g = groups[i];
+    for (auto j: g) {
+      auto span = sessions[j];
+      file << "   Span from " << span.minv() << " to " << span.maxv()
+          << std::endl;
+    }
+  }
+}
+
 namespace {
   Duration<double> dur(const Span<TimeStamp> &span) {
     return span.maxv() - span.minv();
@@ -161,6 +178,7 @@ Array<Spani> computeCalibrationGroups(
   Array<Span<TimeStamp> > timeSpans,
   Duration<double> minCalibDur) {
   int n = timeSpans.size();
+  std::cout << "Number of time spans: " << n << std::endl;
   Array<Duration<double> > cumulative(n+1);
   cumulative[0] = Duration<double>::seconds(0.0);
   Array<Spani> spans(n);
@@ -169,13 +187,26 @@ Array<Spani> computeCalibrationGroups(
     spans[i] = Spani(i, i+1);
   }
 
+  std::cout << "Built cumulative" << std::endl;
+
   auto dur = [&](Spani x) {
     return cumulative[x.maxv()] - cumulative[x.minv()];
   };
 
   ReduceTree<Spani> indexTree(
-      [](Spani a, Spani b) {return Spani(a.minv(), b.maxv());},
+      [](Spani a, Spani b) {
+        auto res = Spani(a.minv(), b.maxv());
+        std::cout << "Reduce with " << a << " and " << b << std::endl;
+        std::cout << "  which yields " << res << std::endl;
+        return res;
+      },
       spans);
+  std::cout << "Index tree leaves: " << indexTree.leaves() << std::endl;
+  std::cout << "Index tree nodes: " << indexTree.allData() << std::endl;
+  std::cout << "Built index tree with top " << indexTree.top() << std::endl;
+
+  return Array<Spani>();
+
   ReduceTree<Spani> durationTree(
       [&](Spani a, Spani b) {
     if (empty(a)) {
@@ -187,7 +218,9 @@ Array<Spani> computeCalibrationGroups(
     }
   }, spans);
   for (int i = 0; i < n-1; i++) {
+    std::cout << "Iteration " << i << std::endl;
     auto shortest = durationTree.top();
+    std::cout << "Shortest: " << shortest << std::endl;
     int shortestIndex = findIndex(indexTree, shortest.minv(), 0);
     if (minCalibDur <= dur(shortest)) {
       break;

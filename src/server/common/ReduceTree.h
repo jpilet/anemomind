@@ -99,12 +99,23 @@ private:
   Array<T> _leaves;
 
   T initializeTree(int index) {
+
+    *((unsigned long *)nullptr) = 0xDEADBEEF; // FIx this,
+
     if (isInner(index)) {
       auto result = initializeTree(left(index));
       int r = right(index);
       if (contains(r)) {
-        result = _reducer(result, initializeTree(r));
+        auto rightResult = initializeTree(r);
+        result = _reducer(result, rightResult);
       }
+
+      std::cout << "Inner node " << index << " result: " << result << std::endl;
+      std::cout << "  leaf offset: " << _leafOffset << std::endl;
+      std::cout << "  Left index: " << left(index) << std::endl;
+      std::cout << "  Right index: " << right(index) << std::endl;
+      std::cout << "  Data size: " << _allData.size() << std::endl;
+
       _allData[index] = result;
       return result;
     } else {

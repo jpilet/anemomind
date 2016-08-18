@@ -344,6 +344,7 @@ add_library(nautical_Processor2
 
 target_link_libraries(nautical_Processor2
   segment_SessionCut
+  common_Span
   )
 
 cxx_test(nautical_Processor2Test
