@@ -49,8 +49,8 @@ module.exports.listSessions = function(req, res, next) {
     var boatObjs = _.map(boats, '_id');
     console.warn(boatObjs);
     SailingSession.find({
-      boat: {$in : boatObjs},
-      trajectoryLength : {$gt : 0.5}
+      boat: {$in : boatObjs}//,
+	//trajectoryLength : {$gt : 0.5}
     }, function(err, result) {
       if (err) {
         return res.sendStatus(500);
