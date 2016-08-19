@@ -103,7 +103,7 @@ void outputTimeSpansToFile(
   }
 }
 
-void outputCalibGroupsToFile(
+void outputGroupsToFile(
       const std::string &filename,
       const Array<Spani> &groups,
       const Array<Span<TimeStamp> > sessions) {
@@ -179,7 +179,24 @@ namespace {
   }
 }
 
-
+Array<Spani> groupSessionsByThreshold(
+    const Array<Span<TimeStamp> > &timeSpans,
+    const Duration<double> &threshold) {
+  auto n = timeSpans.size();
+  ArrayBuilder<Spani> dst(n);
+  int from = 0;
+  for (int i = 0; i < n-1; i++) {
+    auto a = timeSpans[i];
+    auto b = timeSpans[i+1];
+    if (b.minv() - a.maxv() > threshold) {
+      int to = i+1;
+      dst.add(Spani(from, to));
+      from = to;
+    }
+  }
+  dst.add(Spani(from, n));
+  return dst.get();
+}
 
 Array<Spani> computeCalibrationGroups(
   Array<Span<TimeStamp> > timeSpans,

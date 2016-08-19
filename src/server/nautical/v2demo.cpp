@@ -33,10 +33,18 @@ int main(int argc, const char **argv) {
       settings.makeLogFilename("subsessions.txt"),
       subSessionSpans);
 
+  auto gpsFilterSpans = Processor2::groupSessionsByThreshold(
+      subSessionSpans, settings.mainSessionCut);
+
+  Processor2::outputGroupsToFile(
+      settings.makeLogFilename("gpsfiltergroups.txt"),
+      gpsFilterSpans, subSessionSpans);
+
+
   auto calibGroups = Processor2::computeCalibrationGroups(
       subSessionSpans, settings.minCalibDur);
 
-  Processor2::outputCalibGroupsToFile(
+  Processor2::outputGroupsToFile(
         settings.makeLogFilename("calibgroups.txt"),
         calibGroups,
         subSessionSpans);

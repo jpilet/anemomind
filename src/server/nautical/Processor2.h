@@ -38,10 +38,14 @@ void outputTimeSpansToFile(
     const std::string &filename,
     const Array<Span<TimeStamp> > &timeSpans);
 
-void outputCalibGroupsToFile(
+void outputGroupsToFile(
       const std::string &filename,
       const Array<Spani> &groups,
       const Array<Span<TimeStamp> > sessions);
+
+Array<Spani> groupSessionsByThreshold(
+    const Array<Span<TimeStamp> > &timeSpans,
+    const Duration<double> &threshold);
 
 Array<Spani> computeCalibrationGroups(
     Array<Span<TimeStamp> > timeSpans,
