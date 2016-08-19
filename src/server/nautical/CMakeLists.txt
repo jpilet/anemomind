@@ -71,7 +71,6 @@ target_depends_on_poco_json(nautical_NavJson)
 
 target_link_libraries(nautical_NavJson
                             nautical_nav
-                            common_Json
                             common_TimeStampJson
                             common_Json
                            )
@@ -325,3 +324,12 @@ add_library(nautical_downsamplegps
 target_link_libraries(nautical_downsamplegps
                       nautical_NavDataset
                       )
+
+add_executable(nautical_exportDispatcherJson
+  exportDispatcherJson.cpp
+  )
+
+target_link_libraries(nautical_exportDispatcherJson
+  anemobox_DispatcherJson
+  logimport_LogLoader
+  )

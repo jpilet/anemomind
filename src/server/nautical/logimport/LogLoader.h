@@ -41,6 +41,7 @@ class LogLoader {
   static NavDataset loadNavDataset(const Poco::Path &name);
 
   void addToDispatcher(Dispatcher *dst) const;
+  std::shared_ptr<Dispatcher> makeDispatcher() const;
   NavDataset makeNavDataset() const;
 
   // These methods are needed by the various parsers in order
