@@ -20,9 +20,9 @@ namespace Processor2 {
 
 void runDemoOnDataset(const Dispatcher *d) {
   Processor2::Settings settings;
-  //auto timeStamps = Processor2::getAllGpsTimeStamps(d);
-  auto timeStamps = Processor2::getAllTimeStampsFiltered(
-      [](DataCode) {return true;}, d);
+  auto timeStamps = Processor2::getAllGpsTimeStamps(d);
+  //auto timeStamps = Processor2::getAllTimeStampsFiltered(
+  //    [](DataCode) {return true;}, d);
 
   std::cout << "Number of time stamps: "<< timeStamps.size() << std::endl;
 
