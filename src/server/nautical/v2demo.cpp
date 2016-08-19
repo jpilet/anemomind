@@ -17,10 +17,16 @@ namespace {
 
 NavDataset getDataset(int argc, const char **argv) {
   LogLoader loader;
-  loader.load(PathBuilder::makeDirectory(Env::SOURCE_DIR)
-    .pushDirectory("datasets")
-    .pushDirectory("AlinghiGC32")
-    .pushDirectory("logs").get().toString());
+  if (argc < 2) {
+    loader.load(PathBuilder::makeDirectory(Env::SOURCE_DIR)
+      .pushDirectory("datasets")
+      .pushDirectory("AlinghiGC32")
+      .pushDirectory("logs").get().toString());
+  } else {
+    for (int i = 1; i < argc; i++) {
+      loader.load(std::string(argv[i]));
+    }
+  }
   return loader.makeNavDataset();
 }
 
