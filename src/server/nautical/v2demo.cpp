@@ -33,6 +33,7 @@ int main(int argc, const char **argv) {
       settings.makeLogFilename("subsessions.txt"),
       subSessionSpans);
 
+  // This are spans that are filtered together.
   auto gpsFilterSpans = Processor2::groupSessionsByThreshold(
       subSessionSpans, settings.mainSessionCut);
 
@@ -40,7 +41,7 @@ int main(int argc, const char **argv) {
       settings.makeLogFilename("gpsfiltergroups.txt"),
       gpsFilterSpans, subSessionSpans);
 
-
+  // These are spans of data that are calibrated together
   auto calibGroups = Processor2::computeCalibrationGroups(
       subSessionSpans, settings.minCalibDur);
 
