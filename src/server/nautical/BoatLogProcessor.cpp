@@ -313,9 +313,13 @@ this code some time, we should think carefully how we want to do the merging.
     Array<NavDataset> rawSessions =
       extractAll("Sailing", simulated, _grammar.grammar, fulltree);
 
+
     // GPS filtering: eliminates bad speed surprises
     Array<NavDataset> filteredSessions =
       (_gpsFilter ? filterSessions(rawSessions) : rawSessions);
+
+    std::cout << "NUMBER OF FILTERED SESSIONS: " << filteredSessions.size()
+        << std::endl;
 
     if (!generateAndUploadTiles(_boatid, filteredSessions, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";

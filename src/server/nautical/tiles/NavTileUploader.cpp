@@ -329,6 +329,8 @@ BSONObj makeBsonSession(
     LOG(WARNING) << "No strongest wind";
   }
 
+  //LOG(FATAL) << "TRIED TO MAKE A BSON SESSION.";
+
   return session.obj();
 }
 
@@ -389,6 +391,8 @@ bool generateAndUploadTiles(std::string boatId,
                MONGO_QUERY("boat" << OID(boatId)));
   }
 
+  std::cout << "NUMBER OF CURVES: " << allNavs.size() << std::endl;
+
   for (const NavDataset& curve : allNavs) {
     Array<Nav> navs = makeArray(curve);
 
@@ -409,14 +413,18 @@ bool generateAndUploadTiles(std::string boatId,
 
       if (!insertOrUpdateTile(tile, params, &db)) {
         // There is no point to continue if we can't write to the DB.
+        LOG(FATAL) << "Cand write to the db";
         return false;
       }
     }
     BSONObj session = makeBsonSession(curveId, boatId, curve, navs);
     if (!insertSession(session, params, &db)) {
+      LOG(FATAL) << "It was not inserted.";
       return false;
     }
+    LOG(FATAL) << "INSERTED SESSION with boat id " << boatId;
   }
+  //LOG(FATAL) << "WE REACHED THE END!!!";
   return true;
 }
 
