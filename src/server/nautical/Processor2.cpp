@@ -20,7 +20,9 @@ namespace Processor2 {
 
 void runDemoOnDataset(const Dispatcher *d) {
   Processor2::Settings settings;
-  auto timeStamps = Processor2::getAllGpsTimeStamps(d);
+  //auto timeStamps = Processor2::getAllGpsTimeStamps(d);
+  auto timeStamps = Processor2::getAllTimeStampsFiltered(
+      [](DataCode) {return true;}, d);
 
   std::cout << "Number of time stamps: "<< timeStamps.size() << std::endl;
 
@@ -49,20 +51,25 @@ void runDemoOnDataset(const Dispatcher *d) {
         subSessionSpans);
 }
 
-class GpsTimesVisitor {
+class TimesVisitor {
  public:
+
+  TimesVisitor(std::function<bool(DataCode)> p) : _pred(p) {}
+
   ArrayBuilder<TimeStamp> times;
 
   template <DataCode Code, typename T>
   void visit(const char *shortName, const std::string &sourceName,
     const std::shared_ptr<DispatchData> &raw,
     const TimedSampleCollection<T> &coll) {
-      if (Code == GPS_POS) {
+      if (_pred(Code)) {
         for (auto x: coll) {
           times.add(x.time);
         }
       }
   }
+ private:
+  std::function<bool(DataCode)> _pred;
 };
 
 
@@ -82,12 +89,19 @@ std::string Settings::makeLogFilename(const std::string &s) {
     .makeFile(s).get().toString();
 }
 
-Array<TimeStamp> getAllGpsTimeStamps(const Dispatcher *d) {
-  GpsTimesVisitor v;
+Array<TimeStamp> getAllTimeStampsFiltered(
+    std::function<bool(DataCode)> pred,
+    const Dispatcher *d) {
+  TimesVisitor v(pred);
   visitDispatcherChannelsConst(d, &v);
   auto times =  v.times.get();
   std::sort(times.begin(), times.end());
   return times;
+}
+
+Array<TimeStamp> getAllGpsTimeStamps(const Dispatcher *d) {
+  return getAllTimeStampsFiltered(
+      [](DataCode c) {return c == GPS_POS;}, d);
 }
 
 void addUnique(std::vector<int> *dst, int i) {

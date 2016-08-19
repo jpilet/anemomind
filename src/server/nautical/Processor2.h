@@ -30,6 +30,9 @@ struct Settings {
 
 // Used for cutting the sessions.
 Array<TimeStamp> getAllGpsTimeStamps(const Dispatcher *d);
+Array<TimeStamp> getAllTimeStampsFiltered(
+    std::function<bool(DataCode)> pred,
+    const Dispatcher *d);
 
 Array<Span<TimeStamp> > segmentSubSessions(
     const Array<TimeStamp> &times,
