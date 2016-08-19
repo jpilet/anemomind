@@ -154,6 +154,10 @@ void collectSpeedSamplesBlind(const NavDataset& navs,
         break;
     }
 
+    std::cout << "Number of samples when constructing table of "
+        << "type " << (isUpwind? "UPWIND" : "DOWNWIND") << ": "
+        << vmgArr.size() << std::endl;
+
     // TODO: Adapt these values to the amount of recorded data.
     Velocity<double> minvel = Velocity<double>::knots(0);
     Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES-1);
@@ -301,6 +305,7 @@ this code some time, we should think carefully how we want to do the merging.
                          simulated,
                          _vmgSampleSelection,
                          &boatDatFile);
+  LOG(FATAL) << "here we go.";
 
   // write calibration and target speed to disk
   boatDatFile.close();

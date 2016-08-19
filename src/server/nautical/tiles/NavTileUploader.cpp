@@ -422,7 +422,6 @@ bool generateAndUploadTiles(std::string boatId,
       LOG(FATAL) << "It was not inserted.";
       return false;
     }
-    LOG(FATAL) << "INSERTED SESSION with boat id " << boatId;
   }
   //LOG(FATAL) << "WE REACHED THE END!!!";
   return true;
