@@ -74,7 +74,7 @@ function VectorTileLayer(params, renderer) {
 VectorTileLayer.prototype.buildUrl = function(boatId,starts,end) {
   var params=[boatId], url;
   if(starts){
-    params.concat(starts,end);
+    params=params.concat(starts,end);
   }
   //
   // nice way to build url
