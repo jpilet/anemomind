@@ -158,6 +158,19 @@ void collectSpeedSamplesBlind(const NavDataset& navs,
         << "type " << (isUpwind? "UPWIND" : "DOWNWIND") << ": "
         << vmgArr.size() << std::endl;
 
+    if (isUpwind) {
+      std::ofstream data("/tmp/samples.json");
+      data << "[";
+      for (int i = 0; i < vmgArr.size(); i++) {
+        data << "{\"tws\": " << twsArr[i].knots()
+             << ", \"vmg\": " << vmgArr[i].knots() << "}";
+        if (i < vmgArr.size() - 1) {
+          data << ",\n";
+        }
+      }
+      data << "]";
+    }
+
     // TODO: Adapt these values to the amount of recorded data.
     Velocity<double> minvel = Velocity<double>::knots(0);
     Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES-1);
