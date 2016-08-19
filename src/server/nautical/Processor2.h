@@ -12,6 +12,7 @@
 #include <device/anemobox/Dispatcher.h>
 
 namespace sail {
+
 namespace Processor2 {
 
 struct Settings {
@@ -50,6 +51,8 @@ Array<Spani> groupSessionsByThreshold(
 Array<Spani> computeCalibrationGroups(
     Array<Span<TimeStamp> > timeSpans,
     Duration<double> minCalibDur);
+
+void runDemoOnDataset(const Dispatcher *d);
 
 }
 }

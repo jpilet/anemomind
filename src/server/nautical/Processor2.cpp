@@ -18,6 +18,37 @@
 namespace sail {
 namespace Processor2 {
 
+void runDemoOnDataset(const Dispatcher *d) {
+  Processor2::Settings settings;
+  auto timeStamps = Processor2::getAllGpsTimeStamps(d);
+
+  std::cout << "Number of time stamps: "<< timeStamps.size() << std::endl;
+
+  auto subSessionSpans =
+      Processor2::segmentSubSessions(timeStamps, settings);
+
+  outputTimeSpansToFile(
+      settings.makeLogFilename("subsessions.txt"),
+      subSessionSpans);
+
+  // This are spans that are filtered together.
+  auto gpsFilterSpans = Processor2::groupSessionsByThreshold(
+      subSessionSpans, settings.mainSessionCut);
+
+  outputGroupsToFile(
+      settings.makeLogFilename("gpsfiltergroups.txt"),
+      gpsFilterSpans, subSessionSpans);
+
+  // These are spans of data that are calibrated together
+  auto calibGroups = Processor2::computeCalibrationGroups(
+      subSessionSpans, settings.minCalibDur);
+
+  outputGroupsToFile(
+        settings.makeLogFilename("calibgroups.txt"),
+        calibGroups,
+        subSessionSpans);
+}
+
 class GpsTimesVisitor {
  public:
   ArrayBuilder<TimeStamp> times;

@@ -13,43 +13,21 @@
 
 using namespace sail;
 
-int main(int argc, const char **argv) {
+namespace {
+
+NavDataset getDataset(int argc, const char **argv) {
   LogLoader loader;
   loader.load(PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("AlinghiGC32")
     .pushDirectory("logs").get().toString());
-  auto ds = loader.makeNavDataset();
+  return loader.makeNavDataset();
+}
 
-  Processor2::Settings settings;
-  auto timeStamps = Processor2::getAllGpsTimeStamps(ds.dispatcher().get());
+}
 
-  std::cout << "Number of time stamps: "<< timeStamps.size() << std::endl;
-
-  auto subSessionSpans =
-      Processor2::segmentSubSessions(timeStamps, settings);
-
-  Processor2::outputTimeSpansToFile(
-      settings.makeLogFilename("subsessions.txt"),
-      subSessionSpans);
-
-  // This are spans that are filtered together.
-  auto gpsFilterSpans = Processor2::groupSessionsByThreshold(
-      subSessionSpans, settings.mainSessionCut);
-
-  Processor2::outputGroupsToFile(
-      settings.makeLogFilename("gpsfiltergroups.txt"),
-      gpsFilterSpans, subSessionSpans);
-
-  // These are spans of data that are calibrated together
-  auto calibGroups = Processor2::computeCalibrationGroups(
-      subSessionSpans, settings.minCalibDur);
-
-  Processor2::outputGroupsToFile(
-        settings.makeLogFilename("calibgroups.txt"),
-        calibGroups,
-        subSessionSpans);
-
+int main(int argc, const char **argv) {
+  Processor2::runDemoOnDataset(getDataset(argc, argv).dispatcher().get());
   return 0;
 }
 
