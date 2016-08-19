@@ -160,10 +160,17 @@ namespace {
     }
   }
 
+
+  Spani merge(Spani a, Spani b) {
+    Spani c = a;
+    c.extend(b);
+    return c;
+  }
+
   void mergeSpans(ReduceTree<Spani> *tree, int l, int r) {
     auto a = tree->getNodeValue(l);
     auto b = tree->getNodeValue(r);
-    tree->setNodeValue(l, Spani(a.minv(), b.maxv()));
+    tree->setNodeValue(l, merge(a, b));
     tree->setNodeValue(r, Spani(b.maxv(), b.maxv()));
   }
 
@@ -193,11 +200,7 @@ Array<Spani> computeCalibrationGroups(
     return cumulative[x.maxv()] - cumulative[x.minv()];
   };
 
-  ReduceTree<Spani> indexTree(
-      [](Spani a, Spani b) {
-        return Spani(a.minv(), b.maxv());
-      },
-      spans);
+  ReduceTree<Spani> indexTree(&merge, spans);
 
   ReduceTree<Spani> durationTree(
       [&](Spani a, Spani b) {
