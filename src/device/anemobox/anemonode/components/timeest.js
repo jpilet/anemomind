@@ -64,9 +64,16 @@ function estimateTimeFromDispatcher() {
                       historyLength);
 }
 
+function monotonicToEstimatedTime(monotonicTime) {
+  return estimateTime(monotonicTime,
+                      anemonode.dispatcher.values.dateTime,
+                      historyLength);
+}
+
 timesrc.now = estimateTimeFromDispatcher;
 
 module.exports.estimateTimeFromDispatcher = estimateTimeFromDispatcher;
 module.exports.medianDeltaTime = medianDeltaTime;
 module.exports.estimateTime = estimateTime;
 module.exports.now = estimateTimeFromDispatcher;
+module.exports.monotonicToEstimatedTime = monotonicToEstimatedTime;
