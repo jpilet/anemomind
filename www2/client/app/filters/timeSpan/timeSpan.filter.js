@@ -49,16 +49,20 @@ There are some minor differences between the strings that the two versions produ
             }
           }
 
-          var offsetIso = fromDate.toISOString();
+        function formatDateTime(d) {
+          // Since Javascript doesn't come with some good date
+          // and time formatting utilities, hack something
+          // that will display it in a standardized way of the local time
+          // zone of the browser. Ideally, we should use the time zone where
+          // the session took place.
+          var tweakedDate = new Date(d.getTime() - d.getTimezoneOffset()*60*1000);
 
-          // What is both an easily readable and 
-          // somewhat standard format for dates? 
-          // Raw ISO dates are standard,
-          // but look a bit technical in this context, 
-          // so let's declutter it a bit...
-          var offsetString = offsetIso.substring(0, 10) 
+          var offsetIso = tweakedDate.toISOString();
+          return offsetIso.substring(0, 10) 
               + " " + offsetIso.substring(11, 16);
-          var durSeconds = 0.001*(toDate.getTime() - fromDate.getTime());
-          return offsetString + " (" + makeDurString(durSeconds) + ")";
+        }
+
+        var durSeconds = 0.001*(toDate.getTime() - fromDate.getTime());
+        return formatDateTime(fromDate) + " (" + makeDurString(durSeconds) + ")";
       };
   });
