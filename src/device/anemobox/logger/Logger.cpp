@@ -160,7 +160,8 @@ void Logger::logText(const std::string& streamName, const std::string& content) 
     it = _textLoggers.insert(
         make_pair(streamName, LoggerValueListener("text", streamName))).first;
   }
-  it->second.addText(content);
+  it->second.addText(
+      _dispatcher->currentTime(), content);
 }
 
 bool Logger::save(const std::string& filename, const LogFile& data) {

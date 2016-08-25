@@ -125,8 +125,8 @@ public:
                     _valueSet.mutable_orient()->mutable_pitch());
   }
 
-  void addText(const std::string& text) {
-    addTimestamp(TimeStamp::now());
+  void addText(TimeStamp t, const std::string& text) {
+    addTimestamp(t);
     _valueSet.add_text(text);
   }
 
