@@ -99,7 +99,7 @@ void outputChunkInformation(
   for (int i = 0; i < n; i++) {
     auto span = timeSpans[i];
     auto chunk = chunks[i];
-    file << "==== Calib chunk from "
+    file << "==== Calib chunk " << i+1 << " of " << n << " from "
         << span.minv() << " to "
         << span.maxv() << std::endl;
     file << chunk;
