@@ -19,10 +19,93 @@
 #include <server/nautical/BoatState.h>
 #include <server/nautical/Reconstructor.h>
 #include <server/common/TimedValueCutter.h>
+#include <server/common/logging.h>
 
 namespace sail {
 namespace Processor2 {
 
+template <DataCode code>
+struct ChannelFieldAccess {};
+#define MAKE_FIELD_ACCESS(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  template <> struct ChannelFieldAccess<HANDLE> { \
+  template <typename OBJECT> \
+    static auto get(OBJECT &object) -> decltype(&(object.HANDLE)) {return &(object.HANDLE);} \
+    template <typename OBJECT> \
+    static auto get(const OBJECT &object) -> decltype(&(object.HANDLE)) {return &(object.HANDLE);} \
+  };
+FOREACH_CHANNEL(MAKE_FIELD_ACCESS)
+#undef MAKE_FIELD_ACCESS
+
+
+struct CutVisitor {
+  Array<Reconstructor::CalibDataChunk> &_chunks;
+  Array<Span<TimeStamp>> _timeSpans;
+
+  CutVisitor(Array<Reconstructor::CalibDataChunk> *chunks,
+      const Array<Span<TimeStamp>> &timeSpans) :
+    _chunks(*chunks),
+    _timeSpans(timeSpans) {}
+
+  template <DataCode Code, typename T>
+  void visit(
+      const char *shortName,
+      const std::string &sourceName,
+    const std::shared_ptr<DispatchData> &raw,
+    const TimedSampleCollection<T> &coll) {
+    auto cut = cutTimedValues(
+        coll.samples().begin(), coll.samples().end(),
+        _timeSpans);
+    CHECK(cut.size() == _chunks.size());
+    CHECK(cut.size() == _timeSpans.size());
+    for (int i = 0; i < _chunks.size(); i++) {
+      (*ChannelFieldAccess<Code>::get(_chunks[i]))[sourceName] = cut[i];
+    }
+  }
+};
+
+template <typename T>
+std::string getSpanString(const Array<TimedValue<T>> &data) {
+  if (data.empty()) {
+    return "Empty";
+  } else {
+    std::stringstream ss;
+    ss << data.size() << " measures from " << data.first().time << " to "
+        << data.last().time << std::endl;
+    return ss.str();
+  }
+}
+
+std::ostream &operator<<(std::ostream &stream,
+    const Reconstructor::CalibDataChunk &chunk) {
+  stream << "Filtered GPS positions: "
+      << getSpanString(chunk.filteredPositions) << std::endl;
+#define DISP_CHANNELS(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  stream << SHORTNAME << ":\n"; for (auto kv: chunk.HANDLE) { \
+    stream << "  " << kv.first << ": " << getSpanString(kv.second);\
+  }
+FOREACH_CHANNEL(DISP_CHANNELS)
+#undef DISP_CHANNELS
+  return stream;
+}
+
+void outputChunkInformation(
+    std::string filename,
+    const Array<Span<TimeStamp>> &timeSpans,
+    const Array<Reconstructor::CalibDataChunk> &chunks) {
+  std::ofstream file(filename);
+  std::cout << "Number of time spans: " << timeSpans.size() << std::endl;
+  CHECK(timeSpans.size() == chunks.size());
+  int n = timeSpans.size();
+  for (int i = 0; i < n; i++) {
+    auto span = timeSpans[i];
+    auto chunk = chunks[i];
+    file << "==== Calib chunk from "
+        << span.minv() << " to "
+        << span.maxv() << std::endl;
+    file << chunk;
+    file << "\n\n\n\n";
+  }
+}
 
 Array<Reconstructor::CalibDataChunk> makeCalibChunks(
     const Array<Span<TimeStamp>> &timeSpans,
@@ -40,6 +123,8 @@ Array<Reconstructor::CalibDataChunk> makeCalibChunks(
     chunks[i].filteredPositions = cutGpsPositions[i];
   }
 
+  CutVisitor v(&chunks, timeSpans);
+  visitDispatcherChannelsConst(d, &v);
   return chunks;
 }
 
@@ -47,10 +132,16 @@ Array<BoatState<double>> reconstructAllGroups(
     const Array<Spani> &calibGroups,
     const Array<Span<TimeStamp>> &smallSessions,
     const Array<TimedValue<GeographicPosition<double>>> &positions,
-    const Dispatcher *d) {
+    const Dispatcher *d,
+    const Settings &settings) {
 
   Array<Reconstructor::CalibDataChunk> chunks
     = makeCalibChunks(smallSessions, positions, d);
+
+  if (settings.debug) {
+    outputChunkInformation(settings.makeLogFilename("calibchunks.txt"),
+        smallSessions, chunks);
+  }
 
   return Array<BoatState<double>>();
 }
@@ -95,7 +186,7 @@ void runDemoOnDataset(NavDataset &dataset) {
 
   Array<BoatState<double> > reconstructions
     = reconstructAllGroups(calibGroups, smallSessions,
-        allFilteredPositions, d);
+        allFilteredPositions, d, settings);
 }
 
 class TimesVisitor {
