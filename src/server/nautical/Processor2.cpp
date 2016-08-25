@@ -15,6 +15,7 @@
 #include <fstream>
 #include <server/common/ReduceTree.h>
 #include <server/common/logging.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
 
 namespace sail {
 namespace Processor2 {
@@ -24,41 +25,41 @@ void runDemoOnDataset(NavDataset &dataset) {
 
   auto d = dataset.dispatcher().get();
   Processor2::Settings settings;
-  auto timeStamps = Processor2::getAllGpsTimeStamps(d);
-  //auto timeStamps = Processor2::getAllTimeStampsFiltered(
-  //    [](DataCode) {return true;}, d);
 
-  std::cout << "Number of time stamps: "<< timeStamps.size() << std::endl;
+  // First of all, we are going to filter all the GPS data
+  Array<TimedValue<GeographicPosition<double> > > allFilteredPositions
+    = Processor2::filterAllGpsData(dataset, settings);
 
-  auto subSessionSpans =
-      Processor2::segmentSubSessions(timeStamps, settings.subSessionCut);
+  // Based on the timestamps of the filtered GPS data, we will build short
+  // sessions of data.
 
-  outputTimeSpansToFile(
-      settings.makeLogFilename("subsessions.txt"),
-      subSessionSpans);
+  auto filteredTimeStamps = getTimeStamps(
+      allFilteredPositions.begin(),
+      allFilteredPositions.end());
 
-  // These are spans that are filtered together.
-  auto gpsFilterSpans = Processor2::groupSessionsByThreshold(
-      subSessionSpans, settings.mainSessionCut);
+  auto smallSessions = Processor2::segmentSubSessions(
+      filteredTimeStamps, settings.subSessionCut);
 
-  auto mainSessionSpans = Processor2::segmentSubSessions(
-      timeStamps, settings.mainSessionCut);
+  if (settings.debug) {
+    Processor2::outputTimeSpansToFile(
+        settings.makeLogFilename("small_sessions.txt"),
+        smallSessions);
+  }
 
-  auto gpsFilterResults = Processor2::applyGpsFilterToSessions(
-      d, mainSessionSpans);
+  // In order to perform calibration, we need to make sure that there is
+  // enough data for every optimization problem.
+  auto calibGroups = computeCalibrationGroups(
+      smallSessions, settings.minCalibDur);
 
-  /*outputGroupsToFile(
-      settings.makeLogFilename("gpsfiltergroups.txt"),
-      gpsFilterSpans, subSessionSpans);
-
-  // These are spans of data that are calibrated together
-  auto calibGroups = Processor2::computeCalibrationGroups(
-      subSessionSpans, settings.minCalibDur);
-
-  outputGroupsToFile(
-        settings.makeLogFilename("calibgroups.txt"),
+  if (settings.debug) {
+    outputGroupsToFile(
+        settings.makeLogFilename("calibration_groups.txt"),
         calibGroups,
-        subSessionSpans);*/
+        smallSessions);
+  }
+
+  Array<Array<EstimatedState> > reconstructions
+    = reconstructAllGroups();
 }
 
 class TimesVisitor {
@@ -83,18 +84,19 @@ class TimesVisitor {
 };
 
 
-Settings::Settings() {
+Settings::Settings() : debug(true) {
   logRoot = "/tmp/";
 
   subSessionCut = Duration<double>::minutes(3.0);
   mainSessionCut = Duration<double>::hours(1.0);
   minCalibDur = Duration<double>::hours(3.0);
+  calibWindowSize = Duration<double>::minutes(2.0);
 
   sessionCutSettings.cuttingThreshold = Duration<double>::hours(1.0);
   sessionCutSettings.regularization = 1.0;
 }
 
-std::string Settings::makeLogFilename(const std::string &s) {
+std::string Settings::makeLogFilename(const std::string &s) const {
   return PathBuilder::makeDirectory(logRoot)
     .makeFile(s).get().toString();
 }
@@ -146,10 +148,32 @@ Array<Span<TimeStamp> > segmentSubSessions(
   return spans.get();
 }
 
-Array<Array<TimedValue<GeographicPosition<double> > > >
-  applyGpsFilterToSessions(const Dispatcher *d,
-      const Array<Span<TimeStamp> > &timeSpans) {
-  return Array<Array<TimedValue<GeographicPosition<double> > > >();
+
+Array<TimedValue<GeographicPosition<double> > >
+  filterAllGpsData(const NavDataset &ds, const Settings &settings) {
+  auto timeStamps = getAllGpsTimeStamps(ds.dispatcher().get());
+  auto timeSpans = Processor2::segmentSubSessions(
+      timeStamps, settings.mainSessionCut);
+
+  if (settings.debug) {
+    outputTimeSpansToFile(
+        settings.makeLogFilename("presegmented_for_gps_filter.txt"),
+        timeSpans);
+  }
+
+  GpsFilterSettings gpsSettings;
+  gpsSettings.subProblemThreshold = settings.subSessionCut;
+
+  ArrayBuilder<TimedValue<GeographicPosition<double> > > dst;
+  for (auto span: timeSpans) {
+    auto sub = ds.slice(span.minv(), span.maxv());
+    auto results = filterGpsData(sub, gpsSettings);
+    auto positions = results.getGlobalPositions();
+    for (auto x: positions) {
+      dst.add(x);
+    }
+  }
+  return dst.get();
 }
 
 

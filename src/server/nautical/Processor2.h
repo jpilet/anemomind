@@ -8,7 +8,7 @@
 #ifndef SERVER_NAUTICAL_PROCESSOR2_H_
 #define SERVER_NAUTICAL_PROCESSOR2_H_
 
-#include <server/common/Array.h>
+#include <server/common/ArrayBuilder.h>
 #include <server/common/Span.h>
 #include <server/nautical/segment/SessionCut.h>
 #include <device/anemobox/Dispatcher.h>
@@ -22,14 +22,17 @@ namespace Processor2 {
 struct Settings {
   Settings();
 
+  bool debug;
+
   Duration<double> mainSessionCut;
   Duration<double> subSessionCut;
   Duration<double> minCalibDur;
+  Duration<double> calibWindowSize;
 
   SessionCut::Settings sessionCutSettings;
   std::string logRoot;
 
-  std::string makeLogFilename(const std::string &s);
+  std::string makeLogFilename(const std::string &s) const;
 };
 
 // Used for cutting the sessions.
@@ -38,13 +41,23 @@ Array<TimeStamp> getAllTimeStampsFiltered(
     std::function<bool(DataCode)> pred,
     const Dispatcher *d);
 
+template <typename TimedValueIterator>
+Array<TimeStamp> getTimeStamps(
+    TimedValueIterator begin,
+    TimedValueIterator end) {
+  ArrayBuilder<TimeStamp> timeStamps;
+  for (auto at = begin; at != end; at++) {
+    timeStamps.add(at->time);
+  }
+  return timeStamps.get();
+}
+
 Array<Span<TimeStamp> > segmentSubSessions(
     const Array<TimeStamp> &times,
     Duration<double> threshold);
 
-Array<Array<TimedValue<GeographicPosition<double> > > >
-  applyGpsFilterToSessions(const Dispatcher *d,
-      const Array<Span<TimeStamp> > &timeSpans);
+Array<TimedValue<GeographicPosition<double> > >
+  filterAllGpsData(const NavDataset &ds, const Settings &settings);
 
 
 void outputTimeSpansToFile(
