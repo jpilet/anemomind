@@ -281,7 +281,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--no-header", "Omit header labels for data columns");
   amap.registerOption("--no-simulate", "Skip simulated true wind columns");
   amap.registerOption("-v", "Verbose output");
-  amap.registerOption("-1hz", "Downsample gps to 1Hz");
+  amap.registerOption("-1Hz", "Downsample gps to 1Hz");
   amap.setHelpInfo(
       std::string("") +
       "Exports nav data to other formats. In addition to the named arguments,\n" +
