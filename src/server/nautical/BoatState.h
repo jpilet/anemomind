@@ -3,6 +3,15 @@
  *
  *  Created on: 25 Aug 2016
  *      Author: jonas
+ *
+ * A BoatState represents that best knowledge that we have
+ * about a boat at some point in time. All measurements that
+ * it contains are corrected, and it does not contain any raw or
+ * ambiguous data.
+ *
+ * A sequence of BoatStates is produced by sail::Reconstructor::reconstruct.
+ * The BoatState can be safely consumed by the rest of the application,
+ * without any worry that the data is wrong.
  */
 
 #ifndef SERVER_NAUTICAL_BOATSTATE_H_

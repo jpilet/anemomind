@@ -17,10 +17,31 @@
 #include <server/common/logging.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/BoatState.h>
+#include <server/nautical/Reconstructor.h>
+#include <server/common/TimedValueCutter.h>
 
 namespace sail {
 namespace Processor2 {
 
+
+Array<Reconstructor::CalibDataChunk> makeCalibChunks(
+    const Array<Span<TimeStamp>> &timeSpans,
+    const Array<TimedValue<GeographicPosition<double>>> &filteredPositions,
+    const Dispatcher *d) {
+
+  auto cutGpsPositions = cutTimedValues(
+      filteredPositions.begin(),
+      filteredPositions.end(),
+      timeSpans);
+
+  int n = timeSpans.size();
+  Array<Reconstructor::CalibDataChunk> chunks(n);
+  for (int i = 0; i < n; i++) {
+    chunks[i].filteredPositions = cutGpsPositions[i];
+  }
+
+  return chunks;
+}
 
 Array<BoatState<double>> reconstructAllGroups(
     const Array<Spani> &calibGroups,
@@ -28,12 +49,10 @@ Array<BoatState<double>> reconstructAllGroups(
     const Array<TimedValue<GeographicPosition<double>>> &positions,
     const Dispatcher *d) {
 
-  Array<Array<GeographicPosition<double> > > groupedPositions =
+  Array<Reconstructor::CalibDataChunk> chunks
+    = makeCalibChunks(smallSessions, positions, d);
 
-  ArrayBuilder<double> acc;
-  for (auto g: calibGroups) {
-  }
-  return acc.get();
+  return Array<BoatState<double>>();
 }
 
 void runDemoOnDataset(NavDataset &dataset) {
@@ -74,7 +93,7 @@ void runDemoOnDataset(NavDataset &dataset) {
         smallSessions);
   }
 
-  Array<Array<BoatState<double> > > reconstructions
+  Array<BoatState<double> > reconstructions
     = reconstructAllGroups(calibGroups, smallSessions,
         allFilteredPositions, d);
 }

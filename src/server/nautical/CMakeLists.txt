@@ -359,3 +359,10 @@ add_library(nautical_BoatState
   BoatState.cpp
   )
 
+add_library(nautical_Reconstructor
+  Reconstructor.h
+  Reconstructor.cpp
+  )
+
+target_link_libraries(nautical_Reconstructor)
+  
