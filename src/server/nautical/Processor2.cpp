@@ -43,7 +43,7 @@ void runDemoOnDataset(const Dispatcher *d) {
   auto gpsFilterResults = Processor2::applyGpsFilterToSessions(
       d, mainSessionSpans);
 
-  outputGroupsToFile(
+  /*outputGroupsToFile(
       settings.makeLogFilename("gpsfiltergroups.txt"),
       gpsFilterSpans, subSessionSpans);
 
@@ -54,7 +54,7 @@ void runDemoOnDataset(const Dispatcher *d) {
   outputGroupsToFile(
         settings.makeLogFilename("calibgroups.txt"),
         calibGroups,
-        subSessionSpans);
+        subSessionSpans);*/
 }
 
 class TimesVisitor {
