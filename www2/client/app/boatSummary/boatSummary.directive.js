@@ -1,24 +1,26 @@
 'use strict';
 
 var app = angular.module('www2App')
-    .filter('milliSecondsToTimeString', function() {
-      return function(milliSeconds) {
-        var seconds = Math.floor(milliSeconds / 1000);
-        var days = Math.floor(seconds / 86400);
-        var hours = Math.floor((seconds % 86400) / 3600);
-        var minutes = Math.floor(((seconds % 86400) % 3600) / 60);
-        var timeString = '';
-        if(days > 0) timeString += (days > 1) ? (days + " days ") : (days + " day ");
-        if(hours > 0) timeString += (hours > 1) ? (hours + " hours ") : (hours + " hour ");
-        if(minutes >= 0) timeString += (minutes > 1) ? (minutes + " minutes ") : (minutes + " minute ");
-        //return timeString;
-        return "THIS IS THE TIME STRING: " + [milliSeconds, seconds, days, hours, minutes];
-      }
-    })
     .filter('timeSpanToString', function() {
       return function(span) {
           var fromDate = new Date(span[0]);
           var toDate = new Date(span[1]);
+
+/* 
+Alternative implementation from http://stackoverflow.com/questions/20196113/angularjs-how-do-you-convert-milliseconds-to-xhours-and-ymins
+There are some minor differences between the strings that the two versions produce.
+
+        function makeDurString2(seconds) {
+          var days = Math.floor(seconds / 86400);
+          var hours = Math.floor((seconds % 86400) / 3600);
+          var minutes = Math.floor(((seconds % 86400) % 3600) / 60);
+          var timeString = '';
+          if(days > 0) timeString += (days > 1) ? (days + " days ") : (days + " day ");
+          if(hours > 0) timeString += (hours > 1) ? (hours + " hours ") : (hours + " hour ");
+          if(minutes >= 0) timeString += (minutes > 1) ? (minutes + " minutes ") : (minutes + " minute ");
+          return timeString;
+        }
+*/
           function makeDurString(durSeconds) {
             var dur = durSeconds;
             var multipliers = [60, 60, 24, 7, 1000000000];
@@ -43,7 +45,7 @@ var app = angular.module('www2App')
             } else if (finalParts.length == 1) {
 	            return finalParts[0];
             } else {
-              return finalParts[0] + ' and ' + finalParts[1];
+              return finalParts[0] + ', ' + finalParts[1];
             }
           }
 
