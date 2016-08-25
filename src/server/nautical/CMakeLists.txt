@@ -355,7 +355,7 @@ cxx_test(nautical_Processor2Test
   )
 
 add_library(nautical_BoatState
-  BoatState.hpp
+  BoatState.h
   BoatState.cpp
   )
 

@@ -16,9 +16,19 @@
 #include <server/common/ReduceTree.h>
 #include <server/common/logging.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/BoatState.h>
 
 namespace sail {
 namespace Processor2 {
+
+
+Array<Array<BoatState<double>>> reconstructAllGroups(
+    const Array<Spani> &calibGroups,
+    const Array<Span<TimeStamp>> &smallSessions,
+    const Array<TimedValue<GeographicPosition<double>>> &positions,
+    const Dispatcher *d) {
+  return Array<Array<BoatState<double>>>();
+}
 
 void runDemoOnDataset(NavDataset &dataset) {
   dataset.mergeAll();
@@ -58,8 +68,9 @@ void runDemoOnDataset(NavDataset &dataset) {
         smallSessions);
   }
 
-  Array<Array<EstimatedState> > reconstructions
-    = reconstructAllGroups();
+  Array<Array<BoatState<double> > > reconstructions
+    = reconstructAllGroups(calibGroups, smallSessions,
+        allFilteredPositions, d);
 }
 
 class TimesVisitor {
