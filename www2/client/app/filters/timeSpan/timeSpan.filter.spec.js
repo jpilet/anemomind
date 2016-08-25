@@ -14,19 +14,19 @@ describe('Filter: timeSpan', function () {
   it('should produce a string with only hours, in local time', function () {
     var text = ['Thu Aug 25 2016 10:14:17 GMT+0200 (CEST)', 
                 'Thu Aug 25 2016 12:14:17 GMT+0200 (CEST)'];
-    expect(timeSpan(text)).toBe('2016-08-25 10:14 (2 hours)');
+    expect(timeSpan(text)).toBe('2 hours');
   });
 
   it('should produce a string with hours and days, in local time', function () {
     var text = ['Thu Aug 25 2016 10:14:17 GMT+0200 (CEST)', 
                 'Thu Aug 28 2016 13:19:18 GMT+0200 (CEST)'];
-    expect(timeSpan(text)).toBe('2016-08-25 10:14 (3 days, 3 hours)');
+    expect(timeSpan(text)).toBe('3 days, 3 hours');
   });
   
   it('should produce a string with one day and ignore the minutes', function () {
     var text = ['Thu Aug 25 2016 10:14:17 GMT+0200 (CEST)', 
                 'Thu Aug 26 2016 10:19:17 GMT+0200 (CEST)'];
-    expect(timeSpan(text)).toBe('2016-08-25 10:14 (1 day)');
+    expect(timeSpan(text)).toBe('1 day');
   });
 
 });
