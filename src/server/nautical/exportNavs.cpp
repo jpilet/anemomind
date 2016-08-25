@@ -3,15 +3,16 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/common/ArgMap.h>
-#include <server/nautical/logimport/LogLoader.h>
 #include <algorithm>
 #include <fstream>
-#include <sstream>
-#include <server/common/TimeStamp.h>
-#include <server/nautical/calib/Calibrator.h>
 #include <iostream>
+#include <server/common/ArgMap.h>
 #include <server/common/Functional.h>
+#include <server/common/TimeStamp.h>
+#include <server/nautical/DownsampleGps.h>
+#include <server/nautical/calib/Calibrator.h>
+#include <server/nautical/logimport/LogLoader.h>
+#include <sstream>
 
 using namespace sail;
 using namespace sail::NavCompat;
@@ -19,11 +20,12 @@ using namespace sail::NavCompat;
 enum Format  {CSV, MATLAB, JSON};
 
 struct ExportSettings {
-  Format format;
+  Format format = CSV;
   std::string formatStr;
-  bool simulatedTrueWindData;
-  bool withHeader;
-  bool verbose;
+  bool simulatedTrueWindData = false;
+  bool withHeader = true;
+  bool verbose = false;
+  bool downSampleGps = false;
 };
 
 NavDataset loadNavsFromArgs(Array<ArgMap::Arg*> args) {
@@ -238,7 +240,12 @@ NavDataset performCalibration(NavDataset navs0,const ExportSettings& settings) {
 }
 
 int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::string output) {
-  auto navs = loadNavsFromArgs(args);
+  NavDataset navs = loadNavsFromArgs(args);
+
+  if (settings.downSampleGps) {
+    navs = downSampleGpsTo1Hz(navs);
+  }
+
   Array<NavField> fields = getNavFields(settings);
   if (settings.simulatedTrueWindData) {
     navs = performCalibration(navs, settings);
@@ -274,6 +281,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--no-header", "Omit header labels for data columns");
   amap.registerOption("--no-simulate", "Skip simulated true wind columns");
   amap.registerOption("-v", "Verbose output");
+  amap.registerOption("-1hz", "Downsample gps to 1Hz");
   amap.setHelpInfo(
       std::string("") +
       "Exports nav data to other formats. In addition to the named arguments,\n" +
@@ -292,6 +300,7 @@ int main(int argc, const char **argv) {
         settings.withHeader = !amap.optionProvided("--no-header");
         settings.verbose = amap.optionProvided("-v");
         settings.simulatedTrueWindData = !amap.optionProvided("--no-simulate");
+        settings.downSampleGps = amap.optionProvided("-1Hz");
         return exportNavs(amap.freeArgs(), settings, output);
       }
     case ArgMap::Done:
