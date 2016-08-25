@@ -15,7 +15,9 @@
 
 namespace sail {
 
+class NavDataset;
 namespace Processor2 {
+
 
 struct Settings {
   Settings();
@@ -62,7 +64,7 @@ Array<Spani> computeCalibrationGroups(
     Array<Span<TimeStamp> > timeSpans,
     Duration<double> minCalibDur);
 
-void runDemoOnDataset(const Dispatcher *d);
+void runDemoOnDataset(const NavDataset &dataset);
 
 }
 }

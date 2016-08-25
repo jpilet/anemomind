@@ -6,6 +6,7 @@
  */
 
 #include "Processor2.h"
+#include <server/nautical/NavDataset.h>
 #include <server/common/ArrayBuilder.h>
 #include <device/anemobox/DispatcherUtils.h>
 #include <server/common/PathBuilder.h>
@@ -18,7 +19,8 @@
 namespace sail {
 namespace Processor2 {
 
-void runDemoOnDataset(const Dispatcher *d) {
+void runDemoOnDataset(const NavDataset &dataset) {
+  auto d = dataset.dispatcher().get();
   Processor2::Settings settings;
   auto timeStamps = Processor2::getAllGpsTimeStamps(d);
   //auto timeStamps = Processor2::getAllTimeStampsFiltered(
