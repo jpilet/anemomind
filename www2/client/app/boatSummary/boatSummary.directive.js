@@ -1,6 +1,25 @@
 'use strict';
 
 var app = angular.module('www2App')
+    .filter('milliSecondsToTimeString', function() {
+      return function(milliSeconds) {
+        var seconds = Math.floor(milliSeconds / 1000);
+        var days = Math.floor(seconds / 86400);
+        var hours = Math.floor((seconds % 86400) / 3600);
+        var minutes = Math.floor(((seconds % 86400) % 3600) / 60);
+        var timeString = '';
+        if(days > 0) timeString += (days > 1) ? (days + " days ") : (days + " day ");
+        if(hours > 0) timeString += (hours > 1) ? (hours + " hours ") : (hours + " hour ");
+        if(minutes >= 0) timeString += (minutes > 1) ? (minutes + " minutes ") : (minutes + " minute ");
+        //return timeString;
+        return "THIS IS THE TIME STRING: " + [milliSeconds, seconds, days, hours, minutes];
+      }
+    })
+    .filter('timeSpanToString', function() {
+      return function(span) {
+        return "THIS IS THE SPAN: " + span;
+      };
+    })
   .directive('boatSummary', function (boatList) {
     return {
       templateUrl: 'app/boatSummary/boatSummary.html',
