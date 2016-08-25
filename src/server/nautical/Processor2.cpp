@@ -22,12 +22,18 @@ namespace sail {
 namespace Processor2 {
 
 
-Array<Array<BoatState<double>>> reconstructAllGroups(
+Array<BoatState<double>> reconstructAllGroups(
     const Array<Spani> &calibGroups,
     const Array<Span<TimeStamp>> &smallSessions,
     const Array<TimedValue<GeographicPosition<double>>> &positions,
     const Dispatcher *d) {
-  return Array<Array<BoatState<double>>>();
+
+  Array<Array<GeographicPosition<double> > > groupedPositions =
+
+  ArrayBuilder<double> acc;
+  for (auto g: calibGroups) {
+  }
+  return acc.get();
 }
 
 void runDemoOnDataset(NavDataset &dataset) {
