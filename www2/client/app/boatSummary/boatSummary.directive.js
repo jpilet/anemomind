@@ -17,48 +17,8 @@ var app = angular.module('www2App')
     })
     .filter('timeSpanToString', function() {
       return function(span) {
-        return "THIS IS THE SPAN: " + span;
-      };
-    })
-  .directive('boatSummary', function (boatList) {
-    return {
-      templateUrl: 'app/boatSummary/boatSummary.html',
-      restrict: 'E',
-      scope: {
-        boatId: "=",
-        pageSize: "=?"
-      },
-      link: function (scope, element, attrs) {
-        scope.currentPage = 1;
-        scope.sessions = [];
-        if (scope.pageSize == undefined) {
-          scope.pageSize = 10;
-        }
-        function updateSessions() {
-          if (!scope.boatId) {
-            return;
-          }
-          scope.boat = boatList.boat(scope.boatId);
-          scope.sessions = boatList.sessionsForBoat(scope.boatId);
-          if (scope.sessions == undefined) {
-            scope.sessions = [];
-          }
-        }
-        scope.$on('boatList:updated', updateSessions);
-        scope.$on('boatList:sessionsUpdated', updateSessions);
-        scope.$watch('boatId', updateSessions);
-
-        updateSessions();
-
-        scope.twdirToCardinal = function(twdir) {
-          var index = Math.round(360 + twdir * 8 / 360) % 8;
-          var windrose = [
-            "N", "NE", "E", "SE", "S", "SW", "W", "NW" ];
-          return windrose[index];
-        };
-        scope.formatSpan = function(fromDateS, toDateS) {
-          var fromDate = new Date(fromDateS);
-          var toDate = new Date(toDateS);
+          var fromDate = new Date(span[0]);
+          var toDate = new Date(span[1]);
           function makeDurString(durSeconds) {
             var dur = durSeconds;
             var multipliers = [60, 60, 24, 7, 1000000000];
@@ -98,6 +58,45 @@ var app = angular.module('www2App')
               + " " + offsetIso.substring(11, 16);
           var durSeconds = 0.001*(toDate.getTime() - fromDate.getTime());
           return offsetString + " (" + makeDurString(durSeconds) + ")";
+      };
+    })
+  .directive('boatSummary', function (boatList) {
+    return {
+      templateUrl: 'app/boatSummary/boatSummary.html',
+      restrict: 'E',
+      scope: {
+        boatId: "=",
+        pageSize: "=?"
+      },
+      link: function (scope, element, attrs) {
+        scope.currentPage = 1;
+        scope.sessions = [];
+        if (scope.pageSize == undefined) {
+          scope.pageSize = 10;
+        }
+        function updateSessions() {
+          if (!scope.boatId) {
+            return;
+          }
+          scope.boat = boatList.boat(scope.boatId);
+          scope.sessions = boatList.sessionsForBoat(scope.boatId);
+          if (scope.sessions == undefined) {
+            scope.sessions = [];
+          }
+        }
+        scope.$on('boatList:updated', updateSessions);
+        scope.$on('boatList:sessionsUpdated', updateSessions);
+        scope.$watch('boatId', updateSessions);
+
+        updateSessions();
+
+        scope.twdirToCardinal = function(twdir) {
+          var index = Math.round(360 + twdir * 8 / 360) % 8;
+          var windrose = [
+            "N", "NE", "E", "SE", "S", "SW", "W", "NW" ];
+          return windrose[index];
+        };
+        scope.formatSpan = function(fromDateS, toDateS) {
         }
 
         scope.knotsToBeaufort = function(knots) {
