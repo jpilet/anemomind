@@ -6,7 +6,6 @@ console.log('Anemobox firmware version ' + version.string);
 var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
-var btrpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
 var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
@@ -21,12 +20,17 @@ var withHttp = true;
 var withIMU = true;
 var withCUPS = false;
 var withNMEA2000 = true;
-var withWatchdog = true;
+var withWatchdog = !process.env['NO_WATCHDOG'];
 
 var spiBugDetected = false;
 
 var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
+
+var btrpcFuncTable = {};
+if (withBT) {
+  btrpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
+}
 
 if (withHttp) {
   var http = require('./components/http');
@@ -175,3 +179,8 @@ if (withNMEA2000) {
 if (withWatchdog) {
   require('./components/watchdog.js').startWatchdog();
 }
+
+var callrpc = require('./components/callrpc.js');
+callrpc.WITH_BT = withBT;
+callrpc.WITH_HTTP = withHttp;
+
