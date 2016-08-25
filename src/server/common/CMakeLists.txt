@@ -405,3 +405,10 @@ cxx_test(common_ReduceTreeTest
   ReduceTreeTest.cpp
   gtest_main
   )
+
+cxx_test(common_TimedValueCutterTest
+  TimedValueCutterTest.cpp
+  common_TimeStamp
+  common_Span
+  gtest_main
+  )

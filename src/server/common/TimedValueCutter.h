@@ -16,11 +16,11 @@
 namespace sail {
 
 template <typename TimedValueIterator,
-  typename T=std::iterator_traits<TimedValueIterator>::value_type>
-Array<Array<TimedValue<T> > > cutTimedValues(
+  typename T=typename std::iterator_traits<TimedValueIterator>::value_type>
+Array<Array<T> > cutTimedValues(
     TimedValueIterator from, TimedValueIterator to,
     const Array<Span<TimeStamp> > &spans) {
-  Array<Array<TimedValue<T>>> result(spans.size());
+  Array<Array<T>> result(spans.size());
   auto at = from;
   for (int i = 0; i < spans.size(); i++) {
     auto span = spans[i];
@@ -33,7 +33,7 @@ Array<Array<TimedValue<T> > > cutTimedValues(
       break;
     }
 
-    ArrayBuilder<TimedValue<T> > subResult;
+    ArrayBuilder<T> subResult;
     // Step within the current span
     while (at != to && at->time < span.maxv()) {
       subResult.add(*at);
