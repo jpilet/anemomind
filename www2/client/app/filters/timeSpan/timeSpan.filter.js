@@ -29,23 +29,30 @@ There are some minor differences between the strings that the two versions produ
               return (x == 0? null : x + ' ' + s + (x == 1? "" : "s"));
             }
             var dst = [];
+            var precedingGap = 0;
             for (var i = 0; i < multipliers.length; i++) {
               var f = multipliers[i];
               var a = Math.floor(dur/f);
               var b = Math.floor(dur - f*a);
               var s = formatDur(b, labels[i]);
               if (s) {
-	              dst.push(s);
+	              dst.push({value: s, gap: precedingGap});
+                precedingGap = 0;
+              } else {
+                precedingGap++;
               }
               dur = a;
             }
             var finalParts = dst.reverse();
             if (finalParts.length == 0) {
               return "0 seconds";
-            } else if (finalParts.length == 1) {
-	            return finalParts[0];
             } else {
-              return finalParts[0] + ', ' + finalParts[1];
+              var first = finalParts[0];
+              if (finalParts.length == 1 || first.gap > 0) {
+                return first.value;
+              } else {
+                return first.value + ', ' + finalParts[1].value;
+              }
             }
           }
 
