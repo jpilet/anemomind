@@ -1,6 +1,6 @@
 var exec = require('child_process').exec;
 
-module.exports.exec = function(cb) {
+module.exports.sync = function(cb) {
   exec('sync', cb || function() { });
-});
+};
 

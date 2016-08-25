@@ -4,11 +4,10 @@ var sync = require('./fssync.js').sync;
 
 function int64ToHexString(x) {
   var s = x.toString(16).toUpperCase();
-  return "0".repeat(Math.max(0, 16 - s.length)) + s;
+  return s.length >= 16 ? s : new Array(16 - s.length + 1).join('0') + s;
 }
 
 function timeToHexString(x) {
-  assert(x instanceof Date);
   return int64ToHexString(x.getTime());
 }
 
