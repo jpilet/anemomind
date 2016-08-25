@@ -128,7 +128,7 @@ Array<Reconstructor::CalibDataChunk> makeCalibChunks(
   return chunks;
 }
 
-Array<BoatState<double>> reconstructAllGroups(
+Array<Reconstructor::Results> reconstructAllGroups(
     const Array<Spani> &calibGroups,
     const Array<Span<TimeStamp>> &smallSessions,
     const Array<TimedValue<GeographicPosition<double>>> &positions,
@@ -143,7 +143,19 @@ Array<BoatState<double>> reconstructAllGroups(
         smallSessions, chunks);
   }
 
-  return Array<BoatState<double>>();
+
+  Reconstructor::Settings recSettings;
+  recSettings.windowSize = settings.calibWindowSize;
+  int n = calibGroups.size();
+  Array<Reconstructor::Results> results(n);
+  for (int i = 0; i < n; i++) {
+    auto group = calibGroups[i];
+    results[i] = Reconstructor::reconstruct(
+        chunks.slice(group.minv(), group.maxv()),
+        recSettings);
+  }
+
+  return results;
 }
 
 void runDemoOnDataset(NavDataset &dataset) {
@@ -184,7 +196,7 @@ void runDemoOnDataset(NavDataset &dataset) {
         smallSessions);
   }
 
-  Array<BoatState<double> > reconstructions
+  Array<Reconstructor::Results> reconstructions
     = reconstructAllGroups(calibGroups, smallSessions,
         allFilteredPositions, d, settings);
 }

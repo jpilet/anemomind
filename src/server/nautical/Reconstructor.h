@@ -13,6 +13,7 @@
 #include <device/anemobox/Dispatcher.h>
 #include <ceres/ceres.h>
 #include <server/nautical/BoatState.h>
+#include <unordered_map>
 
 namespace sail {
 namespace Reconstructor {
@@ -31,8 +32,29 @@ FOREACH_CHANNEL(MAKE_DATA_MAP)
 #undef MAKE_DATA_MAP
 };
 
-Array<Array<BoatState<double> > > reconstruct(
-    const Array<CalibDataChunk> &chunks, const Settings &settings);
+class ChannelRef {
+  DataCode code;
+  std::string sourceName;
+};
+
+class SensorParameters {
+public:
+  typedef std::shared_ptr<SensorParameters> Ptr;
+private:
+};
+
+struct SensorSet {
+
+};
+
+struct Results {
+  SensorSet sensorSet;
+  Array<Array<BoatState<double>>> reconstructedStates;
+};
+
+Results reconstruct(
+    const Array<CalibDataChunk> &chunks,
+    const Settings &settings);
 
 }
 }
