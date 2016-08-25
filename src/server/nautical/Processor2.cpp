@@ -27,15 +27,21 @@ void runDemoOnDataset(const Dispatcher *d) {
   std::cout << "Number of time stamps: "<< timeStamps.size() << std::endl;
 
   auto subSessionSpans =
-      Processor2::segmentSubSessions(timeStamps, settings);
+      Processor2::segmentSubSessions(timeStamps, settings.subSessionCut);
 
   outputTimeSpansToFile(
       settings.makeLogFilename("subsessions.txt"),
       subSessionSpans);
 
-  // This are spans that are filtered together.
+  // These are spans that are filtered together.
   auto gpsFilterSpans = Processor2::groupSessionsByThreshold(
       subSessionSpans, settings.mainSessionCut);
+
+  auto mainSessionSpans = Processor2::segmentSubSessions(
+      timeStamps, settings.mainSessionCut);
+
+  auto gpsFilterResults = Processor2::applyGpsFilterToSessions(
+      d, mainSessionSpans);
 
   outputGroupsToFile(
       settings.makeLogFilename("gpsfiltergroups.txt"),
@@ -112,7 +118,7 @@ void addUnique(std::vector<int> *dst, int i) {
 
 Array<Span<TimeStamp> > segmentSubSessions(
     const Array<TimeStamp> &times,
-    const Settings &settings) {
+    Duration<double> threshold) {
   if (times.empty()) {
     return Array<Span<TimeStamp> >();
   }
@@ -121,7 +127,7 @@ Array<Span<TimeStamp> > segmentSubSessions(
   int n = times.size() - 1;
   for (int i = 0; i < n; i++) {
     auto dur = times[i+1] - times[i];
-    if (settings.subSessionCut < dur) {
+    if (threshold < dur) {
       cuts.push_back(i+1);
     }
   }
@@ -135,6 +141,13 @@ Array<Span<TimeStamp> > segmentSubSessions(
   }
   return spans.get();
 }
+
+Array<Array<TimedValue<GeographicPosition<double> > > >
+  applyGpsFilterToSessions(const Dispatcher *d,
+      const Array<Span<TimeStamp> > &timeSpans) {
+  return Array<Array<TimedValue<GeographicPosition<double> > > >();
+}
+
 
 void outputTimeSpansToFile(
     const std::string &filename,

@@ -8,6 +8,8 @@
 #ifndef SERVER_NAUTICAL_PROCESSOR2_H_
 #define SERVER_NAUTICAL_PROCESSOR2_H_
 
+#include <server/common/Array.h>
+#include <server/common/Span.h>
 #include <server/nautical/segment/SessionCut.h>
 #include <device/anemobox/Dispatcher.h>
 
@@ -36,7 +38,12 @@ Array<TimeStamp> getAllTimeStampsFiltered(
 
 Array<Span<TimeStamp> > segmentSubSessions(
     const Array<TimeStamp> &times,
-    const Settings &settings);
+    Duration<double> threshold);
+
+Array<Array<TimedValue<GeographicPosition<double> > > >
+  applyGpsFilterToSessions(const Dispatcher *d,
+      const Array<Span<TimeStamp> > &timeSpans);
+
 
 void outputTimeSpansToFile(
     const std::string &filename,
