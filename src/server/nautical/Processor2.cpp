@@ -19,7 +19,9 @@
 namespace sail {
 namespace Processor2 {
 
-void runDemoOnDataset(const NavDataset &dataset) {
+void runDemoOnDataset(NavDataset &dataset) {
+  dataset.mergeAll();
+
   auto d = dataset.dispatcher().get();
   Processor2::Settings settings;
   auto timeStamps = Processor2::getAllGpsTimeStamps(d);

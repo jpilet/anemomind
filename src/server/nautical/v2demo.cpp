@@ -33,7 +33,8 @@ NavDataset getDataset(int argc, const char **argv) {
 }
 
 int main(int argc, const char **argv) {
-  Processor2::runDemoOnDataset(getDataset(argc, argv));
+  auto ds = getDataset(argc, argv);
+  Processor2::runDemoOnDataset(ds);
   return 0;
 }
 

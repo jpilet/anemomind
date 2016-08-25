@@ -64,7 +64,7 @@ Array<Spani> computeCalibrationGroups(
     Array<Span<TimeStamp> > timeSpans,
     Duration<double> minCalibDur);
 
-void runDemoOnDataset(const NavDataset &dataset);
+void runDemoOnDataset(NavDataset &dataset);
 
 }
 }
