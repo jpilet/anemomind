@@ -37,8 +37,6 @@ var app = angular.module('www2App')
             "N", "NE", "E", "SE", "S", "SW", "W", "NW" ];
           return windrose[index];
         };
-        scope.formatSpan = function(fromDateS, toDateS) {
-        }
 
         scope.knotsToBeaufort = function(knots) {
           if (knots < 1) { return 0; }
