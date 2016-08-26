@@ -236,9 +236,17 @@ FOREACH_CHANNEL(MAKE_FIELD_ACCESS)
 // but instead it is used to visit the instance variables of an object
 // when those variables have names that are valid handles, such as AWA.
 template <typename Target, typename Visitor>
-void visitFields(const Target &target, Visitor *v) {
+void visitFieldsConst(const Target &target, Visitor *v) {
 #define VISIT_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   v->template visit<HANDLE, TYPE, decltype(target.HANDLE)>(target.HANDLE);
+  FOREACH_CHANNEL(VISIT_FIELD)
+#undef VISIT_FIELD
+}
+
+template <typename Target, typename Visitor>
+void visitFieldsMutable(Target *target, Visitor *v) {
+#define VISIT_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  v->template visit<HANDLE, TYPE, decltype(target->HANDLE)>(target->HANDLE);
   FOREACH_CHANNEL(VISIT_FIELD)
 #undef VISIT_FIELD
 }

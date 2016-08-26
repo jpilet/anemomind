@@ -19,7 +19,7 @@ namespace sail {
 template <typename T, DataCode code>
 struct SensorModel {
   static const int paramCount = 0;
-  void readFrom(T *) const {}
+  void readFrom(T *) {}
   void writeTo(T *) const {}
   void outputSummary(std::ostream *) const {}
 };
@@ -39,7 +39,9 @@ public:
     std::cout << "Read this: " << _offset.radians() << std::endl;
   }
 
-  void writeTo(T *dst) const {dst[0] = _offset.radians();}
+  void writeTo(T *dst) const {
+    dst[0] = _offset.radians();
+  }
 
   void outputSummary(std::ostream *dst) const {
     *dst << "BasicAngleSensor with offset "
@@ -94,8 +96,8 @@ struct SensorSetParamReader {
   T *src;
 
   template <DataCode code, typename X, typename SensorModelMap>
-  void visit(const SensorModelMap &obj) {
-    for (auto kv: obj) {
+  void visit(SensorModelMap &obj) {
+    for (auto &kv: obj) {
       kv.second.readFrom(src);
       src += kv.second.paramCount;
     }
@@ -108,7 +110,7 @@ struct SensorSetParamWriter {
 
   template <DataCode code, typename X, typename SensorModelMap>
   void visit(const SensorModelMap &obj) {
-    for (auto kv: obj) {
+    for (const auto &kv: obj) {
       kv.second.writeTo(dst);
       dst += kv.second.paramCount;
     }
@@ -121,7 +123,7 @@ struct SensorSetSummaryVisitor {
   template <DataCode code, typename X, typename SensorModelMap>
   void visit(const SensorModelMap &obj) {
     *dst << "Sensors for " << wordIdentifierForCode(code) << "\n";
-    for (auto kv: obj) {
+    for (const auto &kv: obj) {
       *dst << "  " << kv.first << ": ";
       kv.second.outputSummary(dst);
       *dst << std::endl;
@@ -139,24 +141,24 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 
   int paramCount() const {
     SensorSetParamCounter counter;
-    visitFields(*this, &counter);
+    visitFieldsConst(*this, &counter);
     return counter.counter;
   }
 
   // Useful when reading the parameters to be optimized
   void readFrom(T *src) {
     SensorSetParamReader<T> reader{src};
-    visitFields(*this, &reader);
+    visitFieldsMutable(this, &reader);
   }
 
   void writeTo(T *dst) const {
     SensorSetParamWriter<T> writer{dst};
-    visitFields(*this, &writer);
+    visitFieldsConst(*this, &writer);
   }
 
   void outputSummary(std::ostream *dst) {
     SensorSetSummaryVisitor v{dst};
-    visitFields(*this, &v);
+    visitFieldsConst(*this, &v);
   }
 };
 
