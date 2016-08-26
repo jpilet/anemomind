@@ -10,11 +10,13 @@
 #include <Eigen/Dense>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <ceres/jet.h>
+#include <Eigen/Geometry>
 
 using namespace sail;
 
 typedef BoatState<double> BS;
-typedef BoatState<ceres::Jet<double, 4>> BSj;
+typedef ceres::Jet<double, 1> ADType;
+typedef BoatState<ADType> BSad;
 
 TEST(BoatStateTest, Orthonormality) {
 
@@ -60,7 +62,23 @@ TEST(BoatStateTest, VariousProperties) {
 }
 
 TEST(BoatStateTest, WithAD) {
-  BSj state;
+  BSad state;
+
+
+}
+
+TEST(BoatStateTest, AxisAngleAD) {
+  ADType angle(0.3);
+  angle.v[0] = 1.0;
+  Eigen::Matrix<ADType, 3, 1> axis(
+      ADType(0.0), ADType(0.0), ADType(1.0));
+  Eigen::AngleAxis<ADType> aa(angle, axis);
+  Eigen::Matrix<ADType, 3, 3> mat = aa.toRotationMatrix();
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      EXPECT_TRUE(isFinite(mat(i, j)));
+    }
+  }
 }
 
 
