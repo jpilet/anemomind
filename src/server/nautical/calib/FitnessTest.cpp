@@ -14,6 +14,8 @@ TEST(SensorTest, Instantiate) {
 
   SensorSet<double> sensorSet;
   EXPECT_EQ(0, sensorSet.paramCount());
+  sensorSet.AWA["NMEA2000asdfasdfas"] = SensorModel<double, AWA>();
+  EXPECT_EQ(1, sensorSet.paramCount());
 }
 
 
