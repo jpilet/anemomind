@@ -89,3 +89,15 @@ cxx_test(calib_CurrentCalibTest
   )
   
 target_depends_on_ceres(calib_CurrentCalibTest)
+
+
+add_library(calib_Fitness
+  Fitness.h
+  Fitness.cpp
+  )
+
+cxx_test(calib_FitnessTest
+  FitnessTest.cpp
+  calib_Fitness
+  gtest_main
+  )

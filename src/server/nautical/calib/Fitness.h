@@ -10,6 +10,8 @@
 #ifndef SERVER_NAUTICAL_CALIB_FITNESS_H_
 #define SERVER_NAUTICAL_CALIB_FITNESS_H_
 
+#include <device/anemobox/Dispatcher.h>
+
 namespace sail {
 
 
@@ -18,9 +20,10 @@ struct SensorModel {};
 
 struct SensorSet {
 #define MAKE_SENSOR_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, Sensor<HANDLE> > HANDLE;
+  std::map<std::string, SensorModel<HANDLE> > HANDLE;
 FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 #undef MAKE_SENSOR_FIELD
+
 };
 
 } /* namespace sail */
