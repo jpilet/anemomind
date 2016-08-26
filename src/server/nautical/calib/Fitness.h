@@ -53,9 +53,7 @@ public:
   static const int paramCount = 1;
 
   void readFrom(T *src) {
-    std::cout << "REad value: " << src[0] << std::endl;
     _offset = Angle<T>::radians(src[0]);
-    std::cout << "Read this: " << _offset.radians() << std::endl;
   }
 
   void writeTo(T *dst) const {
