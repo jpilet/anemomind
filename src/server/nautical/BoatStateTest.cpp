@@ -5,6 +5,10 @@
  *      Author: jonas
  */
 
+#include <server/nautical/BoatState.h>
+#include <gtest/gtest.h>
+
+
 
 
 

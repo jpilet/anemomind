@@ -25,10 +25,17 @@ namespace sail {
 template <typename T>
 class BoatState {
 public:
-
-
-
-
+  BoatState(
+      const GeographicPosition<T> &position,
+      const HorizontalMotion<T> &gpsMotion,
+      const HorizontalMotion<T> &windOverGround,
+      const HorizontalMotion<T> &currentOverGround,
+      const Eigen::Matrix<T, 3, 1> &orientationBoatToLocal) :
+        _position(position),
+        _gpsMotion(gpsMotion),
+        _windOverGround(windOverGround),
+        _currentOverGround(currentOverGround),
+        _orientationBoatToLocal(orientationBoatToLocal) {}
 
 
   // This is how the orthonormal basis attached to the boat
@@ -52,11 +59,11 @@ public:
     return Eigen::Matrix<T, 3, 1>(T(1.0), T(0.0), T(0.0));
   }
 
-  GeographicPosition<T> _positions;
+  GeographicPosition<T> _position;
   HorizontalMotion<T> _gpsMotion;
   HorizontalMotion<T> _windOverGround;
   HorizontalMotion<T> _currentOverGround;
-  Eigen::Matrix<T, 3, 1> _orientationBoatToHorizontalPlane;
+  Eigen::Matrix<T, 3, 1> _orientationBoatToLocal;
 };
 
 } /* namespace sail */
