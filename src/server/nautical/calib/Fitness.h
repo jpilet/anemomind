@@ -57,6 +57,24 @@ template <typename T>
 struct SensorModel<T, WAT_SPEED> : public BasicSpeedSensor1<T> {};
 
 
+struct ParamCounter {
+  int counter = 0;
+  template <DataCode code, typename T, typename Obj>
+  void visit(const Obj &obj) {
+    for (auto kv: obj) {
+      counter += kv.second.paramCount;
+    }
+  }
+};
+
+template <typename Target, typename Visitor>
+void visitFields(const Target &target, Visitor *v) {
+#define VISIT_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  v->template visit<HANDLE, TYPE, decltype(target.HANDLE)>(target.HANDLE);
+  FOREACH_CHANNEL(VISIT_FIELD)
+#undef VISIT_FIELD
+}
+
 // Model for all the sensors on the boat.
 template <typename T>
 struct SensorSet {
@@ -66,6 +84,9 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 #undef MAKE_SENSOR_FIELD
 
   int paramCount() const {
+    ParamCounter counter;
+    visitFields(*this, &counter);
+    return counter.counter;
   }
 };
 

@@ -13,7 +13,7 @@ using namespace sail;
 TEST(SensorTest, Instantiate) {
 
   SensorSet<double> sensorSet;
-
+  EXPECT_EQ(0, sensorSet.paramCount());
 }
 
 
