@@ -21,15 +21,30 @@ struct SensorModel {
   static const int paramCount = 0;
   void readFrom(T *) const {}
   void writeTo(T *) const {}
+  void outputSummary(std::ostream *) const {}
 };
 
 template <typename T>
 class BasicAngleSensor {
 public:
-  BasicAngleSensor() : _offset(Angle<T>::radians(T(0.0))) {}
+  BasicAngleSensor() : _offset(Angle<T>::radians(T(0.0))) {
+    std::cout << "///////////////" << std::endl;
+  }
+
   static const int paramCount = 1;
-  void readFrom(T *src) const {_offset = Angle<T>::radians(src[0]);}
+
+  void readFrom(T *src) {
+    std::cout << "REad value: " << src[0] << std::endl;
+    _offset = Angle<T>::radians(src[0]);
+    std::cout << "Read this: " << _offset.radians() << std::endl;
+  }
+
   void writeTo(T *dst) const {dst[0] = _offset.radians();}
+
+  void outputSummary(std::ostream *dst) const {
+    *dst << "BasicAngleSensor with offset "
+        << _offset.radians() << " radians";
+  }
 private:
   Angle<T> _offset;
 };
@@ -38,9 +53,15 @@ template <typename T>
 class BasicSpeedSensor1 {
 public:
   BasicSpeedSensor1() : _bias(T(1.0)) {}
+
   static const int paramCount = 1;
-  void readFrom(T *src) const {_bias = src[0];}
+
+  void readFrom(T *src) {_bias = src[0];}
   void writeTo(T *dst) const {dst[0] = _bias;}
+
+  void outputSummary(std::ostream *dst) const {
+    *dst << "BasicSpeedSensor1 with bias " << _bias;
+  }
 private:
   T _bias;
 };
@@ -94,6 +115,20 @@ struct SensorSetParamWriter {
   }
 };
 
+struct SensorSetSummaryVisitor {
+  std::ostream *dst;
+
+  template <DataCode code, typename X, typename SensorModelMap>
+  void visit(const SensorModelMap &obj) {
+    *dst << "Sensors for " << wordIdentifierForCode(code) << "\n";
+    for (auto kv: obj) {
+      *dst << "  " << kv.first << ": ";
+      kv.second.outputSummary(dst);
+      *dst << std::endl;
+    }
+  }
+};
+
 // Model for all the sensors on the boat.
 template <typename T>
 struct SensorSet {
@@ -114,9 +149,14 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
     visitFields(*this, &reader);
   }
 
-  void writeTo(T *dst) {
+  void writeTo(T *dst) const {
     SensorSetParamWriter<T> writer{dst};
     visitFields(*this, &writer);
+  }
+
+  void outputSummary(std::ostream *dst) {
+    SensorSetSummaryVisitor v{dst};
+    visitFields(*this, &v);
   }
 };
 

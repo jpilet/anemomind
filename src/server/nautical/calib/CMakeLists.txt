@@ -96,6 +96,10 @@ add_library(calib_Fitness
   Fitness.cpp
   )
 
+target_link_libraries(calib_Fitness
+  anemobox_Dispatcher
+  )
+
 cxx_test(calib_FitnessTest
   FitnessTest.cpp
   calib_Fitness
