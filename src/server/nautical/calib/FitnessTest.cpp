@@ -5,6 +5,15 @@
  *      Author: jonas
  */
 
+#include <server/nautical/calib/Fitness.h>
+#include <gtest/gtest.h>
 
+using namespace sail;
+
+TEST(SensorTest, Instantiate) {
+
+  SensorSet sensorSet;
+
+}
 
 

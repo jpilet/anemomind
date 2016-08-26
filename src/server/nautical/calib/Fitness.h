@@ -18,6 +18,11 @@ namespace sail {
 template <DataCode code>
 struct SensorModel {};
 
+struct BasicAngleSensor {};
+
+template <>
+struct SensorModel<AWA> : public BasicAngleSensor {};
+
 struct SensorSet {
 #define MAKE_SENSOR_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   std::map<std::string, SensorModel<HANDLE> > HANDLE;
