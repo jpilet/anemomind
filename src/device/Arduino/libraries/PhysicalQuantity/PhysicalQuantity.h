@@ -676,6 +676,11 @@ template <typename T, typename s, int t, int l, int a, int m>
 bool isFinite(const PhysicalQuantity<T, s, t, l, a, m> &x) {
   return x.isFiniteQuantity();
 }
+template <typename T>
+bool isFinite(const HorizontalMotion<T> &x) {
+  return isFinite(x[0]) && isFinite(x[1]);
+}
+
 template <typename T, typename s, int t, int l, int a, int m>
 bool isNaN(const PhysicalQuantity<T, s, t, l, a, m> &x) {
   return x.isNaNQuantity();

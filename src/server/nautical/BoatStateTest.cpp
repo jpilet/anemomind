@@ -27,20 +27,34 @@ TEST(BoatStateTest, Orthonormality) {
   }
 }
 
-TEST(BoatStateTest, VariousProperties) {
-  GeographicPosition<double> position(
-      Angle<double>::degrees(45),
-      Angle<double>::degrees(45));
+namespace {
+  bool eq(
+      const HorizontalMotion<double> &a,
+      const HorizontalMotion<double> &b) {
+    return std::abs(a[0].knots() - b[0].knots()) < 1.0e-6
+        && std::abs(a[1].knots() - b[1].knots()) < 1.0e-6;
+  }
+}
 
-  HorizontalMotion<double> gpsMotion(0.0_kt, 0.0_kt);
-  /*HorizontalMotion<double> &windOverGround,
-        const HorizontalMotion<T> &currentOverGround,
-        const Eigen::Matrix<T, 3, 1> &orientationBoatToLocal) :
-          _position(position),
-          _gpsMotion(gpsMotion),
-          _windOverGround(windOverGround),
-          _currentOverGround(currentOverGround),
-          _orientationBoatToLocal(orientationBoatToLocal) {}*/
+TEST(BoatStateTest, VariousProperties) {
+  GeographicPosition<double> pos(45.0_deg, 45.0_deg);
+
+  HorizontalMotion<double> gps(0.0_kn, 0.0_kn);
+  HorizontalMotion<double> wind(0.0_kn, 0.0_kn);
+  HorizontalMotion<double> current(0.0_kn, 0.0_kn);
+  auto angle = 0.0_deg;
+  Eigen::Vector3d axis(0.0, 0.0, 1.0);
+
+  BS bs0(pos, gps, wind, current, angle, axis);
+
+  EXPECT_TRUE(eq(bs0.windOverGround(),
+      HorizontalMotion<double>(0.0_kn, 0.0_kn)));
+  EXPECT_TRUE(eq(bs0.currentOverGround(),
+      HorizontalMotion<double>(0.0_kn, 0.0_kn)));
+  EXPECT_TRUE(eq(bs0.boatOverGround(),
+      HorizontalMotion<double>(0.0_kn, 0.0_kn)));
+
+  EXPECT_TRUE(bs0.valid());
 }
 
 

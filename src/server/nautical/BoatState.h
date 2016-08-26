@@ -19,23 +19,34 @@
 
 #include <Eigen/Dense>
 #include <server/nautical/GeographicPosition.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/math/EigenUtils.h>
 
 namespace sail {
+
+template <typename T, int N>
+struct UnitVector {
+  static bool is(const Eigen::Matrix<T, N, 1> &v, T tol) {
+    return std::abs(v.norm() - 1.0) < tol;
+  }
+};
 
 template <typename T>
 class BoatState {
 public:
   BoatState(
       const GeographicPosition<T> &position,
-      const HorizontalMotion<T> &gpsMotion,
+      const HorizontalMotion<T> &bog,
       const HorizontalMotion<T> &windOverGround,
       const HorizontalMotion<T> &currentOverGround,
-      const Eigen::Matrix<T, 3, 1> &orientationBoatToLocal) :
+      Angle<double> angle,
+      const Eigen::Matrix<T, 3, 1> &axis =
+          Eigen::Matrix<T, 3, 1>(T(0.0), T(0.0), T(1.0))) :
         _position(position),
-        _gpsMotion(gpsMotion),
+        _boatOverGround(bog),
         _windOverGround(windOverGround),
         _currentOverGround(currentOverGround),
-        _orientationBoatToLocal(orientationBoatToLocal) {}
+        _angle(angle), _axis(axis) {}
 
 
   // This is how the orthonormal basis attached to the boat
@@ -59,8 +70,50 @@ public:
     return Eigen::Matrix<T, 3, 1>(T(1.0), T(0.0), T(0.0));
   }
 
+  const GeographicPosition<T> &position() const {return _position;}
+  const HorizontalMotion<T> &boatOverGround() const {
+    return _boatOverGround;
+  }
+  const HorizontalMotion<T> &windOverGround() const {
+    return _windOverGround;
+  }
+
+  const HorizontalMotion<T> &currentOverGround() const {
+    return _currentOverGround;
+  }
+
+  const Eigen::Matrix<T, 3, 1> &axis() const {
+    return _axis;
+  }
+
+  const Eigen::Matrix<T, 3, 1> &angle() const {
+    return _angle;
+  }
+
+  // Or should it be "over current"? But that doesn't sound quite right.
+  HorizontalMotion<T> boatOverWater() const {
+    return _boatOverGround - _currentOverGround;
+  }
+
+  HorizontalMotion<T> windOverWater() const {
+    return _windOverGround - _currentOverGround;
+  }
+
+  HorizontalMotion<T> apparentWind() const {
+    return _windOverGround - _boatOverGround;
+  }
+
+  bool valid() const {
+    return isFinite(_position)
+        && isFinite(_boatOverGround)
+        && isFinite(_windOverGround)
+        && isFinite(_currentOverGround)
+        && isFinite(_angle)
+        && isFinite(_axis);
+  }
+private:
   GeographicPosition<T> _position;
-  HorizontalMotion<T> _gpsMotion;
+  HorizontalMotion<T> _boatOverGround;
   HorizontalMotion<T> _windOverGround;
   HorizontalMotion<T> _currentOverGround;
 
@@ -75,7 +128,8 @@ public:
    *  in this local earth-attached coordinate system.
    *
    */
-  Eigen::Matrix<T, 3, 1> _orientationBoatToLocal;
+  Angle<double> _angle;
+  Eigen::Matrix<T, 3, 1> _axis; // Should always have length 1.0
 };
 
 } /* namespace sail */
