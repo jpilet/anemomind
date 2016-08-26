@@ -15,20 +15,59 @@
 namespace sail {
 
 
-template <DataCode code>
-struct SensorModel {};
+template <typename T, DataCode code>
+struct SensorModel {
+  static const int paramCount = 0;
+  void readFrom(T *) const {}
+  void writeTo(T *) const {}
+};
 
-struct BasicAngleSensor {};
+template <typename T>
+class BasicAngleSensor {
+public:
+  BasicAngleSensor() : _offset(Angle<T>::radians(T(0.0))) {}
+  static const int paramCount = 1;
+  void readFrom(T *src) const {_offset = Angle<T>::radians(src[0]);}
+  void writeTo(T *dst) const {dst[0] = _offset.radians();}
+private:
+  Angle<T> _offset;
+};
 
-template <>
-struct SensorModel<AWA> : public BasicAngleSensor {};
+template <typename T>
+class BasicSpeedSensor1 {
+public:
+  BasicSpeedSensor1() : _bias(T(1.0)) {}
+  static const int paramCount = 1;
+  void readFrom(T *src) const {_bias = src[0];}
+  void writeTo(T *dst) const {dst[0] = _bias;}
+private:
+  T _bias;
+};
 
+template <typename T>
+struct SensorModel<T, AWA> : public BasicAngleSensor<T> {};
+
+template <typename T>
+struct SensorModel<T, MAG_HEADING> : public BasicAngleSensor<T> {};
+
+template <typename T>
+struct SensorModel<T, AWS> : public BasicSpeedSensor1<T> {};
+
+template <typename T>
+struct SensorModel<T, WAT_SPEED> : public BasicSpeedSensor1<T> {};
+
+
+// Model for all the sensors on the boat.
+template <typename T>
 struct SensorSet {
 #define MAKE_SENSOR_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, SensorModel<HANDLE> > HANDLE;
+  std::map<std::string, SensorModel<T, HANDLE> > HANDLE;
 FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 #undef MAKE_SENSOR_FIELD
 
+  int paramCount() const {
+    return 0;
+  }
 };
 
 } /* namespace sail */

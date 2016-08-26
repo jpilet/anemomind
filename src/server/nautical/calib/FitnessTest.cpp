@@ -12,7 +12,7 @@ using namespace sail;
 
 TEST(SensorTest, Instantiate) {
 
-  SensorSet sensorSet;
+  SensorSet<double> sensorSet;
 
 }
 
