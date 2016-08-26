@@ -21,11 +21,17 @@
 #include <server/nautical/GeographicPosition.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/math/EigenUtils.h>
+#include <server/nautical/common.h>
 
 namespace sail {
 
 template <typename T>
 class BoatState;
+
+template <typename T>
+Angle<T> angleBlowingFrom(const HorizontalMotion<T> &m) {
+  return (m.angle() + Angle<T>::radians(M_PI)).normalizedAt0();
+}
 
 template <typename T, int N>
 struct UnitVector {
@@ -185,6 +191,10 @@ public:
     auto bow = boatOverWater();
     return velocityDifferenceBetween<T>(bow, heading())
         - interpretAngleAsVelocity<T>(bow.norm(), predictedLeewayAngle);
+  }
+
+  Angle<T> AWA() const {
+    return angleBlowingFrom(apparentWind()) - heading();
   }
 private:
   GeographicPosition<T> _position;
