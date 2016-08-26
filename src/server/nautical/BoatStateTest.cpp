@@ -78,7 +78,6 @@ Eigen::MatrixXd computeRotWithAD(Eigen::Vector4d params) {
   for (int i = 0; i < 3; i++) {
     axis(i).v[1 + i] = 1.0;
   }
-  std::cout << "INitliazed" << std::endl;
 
   Eigen::AngleAxis<AD4> aa(angle, axis);
   Eigen::Matrix<AD4, 3, 3> mat = aa.toRotationMatrix();
@@ -137,11 +136,8 @@ Eigen::MatrixXd computeRotWithNumDerives(Eigen::Vector4d params) {
 
 
 void testDerivatives(Eigen::Vector4d params) {
-  std::cout << "COmputing it" << std::endl;
   Eigen::MatrixXd mat0 = computeRotWithAD(params);
-  std::cout << "Mat0 = " << mat0 << std::endl;
   Eigen::MatrixXd mat1 = computeRotWithNumDerives(params);
-  std::cout << "Mat1 = " << mat1 << std::endl;
   EXPECT_EQ(mat0.rows(), 9);
   EXPECT_EQ(mat1.rows(), 9);
   EXPECT_EQ(mat0.cols(), 5);
