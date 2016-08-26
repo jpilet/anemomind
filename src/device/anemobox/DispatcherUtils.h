@@ -246,7 +246,7 @@ void visitFieldsConst(const Target &target, Visitor *v) {
 template <typename Target, typename Visitor>
 void visitFieldsMutable(Target *target, Visitor *v) {
 #define VISIT_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  v->template visit<HANDLE, TYPE, decltype(target->HANDLE)>(target->HANDLE);
+  v->template visit<HANDLE, TYPE, decltype(target->HANDLE)>(&(target->HANDLE));
   FOREACH_CHANNEL(VISIT_FIELD)
 #undef VISIT_FIELD
 }

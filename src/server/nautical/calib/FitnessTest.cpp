@@ -38,6 +38,9 @@ TEST(SensorTest, Instantiate) {
     sensorSet.writeTo(params);
     EXPECT_NEAR(params[0], 0.25, 1.0e-6);
     EXPECT_NEAR(params[1], 1.0, 1.0e-6);
+
+    SensorParameterMap<double> parameterMap;
+    sensorSet.writeTo(&parameterMap);
   }
 }
 

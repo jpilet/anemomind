@@ -22,7 +22,7 @@ struct SensorModel {
   void readFrom(T *) {}
   void writeTo(T *) const {}
   void readFrom(const std::map<std::string, T> &) {}
-  void writeTo(std::map<std::string, T> *) {}
+  void writeTo(std::map<std::string, T> *) const {}
   void outputSummary(std::ostream *) const {}
 };
 
@@ -118,8 +118,8 @@ struct SensorSetParamReader {
   T *src;
 
   template <DataCode code, typename X, typename SensorModelMap>
-  void visit(SensorModelMap &obj) {
-    for (auto &kv: obj) {
+  void visit(SensorModelMap *obj) {
+    for (auto &kv: *obj) {
       kv.second.readFrom(src);
       src += kv.second.paramCount;
     }
@@ -153,6 +153,41 @@ struct SensorSetSummaryVisitor {
   }
 };
 
+
+template <typename T>
+using SensorParameterMap = std::map<DataCode,
+    std::map<std::string, std::map<std::string, T>>>;
+
+template <typename T>
+struct SensorSetParamMapReader {
+  const SensorParameterMap<T> &src;
+
+  template <DataCode code, typename X, typename SensorModelMap>
+  void visit(SensorModelMap *obj) {
+    auto &sub = src[code];
+    for (auto &kv: *obj) {
+      auto f = sub.find(kv.first);
+      if (f != sub.end()) {
+        kv.second.readFrom(f->second);
+      }
+    }
+  }
+};
+
+template <typename T>
+struct SensorSetParamMapWriter {
+  SensorParameterMap<T> *dst;
+
+  template <DataCode code, typename X, typename SensorModelMap>
+  void visit(const SensorModelMap &obj) {
+    std::map<std::string, std::map<std::string, T>> &dstSub = (*dst)[code];
+    for (const auto &kv: obj) {
+      std::map<std::string, T> &sub = dstSub[kv.first];
+      kv.second.writeTo(&sub);
+    }
+  }
+};
+
 // Model for all the sensors on the boat.
 template <typename T>
 struct SensorSet {
@@ -175,6 +210,16 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 
   void writeTo(T *dst) const {
     SensorSetParamWriter<T> writer{dst};
+    visitFieldsConst(*this, &writer);
+  }
+
+  void readFrom(const SensorParameterMap<T> &src) {
+    SensorSetParamMapReader<T> reader{src};
+    visitFieldsMutable(this, &reader);
+  }
+
+  void writeTo(SensorParameterMap<T> *dst) const {
+    SensorSetParamMapWriter<T> writer{dst};
     visitFieldsConst(*this, &writer);
   }
 
