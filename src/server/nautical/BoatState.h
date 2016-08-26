@@ -182,8 +182,7 @@ public:
     return heading() - boatOverWater().angle();
   }
 
-  // The quantity below can be compared against the predicted leeway
-  // angle.
+  // This is used to estimate drift.
   Velocity<T> computeLeewayError(
       // Leeway angle estimated using some drift model,
       // e.g. based on wind direction etc.
@@ -195,6 +194,13 @@ public:
 
   Angle<T> AWA() const {
     return angleBlowingFrom(apparentWind()) - heading();
+  }
+
+  Velocity<T> computeAWAError(const Angle<T> &measuredAWA) const {
+    Angle<T> angleOfWindDirection = measuredAWA
+        + Angle<T>::degrees(T(180.0)) + heading();
+    return velocityDifferenceBetween(apparentWind(),
+        angleOfWindDirection);
   }
 private:
   GeographicPosition<T> _position;
