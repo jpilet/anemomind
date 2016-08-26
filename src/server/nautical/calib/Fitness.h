@@ -21,15 +21,15 @@ struct SensorModel {
   static const int paramCount = 0;
   void readFrom(T *) {}
   void writeTo(T *) const {}
+  void readFrom(const std::map<std::string, T> &) {}
+  void writeTo(std::map<std::string, T> *) {}
   void outputSummary(std::ostream *) const {}
 };
 
 template <typename T>
 class BasicAngleSensor {
 public:
-  BasicAngleSensor() : _offset(Angle<T>::radians(T(0.0))) {
-    std::cout << "///////////////" << std::endl;
-  }
+  BasicAngleSensor() : _offset(Angle<T>::radians(T(0.0))) {}
 
   static const int paramCount = 1;
 
@@ -41,6 +41,17 @@ public:
 
   void writeTo(T *dst) const {
     dst[0] = _offset.radians();
+  }
+
+  void readFrom(const std::map<std::string, T> &src) {
+    auto f = src.find("offset-radians");
+    if (f != src.end()) {
+      _offset = Angle<T>::radians(f->second);
+    }
+  }
+
+  void writeTo(std::map<std::string, T> *dst) const {
+    (*dst)["offset-radians"] = _offset.radians();
   }
 
   void outputSummary(std::ostream *dst) const {
@@ -63,6 +74,17 @@ public:
 
   void outputSummary(std::ostream *dst) const {
     *dst << "BasicSpeedSensor1 with bias " << _bias;
+  }
+
+  void readFrom(const std::map<std::string, T> &src) {
+    auto f = src.find("bias");
+    if (f != src.end()) {
+      _bias = f->second;
+    }
+  }
+
+  void writeTo(std::map<std::string, T> *dst) const {
+    (*dst)["bias"] = _bias;
   }
 private:
   T _bias;
