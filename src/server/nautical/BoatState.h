@@ -182,19 +182,28 @@ public:
     return heading() - boatOverWater().angle();
   }
 
-  // This is used to estimate drift.
-  Velocity<T> computeLeewayError(
-      // Leeway angle estimated using some drift model,
-      // e.g. based on wind direction etc.
-      const Angle<T> predictedLeewayAngle) const {
-    auto bow = boatOverWater();
-    return velocityDifferenceBetween<T>(bow, heading())
-        - interpretAngleAsVelocity<T>(bow.norm(), predictedLeewayAngle);
-  }
+
 
   Angle<T> AWA() const {
     return angleBlowingFrom(apparentWind()) - heading();
   }
+
+
+
+
+
+/////////////////////////////////////// Used to generate the residuals
+////// Should the go elsewhere???
+
+  // This is used to estimate drift.
+    Velocity<T> computeLeewayError(
+        // Leeway angle estimated using some drift model,
+        // e.g. based on wind direction etc.
+        const Angle<T> predictedLeewayAngle) const {
+      auto bow = boatOverWater();
+      return velocityDifferenceBetween<T>(bow, heading())
+          - interpretAngleAsVelocity<T>(bow.norm(), predictedLeewayAngle);
+    }
 
   Velocity<T> computeAWAError(const Angle<T> &measuredAWA) const {
     Angle<T> angleOfWindDirection = measuredAWA
