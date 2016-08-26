@@ -164,11 +164,14 @@ struct SensorSetParamMapReader {
 
   template <DataCode code, typename X, typename SensorModelMap>
   void visit(SensorModelMap *obj) {
-    auto &sub = src[code];
-    for (auto &kv: *obj) {
-      auto f = sub.find(kv.first);
-      if (f != sub.end()) {
-        kv.second.readFrom(f->second);
+    auto f0 = src.find(code);
+    if (f0 != src.end()) {
+      const auto &sub = f0->second;
+      for (auto &kv: *obj) {
+        auto f = sub.find(kv.first);
+        if (f != sub.end()) {
+          kv.second.readFrom(f->second);
+        }
       }
     }
   }
