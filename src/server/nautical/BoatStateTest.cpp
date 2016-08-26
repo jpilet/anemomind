@@ -15,7 +15,7 @@
 using namespace sail;
 
 typedef BoatState<double> BS;
-typedef ceres::Jet<double, 1> ADType;
+typedef ceres::Jet<double, 4> ADType;
 typedef BoatState<ADType> BSad;
 
 TEST(BoatStateTest, Orthonormality) {
@@ -68,27 +68,29 @@ TEST(BoatStateTest, WithAD) {
 }
 
 Eigen::MatrixXd computeRotWithAD(Eigen::Vector4d params) {
-  ADType angle(params(0));
+  typedef ceres::Jet<double, 4> AD4;
+  AD4 angle(params(0));
   angle.v[0] = 1.0;
-  Eigen::Matrix<ADType, 3, 1> axis(
-      ADType(params(1)),
-      ADType(params(2)),
-      ADType(params(3)));
+  Eigen::Matrix<AD4, 3, 1> axis(
+      AD4(params(1)),
+      AD4(params(2)),
+      AD4(params(3)));
   for (int i = 0; i < 3; i++) {
     axis(i).v[1 + i] = 1.0;
   }
+  std::cout << "INitliazed" << std::endl;
 
-  Eigen::AngleAxis<ADType> aa(angle, axis);
-  Eigen::Matrix<ADType, 3, 3> mat = aa.toRotationMatrix();
+  Eigen::AngleAxis<AD4> aa(angle, axis);
+  Eigen::Matrix<AD4, 3, 3> mat = aa.toRotationMatrix();
 
   Eigen::MatrixXd dst(9, 5);
   int row = 0;
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
-      ADType x = mat(i, j);
+      AD4 x = mat(i, j);
       EXPECT_TRUE(isFinite(x.a));
       dst(row, 0) = x.a;
-      for (int k = 0; j < 4; k++) {
+      for (int k = 0; k < 4; k++) {
         auto y = x.v[k];
         EXPECT_TRUE(isFinite(y));
         dst(row, 1+k) = y;
@@ -135,8 +137,11 @@ Eigen::MatrixXd computeRotWithNumDerives(Eigen::Vector4d params) {
 
 
 void testDerivatives(Eigen::Vector4d params) {
+  std::cout << "COmputing it" << std::endl;
   Eigen::MatrixXd mat0 = computeRotWithAD(params);
+  std::cout << "Mat0 = " << mat0 << std::endl;
   Eigen::MatrixXd mat1 = computeRotWithNumDerives(params);
+  std::cout << "Mat1 = " << mat1 << std::endl;
   EXPECT_EQ(mat0.rows(), 9);
   EXPECT_EQ(mat1.rows(), 9);
   EXPECT_EQ(mat0.cols(), 5);
