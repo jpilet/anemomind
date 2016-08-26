@@ -60,10 +60,21 @@ TEST(BoatStateTest, VariousProperties) {
 
   EXPECT_TRUE(bs0.valid());
 
-  Eigen::Vector3d wh = bs0.worldHeadingVector();
-  EXPECT_NEAR(wh(0), 0.0, 1.0e-6);
-  EXPECT_NEAR(wh(1), 1.0, 1.0e-6);
-  EXPECT_NEAR(wh(2), 0.0, 1.0e-6);
+  {
+    Eigen::Vector3d wh = bs0.worldHeadingVector();
+    EXPECT_NEAR(wh(0), 0.0, 1.0e-6);
+    EXPECT_NEAR(wh(1), 1.0, 1.0e-6);
+    EXPECT_NEAR(wh(2), 0.0, 1.0e-6);
+  }
+
+  auto angle2 = 45.0_deg;
+  BS bs2(pos, gps, wind, current, angle2, axis);
+  {
+    Eigen::Vector3d wh = bs2.worldHeadingVector();
+    EXPECT_NEAR(wh(0), -1.0/sqrt(2.0), 1.0e-6);
+    EXPECT_NEAR(wh(1), 1.0/sqrt(2.0), 1.0e-6);
+    EXPECT_NEAR(wh(2), 0.0, 1.0e-6);
+  }
 }
 
 TEST(BoatStateTest, WithAD) {
