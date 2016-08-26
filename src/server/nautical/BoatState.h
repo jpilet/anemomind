@@ -24,12 +24,46 @@
 
 namespace sail {
 
+template <typename T>
+class BoatState;
+
 template <typename T, int N>
 struct UnitVector {
   static bool is(const Eigen::Matrix<T, N, 1> &v, T tol) {
     return std::abs(v.norm() - 1.0) < tol;
   }
 };
+
+// So that we can do all our error computations
+// in the velocity domain. Angles are reinterpreted
+// as velocity arc lengths.
+template <typename T>
+Velocity<T> arcLength(
+    const Velocity<T> &refVelocity,
+    const Angle<T> &angle) {
+  return angle.radians()*refVelocity;
+}
+
+
+// The norm of the difference between two vectors of length
+// 'refVelocity' and the angle 'angle' between them.
+template <typename T>
+Velocity<T> interpretAngleAsVelocity(
+    const Velocity<T> &refVelocity,
+    Angle<T> angle) {
+  return (2.0*sin(0.5*angle))*refVelocity;
+}
+
+// The norm of the difference between 'motion', and another motion
+// of the same magnitude but oriented by an angle 'angle'
+// w.r.t. geographic north.
+template <typename T>
+Velocity<T> velocityDifferenceBetween(
+    const HorizontalMotion<T> &motion,
+    const Angle<T> angle) {
+  return motion - HorizontalMotion<T>::polar(motion.norm(), angle);
+}
+
 
 template <typename T>
 class BoatState {
@@ -126,14 +160,30 @@ public:
     return angleAxis()*headingVector();
   }
 
-  Eigen::Matrix<T, 2, 1> worldHeadingVector2d() const {
+  Eigen::Matrix<T, 2, 1> worldHeadingVectorHorizontal() const {
     auto v = worldHeadingVector();
     return Eigen::Matrix<T, 2, 1>(v(0), v(1));
   }
 
   Angle<T> heading() const {
-    auto v2 = worldHeadingVector2d();
+    auto v2 = worldHeadingVector();
     return headingAngle<T>(v2(0), v2(1));
+  }
+
+  // To be avoided: Undefined (NaN) when boatOverWater has 0 norm.
+  Angle<T> leewayAngle() const {
+    return heading() - boatOverWater().angle();
+  }
+
+  // The quantity below can be compared against the predicted leeway
+  // angle.
+  Velocity<T> computeLeewayError(
+      // Leeway angle estimated using some drift model,
+      // e.g. based on wind direction etc.
+      const Angle<T> predictedLeewayAngle) const {
+    auto bow = boatOverWater();
+    return velocityDifferenceBetween(bow, heading())
+        - interpretAngleAsVelicty(bow, predictedLeewayAngle);
   }
 private:
   GeographicPosition<T> _position;
