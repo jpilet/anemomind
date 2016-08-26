@@ -32,7 +32,7 @@ TEST(BoatStateTest, VariousProperties) {
       Angle<double>::degrees(45),
       Angle<double>::degrees(45));
 
-  //HorizontalMotion<double> gpsMotion(0.0_kt, 0.0_kt);
+  HorizontalMotion<double> gpsMotion(0.0_kt, 0.0_kt);
   /*HorizontalMotion<double> &windOverGround,
         const HorizontalMotion<T> &currentOverGround,
         const Eigen::Matrix<T, 3, 1> &orientationBoatToLocal) :
