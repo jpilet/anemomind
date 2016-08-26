@@ -8,11 +8,13 @@
 #include <server/nautical/BoatState.h>
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 using namespace sail;
 
+typedef BoatState<double> BS;
+
 TEST(BoatStateTest, Orthonormality) {
-  typedef BoatState<double> BS;
 
   auto expectedMast = BS::starboardVector().cross(BS::headingVector());
   EXPECT_NEAR((expectedMast - BS::mastVector()).norm(), 0.0, 1.0e-6);
@@ -23,6 +25,22 @@ TEST(BoatStateTest, Orthonormality) {
       EXPECT_NEAR(v[i].dot(v[j]), i == j? 1.0 : 0.0, 1.0e-6);
     }
   }
+}
+
+TEST(BoatStateTest, VariousProperties) {
+  GeographicPosition<double> position(
+      Angle<double>::degrees(45),
+      Angle<double>::degrees(45));
+
+  //HorizontalMotion<double> gpsMotion(0.0_kt, 0.0_kt);
+  /*HorizontalMotion<double> &windOverGround,
+        const HorizontalMotion<T> &currentOverGround,
+        const Eigen::Matrix<T, 3, 1> &orientationBoatToLocal) :
+          _position(position),
+          _gpsMotion(gpsMotion),
+          _windOverGround(windOverGround),
+          _currentOverGround(currentOverGround),
+          _orientationBoatToLocal(orientationBoatToLocal) {}*/
 }
 
 

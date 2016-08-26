@@ -63,6 +63,18 @@ public:
   HorizontalMotion<T> _gpsMotion;
   HorizontalMotion<T> _windOverGround;
   HorizontalMotion<T> _currentOverGround;
+
+  /*
+   * A local, right-handed, coordinate system attached to the earth
+   * at the current location of the boat:
+   *  - X axis points from west to easy
+   *  - Y axis points from south to north
+   *  - Z axis points up, perpendicular to the earth. This
+   *  vector is an axis-angle representation of a rotation, that when applied
+   *  to a coordinate in the boat coordinate system results in a coordinate
+   *  in this local earth-attached coordinate system.
+   *
+   */
   Eigen::Matrix<T, 3, 1> _orientationBoatToLocal;
 };
 
