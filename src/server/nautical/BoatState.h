@@ -125,6 +125,16 @@ public:
   Eigen::Matrix<T, 3, 1> worldHeadingVector() const {
     return angleAxis()*headingVector();
   }
+
+  Eigen::Matrix<T, 2, 1> worldHeadingVector2d() const {
+    auto v = worldHeadingVector();
+    return Eigen::Matrix<T, 2, 1>(v(0), v(1));
+  }
+
+  Angle<T> heading() const {
+    auto v2 = worldHeadingVector2d();
+    return headingAngle<T>(v2(0), v2(1));
+  }
 private:
   GeographicPosition<T> _position;
   HorizontalMotion<T> _boatOverGround;

@@ -622,6 +622,11 @@ T tan(sail::Angle<T> x) {return tan(x.radians());}
 namespace sail {
 
 template <typename T>
+Angle<T> headingAngle(T x, T y) {
+  return Angle<T>::radians(atan2(x, y));
+}
+
+template <typename T>
 class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
   public:
     typedef Velocity<T> InnerType;
@@ -654,10 +659,11 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
         T b = (*this)[1].knots();
         return Velocity<T>::knots(sqrt(a*a + b*b));
     }
+
     Angle<T> angle() const {
-        return Angle<T>::radians(atan2(
+        return headingAngle<T>(
                 (*this)[0].knots(),
-                (*this)[1].knots()));
+                (*this)[1].knots());
     }
 
     template <typename Dst>
