@@ -66,7 +66,6 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 #undef MAKE_SENSOR_FIELD
 
   int paramCount() const {
-    return 0;
   }
 };
 

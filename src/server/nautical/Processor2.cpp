@@ -24,19 +24,6 @@
 namespace sail {
 namespace Processor2 {
 
-template <DataCode code>
-struct ChannelFieldAccess {};
-#define MAKE_FIELD_ACCESS(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  template <> struct ChannelFieldAccess<HANDLE> { \
-  template <typename OBJECT> \
-    static auto get(OBJECT &object) -> decltype(&(object.HANDLE)) {return &(object.HANDLE);} \
-    template <typename OBJECT> \
-    static auto get(const OBJECT &object) -> decltype(&(object.HANDLE)) {return &(object.HANDLE);} \
-  };
-FOREACH_CHANNEL(MAKE_FIELD_ACCESS)
-#undef MAKE_FIELD_ACCESS
-
-
 struct CutVisitor {
   Array<Reconstructor::CalibDataChunk> &_chunks;
   Array<Span<TimeStamp>> _timeSpans;
