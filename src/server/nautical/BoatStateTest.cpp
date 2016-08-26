@@ -74,6 +74,7 @@ TEST(BoatStateTest, VariousProperties) {
     EXPECT_NEAR(wh(0), -1.0/sqrt(2.0), 1.0e-6);
     EXPECT_NEAR(wh(1), 1.0/sqrt(2.0), 1.0e-6);
     EXPECT_NEAR(wh(2), 0.0, 1.0e-6);
+    EXPECT_NEAR(bs2.heading().degrees(), -45.0, 1.0e-6);
   }
 }
 
