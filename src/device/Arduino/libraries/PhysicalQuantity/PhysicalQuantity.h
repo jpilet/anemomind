@@ -694,6 +694,7 @@ DEFINE_LITERAL(Length, nauticalMiles, _M)
 DEFINE_LITERAL(Duration, seconds, _s)
 DEFINE_LITERAL(Duration, hours, _h)
 DEFINE_LITERAL(Velocity, metersPerSecond, _mps)
+DEFINE_LITERAL(Velocity, knots, _kn)
 DEFINE_LITERAL(Velocity, knots, _kt)
 #undef DEFINE_LITERAL
 
