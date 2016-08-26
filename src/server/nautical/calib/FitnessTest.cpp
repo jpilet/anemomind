@@ -7,10 +7,11 @@
 
 #include <server/nautical/calib/Fitness.h>
 #include <gtest/gtest.h>
+#include <ceres/jet.h>
 
 using namespace sail;
 
-TEST(SensorTest, Instantiate) {
+TEST(SensorTest, Various) {
 
   SensorSet<double> sensorSet;
   EXPECT_EQ(0, sensorSet.paramCount());
@@ -57,6 +58,9 @@ TEST(SensorTest, Instantiate) {
     EXPECT_NEAR(params[0], 119.34, 1.0e-6);
     EXPECT_NEAR(params[1], 34.5, 1.0e-6);
   }
+
+
+  auto sensorSet2 = sensorSet.cast<ceres::Jet<double, 4> >();
 }
 
 

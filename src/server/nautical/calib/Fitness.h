@@ -15,9 +15,27 @@
 
 namespace sail {
 
+template <typename Src, typename Dst>
+void castSensorParameters(const Src &src, Dst *dst) {
+  constexpr int N = Src::paramCount;
+  static_assert(
+      N == Dst::paramCount,
+      "Incompatible parameters");
+
+  typedef typename Src::ParameterType SrcT;
+  typedef typename Dst::ParameterType DstT;
+  SrcT srcX[N];
+  DstT dstX[N];
+  src.writeTo(srcX);
+  for (int i = 0; i < N; i++) {
+    dstX[i] = DstT(srcX[i]);
+  }
+  dst->readFrom(dstX);
+}
 
 template <typename T, DataCode code>
 struct SensorModel {
+  typedef T ParameterType;
   static const int paramCount = 0;
   void readFrom(T *) {}
   void writeTo(T *) const {}
@@ -29,6 +47,7 @@ struct SensorModel {
 template <typename T>
 class BasicAngleSensor {
 public:
+  typedef T ParameterType;
   BasicAngleSensor() : _offset(Angle<T>::radians(T(0.0))) {}
 
   static const int paramCount = 1;
@@ -65,6 +84,7 @@ private:
 template <typename T>
 class BasicSpeedSensor1 {
 public:
+  typedef T ParameterType;
   BasicSpeedSensor1() : _bias(T(1.0)) {}
 
   static const int paramCount = 1;
@@ -86,6 +106,7 @@ public:
   void writeTo(std::map<std::string, T> *dst) const {
     (*dst)["bias"] = _bias;
   }
+
 private:
   T _bias;
 };
@@ -191,6 +212,25 @@ struct SensorSetParamMapWriter {
   }
 };
 
+template <typename T>
+struct SensorSet;
+
+template <typename DstType>
+struct SensorSetCaster {
+  typedef SensorSet<DstType> DstSensorSet;
+
+  DstSensorSet result;
+
+  template <DataCode code, typename X, typename SensorModelMap>
+    void visit(const SensorModelMap &obj) {
+    auto &sub = *(ChannelFieldAccess<code>::template get<DstSensorSet>(result));
+    for (const auto &kv: obj) {
+      castSensorParameters(kv.second, &(sub[kv.first]));
+    }
+  }
+};
+
+
 // Model for all the sensors on the boat.
 template <typename T>
 struct SensorSet {
@@ -229,6 +269,13 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
   void outputSummary(std::ostream *dst) {
     SensorSetSummaryVisitor v{dst};
     visitFieldsConst(*this, &v);
+  }
+
+  template <typename DstType>
+  SensorSet<DstType> cast() {
+    SensorSetCaster<DstType> caster;
+    visitFieldsConst(*this, &caster);
+    return caster.result;
   }
 };
 
