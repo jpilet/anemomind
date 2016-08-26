@@ -25,10 +25,33 @@ namespace sail {
 template <typename T>
 class BoatState {
 public:
-  Eigen::Matrix<T, 3, 1> mastVector() const {
+
+
+
+
+
+
+  // This is how the orthonormal basis attached to the boat
+  // relates to the boat. Any one of these vector can be expressed
+  // as a cross product of the other two
+
+  // When the boat is in a perfectly horizontal equilibrium, this
+  // vector points up, pretty much along the mast.
+  static Eigen::Matrix<T, 3, 1> mastVector() {
     return Eigen::Matrix<T, 3, 1>(T(0.0), T(0.0), T(1.0));
   }
-private:
+
+  // This vector points in the direction of the heading of the boat.
+  // When the boat is horizontal, this vector is parallel to the sea.
+  static Eigen::Matrix<T, 3, 1> headingVector() {
+    return Eigen::Matrix<T, 3, 1>(T(0.0), T(1.0), T(0.0));
+  }
+
+  // This vector points towards starboard, parallel to the sea surface.
+  static Eigen::Matrix<T, 3, 1> starboardVector() {
+    return Eigen::Matrix<T, 3, 1>(T(1.0), T(0.0), T(0.0));
+  }
+
   GeographicPosition<T> _positions;
   HorizontalMotion<T> _gpsMotion;
   HorizontalMotion<T> _windOverGround;
