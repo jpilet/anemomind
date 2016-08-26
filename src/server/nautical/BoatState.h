@@ -114,7 +114,16 @@ public:
         && isFinite(_windOverGround)
         && isFinite(_currentOverGround)
         && isFinite(_angle)
-        && isFinite(_axis);
+        && isFinite(_axis)
+        && UnitVector<T, 3>::is(_axis, T(1.0e-6));
+  }
+
+  Eigen::AngleAxis<T> angleAxis() const {
+    return Eigen::AngleAxis<T>(_angle.radians(), _axis);
+  }
+
+  Eigen::Matrix<T, 3, 1> worldHeadingVector() const {
+    return angleAxis()*headingVector();
   }
 private:
   GeographicPosition<T> _position;

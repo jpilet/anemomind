@@ -59,6 +59,11 @@ TEST(BoatStateTest, VariousProperties) {
       HorizontalMotion<double>(0.0_kn, 0.0_kn)));
 
   EXPECT_TRUE(bs0.valid());
+
+  Eigen::Vector3d wh = bs0.worldHeadingVector();
+  EXPECT_NEAR(wh(0), 0.0, 1.0e-6);
+  EXPECT_NEAR(wh(1), 1.0, 1.0e-6);
+  EXPECT_NEAR(wh(2), 0.0, 1.0e-6);
 }
 
 TEST(BoatStateTest, WithAD) {
