@@ -202,7 +202,18 @@ private:
    *  in this local earth-attached coordinate system.
    *
    */
+
+  /* Special cases:
+   *
+   * If _axis = (0, 0, 1) then _angle == -heading()
+   * If _axis = (0, 0, -1) then _angle == heading()
+   *
+   */
   Angle<T> _angle;
+
+  // If we don't really know how to calibrate the inertial unit
+  // we can just fix this axis to (0, 0, 1) and assume the boat just rotates
+  // in the plane.
   Eigen::Matrix<T, 3, 1> _axis; // Should always have length 1.0
 };
 
