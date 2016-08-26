@@ -11,6 +11,7 @@
 #define SERVER_NAUTICAL_CALIB_FITNESS_H_
 
 #include <device/anemobox/Dispatcher.h>
+#include <device/anemobox/DispatcherUtils.h>
 
 namespace sail {
 
@@ -57,23 +58,41 @@ template <typename T>
 struct SensorModel<T, WAT_SPEED> : public BasicSpeedSensor1<T> {};
 
 
-struct ParamCounter {
+struct SensorSetParamCounter {
   int counter = 0;
-  template <DataCode code, typename T, typename Obj>
-  void visit(const Obj &obj) {
+  template <DataCode code, typename T, typename SensorModelMap>
+  void visit(const SensorModelMap &obj) {
     for (auto kv: obj) {
       counter += kv.second.paramCount;
     }
   }
 };
 
-template <typename Target, typename Visitor>
-void visitFields(const Target &target, Visitor *v) {
-#define VISIT_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  v->template visit<HANDLE, TYPE, decltype(target.HANDLE)>(target.HANDLE);
-  FOREACH_CHANNEL(VISIT_FIELD)
-#undef VISIT_FIELD
-}
+template <typename T>
+struct SensorSetParamReader {
+  T *src;
+
+  template <DataCode code, typename X, typename SensorModelMap>
+  void visit(const SensorModelMap &obj) {
+    for (auto kv: obj) {
+      kv.second.readFrom(src);
+      src += kv.second.paramCount;
+    }
+  }
+};
+
+template <typename T>
+struct SensorSetParamWriter {
+  T *dst;
+
+  template <DataCode code, typename X, typename SensorModelMap>
+  void visit(const SensorModelMap &obj) {
+    for (auto kv: obj) {
+      kv.second.writeTo(dst);
+      dst += kv.second.paramCount;
+    }
+  }
+};
 
 // Model for all the sensors on the boat.
 template <typename T>
@@ -84,9 +103,20 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 #undef MAKE_SENSOR_FIELD
 
   int paramCount() const {
-    ParamCounter counter;
+    SensorSetParamCounter counter;
     visitFields(*this, &counter);
     return counter.counter;
+  }
+
+  // Useful when reading the parameters to be optimized
+  void readFrom(T *src) {
+    SensorSetParamReader<T> reader{src};
+    visitFields(*this, &reader);
+  }
+
+  void writeTo(T *dst) {
+    SensorSetParamWriter<T> writer{dst};
+    visitFields(*this, &writer);
   }
 };
 
