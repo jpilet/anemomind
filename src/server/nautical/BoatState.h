@@ -61,7 +61,8 @@ template <typename T>
 Velocity<T> velocityDifferenceBetween(
     const HorizontalMotion<T> &motion,
     const Angle<T> angle) {
-  return motion - HorizontalMotion<T>::polar(motion.norm(), angle);
+  return HorizontalMotion<T>(motion - HorizontalMotion<T>::polar(
+      motion.norm(), angle)).norm();
 }
 
 
@@ -182,8 +183,8 @@ public:
       // e.g. based on wind direction etc.
       const Angle<T> predictedLeewayAngle) const {
     auto bow = boatOverWater();
-    return velocityDifferenceBetween(bow, heading())
-        - interpretAngleAsVelicty(bow, predictedLeewayAngle);
+    return velocityDifferenceBetween<T>(bow, heading())
+        - interpretAngleAsVelocity<T>(bow.norm(), predictedLeewayAngle);
   }
 private:
   GeographicPosition<T> _position;

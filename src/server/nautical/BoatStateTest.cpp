@@ -195,5 +195,6 @@ TEST(BoatStateTest, LeewayTestNoDrift) {
   BS bs(pos, gps, wind, current, angle, axis);
 
   EXPECT_TRUE(eq(hm(-1.0_kn, -2.0_kn), bs.apparentWind()));
+  EXPECT_NEAR(bs.computeLeewayError(0.0_deg).knots(), 0.0, 1.0e-6);
 }
 
