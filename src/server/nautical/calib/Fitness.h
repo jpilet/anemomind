@@ -110,16 +110,20 @@ private:
 };
 
 template <typename T>
-struct SensorModel<T, AWA> : public BasicAngleSensor<T> {};
+struct SensorModel<T, AWA> :
+  public BasicAngleSensor<T> {};
 
 template <typename T>
-struct SensorModel<T, MAG_HEADING> : public BasicAngleSensor<T> {};
+struct SensorModel<T, MAG_HEADING> :
+  public BasicAngleSensor<T> {};
 
 template <typename T>
-struct SensorModel<T, AWS> : public BasicSpeedSensor1<T> {};
+struct SensorModel<T, AWS> :
+  public BasicSpeedSensor1<T> {};
 
 template <typename T>
-struct SensorModel<T, WAT_SPEED> : public BasicSpeedSensor1<T> {};
+struct SensorModel<T, WAT_SPEED> :
+  public BasicSpeedSensor1<T> {};
 
 
 struct SensorSetParamCounter {
@@ -237,6 +241,8 @@ struct SensorSet {
 FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 #undef MAKE_SENSOR_FIELD
 
+  // Useful for determining the length of the vector
+  // vector of parameters to be optimized.
   int paramCount() const {
     SensorSetParamCounter counter;
     visitFieldsConst(*this, &counter);
@@ -244,31 +250,43 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
   }
 
   // Useful when reading the parameters to be optimized
+  // from the input argument in the objective function.
   void readFrom(T *src) {
     SensorSetParamReader<T> reader{src};
     visitFieldsMutable(this, &reader);
   }
 
+  // Useful when initializing the X vector of unknowns
+  // to be optimized.
   void writeTo(T *dst) const {
     SensorSetParamWriter<T> writer{dst};
     visitFieldsConst(*this, &writer);
   }
 
+  // Useful when reading parameters from some
+  // data structure, such as a json map
   void readFrom(const SensorParameterMap<T> &src) {
     SensorSetParamMapReader<T> reader{src};
     visitFieldsMutable(this, &reader);
   }
 
+  // Useful when converting the parameters
+  // to something that can be easily stored, e.g. in a
+  // json map.
   void writeTo(SensorParameterMap<T> *dst) const {
     SensorSetParamMapWriter<T> writer{dst};
     visitFieldsConst(*this, &writer);
   }
 
+  // Useful for debugging.
   void outputSummary(std::ostream *dst) {
     SensorSetSummaryVisitor v{dst};
     visitFieldsConst(*this, &v);
   }
 
+  // Useful in the objective function,
+  // where we want to construct a SensorSet that
+  // is automatically differentiable.
   template <typename DstType>
   SensorSet<DstType> cast() {
     SensorSetCaster<DstType> caster;
