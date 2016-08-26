@@ -41,6 +41,13 @@ TEST(SensorTest, Instantiate) {
 
     SensorParameterMap<double> parameterMap;
     sensorSet.writeTo(&parameterMap);
+
+    EXPECT_NEAR(0.25,
+        parameterMap[AWA]["NMEA2000asdfasdfas"]["offset-radians"],
+        1.0e-6);
+    EXPECT_NEAR(1.0,
+        parameterMap[WAT_SPEED]["NMEA0183Speedo"]["bias"],
+        1.0e-6);
   }
 }
 
