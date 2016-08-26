@@ -67,18 +67,92 @@ TEST(BoatStateTest, WithAD) {
 
 }
 
-TEST(BoatStateTest, AxisAngleAD) {
-  ADType angle(0.3);
+Eigen::MatrixXd computeRotWithAD(Eigen::Vector4d params) {
+  ADType angle(params(0));
   angle.v[0] = 1.0;
   Eigen::Matrix<ADType, 3, 1> axis(
-      ADType(0.0), ADType(0.0), ADType(1.0));
+      ADType(params(1)),
+      ADType(params(2)),
+      ADType(params(3)));
+  for (int i = 0; i < 3; i++) {
+    axis(i).v[1 + i] = 1.0;
+  }
+
   Eigen::AngleAxis<ADType> aa(angle, axis);
   Eigen::Matrix<ADType, 3, 3> mat = aa.toRotationMatrix();
+
+  Eigen::MatrixXd dst(9, 5);
+  int row = 0;
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
-      EXPECT_TRUE(isFinite(mat(i, j)));
+      ADType x = mat(i, j);
+      EXPECT_TRUE(isFinite(x.a));
+      dst(row, 0) = x.a;
+      for (int k = 0; j < 4; k++) {
+        auto y = x.v[k];
+        EXPECT_TRUE(isFinite(y));
+        dst(row, 1+k) = y;
+      }
+      row++;
     }
   }
+  EXPECT_EQ(row, 9);
+  return dst;
+}
+
+Eigen::VectorXd computeFlatRot(Eigen::Vector4d params) {
+  double angle = params(0);
+  Eigen::Vector3d axis(params(1), params(2), params(3));
+  Eigen::AngleAxis<double> aa(angle, axis);
+  Eigen::VectorXd dst(9);
+  Eigen::Matrix3d rot = aa.toRotationMatrix();
+  int row = 0;
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      dst(row) = rot(i, j);
+      row++;
+    }
+  }
+  EXPECT_EQ(row, 9);
+  return dst;
+}
+
+Eigen::MatrixXd computeRotWithNumDerives(Eigen::Vector4d params) {
+  Eigen::MatrixXd dst(9, 5);
+  double h = 1.0e-5;
+  double f = 1.0/(2.0*h);
+  dst.block(0, 0, 9, 1) = computeFlatRot(params);
+  for (int i = 0; i < 4; i++) {
+    Eigen::Vector4d plusParams = params;
+    plusParams(i) += h;
+    Eigen::Vector4d minusParams = params;
+    minusParams(i) -= h;
+    dst.block(0, 1+i, 9, 1) =
+        f*(computeFlatRot(plusParams) - computeFlatRot(minusParams));
+  }
+  return dst;
+}
+
+
+void testDerivatives(Eigen::Vector4d params) {
+  Eigen::MatrixXd mat0 = computeRotWithAD(params);
+  Eigen::MatrixXd mat1 = computeRotWithNumDerives(params);
+  EXPECT_EQ(mat0.rows(), 9);
+  EXPECT_EQ(mat1.rows(), 9);
+  EXPECT_EQ(mat0.cols(), 5);
+  EXPECT_EQ(mat1.cols(), 5);
+  for (int i = 0; i < 9; i++) {
+    for (int j = 0; j < 5; j++) {
+      EXPECT_NEAR(
+          mat0(i, j),
+          mat1(i, j), 1.0e-3);
+    }
+  }
+}
+
+
+TEST(BoatStateTest, AxisAngleAD) {
+  testDerivatives(Eigen::Vector4d(1, 0, 0, 1));
 }
 
 
