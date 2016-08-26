@@ -34,14 +34,19 @@ struct UnitVector {
 template <typename T>
 class BoatState {
 public:
+  static Eigen::Matrix<T, 3, 1> defaultAxis() {
+    return Eigen::Matrix<T, 3, 1>(T(0.0), T(0.0), T(1.0));
+  }
+
+  BoatState() : _axis(defaultAxis()) {}
   BoatState(
       const GeographicPosition<T> &position,
       const HorizontalMotion<T> &bog,
       const HorizontalMotion<T> &windOverGround,
       const HorizontalMotion<T> &currentOverGround,
-      Angle<double> angle,
+      Angle<T> angle,
       const Eigen::Matrix<T, 3, 1> &axis =
-          Eigen::Matrix<T, 3, 1>(T(0.0), T(0.0), T(1.0))) :
+          defaultAxis()) :
         _position(position),
         _boatOverGround(bog),
         _windOverGround(windOverGround),
@@ -128,7 +133,7 @@ private:
    *  in this local earth-attached coordinate system.
    *
    */
-  Angle<double> _angle;
+  Angle<T> _angle;
   Eigen::Matrix<T, 3, 1> _axis; // Should always have length 1.0
 };
 

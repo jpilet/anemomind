@@ -16,7 +16,7 @@ public:
   typedef GeographicPosition<T> ThisType;
 
   GeographicPosition() :
-    _alt(Length<T>::meters(0)) // In our domain, we are almost always close to sea level.
+    _alt(Length<T>::meters(T(0.0))) // In our domain, we are almost always close to sea level.
     {}
   GeographicPosition(Angle<T> longitude, Angle<T> latitude, Length<T> altitude = Length<T>::meters(0)) :
     _lon(longitude),

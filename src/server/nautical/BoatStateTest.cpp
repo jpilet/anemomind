@@ -9,10 +9,12 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <ceres/jet.h>
 
 using namespace sail;
 
 typedef BoatState<double> BS;
+typedef BoatState<ceres::Jet<double, 4>> BSj;
 
 TEST(BoatStateTest, Orthonormality) {
 
@@ -55,6 +57,10 @@ TEST(BoatStateTest, VariousProperties) {
       HorizontalMotion<double>(0.0_kn, 0.0_kn)));
 
   EXPECT_TRUE(bs0.valid());
+}
+
+TEST(BoatStateTest, WithAD) {
+  BSj state;
 }
 
 
