@@ -35,9 +35,7 @@ template <typename T> struct Statistics {
   void add(T x) { stats.add(unit(x)); }
 
   Statistics<T> operator +(const Statistics<T>& other) const {
-    Statistics<T> result;
-    result.stats = stats + other.stats;
-    return result;
+    return Statistics<T>{ stats + other.stats };
   }
 
   static double unit(Velocity<> x) { return x.knots(); }
