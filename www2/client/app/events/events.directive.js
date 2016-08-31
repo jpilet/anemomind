@@ -50,7 +50,7 @@ angular.module('www2App')
           return url.join('?');
         };
         scope.thumbnail = function (event) {
-          return scope.photoUrl(event, '120x120');
+          return scope.photoUrl(event, '480x300');
         };
         scope.onTimeSelect = function(when) {
           scope.currentTime = when;

@@ -37,7 +37,7 @@
   position: absolute;
   top: initial;
   left: 0;
-  bottom: 18%;
+  bottom: 5%;
   right: initial;
   z-index: 100;
   font-size: 10px;
@@ -53,24 +53,14 @@
 
 .timeline > li .timeline-panel .top {
   width: 100%;
-  height: 250px;
+  height: auto;
 }
 
 .timeline > li .timeline-panel .top img {
-  width: 100%;
-  height: 90%;
-}
-
-.timeline > li .timeline-panel .top img.full {
-  height: 100%;
-}
-
-.timeline > li .timeline-panel .top .comment {
-  border-left: 1px solid #e1e1e1;
-  border-right: 1px solid #e1e1e1;
-  border-bottom: 1px solid #e1e1e1;
-  padding: 3px 5px;
-  color: #3e3e3e;
+  max-width: 100%;
+  height: auto;
+  min-height:40px;
+  max-height:280px;
 }
 
 .timeline > li .timeline-panel .bottom {
@@ -81,9 +71,8 @@
   padding: 3px 5px;
 }
 
-.timeline > li .timeline-panel .bottom.trans {
-  background-color: transparent;
-  border: none;
+.timeline > li .timeline-panel .bottom.full-border {
+  border: 1px solid #e1e1e1;
 }
 
 .timeline > li .timeline-panel .bottom .eventdate a {
@@ -92,8 +81,11 @@
   font-weight: bold;
 }
 
-.timeline > li .timeline-panel .bottom .message {
+.timeline > li .timeline-panel .bottom .message,
+.timeline > li .timeline-panel .bottom .comment {
   color: #3e3e3e;
+  display: block;
+  margin-bottom: 5px;
 }
 
 
