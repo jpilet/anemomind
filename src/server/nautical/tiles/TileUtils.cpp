@@ -31,12 +31,13 @@ void splitMotionsIntoAnglesAndNorms(
   int n = src.size();
   for (const auto &m: src) {
     auto a = m.value.angle();
-    if (isFinite(a)) {
+    auto s = m.value.norm();
+    gpsSpeeds->push_back(TimedValue<Velocity<double>>(
+        m.time, s));
+    if (Velocity<double>::knots(0.1) < s && isFinite(a)) {
       gpsBearings->push_back(TimedValue<Angle<double>>(
           m.time, a));
     }
-    gpsSpeeds->push_back(TimedValue<Velocity<double>>(
-        m.time, m.value.norm()));
   }
 }
 
@@ -67,7 +68,6 @@ NavDataset filterNavs(NavDataset navs) {
   splitMotionsIntoAnglesAndNorms(motions,
       &gpsBearings,
       &gpsSpeeds);
-  CHECK(motions.size() == gpsBearings.size());
   CHECK(motions.size() == gpsSpeeds.size());
 
   // TODO: See issue https://github.com/jpilet/anemomind/issues/793#issuecomment-239423894.
