@@ -10,8 +10,20 @@
 #ifndef SERVER_NAUTICAL_CALIB_FITNESS_H_
 #define SERVER_NAUTICAL_CALIB_FITNESS_H_
 
+#include <device/anemobox/Dispatcher.h>
+#include <server/nautical/calib/SensorSet.h>
+#include <server/nautical/BoatState.h>
+
 namespace sail {
 
+template <typename T, DataCode code,
+  typename Q=typename TypeForCode<code>::type>
+void computeResidual(
+    const SensorModel<T, code> &sensorModel,
+    const BoatState<T> &estimatedState,
+    const Q &observedValue) {
+
+}
 
 } /* namespace sail */
 
