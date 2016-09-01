@@ -67,7 +67,11 @@ will rotate the boat clockwise in this plane.
               #####
 
   We want to make sure that we get the mapping of our
-  AbsoluteOrientation object right. That object defines a
+  AbsoluteOrientation object right.
+
+  AbsoluateOrienation has (heading, roll, pitch).
+
+  That object defines a
   rotation, that when applied to a vector in the boat coordinate
   system, produces a vector in the local coordinate system of
   the earth at the location of the boat.
@@ -79,11 +83,66 @@ will rotate the boat clockwise in this plane.
 
 Lets look at the Y-axis (that is the heading) for different configurations.
 
-For a heading of 0 degrees, no roll and pitch, it should be same.
+For an orientation of (h, 0, 0), the Y axis should map to
+(sin(h), cos(h), 0). If h=0, it maps to (0, 1, 0), that is the
+same as for the boat.
+
+If, in addition to heading h, there is some roll r, we
+have an orienation (h, r, 0), but the mapping of the Y-axis
+should be unaffected, that is we get
+(sin(h), cos(h), 0)
+
+But if there is some pitch p also, we have orientation
+(h, r, p) and it should be
+
+(sin(h)*cos(p), cos(h)*cos(p), sin(p))
+
+
+
+What about the X-axis of the boat. If we only have heading h,
+then (1, 0, 0) maps to
+
+(cos(h), -sin(h), 0)
+
+If there, in addition to heading, is some roll r, it should be
+(cos(h)*cos(r), -sin(h)*cos(r), sin(r))
+
+But the transformation of the X axis is unaffected by some pitch p.
+
+What about the Z axis (which is the mast)?
+That is pretty simple. We just compute the cross-product
+of X with Y.
+
+X = (sin(h)*cos(p), cos(h)*cos(p), sin(p))
+Y = (cos(h)*cos(r), -sin(h)*cos(r), sin(r))
+
+Z = cross(X, Y) = ...
+
+Do we always get an orthonormal basis this way?
 
  */
 
 namespace sail {
+
+template <typename T>
+Eigen::Matrix<T, 3, 3> orientationToMatrix(
+    const TypedAbsoluteOrientation<T> &orient) {
+  T h = orient.heading;
+  T r = orient.roll;
+  T p = orient.pitch;
+  Eigen::Matrix<T, 3, 3> R;
+
+  // Based on the calculations above. Remember that
+  // the columns of the transformation matrix are the
+  // images of the base vectors, if the base vectors
+  // are orthonormal.
+
+  //   Image of X       Image of Y        Image of Z
+  R << sin(h)*cos(p),   cos(h)*cos(r),    cos(h)*cos(p)*sin(r) - sin(p)*sin(h)*cos(r),
+       cos(h)*cos(p),   -sin(h)*cos(r),   sin(p)*cos(h)*cos(r) - sin(h)*sin(r)*cos(p),
+       sin(p),          sin(r),           -cos(p)*cos(r);
+  return R;
+}
 
 template <typename T>
 class BoatState;
