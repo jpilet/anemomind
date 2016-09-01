@@ -1,11 +1,21 @@
 <section class="eventlist">
-  <article ng-repeat="event in events | orderBy:'when'">
-    <div class="eventauthor">{{ users[event.author].name }}</div>
-    <div class="eventdate"><a href="" ng-click="onTimeSelect(event.when)">{{event.when | date:'HH:mm:ss'}}</a></div>
-    <div class="eventcontent">
-      <a ng-if="event.photo" target="_blank" ng-href="{{ photoUrl(event) }}"><img ng-src="{{ thumbnail(event) }}"></img></a>
-      <p ng-if="event.comment">{{event.comment}}</p>
-      <p ng-if="event.structuredMessage">{{ event.structuredMessage }}</p>
-    </div>
-  </article>
+  <ul class="timeline">
+    <li ng-repeat="event in events | orderBy:'when'">
+      <div class="timeline-badge" ng-class="{ 'to-top': !event.photo }"></div>
+      <article class="timeline-panel">
+        <div ng-if="event.photo" class="top">
+          <a ng-click="openLightboxModal($index)">
+            <img ng-src="{{ thumbnail(event) }}"></img>
+          </a>
+        </div>
+        <div class="bottom" ng-class="{ 'full-border': !event.photo }">
+          <div class="eventdate"><a href="" ng-click="onTimeSelect(event.when)">{{event.when | date: "H'h'mm"}}</a></div>
+          <div class="eventauthor">{{ users[event.author].name }}</div>
+          <p class="comment" ng-if="event.comment">{{event.comment}}</p>
+          <p class="message" ng-if="event.structuredMessage">{{ event.structuredMessage }}</p>
+        </div>
+      </article>
+    </li>
+
+  </ul>
 </section>
