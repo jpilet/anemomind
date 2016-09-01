@@ -15,7 +15,7 @@ TEST(SensorTest, Various) {
 
   SensorSet<double> sensorSet;
   EXPECT_EQ(0, sensorSet.paramCount());
-  sensorSet.AWA["NMEA2000asdfasdfas"] = SensorModel<double, AWA>();
+  sensorSet.AWA["NMEA2000asdfasdfas"] = DistortionModel<double, AWA>();
 
   {
     EXPECT_EQ(1, sensorSet.paramCount());
@@ -32,7 +32,7 @@ TEST(SensorTest, Various) {
   }
 
   sensorSet.WAT_SPEED["NMEA0183Speedo"]
-      = SensorModel<double, WAT_SPEED>();
+      = DistortionModel<double, WAT_SPEED>();
   {
     EXPECT_EQ(2, sensorSet.paramCount());
     double params[2] = {0.0, 0.0};

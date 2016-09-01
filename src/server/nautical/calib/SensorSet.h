@@ -32,7 +32,7 @@ void castSensorParameters(const Src &src, Dst *dst) {
 }
 
 template <typename T, DataCode code>
-struct SensorModel {
+struct DistortionModel {
   typedef T ParameterType;
   static const int paramCount = 0;
   void readFrom(T *) {}
@@ -108,19 +108,19 @@ private:
 };
 
 template <typename T>
-struct SensorModel<T, AWA> :
+struct DistortionModel<T, AWA> :
   public BasicAngleSensor<T> {};
 
 template <typename T>
-struct SensorModel<T, MAG_HEADING> :
+struct DistortionModel<T, MAG_HEADING> :
   public BasicAngleSensor<T> {};
 
 template <typename T>
-struct SensorModel<T, AWS> :
+struct DistortionModel<T, AWS> :
   public BasicSpeedSensor1<T> {};
 
 template <typename T>
-struct SensorModel<T, WAT_SPEED> :
+struct DistortionModel<T, WAT_SPEED> :
   public BasicSpeedSensor1<T> {};
 
 
@@ -235,7 +235,7 @@ struct SensorSetCaster {
 template <typename T>
 struct SensorSet {
 #define MAKE_SENSOR_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, SensorModel<T, HANDLE> > HANDLE;
+  std::map<std::string, DistortionModel<T, HANDLE> > HANDLE;
 FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 #undef MAKE_SENSOR_FIELD
 

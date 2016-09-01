@@ -19,7 +19,7 @@ namespace sail {
 template <typename T, DataCode code,
   typename Q=typename TypeForCode<code>::type>
 void computeResidual(
-    const SensorModel<T, code> &sensorModel,
+    const DistortionModel<T, code> &sensorModel,
     const BoatState<T> &estimatedState,
     const Q &observedValue) {
 
