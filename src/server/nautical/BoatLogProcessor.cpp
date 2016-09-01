@@ -244,6 +244,35 @@ Poco::Path getDstPath(ArgMap &amap) {
   }
 }
 
+
+template <typename T>
+void add(std::vector<Velocity<double>> *dst,
+    const T &x) {}
+
+template <>
+void add(std::vector<Velocity<double>> *dst,
+    const Velocity<double> &x) {
+  dst->push_back(x);
+}
+
+class GpsSpeedVisitor {
+ public:
+
+  std::vector<Velocity<double>> v;
+
+  template <DataCode Code, typename T>
+  void visit(const char *shortName, const std::string &sourceName,
+    const std::shared_ptr<DispatchData> &raw,
+    const TimedSampleCollection<T> &coll) {
+      if (Code == GPS_SPEED) {
+        for (auto x: coll.samples()) {
+          add(&v, x.value);
+        }
+      }
+  }
+
+};
+
 //
 // high-level processing logic
 //
@@ -257,7 +286,22 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   readArgs(amap);
 
+
+  std::cout << "Loading the navs..." << std::endl;
   NavDataset raw = loadNavs(*amap, _boatid);
+  std::cout << "Loaded them" << std::endl;
+
+  GpsSpeedVisitor visitor;
+  std::cout << "Visiting..." << std::endl;
+  visitDispatcherChannelsConst(raw.dispatcher().get(), &visitor);
+  std::cout << "VISITED" << std::endl;
+  std::sort(visitor.v.begin(), visitor.v.end());
+  std::cout << "Get max speed" << std::endl;
+  std::cout << "MAX SPEED: " <<
+      visitor.v.back().knots() << " knots\n";
+  std::cout << "DONE!!!!!!!!!!!!!!" << std::endl;
+  std::exit(1);
+
 
   NavDataset resampled = downSampleGpsTo1Hz(raw);
 
