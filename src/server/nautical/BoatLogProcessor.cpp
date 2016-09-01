@@ -256,24 +256,6 @@ void append(std::vector<Velocity<double>> *dst,
 
 
 
-class GpsMaxSpeedVisitor {
- public:
-
-  std::vector<Velocity<double> > v;
-
-  template <DataCode Code, typename T>
-  void visit(const char *shortName, const std::string &sourceName,
-    const std::shared_ptr<DispatchData> &raw,
-    const TimedSampleCollection<T> &coll) {
-    if (Code == GPS_SPEED) {
-      for (auto x: coll.samples()) {
-        append(&v, x.value);
-      }
-    }
-  }
-
-};
-
 //
 // high-level processing logic
 //
@@ -288,12 +270,6 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   readArgs(amap);
 
   NavDataset raw = loadNavs(*amap, _boatid);
-
-  GpsMaxSpeedVisitor visitor;
-  visitDispatcherChannelsConst(
-      raw.dispatcher().get,
-      &visitor);
-
   NavDataset resampled = downSampleGpsTo1Hz(raw);
 
   // Note: the grammar does not have access to proper true wind.
