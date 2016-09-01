@@ -10,6 +10,8 @@
 #include <server/common/ArgMap.h>
 #include <server/nautical/Nav.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
+#include <server/nautical/tiles/ChartTiles.h>
+#include <server/nautical/tiles/MongoUtils.h>
 #include <server/nautical/tiles/NavTileUploader.h>
 
 namespace sail {
@@ -33,16 +35,21 @@ struct GrammarRunner {
 struct BoatLogProcessor {
   bool process(ArgMap* amap);
   void readArgs(ArgMap* amap);
+  bool prepare(ArgMap* amap);
 
-  bool _debug;
+  bool _debug = false;
   Nav::Id _boatid;
   Poco::Path _dstPath;
   TileGeneratorParameters _tileParams;
+  ChartTileSettings _chartTileSettings;
   GrammarRunner _grammar;
-  bool _generateTiles;
+  bool _generateTiles = false;
+  bool _generateChartTiles = false;
   VmgSampleSelection _vmgSampleSelection;
   std::string _saveSimulated;
-  bool _gpsFilter;
+  bool _gpsFilter = false;
+
+  mongo::DBClientConnection db;
 };
 
 int mainProcessBoatLogs(int argc, const char **argv);

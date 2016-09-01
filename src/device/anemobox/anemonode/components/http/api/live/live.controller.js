@@ -1,6 +1,7 @@
 'use strict';
 
 var anemonode = require('../../../../build/Release/anemonode');
+var timeest = require('../../../timeest.js');
 
 var pendingCalls = {}
 var pendingCallPackets = [];
@@ -10,10 +11,10 @@ var lastFetch;
 // Get list of values, only from the best source per channel
 exports.index = function(req, res) {
   var response = {};
-  var date = (new Date()).getTime();
+  var monotonicTime = anemonode.currentTime();
   for (var i in anemonode.dispatcher.values) {
     if (anemonode.dispatcher.values[i].length() > 0
-        && Math.abs(anemonode.dispatcher.values[i].time().getTime() - date) < 2000) {
+        && Math.abs(anemonode.dispatcher.values[i].time().getTime() - monotonicTime.getTime()) < 2000) {
       response[i] = {
         v: anemonode.dispatcher.values[i].value(),
         s: anemonode.dispatcher.values[i].source()
@@ -24,7 +25,7 @@ exports.index = function(req, res) {
     response.rpcCalls = pendingCallPackets;
     pendingCallPackets = [];
   }
-  lastFetch = new Date()
+  lastFetch = monotonicTime;
   res.json(response);
 };
 
@@ -37,7 +38,7 @@ exports.allSources = function(req, res) {
     for (var source in sources[channel]) {
       sourcesForChannel[source] = {
         v: sources[channel][source].value(),
-        t: sources[channel][source].time(),
+        t: timeest.monotonicToEstimatedTime(sources[channel][source].time()),
         p: anemonode.dispatcher.sourcePriority(source)
       };
     }
@@ -84,6 +85,5 @@ exports.isConnected = function() {
   if (!lastFetch) {
     return false;
   }
-  var now = new Date();
-  return (now.getTime() - lastFetch.getTime()) < 5000;
+  return (anemonode.currentTime().getTime() - lastFetch.getTime()) < 5000;
 }

@@ -113,7 +113,8 @@
   <div class="panel-body">
     <table class="table">
       <tr ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |  limitTo:pageSize">
-        <td><a href="/map/{{boatId}}?c={{session._id}}">{{session.startTime | date: 'd.M.yyyy (H:mm'}} - {{session.endTime | date: 'H:mm'}})</a>
+        <td>
+          <a href="/map/{{boatId}}?c={{session._id}}">{{session.startTime | date: 'd.M.yyyy H:mm'}} ({{[session.startTime, session.endTime] | timeSpan}})</a>
         (<a href="/map/{{boatId}}?c={{session._id}}">max {{session.maxSpeedOverGround | number: 1}} kn</a>,
         distance: {{ session.trajectoryLength | number : 1 }} nm)
         ({{ twdirToCardinal(session.avgWindDir) }}

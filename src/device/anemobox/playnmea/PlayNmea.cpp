@@ -15,7 +15,9 @@ namespace {
 
 void playNmea(FILE *f) {
   NmeaParser parser;
-  TimeStamp startReal = TimeStamp::now();
+  // Using a monotonic clock will allow the system the change time according to
+  // the replayed file without influencing the replay speed.
+  TimeStamp startReal = MonotonicClock::now();
   TimeStamp startFake;
   bool hasFakeStartTime = false;
 
@@ -28,7 +30,7 @@ void playNmea(FILE *f) {
       case NmeaParser::NMEA_NONE: break;
       case NmeaParser::NMEA_TIME_POS:
         if (hasFakeStartTime) {
-          Duration<> elapsedReal = TimeStamp::now() - startReal;
+          Duration<> elapsedReal = MonotonicClock::now() - startReal;
           Duration<> elapsedFake = parser.timestamp() - startFake;
           if (elapsedReal < elapsedFake) {
             sleep(elapsedFake - elapsedReal);

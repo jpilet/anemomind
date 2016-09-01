@@ -4,6 +4,7 @@ var os = require('os');
 var anemonode = require('../../../../build/Release/anemonode');
 var config = require('../../../../components/config');
 var version = require('../../../../version');
+var now = require('../../../timeest.js').now;
 
 function getNetworkInfo() {
   var ifaces = os.networkInterfaces();
@@ -31,7 +32,7 @@ exports.index = function(req, res) {
   config.get(function(err, cfg) {
     var response = {};
 
-    response.date = (new Date()).getTime();
+    response.date = now().getTime();
 
     if (err) {
       response.boxConfigError = err;
