@@ -105,3 +105,9 @@ cxx_test(calib_FitnessTest
   calib_Fitness
   gtest_main
   )
+  
+cxx_test(calib_SensorSetTest
+  SensorSetTest.cpp
+  anemobox_Dispatcher
+  gtest_main
+  )  
