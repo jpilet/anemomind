@@ -64,7 +64,7 @@ template <> struct Statistics<Angle<double>> {
   }
 
   void appendBson(mongo::BSONObjBuilder* builder) const {
-    builder->append("count", count);
+    builder->append("count", (long long) count);
     if (count > 0 && vectorSum.norm() > 0.01_kn) {
       builder->append("mean", vectorSum.angle().degrees());
     }
