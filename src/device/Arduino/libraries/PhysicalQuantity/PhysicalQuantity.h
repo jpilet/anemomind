@@ -681,6 +681,24 @@ bool isNaN(const PhysicalQuantity<T, s, t, l, a, m> &x) {
   return x.isNaNQuantity();
 }
 
+// Literals
+#define DEFINE_LITERAL(QUANTITY, WHAT, LIT) \
+  inline QUANTITY<double> operator"" LIT (long double x) { \
+    return QUANTITY<double>::WHAT(x); \
+}
+DEFINE_LITERAL(Angle, degrees, _deg)
+DEFINE_LITERAL(Angle, radians, _rad)
+DEFINE_LITERAL(Length, meters, _m)
+DEFINE_LITERAL(Length, kilometers, _km)
+DEFINE_LITERAL(Length, nauticalMiles, _M)
+DEFINE_LITERAL(Duration, seconds, _s)
+DEFINE_LITERAL(Duration, hours, _h)
+DEFINE_LITERAL(Velocity, metersPerSecond, _mps)
+DEFINE_LITERAL(Velocity, knots, _kn)
+DEFINE_LITERAL(Velocity, knots, _kt)
+#undef DEFINE_LITERAL
+
+
 }  // namespace sail
 
 template <typename T, typename s, int t, int l, int a, int m>

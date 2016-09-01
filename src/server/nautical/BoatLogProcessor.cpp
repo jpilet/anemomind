@@ -26,6 +26,7 @@
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
 
@@ -255,7 +256,12 @@ Poco::Path getDstPath(ArgMap &amap) {
 bool BoatLogProcessor::process(ArgMap* amap) {
   TimeStamp start = TimeStamp::now();
 
+  if (!prepare(amap)) {
+    return false;
+  }
   readArgs(amap);
+
+
 
   NavDataset raw = loadNavs(*amap, _boatid);
 
@@ -317,8 +323,15 @@ this code some time, we should think carefully how we want to do the merging.
     Array<NavDataset> filteredSessions =
       (_gpsFilter ? filterSessions(rawSessions) : rawSessions);
 
-    if (!generateAndUploadTiles(_boatid, filteredSessions, _tileParams)) {
+    if (!generateAndUploadTiles(_boatid, filteredSessions, &db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
+      return false;
+    }
+  }
+
+  if (_generateChartTiles) {
+    if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)) {
+      LOG(ERROR) << "Failed to upload chart tiles!";
       return false;
     }
   }
@@ -333,6 +346,7 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _boatid = getBoatId(*amap);
   _dstPath = getDstPath(*amap);
   _generateTiles = amap->optionProvided("-t");
+  _generateChartTiles = amap->optionProvided("-c");
   _vmgSampleSelection = (amap->optionProvided("--vmg:blind") ?
     VMG_SAMPLES_BLIND : VMG_SAMPLES_FROM_GRAMMAR);
 
@@ -340,6 +354,7 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
 
   _tileParams.fullClean = amap->optionProvided("--clean");
 
+  _chartTileSettings.dbName = _tileParams.dbName;
   if (_debug) {
     LOG(INFO) << "BoatLogProcessor:\n"
       << "boat: " << _boatid << "\n"
@@ -348,6 +363,22 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
       << (_vmgSampleSelection == VMG_SAMPLES_FROM_GRAMMAR ?
           "grammar vmg samples" : "blind vmg samples");
   }
+}
+
+bool BoatLogProcessor::prepare(ArgMap* amap) {
+  readArgs(amap);
+
+  if (_generateTiles || _generateChartTiles) {
+    if (!mongoConnect(_tileParams.dbHost,
+                      _tileParams.dbName,
+                      _tileParams.user,
+                      _tileParams.passwd,
+                      &db)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 int mainProcessBoatLogs(int argc, const char **argv) {
@@ -389,6 +420,10 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("-t", "Generate vector tiles and upload to mongodb")
     .setArgCount(0);
+
+  amap.registerOption("-c", "Generate chart tiles and upload to mongodb")
+    .setArgCount(0);
+
   amap.registerOption("--host", "MongoDB hostname").store(&params->dbHost);
   amap.registerOption("--scale", "max scale level").store(&params->maxScale);
   amap.registerOption("--maxpoints",
@@ -408,7 +443,6 @@ int mainProcessBoatLogs(int argc, const char **argv) {
       .store(&params->passwd);
 
   amap.registerOption("--clean", "Clean all tiles for this boat before starting");
-
 
   auto status = amap.parse(argc, argv);
   switch (status) {

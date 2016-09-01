@@ -193,3 +193,7 @@ TEST(PhysQuantTest, isNaN) {
   EXPECT_EQ(isnan(inf), sail::isNaN(inf));
 }
 
+TEST(PhysQuantTest, Literals) {
+  EXPECT_NEAR((134.0_deg).degrees(), 134, 1.0e-6);
+}
+

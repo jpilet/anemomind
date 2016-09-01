@@ -1,10 +1,15 @@
 var http = require('./http/api/live/live.controller.js');
-var rpcble = require('./rpcble');
+
+exports.WITH_BT = false;
+exports.WITH_HTTP = false;
 
 exports.call = function(func, args, callback) {
-  if (http.isConnected()) {
+  if (exports.WITH_BT) {
+    var rpcble = require('./rpcble');
+  }
+  if (exports.WITH_HTTP && http.isConnected()) {
     http.callRpc(func, args, callback);
-  } else if (rpcble.isConnected()) {
+  } else if (exports.WITH_BT && rpcble.isConnected()) {
     rpcble.call(func, args, callback);
   } else {
     console.log('Can\'t call rpc ' + func + ': nobody is connected.');

@@ -1,6 +1,7 @@
 
 #include <device/anemobox/Sources.h>
 
+#include <map>
 #include <regex>
 #include <server/common/logging.h>
 #include <set>
@@ -30,14 +31,23 @@ const char externalRegex[] =
 }  // namespace
 
 SourceOrigin classify(const std::string& source) {
-  static std::regex internal(internalRegex);
-  static std::regex external(externalRegex);
+  static std::regex internal(internalRegex, std::regex::optimize);
+  static std::regex external(externalRegex, std::regex::optimize);
+
+  static std::map<std::string, SourceOrigin> cache;
+
+  auto it = cache.find(source);
+  if (it != cache.end()) {
+    return it->second;
+  }
 
   if (regex_match(source, internal)) {
+    cache[source] = ANEMOBOX;
     return ANEMOBOX;
   }
 
   if (regex_match(source, external)) {
+    cache[source] = EXTERNAL;
     return EXTERNAL;
   }
 
@@ -52,6 +62,7 @@ SourceOrigin classify(const std::string& source) {
     warned.insert(source);
   }
 
+  cache[source] = SourceOrigin::UNKNOWN;
   return SourceOrigin::UNKNOWN;
 }
 

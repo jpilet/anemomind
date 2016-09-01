@@ -140,6 +140,10 @@ void logCat(const LogFile& data) {
     cout << "boatName: " << data.boatname() << endl;
   }
 
+  if (data.has_bootcount()) {
+    cout << "bootcount: " << data.bootcount() << endl;
+  }
+
   vector<TimedString> entries;
   for (int i = 0; i < data.stream_size(); ++i) {
     streamCat(data.stream(i), &entries);
