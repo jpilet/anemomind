@@ -40,22 +40,22 @@
 
     <sidebar ng-show="sideBarActive">
       <div id="tabs" class="semitransp padding5px">
-        <tabset>
-          <tab heading="Perf">
+        <uib-tabset>
+          <uib-tab heading="Perf">
             <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
-          </tab>
-          <tab heading="Wind">
+          </uib-tab>
+          <uib-tab heading="Wind">
             <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
             <wheel-small-indicator id="smallwheelcog" label="'&deg;'" arrow="twdir | angle:360" boat="gpsBearing" north="0" description="'True Wind Direction'"></wheel-small-indicator>
-          </tab>
-          <tab heading="Speed">
+          </uib-tab>
+          <uib-tab heading="Speed">
             <gauge-indicator
               id="gaugeperf"
               label="gpsSpeed | speed"
               value="gpsSpeed"
               description="'Speed over ground'" min="0" max="12" ></gauge-indicator>
-          </tab>
-          <tab heading="Raw">
+          </uib-tab>
+          <uib-tab heading="Raw">
             <div class="instrumentsView">
               <table class="table table-bordered table-condensed">
                 <tr data-ng-hide='vmgPerf == undefined'><td>VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
@@ -74,8 +74,8 @@
                 <tr><td>Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
               </table>
             </div>
-          </tab>
-        </tabset>
+          </uib-tab>
+        </uib-tabset>
         <div id="eventsContainer">
           <events boat="boat._id" before="endTime" after="startTime"
             current-time="currentTime">
