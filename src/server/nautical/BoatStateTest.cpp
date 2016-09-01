@@ -62,16 +62,8 @@ TEST(BoatStateTest, OrientationOrthonormality) {
       randomAngle(), randomAngle(), randomAngle()
     };
 
-    Eigen::Matrix<double, 3, 2> R2 = orientationToMatrix(o)
-        .block(0, 0, 3, 2);
-
-    Eigen::Matrix2d RtR2 = R2.transpose()*R2;
-    std::cout << "RtR2 = " << RtR2 << std::endl;
-
     Eigen::Matrix<double, 3, 3> R = orientationToMatrix(o);
     Eigen::Matrix3d RtR = R.transpose()*R;
-
-    std::cout << "RtR = " << RtR << std::endl;
 
     EXPECT_TRUE(
         (isZero<double, 3, 3>(
