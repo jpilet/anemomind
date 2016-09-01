@@ -53,7 +53,7 @@ angular.module('www2App')
           return scope.photoUrl(event,
              // Load more pixels if the screen can handle it.
              (window.devicePixelRatio && window.devicePixelRatio >= 2 ?
-              '500' : '250')
+              '700' : '400')
              + 'x_');
         };
         scope.onTimeSelect = function(when) {
