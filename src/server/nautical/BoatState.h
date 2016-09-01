@@ -41,7 +41,7 @@ will rotate the boat clockwise in this plane.
                 |
                 |
                 |
-                |
+
                 #
                ###
                ###
@@ -49,22 +49,24 @@ will rotate the boat clockwise in this plane.
               #####
              #######
              #######
-             #######
             #########
             #########
+           ###########
+           ###########
+          #############
+          ####  oZ(up)#   ------------------>X (east)
+          #############
+          #############
+          #############
+          #############
+          #############
+          #############
+          #############
+           ###########
+           ###########
             #########
-            #########
-            ### oZ ##--------------------->X (east)
-            #########
-            #########
-            #########
-            #########
-            #########
-             #######
-             #######
-             #######
-             #######
-              #####
+
+  Together, the vectors form an orthonormal basis.
 
   We want to make sure that we get the mapping of our
   AbsoluteOrientation object right.
@@ -104,16 +106,17 @@ will rotate the boat clockwise in this plane.
   Explanation:
     In the matrix product above, read the application
     of rotations from right to left. So first we apply
-    the roll. A positive roll means that the boat leans
+    the roll. An increasing roll means that the boat leans
     towards starboard, such as when the wind is coming
     from port side, or the crew moving to the starboard
     side of the boat.
 
     Then after we have rolled the boat, we apply some pitch.
-    A positive pitch means that the boat is tilted as if
-    the crew would move towards the aft.
+    An increasing pitch means that the boat is tilted as if
+    the crew would move towards the aft, or the boat climbing
+    up a big wave.
 
-    Then we apply the heading. A positive heading means that
+    Then we apply the heading. An increasing heading means that
     the boat turns towards starboard, as if we were to
     round a buoy clockwise.
 
@@ -149,6 +152,15 @@ Eigen::Matrix<T, 3, 3> rollMatrix(Angle<T> r) {
   return R;
 }
 
+/*
+ * Implementation of the rotation, as described
+ * previously. I think this representation makes a
+ * lot of sense for performing optimization.
+ * I am not sure this function should go
+ * here, but I will keep it here, because maybe the
+ * mapping of AbsoluteOrientation to a rotation matrix
+ * is different in some other part of the code.
+ */
 template <typename T>
 Eigen::Matrix<T, 3, 3> orientationToMatrix(
     const TypedAbsoluteOrientation<T> &orient) {
@@ -225,24 +237,14 @@ public:
         _orientation(orientation) {}
 
 
-  // This is how the orthonormal basis attached to the boat
-  // relates to the boat. Any one of these vector can be expressed
-  // as a cross product of the other two
-
-  // When the boat is in a perfectly horizontal equilibrium, this
-  // vector points up, pretty much along the mast.
-  static Eigen::Matrix<T, 3, 1> mastVector() {
+  // Vectors defined as in the illustration above.
+  static Eigen::Matrix<T, 3, 1> localMastVector() {
     return Eigen::Matrix<T, 3, 1>(T(0.0), T(0.0), T(1.0));
   }
-
-  // This vector points in the direction of the heading of the boat.
-  // When the boat is horizontal, this vector is parallel to the sea.
-  static Eigen::Matrix<T, 3, 1> headingVector() {
+  static Eigen::Matrix<T, 3, 1> localHeadingVector() {
     return Eigen::Matrix<T, 3, 1>(T(0.0), T(1.0), T(0.0));
   }
-
-  // This vector points towards starboard, parallel to the sea surface.
-  static Eigen::Matrix<T, 3, 1> starboardVector() {
+  static Eigen::Matrix<T, 3, 1> localStarboardVector() {
     return Eigen::Matrix<T, 3, 1>(T(1.0), T(0.0), T(0.0));
   }
 
@@ -279,14 +281,13 @@ public:
         && isFinite(_orientation);
   }
 
-  Eigen::Matrix<T, 3, 1> worldHeadingVector() const {
-    CHECK(false); //TODO
-    return Eigen::Matrix<T, 3, 1>::Zero();
+
+  Eigen::Matrix<T, 3, 3> rotationMatrix() const {
+    return orientationToMatrix(_orientation);
   }
 
-  Eigen::Matrix<T, 2, 1> worldHeadingVectorHorizontal() const {
-    CHECK(false); //TODO
-    return Eigen::Matrix<T, 3, 1>::Zero();
+  Eigen::Matrix<T, 3, 1> worldHeadingVector() const {
+    return rotationMatrix().block(0, 1, 3, 1);
   }
 
   Angle<T> heading() const {
@@ -334,19 +335,6 @@ private:
   HorizontalMotion<T> _boatOverGround;
   HorizontalMotion<T> _windOverGround;
   HorizontalMotion<T> _currentOverGround;
-
-  /*
-   * A local, right-handed, coordinate system attached to the earth
-   * at the current location of the boat:
-   *  - X axis points from west to easy
-   *  - Y axis points from south to north
-   *  - Z axis points up, perpendicular to the earth. This
-   *  vector is an axis-angle representation of a rotation, that when applied
-   *  to a coordinate in the boat coordinate system results in a coordinate
-   *  in this local earth-attached coordinate system.
-   *
-   */
-
   TypedAbsoluteOrientation<T> _orientation;
 };
 
@@ -360,10 +348,10 @@ BoatState<T> interpolate(T lambda,
       interpolate<T>(lambda, a.position(), b.position()),
       interpolateAnything(lambda, a.boatOverGround(),
                                   b.boatOverGround()),
-      interpolateAnything(lambda, a.boatOverGround(),
-                                  b.boatOverGround()),
-      interpolateAnything(lambda, a.boatOverGround(),
-                                  b.boatOverGround()),
+      interpolateAnything(lambda, a.windOverGround(),
+                                  b.windOverGround()),
+      interpolateAnything(lambda, a.currentOverGround(),
+                                  b.currentOverGround()),
       interpolate(lambda, a.orientation(), b.orientation()));
 
 
