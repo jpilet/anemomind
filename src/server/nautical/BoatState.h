@@ -81,67 +81,80 @@ will rotate the boat clockwise in this plane.
   a vector pointing towards starboard is (1, 0, 0) and the
   mast is pointing in the direction (0, 0, 1).
 
-Lets look at the Y-axis (that is the heading) for different configurations.
+  Assuming that we have an absolute orientation of
+    (heading, roll, pitch) = (h, r, p), we are going to
+  express the full rotation as a product of elementary
+  rotation. First we apply a roll to the boat by r,
+  then a pitch the boat by p, and finally we apply the heading.
 
-For an orientation of (h, 0, 0), the Y axis should map to
-(sin(h), cos(h), 0). If h=0, it maps to (0, 1, 0), that is the
-same as for the boat.
+  R(h, r, p) = H(h)*P(p)*R(r)
 
-If, in addition to heading h, there is some roll r, we
-have an orienation (h, r, 0), but the mapping of the Y-axis
-should be unaffected, that is we get
-(sin(h), cos(h), 0)
+  with H(h) = cos(h)  sin(h) 0
+              -sin(h) cos(h) 0
+                   0       0 1
 
-But if there is some pitch p also, we have orientation
-(h, r, p) and it should be
+       P(p) = 1      0       0
+              0 cos(p) -sin(p)
+              0 sin(p)  cos(p)
 
-(sin(h)*cos(p), cos(h)*cos(p), sin(p))
+       R(r) = cos(r)  0   sin(r)
+              0       1        0
+              -sin(r) 0   cos(r)
 
+  Explanation:
+    In the matrix product above, read the application
+    of rotations from right to left. So first we apply
+    the roll. A positive roll means that the boat leans
+    towards starboard, such as when the wind is coming
+    from port side, or the crew moving to the starboard
+    side of the boat.
 
+    Then after we have rolled the boat, we apply some pitch.
+    A positive pitch means that the boat is tilted as if
+    the crew would move towards the aft.
 
-What about the X-axis of the boat. If we only have heading h,
-then (1, 0, 0) maps to
+    Then we apply the heading. A positive heading means that
+    the boat turns towards starboard, as if we were to
+    round a buoy clockwise.
 
-(cos(h), -sin(h), 0)
-
-If there, in addition to heading, is some roll r, it should be
-(cos(h)*cos(r), -sin(h)*cos(r), sin(r))
-
-But the transformation of the X axis is unaffected by some pitch p.
-
-What about the Z axis (which is the mast)?
-That is pretty simple. We just compute the cross-product
-of X with Y.
-
-X = (sin(h)*cos(p), cos(h)*cos(p), sin(p))
-Y = (cos(h)*cos(r), -sin(h)*cos(r), sin(r))
-
-Z = cross(X, Y) = ...
-
-Do we always get an orthonormal basis this way?
 
  */
 
 namespace sail {
 
 template <typename T>
+Eigen::Matrix<T, 3, 3> headingMatrix(Angle<T> h) {
+  Eigen::Matrix<T, 3, 3> H;
+  H << cos(h), sin(h), 0,
+       -sin(h), cos(h), 0,
+       0, 0, 1;
+  return H;
+}
+
+template <typename T>
+Eigen::Matrix<T, 3, 3> pitchMatrix(Angle<T> p) {
+  Eigen::Matrix<T, 3, 3> P;
+  P << 1, 0, 0,
+      0, cos(p), -sin(p),
+      0, sin(p), cos(p);
+  return P;
+}
+
+template <typename T>
+Eigen::Matrix<T, 3, 3> rollMatrix(Angle<T> r) {
+  Eigen::Matrix<T, 3, 3> R;
+  R << cos(r), 0, sin(r),
+       0, 1, 0,
+       -sin(r), 0, cos(r);
+  return R;
+}
+
+template <typename T>
 Eigen::Matrix<T, 3, 3> orientationToMatrix(
     const TypedAbsoluteOrientation<T> &orient) {
-  auto h = orient.heading;
-  auto r = orient.roll;
-  auto p = orient.pitch;
-  Eigen::Matrix<T, 3, 3> R;
-
-  // Based on the calculations above. Remember that
-  // the columns of the transformation matrix are the
-  // images of the base vectors, if the base vectors
-  // are orthonormal.
-
-  //   Image of X       Image of Y        Image of Z
-  R << sin(h)*cos(p),   cos(h)*cos(r),    cos(h)*cos(p)*sin(r) - sin(p)*sin(h)*cos(r),
-       cos(h)*cos(p),   -sin(h)*cos(r),   sin(p)*cos(h)*cos(r) - sin(h)*sin(r)*cos(p),
-       sin(p),          sin(r),           -cos(p)*cos(r);
-  return R;
+  return headingMatrix(orient.heading)
+      *pitchMatrix(orient.pitch)
+      *rollMatrix(orient.roll);
 }
 
 template <typename T>
