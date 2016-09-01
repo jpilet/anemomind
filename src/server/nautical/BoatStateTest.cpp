@@ -98,6 +98,18 @@ TEST(BoatStateTest, ElementaryOrientations) {
     EXPECT_LT(
         (R*Eigen::Vector3d(0, 0, 1)
            - Eigen::Vector3d(k, 0, k)).norm(), 1.0e-6);
+  }{ // pitch
+    AbsoluteOrientation o{0.0_deg, 0.0_deg, 45.0_deg};
+    auto R = orientationToMatrix(o);
+    EXPECT_LT(
+        (R*Eigen::Vector3d(1, 0, 0)
+           - Eigen::Vector3d(1, 0, 0)).norm(), 1.0e-6);
+    EXPECT_LT(
+        (R*Eigen::Vector3d(0, 1, 0)
+           - Eigen::Vector3d(0, k, k)).norm(), 1.0e-6);
+    EXPECT_LT(
+        (R*Eigen::Vector3d(0, 0, 1)
+           - Eigen::Vector3d(0, -k, k)).norm(), 1.0e-6);
   }
 }
 
