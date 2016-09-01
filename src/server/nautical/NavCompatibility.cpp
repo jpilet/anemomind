@@ -487,9 +487,11 @@ MDArray2d calcNavsEcefTrajectory(NavDataset navs) {
 
 Length<double> computeTrajectoryLength(NavDataset navs) {
   Length<double> dist = Length<double>::meters(0.0);
-  int n = getNavSize(navs) - 1;
+  const TimedSampleRange<GeographicPosition<double>>& positions =
+    navs.samples<GPS_POS>();
+  int n = positions.size() - 1;
   for (int i = 0; i < n; i++) {
-    dist = dist + distance(getNav(navs, i).geographicPosition(), getNav(navs, i+1).geographicPosition());
+    dist = dist + distance(positions[i].value, positions[i+1].value);
   }
   return dist;
 }
