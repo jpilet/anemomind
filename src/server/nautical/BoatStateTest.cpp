@@ -83,6 +83,9 @@ TEST(BoatStateTest, ElementaryOrientations) {
     EXPECT_LT(
         (R*Eigen::Vector3d(0, 1, 0)
            - Eigen::Vector3d(k, k, 0.0)).norm(), 1.0e-6);
+    EXPECT_LT(
+        (R*Eigen::Vector3d(0, 0, 1)
+           - Eigen::Vector3d(0, 0, 1)).norm(), 1.0e-6);
   }
 }
 
