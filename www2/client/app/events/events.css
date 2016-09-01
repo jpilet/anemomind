@@ -59,8 +59,6 @@
 .timeline > li .timeline-panel .top img {
   max-width: 100%;
   height: auto;
-  min-height:40px;
-  max-height:280px;
 }
 
 .timeline > li .timeline-panel .bottom {
