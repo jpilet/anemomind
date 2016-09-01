@@ -19,8 +19,11 @@ angular.module('www2App')
           });
 
 
-          scope.pathLayer = canvas.layers[1];
-
+          scope.pathLayer = new VectorTileLayer({
+            maxNumCachedTiles: 4,
+            token: Auth.getToken()
+          }, canvas);
+          canvas.addLayer(scope.pathLayer);
 
 
   
@@ -49,11 +52,10 @@ angular.module('www2App')
 
           canvas.resizeCanvas(element.width(), element.height());
 
-        }  // function initializeCanvas
+        }  // end of initializeCanvas
 
 
         function updateTileUrl() {
-
           var startsAfter = curveStartTimeStr(scope.selectedCurve);
           var endsBefore = curveEndTimeStr(scope.selectedCurve);            
           scope.pathLayer.selectCurve(scope.selectedCurve);
@@ -69,10 +71,9 @@ angular.module('www2App')
             // not ready yet
             return;
           }
-          initializeCanvas();
           scope.selectedCurve=options.curve;
           scope.mapLocation = boatList.locationForCurve(options.curve);
-          canvas.setLocation(scope.mapLocation);
+          initializeCanvas();
           updateTileUrl();
 
         });
