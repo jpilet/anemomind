@@ -127,9 +127,9 @@ namespace sail {
 template <typename T>
 Eigen::Matrix<T, 3, 3> orientationToMatrix(
     const TypedAbsoluteOrientation<T> &orient) {
-  T h = orient.heading;
-  T r = orient.roll;
-  T p = orient.pitch;
+  auto h = orient.heading;
+  auto r = orient.roll;
+  auto p = orient.pitch;
   Eigen::Matrix<T, 3, 3> R;
 
   // Based on the calculations above. Remember that

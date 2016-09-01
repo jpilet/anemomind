@@ -11,6 +11,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <ceres/jet.h>
 #include <Eigen/Geometry>
+#include <random>
 
 using namespace sail;
 
@@ -43,6 +44,39 @@ namespace {
       const Velocity<double> &x,
       const Velocity<double> &y) {
     return HorizontalMotion<double>(x, y);
+  }
+}
+
+
+TEST(BoatStateTest, OrientationOrthonormality) {
+  std::default_random_engine rng;
+  std::uniform_real_distribution<double>
+    distrib(0.0, 2.0*M_PI);
+  auto randomAngle = [&]() {
+    auto value = Angle<double>::radians(distrib(rng));
+    return value;
+  };
+
+  for (int i = 0; i < 30; i++) {
+    AbsoluteOrientation o{
+      randomAngle(), randomAngle(), randomAngle()
+    };
+
+    Eigen::Matrix<double, 3, 2> R2 = orientationToMatrix(o)
+        .block(0, 0, 3, 2);
+
+    Eigen::Matrix2d RtR2 = R2.transpose()*R2;
+    std::cout << "RtR2 = " << RtR2 << std::endl;
+
+    Eigen::Matrix<double, 3, 3> R = orientationToMatrix(o);
+    Eigen::Matrix3d RtR = R.transpose()*R;
+
+    std::cout << "RtR = " << RtR << std::endl;
+
+    EXPECT_TRUE(
+        (isZero<double, 3, 3>(
+            RtR - Eigen::Matrix3d::Identity(),
+            1.0e-5)));
   }
 }
 

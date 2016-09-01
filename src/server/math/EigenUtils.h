@@ -22,6 +22,19 @@ bool isFinite(const Eigen::Matrix<T, M, N> &m) {
   return true;
 }
 
+template <typename T, int rows, int cols>
+bool isZero(const Eigen::Matrix<T, rows, cols> &M, T tol) {
+  for (int i = 0; i < M.rows(); i++) {
+    for (int j = 0; j < M.cols(); j++) {
+      T x = M(i, j);
+      if (!(-tol < x && x < tol)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 }
 
 
