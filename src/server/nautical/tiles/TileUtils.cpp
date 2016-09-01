@@ -20,20 +20,72 @@ using namespace sail::NavCompat;
 
 namespace {
 
+
+void splitMotionsIntoAnglesAndNorms(
+    const TimedSampleCollection<HorizontalMotion<double>>
+      ::TimedVector &src,
+    TimedSampleCollection<Angle<double>>
+      ::TimedVector *gpsBearings,
+    TimedSampleCollection<Velocity<double>>
+      ::TimedVector *gpsSpeeds) {
+  int n = src.size();
+  for (const auto &m: src) {
+    auto a = m.value.angle();
+    if (isFinite(a)) {
+      gpsBearings->push_back(TimedValue<Angle<double>>(
+          m.time, a));
+    }
+    gpsSpeeds->push_back(TimedValue<Velocity<double>>(
+        m.time, m.value.norm()));
+  }
+}
+
+template <DataCode code>
+std::string makeFilteredGpsName(const NavDataset &src) {
+  auto d = src.dispatcher();
+  if (d->has(code)) {
+    auto x = src.dispatcher()->get<code>();
+    if (x != nullptr) {
+      return x->source() + " merged+filtered";
+    }
+  }
+  return "merged+filtered";
+}
+
 NavDataset filterNavs(NavDataset navs) {
-  auto results = filterGpsData(navs);
+  GpsFilterSettings settings;
+  auto results = filterGpsData(navs, settings);
   if (results.empty()) {
     LOG(ERROR) << "GPS filtering failed";
     return NavDataset();
   }
 
+  auto motions = results.getGpsMotions(
+      settings.subProblemThreshold);
+  TimedSampleCollection<Angle<double>>::TimedVector gpsBearings;
+  TimedSampleCollection<Velocity<double>>::TimedVector gpsSpeeds;
+  splitMotionsIntoAnglesAndNorms(motions,
+      &gpsBearings,
+      &gpsSpeeds);
+  CHECK(motions.size() == gpsBearings.size());
+  CHECK(motions.size() == gpsSpeeds.size());
+
   // TODO: See issue https://github.com/jpilet/anemomind/issues/793#issuecomment-239423894.
   // In short, we need to make sure that NavDataset::stripChannel doesn't
   // throw away valid data that has already been merged.
-  NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
+  NavDataset cleanGps = navs
+    .replaceChannel<GeographicPosition<double> >(
       GPS_POS,
-      navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
-      results.getGlobalPositions());
+      makeFilteredGpsName<GPS_POS>(navs),
+      results.getGlobalPositions())
+    .replaceChannel<Velocity<double> >(
+      GPS_SPEED,
+      makeFilteredGpsName<GPS_SPEED>(navs),
+      gpsSpeeds)
+    .replaceChannel<Angle<double> >(
+      GPS_BEARING,
+      makeFilteredGpsName<GPS_BEARING>(navs),
+      gpsBearings);
 
   return cleanGps;
 }
