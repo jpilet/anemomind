@@ -182,8 +182,6 @@ public:
     return heading() - boatOverWater().angle();
   }
 
-
-
   Angle<T> AWA() const {
     return angleBlowingFrom(apparentWind()) - heading();
   }
@@ -242,6 +240,37 @@ private:
   // in the plane.
   Eigen::Matrix<T, 3, 1> _axis; // Should always have length 1.0
 };
+
+template <typename T>
+Angle<T> interpolateAngle(
+    T lambda, Angle<T> a, Angle<T> b) {
+  Angle<T> diff = (b - a).normalizedAt0();
+  return a + lambda*diff;
+}
+
+template <typename T>
+GeographicPosition<T> interpolateGeographicPositions(
+    T lambda,
+    const GeographicPosition<T> &a,
+    const GeographicPosition<T> &b) {
+  return GeographicPosition<T>(
+      interpolateAngle<T>(lambda, a.lon(), b.lon()),
+      interpolateAngle<T>(lambda, a.lat(), b.lat()),
+      (T(1.0) - lambda)*a.alt() + lambda*b.alt());
+}
+
+template <typename T>
+BoatState<T> interpolate(T lambdaIn0To1,
+                         const BoatState<T> &a,
+                         const BoatState<T> &b) {
+  T wa = T(1.0) - lambdaIn0To1;
+  T wb = lambdaIn0To1;
+  return BoatState<T>(
+      interpolateGeographicPositions(a, b),
+      wa*a.boatOverGround() + wb*b.boatOverGround(),
+      wa*a.windOverGround() + wb*b.windOverGround(),
+      wa*a.currentOverGround() + wb*b.currentOverGround());
+}
 
 } /* namespace sail */
 
