@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('events', function ($http, Auth, userDB, $httpParamSerializer) {
+  .directive('events', function ($http, Auth, userDB, Lightbox, $httpParamSerializer) {
     return {
       templateUrl: 'app/events/events.html',
       restrict: 'E',
@@ -55,6 +55,10 @@ angular.module('www2App')
         scope.onTimeSelect = function(when) {
           scope.currentTime = when;
         };
+        scope.openLightboxModal = function(index) {
+          console.log(scope.events);
+          Lightbox.openModal(scope.events, index);
+        }
       }
     };
   });
