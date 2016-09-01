@@ -55,9 +55,18 @@ angular.module('www2App')
         scope.onTimeSelect = function(when) {
           scope.currentTime = when;
         };
+
         scope.openLightboxModal = function(index) {
-          console.log(scope.events);
-          Lightbox.openModal(scope.events, index);
+          scope.images = [];
+          angular.forEach(scope.events, function(value, key) {
+            var image = {
+              'url': scope.photoUrl(value, ''),
+              'caption': value.comment
+            };
+            scope.images.push(image);
+          });
+
+          Lightbox.openModal(scope.images, index);
         }
       }
     };
