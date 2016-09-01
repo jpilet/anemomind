@@ -18,6 +18,13 @@ struct TypedAbsoluteOrientation {
       Angle<T>::degrees(T(0.0))
     };
   }
+
+  bool operator==(const
+      TypedAbsoluteOrientation<T> &other) const {
+    return heading == other.heading
+        && roll == other.roll
+        && pitch == other.pitch;
+  }
 };
 
 template <typename T>

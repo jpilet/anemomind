@@ -330,6 +330,14 @@ public:
   const TypedAbsoluteOrientation<T> &orientation() const {
     return _orientation;
   }
+
+  bool operator==(const BoatState<T> &other) const {
+    return _position == other._position
+        && _boatOverGround == other._boatOverGround
+        && _windOverGround == other._windOverGround
+        && _currentOverGround == other._currentOverGround
+        && _orientation == other._orientation;
+  }
 private:
   GeographicPosition<T> _position;
   HorizontalMotion<T> _boatOverGround;
