@@ -36,16 +36,17 @@
   text-align: center;
   position: absolute;
   top: initial;
-  left: 0;
-  bottom: 5%;
+  left: -26px;
+  bottom: 7px;
   right: initial;
   z-index: 100;
   font-size: 10px;
+  cursor: pointer;
 }
 
 .timeline > li .timeline-badge.to-top {
   bottom: initial;
-  top: 7px;
+  top: 6px;
 }
 
 .timeline > li .timeline-panel {
@@ -57,7 +58,7 @@
 }
 
 .timeline > li .timeline-panel .top img {
-  max-width: 100%;
+  width: 100%;
   height: auto;
   cursor: pointer;
 }
@@ -68,6 +69,7 @@
   border-right: 1px solid #e1e1e1;
   border-bottom: 1px solid #e1e1e1;
   padding: 3px 5px;
+  position: relative;
 }
 
 .timeline > li .timeline-panel .bottom.full-border {

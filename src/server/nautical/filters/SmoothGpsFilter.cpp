@@ -82,16 +82,19 @@ namespace {
   }
 }
 
-TimedSampleCollection<HorizontalMotion<double> >::TimedVector GpsFilterResults::getGpsMotions() const {
+TimedSampleCollection<HorizontalMotion<double> >::TimedVector
+  GpsFilterResults::getGpsMotions(Duration<double> maxTimeDiff) const {
   int n = filteredLocalPositions.size() - 1;
   TimedSampleCollection<HorizontalMotion<double> >::TimedVector samples;
   for (int i = 0; i < n; i++) {
     const auto &left = filteredLocalPositions[i];
     const auto &right = filteredLocalPositions[i+1];
     Duration<double> timeDiff = right.time - left.time;
-    TimeStamp middleTime = left.time + 0.5*timeDiff;
-    HorizontalMotion<double> motion = computeHorizontalMotion(left.value, right.value, timeDiff);
-    samples.push_back(TimedValue<HorizontalMotion<double> >(middleTime, motion));
+    if (timeDiff < maxTimeDiff) {
+      TimeStamp middleTime = left.time + 0.5*timeDiff;
+      HorizontalMotion<double> motion = computeHorizontalMotion(left.value, right.value, timeDiff);
+      samples.push_back(TimedValue<HorizontalMotion<double> >(middleTime, motion));
+    }
   }
   return samples;
 }
