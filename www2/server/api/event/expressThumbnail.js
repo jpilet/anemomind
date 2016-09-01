@@ -81,8 +81,18 @@ expressThumbnail.convert = function(options, callback) {
   mkdirp(path.dirname(options.location), function(err) {
     if (err) { return callback(err); }
     var img = imageMagick(options.filepath).autoOrient().gravity(options.gravity);
-    img.thumb(options.width, options.height, options.location, options.quality, function(err, stdout, stderr, command) {
-      return err ? callback(err) : callback(null);
+    img.size(function(err, size) {
+      // If either 'width' or 'height' is missing, we'll simply preserve the
+      // original image aspect ratio.
+      if (options.width == '_') {
+        options.width = size.width * (parseInt(options.height) / size.height);
+      }
+      if (options.height == '_') {
+        options.height = size.height * (parseInt(options.width) / size.width);
+      }
+      img.thumb(options.width, options.height, options.location, options.quality, function(err, stdout, stderr, command) {
+        return err ? callback(err) : callback(null);
+      });
     });
   });
 };

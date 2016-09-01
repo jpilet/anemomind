@@ -23,6 +23,10 @@ router.post('/photo/:boatId',
 // http://localhost:9000/api/events/photo/[boat]/[picture].jpg?access_token=[token]
 // to get a 120x120 thumbnail, simply use:
 // http://localhost:9000/api/events/photo/[boat]/[picture].jpg?s=120x120&access_token=[token]
+// To make a thumbnail of a fixed width, but preserving the aspect ratio,
+// simply replace the height by '_':  s=240x_
+// Similarly, to have a thumbnail of a fixed height but variable width, use:
+// s=_x300
 router.get('/photo/:boatId/:photo',
            auth.maybeAuthenticated(),
            access.boatReadAccess,
