@@ -150,3 +150,26 @@ TEST(BoatStateTest, LeewayTestNoDrift) {
   EXPECT_NEAR(bs.computeAWAError(expectedAWA).knots(), 0.0, 1.0e-6);
 }
 
+TEST(BoatStateTest, InterpolationTest) {
+  BS a, b;
+  {
+    GeographicPosition<double> pos(45.0_deg, 45.0_deg);
+    HorizontalMotion<double> gps(1.0_kn, 1.0_kn);
+    HorizontalMotion<double> wind(0.0_kn, -1.0_kn);
+    HorizontalMotion<double> current(0.0_kn, 0.0_kn);
+    auto angle = 45.0_deg;
+    a = BS(pos, gps, wind, current,
+        AbsoluteOrientation::onlyHeading(angle));
+  }{
+    GeographicPosition<double> pos(-45.0_deg, 135.0_deg);
+    HorizontalMotion<double> gps(4.0_kn, 5.0_kn);
+    HorizontalMotion<double> wind(-12.0_kn, -9.0_kn);
+    HorizontalMotion<double> current(3.0_kn, 4.0_kn);
+    auto angle = 70.0_deg;
+    b = BS(pos, gps, wind, current,
+        AbsoluteOrientation::onlyHeading(angle));
+  }
+  EXPECT_EQ(a, interpolate(0.0, a, b));
+  EXPECT_EQ(b, interpolate(1.0, a, b));
+}
+

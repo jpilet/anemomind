@@ -120,6 +120,13 @@ will rotate the boat clockwise in this plane.
     the boat turns towards starboard, as if we were to
     round a buoy clockwise.
 
+  Invariants to test:
+   * No matter the roll and the pitch, and for a given heading,
+     the transformed Y axis projected on the XY plan should
+     span the same linear subspace as another transformed Y
+     axis for the same heading, but any other roll and pitch.
+     In other words, the heading of the boat should more or
+     less be unaffected by the heal angle and the pitch.
 
  */
 
