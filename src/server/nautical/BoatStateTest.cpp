@@ -17,20 +17,6 @@ using namespace sail;
 
 typedef BoatState<double> BS;
 typedef ceres::Jet<double, 4> ADType;
-typedef BoatState<ADType> BSad;
-
-/*TEST(BoatStateTest, Orthonormality) {
-
-  auto expectedMast = BS::starboardVector().cross(BS::onlyHeadingVector());
-  EXPECT_NEAR((expectedMast - BS::mastVector()).norm(), 0.0, 1.0e-6);
-
-  Eigen::Vector3d v[3] = {BS::starboardVector(), BS::onlyHeadingVector(), BS::mastVector()};
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      EXPECT_NEAR(v[i].dot(v[j]), i == j? 1.0 : 0.0, 1.0e-6);
-    }
-  }
-}*/
 
 namespace {
   bool eq(
@@ -130,13 +116,6 @@ TEST(BoatStateTest, VariousProperties) {
 
   EXPECT_TRUE(bs0.valid());
 
-  /*{
-    Eigen::Vector3d wh = bs0.worldHeadingVector();
-    EXPECT_NEAR(wh(0), 0.0, 1.0e-6);
-    EXPECT_NEAR(wh(1), 1.0, 1.0e-6);
-    EXPECT_NEAR(wh(2), 0.0, 1.0e-6);
-  }*/
-
   auto angle2 = 45.0_deg;
   {
     BS bs2(pos, gps, wind, current,
@@ -149,11 +128,6 @@ TEST(BoatStateTest, VariousProperties) {
   }
 }
 
-TEST(BoatStateTest, WithAD) {
-  BSad state;
-
-
-}
 
 Eigen::MatrixXd computeRotWithAD(Eigen::Vector4d params) {
   typedef ceres::Jet<double, 4> AD4;
