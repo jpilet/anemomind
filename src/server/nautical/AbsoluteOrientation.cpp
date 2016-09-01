@@ -10,9 +10,7 @@
 
 namespace sail {
 
-bool isFinite(const AbsoluteOrientation &x) {
-  return isFinite(x.heading) && isFinite(x.pitch) && isFinite(x.roll);
-}
+
 
 }
 

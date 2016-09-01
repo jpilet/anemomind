@@ -678,6 +678,11 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
     };
 };
 
+template <typename T>
+Angle<T> interpolate(T lambda, Angle<T> a, Angle<T> b) {
+  return a + lambda*(b - a).normalizedAt0();
+}
+
 template <typename T, typename s, int t, int l, int a, int m>
 bool isFinite(const PhysicalQuantity<T, s, t, l, a, m> &x) {
   return x.isFiniteQuantity();

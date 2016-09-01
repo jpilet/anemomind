@@ -361,6 +361,11 @@ T clamp(T x, T lower, T upper) {
 Arrayd makeNextRegCoefs(Arrayd coefs);
 Arrayd makeRegCoefs(int order);
 
+template <typename L, typename T>
+T interpolateAnything(L lambda, T a, T b) {
+  return a + lambda*(b - a);
+}
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */

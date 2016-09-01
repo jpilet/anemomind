@@ -360,6 +360,10 @@ add_library(nautical_BoatState
   BoatState.h
   BoatState.cpp
   )
+  
+target_link_libraries(nautical_BoatState
+  common_logging
+  )
 
 add_library(nautical_Reconstructor
   Reconstructor.h

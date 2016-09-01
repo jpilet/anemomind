@@ -22,6 +22,63 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/math/EigenUtils.h>
 #include <server/nautical/common.h>
+#include <server/common/logging.h>
+#include <server/nautical/AbsoluteOrientation.h>
+
+/*
+
+Attached to the sea surface locally at the boat,
+there is a coordinate system, with the X axis
+pointing towards the east and the Y axis pointing
+towards the north, and Z pointing up. The boat is assumed
+to have a unit rotation matrix, that is no rotation. And
+the heading of the boat is 0 degrees. Increasing the heading
+will rotate the boat clockwise in this plane.
+
+
+                Y (north)
+                ^
+                |
+                |
+                |
+                |
+                #
+               ###
+               ###
+              #####
+              #####
+             #######
+             #######
+             #######
+            #########
+            #########
+            #########
+            #########
+            ### oZ ##--------------------->X (east)
+            #########
+            #########
+            #########
+            #########
+            #########
+             #######
+             #######
+             #######
+             #######
+              #####
+
+  We want to make sure that we get the mapping of our
+  AbsoluteOrientation object right. That object defines a
+  rotation, that when applied to a vector in the boat coordinate
+  system, produces a vector in the local coordinate system of
+  the earth at the location of the boat.
+
+  From the illustration above, it should be apparent that
+  the vector in which the boat is heading is (0, 1, 0),
+  a vector pointing towards starboard is (1, 0, 0) and the
+  mast is pointing in the direction (0, 0, 1).
+
+
+ */
 
 namespace sail {
 
@@ -79,20 +136,18 @@ public:
     return Eigen::Matrix<T, 3, 1>(T(0.0), T(0.0), T(1.0));
   }
 
-  BoatState() : _axis(defaultAxis()) {}
+  BoatState() {}
   BoatState(
       const GeographicPosition<T> &position,
       const HorizontalMotion<T> &bog,
       const HorizontalMotion<T> &windOverGround,
       const HorizontalMotion<T> &currentOverGround,
-      Angle<T> angle,
-      const Eigen::Matrix<T, 3, 1> &axis =
-          defaultAxis()) :
+      const TypedAbsoluteOrientation<T> &orientation) :
         _position(position),
         _boatOverGround(bog),
         _windOverGround(windOverGround),
         _currentOverGround(currentOverGround),
-        _angle(angle), _axis(axis) {}
+        _orientation(orientation) {}
 
 
   // This is how the orthonormal basis attached to the boat
@@ -128,14 +183,6 @@ public:
     return _currentOverGround;
   }
 
-  const Eigen::Matrix<T, 3, 1> &axis() const {
-    return _axis;
-  }
-
-  const Eigen::Matrix<T, 3, 1> &angle() const {
-    return _angle;
-  }
-
   // Or should it be "over current"? But that doesn't sound quite right.
   HorizontalMotion<T> boatOverWater() const {
     return _boatOverGround - _currentOverGround;
@@ -154,27 +201,21 @@ public:
         && isFinite(_boatOverGround)
         && isFinite(_windOverGround)
         && isFinite(_currentOverGround)
-        && isFinite(_angle)
-        && isFinite(_axis)
-        && UnitVector<T, 3>::is(_axis, T(1.0e-6));
-  }
-
-  Eigen::AngleAxis<T> angleAxis() const {
-    return Eigen::AngleAxis<T>(_angle.radians(), _axis);
+        && isFinite(_orientation);
   }
 
   Eigen::Matrix<T, 3, 1> worldHeadingVector() const {
-    return angleAxis()*headingVector();
+    CHECK(false); //TODO
+    return Eigen::Matrix<T, 3, 1>::Zero();
   }
 
   Eigen::Matrix<T, 2, 1> worldHeadingVectorHorizontal() const {
-    auto v = worldHeadingVector();
-    return Eigen::Matrix<T, 2, 1>(v(0), v(1));
+    CHECK(false); //TODO
+    return Eigen::Matrix<T, 3, 1>::Zero();
   }
 
   Angle<T> heading() const {
-    auto v2 = worldHeadingVector();
-    return headingAngle<T>(v2(0), v2(1));
+    return _orientation.heading;
   }
 
   // To be avoided: Undefined (NaN) when boatOverWater has 0 norm.
@@ -209,6 +250,10 @@ public:
     return velocityDifferenceBetween(apparentWind(),
         angleOfWindDirection);
   }
+
+  const TypedAbsoluteOrientation<T> &orientation() const {
+    return _orientation;
+  }
 private:
   GeographicPosition<T> _position;
   HorizontalMotion<T> _boatOverGround;
@@ -227,49 +272,26 @@ private:
    *
    */
 
-  /* Special cases:
-   *
-   * If _axis = (0, 0, 1) then _angle == -heading()
-   * If _axis = (0, 0, -1) then _angle == heading()
-   *
-   */
-  Angle<T> _angle;
-
-  // If we don't really know how to calibrate the inertial unit
-  // we can just fix this axis to (0, 0, 1) and assume the boat just rotates
-  // in the plane.
-  Eigen::Matrix<T, 3, 1> _axis; // Should always have length 1.0
+  TypedAbsoluteOrientation<T> _orientation;
 };
 
-template <typename T>
-Angle<T> interpolateAngle(
-    T lambda, Angle<T> a, Angle<T> b) {
-  Angle<T> diff = (b - a).normalizedAt0();
-  return a + lambda*diff;
-}
+
 
 template <typename T>
-GeographicPosition<T> interpolateGeographicPositions(
-    T lambda,
-    const GeographicPosition<T> &a,
-    const GeographicPosition<T> &b) {
-  return GeographicPosition<T>(
-      interpolateAngle<T>(lambda, a.lon(), b.lon()),
-      interpolateAngle<T>(lambda, a.lat(), b.lat()),
-      (T(1.0) - lambda)*a.alt() + lambda*b.alt());
-}
-
-template <typename T>
-BoatState<T> interpolate(T lambdaIn0To1,
+BoatState<T> interpolate(T lambda,
                          const BoatState<T> &a,
                          const BoatState<T> &b) {
-  T wa = T(1.0) - lambdaIn0To1;
-  T wb = lambdaIn0To1;
   return BoatState<T>(
-      interpolateGeographicPositions(a, b),
-      wa*a.boatOverGround() + wb*b.boatOverGround(),
-      wa*a.windOverGround() + wb*b.windOverGround(),
-      wa*a.currentOverGround() + wb*b.currentOverGround());
+      interpolate<T>(lambda, a.position(), b.position()),
+      interpolateAnything(lambda, a.boatOverGround(),
+                                  b.boatOverGround()),
+      interpolateAnything(lambda, a.boatOverGround(),
+                                  b.boatOverGround()),
+      interpolateAnything(lambda, a.boatOverGround(),
+                                  b.boatOverGround()),
+      interpolate(lambda, a.orientation(), b.orientation()));
+
+
 }
 
 } /* namespace sail */

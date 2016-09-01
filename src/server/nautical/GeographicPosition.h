@@ -58,6 +58,17 @@ bool isNaN(const GeographicPosition<T> &x) {
   return isNaN(x.lon()) || isNaN(x.lat());
 }
 
+template <typename T>
+GeographicPosition<T> interpolate(
+    T lambda,
+    const GeographicPosition<T> &a,
+    const GeographicPosition<T> &b) {
+  return GeographicPosition<T>(
+      interpolate<T>(lambda, a.lon(), b.lon()),
+      interpolate<T>(lambda, a.lat(), b.lat()),
+      interpolateAnything(lambda, a.alt(), b.alt()));
+}
+
 } /* namespace sail */
 
 #endif /* GEOGRAPHICPOSITION_H_ */
