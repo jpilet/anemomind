@@ -374,6 +374,7 @@ target_link_libraries(nautical_Reconstructor)
 
 cxx_test(nautical_BoatStateTest
   BoatStateTest.cpp
+  nautical_BoatState
   gtest_main
   )
   

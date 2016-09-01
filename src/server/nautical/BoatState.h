@@ -77,6 +77,9 @@ will rotate the boat clockwise in this plane.
   a vector pointing towards starboard is (1, 0, 0) and the
   mast is pointing in the direction (0, 0, 1).
 
+Lets look at the Y-axis (that is the heading) for different configurations.
+
+For a heading of 0 degrees, no roll and pitch, it should be same.
 
  */
 
