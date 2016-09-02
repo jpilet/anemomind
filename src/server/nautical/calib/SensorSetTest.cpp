@@ -8,6 +8,7 @@
 #include <server/nautical/calib/SensorSet.h>
 #include <gtest/gtest.h>
 #include <ceres/jet.h>
+#include <random>
 
 using namespace sail;
 
@@ -67,6 +68,45 @@ TEST(SensorTest, Various) {
     EXPECT_NEAR(params[0].a, 119.34, 1.0e-6);
     EXPECT_NEAR(params[2].a, 34.5, 1.0e-6);
   }
+}
+
+
+TEST(SensorTest, BasicFit) {
+  SensorModel<double, AWS> model;
+
+  double k = 1.2;
+  auto offset = 1.4_kn;
+
+  std::default_random_engine rng;
+  auto xUnit = 1.0_kn;
+  std::uniform_real_distribution<double> Xdistrib(0, 12);
+  std::uniform_real_distribution<double> noise(-0.3, 0.3);
+  std::uniform_real_distribution<double> outlierDistrib(-20, 20);
+
+  const int inlierCount = 30;
+  const int outlierCount = 7;
+  const int count = inlierCount + outlierCount;
+  Velocity<double> X[count];
+  Velocity<double> Y[count];
+  for (int i = 0; i < count; i++) {
+    auto x = Xdistrib(rng)*xUnit;
+    X[i] = x;
+    Y[i] = i < inlierCount?
+        k*x + offset : outlierDistrib(rng)*xUnit;
+  }
+
+  double params[SensorModel<double, AWS>::paramCount];
+
+  /*ceres::Problem problem;
+  for (int i = 0; i < count; i++) {
+
+  }
+  problem.AddResidualBlock(makeMotionCost<N>(
+      samples[intervalIndex+1] - samples[intervalIndex], motion),
+      loss, X[intervalIndex].data(), X[intervalIndex+1].data());
+
+  ceres::Solver::Summary summary;
+  ceres::Solve(settings.ceresOptions, &problem, &summary);*/
 }
 
 
