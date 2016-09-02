@@ -4,7 +4,6 @@ angular.module('www2App', [
   'ngCookies',
   'ngResource',
   'ngSanitize',
-  'ngTouch',
   'btford.socket-io',
   'ui.router',
   'ui.bootstrap',

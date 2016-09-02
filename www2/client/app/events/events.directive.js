@@ -61,18 +61,18 @@ angular.module('www2App')
         };
 
         scope.openLightboxModal = function(index) {
-          scope.images = [];
+          var images = [];
           angular.forEach(scope.events, function(value, key) {
             if(typeof value.photo !== 'undefined' && value.photo && value.photo != null) {
               var image = {
                 'url': scope.photoUrl(value, ''),
                 'caption': value.comment
               };
-              scope.images.push(image);
+              images.push(image);
             }
           });
 
-          Lightbox.openModal(scope.images, index);
+          Lightbox.openModal(images, index);
         }
       }
     };
