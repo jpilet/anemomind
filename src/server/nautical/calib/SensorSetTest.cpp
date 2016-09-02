@@ -94,7 +94,7 @@ TEST(SensorTest, BasicFit) {
   std::default_random_engine rng;
   auto xUnit = 1.0_kn;
   std::uniform_real_distribution<double> Xdistrib(0, 12);
-  std::uniform_real_distribution<double> noise(-0.3, 0.3);
+  std::uniform_real_distribution<double> noise(-1.0, 1.0);
   std::uniform_real_distribution<double> outlierDistrib(-20, 20);
 
   const int inlierCount = 30;
@@ -122,6 +122,7 @@ TEST(SensorTest, BasicFit) {
             new VelocityFit{X[i], Y[i]}), nullptr, params);
   }
   ceres::Solver::Options options;
+  options.minimizer_progress_to_stdout = false;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
   model.readFrom(params);
