@@ -208,7 +208,7 @@ struct SensorModel {
     *dst << "dist: ";
     dist.outputSummary(dst);
     *dst << "noiseCost: ";
-    noiseCost.writeTo(dst);
+    noiseCost.outputSummary(dst);
   }
 };
 

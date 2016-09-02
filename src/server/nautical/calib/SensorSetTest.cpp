@@ -89,7 +89,7 @@ namespace {
 
 TEST(SensorTest, BasicFit) {
 
-  double k = 1.2;
+  double k = 1.3945;
 
   std::default_random_engine rng;
   auto xUnit = 1.0_kn;
@@ -124,6 +124,9 @@ TEST(SensorTest, BasicFit) {
   ceres::Solver::Options options;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
+  model.readFrom(params);
+  model.outputSummary(&(std::cout));
+
 }
 
 
