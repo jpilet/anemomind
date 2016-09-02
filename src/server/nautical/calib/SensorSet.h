@@ -113,7 +113,7 @@ struct RobustNoiseCost {
   static T getInitialScaleParam() {
     //constexpr double initialScale = 2.0;
     //return T(constSqrt(initialScale - 1));
-    return T(0.00001);
+    return T(0.0);
   }
 
   // A param that controls how sigma should
