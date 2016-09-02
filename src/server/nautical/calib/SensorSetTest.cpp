@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 #include <ceres/jet.h>
 #include <random>
+#include <ceres/ceres.h>
 
 using namespace sail;
 
@@ -70,12 +71,25 @@ TEST(SensorTest, Various) {
   }
 }
 
+namespace {
+  struct VelocityFit {
+    Velocity<double> src, dst;
+
+    template <typename T>
+      bool operator()(const T* const x,
+                      T* residuals) const {
+      SensorModel<T, AWS> model;
+      model.readFrom(x);
+      Velocity<T> error = model.dist.apply(src) - dst;
+      residuals[0] = sqrt(1.0e-9 + model.noiseCost.apply(error));
+      return true;
+    }
+  };
+}
 
 TEST(SensorTest, BasicFit) {
-  SensorModel<double, AWS> model;
 
   double k = 1.2;
-  auto offset = 1.4_kn;
 
   std::default_random_engine rng;
   auto xUnit = 1.0_kn;
@@ -92,21 +106,24 @@ TEST(SensorTest, BasicFit) {
     auto x = Xdistrib(rng)*xUnit;
     X[i] = x;
     Y[i] = i < inlierCount?
-        k*x + offset : outlierDistrib(rng)*xUnit;
+        k*x : outlierDistrib(rng)*xUnit;
   }
 
-  double params[SensorModel<double, AWS>::paramCount];
+  SensorModel<double, AWS> model;
+  const int N = SensorModel<double, AWS>::paramCount;
+  double params[N];
+  model.writeTo(params);
 
-  /*ceres::Problem problem;
+  ceres::Problem problem;
+  problem.AddParameterBlock(params, N);
   for (int i = 0; i < count; i++) {
-
+    problem.AddResidualBlock(
+        new ceres::AutoDiffCostFunction<VelocityFit, 1, N>(
+            new VelocityFit{X[i], Y[i]}), nullptr, params);
   }
-  problem.AddResidualBlock(makeMotionCost<N>(
-      samples[intervalIndex+1] - samples[intervalIndex], motion),
-      loss, X[intervalIndex].data(), X[intervalIndex+1].data());
-
+  ceres::Solver::Options options;
   ceres::Solver::Summary summary;
-  ceres::Solve(settings.ceresOptions, &problem, &summary);*/
+  ceres::Solve(options, &problem, &summary);
 }
 
 

@@ -110,4 +110,6 @@ cxx_test(calib_SensorSetTest
   SensorSetTest.cpp
   anemobox_Dispatcher
   gtest_main
-  )  
+  )
+
+target_depends_on_ceres(calib_SensorSetTest)

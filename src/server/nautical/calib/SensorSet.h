@@ -55,7 +55,7 @@ template <typename T>
 struct ParameterizedBase {
   typedef T ParameterType;
   static const int paramCount = 0;
-  void readFrom(T *) {}
+  void readFrom(const T *) {}
   void writeTo(T *) const {}
   void readFrom(const ParamMap<T> &) {}
   void writeTo(ParamMap<T> *) const {}
@@ -78,7 +78,7 @@ template <typename T>
 struct GemanMcClure {
   static T apply(T x) {
     T x2 = x*x;
-    return x2/(x2 + 1);
+    return x2/(x2 + T(1.0));
   }
 };
 
@@ -87,8 +87,8 @@ struct MinSigma {};
 
 template <typename T>
 struct MinSigma<T, Velocity<T> > {
-  static Angle<T> get() {
-    return Angle<T>::degrees(T(1.0));
+  static Velocity<T> get() {
+    return Velocity<T>::knots(T(0.1));
   }
 };
 
@@ -108,7 +108,7 @@ struct RobustNoiseCost {
   // Don't forget to apply the square root on the result
   // of this function, if it is used as a residual in a
   // least-squares solver.
-  T eval(Quantity q) const {
+  T apply(Quantity q) const {
     T s2 = scaleParam*scaleParam;
     T scaling = T(1.0) + s2;
     Quantity sigma = scaling*MinSigma<T, Quantity>::get();
@@ -116,7 +116,7 @@ struct RobustNoiseCost {
   }
 
   typedef T ParameterType;
-  void readFrom(T *src) {scaleParam = src[0];}
+  void readFrom(const T *src) {scaleParam = src[0];}
   void writeTo(T *dst) const {dst[0] = scaleParam;}
   void readFrom(const ParamMap<T> &src) {
     withLookedUpValue<std::string, T>(
@@ -177,7 +177,7 @@ struct SensorModel {
       TDistortionModel::paramCount +
       TNoiseCost::paramCount;
 
-  void readFrom(T *x) {
+  void readFrom(const T *x) {
     dist.readFrom(x);
     noiseCost.readFrom(x + TDistortionModel::paramCount);
   }
@@ -220,7 +220,7 @@ public:
 
   static const int paramCount = 1;
 
-  void readFrom(T *src) {
+  void readFrom(const T *src) {
     _offset = Angle<T>::radians(src[0]);
   }
 
@@ -255,7 +255,7 @@ public:
 
   static const int paramCount = 1;
 
-  void readFrom(T *src) {_bias = src[0];}
+  void readFrom(const T *src) {_bias = src[0];}
   void writeTo(T *dst) const {dst[0] = _bias;}
 
   void outputSummary(std::ostream *dst) const {
@@ -273,6 +273,9 @@ public:
     (*dst)["bias"] = _bias;
   }
 
+  Velocity<T> apply(Velocity<T> x) const {
+    return _bias*x;
+  }
 private:
   T _bias;
 };
@@ -306,7 +309,7 @@ struct SensorSetParamCounter {
 
 template <typename T>
 struct SensorSetParamReader {
-  T *src;
+  const T *src;
 
   template <DataCode code, typename X, typename SensorModelMap>
   void visit(SensorModelMap *obj) {
@@ -422,7 +425,7 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 
   // Useful when reading the parameters to be optimized
   // from the input argument in the objective function.
-  void readFrom(T *src) {
+  void readFrom(const T *src) {
     SensorSetParamReader<T> reader{src};
     visitFieldsMutable(this, &reader);
   }
