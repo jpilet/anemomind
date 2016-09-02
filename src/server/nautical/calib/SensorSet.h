@@ -88,7 +88,7 @@ struct MinSigma {};
 template <typename T>
 struct MinSigma<T, Velocity<T> > {
   static Velocity<T> get() {
-    return Velocity<T>::knots(T(0.1));
+    return Velocity<T>::knots(T(0.5));
   }
 };
 
