@@ -104,6 +104,11 @@ constexpr double constSqrt(double y) {
   return constSqrt(y, 40, y);
 }
 
+/*
+ * Unit tests:
+ *  Check that the integral is OK
+ *
+ */
 // This is a basic way of applying a cost
 template <typename T, typename Quantity>
 struct RobustNoiseCost {
