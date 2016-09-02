@@ -59,15 +59,14 @@ TEST(SensorTest, Various) {
     EXPECT_NEAR(params[0], 119.34, 1.0e-6);
     EXPECT_NEAR(params[2], 34.5, 1.0e-6);
   }
-/*
   auto sensorSet2 = sensorSet.cast<ceres::Jet<double, 4> >();
   {
-    EXPECT_EQ(2, sensorSet2.paramCount());
-    ceres::Jet<double, 4> params[2];
+    EXPECT_EQ(4, sensorSet2.paramCount());
+    ceres::Jet<double, 4> params[4];
     sensorSet2.writeTo(params);
     EXPECT_NEAR(params[0].a, 119.34, 1.0e-6);
-    EXPECT_NEAR(params[1].a, 34.5, 1.0e-6);
-  }*/
+    EXPECT_NEAR(params[2].a, 34.5, 1.0e-6);
+  }
 }
 
 
