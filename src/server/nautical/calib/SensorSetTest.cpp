@@ -97,8 +97,8 @@ TEST(SensorTest, BasicFit) {
   std::uniform_real_distribution<double> noise(-1.0, 1.0);
   std::uniform_real_distribution<double> outlierDistrib(-20, 20);
 
-  const int inlierCount = 30;
-  const int outlierCount = 7;
+  const int inlierCount = 1;
+  const int outlierCount = 0;
   const int count = inlierCount + outlierCount;
   Velocity<double> X[count];
   Velocity<double> Y[count];
