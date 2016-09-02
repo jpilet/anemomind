@@ -262,6 +262,8 @@ public:
     *dst << "BasicAngleSensor(offset="
         << _offset.radians() << " radians)";
   }
+
+  Angle<T> offset() const {return _offset;}
 private:
   Angle<T> _offset;
 };
@@ -295,6 +297,8 @@ public:
   Velocity<T> apply(Velocity<T> x) const {
     return _bias*x;
   }
+
+  T bias() const {return _bias;}
 private:
   T _bias;
 };

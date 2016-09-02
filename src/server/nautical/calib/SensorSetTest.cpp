@@ -81,9 +81,7 @@ namespace {
       SensorModel<T, AWS> model;
       model.readFrom(x);
       Velocity<T> error = model.dist.apply(src) - dst;
-      std::cout << "Actual error" << error.knots() << std::endl;
       residuals[0] = sqrt(1.0e-9 + model.noiseCost.apply(error));
-      std::cout << "Residual: " << residuals[0] << std::endl;
       return true;
     }
   };
@@ -134,7 +132,7 @@ TEST(SensorTest, BasicFit) {
   init.outputSummary(&(std::cout));
   std::cout << "Finally,\n";
   model.outputSummary(&(std::cout));
-
+  EXPECT_NEAR(model.dist.bias(), k, 0.05);
 }
 
 
