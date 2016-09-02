@@ -13,6 +13,21 @@
 
 namespace sail {
 
+template <typename T>
+using ParamMap = std::map<std::string, T>;
+
+template <typename A, typename B>
+void withLookedUpValue(
+    const std::map<A, B> &m,
+    const A &key, std::function<void(B)> f) {
+  auto x = m.find(key);
+  if (x != m.end()) {
+    f(x->second);
+  }
+}
+
+// This function is used to cast between different types,
+// such as double and ceres::Jet.
 template <typename Src, typename Dst>
 void castSensorParameters(const Src &src, Dst *dst) {
   constexpr int N = Src::paramCount;
@@ -31,15 +46,149 @@ void castSensorParameters(const Src &src, Dst *dst) {
   dst->readFrom(dstX);
 }
 
-template <typename T, DataCode code>
-struct DistortionModel {
+// This is just a trivial implementation of a parameterized
+// object with all methods that we expect there to be. It is
+// inherited by DistortionModel and NoiseModel. With template
+// specialization, those methods are overwridden.
+template <typename T>
+struct ParameterizedBase {
   typedef T ParameterType;
   static const int paramCount = 0;
   void readFrom(T *) {}
   void writeTo(T *) const {}
-  void readFrom(const std::map<std::string, T> &) {}
-  void writeTo(std::map<std::string, T> *) const {}
+  void readFrom(const ParamMap<T> &) {}
+  void writeTo(ParamMap<T> *) const {}
   void outputSummary(std::ostream *) const {}
+};
+
+// A distortion model maps a true quantity
+// that we are trying to estimate, to an
+// observed quantity, to which we want to fit.
+// Think about it as the internal camera parameters:
+// if they are poorly calibrated, 3d objects will project
+// in the wrong place in the image plane.
+template <typename T, DataCode code>
+struct DistortionModel : ParameterizedBase<T> {};
+
+// This is some kind of robust
+// cost function, that we use instead
+// of a  square.
+template <typename T>
+struct GemanMcClure {
+  static T apply(T x) {
+    T x2 = x*x;
+    return x2/(x2 + 1);
+  }
+};
+
+template <typename T, typename Quantity>
+struct MinSigma {};
+
+template <typename T>
+struct MinSigma<T, Velocity<T> > {
+  static Angle<T> get() {
+    return Angle<T>::degrees(T(1.0));
+  }
+};
+
+// This is a basic way of applying a cost
+template <typename T, typename Quantity>
+struct RobustNoiseCost {
+  typedef GemanMcClure<T> Rho;
+  static const int paramCount = 1;
+
+  // A param that controls how sigma should
+  // be scaled. It is mapped to a scaling
+  // parameter that is always at least 1.0, so
+  // that it is not possible to shrink sigma which
+  // would lead to instabilities.
+  T scaleParam;
+
+  // Don't forget to apply the square root on the result
+  // of this function, if it is used as a residual in a
+  // least-squares solver.
+  T eval(Quantity q) const {
+    T s2 = scaleParam*scaleParam;
+    T scaling = T(1.0) + s2;
+    Quantity sigma = scaling*MinSigma<T, Quantity>::get();
+    return Rho::apply(q/sigma) + s2/(T(1.0) + s2);
+  }
+};
+
+// This is the base case for noise costs. Nothing at all.
+template <typename T, DataCode code>
+struct NoiseCost : public ParameterizedBase<T> {};
+
+// All costs that we fit are done in the velocity
+// domain, so that we don't mix quantities. But how
+// to interpret an angle as a velocity is not the
+// concern of this code.
+template <typename T>
+struct NoiseCost<T, AWA> :
+  public RobustNoiseCost<T, Velocity<T> > {};
+
+template <typename T>
+struct NoiseCost<T, AWS> :
+  public RobustNoiseCost<T, Velocity<T> > {};
+
+template <typename T>
+struct NoiseCost<T, WAT_SPEED> :
+  public RobustNoiseCost<T, Velocity<T> > {};
+
+template <typename T>
+struct NoiseCost<T, MAG_HEADING> :
+  public RobustNoiseCost<T, Velocity<T> > {};
+
+
+// This object groups a distortion model with a noise cost.
+template <typename T, DataCode code>
+struct SensorModel {
+  typedef DistortionModel<T, code> TDistortionModel;
+  typedef NoiseCost<T, code> TNoiseCost;
+
+  // How the true quantity maps to a distorted quantity.
+  TDistortionModel dist;
+
+  // How we penalize deviations between an observation
+  // and our estimate when optimizing
+  TNoiseCost noiseCost;
+
+  typedef T ParameterType;
+  static const int paramCount =
+      TDistortionModel::paramCount +
+      TNoiseCost::paramCount;
+
+  void readFrom(T *x) {
+    dist.readFrom(x);
+    noiseCost.readFrom(x + TDistortionModel::paramCount);
+  }
+
+  void writeTo(T *x) const {
+    dist.writeTo(x);
+    noiseCost.writeTo(x + TDistortionModel::paramCount);
+  }
+
+  void readFrom(const ParamMap<ParamMap<T> > &x) {
+    withLookedUpValue(x, "dist", [&](const ParamMap<T> &m) {
+      dist.readFrom(m);
+    });
+    withLookedUpValue(x, "noiseCost",
+        [&](const ParamMap<T> &m) {
+      noiseCost.readFrom(m);
+    });
+  }
+
+  void writeTo(ParamMap<ParamMap<T> > *x) const {
+    dist.writeTo(&((*x)["dist"]));
+    noiseCost.writeTo(&((*x)["noiseCost"]));
+  }
+
+  void outputSummary(std::ostream *dst) const {
+    *dst << "dist: ";
+    dist.outputSummary(dst);
+    *dst << "noiseCost: ";
+    noiseCost.writeTo(dst);
+  }
 };
 
 template <typename T>
@@ -58,14 +207,14 @@ public:
     dst[0] = _offset.radians();
   }
 
-  void readFrom(const std::map<std::string, T> &src) {
+  void readFrom(const ParamMap<T> &src) {
     auto f = src.find("offset-radians");
     if (f != src.end()) {
       _offset = Angle<T>::radians(f->second);
     }
   }
 
-  void writeTo(std::map<std::string, T> *dst) const {
+  void writeTo(ParamMap<T> *dst) const {
     (*dst)["offset-radians"] = _offset.radians();
   }
 
@@ -92,14 +241,14 @@ public:
     *dst << "BasicSpeedSensor1 with bias " << _bias;
   }
 
-  void readFrom(const std::map<std::string, T> &src) {
+  void readFrom(const ParamMap<T> &src) {
     auto f = src.find("bias");
     if (f != src.end()) {
       _bias = f->second;
     }
   }
 
-  void writeTo(std::map<std::string, T> *dst) const {
+  void writeTo(ParamMap<T> *dst) const {
     (*dst)["bias"] = _bias;
   }
 
@@ -176,8 +325,8 @@ struct SensorSetSummaryVisitor {
 
 
 template <typename T>
-using SensorParameterMap = std::map<DataCode,
-    std::map<std::string, std::map<std::string, T>>>;
+using SensorParameterMap =
+    std::map<DataCode, ParamMap<ParamMap<T>>>;
 
 template <typename T>
 struct SensorSetParamMapReader {
