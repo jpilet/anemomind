@@ -47,9 +47,10 @@ void castSensorParameters(const Src &src, Dst *dst) {
 }
 
 // This is just a trivial implementation of a parameterized
-// object with all methods that we expect there to be. It is
+// object with all methods that we expect there to be, in order
+// to make the compiler happy :-). It is
 // inherited by DistortionModel and NoiseModel. With template
-// specialization, those methods are overwridden.
+// specialization, those methods are overridden.
 template <typename T>
 struct ParameterizedBase {
   typedef T ParameterType;
@@ -113,6 +114,23 @@ struct RobustNoiseCost {
     Quantity sigma = scaling*MinSigma<T, Quantity>::get();
     return Rho::apply(q/sigma) + s2/(T(1.0) + s2);
   }
+
+  typedef T ParameterType;
+  void readFrom(T *src) {scaleParam = src[0];}
+  void writeTo(T *dst) const {dst[0] = scaleParam;}
+  void readFrom(const ParamMap<T> &src) {
+    withLookedUpValue(src, "scale_param", [&](T x) {
+      scaleParam = x;
+    });
+  }
+
+  void writeTo(ParamMap<T> *dst) const {
+    (*dst)["scale_param"] = scaleParam;
+  }
+  void outputSummary(std::ostream *dst) const {
+    *dst << "RobustNoiseCost(" << scaleParam << ")";
+  }
+
 };
 
 // This is the base case for noise costs. Nothing at all.
