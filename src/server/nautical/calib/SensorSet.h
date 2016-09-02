@@ -324,9 +324,12 @@ struct SensorSetSummaryVisitor {
 };
 
 
+// DataCode, source channel, field in SensorModel, Parameter in model
 template <typename T>
 using SensorParameterMap =
-    std::map<DataCode, ParamMap<ParamMap<T>>>;
+    std::map<DataCode, ParamMap<ParamMap<ParamMap<T>>>>;
+
+
 
 template <typename T>
 struct SensorSetParamMapReader {
@@ -353,9 +356,9 @@ struct SensorSetParamMapWriter {
 
   template <DataCode code, typename X, typename SensorModelMap>
   void visit(const SensorModelMap &obj) {
-    std::map<std::string, std::map<std::string, T>> &dstSub = (*dst)[code];
+    ParamMap<ParamMap<T>> &dstSub = (*dst)[code];
     for (const auto &kv: obj) {
-      std::map<std::string, T> &sub = dstSub[kv.first];
+      ParamMap<T> &sub = dstSub[kv.first];
       kv.second.writeTo(&sub);
     }
   }
@@ -384,7 +387,7 @@ struct SensorSetCaster {
 template <typename T>
 struct SensorSet {
 #define MAKE_SENSOR_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, DistortionModel<T, HANDLE> > HANDLE;
+  std::map<std::string, SensorModel<T, HANDLE> > HANDLE;
 FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 #undef MAKE_SENSOR_FIELD
 
