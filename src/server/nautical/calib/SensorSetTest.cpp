@@ -109,10 +109,10 @@ TEST(SensorTest, BasicFit) {
         k*x : outlierDistrib(rng)*xUnit;
   }
 
-  SensorModel<double, AWS> model;
+  SensorModel<double, AWS> init;
   const int N = SensorModel<double, AWS>::paramCount;
   double params[N];
-  model.writeTo(params);
+  init.writeTo(params);
 
   ceres::Problem problem;
   problem.AddParameterBlock(params, N);
@@ -125,7 +125,11 @@ TEST(SensorTest, BasicFit) {
   options.minimizer_progress_to_stdout = false;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
+  SensorModel<double, AWS> model;
   model.readFrom(params);
+  std::cout << "Initially,\n";
+  init.outputSummary(&(std::cout));
+  std::cout << "Finally,\n";
   model.outputSummary(&(std::cout));
 
 }

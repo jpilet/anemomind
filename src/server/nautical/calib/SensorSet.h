@@ -92,18 +92,35 @@ struct MinSigma<T, Velocity<T> > {
   }
 };
 
+// f(x) = x^2 - y
+// f'(x) = 2*x
+// Newton-Raphson iteration: x_{i+1} = x_{i} - (x^2 - y)/(2*x)
+constexpr double constSqrt(double y, int i, double x) {
+  return i <= 0?
+    x : constSqrt(y, i-1, x - (x*x - y)/(2.0*x));
+}
+
+constexpr double constSqrt(double y) {
+  return constSqrt(y, 40, y);
+}
+
 // This is a basic way of applying a cost
 template <typename T, typename Quantity>
 struct RobustNoiseCost {
   typedef GemanMcClure<T> Rho;
   static const int paramCount = 1;
 
+  static T getInitialScaleParam() {
+    constexpr double initialScale = 101;
+    return T(constSqrt(initialScale - 1));
+  }
+
   // A param that controls how sigma should
   // be scaled. It is mapped to a scaling
   // parameter that is always at least 1.0, so
   // that it is not possible to shrink sigma which
   // would lead to instabilities.
-  T scaleParam;
+  T scaleParam = getInitialScaleParam();
 
   // Don't forget to apply the square root on the result
   // of this function, if it is used as a residual in a
