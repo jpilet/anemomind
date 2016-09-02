@@ -96,7 +96,7 @@ TEST(SensorTest, BasicFit) {
   std::default_random_engine rng;
   auto xUnit = 1.0_kn;
   std::uniform_real_distribution<double> Xdistrib(0, 12);
-  std::uniform_real_distribution<double> noise(-1.0, 1.0);
+  std::uniform_real_distribution<double> noise(-0.5, 0.5);
   std::uniform_real_distribution<double> outlierDistrib(-20, 20);
 
   const int inlierCount = 9;
@@ -108,7 +108,8 @@ TEST(SensorTest, BasicFit) {
     auto x = Xdistrib(rng)*xUnit;
     X[i] = x;
     Y[i] = i < inlierCount?
-        k*x : outlierDistrib(rng)*xUnit;
+        k*x + noise(rng)*xUnit
+        : outlierDistrib(rng)*xUnit;
   }
 
   SensorModel<double, AWS> init;
