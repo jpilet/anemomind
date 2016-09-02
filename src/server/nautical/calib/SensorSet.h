@@ -119,7 +119,8 @@ struct RobustNoiseCost {
   void readFrom(T *src) {scaleParam = src[0];}
   void writeTo(T *dst) const {dst[0] = scaleParam;}
   void readFrom(const ParamMap<T> &src) {
-    withLookedUpValue(src, "scale_param", [&](T x) {
+    withLookedUpValue<std::string, T>(
+        src, "scale_param", [&](T x) {
       scaleParam = x;
     });
   }
@@ -187,10 +188,12 @@ struct SensorModel {
   }
 
   void readFrom(const ParamMap<ParamMap<T> > &x) {
-    withLookedUpValue(x, "dist", [&](const ParamMap<T> &m) {
+    withLookedUpValue<std::string, ParamMap<T>>(
+        x, "dist", [&](const ParamMap<T> &m) {
       dist.readFrom(m);
     });
-    withLookedUpValue(x, "noiseCost",
+    withLookedUpValue<std::string, ParamMap<T>>(
+        x, "noiseCost",
         [&](const ParamMap<T> &m) {
       noiseCost.readFrom(m);
     });
