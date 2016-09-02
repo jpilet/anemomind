@@ -104,17 +104,12 @@
   display: none;
 }
 
-.modal.lightbox-modal .lightbox-image-container img {
-  width: 100% !important;
+.modal.lightbox-modal .lightbox-image-container {
+  overflow: hidden;
 }
 
-@media only screen 
-  and (min-device-width: 320px) 
-  and (max-device-width: 736px)
-  and (orientation: landscape) {
-    .modal.lightbox-modal .lightbox-image-container img {
-      width: auto !important;
-    }
+.modal.lightbox-modal .lightbox-image-container img {
+  width: auto !important;
 }
 
 .eventauthor, .eventdate {
