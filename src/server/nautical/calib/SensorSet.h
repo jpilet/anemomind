@@ -147,7 +147,7 @@ struct RobustNoiseCost {
     (*dst)["scale_param"] = scaleParam;
   }
   void outputSummary(std::ostream *dst) const {
-    *dst << "RobustNoiseCost(" << scaleParam << ")";
+    *dst << "RobustNoiseCost(scaleParam=" << scaleParam << ")";
   }
 
 };
@@ -223,10 +223,11 @@ struct SensorModel {
   }
 
   void outputSummary(std::ostream *dst) const {
-    *dst << "dist: ";
+    *dst << "SensorModel(dist=";
     dist.outputSummary(dst);
-    *dst << "noiseCost: ";
+    *dst << ", noiseCost=";
     noiseCost.outputSummary(dst);
+    *dst <<")";
   }
 };
 
@@ -258,8 +259,8 @@ public:
   }
 
   void outputSummary(std::ostream *dst) const {
-    *dst << "BasicAngleSensor with offset "
-        << _offset.radians() << " radians";
+    *dst << "BasicAngleSensor(offset="
+        << _offset.radians() << " radians)";
   }
 private:
   Angle<T> _offset;
@@ -277,7 +278,7 @@ public:
   void writeTo(T *dst) const {dst[0] = _bias;}
 
   void outputSummary(std::ostream *dst) const {
-    *dst << "BasicSpeedSensor1 with bias " << _bias;
+    *dst << "BasicSpeedSensor1(bias=" << _bias << ")";
   }
 
   void readFrom(const ParamMap<T> &src) {
@@ -356,12 +357,13 @@ struct SensorSetSummaryVisitor {
 
   template <DataCode code, typename X, typename SensorModelMap>
   void visit(const SensorModelMap &obj) {
-    *dst << "Sensors for " << wordIdentifierForCode(code) << "\n";
+    *dst << "Sensors(code=" << wordIdentifierForCode(code) << ", ";
     for (const auto &kv: obj) {
-      *dst << "  " << kv.first << ": ";
+      *dst << "  " << kv.first << "=";
       kv.second.outputSummary(dst);
       *dst << std::endl;
     }
+    *dst << ")";
   }
 };
 
