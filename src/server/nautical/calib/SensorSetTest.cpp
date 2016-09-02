@@ -81,7 +81,9 @@ namespace {
       SensorModel<T, AWS> model;
       model.readFrom(x);
       Velocity<T> error = model.dist.apply(src) - dst;
+      std::cout << "Actual error" << error.knots() << std::endl;
       residuals[0] = sqrt(1.0e-9 + model.noiseCost.apply(error));
+      std::cout << "Residual: " << residuals[0] << std::endl;
       return true;
     }
   };
@@ -97,7 +99,7 @@ TEST(SensorTest, BasicFit) {
   std::uniform_real_distribution<double> noise(-1.0, 1.0);
   std::uniform_real_distribution<double> outlierDistrib(-20, 20);
 
-  const int inlierCount = 1;
+  const int inlierCount = 9;
   const int outlierCount = 0;
   const int count = inlierCount + outlierCount;
   Velocity<double> X[count];
