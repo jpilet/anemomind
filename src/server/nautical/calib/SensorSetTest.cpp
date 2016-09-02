@@ -23,12 +23,13 @@ TEST(SensorTest, Various) {
     double params[2] = {324.43, 5.6};
     sensorSet.writeTo(params);
     EXPECT_NEAR(params[0], 0.0, 1.0e-6);
+    EXPECT_NEAR(params[1], 0.0, 1.0e-6);
 
-//    params[0] = 0.25;
-//    sensorSet.readFrom(params);
-//    params[0] = 234324.324;
-//    sensorSet.writeTo(params);
-//    EXPECT_NEAR(params[0], 0.25, 1.0e-6);
+      params[0] = 0.25;
+      sensorSet.readFrom(params);
+      params[0] = 234324.324;
+      sensorSet.writeTo(params);
+      EXPECT_NEAR(params[0], 0.25, 1.0e-6);
   }
 /*
   sensorSet.WAT_SPEED["NMEA0183Speedo"]
