@@ -113,7 +113,7 @@ struct RobustNoiseCost {
   static T getInitialScaleParam() {
     //constexpr double initialScale = 2.0;
     //return T(constSqrt(initialScale - 1));
-    return T(0.0);
+    return T(4.0);
   }
 
   // A param that controls how sigma should
@@ -130,7 +130,7 @@ struct RobustNoiseCost {
     T s2 = scaleParam*scaleParam;
     T scaling = T(1.0) + s2;
     Quantity sigma = scaling*MinSigma<T, Quantity>::get();
-    return Rho::apply(q/sigma) + s2/(T(1.0) + s2);
+    return (Rho::apply(q/sigma) + s2)/(T(1.0) + s2);
   }
 
   typedef T ParameterType;
