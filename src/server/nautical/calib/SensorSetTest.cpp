@@ -31,35 +31,35 @@ TEST(SensorTest, Various) {
       sensorSet.writeTo(params);
       EXPECT_NEAR(params[0], 0.25, 1.0e-6);
   }
-/*
+
   sensorSet.WAT_SPEED["NMEA0183Speedo"]
-      = DistortionModel<double, WAT_SPEED>();
+      = SensorModel<double, WAT_SPEED>();
   {
-    EXPECT_EQ(2, sensorSet.paramCount());
-    double params[2] = {0.0, 0.0};
+    EXPECT_EQ(4, sensorSet.paramCount());
+    double params[4] = {0.0, 0.0, 0.0, 0.0};
     sensorSet.writeTo(params);
     EXPECT_NEAR(params[0], 0.25, 1.0e-6);
-    EXPECT_NEAR(params[1], 1.0, 1.0e-6);
+    EXPECT_NEAR(params[2], 1.0, 1.0e-6);
 
     SensorParameterMap<double> parameterMap;
     sensorSet.writeTo(&parameterMap);
 
-    EXPECT_NEAR(0.25,
-        parameterMap[AWA]["NMEA2000asdfasdfas"]["offset-radians"],
+    /*EXPECT_NEAR(0.25,
+        parameterMap[AWA]["NMEA2000asdfasdfas"]["dist"]["offset-radians"],
         1.0e-6);
     EXPECT_NEAR(1.0,
-        parameterMap[WAT_SPEED]["NMEA0183Speedo"]["bias"],
+        parameterMap[WAT_SPEED]["NMEA0183Speedo"]["dist"]["bias"],
         1.0e-6);
 
-    parameterMap[AWA]["NMEA2000asdfasdfas"]["offset-radians"] = 119.34;
-    parameterMap[WAT_SPEED]["NMEA0183Speedo"]["bias"] = 34.5;
+    parameterMap[AWA]["NMEA2000asdfasdfas"]["dist"]["offset-radians"] = 119.34;
+    parameterMap[WAT_SPEED]["NMEA0183Speedo"]["dist"]["bias"] = 34.5;
 
     sensorSet.readFrom(parameterMap);
     sensorSet.writeTo(params);
     EXPECT_NEAR(params[0], 119.34, 1.0e-6);
-    EXPECT_NEAR(params[1], 34.5, 1.0e-6);
+    EXPECT_NEAR(params[1], 34.5, 1.0e-6);*/
   }
-
+/*
   auto sensorSet2 = sensorSet.cast<ceres::Jet<double, 4> >();
   {
     EXPECT_EQ(2, sensorSet2.paramCount());

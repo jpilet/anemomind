@@ -374,9 +374,9 @@ struct SensorSetParamMapWriter {
 
   template <DataCode code, typename X, typename SensorModelMap>
   void visit(const SensorModelMap &obj) {
-    ParamMap<ParamMap<T>> &dstSub = (*dst)[code];
+    auto &dstSub = (*dst)[code];
     for (const auto &kv: obj) {
-      ParamMap<T> &sub = dstSub[kv.first];
+      auto &sub = dstSub[kv.first];
       kv.second.writeTo(&sub);
     }
   }
