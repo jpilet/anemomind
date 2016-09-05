@@ -50,8 +50,6 @@ function sendEventsWithQuery(res, query) {
     }
      
     Q.all(promises).then(function(_events) {
-      console.warn('EVENTS: ====> ');
-     console.warn(_events);
       res.status(200).json(_events);
     })
     .catch(function (err) {
