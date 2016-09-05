@@ -111,3 +111,53 @@ function tile2LonLat(point) {
 function handleError(res, err) {
   return res.status(500).send(err);
 }
+
+
+module.exports.boatInfoAtTime = function(boat, time, callback) {
+  var query = {
+    $and: [
+      {boat: mongoose.Types.ObjectId(boat) },
+      {startTime: {$lte: time} },
+      {endTime: {$gt: time} }
+    ]
+  };
+  Tiles.find(query, function(err, tiles) {
+     if (err) {
+       callback(err, undefined);
+       return;
+     }
+
+     var closest;
+     tiles.forEach(function(tile) {
+       tile.curves.forEach(function(c) {
+         c.points.forEach(function(p) {
+           if (closest == undefined
+               || Math.abs(p.time - time) < Math.abs(closest.time - time)) {
+             closest = p;
+           }
+         });
+       });
+     });
+
+     callback(undefined, closest);
+  });
+};
+
+module.exports.infoAtTime = function(req, res, next) {
+
+  module.exports.boatInfoAtTime(
+      req.params.boat,
+      new Date(req.params.time + 'Z'),
+      function(err, result) {
+        if (err) {
+          handleError(res, err);
+        }
+
+        if (closest == undefined) {
+          res.status(404).send();
+        }
+
+        return res.send(JSON.stringify(result));
+      });
+};
+
