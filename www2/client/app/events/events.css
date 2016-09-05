@@ -60,6 +60,7 @@
 .timeline > li .timeline-panel .top img {
   width: 100%;
   height: auto;
+  cursor: pointer;
 }
 
 .timeline > li .timeline-panel .bottom {
@@ -88,12 +89,28 @@
   margin-bottom: 5px;
 }
 
-
-
 .timeline > li .timeline-panel .bottom .eventauthor {
   color: #b0b0b0;
 }
 
+.modal.lightbox-modal .btn-group a.btn {
+  background-color: #ff0033;
+  color: #fff;
+  border-color: #ff0033;
+  margin-right: 2px;
+}
+
+.modal.lightbox-modal .btn-group a:not(:first-child):not(:last-child) {
+  display: none;
+}
+
+.modal.lightbox-modal .lightbox-image-container {
+  overflow: hidden;
+}
+
+.modal.lightbox-modal .lightbox-image-container img {
+  width: auto !important;
+}
 
 .eventauthor, .eventdate {
   font-size: 80%;
