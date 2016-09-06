@@ -32,7 +32,9 @@ struct GpsFilterResults {
 
   bool empty() const {return filteredLocalPositions.empty();}
   TimedSampleCollection<GeographicPosition<double> >::TimedVector getGlobalPositions() const;
-  TimedSampleCollection<HorizontalMotion<double> >::TimedVector getGpsMotions() const;
+  TimedSampleCollection<HorizontalMotion<double> >
+    ::TimedVector getGpsMotions(
+        Duration<double> maxTimeDiff) const;
 };
 
 Array<TimeStamp> listSplittingTimeStamps(const Array<TimeStamp> &timeStamps,

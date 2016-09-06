@@ -107,7 +107,8 @@ TEST(SmoothGpsFilterTest, TestComputedMotions) {
     raw, filtered
   };
 
-  auto motions = results.getGpsMotions();
+  auto motions = results.getGpsMotions(
+      Duration<double>::minutes(3.0));
   EXPECT_EQ(motions.size(), 1);
   auto m = motions[0];
 

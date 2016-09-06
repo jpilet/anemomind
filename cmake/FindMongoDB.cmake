@@ -16,9 +16,11 @@ find_package(OpenSSL)
 
 if (MongoDB_BUILD_FROM_SOURCES)
 
+  find_program(SCONS scons)
+
   message(STATUS "Building mongodb in ${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src")
   message(STATUS "MongoDB config:"
-        "scons --prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
+        "${SCONS} --prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
         " --c++11=on"
         " --cpppath=${Boost_INCLUDE_DIR}"
         " --libpath=${Boost_LIBRARY_DIRS}"
@@ -35,7 +37,7 @@ if (MongoDB_BUILD_FROM_SOURCES)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND cd "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
         && test "-f" "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/lib/libmongoclient.a"
-        || scons --ssl "--prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
+        || ${SCONS} --ssl "--prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
         --c++11=on --disable-warnings-as-errors=on
         "--cpppath=${Boost_INCLUDE_DIR}"
         "--libpath=${Boost_LIBRARY_DIRS}"
@@ -104,6 +106,7 @@ if(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
   set(MongoDB_FOUND TRUE)
   message(STATUS "Found MongoDB: ${MongoDB_INCLUDE_DIR}, ${MongoDB_LIBRARIES}")
   message(STATUS "MongoDB using new interface: ${MongoDB_EXPOSE_MACROS}")
+  include_directories(${MongoDB_INCLUDE_DIR})
 else(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
   set(MongoDB_FOUND FALSE)
   if (MongoDB_FIND_REQUIRED)

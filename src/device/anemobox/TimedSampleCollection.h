@@ -35,6 +35,7 @@ class TimedSampleCollection : public SampledSignal<T> {
    // If inserting in chronological order, use append instead of insert.
    // Crashes or undefined behavior if x.time > lastTimeStamp
    void append(const TimedValue<T>& x);
+   void append(TimeStamp t, T value) { append(TimedValue<T>(t, value)); }
 
    const TimedVector& samples() const { return _samples; }
 
@@ -63,6 +64,9 @@ class TimedSampleCollection : public SampledSignal<T> {
    bool empty() const { return _samples.empty(); }
    T lastValue() const { return _samples.back().value; }
    TimeStamp lastTimeStamp() const { return _samples.back().time; }
+
+   void clear() { _samples.clear(); }
+
  private:
   void trim();
   TimedVector _samples;

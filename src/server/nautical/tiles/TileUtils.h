@@ -13,11 +13,6 @@
 
 namespace sail {
 
-class TileGeneratorParameters;
-void processTiles(const TileGeneratorParameters &params,
-   std::string boatId, std::string navPath,
-   std::string boatDat, std::string polarDat);
-
 Array<NavDataset> filterSessions(const Array<NavDataset>& sessions);
 
 Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,

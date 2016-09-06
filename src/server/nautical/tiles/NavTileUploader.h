@@ -4,6 +4,7 @@
 #include <string>
 #include <server/common/Array.h>
 #include <server/nautical/NavCompatibility.h>
+#include <server/nautical/tiles/MongoUtils.h>
 
 namespace sail {
 
@@ -39,6 +40,7 @@ struct TileGeneratorParameters {
 
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
+                            mongo::DBClientConnection* db,
                             const TileGeneratorParameters& params);
 
 }  // namespace sail
