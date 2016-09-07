@@ -77,6 +77,37 @@ angular.module('www2App')
 
     });
 
+    $scope.eventList = [];
+    $scope.users = {};
+    $http.get('/api/events', { params: {
+        b: $scope.boat._id,
+        A: ($scope.startTime ? $scope.startTime.toISOString() : undefined),
+        B: ($scope.endTime ? $scope.endTime.toISOString() : undefined)
+      }})
+      .success(function(data, status, headers, config) {
+        if (status == 200) {
+          var times= {};
+          for (var i in data) {
+            var event = data[i];
+            
+            // Parse date
+            event.when = new Date(event.when);
+
+            // Fetch user details
+            userDB.resolveUser(event.author, function(user) {
+              $scope.users[user._id] = user;
+            });
+
+            // Remove duplicates
+            var key = "" + event.when.getTime();
+            if (!(key in times)) {
+              times[key] = 1;
+              $scope.eventList.push(event);
+            }
+          }
+        }
+      });
+
     $scope.plotField = 'devicePerf';
 
     $scope.plotFieldLabels = {

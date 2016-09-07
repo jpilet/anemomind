@@ -6,7 +6,6 @@ angular.module('www2App')
       template: '<canvas style="width:100%;height:100%"></canvas>',
       restrict: 'EA',
       link: function (scope, element, attrs) {
-
         var canvas;
 
         function initializeCanvas() {
@@ -38,129 +37,41 @@ angular.module('www2App')
           }, canvas);
           canvas.addLayer(scope.pathLayer);
 
-          var geojson = 
-          {
-            "type": "FeatureCollection",
-            "features": [
-              {
-                "type": "Feature",
-                "properties": {
-                  textPlacement: 'E',
-                  hideIcon: false,
-                  "icon": "1"
-                },
-                "geometry": {
-                  "type": "Point",
-                  "osmCoordinates": {
-                    x: 0.5185169127180462,
-                    y: 0.35375432740678914
-                  }                    
-                }
-              },
-              {
-                "type": "Feature",
-                "properties": {
-                  textPlacement: 'N',
-                  hideIcon: false,
-                  "icon": "1"
-                },
-                "geometry": {
-                  "type": "Point",
-                  "osmCoordinates": {
-                    x: 0.5185169127180462,
-                    y: 0.35375432740678914
-                  }                    
-                }
-              },
-              {
-                "type": "Feature",
-                "properties": {
-                  textPlacement: 'N',
-                  hideIcon: false,
-                  "icon": "1"
-                },
-                "geometry": {
-                  "type": "Point",
-                  "osmCoordinates": {
-                    x: 0.5185169504107142,
-                    y: 0.3537548139581246
-                  }                    
-                }
-              },
-              {
-                "type": "Feature",
-                "properties": {
-                  textPlacement: 'N',
-                  hideIcon: false,
-                  "icon": "1"
-                },
-                "geometry": {
-                  "type": "Point",
-                  "osmCoordinates": {
-                    x: 0.5185185286021815,
-                    y: 0.35376141061046285
-                  }                    
-                }
-              },
-              {
-                "type": "Feature",
-                "properties": {
-                  textPlacement: 'N',
-                  hideIcon: false,
-                  "icon": "0"
-                },
-                "geometry": {
-                  "type": "Point",
-                  "osmCoordinates": {
-                    x: 0.5185186090836609,
-                    y: 0.35376162801423294
-                  }                    
-                }
+          scope.$watch('eventList', function(newV, oldV) {
+            if(newV.length > 0) {
+              var eventList = [];
+              for(var i in scope.eventList) {
+                eventList.push({
+                  "type": "Feature",
+                  "properties": {
+                    textPlacement: 'E',
+                    hideIcon: false,
+                    "icon": scope.eventList[i].photo ? "1" : "0"
+                  },
+                  "geometry": {
+                    "type": "Point",
+                    "osmCoordinates": {
+                      x: scope.eventList[i].dataAtEventTime.pos[0],
+                      y: scope.eventList[i].dataAtEventTime.pos[1]
+                    }                    
+                  }
+                });
               }
-            ]
-          };
 
-          var poiLayer = new POILayer({
-            renderer: canvas,
-            geojson: geojson,
-            onFeatureClic: function(feature, pos) {
-              feature.properties.text += " clicked";
+              var geojson = 
+              {
+                "type": "FeatureCollection",
+                "features": eventList
+              };
+
+              var poiLayer = new POILayer({
+                renderer: canvas,
+                geojson: geojson
+              });
+              canvas.addLayer(poiLayer);
             }
-          });
-          canvas.addLayer(poiLayer);
+          }, true);
 
-
-          // $http.get('/api/events', { params: {
-          //   b: scope.boat._id,
-          //   A: (scope.after ? scope.after.toISOString() : undefined),
-          //   B: (scope.before ? scope.before.toISOString() : undefined)
-          // }})
-          // .success(function(data, status, headers, config) {
-          //   scope.events = [];
-          //   scope.users = {};
-          //   if (status == 200) {
-          //     var times= {};
-          //     for (var i in data) {
-          //       var event = data[i];
-          //       // Parse date
-          //       event.when = new Date(event.when);
-
-          //       // Fetch user details
-          //       userDB.resolveUser(event.author, function(user) {
-          //         scope.users[user._id] = user;
-          //       });
-
-          //       // Remove duplicates
-          //       var key = "" + event.when.getTime();
-          //       if (!(key in times)) {
-          //         times[key] = 1;
-          //         scope.events.push(event);
-          //       }
-          //     }
-          //     console.log(scope.events);
-          //   }
-          // });
-          
 
           // A clic on the map selects a curve and sets current time.
           canvas.pinchZoom.onClic = function(pos) {
