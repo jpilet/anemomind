@@ -66,7 +66,10 @@ angular.module('www2App')
 
               var poiLayer = new POILayer({
                 renderer: canvas,
-                geojson: geojson
+                geojson: geojson,
+                onFeatureClic: function(feature, pos) {
+                  feature.properties.text += " clicked";
+                }
               });
               canvas.addLayer(poiLayer);
             }
@@ -74,7 +77,7 @@ angular.module('www2App')
 
 
           // A clic on the map selects a curve and sets current time.
-          canvas.pinchZoom.onClic = function(pos) {
+          canvas.addClicHandler(function(pos) {
             var point = scope.pathLayer.findPointAt(
               pos.startWorldPos.x, pos.startWorldPos.y);
             if (point) {
@@ -90,10 +93,13 @@ angular.module('www2App')
                 scope.currentTime = point.point.time;
                 scope.currentPoint = point.point;
                 canvas.refresh();
+
+                scope.$apply();
+                return true;
               }
             }
-            scope.$apply();
-          };
+            return false;
+          });
 
           if (scope.selectedCurve) {
               scope.pathLayer.selectCurve(scope.selectedCurve);

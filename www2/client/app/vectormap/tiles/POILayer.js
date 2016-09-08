@@ -35,9 +35,9 @@ function POILayer(params) {
   var me = this;
 
   if (this.params.onFeatureClic) {
-    this.renderer.pinchZoom.onClic = function(pos) {
+    this.renderer.addClicHandler(function(pos) {
       me.handleClic(pos);
-    };
+    });
   }
 }
 
@@ -306,6 +306,9 @@ POILayer.prototype.handleClic = function(pos) {
     this.renderer.pinchZoom.worldDistanceFromViewerDistance(this.featureRadius());
   var bestFeature = undefined;
 
+  var t = this;
+  var handled = false;
+
   forEachFeature(this.params.geojson, function(feature) {
     if (feature.geometry.type != 'Point' || feature.properties.hideIcon) {
       return;
@@ -316,9 +319,12 @@ POILayer.prototype.handleClic = function(pos) {
       bestDist = d;
       bestFeature = feature;
     }
+    if(typeof bestFeature !== undefined  && bestFeature && bestFeature != null) {
+      t.params.onFeatureClic(bestFeature, pos);
+      handled = true; 
+    }
   });
-
-  this.params.onFeatureClic(bestFeature, pos);
+  return handled;
 };
 
 /* options is an optional object with the following entries:
