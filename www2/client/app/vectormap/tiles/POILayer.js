@@ -432,3 +432,8 @@ POILayer.prototype.getVisibleFeatureLocation = function(minScale, margin) {
 POILayer.prototype.zoomOnVisibleFeatures = function(minScale, margin) {
   this.renderer.setLocation(this.getVisibleFeatureLocation(minScale, margin));
 };
+
+POILayer.prototype.setGeojson = function(geojson) {
+  this.params.geojson = geojson;
+  this.renderer.refreshIfNotMoving();
+};

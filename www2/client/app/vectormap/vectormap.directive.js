@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('vectormap', function ($timeout, $window, $http, userDB, boatList, Auth) {
+  .directive('vectormap', function ($timeout, $window, $http, $httpParamSerializer, userDB, boatList, Auth, Lightbox) {
     return {
       template: '<canvas style="width:100%;height:100%"></canvas>',
       restrict: 'EA',
@@ -37,11 +37,28 @@ angular.module('www2App')
           }, canvas);
           canvas.addLayer(scope.pathLayer);
 
+          var geojson = 
+            {
+              "type": "FeatureCollection",
+              "features": []
+            };
+
+          var poiLayer = new POILayer({
+            renderer: canvas,
+            geojson: geojson,
+            onFeatureClic: function(feature, pos) {
+              //Lightbox.openModal(modalList, 1);
+              feature.properties.text += " clicked";
+            }
+          });
+          canvas.addLayer(poiLayer);
+
           scope.$watch('eventList', function(newV, oldV) {
             if(newV.length > 0) {
-              var eventList = [];
+              var geojson = [];
+              var modalList = [];
               for(var i in scope.eventList) {
-                eventList.push({
+                geojson.push({
                   "type": "Feature",
                   "properties": {
                     textPlacement: 'E',
@@ -58,20 +75,10 @@ angular.module('www2App')
                 });
               }
 
-              var geojson = 
-              {
-                "type": "FeatureCollection",
-                "features": eventList
-              };
 
-              var poiLayer = new POILayer({
-                renderer: canvas,
-                geojson: geojson,
-                onFeatureClic: function(feature, pos) {
-                  feature.properties.text += " clicked";
-                }
-              });
-              canvas.addLayer(poiLayer);
+              poiLayer.setGeojson(geojson);
+
+              
             }
           }, true);
 
