@@ -69,6 +69,7 @@
                 <tr><td></td><td></td></tr>
                 <tr data-ng-hide='twdir == undefined'><td>TWDIR</td><td>{{ twdir | angle:360 }}</td></tr>
                 <tr><td>GPS bearing</td><td>{{ gpsBearing | angle:360 }}</td></tr>
+                <tr><td>GPS pos.</td><td>{{ currentPoint.pos | geopos }}</td></tr>
                 <tr><td></td><td></td></tr>
                 <tr><td>Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
                 <tr><td>Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
