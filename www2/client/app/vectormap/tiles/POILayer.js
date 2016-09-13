@@ -36,7 +36,7 @@ function POILayer(params) {
 
   if (this.params.onFeatureClic) {
     this.renderer.addClicHandler(function(pos) {
-      me.handleClic(pos);
+      return me.handleClic(pos);
     });
   }
 }
@@ -307,7 +307,6 @@ POILayer.prototype.handleClic = function(pos) {
   var bestFeature = undefined;
 
   var t = this;
-  var handled = false;
 
   forEachFeature(this.params.geojson, function(feature) {
     if (feature.geometry.type != 'Point' || feature.properties.hideIcon) {
@@ -319,12 +318,12 @@ POILayer.prototype.handleClic = function(pos) {
       bestDist = d;
       bestFeature = feature;
     }
-    if(typeof bestFeature !== undefined  && bestFeature && bestFeature != null) {
-      t.params.onFeatureClic(bestFeature, pos);
-      handled = true; 
-    }
   });
-  return handled;
+  if(typeof bestFeature !== undefined  && bestFeature && bestFeature != null) {
+    t.params.onFeatureClic(bestFeature, pos);
+    return true;
+  }
+  return false;
 };
 
 /* options is an optional object with the following entries:

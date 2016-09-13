@@ -75,7 +75,7 @@ function CanvasTilesRenderer(params) {
 
   t.clicHandlers = [];
   t.pinchZoom.onClic = function(pos) {
-    for(var i=t.clicHandlers.length-1; i>=0; i--) {
+    for(var i=0; i<t.clicHandlers.length; i++) {
       if(t.clicHandlers[i](pos))
         return false;
     }

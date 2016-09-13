@@ -55,10 +55,10 @@ angular.module('www2App')
 
           scope.$watch('eventList', function(newV, oldV) {
             if(newV.length > 0) {
-              var geojson = [];
+              geojson.features = [];
               var modalList = [];
               for(var i in scope.eventList) {
-                geojson.push({
+                geojson.features.push({
                   "type": "Feature",
                   "properties": {
                     textPlacement: 'E',
@@ -75,9 +75,7 @@ angular.module('www2App')
                 });
               }
 
-
-              poiLayer.setGeojson(geojson);
-
+              canvas.refreshIfNotMoving();
               
             }
           }, true);
