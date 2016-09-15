@@ -434,6 +434,31 @@ struct SensorSetCaster {
   }
 };
 
+enum class FunctionCode {
+  Noise,
+  Distortion,
+  NoiseAndDistortion
+};
+
+template <enum FunctionCode, typename T, DataCode code>
+struct SensorFunctionType {};
+
+template <typename T, DataCode code>
+struct SensorFunctionType<FunctionCode::Noise, T, code> {
+  typedef NoiseCost<T, code> type;
+};
+
+template <typename T, DataCode code>
+struct SensorFunctionType<FunctionCode::Distortion, T, code> {
+  typedef DistortionModel<T, code> type;
+};
+
+template <typename T, DataCode code>
+struct SensorFunctionType<
+  FunctionCode::NoiseAndDistortion, T, code> {
+  typedef SensorModel<T, code> type;
+};
+
 
 // Model for all the sensors on the boat.
 template <typename T>
