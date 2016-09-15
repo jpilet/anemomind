@@ -163,6 +163,12 @@ cxx_test(math_BandedLUTest
   common_logging
   )
 
+cxx_test(math_BandedLevMarTest
+  BandedLevMarTest.cpp
+  common_logging
+  gtest_main
+  )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)

@@ -8,8 +8,11 @@
 #include <server/math/BandedLevMar.h>
 #include <gtest/gtest.h>
 
-TEST(BandedLevmarTest, BasicLineFit) {
+using namespace sail;
+using namespace sail::BandedLevMar;
 
+TEST(BandedLevmarTest, BasicLineFit) {
+  Problem<double> problem;
 }
 
 

@@ -11,37 +11,79 @@
 #ifndef SERVER_MATH_BANDEDLEVMAR_H_
 #define SERVER_MATH_BANDEDLEVMAR_H_
 
+#include <memory>
+#include <server/common/Span.h>
+#include <vector>
+
 namespace sail {
 namespace BandedLevMar {
 
 class SampleCostEvaluator {
+  int inputCount() const {return 2;}
+  int outputCount() const {return 2;}
+
   template <typename T>
-  bool evaluate(int inputDim, const T *input,
-                int outputDim, T *output) const {
-    return true;
+  bool evaluate(const T *input, T *output) const {
+    output[0] = input[0] - 3.4;
+    output[1] = input[1] - 5.6;
   };
 };
 
-template <typename CostEvaluator, typename T>
-class CostFunction {
+template <typename T>
+class CostFunctionBase {
 public:
-  CostFunction(
+  int residualCount() const = 0;
+  void evaluateResiduals(const T *X, const T *outLocal) const = 0;
+};
+
+template <typename CostEvaluator, typename T>
+class UniqueCostFunction {
+public:
+  UniqueCostFunction(
       const Spani &inputRange,
-      int residualCount
-      const std::shared_ptr<CostEvaluator> &f) :
+      const std::unique_ptr<CostEvaluator> &f) :
         _inputRange(inputRange),
-        _residualCount(residualCount),
-        _f(f) {}
+        _inputCount(f->inputCount()),
+        _outputCount(f->outputCount()),
+        _f(f) {
+    CHECK(_inputRange.width() == _inputCount);
+  }
+
+  Spani inputRange() const {
+    return _inputRange;
+  }
+
+  int residualCount() const {
+    return _outputCount;
+  }
+
+  void evaluateResiduals(const T *X, const T *outLocal) const {
+    _f->evaluate(X + _inputRange.minv(), outLocal);
+  }
 private:
   Spani _inputRange;
-  int _residualCount;
-  std::shared_ptr<CostEvalutor> _f;
+  int _inputCount, _outputCount;
+  std::unique_ptr<CostEvaluator> _f;
 };
 
 template <typename T>
 class Problem {
 public:
+  Problem() {}
+
+  Problem(int expectedCostFunctionCount) {
+    _costFunctions.reserve(expectedCostFunctionCount);
+  }
+
+  template <typename CostEvaluator>
+  void addCostFunction(Spani inputRange, int residualCount,
+      CostEvaluator *f) {
+    std::unique_ptr<CostFunctionBase<T>> cost(
+        new UniqueCostFunction<CostEvaluator, T>(inputRange, residualCount, f));
+    _costFunctions.push_back(std::move(cost));
+  }
 private:
+  std::vector<std::unique_ptr<CostFunctionBase<T> > > _costFunctions;
 };
 
 }
