@@ -39,7 +39,7 @@ public:
   virtual Spani inputRange() const = 0;
   virtual bool evaluate(const T *X, T *outLocal) = 0;
   virtual bool evaluate(const T *X, T *Y, T *JcolMajor) = 0;
-  virtual bool accumulateNormalEqs(
+  virtual bool accumulateNormalEquations(
       const T *X,
       BandMatrix<T> *JtJ, MDArray<T, 2> *minusJtF) = 0;
 };
@@ -95,7 +95,7 @@ public:
     return true;
   }
 
-  bool accumulateNormalEqs(
+  bool accumulateNormalEquations(
       const T *X, BandMatrix<T> *JtJ, MDArray<T, 2> *minusJtF) override {
     T F[CostEvaluator::inputCount];
     T J[CostEvaluator::inputCount*CostEvaluator::outputCount];
@@ -113,7 +113,7 @@ public:
           dotProduct<CostEvaluator::outputCount>(j0, F);
       for (int j = 0; j < CostEvaluator::inputCount; j++) {
         T *j1 = J + j*CostEvaluator::outputCount;
-        (*JtJ)(offset + i, offset + j) =
+        (*JtJ)(offset + i, offset + j) +=
             dotProduct<CostEvaluator::outputCount>(j0, j1);
       }
     }
@@ -145,6 +145,21 @@ public:
   int bandWidth() const {return _bandWidth;}
   int paramCount() const {return _paramCount;}
   int residualCount() const {return _residualCount;}
+
+  bool fillNormalEquations(
+      const T *X,
+      BandMatrix<T> *JtJ, MDArray<T, 2> *minusJtF) {
+    *JtJ = BandMatrix<T>::zero(
+        _paramCount, _paramCount, _bandWidth, _bandWidth+1);
+    *minusJtF = MDArray<T, 2>(_paramCount, 1);
+    minusJtF->setAll(T(0.0));
+    for (auto &f: _costFunctions) {
+      if (!f->accumulateNormalEquations(X, JtJ, minusJtF)) {
+        return false;
+      }
+    }
+    return true;
+  }
 private:
   int _bandWidth, _paramCount, _residualCount;
   std::vector<std::unique_ptr<CostFunctionBase<T> > > _costFunctions;

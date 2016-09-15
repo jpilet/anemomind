@@ -5,6 +5,7 @@
  *      Author: jonas
  */
 
+#include <server/common/ArrayIO.h>
 #include <server/math/BandedLevMar.h>
 #include <gtest/gtest.h>
 #include <random>
@@ -72,6 +73,22 @@ TEST(BandedLevmarTest, BasicLineFit) {
     X[i] = 0.0;
   }
 
+  {
+    BandMatrix<double> JtJ;
+    MDArray2d minusJtF;
+
+    EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
+    BandedLU::solveInPlace(&JtJ, &minusJtF);
+    // Take the step
+    for (int i = 0; i < n; i++) {
+      X[i] += minusJtF(i, 0);
+    }
+
+    // Compare
+    for (int i = 0; i < n; i++) {
+      EXPECT_NEAR(X[i], gtLine(i), 1.0e-2);
+    }
+  }
 }
 
 
