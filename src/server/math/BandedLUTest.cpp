@@ -18,6 +18,7 @@ TEST(BandedLU, Primitives) {
   for (int i = 0; i < n; i++) {
     A(i, i) = diag[i];
   }
+  EXPECT_TRUE(hasValidShape(A));
   {
     auto Ad = A.makeDense();
     EXPECT_EQ(Ad.rows(), n);
@@ -28,4 +29,7 @@ TEST(BandedLU, Primitives) {
       }
     }
   }
+  EXPECT_EQ(computeBlockCount(4, 2), 3);
+  EXPECT_EQ(computeBlockCount(8, 5), 4);
+  EXPECT_EQ(getDiagonalBlockCount(A), 3);
 }

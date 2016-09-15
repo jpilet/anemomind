@@ -157,6 +157,11 @@ cxx_test(math_ResamplerTest
   gtest_main
   )        
 
+cxx_test(math_BandedLUTest
+  BandedLUTest.cpp
+  gtest_main
+  )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
