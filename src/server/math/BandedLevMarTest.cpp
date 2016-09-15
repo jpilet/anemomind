@@ -45,11 +45,11 @@ namespace {
 TEST(BandedLevmarTest, BasicLineFit) {
   std::default_random_engine rng(0);
 
-  std::uniform_real_distribution<double> distrib(0.0, 0.01);
+  std::uniform_real_distribution<double> distrib(0.0, 0.0); //0.01);
 
-  const int n = 30;
+  const int n = 26;
 
-  LineKM gtLine(0, n, 3.4, 9.5);
+  LineKM gtLine(0, n, 1.0, 1.0); //3.4, 9.5);
 
   Problem<double> problem;
   for (int i = 0; i < n; i++) {
@@ -79,7 +79,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
     EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
 
-    BandedLU::forwardEliminate(&JtJ, &minusJtF, 1);
+    BandedLU::forwardEliminate(&JtJ, &minusJtF, 22);
 
     auto JtJ0 = JtJ.makeDense();
     auto minusJtF0 = minusJtF.dup();

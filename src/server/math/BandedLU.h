@@ -109,19 +109,30 @@ bool forwardEliminateSquareBlock(
     T *a, int offset,
     T *b) {
   int bestRow = findBestRowToPivot(blockRows, a);
+  std::cout << "  bestRow = " << bestRow << std::endl;
+  std::cout << "  blockRows = " << blockRows << std::endl;
+  std::cout << "  blockCols = " << blockCols << std::endl;
+  std::cout << "  aColStep = " << aColStep << std::endl;
+  std::cout << "  bColStep = " << bColStep << std::endl;
+  std::cout << "  bCols = " << bCols << std::endl;
+  std::cout << "  offset = " << offset << std::endl;
   swapRows(bestRow, a, blockCols, aColStep);
   swapRows(bestRow, b, bCols, bColStep);
   if (fabs(a[0]) <= T(1.0e-12)) {
     return false;
   }
+  std::cout << "performed swap" << std::endl;
+  std::cout << "The diagonal element is now" << a[0] << std::endl;
   for (int i = 1; i < blockRows; i++) {
     T factor = -a[i]/a[0];
+    std::cout << "The factor is " << factor << std::endl;
     if (!isFinite<T>(factor)) {
       return false;
     }
     rowOp(factor, blockCols, 0, i, aColStep, a);
     rowOp(factor, bCols, 0, i, bColStep, b);
   }
+  std::cout << "all good!" << std::endl;
   return true;
 }
 
@@ -137,6 +148,18 @@ int getMaxBlockRows(const BandMatrix<T> &A) {
 }
 
 template <typename T>
+MDArray<T, 2> collectCoefficients(int rows, int cols, T *a, T *b, int aColStep) {
+  MDArray<T, 2> dst(rows, cols+1);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      dst(i, j) = a[i + aColStep*j];
+    }
+    dst(i, cols) = b[i];;
+  }
+  return dst;
+}
+
+template <typename T>
 bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B, int upto = -1) {
   CHECK(hasValidShape(*A));
   if (isDiagonal(*A)) {
@@ -146,17 +169,23 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B, int upto = -1) {
 
   int maxBlockRows = getMaxBlockRows(*A);
   int maxBlockCols = 1 + maxBlockRows;
+
+  std::cout << "Max block rows = " << maxBlockRows << std::endl;
+  std::cout << "Max block cols = " << maxBlockCols << std::endl;
+
   assert(1 == A->verticalStride());
   assert(1 == B->getStepAlongDim(0));
   int aColStep = A->horizontalStride();
   int bCols = B->cols();
   int bColStep = B->getStepAlongDim(1);
-  int n = upto == -1? A->rows() : upto;
-  for (int offset = 0; offset < n; offset++) {
+  int n = A->rows();
+  for (int offset = 0; offset < (upto == -1? n : std::min(n, upto)); offset++) {
     int blockRows = std::min(n - offset, maxBlockRows);
     int blockCols = std::min(n - offset, maxBlockCols);
     auto *a = A->ptr(offset, offset);
     auto *b = getBRowPointer(B, offset);
+    //std::cout << "Coefficitiones before: " << collectCoefficients(
+        //blockRows, blockCols, a, b, aColStep) << std::endl;
     if (!forwardEliminateSquareBlock(
         blockRows,
         blockCols,
@@ -167,6 +196,11 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B, int upto = -1) {
         b)) {
       return false;
     }
+    //std::cout << "Coefficitiones after: " << collectCoefficients(
+        //blockRows, blockCols, a, b, aColStep) << std::endl;
+    std::cout << "Forward eliminated at " << offset << ": " << std::endl;
+    std::cout << A->makeDense() << std::endl;
+    std::cout << "B = \n" << *B << std::endl;
   }
   return true;
 }
