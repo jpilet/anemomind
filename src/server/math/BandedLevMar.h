@@ -22,6 +22,15 @@
 namespace sail {
 namespace BandedLevMar {
 
+template <int dim, typename T>
+T dotProduct(T *a, T *b) {
+  T sum = T(0.0);
+  for (int i = 0; i < dim; i++) {
+    sum += a[i]*b[i];
+  }
+  return sum;
+}
+
 template <typename T>
 class CostFunctionBase {
 public:
@@ -94,8 +103,20 @@ public:
       return false;
     }
 
+    int offset = _inputRange.minv();
 
-
+    // TODO: Wrap it with Eigen::Map, so that
+    // we can use Eigen instead of our home-made matrix multiplication...
+    for (int i = 0; i < CostEvaluator::inputCount; i++) {
+      T *j0 = J + i*CostEvaluator::outputCount;
+      (*minusJtF)(offset + i, 0) -=
+          dotProduct<CostEvaluator::outputCount>(j0, F);
+      for (int j = 0; j < CostEvaluator::inputCount; j++) {
+        T *j1 = J + j*CostEvaluator::outputCount;
+        (*JtJ)(offset + i, offset + j) =
+            dotProduct<CostEvaluator::outputCount>(j0, j1);
+      }
+    }
     return true;
   }
 private:
