@@ -93,5 +93,8 @@ TEST(PbsvTest, SymMat) {
 
   A.add(2, 3, 4.0);
   EXPECT_EQ(A.getSafe(3, 2), 123.0); // (no change)
+
+  EXPECT_EQ(A.kd(), 2);
+  EXPECT_EQ(A.size(), 4);
 }
 
