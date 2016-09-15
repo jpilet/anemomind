@@ -160,6 +160,7 @@ cxx_test(math_ResamplerTest
 cxx_test(math_BandedLUTest
   BandedLUTest.cpp
   gtest_main
+  common_logging
   )
 
 add_subdirectory(geometry)

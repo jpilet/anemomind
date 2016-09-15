@@ -54,9 +54,6 @@ TEST(BandedLU, DiagonalSolve) {
 #define EAVAS(X) std::cout << #X << ": " << X << std::endl;
 
 TEST(BandedLU, GeneralSolve) {
-  // (mmul (inverse [[1 2 0 0] [2.4 5 7 0] [3 3 1.4 0] [0 0 4.5 1]]) [[3 2] [9 2] [4 5] [3 5]])
-  // [[-0.5263157894736845 1.7105263157894735] [1.7631578947368423 0.14473684210526305] [0.20676691729323313 -0.4041353383458646] [2.0695488721804516 6.818609022556391]]
-
   auto A = BandMatrix<double>::zero(4, 4, 1, 2);
   EAVAS(A.computeI(0, 0));
   EAVAS(A.computeI(1, 0));
@@ -77,22 +74,22 @@ TEST(BandedLU, GeneralSolve) {
   std::cout << "A before is\n" << A.makeDense() << std::endl;
   std::cout << "B before is\n" << B << std::endl;
 
-  //EXPECT_TRUE(solveInPlace(&A, &B));
-  EXPECT_TRUE(forwardEliminate(&A, &B));
+  EXPECT_TRUE(solveInPlace(&A, &B));
+  //EXPECT_TRUE(forwardEliminate(&A, &B));
 
   std::cout << "A after is\n" << A.makeDense() << std::endl;
   std::cout << "B after is\n" << B << std::endl;
 
   double expected[4*2] = {
-      -0.5263157894736845, 1.7105263157894735,
-      1.7631578947368423, 0.14473684210526305,
-      0.20676691729323313, -0.4041353383458646,
-      2.0695488721804516, 6.818609022556391};
+      2.58079,   4.14589,
+      0.20960,  -1.07295,
+      0.25115,  -0.36934,
+      1.86981,   6.66205};
 
 
-  /*for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 2; j++) {
-      EXPECT_NEAR(expected[i + 4*j], B(i, j), 1.0e-6);
+      EXPECT_NEAR(expected[2*i + j], B(i, j), 1.0e-3);
     }
-  }*/
+  }
 }

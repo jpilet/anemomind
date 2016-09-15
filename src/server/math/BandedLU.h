@@ -10,6 +10,7 @@
 
 #include <server/math/lapack/BandMatrix.h>
 #include <server/common/numerics.h>
+#include <server/common/logging.h>
 
 // http://www.boost.org/doc/libs/1_61_0/libs/numeric/ublas/doc/banded.html
 // http://math.nist.gov/lapack++/
@@ -137,7 +138,7 @@ int getMaxBlockRows(const BandMatrix<T> &A) {
 
 template <typename T>
 bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
-  assert(hasValidShape(*A));
+  CHECK(hasValidShape(*A));
   if (isDiagonal(*A)) {
     return true;
   }
@@ -170,6 +171,9 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
       return false;
     }
   }
+  std::cout << "DONE FORWARD ELIMINATION:\n";
+  std::cout << "  A (the U matrix in [L, U] = lu(A))= \n" << A->makeDense() << std::endl;
+  std::cout << "  B (which is L\B) = \n" << *B << std::endl;
   return true;
 }
 
@@ -184,13 +188,14 @@ bool solveVariable(T a, T *b, int bCols, int bColStep) {
 
 template <typename T>
 bool backwardSubstituteSquareBlock(int backSteps, int bCols,
-    int aColStep, int bColStep, T *a, T *b) {
+    int bColStep, T *a, T *b) {
   assert(T(0.0) < *a);
   solveVariable<T>(*a, b, bCols, bColStep);
   *a = T(1.0);
   for (int i = 1; i < backSteps; i++) {
+    T factor = -a[-i];
     a[-i] = T(0.0);
-    rowOp(T(-1.0), bCols, 0, -i, bColStep, b);
+    rowOp(factor, bCols, 0, -i, bColStep, b);
   }
   return true;
 }
@@ -204,13 +209,15 @@ bool backwardSubstitute(BandMatrix<T> *A, MDArray<T, 2> *B) {
   int aColStep = A->horizontalStride();
   int bColStep = B->getStepAlongDim(1);
   for (int offset = n-1; 0 <= offset; offset--) {
-    std::cout << "Backward substitute at " << offset << std::endl;
-    int backSteps = offset - std::max(0, offset - maxBlockSize);
-    std::cout << "with back steps " << backSteps << std::endl;
+    std::cout << "Back subst at " << offset << std::endl;
+    std::cout << "  A: \n" << A->makeDense() << std::endl;
+    std::cout << "  B: \n" << *B << std::endl;
+    int from = std::max(0, offset - A->superdiagonalCount());
+    int backSteps = offset - from + 1;
     auto *a = A->ptr(offset, offset);
     auto *b = getBRowPointer(B, offset);
     if (!backwardSubstituteSquareBlock<T>(
-        backSteps, bCols, aColStep, bColStep, a, b)) {
+        backSteps, bCols, bColStep, a, b)) {
       return false;
     }
   }
