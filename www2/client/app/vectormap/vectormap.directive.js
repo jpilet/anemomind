@@ -50,6 +50,8 @@ angular.module('www2App')
             onFeatureClic: function(feature, pos) {
               if(feature.properties.icon == "1")
                 Lightbox.openModal(images, feature.index);
+              else
+                goToTile(feature);
             }
           });
           canvas.addLayer(poiLayer);
@@ -62,12 +64,25 @@ angular.module('www2App')
             return url.join('?');
           };
 
+          var goToTile = function(event) {
+            var sidebar = angular.element('.mapAndGraphAndSidebar #tabs');
+            var target = angular.element('#eventsContainer li[data-id="'+event.id+'"]');
+            var posTop = target.position();
+            posTop = posTop.top;
+            
+            target.addClass('selected').siblings().removeClass('selected');
+            sidebar.scrollTop(posTop);
+
+            return true; 
+          };
+
           scope.$watch('eventList', function(newV, oldV) {
             if(newV.length > 0) {
               geojson.features = [];
               for(var i in scope.eventList) {
                 geojson.features.push({
                   "type": "Feature",
+                  "id": scope.eventList[i]._id,
                   "index": i, 
                   "properties": {
                     textPlacement: 'E',

@@ -82,6 +82,10 @@
   font-weight: bold;
 }
 
+.timeline > li.selected .timeline-panel .bottom .eventdate a {
+  color: #ff0033;
+}
+
 .timeline > li .timeline-panel .bottom .message,
 .timeline > li .timeline-panel .bottom .comment {
   color: #3e3e3e;
