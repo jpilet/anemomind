@@ -14,19 +14,28 @@
 namespace sail {
 namespace BandedLevMar {
 
-template <typename CostFunctor, typename T>
+class SampleCostEvaluator {
+  template <typename T>
+  bool evaluate(int inputDim, const T *input,
+                int outputDim, T *output) const {
+    return true;
+  };
+};
+
+template <typename CostEvaluator, typename T>
 class CostFunction {
 public:
   CostFunction(
       const Spani &inputRange,
-      int residualCount, CostFunctor *f) :
+      int residualCount
+      const std::shared_ptr<CostEvaluator> &f) :
         _inputRange(inputRange),
         _residualCount(residualCount),
         _f(f) {}
 private:
   Spani _inputRange;
   int _residualCount;
-  std::unique_ptr<CostFunctor> _f;
+  std::shared_ptr<CostEvalutor> _f;
 };
 
 template <typename T>
