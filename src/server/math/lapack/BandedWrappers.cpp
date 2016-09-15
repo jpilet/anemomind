@@ -152,7 +152,21 @@ int performPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
 
 template <typename T>
 bool easyPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
-
+  int info = performPbsv(lhs, rhs);
+  if (info == 0) {
+    return true;
+  } else if (info < 0) {
+    const char *argNames[] = {"uplo", "n", "kd", "nrhs", "ab", "ldab", "b",
+      "ldb", "info"};
+    LOG(ERROR) << "The argument '" << argNames[(-info)-1] << "' had an illegal value";
+    return false;
+  } else if (info > 0) {
+    int i = info-1;
+    LOG(ERROR) << "the leading minor of order " << i << " of A is not"
+                      "positive definite, so the factorization could not be"
+                      "completed, and the solution has not been computed.";
+    return false;
+  }
 }
 
 void testCallIt() {
