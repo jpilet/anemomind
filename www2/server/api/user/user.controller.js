@@ -8,7 +8,8 @@ var config = require('../../config/environment');
 var jwt = require('jsonwebtoken');
 var winston = require('winston');
 var generatePassword = require('password-generator');
-var transporter = require('../../components/mailer').transporter;
+var mailer = require('../../components/mailer');
+var transporter = mailer.transporter;
 
 var validationError = function(res, err) {
   return res.status(422).json(err);
@@ -135,7 +136,7 @@ exports.resetPassword = function(req, res, next) {
       return validationError(res, err);
     }
     transporter.sendMail({
-      from: 'anemobot@gmail.com',
+      from: mailer.from,
       to: req.body.email,
       subject: 'Your new password for anemolab.com',
       text: 'A new password has been generated for you: ' + newPass +
