@@ -45,7 +45,7 @@ namespace {
 TEST(BandedLevmarTest, BasicLineFit) {
   std::default_random_engine rng(0);
 
-  std::uniform_real_distribution<double> distrib(0.0, 4.0);
+  std::uniform_real_distribution<double> distrib(0.0, 0.01);
 
   const int n = 30;
 
@@ -78,6 +78,14 @@ TEST(BandedLevmarTest, BasicLineFit) {
     MDArray2d minusJtF;
 
     EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
+
+    auto JtJ0 = JtJ.makeDense();
+    auto minusJtF0 = minusJtF.dup();
+    Eigen::MatrixXd eJtJ = Eigen::Map<Eigen::MatrixXd>(JtJ0.ptr(), n, n);
+    Eigen::MatrixXd eMinusJtF = Eigen::Map<Eigen::MatrixXd>(minusJtF0.ptr(), n, 1);
+    Eigen::MatrixXd Y = eJtJ.lu().solve(eMinusJtF);
+    std::cout << "Y = " << Y << std::endl;
+
     BandedLU::solveInPlace(&JtJ, &minusJtF);
     // Take the step
     for (int i = 0; i < n; i++) {

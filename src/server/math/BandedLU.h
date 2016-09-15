@@ -183,7 +183,7 @@ bool solveVariable(T a, T *b, int bCols, int bColStep) {
 template <typename T>
 bool backwardSubstituteSquareBlock(int backSteps, int bCols,
     int bColStep, T *a, T *b) {
-  assert(T(0.0) < *a);
+  assert(T(0.0) < fabs(*a));
   solveVariable<T>(*a, b, bCols, bColStep);
   *a = T(1.0);
   for (int i = 1; i < backSteps; i++) {
@@ -222,6 +222,11 @@ bool solveInPlace(
   if (!forwardEliminate(A, B)) {
     return false;
   }
+
+  for (int i = 0; i < A->rows(); i++) {
+    std::cout << "Diag element: " << (*A)(i, i) << std::endl;
+  }
+
   if (!backwardSubstitute(A, B)) {
     return false;
   }
