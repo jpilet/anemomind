@@ -63,7 +63,14 @@ var all = {
   // Would it make sense to have absolute paths here to?
   uploadDir: 'uploads',
   endpointDir: '/tmp/mail2',
-  backupDestination: '/tmp/anemobackup'
+  backupDestination: '/tmp/anemobackup',
+
+  smtp: {
+    host: 'mail.infomaniak.ch',
+    port: 587,
+    requireTLS: true,
+    auth: { user: 'anemolab@calodox.org', pass: process.env.SMTP_PASSWORD || '' }
+  }
 };
 
 // Export the config object based on the NODE_ENV
