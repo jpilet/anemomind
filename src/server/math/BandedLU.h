@@ -137,7 +137,7 @@ int getMaxBlockRows(const BandMatrix<T> &A) {
 }
 
 template <typename T>
-bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
+bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B, int upto = -1) {
   CHECK(hasValidShape(*A));
   if (isDiagonal(*A)) {
     return true;
@@ -151,7 +151,7 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
   int aColStep = A->horizontalStride();
   int bCols = B->cols();
   int bColStep = B->getStepAlongDim(1);
-  int n = A->rows();
+  int n = upto == -1? A->rows() : upto;
   for (int offset = 0; offset < n; offset++) {
     int blockRows = std::min(n - offset, maxBlockRows);
     int blockCols = std::min(n - offset, maxBlockCols);
@@ -219,13 +219,17 @@ template <typename T>
 bool solveInPlace(
     BandMatrix<T> *A, MDArray<T, 2> *B) {
   assert(hasValidShape(*A));
+
+  std::cout << " A0 = [" << A->makeDense() << "];\n";
+  std::cout << " B0 = [" << *B << "];\n";
+
   if (!forwardEliminate(A, B)) {
     return false;
   }
 
-  for (int i = 0; i < A->rows(); i++) {
-    std::cout << "Diag element: " << (*A)(i, i) << std::endl;
-  }
+  std::cout << " A1 = [" << A->makeDense() << "];\n";
+  std::cout << " B1 = [" << *B << "];\n";
+
 
   if (!backwardSubstitute(A, B)) {
     return false;
