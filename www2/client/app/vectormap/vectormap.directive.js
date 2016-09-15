@@ -1,12 +1,11 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('vectormap', function ($timeout, $window, boatList, Auth) {
+  .directive('vectormap', function ($timeout, $window, $http, $httpParamSerializer, userDB, boatList, Auth, Lightbox) {
     return {
       template: '<canvas style="width:100%;height:100%"></canvas>',
       restrict: 'EA',
       link: function (scope, element, attrs) {
-
         var canvas;
 
         function initializeCanvas() {
@@ -38,8 +37,91 @@ angular.module('www2App')
           }, canvas);
           canvas.addLayer(scope.pathLayer);
 
+          var images = [];
+          var geojson = 
+            {
+              "type": "FeatureCollection",
+              "features": []
+            };
+
+          var poiLayer = new POILayer({
+            renderer: canvas,
+            geojson: geojson,
+            onFeatureClic: function(feature, pos) {
+              goToEventTile(feature);
+
+              if(feature.properties.icon == "image")
+                Lightbox.openModal(images, feature.index);
+            }
+          });
+          var options = {
+            "width": 30,
+            "height": 30
+          };
+          poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
+          poiLayer.loadIcon('image', "/assets/images/image.svg", options);
+
+          canvas.addLayer(poiLayer);
+
+          scope.photoUrl = function(event, size) {
+            var url = [
+              '/api/events/photo/' + event.boat + '/' + event.photo,
+              $httpParamSerializer({s : size, access_token: Auth.getToken()})
+            ];
+            return url.join('?');
+          };
+
+          var goToEventTile = function(event) {
+            var sidebar = angular.element('.mapAndGraphAndSidebar #tabs');
+            var target = angular.element('#eventsContainer li[data-id="'+event.id+'"]');
+            var posTop = target.position();
+            posTop = posTop.top;
+            
+            target.addClass('selected').siblings().removeClass('selected');
+            sidebar.scrollTop(posTop);
+
+            return true; 
+          };
+
+          scope.$watch('eventList', function(newV, oldV) {
+            if(newV.length > 0) {
+              geojson.features = [];
+              for(var i in scope.eventList) {
+                geojson.features.push({
+                  "type": "Feature",
+                  "id": scope.eventList[i]._id,
+                  "index": i, 
+                  "properties": {
+                    textPlacement: 'E',
+                    hideIcon: false,
+                    "icon": scope.eventList[i].photo ? "image" : "comment"
+                  },
+                  "geometry": {
+                    "type": "Point",
+                    "osmCoordinates": {
+                      x: scope.eventList[i].dataAtEventTime.pos[0],
+                      y: scope.eventList[i].dataAtEventTime.pos[1]
+                    }                    
+                  }
+                });
+
+                if(typeof scope.eventList[i].photo !== 'undefined' && scope.eventList[i].photo && scope.eventList[i].photo != null) {
+                  var image = {
+                    'url': scope.photoUrl(scope.eventList[i], ''),
+                    'caption': scope.eventList[i].comment
+                  };
+                  images.push(image);
+                }
+              }
+
+              canvas.refreshIfNotMoving();
+              
+            }
+          }, true);
+
+
           // A clic on the map selects a curve and sets current time.
-          canvas.pinchZoom.onClic = function(pos) {
+          canvas.addClicHandler(function(pos) {
             var point = scope.pathLayer.findPointAt(
               pos.startWorldPos.x, pos.startWorldPos.y);
             if (point) {
@@ -55,10 +137,13 @@ angular.module('www2App')
                 scope.currentTime = point.point.time;
                 scope.currentPoint = point.point;
                 canvas.refresh();
+
+                scope.$apply();
+                return true;
               }
             }
-            scope.$apply();
-          };
+            return false;
+          });
 
           if (scope.selectedCurve) {
               scope.pathLayer.selectCurve(scope.selectedCurve);
@@ -165,6 +250,7 @@ angular.module('www2App')
               canvas.setLocation(newValue);
             }
           }, true);
+
         }  // function initializeCanvas
 
         scope.plotData = [];
