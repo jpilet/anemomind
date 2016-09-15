@@ -48,5 +48,6 @@ TEST(BandedLU, Primitives) {
   EXPECT_TRUE(backwardSubstitute(&A, &B));
   for (int i = 0; i < n; i++) {
     EXPECT_NEAR(A(i, i), 1.0, 1.0e-6);
+    EXPECT_NEAR(B(i, 0), bdata[i]/diag[i], 1.0e-6);
   }
 }
