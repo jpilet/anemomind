@@ -15,6 +15,7 @@
 #include <server/common/Span.h>
 #include <vector>
 #include <server/common/logging.h>
+#include <ceres/jet.h>
 #include <Eigen/Dense>
 
 namespace sail {
@@ -37,13 +38,15 @@ public:
   virtual int inputCount() const = 0;
   virtual int outputCount() const = 0;
   virtual Spani inputRange() const = 0;
-  virtual bool evaluate(const T *X, T *outLocal) const = 0;
-
+  virtual bool evaluate(const T *X, T *outLocal) = 0;
+  virtual bool evaluate(const T *X, T *Y, T *JcolMajor) = 0;
 };
 
 template <typename CostEvaluator, typename T>
 class UniqueCostFunction : public CostFunctionBase<T> {
 public:
+  typedef ceres::Jet<T, 1> ADType;
+
   UniqueCostFunction(
       const Spani &inputRange,
       CostEvaluator *f) :
@@ -52,6 +55,8 @@ public:
         _outputCount(f->outputCount()),
         _f(f) {
     CHECK(_inputRange.width() == _inputCount);
+    _adX.resize(_inputCount);
+    _adY.resize(_outputCount);
   }
 
   Spani inputRange() const override {
@@ -66,10 +71,31 @@ public:
     return _inputCount;
   }
 
-  bool evaluate(const T *X, T *outLocal) const override {
+  bool evaluate(const T *X, T *outLocal) override {
     return _f->evaluate(X + _inputRange.minv(), outLocal);
   }
+
+  bool evaluate(const T *X, T *Y, T *J) override {
+    for (int i = 0; i < _inputCount; i++) {
+      _adX[i] = ADType(X[i]);
+    }
+    for (int i = 0; i < _inputCount; i++) {
+      _adX[i].v[0] = 1.0;
+      if (!_f->template evaluate<ceres::Jet<T, 1> >(_adX.data(), _adY.data())) {
+        return false;
+      }
+      _adX[i].v[0] = 0.0;
+
+      for (int j = 0; j < _outputCount; j++) {
+        Y[j] = _adY[j].a;
+        J[j] = _adY[j].v[0];
+      }
+      J += _outputCount;
+    }
+    return true;
+  }
 private:
+  std::vector<ADType> _adX, _adY;
   Spani _inputRange;
   int _inputCount, _outputCount;
   std::unique_ptr<CostEvaluator> _f;
