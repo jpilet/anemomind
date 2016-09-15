@@ -416,12 +416,18 @@ struct SensorSetParamMapWriter {
   }
 };
 
-template <typename T>
-struct SensorSet;
+enum class FunctionCode {
+  Noise,
+  Distortion,
+  NoiseAndDistortion
+};
 
-template <typename DstType>
+template <FunctionCode FunctionType, typename T>
+struct SensorFunctionSet;
+
+template <FunctionCode FType, typename DstType>
 struct SensorSetCaster {
-  typedef SensorSet<DstType> DstSensorSet;
+  typedef SensorFunctionSet<FType, DstType> DstSensorSet;
 
   DstSensorSet result;
 
@@ -432,12 +438,6 @@ struct SensorSetCaster {
       castSensorParameters(kv.second, &(sub[kv.first]));
     }
   }
-};
-
-enum class FunctionCode {
-  Noise,
-  Distortion,
-  NoiseAndDistortion
 };
 
 template <enum FunctionCode, typename T, DataCode code>
@@ -461,10 +461,10 @@ struct SensorFunctionType<
 
 
 // Model for all the sensors on the boat.
-template <typename T>
-struct SensorSet {
+template <FunctionCode FunctionType, typename T>
+struct SensorFunctionSet {
 #define MAKE_SENSOR_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, SensorModel<T, HANDLE> > HANDLE;
+  std::map<std::string, typename SensorFunctionType<FunctionType, T, HANDLE>::type> HANDLE;
 FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
 #undef MAKE_SENSOR_FIELD
 
@@ -515,12 +515,16 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
   // where we want to construct a SensorSet that
   // is automatically differentiable.
   template <typename DstType>
-  SensorSet<DstType> cast() {
-    SensorSetCaster<DstType> caster;
+  SensorFunctionSet<FunctionType, DstType> cast() {
+    SensorSetCaster<FunctionType, DstType> caster;
     visitFieldsConst(*this, &caster);
     return caster.result;
   }
 };
+
+template <typename T>
+using SensorSet =
+    SensorFunctionSet<FunctionCode::NoiseAndDistortion, T>;
 
 } /* namespace sail */
 
