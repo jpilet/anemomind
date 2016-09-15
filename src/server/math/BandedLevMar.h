@@ -35,6 +35,7 @@ class CostFunctionBase {
 public:
   virtual int inputCount() const = 0;
   virtual int outputCount() const = 0;
+  virtual Spani inputRange() const = 0;
   virtual bool evaluateResiduals(const T *X, T *outLocal) const = 0;
 };
 
@@ -51,7 +52,7 @@ public:
     CHECK(_inputRange.width() == _inputCount);
   }
 
-  Spani inputRange() const {
+  Spani inputRange() const override {
     return _inputRange;
   }
 
@@ -75,10 +76,11 @@ private:
 template <typename T>
 class Problem {
 public:
-  Problem() : _bandWidth(0) {}
-
-  Problem(int expectedCostFunctionCount) : _bandWidth(0) {
-    _costFunctions.reserve(expectedCostFunctionCount);
+  Problem(int expectedCostFunctionCount = -1) : _bandWidth(0),
+    _paramCount(0), _residualCount(0) {
+    if (expectedCostFunctionCount > 0) {
+      _costFunctions.reserve(expectedCostFunctionCount);
+    }
   }
 
   template <typename CostEvaluator>
@@ -89,10 +91,13 @@ public:
     addCost(cost);
   }
 private:
-  int _bandWidth;
+  int _bandWidth, _paramCount, _residualCount;
   std::vector<std::unique_ptr<CostFunctionBase<T> > > _costFunctions;
 
   void addCost(std::unique_ptr<CostFunctionBase<T>> &cost) {
+    _bandWidth = std::max(_bandWidth, cost->inputCount()-1);
+    _paramCount = std::max(_paramCount, cost->inputRange().maxv());
+    _residualCount += cost->outputCount();
     _costFunctions.push_back(std::move(cost));
   }
 };
