@@ -115,6 +115,16 @@ Array<Reconstructor::CalibDataChunk> makeCalibChunks(
   return chunks;
 }
 
+void outputReconstructionsToFile(const std::string &filename,
+    const Array<Reconstructor::Results> &reconstructions) {
+  std::ofstream file(filename);
+  for (int i = 0; i < reconstructions.size(); i++) {
+    file << "------ Reconstruction " << i << std::endl;
+    reconstructions[i].outputSummary(&file);
+    file << std::endl;
+  }
+}
+
 Array<Reconstructor::Results> reconstructAllGroups(
     const Array<Spani> &calibGroups,
     const Array<Span<TimeStamp>> &smallSessions,
@@ -186,6 +196,12 @@ void runDemoOnDataset(NavDataset &dataset) {
   Array<Reconstructor::Results> reconstructions
     = reconstructAllGroups(calibGroups, smallSessions,
         allFilteredPositions, d, settings);
+
+  if (settings.debug) {
+    outputReconstructionsToFile(
+        settings.makeLogFilename("reconstructions.txt"),
+        reconstructions);
+  }
 }
 
 class TimesVisitor {

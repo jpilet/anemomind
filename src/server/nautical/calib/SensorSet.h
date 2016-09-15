@@ -365,13 +365,15 @@ struct SensorSetSummaryVisitor {
 
   template <DataCode code, typename X, typename SensorModelMap>
   void visit(const SensorModelMap &obj) {
-    *dst << "Sensors(code=" << wordIdentifierForCode(code) << ", ";
-    for (const auto &kv: obj) {
-      *dst << "  " << kv.first << "=";
-      kv.second.outputSummary(dst);
-      *dst << std::endl;
+    if (!obj.empty()) {
+      *dst << "  Sensors(code=" << wordIdentifierForCode(code) << ",\n";
+      for (const auto &kv: obj) {
+        *dst << "    " << kv.first << "=";
+        kv.second.outputSummary(dst);
+        *dst << std::endl;
+      }
+      *dst << "  )\n";
     }
-    *dst << ")";
   }
 };
 
@@ -506,7 +508,7 @@ FOREACH_CHANNEL(MAKE_SENSOR_FIELD)
   }
 
   // Useful for debugging.
-  void outputSummary(std::ostream *dst) {
+  void outputSummary(std::ostream *dst) const {
     SensorSetSummaryVisitor v{dst};
     visitFieldsConst(*this, &v);
   }

@@ -49,6 +49,13 @@ namespace {
 
 }
 
+void Results::outputSummary(std::ostream *dst) const {
+  *dst << "Distortion:\n";
+  sensorDistortion.outputSummary(dst);
+  *dst << "Noise:\n";
+  sensorNoise.outputSummary(dst);
+}
+
 Results reconstruct(
     const Array<CalibDataChunk> &chunks,
     const Settings &settings) {

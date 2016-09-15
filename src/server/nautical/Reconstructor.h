@@ -40,6 +40,8 @@ class ChannelRef {
 struct Results {
   SensorNoiseSet<double> sensorNoise;
   SensorDistortionSet<double> sensorDistortion;
+
+  void outputSummary(std::ostream *dst) const;
 };
 
 // Reconstructs the noise and distortion for a
