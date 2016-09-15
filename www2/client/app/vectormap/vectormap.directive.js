@@ -37,6 +37,7 @@ angular.module('www2App')
           }, canvas);
           canvas.addLayer(scope.pathLayer);
 
+          var images = [];
           var geojson = 
             {
               "type": "FeatureCollection",
@@ -47,19 +48,26 @@ angular.module('www2App')
             renderer: canvas,
             geojson: geojson,
             onFeatureClic: function(feature, pos) {
-              //Lightbox.openModal(modalList, 1);
-              feature.properties.text += " clicked";
+              Lightbox.openModal(images, feature.index);
             }
           });
           canvas.addLayer(poiLayer);
 
+          scope.photoUrl = function(event, size) {
+            var url = [
+              '/api/events/photo/' + event.boat + '/' + event.photo,
+              $httpParamSerializer({s : size, access_token: Auth.getToken()})
+            ];
+            return url.join('?');
+          };
+
           scope.$watch('eventList', function(newV, oldV) {
             if(newV.length > 0) {
               geojson.features = [];
-              var modalList = [];
               for(var i in scope.eventList) {
                 geojson.features.push({
                   "type": "Feature",
+                  "index": i, 
                   "properties": {
                     textPlacement: 'E',
                     hideIcon: false,
@@ -73,6 +81,14 @@ angular.module('www2App')
                     }                    
                   }
                 });
+
+                if(typeof scope.eventList[i].photo !== 'undefined' && scope.eventList[i].photo && scope.eventList[i].photo != null) {
+                  var image = {
+                    'url': scope.photoUrl(scope.eventList[i], ''),
+                    'caption': scope.eventList[i].comment
+                  };
+                  images.push(image);
+                }
               }
 
               canvas.refreshIfNotMoving();
