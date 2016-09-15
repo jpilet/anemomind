@@ -526,6 +526,14 @@ template <typename T>
 using SensorSet =
     SensorFunctionSet<FunctionCode::NoiseAndDistortion, T>;
 
+template <typename T>
+using SensorNoiseSet =
+    SensorFunctionSet<FunctionCode::Noise, T>;
+
+template <typename T>
+using SensorDistortionSet =
+    SensorFunctionSet<FunctionCode::Distortion, T>;
+
 } /* namespace sail */
 
 #endif /* SERVER_NAUTICAL_CALIB_FITNESS_H_ */

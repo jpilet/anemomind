@@ -135,4 +135,11 @@ TEST(SensorTest, BasicFit) {
   EXPECT_NEAR(model.dist.bias(), k, 0.05);
 }
 
+TEST(SensorSet, OnlyNoiseThatIsSensorNoiseSet) {
+  SensorNoiseSet<double> x;
+  EXPECT_EQ(x.paramCount(), 0);
+  x.AWA["wind-sensor"] = NoiseCost<double, AWA>();
+  EXPECT_EQ(x.paramCount(), 1);
+}
+
 
