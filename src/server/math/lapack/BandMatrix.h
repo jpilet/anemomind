@@ -211,6 +211,26 @@ public:
     return _A(i - j, i);
   }
 
+  const T &getSafe(int i, int j) const {
+    if (0 <= i && i < size() && 0 <= j && j < size()) {
+      if (abs(i - j) <= kd()) {
+        return i < j? atUnsafe(j, i) : atUnsafe(i, j);
+      }
+    }
+    return T(0.0);
+  }
+
+  MDArray<T, 2> toDense() const {
+    int n = size();
+    MDArray<T, 2> dst(n, n);
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        dst(i, j) = getSafe(i, j);
+      }
+    }
+    return dst;
+  }
+
   int size() const {
     return _A.cols();
   }
