@@ -116,8 +116,8 @@ bool forwardEliminateSquareBlock(
   std::cout << "  bColStep = " << bColStep << std::endl;
   std::cout << "  bCols = " << bCols << std::endl;
   std::cout << "  offset = " << offset << std::endl;
-  swapRows(bestRow, a, blockCols, aColStep);
-  swapRows(bestRow, b, bCols, bColStep);
+  //swapRows(bestRow, a, blockCols, aColStep);
+  //swapRows(bestRow, b, bCols, bColStep);
   if (fabs(a[0]) <= T(1.0e-12)) {
     return false;
   }
