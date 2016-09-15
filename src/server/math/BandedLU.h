@@ -11,32 +11,44 @@
 #include <server/math/lapack/BandMatrix.h>
 #include <server/common/numerics.h>
 
+// http://www.boost.org/doc/libs/1_61_0/libs/numeric/ublas/doc/banded.html
+// http://math.nist.gov/lapack++/
+
 namespace sail {
 namespace BandedLU {
 
 template <typename T>
-bool hasSquareBlocks(const BandMatrix<T> &x) {
-  return x.subdiagonalCount() == x.superdiagonalCount();
+int getSymmetricBandWidth(const BandMatrix<T> &x) {
+  return x.subdiagonalCount();
+}
+
+template <typename T>
+bool hasExtraPivotingSpace(const BandMatrix<T> &A) {
+  return A.subdiagonalCount()+1 == A.superdiagonalCount();
+}
+
+template <typename T>
+bool isDiagonal(const BandMatrix<T> &A) {
+  return A.subdiagonalCount() == 0 && A.superdiagonalCount() == 0;
 }
 
 template <typename T>
 bool hasValidShape(const BandMatrix<T> &x) {
-  return x.isSquare() && hasSquareBlocks(x);
+  int l = x.subdiagonalCount();
+  int u = x.superdiagonalCount();
+  return x.isSquare() &&
+      (isDiagonal(x) || hasExtraPivotingSpace(x));
 }
 
 template <typename T>
-int getSquareBlockSize(const BandMatrix<T> &x) {
-  assert(hasSquareBlocks(x));
-  return 1 + x.superdiagonalCount();
-}
-
-inline int computeBlockCount(int matrixSize, int blockSize) {
-  return matrixSize - blockSize + 1;
-}
-
-template <typename T>
-int getDiagonalBlockCount(const BandMatrix<T> &x) {
-  return computeBlockCount(x.rows(), getSquareBlockSize(x));
+bool pivotingSpaceIsZero(const BandMatrix<T> &A) {
+  int k = A.superdiagonalCount();
+  for (int i = k; i < A.cols(); i++) {
+    if (!(A(i-k, i) == T(0.0))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 template <typename T>
@@ -88,24 +100,25 @@ void rowOp(T factor, int cols, int from, int to, int colStep, T *a) {
 
 template <typename T>
 bool forwardEliminateSquareBlock(
-    int blockSize,
+    int blockRows,
+    int blockCols,
     int bCols,
     int aColStep,
     int bColStep,
     T *a, int offset,
     T *b) {
-  int bestRow = findBestRowToPivot(blockSize, a);
-  swapRows(bestRow, a, blockSize, aColStep);
-  swapRows(bestRow, b, blockSize, bColStep);
+  int bestRow = findBestRowToPivot(blockRows, a);
+  swapRows(bestRow, a, blockCols, aColStep);
+  swapRows(bestRow, b, bCols, bColStep);
   if (fabs(a[0]) <= T(1.0e-12)) {
     return false;
   }
-  for (int i = 1; i < blockSize; i++) {
+  for (int i = 1; i < blockRows; i++) {
     T factor = -a[i]/a[0];
     if (!isFinite<T>(factor)) {
       return false;
     }
-    rowOp(factor, blockSize, 0, i, aColStep, a);
+    rowOp(factor, blockCols, 0, i, aColStep, a);
     rowOp(factor, bCols, 0, i, bColStep, b);
   }
   return true;
@@ -118,8 +131,20 @@ T *getBRowPointer(MDArray<T, 2> *B, int row) {
 }
 
 template <typename T>
+int getMaxBlockRows(const BandMatrix<T> &A) {
+  return 1 + getSymmetricBandWidth(A);
+}
+
+template <typename T>
 bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
-  int maxBlockSize = getSquareBlockSize(*A);
+  assert(hasValidShape(*A));
+  if (isDiagonal(*A)) {
+    return true;
+  }
+  assert(pivotingSpaceIsZero(*A));
+
+  int maxBlockRows = getMaxBlockRows(*A);
+  int maxBlockCols = 1 + maxBlockRows;
   assert(1 == A->verticalStride());
   assert(1 == B->getStepAlongDim(0));
   int aColStep = A->horizontalStride();
@@ -127,10 +152,16 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
   int bColStep = B->getStepAlongDim(1);
   int n = A->rows();
   for (int offset = 0; offset < n; offset++) {
-    int blockSize = std::min(n - offset, maxBlockSize);
+    std::cout << "FORWARD ELIM " << 1+offset << " of " << n << std::endl;
+    std::cout << "  A = \n" << A->makeDense() << std::endl;
+    std::cout << "  B = \n" << *B << std::endl;
+    int blockRows = std::min(n - offset, maxBlockRows);
+    int blockCols = std::min(n - offset, maxBlockCols);
     auto *a = A->ptr(offset, offset);
     auto *b = getBRowPointer(B, offset);
-    if (!forwardEliminateSquareBlock(blockSize,
+    if (!forwardEliminateSquareBlock(
+        blockRows,
+        blockCols,
         bCols,
         aColStep,
         bColStep,
@@ -152,13 +183,13 @@ bool solveVariable(T a, T *b, int bCols, int bColStep) {
 }
 
 template <typename T>
-bool backwardSubstituteSquareBlock(int blockSize, int bCols,
+bool backwardSubstituteSquareBlock(int backSteps, int bCols,
     int aColStep, int bColStep, T *a, T *b) {
   assert(T(0.0) < *a);
   solveVariable<T>(*a, b, bCols, bColStep);
   *a = T(1.0);
-  for (int i = 1; i < blockSize; i++) {
-    rowOp(T(-1.0), blockSize, 0, -i, aColStep, a);
+  for (int i = 1; i < backSteps; i++) {
+    a[-i] = T(0.0);
     rowOp(T(-1.0), bCols, 0, -i, bColStep, b);
   }
   return true;
@@ -167,17 +198,19 @@ bool backwardSubstituteSquareBlock(int blockSize, int bCols,
 template <typename T>
 bool backwardSubstitute(BandMatrix<T> *A, MDArray<T, 2> *B) {
   int n = A->rows();
-  int maxBlockSize = getSquareBlockSize(*A);
+  int maxBlockSize = getMaxBlockRows(*A);
   int rowStep = A->verticalStride();
   int bCols = B->cols();
   int aColStep = A->horizontalStride();
   int bColStep = B->getStepAlongDim(1);
   for (int offset = n-1; 0 <= offset; offset--) {
-    int blockSize = std::min(n - offset, maxBlockSize);
+    std::cout << "Backward substitute at " << offset << std::endl;
+    int backSteps = offset - std::max(0, offset - maxBlockSize);
+    std::cout << "with back steps " << backSteps << std::endl;
     auto *a = A->ptr(offset, offset);
     auto *b = getBRowPointer(B, offset);
     if (!backwardSubstituteSquareBlock<T>(
-        blockSize, bCols, aColStep, bColStep, a, b)) {
+        backSteps, bCols, aColStep, bColStep, a, b)) {
       return false;
     }
   }
@@ -187,6 +220,7 @@ bool backwardSubstitute(BandMatrix<T> *A, MDArray<T, 2> *B) {
 template <typename T>
 bool solveInPlace(
     BandMatrix<T> *A, MDArray<T, 2> *B) {
+  assert(hasValidShape(*A));
   if (!forwardEliminate(A, B)) {
     return false;
   }

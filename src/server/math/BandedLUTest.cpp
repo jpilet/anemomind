@@ -5,6 +5,8 @@
  *      Author: jonas
  */
 
+#include <iostream>
+#include <server/common/ArrayIO.h>
 #include <server/math/BandedLU.h>
 #include <gtest/gtest.h>
 
@@ -30,9 +32,6 @@ TEST(BandedLU, DiagonalSolve) {
       }
     }
   }
-  EXPECT_EQ(computeBlockCount(4, 2), 3);
-  EXPECT_EQ(computeBlockCount(8, 5), 4);
-  EXPECT_EQ(getDiagonalBlockCount(A), 3);
 
   MDArray2d B(n, 1);
   for (int i = 0; i < n; i++) {
@@ -50,4 +49,50 @@ TEST(BandedLU, DiagonalSolve) {
     EXPECT_NEAR(A(i, i), 1.0, 1.0e-6);
     EXPECT_NEAR(B(i, 0), bdata[i]/diag[i], 1.0e-6);
   }
+}
+
+#define EAVAS(X) std::cout << #X << ": " << X << std::endl;
+
+TEST(BandedLU, GeneralSolve) {
+  // (mmul (inverse [[1 2 0 0] [2.4 5 7 0] [3 3 1.4 0] [0 0 4.5 1]]) [[3 2] [9 2] [4 5] [3 5]])
+  // [[-0.5263157894736845 1.7105263157894735] [1.7631578947368423 0.14473684210526305] [0.20676691729323313 -0.4041353383458646] [2.0695488721804516 6.818609022556391]]
+
+  auto A = BandMatrix<double>::zero(4, 4, 1, 2);
+  EAVAS(A.computeI(0, 0));
+  EAVAS(A.computeI(1, 0));
+  EAVAS(A.computeI(0, 1));
+  EAVAS(A.computeI(1, 1));
+  A(0, 0) = 1.0; A(0, 1) = 2.0;
+  A(1, 0) = 2.4; A(1, 1) = 5.0; A(1, 2) = 7.0;
+  A(2, 1) = 3.0; A(2, 2) = 3.0; A(2, 3) = 1.4;
+  A(3, 2) = 4.5; A(3, 3) = 1.0;
+
+
+  MDArray2d B(4, 2);
+  B(0, 0) = 3.0; B(0, 1) = 2.0;
+  B(1, 0) = 9.0; B(1, 1) = 2.0;
+  B(2, 0) = 4.0; B(2, 1) = 5.0;
+  B(3, 0) = 3.0; B(3, 1) = 5.0;
+
+  std::cout << "A before is\n" << A.makeDense() << std::endl;
+  std::cout << "B before is\n" << B << std::endl;
+
+  //EXPECT_TRUE(solveInPlace(&A, &B));
+  EXPECT_TRUE(forwardEliminate(&A, &B));
+
+  std::cout << "A after is\n" << A.makeDense() << std::endl;
+  std::cout << "B after is\n" << B << std::endl;
+
+  double expected[4*2] = {
+      -0.5263157894736845, 1.7105263157894735,
+      1.7631578947368423, 0.14473684210526305,
+      0.20676691729323313, -0.4041353383458646,
+      2.0695488721804516, 6.818609022556391};
+
+
+  /*for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 2; j++) {
+      EXPECT_NEAR(expected[i + 4*j], B(i, j), 1.0e-6);
+    }
+  }*/
 }

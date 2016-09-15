@@ -172,10 +172,11 @@ public:
     }
     return dst;
   }
-private:
+
   int computeI(int i0, int j0) const {
     return _ku + i0 - j0;
   }
+private:
 
   int _m, _n; // An "m x n" matrix, that is _m rows and _n columns.
   int _kl, _ku; // _kl subdiagonals, _ku superdiagonals
