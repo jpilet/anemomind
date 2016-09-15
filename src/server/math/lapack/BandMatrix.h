@@ -195,7 +195,7 @@ public:
   static const char uplo = 'L';
   SymmetricBandMatrixL(int n, int kd) : _A(kd+1, n) {}
 
-  SymmetricBandMatrixL<T> zero(int n, int k) {
+  static SymmetricBandMatrixL<T> zero(int n, int k) {
     auto mat = SymmetricBandMatrixL<T>(n, k);
     mat._A.setAll(T(0.0));
     return mat;
@@ -211,7 +211,7 @@ public:
     return _A(i - j, i);
   }
 
-  const T &getSafe(int i, int j) const {
+  T getSafe(int i, int j) const {
     if (0 <= i && i < size() && 0 <= j && j < size()) {
       if (abs(i - j) <= kd()) {
         return i < j? atUnsafe(j, i) : atUnsafe(i, j);

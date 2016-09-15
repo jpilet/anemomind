@@ -70,3 +70,19 @@ TEST(DgbsvWrapperTest, ThickBand) {
   EXPECT_NEAR(B(2, 0), 3.0, 1.0e-6);
 }
 
+TEST(PbsvTest, SymMat) {
+  auto A = SymmetricBandMatrixL<double>::zero(4, 2);
+  A.atUnsafe(0, 0) = 2.0;
+  A.atUnsafe(1, 1) = 3.0;
+  A.atUnsafe(2, 2) = 4.0;
+  A.atUnsafe(3, 3) = 5.0;
+  auto Ad = A.toDense();
+  EXPECT_EQ(Ad.rows(), 4);
+  EXPECT_EQ(Ad.cols(), 4);
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      EXPECT_EQ(i == j? i+2.0 : 0, Ad(i, j));
+    }
+  }
+}
+
