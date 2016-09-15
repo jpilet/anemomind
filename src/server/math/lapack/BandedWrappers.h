@@ -5,12 +5,14 @@
  *      Author: jonas
  */
 
+#include <server/math/lapack/BandMatrix.h>
+
 #ifndef SERVER_MATH_LAPACK_BANDEDWRAPPERS_H_
 #define SERVER_MATH_LAPACK_BANDEDWRAPPERS_H_
 
 namespace sail {
 
-
+bool easyDgbsvInPlace(BandMatrix<double> *lhs, MDArray2d *rhs);
 
 } /* namespace sail */
 

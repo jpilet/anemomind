@@ -8,7 +8,7 @@
 #ifndef SERVER_MATH_LAPACK_DGBSVWRAPPER_H_
 #define SERVER_MATH_LAPACK_DGBSVWRAPPER_H_
 
-#include <server/math/lapack/BandMatrix.h>
+
 
 namespace sail {
 
@@ -16,7 +16,7 @@ namespace sail {
 // http://www.netlib.org/lapack/explore-html-3.4.2/d3/d49/group__double_g_bsolve.html
 //
 // Returns true iff successful
-bool easyDgbsvInPlace(BandMatrix<double> *lhs, MDArray2d *rhs);
+
 
 }
 
