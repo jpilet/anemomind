@@ -66,7 +66,7 @@ private:
 template <typename T>
 int findBestRowToPivot(int n, T *a) {
   int bestIndex = 0;
-  T bestValue = a[0];
+  T bestValue = fabs(a[0]);
   for (int i = 1; i < n; i++) {
     auto value = fabs(a[i]);
     if (bestValue < value) {
