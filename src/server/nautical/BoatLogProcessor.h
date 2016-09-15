@@ -48,6 +48,7 @@ struct BoatLogProcessor {
   VmgSampleSelection _vmgSampleSelection;
   std::string _saveSimulated;
   bool _gpsFilter = false;
+  bool _earlyFiltering = false;
 
   mongo::DBClientConnection db;
 };

@@ -31,10 +31,11 @@ namespace {
   Array<TimeStamp> buildSampleTimes(
       const Array<TimeStamp> &positionTimes,
       const Array<TimeStamp> &motionTimes, Duration<double> period) {
-    Array<TimeStamp> all(positionTimes.size() + motionTimes.size());
-    CHECK(std::merge(positionTimes.begin(), positionTimes.end(),
-        motionTimes.begin(), motionTimes.end(), all.begin()) == all.end());
-    return Resampler::resample(all, period);
+    // we actually do not care about motionTimes:
+    // we need to know the position. We'll compute the motion later if
+    // it is missing.
+    // If we have only the motion, then we cut out.
+    return Resampler::resample(positionTimes, period);
   }
 
   Array<CeresTrajectoryFilter::Types<2>::TimedPosition> getLocalPositions(

@@ -13,6 +13,8 @@
 
 namespace sail {
 
+NavDataset filterNavs(const NavDataset& navs);
+
 Array<NavDataset> filterSessions(const Array<NavDataset>& sessions);
 
 Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
