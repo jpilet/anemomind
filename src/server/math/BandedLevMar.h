@@ -44,8 +44,6 @@ public:
         _outputCount(f->outputCount),
         _f(f) {
     CHECK(_inputRange.width() == _inputCount);
-    _adX.resize(_inputCount);
-    _adY.resize(_outputCount);
   }
 
   Spani inputRange() const override {
@@ -65,12 +63,14 @@ public:
   }
 
   bool evaluate(const T *X, T *Y, T *J) override {
+    ADType _adX[CostEvaluator::inputCount];
+    ADType _adY[CostEvaluator::outputCount];
     for (int i = 0; i < _inputCount; i++) {
       _adX[i] = ADType(X[i]);
     }
     for (int i = 0; i < _inputCount; i++) {
       _adX[i].v[0] = 1.0;
-      if (!_f->template evaluate<ceres::Jet<T, 1> >(_adX.data(), _adY.data())) {
+      if (!_f->template evaluate<ceres::Jet<T, 1> >(_adX, _adY)) {
         return false;
       }
       _adX[i].v[0] = 0.0;
@@ -84,7 +84,6 @@ public:
     return true;
   }
 private:
-  std::vector<ADType> _adX, _adY;
   Spani _inputRange;
   int _inputCount, _outputCount;
   std::unique_ptr<CostEvaluator> _f;
