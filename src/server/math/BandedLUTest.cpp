@@ -45,4 +45,6 @@ TEST(BandedLU, Primitives) {
     EXPECT_NEAR(B(i, 0), bdata[i], 1.0e-9);
   }
 
+  EXPECT_TRUE(backwardSubstitute(&A, &B));
+
 }

@@ -148,18 +148,20 @@ bool solveVariable(T a, T *b, int bCols, int bColStep) {
     b[0] /= a;
     b += bColStep;
   }
+  return true;
 }
 
 template <typename T>
-void backwardSubstituteSquareBlock(int blockSize, int bCols,
+bool backwardSubstituteSquareBlock(int blockSize, int bCols,
     int aColStep, int bColStep, T *a, T *b) {
   assert(T(0.0) < *a);
-  solveVariable(*a, b, bCols, bColStep);
+  solveVariable<T>(*a, b, bCols, bColStep);
   *a = T(1.0);
   for (int i = 1; i < blockSize; i++) {
     rowOp(T(-1.0), blockSize, 0, -i, aColStep, a);
     rowOp(T(-1.0), bCols, 0, -i, bColStep, b);
   }
+  return true;
 }
 
 template <typename T>
@@ -174,8 +176,8 @@ bool backwardSubstitute(BandMatrix<T> *A, MDArray<T, 2> *B) {
     int blockSize = std::min(n - offset, maxBlockSize);
     auto *a = A->ptr(offset, offset);
     auto *b = getBRowPointer(B, offset);
-    if (!backwardSubstituteSquareBlock(
-        blockSize, bCols, aColStep, bColStep, a, offset, b)) {
+    if (!backwardSubstituteSquareBlock<T>(
+        blockSize, bCols, aColStep, bColStep, a, b)) {
       return false;
     }
   }
