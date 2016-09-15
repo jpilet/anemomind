@@ -27,6 +27,18 @@ namespace {
     }
   };
 
+  struct RegCost {
+    double weight;
+    int inputCount() const {return 3;}
+    int outputCount() const {return 1;}
+
+    template <typename T>
+    bool evaluate(const T *X, T *y) const {
+      y[0] = weight*(X[0] - 2.0*X[1] + X[2]);
+      return true;
+    }
+  };
+
 }
 
 TEST(BandedLevmarTest, BasicLineFit) {
@@ -47,6 +59,13 @@ TEST(BandedLevmarTest, BasicLineFit) {
   EXPECT_EQ(0, problem.bandWidth());
   EXPECT_EQ(n, problem.paramCount());
   EXPECT_EQ(n, problem.residualCount());
+
+  for (int i = 1; i < n-1; i++) {
+    problem.addCostFunction(Spani(i-1, i+2), new RegCost{100});
+  }
+  EXPECT_EQ(2, problem.bandWidth());
+  EXPECT_EQ(n, problem.paramCount());
+  EXPECT_EQ(n + n-2, problem.residualCount());
 }
 
 
