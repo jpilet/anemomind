@@ -12,7 +12,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/Functional.h>
-#include <server/math/lapack/DgbsvWrapper.h>
+#include <server/math/lapack/BandedWrappers.h>
 
 namespace sail {
 namespace irls {

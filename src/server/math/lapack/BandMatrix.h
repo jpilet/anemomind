@@ -189,6 +189,46 @@ private:
   MDArray<T, 2> _AB;
 };
 
+template <typename T>
+class SymmetricBandMatrixL {
+public:
+  static const char uplo = 'L';
+  SymmetricBandMatrixL(int n, int kd) : _A(kd+1, n) {}
+
+  SymmetricBandMatrixL<T> zero(int n, int k) {
+    auto mat = SymmetricBandMatrixL<T>(n, k);
+    mat._A.setAll(T(0.0));
+    return mat;
+  }
+
+  T &atUnsafe(int i, int j) {
+    assert(i >= j);
+    return _A(i - j, i);
+  }
+
+  const T &atUnsafe(int i, int j) const {
+    assert(i >= j);
+    return _A(i - j, i);
+  }
+
+  int size() const {
+    return _A.cols();
+  }
+
+  int kd() const {
+    return _A.rows()-1;
+  }
+
+  // Useful when building normal equations
+  void add(int i, int j, T x) const {
+    if (i >= j) {
+      atUnsafe(i, j) += x;
+    }
+  }
+private:
+  MDArray<T, 2> _A;
+};
+
 } /* namespace sail */
 
 #endif /* SERVER_MATH_LAPACK_BANDMATRIX_H_ */

@@ -119,11 +119,31 @@ extern int dgbsv_(integer *n, integer *kl, integer *ku, integer *
  *
  */
 int dpbsv_(char *uplo, integer *n, integer *kd, integer *
-  nrhs, doublereal *ab, integer *ldab, doublereal *b, integer *ldb,
-  integer *info);
+    nrhs, doublereal *ab, integer *ldab, doublereal *b, integer *ldb,
+    integer *info);
 }
 
 namespace sail {
+
+template <typename T>
+int pbsv(char *uplo, integer *n, integer *kd, integer *
+    nrhs, T *ab, integer *ldab, T *b, integer *ldb,
+    integer *info) {return -1;}
+
+template <>
+int pbsv<double>(char *uplo, integer *n, integer *kd, integer *nrhs,
+    doublereal *ab, integer *ldab, doublereal *b, integer *ldb,
+integer *info) {
+  return dpbsv_(uplo, n, kd, nrhs, ab, ldab, b, ldb, info);
+}
+
+template <typename T>
+int performPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
+  int info = 0;
+  int n = lhs->rows();
+  int kd = lhs->kd();
+
+}
 
 void testCallIt() {
   char c;
