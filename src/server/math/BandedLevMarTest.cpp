@@ -79,7 +79,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
     EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
 
-    BandedLU::forwardEliminate(&JtJ, &minusJtF, 0);
+    BandedLU::forwardEliminate(&JtJ, &minusJtF, 1);
 
     auto JtJ0 = JtJ.makeDense();
     auto minusJtF0 = minusJtF.dup();
