@@ -106,7 +106,7 @@ bool forwardEliminateSquareBlock(
     int bCols,
     int aColStep,
     int bColStep,
-    T *a, int offset,
+    T *a,
     T *b) {
   int bestRow = findBestRowToPivot(blockRows, a);
   std::cout << "  bestRow = " << bestRow << std::endl;
@@ -115,9 +115,14 @@ bool forwardEliminateSquareBlock(
   std::cout << "  aColStep = " << aColStep << std::endl;
   std::cout << "  bColStep = " << bColStep << std::endl;
   std::cout << "  bCols = " << bCols << std::endl;
-  std::cout << "  offset = " << offset << std::endl;
-  //swapRows(bestRow, a, blockCols, aColStep);
-  //swapRows(bestRow, b, bCols, bColStep);
+
+
+  if (false) {
+    swapRows(bestRow, a, blockCols, aColStep);
+    swapRows(bestRow, b, bCols, bColStep);
+  }
+
+
   if (fabs(a[0]) <= T(1.0e-12)) {
     return false;
   }
@@ -192,7 +197,7 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B, int upto = -1) {
         bCols,
         aColStep,
         bColStep,
-        a, offset,
+        a,
         b)) {
       return false;
     }
