@@ -90,6 +90,10 @@ public:
         new UniqueCostFunction<CostEvaluator, T>(inputRange, f));
     addCost(cost);
   }
+
+  int bandWidth() const {return _bandWidth;}
+  int paramCount() const {return _paramCount;}
+  int residualCount() const {return _residualCount;}
 private:
   int _bandWidth, _paramCount, _residualCount;
   std::vector<std::unique_ptr<CostFunctionBase<T> > > _costFunctions;
