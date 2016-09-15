@@ -11,7 +11,7 @@
 using namespace sail;
 using namespace sail::BandedLU;
 
-TEST(BandedLU, Primitives) {
+TEST(BandedLU, DiagonalSolve) {
   const int n = 3;
   double diag[n] = {3, 2, 5};
   double bdata[n] = {4, 7, 11};
