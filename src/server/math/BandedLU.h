@@ -123,7 +123,8 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
   for (int offset = 0; offset < n; offset++) {
     int blockSize = std::min(n - offset, maxBlockSize);
     auto *a = A->ptr(offset, offset);
-    auto *b = B->getPtrAt({offset, 0});
+    int binds[2] = {offset, 0};
+    auto *b = B->getPtrAt(binds);
     if (!forwardEliminateSquareBlock(blockSize,
         bCols,
         aColStep,

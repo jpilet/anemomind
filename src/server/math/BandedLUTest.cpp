@@ -14,6 +14,7 @@ using namespace sail::BandedLU;
 TEST(BandedLU, Primitives) {
   const int n = 3;
   double diag[n] = {3, 2, 5};
+  double bdata[n] = {4, 7, 11};
   auto A = BandMatrix<double>::zero(n, n, 0, 0);
   for (int i = 0; i < n; i++) {
     A(i, i) = diag[i];
@@ -32,5 +33,16 @@ TEST(BandedLU, Primitives) {
   EXPECT_EQ(computeBlockCount(4, 2), 3);
   EXPECT_EQ(computeBlockCount(8, 5), 4);
   EXPECT_EQ(getDiagonalBlockCount(A), 3);
+
+  MDArray2d B(n, 1);
+  for (int i = 0; i < n; i++) {
+    B(i, 0) = bdata[i];
+  }
+  EXPECT_TRUE(forwardEliminate(&A, &B));
+
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(A(i, i), diag[i], 1.0e-9);
+    EXPECT_NEAR(B(i, 0), bdata[i], 1.0e-9);
+  }
 
 }
