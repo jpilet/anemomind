@@ -245,6 +245,9 @@ public:
       atUnsafe(i, j) += x;
     }
   }
+
+  T *ab() {return _A.ptr();}
+  int ldab() const {return _A.rows();}
 private:
   MDArray<T, 2> _A;
 };

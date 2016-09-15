@@ -20,9 +20,7 @@ extern int dgbsv_(integer *n, integer *kl, integer *ku, integer *
 
 // www.netlib.org/clapack/old/double/dpbsv.c
 
-/*
- *
- * /* Subroutine */ int dpbsv_(char *uplo, integer *n, integer *kd, integer *
+int dpbsv_(char *uplo, integer *n, integer *kd, integer *
   nrhs, doublereal *ab, integer *ldab, doublereal *b, integer *ldb,
   integer *info);
 /*  -- LAPACK driver routine (version 3.0) --
@@ -139,9 +137,21 @@ integer *info) {
 
 template <typename T>
 int performPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
-  int info = 0;
-  int n = lhs->rows();
+  char uplo = lhs->uplo;
+  int n = lhs->size();
   int kd = lhs->kd();
+  int nrhs = rhs->cols();
+  T *ab = lhs->ab();
+  int ldab = lhs->ldab();
+  T *b = rhs->ptr();
+  int ldb = rhs->getStepAlongDim(1);
+  int info = 0;
+  pbsv<T>(&uplo, &n, &kd, &nrhs, ab, &ldab, b, &ldb, &info);
+  return info;
+}
+
+template <typename T>
+bool easyPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
 
 }
 
