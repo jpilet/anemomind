@@ -15,6 +15,7 @@
 #include <server/common/Span.h>
 #include <vector>
 #include <server/common/logging.h>
+#include <Eigen/Dense>
 
 namespace sail {
 namespace BandedLevMar {
@@ -36,7 +37,8 @@ public:
   virtual int inputCount() const = 0;
   virtual int outputCount() const = 0;
   virtual Spani inputRange() const = 0;
-  virtual bool evaluateResiduals(const T *X, T *outLocal) const = 0;
+  virtual bool evaluate(const T *X, T *outLocal) const = 0;
+
 };
 
 template <typename CostEvaluator, typename T>
@@ -64,7 +66,7 @@ public:
     return _inputCount;
   }
 
-  bool evaluateResiduals(const T *X, T *outLocal) const override {
+  bool evaluate(const T *X, T *outLocal) const override {
     return _f->evaluate(X + _inputRange.minv(), outLocal);
   }
 private:

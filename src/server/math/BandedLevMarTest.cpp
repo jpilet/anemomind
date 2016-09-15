@@ -46,7 +46,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
   std::uniform_real_distribution<double> distrib(0.0, 4.0);
 
-  int n = 30;
+  const int n = 30;
 
   LineKM gtLine(0, n, 3.4, 9.5);
 
@@ -66,6 +66,12 @@ TEST(BandedLevmarTest, BasicLineFit) {
   EXPECT_EQ(2, problem.bandWidth());
   EXPECT_EQ(n, problem.paramCount());
   EXPECT_EQ(n + n-2, problem.residualCount());
+
+  double X[n];
+  for (int i = 0; i < n; i++) {
+    X[i] = 0.0;
+  }
+
 }
 
 
