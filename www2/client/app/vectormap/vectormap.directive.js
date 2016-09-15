@@ -48,7 +48,8 @@ angular.module('www2App')
             renderer: canvas,
             geojson: geojson,
             onFeatureClic: function(feature, pos) {
-              Lightbox.openModal(images, feature.index);
+              if(feature.properties.icon == "1")
+                Lightbox.openModal(images, feature.index);
             }
           });
           canvas.addLayer(poiLayer);
