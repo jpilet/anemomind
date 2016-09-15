@@ -17,9 +17,21 @@ typedef double doublereal;
 extern int dgbsv_(integer *n, integer *kl, integer *ku, integer *
   nrhs, doublereal *ab, integer *ldab, integer *ipiv, doublereal *b,
   integer *ldb, integer *info);
+
+// www.netlib.org/clapack/old/double/dpbsv.c
+int dpbsv_(char *uplo, integer *n, integer *kd, integer *
+  nrhs, doublereal *ab, integer *ldab, doublereal *b, integer *ldb,
+  integer *info);
 }
 
 namespace sail {
+
+void testCallIt() {
+  char c;
+  int i;
+  double d;
+  dpbsv_(&c, &i, &i, &i, &d, &i, &d, &i, &i);
+}
 
 template <typename T>
 int performDgbsv(BandMatrix<T> *lhs, MDArray<T, 2> *rhs, Arrayi *ipiv) {
