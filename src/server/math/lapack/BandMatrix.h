@@ -141,14 +141,21 @@ public:
     return _m == _n;
   }
 
+  int computeStride(int rowStep, int colStep) const {
+    int inds1[2] = {computeI(rowStep, colStep), colStep};
+    int inds0[2] = {computeI(0, 0), 0};
+    return _storageArrayAB.calcIndex(inds1)
+        - _storageArrayAB.calcIndex(inds0);
+  }
+
   // When taking a horizontal step, from (i, j) to (i, j + 1),
   // what step does it correspond to in the underlying array?
   int horizontalStride() const {
-    int inds1[2] = {computeI(0, 1), 1};
-    int inds0[2] = {computeI(0, 0), 0};
+    return computeStride(0, 1);
+  }
 
-    return _storageArrayAB.calcIndex(inds1)
-        - _storageArrayAB.calcIndex(inds0);
+  int verticalStride() const {
+    return computeStride(1, 0);
   }
 
   T *ptr(int i, int j) {

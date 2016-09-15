@@ -32,4 +32,7 @@ TEST(BandedLU, Primitives) {
   EXPECT_EQ(computeBlockCount(4, 2), 3);
   EXPECT_EQ(computeBlockCount(8, 5), 4);
   EXPECT_EQ(getDiagonalBlockCount(A), 3);
+
+  std::cout << "Horizontal stride: " << A.horizontalStride() << std::endl;
+  std::cout << "Vertical stride: " << A.verticalStride() << std::endl;
 }
