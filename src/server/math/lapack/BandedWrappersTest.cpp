@@ -87,5 +87,11 @@ TEST(PbsvTest, SymMat) {
   A.atUnsafe(3, 2) = 119;
   EXPECT_EQ(A.getSafe(3, 2), 119.0);
   EXPECT_EQ(A.getSafe(2, 3), 119.0);
+
+  A.add(3, 2, 4.0);
+  EXPECT_EQ(A.getSafe(3, 2), 123.0);
+
+  A.add(2, 3, 4.0);
+  EXPECT_EQ(A.getSafe(3, 2), 123.0); // (no change)
 }
 

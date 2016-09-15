@@ -240,7 +240,7 @@ public:
   }
 
   // Useful when building normal equations
-  void add(int i, int j, T x) const {
+  void add(int i, int j, T x) {
     if (i >= j) {
       atUnsafe(i, j) += x;
     }
