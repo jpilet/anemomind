@@ -112,19 +112,24 @@ bool forwardEliminateSquareBlock(
 }
 
 template <typename T>
+T *getBRowPointer(MDArray<T, 2> *B, int row) {
+  int binds[2] = {row, 0};
+  return B->getPtrAt(binds);
+}
+
+template <typename T>
 bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
   int maxBlockSize = getSquareBlockSize(*A);
-  int rowStep = A->verticalStride();
+  assert(1 == A->verticalStride());
+  assert(1 == B->getStepAlongDim(0));
   int aColStep = A->horizontalStride();
   int bCols = B->cols();
   int bColStep = B->getStepAlongDim(1);
-  assert(rowStep == 1);
   int n = A->rows();
   for (int offset = 0; offset < n; offset++) {
     int blockSize = std::min(n - offset, maxBlockSize);
     auto *a = A->ptr(offset, offset);
-    int binds[2] = {offset, 0};
-    auto *b = B->getPtrAt(binds);
+    auto *b = getBRowPointer(B, offset);
     if (!forwardEliminateSquareBlock(blockSize,
         bCols,
         aColStep,
@@ -138,10 +143,55 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
 }
 
 template <typename T>
-void solveInPlace(
+bool solveVariable(T a, T *b, int bCols, int bColStep) {
+  for (int i = 0; i < bCols; i++) {
+    b[0] /= a;
+    b += bColStep;
+  }
+}
+
+template <typename T>
+void backwardSubstituteSquareBlock(int blockSize, int bCols,
+    int aColStep, int bColStep, T *a, T *b) {
+  assert(T(0.0) < *a);
+  solveVariable(*a, b, bCols, bColStep);
+  *a = T(1.0);
+  for (int i = 1; i < blockSize; i++) {
+    rowOp(T(-1.0), blockSize, 0, -i, aColStep, a);
+    rowOp(T(-1.0), bCols, 0, -i, bColStep, b);
+  }
+}
+
+template <typename T>
+bool backwardSubstitute(BandMatrix<T> *A, MDArray<T, 2> *B) {
+  int n = A->rows();
+  int maxBlockSize = getSquareBlockSize(*A);
+  int rowStep = A->verticalStride();
+  int bCols = B->cols();
+  int aColStep = A->horizontalStride();
+  int bColStep = B->getStepAlongDim(1);
+  for (int offset = n-1; 0 <= offset; offset--) {
+    int blockSize = std::min(n - offset, maxBlockSize);
+    auto *a = A->ptr(offset, offset);
+    auto *b = getBRowPointer(B, offset);
+    if (!backwardSubstituteSquareBlock(
+        blockSize, bCols, aColStep, bColStep, a, offset, b)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <typename T>
+bool solveInPlace(
     BandMatrix<T> *A, MDArray<T, 2> *B) {
-  forwardEliminate(A, B);
-  backwardSubstitute(A, B);
+  if (!forwardEliminate(A, B)) {
+    return false;
+  }
+  if (!backwardSubstitute(A, B)) {
+    return false;
+  }
+  return true;
 }
 
 }
