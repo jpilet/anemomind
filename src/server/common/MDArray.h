@@ -253,6 +253,16 @@ class MDArray {
     return _data.getData() + _index.calcIndex(inds);
   }
 
+  T getStepAlongDim(int dim) const {
+    int inds[dims];
+    for (int i = 0; i < dims; i++) {
+      inds[i] = 0;
+    }
+    int offset = _index.calcIndex(inds);
+    inds[dim] = 1;
+    return _index.calcIndex(inds) - offset;
+  }
+
   T *getPtrAt(int i, int j) const {
     static_assert(dims == 2, "Only applicable to 2d arrays");
     int inds[2] = {i, j};
