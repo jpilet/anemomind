@@ -117,20 +117,16 @@ bool forwardEliminateSquareBlock(
   std::cout << "  bCols = " << bCols << std::endl;
 
 
-  if (false) {
+  if (true) {
     swapRows(bestRow, a, blockCols, aColStep);
     swapRows(bestRow, b, bCols, bColStep);
   }
 
-
   if (fabs(a[0]) <= T(1.0e-12)) {
     return false;
   }
-  std::cout << "performed swap" << std::endl;
-  std::cout << "The diagonal element is now" << a[0] << std::endl;
   for (int i = 1; i < blockRows; i++) {
     T factor = -a[i]/a[0];
-    std::cout << "The factor is " << factor << std::endl;
     if (!isFinite<T>(factor)) {
       return false;
     }

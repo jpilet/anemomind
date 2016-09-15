@@ -47,7 +47,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
   std::uniform_real_distribution<double> distrib(0.0, 0.0); //0.01);
 
-  const int n = 30;
+  const int n = 27;
 
   LineKM gtLine(0, n, 1.0, 1.0); //3.4, 9.5);
 
