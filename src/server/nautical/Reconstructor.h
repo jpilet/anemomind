@@ -14,13 +14,13 @@
 #include <ceres/ceres.h>
 #include <server/nautical/BoatState.h>
 #include <unordered_map>
+#include <server/nautical/calib/SensorSet.h>
 
 namespace sail {
 namespace Reconstructor {
 
 struct Settings {
   Duration<double> windowSize = Duration<double>::minutes(1.0);
-
 };
 
 // A CalibDataChunk are measurements that are grouped together
@@ -37,18 +37,8 @@ class ChannelRef {
   std::string sourceName;
 };
 
-class SensorParameters {
-public:
-  typedef std::shared_ptr<SensorParameters> Ptr;
-private:
-};
-
-struct SensorSet {
-
-};
-
 struct Results {
-  SensorSet sensorSet;
+  //SensorSet sensorSet;
   Array<Array<BoatState<double>>> reconstructedStates;
 };
 
