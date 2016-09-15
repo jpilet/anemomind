@@ -17,6 +17,7 @@
 #include <server/common/logging.h>
 #include <ceres/jet.h>
 #include <Eigen/Dense>
+#include <server/math/BandedLU.h>
 
 namespace sail {
 namespace BandedLevMar {
@@ -29,6 +30,9 @@ public:
   virtual Spani inputRange() const = 0;
   virtual bool evaluate(const T *X, T *outLocal) = 0;
   virtual bool evaluate(const T *X, T *Y, T *JcolMajor) = 0;
+  virtual bool accumulateNormalEqs(
+      const T *X,
+      BandMatrix<T> *JtJ, MDArray<T, 2> *minusJtF) = 0;
 };
 
 template <typename CostEvaluator, typename T>
@@ -40,10 +44,8 @@ public:
       const Spani &inputRange,
       CostEvaluator *f) :
         _inputRange(inputRange),
-        _inputCount(f->inputCount),
-        _outputCount(f->outputCount),
         _f(f) {
-    CHECK(_inputRange.width() == _inputCount);
+    CHECK(_inputRange.width() == CostEvaluator::inputCount);
   }
 
   Spani inputRange() const override {
@@ -51,11 +53,11 @@ public:
   }
 
   int outputCount() const override {
-    return _outputCount;
+    return CostEvaluator::outputCount;
   }
 
   int inputCount() const override {
-    return _inputCount;
+    return CostEvaluator::inputCount;
   }
 
   bool evaluate(const T *X, T *outLocal) override {
@@ -65,27 +67,39 @@ public:
   bool evaluate(const T *X, T *Y, T *J) override {
     ADType _adX[CostEvaluator::inputCount];
     ADType _adY[CostEvaluator::outputCount];
-    for (int i = 0; i < _inputCount; i++) {
+    for (int i = 0; i < CostEvaluator::inputCount; i++) {
       _adX[i] = ADType(X[i]);
     }
-    for (int i = 0; i < _inputCount; i++) {
+    for (int i = 0; i < CostEvaluator::inputCount; i++) {
       _adX[i].v[0] = 1.0;
       if (!_f->template evaluate<ceres::Jet<T, 1> >(_adX, _adY)) {
         return false;
       }
       _adX[i].v[0] = 0.0;
 
-      for (int j = 0; j < _outputCount; j++) {
+      for (int j = 0; j < CostEvaluator::outputCount; j++) {
         Y[j] = _adY[j].a;
         J[j] = _adY[j].v[0];
       }
-      J += _outputCount;
+      J += CostEvaluator::outputCount;
     }
+    return true;
+  }
+
+  bool accumulateNormalEqs(
+      const T *X, BandMatrix<T> *JtJ, MDArray<T, 2> *minusJtF) override {
+    T F[CostEvaluator::inputCount];
+    T J[CostEvaluator::inputCount*CostEvaluator::outputCount];
+    if (!evaluate(X, F, J)) {
+      return false;
+    }
+
+
+
     return true;
   }
 private:
   Spani _inputRange;
-  int _inputCount, _outputCount;
   std::unique_ptr<CostEvaluator> _f;
 };
 
