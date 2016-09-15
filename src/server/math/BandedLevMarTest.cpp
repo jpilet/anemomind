@@ -79,7 +79,8 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
     EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
 
-    BandedLU::forwardEliminate(&JtJ, &minusJtF, 22);
+    //BandedLU::forwardEliminate(&JtJ, &minusJtF, 22);
+    BandedLU::solveInPlace(&JtJ, &minusJtF);
 
     auto JtJ0 = JtJ.makeDense();
     auto minusJtF0 = minusJtF.dup();
@@ -90,7 +91,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
     std::cout << "The final JtJ is now \n" << JtJ.makeDense() << std::endl;
     for (int i = 0; i < n; i++) {
       EXPECT_NEAR(Y(i, 0), gtLine(i), 0.1);
-      //EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
+      EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
     }
 
 
