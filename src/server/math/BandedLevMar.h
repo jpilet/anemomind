@@ -32,8 +32,9 @@ class SampleCostEvaluator {
 template <typename T>
 class CostFunctionBase {
 public:
-  int residualCount() const = 0;
-  void evaluateResiduals(const T *X, const T *outLocal) const = 0;
+  virtual int inputCount() const = 0;
+  virtual int outputCount() const = 0;
+  virtual void evaluateResiduals(const T *X, const T *outLocal) const = 0;
 };
 
 template <typename CostEvaluator, typename T>
@@ -53,8 +54,12 @@ public:
     return _inputRange;
   }
 
-  int residualCount() const {
+  int outputCount() const {
     return _outputCount;
+  }
+
+  int inputCount() const {
+    return _inputCount;
   }
 
   void evaluateResiduals(const T *X, const T *outLocal) const {
