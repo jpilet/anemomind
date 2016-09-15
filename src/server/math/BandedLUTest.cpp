@@ -51,14 +51,8 @@ TEST(BandedLU, DiagonalSolve) {
   }
 }
 
-#define EAVAS(X) std::cout << #X << ": " << X << std::endl;
-
 TEST(BandedLU, GeneralSolve) {
   auto A = BandMatrix<double>::zero(4, 4, 1, 2);
-  EAVAS(A.computeI(0, 0));
-  EAVAS(A.computeI(1, 0));
-  EAVAS(A.computeI(0, 1));
-  EAVAS(A.computeI(1, 1));
   A(0, 0) = 1.0; A(0, 1) = 2.0;
   A(1, 0) = 2.4; A(1, 1) = 5.0; A(1, 2) = 7.0;
   A(2, 1) = 3.0; A(2, 2) = 3.0; A(2, 3) = 1.4;
