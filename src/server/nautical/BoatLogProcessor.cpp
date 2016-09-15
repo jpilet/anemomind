@@ -43,6 +43,8 @@ using namespace std;
 
 namespace {
 
+bool debugVmgSamples = false;
+
 void collectSpeedSamplesGrammar(
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
       const NavDataset& allnavs,
@@ -62,6 +64,8 @@ void collectSpeedSamplesGrammar(
 
       TimedSampleRange<Velocity<double>> twsLeg = leg.samples<TWS>();
       TimedSampleRange<Velocity<double>> vmgLeg = leg.samples<VMG>();
+      TimedSampleRange<Angle<double>> twaLeg = leg.samples<TWA>();
+      TimedSampleRange<Angle<double>> awaLeg = leg.samples<AWA>();
 
       for (TimeStamp time(it.first); time < it.second; time += Duration<>::seconds(1)) {
         Optional<TimedValue<Velocity<>>> tws = twsLeg.evaluate(time);
@@ -71,6 +75,15 @@ void collectSpeedSamplesGrammar(
           // vmg is negative for downwind sailing, but the TargetSpeed logic
           // only handles positive values. Therefore, take the abs value.
           vmgArray.add(fabs(vmg.get().value));
+          if (debugVmgSamples) {
+          LOG(INFO) << "At " << time.fullPrecisionString() << ": "
+            << "vmg: " << vmg.get().value.knots()
+            << " gpsSpeed: " << leg.samples<GPS_SPEED>().evaluate(time).get().value.knots()
+            << " tws: " << tws.get().value.knots()
+            << " twa: " << twaLeg.evaluate(time).get().value.degrees()
+            << " awa: " << awaLeg.evaluate(time).get().value.degrees()
+            << " aws: " << leg.samples<AWS>().evaluate(time).get().value.knots();
+          }
         }
       }
     }
@@ -267,6 +280,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   NavDataset resampled = downSampleGpsTo1Hz(raw);
 
+  if (_earlyFiltering) {
+    resampled = filterNavs(resampled);
+  }
+
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
   std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
@@ -294,8 +311,6 @@ slice that produce. This saves us a lot of memory. If we decide to refactor
 this code some time, we should think carefully how we want to do the merging.
    */
   simulated.mergeAll();
-
-
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
@@ -351,6 +366,10 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
     VMG_SAMPLES_BLIND : VMG_SAMPLES_FROM_GRAMMAR);
 
   _gpsFilter = !amap->optionProvided("--no-gps-filter");
+  _earlyFiltering = amap->optionProvided("--early-filter");
+  if (_earlyFiltering) {
+    _gpsFilter = false;
+  }
 
   _tileParams.fullClean = amap->optionProvided("--clean");
 
@@ -413,6 +432,8 @@ int mainProcessBoatLogs(int argc, const char **argv) {
     .setArgCount(0);
 
   amap.registerOption("--no-gps-filter", "skip gps filtering").setArgCount(0);
+  amap.registerOption("--early-filter", "apply GPS filtering before everything")
+    .setArgCount(0);
 
   amap.disableFreeArgs();
 
@@ -443,6 +464,11 @@ int mainProcessBoatLogs(int argc, const char **argv) {
       .store(&params->passwd);
 
   amap.registerOption("--clean", "Clean all tiles for this boat before starting");
+
+  amap.registerOption(
+      "--debug-vmg",
+      "Print detailed information about samples used for VMG target speed tables")
+    .store(&debugVmgSamples);
 
   auto status = amap.parse(argc, argv);
   switch (status) {
