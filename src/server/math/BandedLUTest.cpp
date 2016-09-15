@@ -40,11 +40,13 @@ TEST(BandedLU, Primitives) {
   }
   EXPECT_TRUE(forwardEliminate(&A, &B));
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < n; i++) {
     EXPECT_NEAR(A(i, i), diag[i], 1.0e-9);
     EXPECT_NEAR(B(i, 0), bdata[i], 1.0e-9);
   }
 
   EXPECT_TRUE(backwardSubstitute(&A, &B));
-
+  for (int i = 0; i < n; i++) {
+    EXPECT_NEAR(A(i, i), 1.0, 1.0e-6);
+  }
 }
