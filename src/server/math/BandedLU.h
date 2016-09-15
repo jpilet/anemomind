@@ -153,9 +153,6 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
   int bColStep = B->getStepAlongDim(1);
   int n = A->rows();
   for (int offset = 0; offset < n; offset++) {
-    std::cout << "FORWARD ELIM " << 1+offset << " of " << n << std::endl;
-    std::cout << "  A = \n" << A->makeDense() << std::endl;
-    std::cout << "  B = \n" << *B << std::endl;
     int blockRows = std::min(n - offset, maxBlockRows);
     int blockCols = std::min(n - offset, maxBlockCols);
     auto *a = A->ptr(offset, offset);
@@ -171,9 +168,6 @@ bool forwardEliminate(BandMatrix<T> *A, MDArray<T, 2> *B) {
       return false;
     }
   }
-  std::cout << "DONE FORWARD ELIMINATION:\n";
-  std::cout << "  A (the U matrix in [L, U] = lu(A))= \n" << A->makeDense() << std::endl;
-  std::cout << "  B (which is L\B) = \n" << *B << std::endl;
   return true;
 }
 
@@ -209,9 +203,6 @@ bool backwardSubstitute(BandMatrix<T> *A, MDArray<T, 2> *B) {
   int aColStep = A->horizontalStride();
   int bColStep = B->getStepAlongDim(1);
   for (int offset = n-1; 0 <= offset; offset--) {
-    std::cout << "Back subst at " << offset << std::endl;
-    std::cout << "  A: \n" << A->makeDense() << std::endl;
-    std::cout << "  B: \n" << *B << std::endl;
     int from = std::max(0, offset - A->superdiagonalCount());
     int backSteps = offset - from + 1;
     auto *a = A->ptr(offset, offset);

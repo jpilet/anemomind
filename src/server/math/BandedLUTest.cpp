@@ -71,14 +71,7 @@ TEST(BandedLU, GeneralSolve) {
   B(2, 0) = 4.0; B(2, 1) = 5.0;
   B(3, 0) = 3.0; B(3, 1) = 5.0;
 
-  std::cout << "A before is\n" << A.makeDense() << std::endl;
-  std::cout << "B before is\n" << B << std::endl;
-
   EXPECT_TRUE(solveInPlace(&A, &B));
-  //EXPECT_TRUE(forwardEliminate(&A, &B));
-
-  std::cout << "A after is\n" << A.makeDense() << std::endl;
-  std::cout << "B after is\n" << B << std::endl;
 
   double expected[4*2] = {
       2.58079,   4.14589,
