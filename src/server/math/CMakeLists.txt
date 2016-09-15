@@ -167,6 +167,7 @@ cxx_test(math_BandedLevMarTest
   BandedLevMarTest.cpp
   common_logging
   gtest_main
+  common_LineKM
   )
 
 add_subdirectory(geometry)

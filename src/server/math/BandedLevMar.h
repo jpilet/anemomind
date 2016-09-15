@@ -14,6 +14,7 @@
 #include <memory>
 #include <server/common/Span.h>
 #include <vector>
+#include <server/common/logging.h>
 
 namespace sail {
 namespace BandedLevMar {
@@ -34,15 +35,15 @@ class CostFunctionBase {
 public:
   virtual int inputCount() const = 0;
   virtual int outputCount() const = 0;
-  virtual void evaluateResiduals(const T *X, const T *outLocal) const = 0;
+  virtual bool evaluateResiduals(const T *X, T *outLocal) const = 0;
 };
 
 template <typename CostEvaluator, typename T>
-class UniqueCostFunction {
+class UniqueCostFunction : public CostFunctionBase<T> {
 public:
   UniqueCostFunction(
       const Spani &inputRange,
-      const std::unique_ptr<CostEvaluator> &f) :
+      CostEvaluator *f) :
         _inputRange(inputRange),
         _inputCount(f->inputCount()),
         _outputCount(f->outputCount()),
@@ -54,16 +55,16 @@ public:
     return _inputRange;
   }
 
-  int outputCount() const {
+  int outputCount() const override {
     return _outputCount;
   }
 
-  int inputCount() const {
+  int inputCount() const override {
     return _inputCount;
   }
 
-  void evaluateResiduals(const T *X, const T *outLocal) const {
-    _f->evaluate(X + _inputRange.minv(), outLocal);
+  bool evaluateResiduals(const T *X, T *outLocal) const override {
+    return _f->evaluate(X + _inputRange.minv(), outLocal);
   }
 private:
   Spani _inputRange;
@@ -74,21 +75,26 @@ private:
 template <typename T>
 class Problem {
 public:
-  Problem() {}
+  Problem() : _bandWidth(0) {}
 
-  Problem(int expectedCostFunctionCount) {
+  Problem(int expectedCostFunctionCount) : _bandWidth(0) {
     _costFunctions.reserve(expectedCostFunctionCount);
   }
 
   template <typename CostEvaluator>
-  void addCostFunction(Spani inputRange, int residualCount,
+  void addCostFunction(Spani inputRange,
       CostEvaluator *f) {
     std::unique_ptr<CostFunctionBase<T>> cost(
-        new UniqueCostFunction<CostEvaluator, T>(inputRange, residualCount, f));
-    _costFunctions.push_back(std::move(cost));
+        new UniqueCostFunction<CostEvaluator, T>(inputRange, f));
+    addCost(cost);
   }
 private:
+  int _bandWidth;
   std::vector<std::unique_ptr<CostFunctionBase<T> > > _costFunctions;
+
+  void addCost(std::unique_ptr<CostFunctionBase<T>> &cost) {
+    _costFunctions.push_back(std::move(cost));
+  }
 };
 
 }
