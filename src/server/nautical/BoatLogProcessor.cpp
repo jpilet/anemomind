@@ -275,7 +275,6 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   readArgs(amap);
 
 
-
   NavDataset raw = loadNavs(*amap, _boatid);
 
   NavDataset resampled = downSampleGpsTo1Hz(raw);
@@ -287,6 +286,11 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
   std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
+
+  if (!fulltree) {
+    LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
+    return false;
+  }
 
   Calibrator calibrator(_grammar.grammar);
   std::ofstream boatDatFile(_dstPath.toString() + "/boat.dat");
