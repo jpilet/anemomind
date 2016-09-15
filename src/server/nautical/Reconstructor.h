@@ -38,10 +38,12 @@ class ChannelRef {
 };
 
 struct Results {
-  //SensorSet sensorSet;
-  Array<Array<BoatState<double>>> reconstructedStates;
+  SensorNoiseSet<double> sensorNoise;
+  SensorDistortionSet<double> sensorDistortion;
 };
 
+// Reconstructs the noise and distortion for a
+// chunks of data.
 Results reconstruct(
     const Array<CalibDataChunk> &chunks,
     const Settings &settings);

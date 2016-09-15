@@ -17,13 +17,14 @@ namespace {
       SensorFunctionSet<fcode, double> *dst) {
     typedef typename
         SensorFunctionType<fcode, double, code>::type FType;
-    /*const auto &srcMap =
+    const auto &srcMap =
         *ChannelFieldAccess<code>::template get<CalibDataChunk>(src);
     auto &dstMap =
-        *ChannelFieldAccess<code>::template get<FType>(*dst);
+        *ChannelFieldAccess<code>
+          ::template get<SensorFunctionSet<fcode, double> >(*dst);
     for (const auto &kv: srcMap) {
-
-    }*/
+      dstMap[kv.first] = FType();
+    }
   }
 
   template <FunctionCode code>
@@ -57,7 +58,7 @@ Results reconstruct(
   auto distortionSet = initializeSensorSet<
       FunctionCode::Distortion>(chunks);
 
-  return Results();
+  return Results{noiseSet, distortionSet};
 }
 
 }
