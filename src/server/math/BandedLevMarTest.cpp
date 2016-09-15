@@ -17,8 +17,8 @@ namespace {
   struct DataCost{
     double data;
 
-    int inputCount() const {return 1;}
-    int outputCount() const {return 1;}
+    static const int inputCount = 1;
+    static const int outputCount = 1;
 
     template <typename T>
     bool evaluate(const T *X, T *y) const {
@@ -29,8 +29,8 @@ namespace {
 
   struct RegCost {
     double weight;
-    int inputCount() const {return 3;}
-    int outputCount() const {return 1;}
+    static const int inputCount = 3;
+    static const int outputCount = 1;
 
     template <typename T>
     bool evaluate(const T *X, T *y) const {

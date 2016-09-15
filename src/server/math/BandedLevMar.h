@@ -21,17 +21,6 @@
 namespace sail {
 namespace BandedLevMar {
 
-class SampleCostEvaluator {
-  int inputCount() const {return 2;}
-  int outputCount() const {return 2;}
-
-  template <typename T>
-  bool evaluate(const T *input, T *output) const {
-    output[0] = input[0] - 3.4;
-    output[1] = input[1] - 5.6;
-  };
-};
-
 template <typename T>
 class CostFunctionBase {
 public:
@@ -51,8 +40,8 @@ public:
       const Spani &inputRange,
       CostEvaluator *f) :
         _inputRange(inputRange),
-        _inputCount(f->inputCount()),
-        _outputCount(f->outputCount()),
+        _inputCount(f->inputCount),
+        _outputCount(f->outputCount),
         _f(f) {
     CHECK(_inputRange.width() == _inputCount);
     _adX.resize(_inputCount);
