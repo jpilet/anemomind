@@ -4,23 +4,8 @@ function POILayer(params) {
   if (!this.renderer) {
     throw(new Error("POILayer: no renderer !"));
   }
-
-  var chat = new Image();
-  chat.src = "/assets/images/chat.svg";
-  var image = new Image();
-  image.src = "/assets/images/image.svg";
-  this.icons = [
-    {
-      "icon": chat,
-      "width": 30,
-      "height": 30,
-    },
-    {
-      "icon": image,
-      "width": 30,
-      "height": 30,
-    },
-  ];
+  
+  this.icons = { };
 
   params.radius = params.radius || 16;
   params.color = params.color || '#008800';
@@ -244,7 +229,6 @@ POILayer.prototype.renderPoint = function(canvas, pinchZoom, geojson, context) {
   }
 
   if (!geojson.properties.hideIcon && geojson.properties.icon && this.icons[geojson.properties.icon]) {
-    
     var icon = this.icons[geojson.properties.icon];
     var width = (icon.width ? icon.width * this.renderer.pixelRatio : radius * 2);
     var height = (icon.height ? icon.height * this.renderer.pixelRatio : width);
@@ -355,7 +339,7 @@ POILayer.prototype.loadIcon = function(name, url, options) {
   icon.onerror = function() {
     console.log(name + ": can't load icon from: " + url);
   }
-
+  
   return icon;
 }
 

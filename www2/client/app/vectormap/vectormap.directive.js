@@ -48,12 +48,19 @@ angular.module('www2App')
             renderer: canvas,
             geojson: geojson,
             onFeatureClic: function(feature, pos) {
-              if(feature.properties.icon == "1")
+              goToEventTile(feature);
+
+              if(feature.properties.icon == "image")
                 Lightbox.openModal(images, feature.index);
-              else
-                goToTile(feature);
             }
           });
+          var options = {
+            "width": 30,
+            "height": 30
+          };
+          poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
+          poiLayer.loadIcon('image', "/assets/images/image.svg", options);
+
           canvas.addLayer(poiLayer);
 
           scope.photoUrl = function(event, size) {
@@ -64,7 +71,7 @@ angular.module('www2App')
             return url.join('?');
           };
 
-          var goToTile = function(event) {
+          var goToEventTile = function(event) {
             var sidebar = angular.element('.mapAndGraphAndSidebar #tabs');
             var target = angular.element('#eventsContainer li[data-id="'+event.id+'"]');
             var posTop = target.position();
@@ -87,7 +94,7 @@ angular.module('www2App')
                   "properties": {
                     textPlacement: 'E',
                     hideIcon: false,
-                    "icon": scope.eventList[i].photo ? "1" : "0"
+                    "icon": scope.eventList[i].photo ? "image" : "comment"
                   },
                   "geometry": {
                     "type": "Point",
