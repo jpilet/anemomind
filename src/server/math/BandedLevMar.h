@@ -293,6 +293,7 @@ Results runLevmar(
   Vec<T> residuals(problem.residualCount());
 
   if (!problem.evaluate(X->data(), residuals.data())) {
+    LOG(ERROR) << "Residual evaluation failed at beginning";
     results.type = Results::ResidualEvaluationFailed;
     return results;
   }
@@ -301,7 +302,7 @@ Results runLevmar(
   MDArray<T, 2> minusJtF0;
   for (int i = 0; i < settings.iters; i++) {
     if (1 <= settings.verbosity) {
-      LOG(INFO) << "--------- Iteration " << i;
+      LOG(INFO) << "--------- LevMar Iteration " << i;
       if (2 <= settings.verbosity) {
         std::cout << " X = " << X->transpose() << std::endl;
       }
@@ -342,6 +343,9 @@ Results runLevmar(
       T xNorm = X->norm();
       auto eigenStep = wrapEigen1(minusJtF);
       if (eigenStep.norm() < settings.e2*xNorm) {
+        if (1 <= settings.verbosity) {
+          LOG(INFO) << "LevMar converged with sufficiently low step size";
+        }
         results.type = Results::Converged;
         return results;
       }
@@ -383,6 +387,9 @@ Results runLevmar(
         *X = xNew;
         if (maxAbs(minusJtF) < settings.e1
             || residuals.norm() < settings.e3) {
+          if (1 <= settings.verbosity) {
+            LOG(INFO) << "LevMar converged with low gradient or residual norm";
+          }
           results.type = Results::Converged;
           return results;
         }
@@ -408,7 +415,9 @@ Results runLevmar(
     results.lastCompletedIteration = i;
   }
 
-  LOG(INFO) << "Iterations exhausted";
+  if (1 <= settings.verbosity) {
+    LOG(INFO) << "Max iteration count reached";
+  }
 
   results.type = Results::MaxIterationsReached;
   return results;

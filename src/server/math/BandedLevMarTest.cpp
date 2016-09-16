@@ -88,6 +88,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
   Eigen::VectorXd Xe = Eigen::VectorXd::Zero(n);
 
   Settings settings;
+  settings.verbosity = 1;
   auto results = runLevmar(settings, problem, &Xe);
   EXPECT_TRUE(results.success());
   EXPECT_EQ(Xe.size(), n);
