@@ -190,6 +190,7 @@ private:
 };
 
 struct Settings {
+  int verbosity = 0;
   int iters = 30;
   int subIters = 30;
   double tau = 1.0e-3;
@@ -299,16 +300,21 @@ Results runLevmar(
   SymmetricBandMatrixL<T> JtJ0;
   MDArray<T, 2> minusJtF0;
   for (int i = 0; i < settings.iters; i++) {
-    std::cout << "\n\n\n";
-    LOG(INFO) << "--------- Iteration " << i;
-    std::cout << " X = " << X->transpose() << std::endl;
+    if (1 <= settings.verbosity) {
+      LOG(INFO) << "--------- Iteration " << i;
+      if (2 <= settings.verbosity) {
+        std::cout << " X = " << X->transpose() << std::endl;
+      }
+    }
     if (!problem.fillNormalEquations(X->data(), &JtJ0, &minusJtF0)) {
       results.type = Results::FullEvaluationFailed;
       LOG(ERROR) << "Full evaluation failed";
       return results;
     }
-    std::cout << "Right hand side: \n";
-    std::cout << "  " << minusJtF0;
+    if (3 <= settings.verbosity) {
+      std::cout << "Right hand side: \n";
+      std::cout << "  " << minusJtF0;
+    }
 
     if (i == 0) {
       mu = settings.tau*getMaxDiagElement(JtJ0);
@@ -317,11 +323,15 @@ Results runLevmar(
 
     bool found = false;
     for (int j = 0; j < settings.subIters; j++) {
-      LOG(INFO) << "#### Inner iteration " << j;
+      if (2 <= settings.verbosity) {
+        LOG(INFO) << "#### Inner iteration " << j;
+      }
       auto JtJ = JtJ0.dup();
       auto minusJtF = minusJtF0.dup();
 
-      LOG(INFO) << "Damping: " << mu;
+      if (2 <= settings.verbosity) {
+        LOG(INFO) << "Damping: " << mu;
+      }
 
       addDamping(mu, &JtJ);
       if (!Pbsv<T>::apply(&JtJ, &minusJtF)) {
@@ -337,10 +347,11 @@ Results runLevmar(
         return results;
       }
 
-      LOG(INFO) << "Step size: " << eigenStep.norm();
+      if (2 <= settings.verbosity) {
+        LOG(INFO) << "Step size: " << eigenStep.norm();
+      }
       Vec<T> xNew = *X + eigenStep;
 
-      std::cout << "xNew: " << xNew.transpose() << std::endl;
 
       Vec<T> newResiduals(problem.residualCount());
       if (!problem.evaluate(xNew.data(), newResiduals.data())) {
@@ -351,9 +362,11 @@ Results runLevmar(
 
       // Is positive when improved:
       T improvement = residuals.squaredNorm() - newResiduals.squaredNorm();
-      LOG(INFO) << "Old residual norm: " << residuals.squaredNorm();
-      LOG(INFO) << "New residual norm: " << newResiduals.squaredNorm();
-      LOG(INFO) << "Improvements: " << improvement;
+      if (2 <= settings.verbosity) {
+        LOG(INFO) << "Old residual norm: " << residuals.squaredNorm();
+        LOG(INFO) << "New residual norm: " << newResiduals.squaredNorm();
+        LOG(INFO) << "Improvements: " << improvement;
+      }
 
       auto eigenMinusJtF = wrapEigen1(minusJtF);
       T denom = eigenStep.dot(mu*eigenStep + eigenMinusJtF);
