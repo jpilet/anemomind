@@ -14,6 +14,20 @@
 using namespace sail;
 using namespace sail::BandedLevMar;
 
+template <typename T>
+struct MakeConstant {
+  static T apply(double x) {
+    return T(x);
+  };
+};
+
+template <typename T, int N>
+struct MakeConstant<ceres::Jet<T, N> > {
+  static ceres::Jet<T, N> apply(double x) {
+    return ceres::Jet<T, N>(MakeConstant<T>::apply(x));
+  }
+};
+
 namespace {
   struct DataCost{
     double data;
@@ -106,8 +120,8 @@ namespace {
       T angle) {
     T x[2] = {cos(angle), sin(angle)};
     return Eigen::Matrix<T, 2, 1>(
-        T(A(0, 0))*x[0] + T(A(0, 1))*x[1] + T(B(0)),
-        T(A(1, 0))*x[0] + T(A(1, 1))*x[1] + T(B(1)));
+        MakeConstant<T>::apply(A(0, 0))*x[0] + MakeConstant<T>::apply(A(0, 1))*x[1] + MakeConstant<T>::apply(B(0)),
+        MakeConstant<T>::apply(A(1, 0))*x[0] + MakeConstant<T>::apply(A(1, 1))*x[1] + MakeConstant<T>::apply(B(1)));
   }
 
   template <typename T>

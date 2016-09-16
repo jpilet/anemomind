@@ -304,9 +304,6 @@ Results runLevMar(
   for (int i = 0; i < settings.iters; i++) {
     if (1 <= settings.verbosity) {
       LOG(INFO) << "--------- LevMar Iteration " << i;
-      if (2 <= settings.verbosity) {
-        std::cout << " X = " << X->transpose() << std::endl;
-      }
     }
     if (!problem.fillNormalEquations(X->data(), &JtJ0, &minusJtF0)) {
       results.type = Results::FullEvaluationFailed;
