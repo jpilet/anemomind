@@ -80,10 +80,13 @@ MDArray<T, 2> getScalarRhs(const MDArray<ceres::Jet<T, N>, 2> &A) {
  *
  * Since lapack only provides pbsv for some static types, we need
  * this specialization in order to perform pbsv on ceres::Jet. To
- * differentiate the solution of a linear system A*X = B, we do
+ * differentiate the solution of a linear system A*X = B, we start
+ * by differentiating either side and then rewrite it:
  *
  * D(A*X) = D(B) <=> D(A)*X + A*D(X) = D(B) <=>
  * A*D(X) = D(B) - D(A)*X <=> D(X) = A\(D(B) - D(A)*X)
+ *
+ * where the '\'-operator is a call to Pbsv<T>::apply.
  *
  */
 template <typename T, int N>
