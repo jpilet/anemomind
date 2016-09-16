@@ -147,6 +147,25 @@ namespace {
     return mapAngleToEllipse(A, B, X(0));
   }
 
+  Eigen::Matrix2d closestPointDerivative(
+      const Eigen::Matrix2d &A,
+      const Eigen::Vector2d &B,
+      const Eigen::Vector2d &X) {
+    Eigen::Matrix2d J(2, 2);
+    double h = 1.0e-5;
+    double f = 1.0/(2.0*h);
+    for (int i = 0; i < 2; i++) {
+      Eigen::Vector2d xTmp = X;
+      xTmp(i) += h;
+      Eigen::Vector2d fPlus = closestPointOnEllipse<double>(A, B, xTmp);
+      xTmp = X;
+      xTmp(i) -= h;
+      Eigen::Vector2d fMinus = closestPointOnEllipse<double>(A, B, xTmp);
+      J.block(0, i, 2, 1) = f*(fPlus - fMinus);
+    }
+    return J;
+  }
+
 }
 
 TEST(BandedLevMarTest, Differentiable) {
@@ -158,6 +177,9 @@ TEST(BandedLevMarTest, Differentiable) {
     double k = 1.0/sqrt(2.0);
     EXPECT_NEAR(pt(0), k, 1.0e-6);
     EXPECT_NEAR(pt(1), k, 1.0e-6);
+
+    Eigen::Matrix2d J = closestPointDerivative(A, B, target);
+    std::cout << " J numeric = \n" << J << std::endl;
   }
 }
 
