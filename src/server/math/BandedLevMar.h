@@ -282,7 +282,7 @@ T maxAbs(const MDArray<T, 2> &X) {
 // Implemented closely according to
 // http://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
 template <typename T>
-Results runLevmar(
+Results runLevMar(
     const Settings &settings,
     const Problem<T> &problem,
     Eigen::Matrix<T, Eigen::Dynamic, 1> *X) {

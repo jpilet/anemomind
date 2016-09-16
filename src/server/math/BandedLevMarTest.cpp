@@ -89,11 +89,75 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
   Settings settings;
   settings.verbosity = 1;
-  auto results = runLevmar(settings, problem, &Xe);
+  auto results = runLevMar(settings, problem, &Xe);
   EXPECT_TRUE(results.success());
   EXPECT_EQ(Xe.size(), n);
   for (int i = 0; i < n; i++) {
     EXPECT_NEAR(Xe(i), minusJtF(i, 0), 1.0e-6);
+  }
+}
+
+namespace {
+
+  template <typename T>
+  Eigen::Matrix<T, 2, 1> mapAngleToEllipse(
+      const Eigen::Matrix2d &A,
+      const Eigen::Vector2d &B,
+      T angle) {
+    T x[2] = {cos(angle), sin(angle)};
+    return Eigen::Matrix<T, 2, 1>(
+        A(0, 0)*x[0] + A(0, 1)*x[1] + B(0),
+        A(1, 0)*x[0] + A(1, 1)*x[1] + B(1));
+  }
+
+  template <typename T>
+  struct EllipseFittingCost {
+    static const int inputCount = 1;
+    static const int outputCount = 2;
+    Eigen::Matrix2d A;
+    Eigen::Vector2d B;
+    Eigen::Matrix<T, 2, 1> target;
+
+    template <typename S>
+    bool evaluate(const S *angle, S *y) const {
+      auto x = mapAngleToEllipse(A, B, angle[0]);
+      y[0] = x[0] - S(target(0));
+      y[1] = x[1] - S(target(1));
+      return true;
+    }
+  };
+
+/*
+ * Returns the closest point to 'target'
+ * on the ellipse, defined by an affine transformation
+ * applied to a unit circle.
+ */
+  template <typename T>
+  Eigen::Matrix<T, 2, 1> closestPointOnEllipse(
+      const Eigen::Matrix2d &A,
+      const Eigen::Vector2d &B,
+      Eigen::Matrix<T, 2, 1> &target) {
+    Problem<T> problem;
+    problem.addCostFunction(Spani(0, 1),
+        new EllipseFittingCost<T>{A, B, target});
+    Eigen::Matrix<T, Eigen::Dynamic, 1> X(1);
+    X[0] = T(0.0);
+    Settings settings;
+    runLevMar(settings, problem, &X);
+    return mapAngleToEllipse(A, B, X(0));
+  }
+
+}
+
+TEST(BandedLevMarTest, Differentiable) {
+  {
+    Eigen::Matrix2d A = Eigen::Matrix2d::Identity();
+    Eigen::Vector2d B = Eigen::Vector2d::Zero();
+    Eigen::Vector2d target(1, 1);
+    auto pt = closestPointOnEllipse(A, B, target);
+    double k = 1.0/sqrt(2.0);
+    EXPECT_NEAR(pt(0), k, 1.0e-6);
+    EXPECT_NEAR(pt(1), k, 1.0e-6);
   }
 }
 
