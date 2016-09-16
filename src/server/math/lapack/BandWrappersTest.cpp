@@ -172,3 +172,33 @@ TEST(PbsvTest, LineFitWithDerivative) {
     EXPECT_NEAR(dx, adx.v[0], 1.0e-4);
   }
 }
+
+TEST(PbsvTest, LineFitWithDerivative2) {
+  int n = 31;
+
+  double a = 3.4;
+  double b = 9.4;
+
+  double A = 12;
+  double B = 13;
+
+  double weight = A*a + B*b;
+  auto X = computeLineFit(n, weight);
+  auto dX = differentiateLineFit(n, weight);
+
+  ceres::Jet<double, 2> adA(a);
+  adA.v[0] = 1.0;
+  ceres::Jet<double, 2> adB(b);
+  adA.v[1] = 1.0;
+
+  ceres::Jet<double, 2> adWeight = A*adA + B*adB;
+
+  auto adX = computeLineFit(n, adWeight);
+
+  for (int i = 0; i < n; i++) {
+    auto x = X(i, 0);
+    auto dx = dX(i, 0);
+    auto adx = adX(i, 0);
+    EXPECT_NEAR(x, adx.a, 1.0e-4);
+  }
+}
