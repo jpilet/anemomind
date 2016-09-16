@@ -8,6 +8,7 @@
 #ifndef SERVER_MATH_LAPACK_BANDMATRIX_H_
 #define SERVER_MATH_LAPACK_BANDMATRIX_H_
 
+#include <iostream>
 #include <server/common/MDArray.h>
 
 namespace sail {
@@ -205,7 +206,12 @@ public:
 
   T &atUnsafe(int i, int j) {
     assert(i >= j);
-    return _A(i - j, i);
+    int row = i - j;
+    int col = j;
+    if (i == 1 && j == 0) {
+      std::cout << "Update this element: " << row << ", " << col << std::endl;
+    }
+    return _A(row, col);
   }
 
   const T &atUnsafe(int i, int j) const {
@@ -243,6 +249,9 @@ public:
 
   // Useful when building normal equations
   void add(int i, int j, T x) {
+    if (i == 1 && j == 0) {
+      std::cout << "   Attention!" << std::endl;
+    }
     if (i >= j) {
       atUnsafe(i, j) += x;
     }

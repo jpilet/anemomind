@@ -47,7 +47,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
   std::uniform_real_distribution<double> distrib(0.0, 0.0); //0.01);
 
-  const int n = 9;
+  const int n = 3;
 
   LineKM gtLine(0, n, 1.0, 1.0); //3.4, 9.5);
 
@@ -61,8 +61,10 @@ TEST(BandedLevmarTest, BasicLineFit) {
   EXPECT_EQ(n, problem.paramCount());
   EXPECT_EQ(n, problem.residualCount());
 
+  double reg = 1.0/sqrt(2);
+
   for (int i = 1; i < n-1; i++) {
-    problem.addCostFunction(Spani(i-1, i+2), new RegCost{0.1});
+    problem.addCostFunction(Spani(i-1, i+2), new RegCost{reg});
   }
   //EXPECT_EQ(2, problem.bandWidth());
   EXPECT_EQ(n, problem.paramCount());
@@ -79,10 +81,14 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
     EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
 
+    std::cout << "JtJ data: \n" << JtJ.storage() << std::endl;
+
     std::cout << "JtJ = \n" << JtJ.makeDense() << std::endl;
     std::cout << "minusJtF = \n" << minusJtF << std::endl;
 
     EXPECT_TRUE(Pbsv<double>::apply(&JtJ, &minusJtF));
+    std::cout << "After: \n" << JtJ.makeDense() << std::endl;
+
     for (int i = 0; i < n; i++) {
       EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
     }

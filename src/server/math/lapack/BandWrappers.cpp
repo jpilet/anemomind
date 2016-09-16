@@ -162,8 +162,8 @@ bool Pbsv<T>::apply(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
     return false;
   } else if (info > 0) {
     int i = info;
-    LOG(ERROR) << "the leading minor of order " << i << " of A is not"
-                      "positive definite, so the factorization could not be"
+    LOG(ERROR) << "the leading minor of order " << i << " of A is not "
+                      "positive definite, so the factorization could not be "
                       "completed, and the solution has not been computed.";
     return false;
   }
