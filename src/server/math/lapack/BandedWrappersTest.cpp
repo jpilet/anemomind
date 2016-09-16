@@ -76,7 +76,7 @@ TEST(PbsvTest, SymMat) {
   A.atUnsafe(1, 1) = 3.0;
   A.atUnsafe(2, 2) = 4.0;
   A.atUnsafe(3, 3) = 5.0;
-  auto Ad = A.toDense();
+  auto Ad = A.makeDense();
   EXPECT_EQ(Ad.rows(), 4);
   EXPECT_EQ(Ad.cols(), 4);
   for (int i = 0; i < 4; i++) {
@@ -96,5 +96,37 @@ TEST(PbsvTest, SymMat) {
 
   EXPECT_EQ(A.kd(), 2);
   EXPECT_EQ(A.size(), 4);
+}
+
+template <typename T>
+void addReg(int at, SymmetricBandMatrixL<T> *A) {
+  double coeffs[3] = {1, -2, 1};
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      A->add(at + i, at + j, T(coeffs[i]*coeffs[j]));
+    }
+  }
+}
+
+template <typename T>
+void addDataFit(T weight, int index, T value,
+    SymmetricBandMatrixL<T> *A, MDArray<T, 2> *B) {
+  T w2 = weight*weight;
+  A->add(index, index, w2);
+  (*B)(index, 0) += w2*value;
+}
+
+TEST(PbsvTest, FitLine) {
+  int n = 31;
+  auto A = SymmetricBandMatrixL<double>::zero(n, 2);
+  MDArray2d B(n, 1);
+  B.setAll(0.0);
+  for (int i = 0; i < n-2; i++) {
+    addReg(i, &A);
+  }
+  double w = 1000;
+  addDataFit<double>(w, 0, 3, &A, &B);
+  addDataFit<double>(w, n/2, 9, &A, &B);
+  addDataFit<double>(w, n-1, 3, &A, &B);
 }
 

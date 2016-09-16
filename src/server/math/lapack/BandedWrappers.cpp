@@ -167,7 +167,12 @@ bool easyPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
                       "completed, and the solution has not been computed.";
     return false;
   }
+  return false;
 }
+
+template bool easyPbsv<double>(
+    SymmetricBandMatrixL<double> *lhs, MDArray<double, 2> *rhs);
+
 
 void testCallIt() {
   char c;

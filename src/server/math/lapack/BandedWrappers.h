@@ -12,6 +12,10 @@
 
 namespace sail {
 
+template <typename T>
+bool easyPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs);
+
+
 bool easyDgbsvInPlace(BandMatrix<double> *lhs, MDArray2d *rhs);
 
 } /* namespace sail */

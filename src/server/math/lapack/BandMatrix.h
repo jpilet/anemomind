@@ -220,7 +220,7 @@ public:
     return T(0.0);
   }
 
-  MDArray<T, 2> toDense() const {
+  MDArray<T, 2> makeDense() const {
     int n = size();
     MDArray<T, 2> dst(n, n);
     for (int i = 0; i < n; i++) {
