@@ -318,7 +318,6 @@ Results runLevmar(
 
     if (i == 0) {
       mu = settings.tau*getMaxDiagElement(JtJ0);
-      mu = 0.0001;
     }
 
     bool found = false;
