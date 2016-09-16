@@ -99,8 +99,8 @@ public:
   bool accumulateNormalEquations(
       const T *X, SymmetricBandMatrixL<T> *JtJ,
       MDArray<T, 2> *minusJtF) override {
-    T F[CostEvaluator::inputCount];
-    T J[CostEvaluator::inputCount*CostEvaluator::outputCount];
+    T F[CostEvaluator::outputCount];
+    T J[CostEvaluator::outputCount*CostEvaluator::inputCount];
     if (!evaluate(X, F, J)) {
       return false;
     }
@@ -154,11 +154,17 @@ public:
     *JtJ = SymmetricBandMatrixL<T>::zero(_paramCount, _kd);
     *minusJtF = MDArray<T, 2>(_paramCount, 1);
     minusJtF->setAll(T(0.0));
+    int counter = 0;
     for (auto &f: _costFunctions) {
-      if (!f->accumulateNormalEquations(X, JtJ, minusJtF)) {
+      if (!f->accumulateNormalEquations(f->inputRange().minv() + X,
+          JtJ, minusJtF)) {
         LOG(ERROR) << "Failed to accumulate normal equations";
         return false;
       }
+      if (counter == _costFunctions.size()/4) {
+        std::cout << "Partial minusJtF\n" << *minusJtF << std::endl;
+      }
+      counter++;
     }
     return true;
   }
@@ -309,7 +315,7 @@ Results runLevmar(
 
     if (i == 0) {
       mu = settings.tau*getMaxDiagElement(JtJ0);
-      mu = 0.0;
+      mu = 0.0001;
     }
 
     bool found = false;

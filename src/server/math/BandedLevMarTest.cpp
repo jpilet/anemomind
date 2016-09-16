@@ -61,11 +61,11 @@ TEST(BandedLevmarTest, BasicLineFit) {
   EXPECT_EQ(n, problem.paramCount());
   EXPECT_EQ(n, problem.residualCount());
 
-  /*double reg = 1000;
+  double reg = 0.0001; //1000;
 
   for (int i = 1; i < n-1; i++) {
     problem.addCostFunction(Spani(i-1, i+2), new RegCost{reg});
-  }*/
+  }
 
 
   //EXPECT_EQ(2, problem.kd());
