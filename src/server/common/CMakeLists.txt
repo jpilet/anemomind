@@ -417,3 +417,8 @@ cxx_test(common_MDArrayTest
   MDArrayTest.cpp
   gtest_main
   )
+
+add_library(common_HtmlLog
+  HtmlLog.h
+  HtmlLog.cpp
+  )

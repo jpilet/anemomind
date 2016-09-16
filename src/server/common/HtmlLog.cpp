@@ -6,16 +6,21 @@
  */
 
 #include "HtmlLog.h"
+#include <sstream>
 
 namespace sail {
 
-HtmlLog::HtmlLog() {
-  // TODO Auto-generated constructor stub
-
+AttribValue::AttribValue(double v) {
+  std::stringstream ss;
+  ss << v;
+  _value = ss.str();
 }
 
-HtmlLog::~HtmlLog() {
-  // TODO Auto-generated destructor stub
+AttribValue::AttribValue(int v) {
+  std::stringstream ss;
+  ss << v;
+  _value = ss.str();
 }
+
 
 } /* namespace sail */
