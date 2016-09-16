@@ -253,6 +253,14 @@ public:
   int ldab() const {return _A.rows();}
 
   const MDArray<T, 2> &storage() const {return _A;}
+
+  T diagonalElement(int index) const {
+    return _A(0, index);
+  }
+
+  SymmetricBandMatrixL<T> dup() const {
+    return SymmetricBandMatrixL<T>(_A.dup());
+  }
 private:
   MDArray<T, 2> _A;
 };

@@ -164,6 +164,18 @@ public:
     }
     return true;
   }
+
+  bool evaluate(const T *X, T *dst) const {
+    int offset = 0;
+    for (auto f: _costFunctions) {
+      if (!f->evaluate(X, dst + offset)) {
+        return false;
+      }
+      offset += f->outputCount();
+    }
+    assert(offset == _residualCount);
+    return true;
+  }
 private:
   int _kd, _paramCount, _residualCount;
   std::vector<std::unique_ptr<CostFunctionBase<T> > > _costFunctions;
@@ -175,6 +187,162 @@ private:
     _costFunctions.push_back(std::move(cost));
   }
 };
+
+struct Settings {
+  int iters = 30;
+  int subIters = 300;
+  double tau = 1.0e-3;
+  double e1 = 1.0e-15;
+  double e2 = 1.0e-15;
+  double e3 = 1.0e-15;
+};
+
+struct Results {
+  enum TerminationType {
+    None = 0,
+
+    //
+    Converged,
+
+    // Used all iterations
+    MaxIterationsReached,
+
+    // Failures. Probably a bad solution
+    FullEvaluationFailed,
+    ResidualEvaluationFailed,
+    PbsvFailed,
+  };
+
+  TerminationType type = None;
+  int lastCompletedIteration = -1;
+};
+
+template <typename T>
+T getMaxDiagElement(const SymmetricBandMatrixL<T> &A) {
+  int n = A.size();
+  T maxElement = T(A.diagonalElement(0));
+  for (int i = 1; i < n; i++) {
+    maxElement = std::max(maxElement, A.diagonalElement(i));
+  }
+  return maxElement;
+}
+
+template <typename T>
+void addDamping(T amount, SymmetricBandMatrixL<T> *dst) {
+  int n = dst->size();
+  for (int i = 0; i < n; i++) {
+    dst->add(i, i, amount);
+  }
+}
+
+template <typename T>
+Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1> >
+  wrapEigen(const Array<T> &x) {
+  return Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1> >(x.ptr(), x.size());
+}
+
+template <typename T>
+Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
+  wrapEigen(const MDArray<T, 2> &x) {
+  assert(x.isContinuous());
+  return Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >(
+      x.ptr(), x.rows(), x.cols());
+}
+
+template <typename T>
+using Vec = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+
+template <typename T>
+T acceptedUpdateFactor(T rho) {
+  T k = T(2.0)*rho - T(1.0);
+  return std::max(T(1.0/3), T(1.0) - k*k*k);
+}
+
+
+// Implemented closely according to
+// http://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
+template <typename T>
+Results runLevmar(
+    const Settings &settings,
+    const Problem<T> &problem,
+    Eigen::Matrix<T, Eigen::Dynamic, 1> *X) {
+  Results results;
+  T v = T(2.0);
+  T mu = T(-1.0);
+
+  Vec<T> residuals(problem.residualCount());
+
+  if (!problem.evaluate(X->ptr(), residuals.ptr())) {
+    results.type = Results::ResidualEvaluationFailed;
+    return results;
+  }
+
+  SymmetricBandMatrixL<T> JtJ0;
+  MDArray<T, 2> minusJtF0;
+  for (int i = 0; i < settings.iters; i++) {
+    if (problem.fillNormalEquations(X->ptr(), &JtJ0, &minusJtF0)) {
+      results.type = Results::FullEvaluationFailed;
+      return results;
+    }
+
+    if (i == 0) {
+      mu = settings.tau*getMaxDiagElement(JtJ0);
+    }
+
+    bool found = false;
+    for (int i = 0; i < settings.subIters; i++) {
+      auto JtJ = JtJ0.dup();
+      auto minusJtF = minusJtF0.dup();
+
+      addDamping(mu, &JtJ);
+      if (!Pbsv<T>::apply(&JtJ, &minusJtF)) {
+        results.type = Results::PbsvFailed;
+        return results;
+      }
+
+      T xNorm = X->norm();
+      auto eigenStep = wrapEigen(minusJtF);
+      if (eigenStep.norm() < settings.e2*xNorm) {
+        results.type = Results::Converged;
+        return results;
+      }
+
+      T oldResidualNorm = residuals.norm();
+      Vec<T> xNew = X + eigenStep;
+      Vec<T> newResiduals(problem.residualCount());
+      if (!problem.evaluate(xNew.data(), newResiduals.data())) {
+        results.type = Results::ResidualEvaluationFailed;
+        return results;
+      }
+
+      // Is positive when improved:
+      T improvement = oldResidualNorm - newResiduals.norm();
+      auto eigenMinusJtF = wrapEigen(minusJtF);
+      T denom = eigenStep.dot(mu*eigenStep + eigenMinusJtF);
+      T rho = improvement/denom;
+      if (T(0.0) < rho) {
+        residuals = newResiduals;
+        *X = xNew;
+        if (maxAbs(minusJtF) < settings.e1
+            || residuals.norm() < settings.e3) {
+          results.type = Results::Converged;
+          return results;
+        }
+        mu *= acceptedUpdateFactor(rho);
+        v = T(2.0);
+
+        bool found = true;
+        break;
+      } else {
+        mu *= v;
+        v *= T(2.0);
+      }
+    }
+    results.lastCompletedIteration = i;
+  }
+  results.type = Results::MaxIterationsReached;
+  return results;
+}
 
 }
 }
