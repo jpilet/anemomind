@@ -126,7 +126,7 @@ target_link_libraries(math_irls
                       common_ScopedLog
                       common_string
                       common_Span
-                      lapack_BandedWrappers
+                      lapack_BandWrappers
                      )           
 
 cxx_test(math_irlsTest

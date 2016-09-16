@@ -3,19 +3,19 @@ cxx_test(lapack_BandMatrixTest
          gtest_main
         )
 
-add_library(lapack_BandedWrappers
-            BandedWrappers.h
-            BandedWrappers.cpp
+add_library(lapack_BandWrappers
+            BandWrappers.h
+            BandWrappers.cpp
            )
            
-target_link_libraries(lapack_BandedWrappers
+target_link_libraries(lapack_BandWrappers
                       common_logging
                       lapack
                       blas
                      )        
                      
-cxx_test(lapack_BandedWrappersTest
-         BandedWrappersTest.cpp
+cxx_test(lapack_BandWrappersTest
+         BandWrappersTest.cpp
          gtest_main
-         lapack_BandedWrappers
+         lapack_BandWrappers
         )        

@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include "BandedWrappers.h"
+#include <server/math/lapack/BandWrappers.h>
 #include <server/common/logging.h>
 
 // Documented here:

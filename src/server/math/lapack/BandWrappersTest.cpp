@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include <server/math/lapack/BandedWrappers.h>
+#include <server/math/lapack/BandWrappers.h>
 #include <gtest/gtest.h>
 #include <server/common/ArrayIO.h>
 
