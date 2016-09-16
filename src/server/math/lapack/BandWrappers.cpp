@@ -161,7 +161,7 @@ bool Pbsv<T>::apply(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
     LOG(ERROR) << "The argument '" << argNames[(-info)-1] << "' had an illegal value";
     return false;
   } else if (info > 0) {
-    int i = info-1;
+    int i = info;
     LOG(ERROR) << "the leading minor of order " << i << " of A is not"
                       "positive definite, so the factorization could not be"
                       "completed, and the solution has not been computed.";
