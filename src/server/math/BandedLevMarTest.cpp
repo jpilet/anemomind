@@ -95,7 +95,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
   EXPECT_TRUE(results.success());
   EXPECT_EQ(Xe.size(), n);
   for (int i = 0; i < n; i++) {
-    //EXPECT_NEAR(Xe(i), minusJtF(i, 0), 1.0e-6);
+    EXPECT_NEAR(Xe(i), minusJtF(i, 0), 1.0e-6);
   }
 }
 
