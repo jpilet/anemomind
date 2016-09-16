@@ -153,7 +153,7 @@ public:
 
   bool fillNormalEquations(
       const T *X,
-      SymmetricBandMatrixL<T> *JtJ, MDArray<T, 2> *minusJtF) {
+      SymmetricBandMatrixL<T> *JtJ, MDArray<T, 2> *minusJtF) const {
     *JtJ = SymmetricBandMatrixL<T>::zero(_paramCount, _kd);
     *minusJtF = MDArray<T, 2>(_paramCount, 1);
     minusJtF->setAll(T(0.0));
@@ -167,7 +167,7 @@ public:
 
   bool evaluate(const T *X, T *dst) const {
     int offset = 0;
-    for (auto f: _costFunctions) {
+    for (const auto &f: _costFunctions) {
       if (!f->evaluate(X, dst + offset)) {
         return false;
       }
@@ -242,11 +242,12 @@ Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1> >
 }
 
 template <typename T>
-Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
-  wrapEigen(const MDArray<T, 2> &x) {
+Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1> >
+  wrapEigen1(const MDArray<T, 2> &x) {
+  assert(x.cols() == 1);
   assert(x.isContinuous());
-  return Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >(
-      x.ptr(), x.rows(), x.cols());
+  return Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1> >(
+      x.ptr(), x.rows());
 }
 
 template <typename T>
@@ -258,6 +259,17 @@ T acceptedUpdateFactor(T rho) {
   return std::max(T(1.0/3), T(1.0) - k*k*k);
 }
 
+
+template <typename T>
+T maxAbs(const MDArray<T, 2> &X) {
+  assert(X.cols() == 1);
+  int n = X.rows();
+  T maxv(0.0);
+  for (int i = 0; i < n; i++) {
+    maxv = std::max(maxv, fabs(X(i, 0)));
+  }
+  return maxv;
+}
 
 // Implemented closely according to
 // http://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
@@ -272,7 +284,7 @@ Results runLevmar(
 
   Vec<T> residuals(problem.residualCount());
 
-  if (!problem.evaluate(X->ptr(), residuals.ptr())) {
+  if (!problem.evaluate(X->data(), residuals.data())) {
     results.type = Results::ResidualEvaluationFailed;
     return results;
   }
@@ -280,7 +292,7 @@ Results runLevmar(
   SymmetricBandMatrixL<T> JtJ0;
   MDArray<T, 2> minusJtF0;
   for (int i = 0; i < settings.iters; i++) {
-    if (problem.fillNormalEquations(X->ptr(), &JtJ0, &minusJtF0)) {
+    if (problem.fillNormalEquations(X->data(), &JtJ0, &minusJtF0)) {
       results.type = Results::FullEvaluationFailed;
       return results;
     }
@@ -301,14 +313,14 @@ Results runLevmar(
       }
 
       T xNorm = X->norm();
-      auto eigenStep = wrapEigen(minusJtF);
+      auto eigenStep = wrapEigen1(minusJtF);
       if (eigenStep.norm() < settings.e2*xNorm) {
         results.type = Results::Converged;
         return results;
       }
 
       T oldResidualNorm = residuals.norm();
-      Vec<T> xNew = X + eigenStep;
+      Vec<T> xNew = *X + eigenStep;
       Vec<T> newResiduals(problem.residualCount());
       if (!problem.evaluate(xNew.data(), newResiduals.data())) {
         results.type = Results::ResidualEvaluationFailed;
@@ -317,7 +329,7 @@ Results runLevmar(
 
       // Is positive when improved:
       T improvement = oldResidualNorm - newResiduals.norm();
-      auto eigenMinusJtF = wrapEigen(minusJtF);
+      auto eigenMinusJtF = wrapEigen1(minusJtF);
       T denom = eigenStep.dot(mu*eigenStep + eigenMinusJtF);
       T rho = improvement/denom;
       if (T(0.0) < rho) {

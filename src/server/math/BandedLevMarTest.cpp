@@ -84,6 +84,12 @@ TEST(BandedLevmarTest, BasicLineFit) {
       EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
     }
   }
+
+  Eigen::VectorXd Xe = Eigen::VectorXd::Zero(n);
+
+  Settings settings;
+  auto results = runLevmar(settings, problem, &Xe);
+  EXPECT_EQ(results.type, Results::Converged);
 }
 
 

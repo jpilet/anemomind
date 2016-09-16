@@ -105,7 +105,7 @@ class MDArray {
     return rows() == cols();
   }
 
-  void create(int *sizes) {
+  void create(const int *sizes) {
     allocate(sizes);
   }
 
@@ -198,12 +198,12 @@ class MDArray {
     }
   }
 
-  void copyTo(ThisType &dst) {
+  void copyTo(ThisType &dst) const {
     dst.create(_size.getData());
     copyToSafe(dst);
   }
 
-  void copyToSafe(ThisType dst) {
+  void copyToSafe(ThisType dst) const {
     assert(_size == dst._size);
     int inds[dims];
     initInds(inds);
@@ -227,12 +227,12 @@ class MDArray {
     }
   }
 
-  ThisType allocate() {
+  ThisType allocate() const {
     ThisType dst(_size.getData());
     return dst;
   }
 
-  ThisType dup() {
+  ThisType dup() const {
     ThisType dst = allocate();
     copyTo(dst);
     return dst;
