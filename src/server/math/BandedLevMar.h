@@ -207,7 +207,8 @@ struct Results {
     // Failures. Probably a bad solution
     FullEvaluationFailed = 3,
     ResidualEvaluationFailed = 4,
-    PbsvFailed = 5
+    PbsvFailed = 5,
+    IterationsExceeded = 6
   };
 
   TerminationType type = None;
@@ -295,6 +296,8 @@ Results runLevmar(
   SymmetricBandMatrixL<T> JtJ0;
   MDArray<T, 2> minusJtF0;
   for (int i = 0; i < settings.iters; i++) {
+    LOG(INFO) << "--------- Iteration " << i;
+    std::cout << " X = " << X->transpose() << std::endl;
     if (!problem.fillNormalEquations(X->data(), &JtJ0, &minusJtF0)) {
       results.type = Results::FullEvaluationFailed;
       LOG(ERROR) << "Full evaluation failed";
@@ -306,9 +309,7 @@ Results runLevmar(
     }
 
     bool found = false;
-    for (int i = 0; i < settings.subIters; i++) {
-      LOG(INFO) << "--------- Iteration " << i;
-      std::cout << " X = " << X->transpose() << std::endl;
+    for (int j = 0; j < settings.subIters; j++) {
       auto JtJ = JtJ0.dup();
       auto minusJtF = minusJtF0.dup();
 
@@ -317,6 +318,7 @@ Results runLevmar(
       addDamping(mu, &JtJ);
       if (!Pbsv<T>::apply(&JtJ, &minusJtF)) {
         results.type = Results::PbsvFailed;
+        LOG(ERROR) << "PBSV failed";
         return results;
       }
 
@@ -327,15 +329,22 @@ Results runLevmar(
         return results;
       }
 
+      LOG(INFO) << "Step size: " << eigenStep.norm();
       Vec<T> xNew = *X + eigenStep;
+
+      std::cout << "xNew: " << xNew.transpose() << std::endl;
+
       Vec<T> newResiduals(problem.residualCount());
       if (!problem.evaluate(xNew.data(), newResiduals.data())) {
         results.type = Results::ResidualEvaluationFailed;
+        LOG(ERROR) << "Residual evaluation failed";
         return results;
       }
 
       // Is positive when improved:
       T improvement = residuals.squaredNorm() - newResiduals.squaredNorm();
+      LOG(INFO) << "Old residual norm: " << residuals.squaredNorm();
+      LOG(INFO) << "New residual norm: " << newResiduals.squaredNorm();
       LOG(INFO) << "Improvements: " << improvement;
 
       auto eigenMinusJtF = wrapEigen1(minusJtF);
@@ -356,15 +365,24 @@ Results runLevmar(
         mu *= acceptedUpdateFactor(rho);
         v = T(2.0);
 
-        bool found = true;
+        found = true;
         break;
       } else {
         mu *= v;
         v *= T(2.0);
       }
     }
+    if (!found) {
+      LOG(ERROR) << "Iterations exceeded";
+      results.type = Results::IterationsExceeded;
+      return results;
+    }
+
     results.lastCompletedIteration = i;
   }
+
+  LOG(INFO) << "Iterations exhausted";
+
   results.type = Results::MaxIterationsReached;
   return results;
 }
