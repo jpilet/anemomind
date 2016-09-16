@@ -6,6 +6,7 @@
  */
 
 #include <server/math/lapack/BandWrappers.h>
+#include <server/math/lapack/BandWrappersJet.h>
 #include <gtest/gtest.h>
 #include <server/common/ArrayIO.h>
 
@@ -116,8 +117,8 @@ void addDataFit(T weight, int index, T value,
   (*B)(index, 0) += w2*value;
 }
 
-TEST(PbsvTest, FitLine) {
-  int n = 31;
+template <typename T>
+MDArray<T, 2> computeLineFit(int n, T middleWeight) {
   auto A = SymmetricBandMatrixL<double>::zero(n, 2);
   MDArray2d B(n, 1);
   B.setAll(0.0);
@@ -130,7 +131,13 @@ TEST(PbsvTest, FitLine) {
   addDataFit<double>(w, n-1, 3, &A, &B);
 
   EXPECT_NEAR(B(0, 0), 3.0*w*w, 1.0e-6);
-  EXPECT_TRUE(easyPbsv(&A, &B));
+  EXPECT_TRUE(Pbsv<double>::apply(&A, &B));
+  return B;
+}
+
+TEST(PbsvTest, FitLine) {
+  int n = 31;
+  auto B = computeLineFit<double>(n, 1000);
   EXPECT_NEAR(B(0, 0), 3.0, 1.0e-3);
   EXPECT_NEAR(B(n/2, 0), 9.0, 1.0e-3);
   EXPECT_NEAR(B(n-1, 0), 3.0, 1.0e-3);

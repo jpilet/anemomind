@@ -151,7 +151,7 @@ int performPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
 }
 
 template <typename T>
-bool easyPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
+bool Pbsv<T>::apply(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
   int info = performPbsv(lhs, rhs);
   if (info == 0) {
     return true;
@@ -170,8 +170,8 @@ bool easyPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs) {
   return false;
 }
 
-template bool easyPbsv<double>(
-    SymmetricBandMatrixL<double> *lhs, MDArray<double, 2> *rhs);
+// Explicitly instantiate it so that we can link it
+template struct Pbsv<double>;
 
 
 void testCallIt() {

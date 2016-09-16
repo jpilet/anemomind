@@ -13,7 +13,9 @@
 namespace sail {
 
 template <typename T>
-bool easyPbsv(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs);
+struct Pbsv {
+ static bool apply(SymmetricBandMatrixL<T> *lhs, MDArray<T, 2> *rhs);
+};
 
 template <typename T>
 bool easyGbsv(BandMatrix<T> *lhs, MDArray<T, 2> *rhs);

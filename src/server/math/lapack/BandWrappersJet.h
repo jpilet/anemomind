@@ -54,43 +54,46 @@ void putBackResult(const MDArray<T, 2> &src, ceres::Jet<T, N> *dst) {
   }
 }
 
+// Specialization for ceres::Jet<T, N>
 template <typename T, int N>
-bool easyPbsv<ceres::Jet<T, N> >(
-    SymmetricBandMatrixL<ceres::Jet<T, N> > *lhs,
-    MDArray<ceres::Jet<T, N>, 2> *rhs) {
-  typedef ceres::Jet<T, N> ADType;
-  int n = lhs->size();
-  assert(rhs->rows() == n);
-  int kd = lhs->kd();
-  int cols = rhs->cols();
-  int colsPerCol = 1 + N;
+struct Pbsv<ceres::Jet<T, N> > {
+   static bool apply(
+      SymmetricBandMatrixL<ceres::Jet<T, N> > *lhs,
+      MDArray<ceres::Jet<T, N>, 2> *rhs) {
+    typedef ceres::Jet<T, N> ADType;
+    int n = lhs->size();
+    assert(rhs->rows() == n);
+    int kd = lhs->kd();
+    int cols = rhs->cols();
+    int colsPerCol = 1 + N;
 
-  // Prepare the matrices
-  auto A = SymmetricBandMatrixL<T>(
-      lhs->storage().map([](const ADType &x) {return x.a;}));
-  MDArray<T, 2> B(n, cols*colsPerCol);
-  for (int j = 0; j < cols; j++) {
-    ADType *col = rhs->getPtrAt(0, j);
-    int colOffset = j*colsPerCol;
-    populateBValues<T, N>(
-        n, col, B.getPtrAt(0, colOffset));
-    for (int i = 0; i < N; i++) {
-      fillDerivatives<T, N>(n, i, *lhs, col,
-          B.getPtrAt(0, colOffset + 1 + i));
+    // Prepare the matrices
+    auto A = SymmetricBandMatrixL<T>(
+        lhs->storage().map([](const ADType &x) {return x.a;}));
+    MDArray<T, 2> B(n, cols*colsPerCol);
+    for (int j = 0; j < cols; j++) {
+      ADType *col = rhs->getPtrAt(0, j);
+      int colOffset = j*colsPerCol;
+      populateBValues<T, N>(
+          n, col, B.getPtrAt(0, colOffset));
+      for (int i = 0; i < N; i++) {
+        fillDerivatives<T, N>(n, i, *lhs, col,
+            B.getPtrAt(0, colOffset + 1 + i));
+      }
     }
-  }
 
-  if (!easyPbsv<T>(&A, &B)) {
-    return false;
-  }
+    if (!Pbsv<T>::apply(&A, &B)) {
+      return false;
+    }
 
-  // Put the result back
-  for (int j = 0; j < cols; j++) {
-    putBackResult(B.sliceColBlock(j, N+1), rhs->getPtrAt(0, j));
-  }
+    // Put the result back
+    for (int j = 0; j < cols; j++) {
+      putBackResult(B.sliceColBlock(j, N+1), rhs->getPtrAt(0, j));
+    }
 
-  return true;
-}
+    return true;
+  }
+};
 
 }
 
