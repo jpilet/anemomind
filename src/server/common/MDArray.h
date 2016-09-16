@@ -507,11 +507,19 @@ class MDArray {
     typedef decltype(std::declval<Function>()(std::declval<T>())) S;
     MDArray<S, dims> dst(_size.getData());
     int count = numel();
-    int inds[dims];
-    initInds(inds);
-    for (int i = 0; i < count; i++) {
-      dst.set(inds, f(get(inds)));
-      _size.step(inds, 1);
+    if (isContinuous()) {
+      const T *srcData = ptr();
+      S *dstData = dst.ptr();
+      for (int i = 0; i < count; i++) {
+        dstData[i] = f(srcData[i]);
+      }
+    } else {
+      int inds[dims];
+      initInds(inds);
+      for (int i = 0; i < count; i++) {
+        dst.set(inds, f(get(inds)));
+        _size.step(inds, 1);
+      }
     }
     return dst;
   }
