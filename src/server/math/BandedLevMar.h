@@ -161,9 +161,6 @@ public:
         LOG(ERROR) << "Failed to accumulate normal equations";
         return false;
       }
-      if (counter == _costFunctions.size()/4) {
-        std::cout << "Partial minusJtF\n" << *minusJtF << std::endl;
-      }
       counter++;
     }
     return true;

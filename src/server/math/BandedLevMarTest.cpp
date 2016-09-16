@@ -85,9 +85,6 @@ TEST(BandedLevmarTest, BasicLineFit) {
     //EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
   }
 
-  std::cout << "EXPECTED result "
-      << Eigen::Map<Eigen::VectorXd>(minusJtF.ptr(), n).transpose() << std::endl;
-
   Eigen::VectorXd Xe = Eigen::VectorXd::Zero(n);
 
   Settings settings;
