@@ -117,9 +117,6 @@ public:
         T *j1 = J + j*CostEvaluator::outputCount;
         JtJ->add(offset + i, offset + j,
             dotProduct<CostEvaluator::outputCount>(j0, j1));
-        std::cout << "Adding to " << offset+i << ", "
-            << offset+j << std::endl;
-        std::cout << "JtJ is now \n " << JtJ->storage() << "\n\n";
       }
     }
     return true;
