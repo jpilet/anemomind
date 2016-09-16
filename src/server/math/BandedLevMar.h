@@ -81,11 +81,11 @@ public:
       _adX[i] = ADType(X[i]);
     }
     for (int i = 0; i < CostEvaluator::inputCount; i++) {
-      _adX[i].v[0] = 1.0;
+      _adX[i].v[0] = T(1.0);
       if (!_f->template evaluate<ceres::Jet<T, 1> >(_adX, _adY)) {
         return false;
       }
-      _adX[i].v[0] = 0.0;
+      _adX[i].v[0] = T(0.0);
 
       for (int j = 0; j < CostEvaluator::outputCount; j++) {
         Y[j] = _adY[j].a;
@@ -274,7 +274,8 @@ T maxAbs(const MDArray<T, 2> &X) {
   int n = X.rows();
   T maxv(0.0);
   for (int i = 0; i < n; i++) {
-    maxv = std::max(maxv, fabs(X(i, 0)));
+    T elem = X(i, 0);
+    maxv = std::max(T(maxv), T(abs(elem)));
   }
   return maxv;
 }

@@ -106,8 +106,8 @@ namespace {
       T angle) {
     T x[2] = {cos(angle), sin(angle)};
     return Eigen::Matrix<T, 2, 1>(
-        A(0, 0)*x[0] + A(0, 1)*x[1] + B(0),
-        A(1, 0)*x[0] + A(1, 1)*x[1] + B(1));
+        T(A(0, 0))*x[0] + T(A(0, 1))*x[1] + T(B(0)),
+        T(A(1, 0))*x[0] + T(A(1, 1))*x[1] + T(B(1)));
   }
 
   template <typename T>
@@ -166,6 +166,12 @@ namespace {
     return J;
   }
 
+  ceres::Jet<double, 2> jet(double a, double dx, double dy) {
+    ceres::Jet<double, 2> dst(a);
+    dst.v[0] = dx;
+    dst.v[1] = dy;
+    return dst;
+  }
 }
 
 TEST(BandedLevMarTest, Differentiable) {
@@ -180,6 +186,15 @@ TEST(BandedLevMarTest, Differentiable) {
 
     Eigen::Matrix2d J = closestPointDerivative(A, B, target);
     std::cout << " J numeric = \n" << J << std::endl;
+
+    Eigen::Matrix<ceres::Jet<double, 2>, 2, 1> adTarget(
+        jet(1.0, 1.0, 0.0),
+        jet(1.0, 0.0, 1.0)
+       );
+
+    auto adPt = closestPointOnEllipse<ceres::Jet<double, 2> >(
+        A, B, adTarget);
+
   }
 }
 
