@@ -23,13 +23,17 @@ class HtmlNode {
 public:
   typedef std::shared_ptr<HtmlNode> Ptr;
   virtual ~HtmlNode() {}
+
+  virtual std::ostream &stream() = 0;
 private:
 };
 
-class HtmlPage {
+class HtmlPage : public HtmlNode {
 public:
-  HtmlNode::Ptr make(std::string baseDir, std::string prefix);
+  static HtmlNode::Ptr make(std::string baseDir, std::string prefix);
+  std::ostream &stream() override {return _file;}
 private:
+  HtmlPage(const std::string &baseDir, const std::string &prefix);
   std::string _baseDir, _prefix;
   int _subPageCounter;
   std::ofstream _file;
@@ -40,17 +44,29 @@ public:
   AttribValue(const std::string &s) : _value(s) {}
   AttribValue(double v);
   AttribValue(int v);
-  std::string get() const;
+  std::string get() const {return _value;}
 private:
   std::string _value;
 };
 
 class HtmlTag : public HtmlNode {
 public:
+  static HtmlNode::Ptr make(HtmlNode::Ptr parent, const std::string &tagName,
+        const std::vector<std::pair<std::string, AttribValue> > &attribs
+           = std::vector<std::pair<std::string, AttribValue> >());
+
+  std::ostream &stream() override {return _stream;}
+
+  virtual ~HtmlTag();
 private:
+  HtmlTag(HtmlNode::Ptr parent, const std::string &tagName,
+        const std::vector<std::pair<std::string, AttribValue> > &attribs);
+
+
   HtmlNode::Ptr _parent;
   std::string _tagName;
   std::vector<std::pair<std::string, AttribValue> > _attributes;
+  std::ostream &_stream;
 };
 
 } /* namespace sail */

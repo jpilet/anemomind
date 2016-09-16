@@ -422,3 +422,9 @@ add_library(common_HtmlLog
   HtmlLog.h
   HtmlLog.cpp
   )
+
+cxx_test(common_HtmlLogTest
+  HtmlLogTest.cpp
+  gtest_main
+  common_HtmlLog
+  )
