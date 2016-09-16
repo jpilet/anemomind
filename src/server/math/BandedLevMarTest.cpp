@@ -78,6 +78,10 @@ TEST(BandedLevmarTest, BasicLineFit) {
     MDArray2d minusJtF;
 
     EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
+    EXPECT_TRUE(Pbsv<double>::apply(&JtJ, &minusJtF));
+    for (int i = 0; i < n; i++) {
+      EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
+    }
   }
 }
 
