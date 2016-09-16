@@ -513,8 +513,9 @@ class MDArray {
   }
 
   template <typename Function>
-  auto map(const Function &f) const ->
-    MDArray<decltype(std::declval<Function>()(std::declval<T>())), dims> {
+  auto map(const Function &f) ->
+    MDArray<decltype(std::declval<Function>()(std::declval<T>())),
+      dims> const {
     typedef decltype(std::declval<Function>()(std::declval<T>())) S;
     MDArray<S, dims> dst(_size.getData());
     int count = numel();
