@@ -31,14 +31,11 @@ void fillDerivatives(
       int upper = std::min(n, i + kd + 1);
       T sum = B(i, 0).v[derivativeIndex];
       for (int j = i; j < upper; j++) {
-        std::cout << " i = " << i << " and j = " << j << std::endl;
         sum -= A.atUnsafe(j, i).v[derivativeIndex]*X(j, 0);
       }
-      std::cout << "Assign it sum " << sum << std::endl;
       (*dst)(i, derivativeIndex) = sum;
     }
   }
-  std::cout << "Done assignment" << std::endl;
 }
 
 template <typename T, int N>
@@ -108,17 +105,13 @@ struct Pbsv<ceres::Jet<T, N> > {
         return false;
       }
     }
-    std::cout << "Solved X: " << X << std::endl;
     MDArray<T, 2> DX(n, cols*N);
     for (int j = 0; j < cols; j++) {
-      std::cout << "Col = " << j << std::endl;
       ADType *col = rhs->getPtrAt(0, j);
       auto dxSub = DX.sliceColBlock(j, N);
-      std::cout << "Sliced it" << std::endl;
       fillDerivatives<T, N>(*lhs, X.sliceCol(j),
           rhs->sliceCol(j), &dxSub);
     }
-    std::cout << "Populated DX: \n" << DX << std::endl;
     {
       auto A = getScalarBandMatrix(*lhs);
       if (!Pbsv<T>::apply(&A, &DX)) {
