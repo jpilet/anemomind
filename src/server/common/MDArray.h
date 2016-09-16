@@ -512,6 +512,21 @@ class MDArray {
     return dst;
   }
 
+  template <typename Function>
+  auto map(const Function &f) const ->
+    MDArray<decltype(std::declval<Function>()(std::declval<T>())), dims> {
+    typedef decltype(std::declval<Function>()(std::declval<T>())) S;
+    MDArray<S, dims> dst(_size.getData());
+    int count = numel();
+    int inds[dims];
+    initInds(inds);
+    for (int i = 0; i < count; i++) {
+      dst.set(inds, f(get(inds)));
+      _size.step(inds, 1);
+    }
+    return dst;
+  }
+
   int getStep() const {
     static_assert(dims == 2, "Only applicable to 2d arrays");
     return _index[0];
@@ -545,7 +560,7 @@ class MDArray {
       Array<T> dst(n);
       int inds[dims];
       for (int i = 0; i < n; i++) {
-
+        assert(false); // TODO
       }
       return dst;
     }

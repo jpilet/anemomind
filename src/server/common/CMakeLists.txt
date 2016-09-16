@@ -412,3 +412,8 @@ cxx_test(common_TimedValueCutterTest
   common_Span
   gtest_main
   )
+
+cxx_test(common_MDArrayTest
+  MDArrayTest.cpp
+  gtest_main
+  )

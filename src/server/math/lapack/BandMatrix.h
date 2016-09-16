@@ -194,6 +194,7 @@ class SymmetricBandMatrixL {
 public:
   static const char uplo = 'L';
   SymmetricBandMatrixL(int n, int kd) : _A(kd+1, n) {}
+  SymmetricBandMatrixL(const MDArray<T, 2> &A) : _A(A) {}
 
   static SymmetricBandMatrixL<T> zero(int n, int k) {
     auto mat = SymmetricBandMatrixL<T>(n, k);
@@ -248,6 +249,8 @@ public:
 
   T *ab() {return _A.ptr();}
   int ldab() const {return _A.rows();}
+
+  const MDArray<T, 2> &storage() const {return _A;}
 private:
   MDArray<T, 2> _A;
 };
