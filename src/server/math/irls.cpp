@@ -465,7 +465,7 @@ namespace {
         block->accumulateWeighted(weights, &AtA, &AtB);
       }
 
-      if (!easyDgbsvInPlace(&AtA, &AtB)) {
+      if (!easyGbsv(&AtA, &AtB)) { // TODO: use Pbsv instead (Cholesky instead of LU)
         LOG(ERROR) << "Failed to perform dgbsv in irls::solveBanded";
         return ResultsMat();
       }

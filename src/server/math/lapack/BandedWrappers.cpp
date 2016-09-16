@@ -205,7 +205,7 @@ int performDgbsv(BandMatrix<T> *lhs, MDArray<T, 2> *rhs, Arrayi *ipiv) {
 }
 
 template <typename T>
-bool genericEasyDgbsvInPlace(BandMatrix<T> *lhs, MDArray<T, 2> *rhs) {
+bool easyGbsv(BandMatrix<T> *lhs, MDArray<T, 2> *rhs) {
   Arrayi ipiv = Arrayi::fill(lhs->rows(), -1);
   auto info = performDgbsv(lhs, rhs, &ipiv);
 
@@ -225,8 +225,6 @@ bool genericEasyDgbsvInPlace(BandMatrix<T> *lhs, MDArray<T, 2> *rhs) {
   }
 }
 
-bool easyDgbsvInPlace(BandMatrix<double> *lhs, MDArray2d *rhs) {
-  return genericEasyDgbsvInPlace<double>(lhs, rhs);
-}
+template bool easyGbsv<double>(BandMatrix<double> *lhs, MDArray<double, 2> *rhs);
 
 } /* namespace sail */

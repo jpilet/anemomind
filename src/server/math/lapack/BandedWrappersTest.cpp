@@ -19,7 +19,7 @@ TEST(DgbsvWrapperTest, TestSolve1x1) {
   MDArray2d B(1, 1);
   B(0, 0) = 9.0;
 
-  EXPECT_TRUE(easyDgbsvInPlace(&A, &B));
+  EXPECT_TRUE(easyGbsv(&A, &B));
   EXPECT_NEAR(B(0, 0), 4.5, 1.0e-6);
 }
 
@@ -40,7 +40,7 @@ TEST(DgbsvWrapperTest, TestSolveDiagMultiRHS) {
   B(2, 1) = 3.0;
 
 
-  EXPECT_TRUE(easyDgbsvInPlace(&A, &B));
+  EXPECT_TRUE(easyGbsv(&A, &B));
 
   EXPECT_NEAR(B(0, 0), 4.5, 1.0e-6);
   EXPECT_NEAR(B(1, 0), 22.25, 1.0e-6);
@@ -63,7 +63,7 @@ TEST(DgbsvWrapperTest, ThickBand) {
   B(2, 0) = 23;
 
 
-  EXPECT_TRUE(easyDgbsvInPlace(&A, &B));
+  EXPECT_TRUE(easyGbsv(&A, &B));
 
   EXPECT_NEAR(B(0, 0), 1.0, 1.0e-6);
   EXPECT_NEAR(B(1, 0), 2.0, 1.0e-6);
