@@ -48,7 +48,8 @@ public:
 template <typename CostEvaluator, typename T>
 class UniqueCostFunction : public CostFunctionBase<T> {
 public:
-  typedef ceres::Jet<T, 1> ADType;
+  static const int N = CostEvaluator::inputCount;
+  typedef ceres::Jet<T, N> ADType;
 
   UniqueCostFunction(
       const Spani &inputRange,
@@ -78,20 +79,22 @@ public:
     ADType _adX[CostEvaluator::inputCount];
     ADType _adY[CostEvaluator::outputCount];
     for (int i = 0; i < CostEvaluator::inputCount; i++) {
-      _adX[i] = ADType(X[i]);
+      auto ad = ADType(X[i]);
+      ad.v[i] = T(1.0);
+      _adX[i] = ad;
     }
-    for (int i = 0; i < CostEvaluator::inputCount; i++) {
-      _adX[i].v[0] = T(1.0);
-      if (!_f->template evaluate<ceres::Jet<T, 1> >(_adX, _adY)) {
-        return false;
-      }
-      _adX[i].v[0] = T(0.0);
 
-      for (int j = 0; j < CostEvaluator::outputCount; j++) {
-        Y[j] = _adY[j].a;
-        J[j] = _adY[j].v[0];
+    if (!_f->template evaluate<ADType>(_adX, _adY)) {
+      return false;
+    }
+
+    for (int i = 0; i < CostEvaluator::outputCount; i++) {
+      auto y = _adY[i];
+      Y[i] = y.a;
+      auto Jsub = J + i;
+      for (int j = 0; j < CostEvaluator::inputCount; j++) {
+        Jsub[j*CostEvaluator::outputCount] = y.v[j];
       }
-      J += CostEvaluator::outputCount;
     }
     return true;
   }
