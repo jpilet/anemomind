@@ -14,35 +14,43 @@
 namespace sail {
 
 template <typename T, int N>
-void populateBValues(int n, const ceres::Jet<T, N> *src, T *dst) {
-  for (int i = 0; i < n; i++) {
-    dst[i] = src[i].a;
-  }
-}
-
-template <typename T, int N>
-void fillDerivatives(int n, int derivativeIndex,
-    const SymmetricBandMatrixL<ceres::Jet<T, N> > &lhs,
-    const ceres::Jet<T, N> *rhs, T *dst) {
-  for (int i = 0; i < n; i++) {
-    T sum = rhs[i].v[derivativeIndex];
-    int upper = i + lhs.kd() + 1;
-    for (int j = i; i < upper; i++) {
-      sum -= lhs.atUnsafe(j, i).v[derivativeIndex]*rhs[j].a;
+void fillDerivatives(
+    const SymmetricBandMatrixL<ceres::Jet<T, N> > &A,
+    const MDArray<T, 2> &X,
+    const MDArray<ceres::Jet<T, N>, 2> &B,
+    MDArray<T, 2> *dst) {
+  int n = A.size();
+  assert(n == X.rows());
+  assert(n == B.rows());
+  assert(X.cols() == 1);
+  assert(B.cols() == 1);
+  assert(dst->cols() == N);
+  int kd = A.kd();
+  for (int derivativeIndex = 0; derivativeIndex < N; derivativeIndex++) {
+    for (int i = 0; i < n; i++) {
+      int upper = i + kd + 1;
+      T sum = B(i, 0).v[derivativeIndex];
+      for (int j = i; j < upper; j++) {
+        sum -= A.atUnsafe(j, i).v[derivativeIndex]*X(j, 0);
+      }
+      (*dst)(i, derivativeIndex) = sum;
     }
-    dst[i] = sum;
   }
 }
 
 template <typename T, int N>
-void putBackResult(const MDArray<T, 2> &src, ceres::Jet<T, N> *dst) {
-  int n = src.rows();
-  assert(1 + N == src.cols());
+void putBackResult(
+    const MDArray<T, 2> &X,
+    const MDArray<T, 2> &DX,
+    MDArray<ceres::Jet<T, N>, 2> *dst) {
+  int n = DX.rows();
+  assert(1 == X.cols());
+  assert(N == DX.cols());
 
-  T *a = src.ptr();
+  T *a = X.ptr();
   T *v[N];
   for (int i = 0; i < N; i++) {
-    v[N] = src.getPtrAt(0, i+1);
+    v[i] = DX.getPtrAt(0, i);
   }
 
   for (int i = 0; i < n; i++) {
@@ -50,8 +58,20 @@ void putBackResult(const MDArray<T, 2> &src, ceres::Jet<T, N> *dst) {
     for (int j = 0; j < N; j++) {
       x.v[j] = v[j][i];
     }
-    dst[i] = dst;
+    (*dst)(i, 0) = x;
   }
+}
+
+template <typename T, int N>
+SymmetricBandMatrixL<T> getScalarBandMatrix(
+    const SymmetricBandMatrixL<ceres::Jet<T, N>> &A) {
+  return SymmetricBandMatrixL<T>(A.storage().map(
+      [](const ceres::Jet<T, N> &x) {return x.a;}));
+}
+
+template <typename T, int N>
+MDArray<T, 2> getScalarRhs(const MDArray<ceres::Jet<T, N>, 2> &A) {
+  return A.map([](const ceres::Jet<T, N> &x) {return x.a;});
 }
 
 /*
@@ -76,35 +96,29 @@ struct Pbsv<ceres::Jet<T, N> > {
     assert(rhs->rows() == n);
     int kd = lhs->kd();
     int cols = rhs->cols();
-    int colsPerCol = 1 + N;
 
     // Prepare the matrices
-    auto A = SymmetricBandMatrixL<T>(
-        lhs->storage().map([](const ADType &x) {return x.a;}));
-
-    // First solve X:
-    MDArray<T, 2> Bx(n, cols);
-
-    MDArray<T, 2> B(n, cols*colsPerCol);
-    for (int j = 0; j < cols; j++) {
-      ADType *col = rhs->getPtrAt(0, j);
-      int colOffset = j*colsPerCol;
-      populateBValues<T, N>(
-          n, col, B.getPtrAt(0, colOffset));
-      for (int i = 0; i < N; i++) {
-        fillDerivatives<T, N>(n, i, *lhs, col,
-            B.getPtrAt(0, colOffset + 1 + i));
+    auto X = getScalarRhs(*rhs);
+    {
+      auto A = getScalarBandMatrix(*lhs);
+      if (!Pbsv<T>::apply(&A, &X)) {
+        return false;
       }
     }
-
-    if (!Pbsv<T>::apply(&A, &B)) {
-      return false;
-    }
-
-    // Put the result back
+    MDArray<T, 2> DX(n, cols*N);
     for (int j = 0; j < cols; j++) {
-      putBackResult(B.sliceColBlock(j, N+1), rhs->getPtrAt(0, j));
+      ADType *col = rhs->getPtrAt(0, j);
+      int colOffset = j*N;
+      auto dxSub = DX.sliceColBlock(j, N);
+      fillDerivatives<T, N>(*lhs, X.sliceCol(j),
+          rhs->sliceCol(j), &dxSub);
+    }{
+      auto A = getScalarBandMatrix(*lhs);
+      if (!Pbsv<T>::apply(&A, &DX)) {
+        return false;
+      }
     }
+    putBackResult<T, N>(X, DX, rhs);
 
     return true;
   }

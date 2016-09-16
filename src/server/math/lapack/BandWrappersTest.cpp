@@ -119,19 +119,17 @@ void addDataFit(T weight, int index, T value,
 
 template <typename T>
 MDArray<T, 2> computeLineFit(int n, T middleWeight) {
-  auto A = SymmetricBandMatrixL<double>::zero(n, 2);
-  MDArray2d B(n, 1);
-  B.setAll(0.0);
+  auto A = SymmetricBandMatrixL<T>::zero(n, 2);
+  MDArray<T, 2> B(n, 1);
+  B.setAll(T(0.0));
   for (int i = 0; i < n-2; i++) {
     addReg(i, &A);
   }
-  double w = 1000;
-  addDataFit<double>(w, 0, 3, &A, &B);
-  addDataFit<double>(middleWeight, n/2, 9, &A, &B);
-  addDataFit<double>(w, n-1, 3, &A, &B);
-
-  EXPECT_NEAR(B(0, 0), 3.0*w*w, 1.0e-6);
-  EXPECT_TRUE(Pbsv<double>::apply(&A, &B));
+  T w = T(1000.0);
+  addDataFit<T>(w, 0, T(3.0), &A, &B);
+  addDataFit<T>(middleWeight, n/2, T(9.0), &A, &B);
+  addDataFit<T>(w, n-1, T(3.0), &A, &B);
+  EXPECT_TRUE(Pbsv<T>::apply(&A, &B));
   return B;
 }
 
@@ -157,6 +155,16 @@ MDArray2d differentiateLineFit(int n, double middleWeight) {
 
 TEST(PbsvTest, LineFitWithDerivative) {
   int n = 31;
-  auto X = differentiateLineFit(n, 1.0);
-  std::cout << "Derivative: \n" << X << std::endl;
+
+  double weight = 1.0;
+  auto X = computeLineFit(n, weight);
+  auto dX = differentiateLineFit(n, weight);
+
+  ceres::Jet<double, 1> adWeight(weight);
+  adWeight.v[0] = 1.0;
+  auto adX = computeLineFit(n, adWeight);
+
+  std::cout << "X = \n" << X << std::endl;
+  std::cout << "dX = \n" << dX << std::endl;
+  std::cout << "adX = \n" << adX << std::endl;
 }
