@@ -14,6 +14,10 @@ TEST(HtmlLogTest, BasicRenderingTest) {
     }{
       auto body = HtmlTag::make(html, "body");
       body->stream() << "This is the body!";
+      {
+        auto p = HtmlTag::make(body, "p", {{"width", 5.6}});
+        p->stream() << "A paragraph";
+      }
     }
   }
 
@@ -21,6 +25,6 @@ TEST(HtmlLogTest, BasicRenderingTest) {
   EXPECT_TRUE(file.good());
   std::string line;
   std::getline(file, line);
-  EXPECT_EQ(line, "<html><head><title>This is the title!</title></head><body>This is the body!</body></html>");
+  EXPECT_EQ(line, "<html><head><title>This is the title!</title></head><body>This is the body!<p width='5.6'>A paragraph</p></body></html>");
 }
 

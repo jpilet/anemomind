@@ -41,7 +41,7 @@ HtmlTag::HtmlTag(HtmlNode::Ptr parent, const std::string &tagName,
         _parent(parent), _tagName(tagName), _attributes(attribs), _stream(parent->stream()) {
   _stream << "<" << _tagName;
   for (auto attrib: _attributes) {
-    _stream << attrib.first << "='" << attrib.second.get() << "' ";
+    _stream << " " << attrib.first << "='" << attrib.second.get() << "'";
   }
   _stream << ">";
 }
