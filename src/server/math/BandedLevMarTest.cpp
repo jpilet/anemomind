@@ -57,7 +57,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
         new DataCost{gtLine(i) + distrib(rng)});
   }
 
-  EXPECT_EQ(0, problem.bandWidth());
+  EXPECT_EQ(0, problem.kd());
   EXPECT_EQ(n, problem.paramCount());
   EXPECT_EQ(n, problem.residualCount());
 

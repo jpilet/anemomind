@@ -132,7 +132,7 @@ private:
 template <typename T>
 class Problem {
 public:
-  Problem(int expectedCostFunctionCount = -1) : _bandWidth(0),
+  Problem(int expectedCostFunctionCount = -1) : _kd(0),
     _paramCount(0), _residualCount(0) {
     if (expectedCostFunctionCount > 0) {
       _costFunctions.reserve(expectedCostFunctionCount);
@@ -147,14 +147,14 @@ public:
     addCost(cost);
   }
 
-  int bandWidth() const {return _bandWidth;}
+  int kd() const {return _kd;}
   int paramCount() const {return _paramCount;}
   int residualCount() const {return _residualCount;}
 
   bool fillNormalEquations(
       const T *X,
       SymmetricBandMatrixL<T> *JtJ, MDArray<T, 2> *minusJtF) {
-    *JtJ = SymmetricBandMatrixL<T>::zero(_paramCount, _bandWidth);
+    *JtJ = SymmetricBandMatrixL<T>::zero(_paramCount, _kd);
     *minusJtF = MDArray<T, 2>(_paramCount, 1);
     minusJtF->setAll(T(0.0));
     for (auto &f: _costFunctions) {
@@ -165,11 +165,11 @@ public:
     return true;
   }
 private:
-  int _bandWidth, _paramCount, _residualCount;
+  int _kd, _paramCount, _residualCount;
   std::vector<std::unique_ptr<CostFunctionBase<T> > > _costFunctions;
 
   void addCost(std::unique_ptr<CostFunctionBase<T>> &cost) {
-    _bandWidth = std::max(_bandWidth, cost->inputCount()-1);
+    _kd = std::max(_kd, cost->inputCount()-1);
     _paramCount = std::max(_paramCount, cost->inputRange().maxv());
     _residualCount += cost->outputCount();
     _costFunctions.push_back(std::move(cost));
