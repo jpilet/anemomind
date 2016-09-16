@@ -199,7 +199,6 @@ TEST(BandedLevMarTest, Differentiable) {
     EXPECT_NEAR(pt(1), k, 1.0e-6);
 
     Eigen::Matrix2d J = closestPointDerivative(A, B, target);
-    std::cout << " J numeric = \n" << J << std::endl;
 
     Eigen::Matrix<ceres::Jet<double, 2>, 2, 1> adTarget(
         jet(1.0, 1.0, 0.0),
