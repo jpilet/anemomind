@@ -78,17 +78,8 @@ TEST(BandedLevmarTest, BasicLineFit) {
   {
     SymmetricBandMatrixL<double> JtJ;
     MDArray2d minusJtF;
-
     EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
-
-    std::cout << "JtJ data: \n" << JtJ.storage() << std::endl;
-
-    std::cout << "JtJ = \n" << JtJ.makeDense() << std::endl;
-    std::cout << "minusJtF = \n" << minusJtF << std::endl;
-
     EXPECT_TRUE(Pbsv<double>::apply(&JtJ, &minusJtF));
-    std::cout << "After: \n" << JtJ.makeDense() << std::endl;
-
     for (int i = 0; i < n; i++) {
       EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
     }
