@@ -49,7 +49,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
   const int n = 3;
 
-  LineKM gtLine(0, n, 1.0, 1.0); //3.4, 9.5);
+  LineKM gtLine(0, n, 3.4, 9.5);
 
   Problem<double> problem;
   for (int i = 0; i < n; i++) {
@@ -61,7 +61,7 @@ TEST(BandedLevmarTest, BasicLineFit) {
   EXPECT_EQ(n, problem.paramCount());
   EXPECT_EQ(n, problem.residualCount());
 
-  double reg = 1.0/sqrt(2);
+  double reg = 1000;
 
   for (int i = 1; i < n-1; i++) {
     problem.addCostFunction(Spani(i-1, i+2), new RegCost{reg});
