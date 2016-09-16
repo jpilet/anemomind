@@ -23,8 +23,9 @@ class HtmlNode {
 public:
   typedef std::shared_ptr<HtmlNode> Ptr;
   virtual ~HtmlNode() {}
-
   virtual std::ostream &stream() = 0;
+  virtual HtmlNode::Ptr makeNewRoot() = 0;
+  virtual std::string localAddress() const = 0;
 private:
 };
 
@@ -32,6 +33,8 @@ class HtmlPage : public HtmlNode {
 public:
   static HtmlNode::Ptr make(std::string baseDir, std::string prefix);
   std::ostream &stream() override {return _file;}
+  HtmlNode::Ptr makeNewRoot() override;
+  std::string localAddress() const override;
 private:
   HtmlPage(const std::string &baseDir, const std::string &prefix);
   std::string _baseDir, _prefix;
@@ -56,6 +59,9 @@ public:
            = std::vector<std::pair<std::string, AttribValue> >());
 
   std::ostream &stream() override {return _stream;}
+
+  HtmlNode::Ptr makeNewRoot() override {return _parent->makeNewRoot();}
+  std::string localAddress() const override {return _parent->localAddress();}
 
   virtual ~HtmlTag();
 private:

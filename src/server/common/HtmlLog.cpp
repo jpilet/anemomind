@@ -14,6 +14,17 @@ HtmlNode::Ptr HtmlPage::make(std::string baseDir, std::string prefix) {
   return HtmlNode::Ptr(new HtmlPage(baseDir, prefix));
 }
 
+HtmlNode::Ptr HtmlPage::makeNewRoot() {
+  std::stringstream ss;
+  ss << _prefix << "_" << _subPageCounter;
+  _subPageCounter++;
+  return HtmlPage::make(_baseDir, ss.str());
+}
+
+std::string HtmlPage::localAddress() const {
+  return _prefix + ".html";
+}
+
 HtmlPage::HtmlPage(const std::string &baseDir, const std::string &prefix) :
   _baseDir(baseDir), _prefix(prefix), _subPageCounter(0),
   _file(baseDir + "/" + prefix + ".html") {}
