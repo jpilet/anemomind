@@ -200,5 +200,7 @@ TEST(PbsvTest, LineFitWithDerivative2) {
     auto dx = dX(i, 0);
     auto adx = adX(i, 0);
     EXPECT_NEAR(x, adx.a, 1.0e-4);
+    EXPECT_NEAR(dx*A, adx.v[0], 1.0e-4);
+    EXPECT_NEAR(dx*B, adx.v[1], 1.0e-4);
   }
 }

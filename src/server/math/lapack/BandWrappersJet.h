@@ -91,6 +91,10 @@ struct Pbsv<ceres::Jet<T, N> > {
    static bool apply(
       SymmetricBandMatrixL<ceres::Jet<T, N> > *lhs,
       MDArray<ceres::Jet<T, N>, 2> *rhs) {
+
+     // TODO: Multiple right-hand-sides should work, but has not been tested:
+    assert(rhs->cols() == 1);
+
     typedef ceres::Jet<T, N> ADType;
     int n = lhs->size();
     assert(rhs->rows() == n);
