@@ -209,6 +209,9 @@ TEST(BandedLevMarTest, Differentiable) {
     auto adPt = closestPointOnEllipse<ceres::Jet<double, 2> >(
         A, B, adTarget);
 
+    EXPECT_NEAR(adPt(0).a, k, 1.0e-6);
+    EXPECT_NEAR(adPt(1).a, k, 1.0e-6);
+
   }
 }
 
