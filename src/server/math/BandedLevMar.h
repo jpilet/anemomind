@@ -17,7 +17,7 @@
 #include <server/common/logging.h>
 #include <ceres/jet.h>
 #include <Eigen/Dense>
-#include <server/math/BandedLU.h>
+#include <server/math/lapack/BandWrappersJet.h>
 
 namespace sail {
 namespace BandedLevMar {
@@ -41,7 +41,8 @@ public:
   virtual bool evaluate(const T *X, T *Y, T *JcolMajor) = 0;
   virtual bool accumulateNormalEquations(
       const T *X,
-      BandMatrix<T> *JtJ, MDArray<T, 2> *minusJtF) = 0;
+      SymmetricBandMatrixL<T> *JtJ,
+      MDArray<T, 2> *minusJtF) = 0;
 };
 
 template <typename CostEvaluator, typename T>
@@ -96,7 +97,8 @@ public:
   }
 
   bool accumulateNormalEquations(
-      const T *X, BandMatrix<T> *JtJ, MDArray<T, 2> *minusJtF) override {
+      const T *X, SymmetricBandMatrixL<T> *JtJ,
+      MDArray<T, 2> *minusJtF) override {
     T F[CostEvaluator::inputCount];
     T J[CostEvaluator::inputCount*CostEvaluator::outputCount];
     if (!evaluate(X, F, J)) {
@@ -113,8 +115,8 @@ public:
           dotProduct<CostEvaluator::outputCount>(j0, F);
       for (int j = 0; j < CostEvaluator::inputCount; j++) {
         T *j1 = J + j*CostEvaluator::outputCount;
-        (*JtJ)(offset + i, offset + j) +=
-            dotProduct<CostEvaluator::outputCount>(j0, j1);
+        JtJ->add(offset + i, offset + j,
+            dotProduct<CostEvaluator::outputCount>(j0, j1));
       }
     }
     return true;
@@ -148,9 +150,8 @@ public:
 
   bool fillNormalEquations(
       const T *X,
-      BandMatrix<T> *JtJ, MDArray<T, 2> *minusJtF) {
-    *JtJ = BandMatrix<T>::zero(
-        _paramCount, _paramCount, _bandWidth, _bandWidth+1);
+      SymmetricBandMatrixL<T> *JtJ, MDArray<T, 2> *minusJtF) {
+    *JtJ = SymmetricBandMatrixL<T>::zero(_paramCount, _bandWidth);
     *minusJtF = MDArray<T, 2>(_paramCount, 1);
     minusJtF->setAll(T(0.0));
     for (auto &f: _costFunctions) {

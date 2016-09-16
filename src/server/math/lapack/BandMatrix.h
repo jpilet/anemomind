@@ -193,6 +193,7 @@ template <typename T>
 class SymmetricBandMatrixL {
 public:
   static const char uplo = 'L';
+  SymmetricBandMatrixL() {}
   SymmetricBandMatrixL(int n, int kd) : _A(kd+1, n) {}
   SymmetricBandMatrixL(const MDArray<T, 2> &A) : _A(A) {}
 

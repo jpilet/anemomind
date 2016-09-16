@@ -74,12 +74,10 @@ TEST(BandedLevmarTest, BasicLineFit) {
   }
 
   {
-    BandMatrix<double> JtJ;
+    SymmetricBandMatrixL<double> JtJ;
     MDArray2d minusJtF;
 
     EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
-
-
   }
 }
 

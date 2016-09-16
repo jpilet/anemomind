@@ -157,14 +157,9 @@ cxx_test(math_ResamplerTest
   gtest_main
   )        
 
-cxx_test(math_BandedLUTest
-  BandedLUTest.cpp
-  gtest_main
-  common_logging
-  )
-
 cxx_test(math_BandedLevMarTest
   BandedLevMarTest.cpp
+  lapack_BandWrappers
   common_logging
   gtest_main
   common_LineKM
