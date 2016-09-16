@@ -394,6 +394,9 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   }
 
   var getTwdir = function(nav) {
+    if (nav.twdir) {
+      return nav.twdir;
+    }
     if (nav.deviceTwdir) {
       return nav.deviceTwdir;
     }
