@@ -44,22 +44,7 @@ function sendEventsWithQuery(res, query) {
   Event.find(query, function (err, events) {
     if(err) { return handleError(res, err); }
   
-    if (true) {
-      res.status(200).json(events);
-    } else {
-      var promises = [];
-      for (var i in events) {
-        promises.push(extendEventWithBoatData(events[i]));
-      }
-       
-      Q.all(promises).then(function(_events) {
-        res.status(200).json(_events);
-      })
-      .catch(function (err) {
-        console.log(err + (err.stack ? err.stack : ''));
-        res.status(500);
-      });
-    }
+    res.status(200).json(events);
   });
 }
 
@@ -113,25 +98,6 @@ exports.index = function(req, res) {
     console.warn(err.stack);
     res.sendStatus(500);
   }
-};
-
-function extendEventWithBoatData(ev) {
-  var deferred = Q.defer();
-  ev.dataAtEventTime = undefined;
-  tiles.boatInfoAtTime(ev.boat, ev.when, function(err, info) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      deferred.resolve(info);
-    }
-  });
-
-
-  return deferred.promise.then(function(info) {
-      var result = _.clone(ev._doc); 
-      result.dataAtEventTime = info;
-      return result;
-    });
 };
 
 // Get a single event

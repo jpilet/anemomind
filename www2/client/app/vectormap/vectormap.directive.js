@@ -91,6 +91,10 @@ angular.module('www2App')
             if(newV.length > 0) {
               geojson.features = [];
               for(var i in scope.eventList) {
+                var event = scope.eventList[i];
+                if (!event.dataAtEventTime || !event.dataAtEventTime.pos) {
+                  continue;
+                }
                 geojson.features.push({
                   "type": "Feature",
                   "id": scope.eventList[i]._id,
@@ -103,8 +107,8 @@ angular.module('www2App')
                   "geometry": {
                     "type": "Point",
                     "osmCoordinates": {
-                      x: scope.eventList[i].dataAtEventTime.pos[0],
-                      y: scope.eventList[i].dataAtEventTime.pos[1]
+                      x: event.dataAtEventTime.pos[0],
+                      y: event.dataAtEventTime.pos[1]
                     }                    
                   }
                 });
