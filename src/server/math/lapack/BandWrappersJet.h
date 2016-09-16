@@ -54,7 +54,18 @@ void putBackResult(const MDArray<T, 2> &src, ceres::Jet<T, N> *dst) {
   }
 }
 
-// Specialization for ceres::Jet<T, N>
+/*
+ *
+ * Specialization for ceres::Jet<T, N>
+ *
+ * Since lapack only provides pbsv for some static types, we need
+ * this specialization in order to perform pbsv on ceres::Jet. To
+ * differentiate the solution of a linear system A*X = B, we do
+ *
+ * D(A*X) = D(B) <=> D(A)*X + A*D(X) = D(B) <=>
+ * A*D(X) = D(B) - D(A)*X <=> D(X) = A\(D(B) - D(A)*X)
+ *
+ */
 template <typename T, int N>
 struct Pbsv<ceres::Jet<T, N> > {
    static bool apply(
@@ -70,6 +81,10 @@ struct Pbsv<ceres::Jet<T, N> > {
     // Prepare the matrices
     auto A = SymmetricBandMatrixL<T>(
         lhs->storage().map([](const ADType &x) {return x.a;}));
+
+    // First solve X:
+    MDArray<T, 2> Bx(n, cols);
+
     MDArray<T, 2> B(n, cols*colsPerCol);
     for (int j = 0; j < cols; j++) {
       ADType *col = rhs->getPtrAt(0, j);

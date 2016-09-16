@@ -127,7 +127,7 @@ MDArray<T, 2> computeLineFit(int n, T middleWeight) {
   }
   double w = 1000;
   addDataFit<double>(w, 0, 3, &A, &B);
-  addDataFit<double>(w, n/2, 9, &A, &B);
+  addDataFit<double>(middleWeight, n/2, 9, &A, &B);
   addDataFit<double>(w, n-1, 3, &A, &B);
 
   EXPECT_NEAR(B(0, 0), 3.0*w*w, 1.0e-6);
@@ -143,3 +143,20 @@ TEST(PbsvTest, FitLine) {
   EXPECT_NEAR(B(n-1, 0), 3.0, 1.0e-3);
 }
 
+MDArray2d differentiateLineFit(int n, double middleWeight) {
+  double h = 1.0e-5;
+  MDArray2d Bplus = computeLineFit(n, middleWeight+h);
+  MDArray2d Bminus = computeLineFit(n, middleWeight-h);
+  MDArray2d B(n, 1);
+  double f = 1.0/(2.0*h);
+  for (int i = 0; i < n; i++) {
+    B(i, 0) = f*(Bplus(i, 0) - Bminus(i, 0));
+  }
+  return B;
+}
+
+TEST(PbsvTest, LineFitWithDerivative) {
+  int n = 31;
+  auto X = differentiateLineFit(n, 1.0);
+  std::cout << "Derivative: \n" << X << std::endl;
+}
