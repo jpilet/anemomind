@@ -128,5 +128,11 @@ TEST(PbsvTest, FitLine) {
   addDataFit<double>(w, 0, 3, &A, &B);
   addDataFit<double>(w, n/2, 9, &A, &B);
   addDataFit<double>(w, n-1, 3, &A, &B);
+
+  EXPECT_NEAR(B(0, 0), 3.0*w*w, 1.0e-6);
+  EXPECT_TRUE(easyPbsv(&A, &B));
+  EXPECT_NEAR(B(0, 0), 3.0, 1.0e-3);
+  EXPECT_NEAR(B(n/2, 0), 9.0, 1.0e-3);
+  EXPECT_NEAR(B(n-1, 0), 3.0, 1.0e-3);
 }
 
