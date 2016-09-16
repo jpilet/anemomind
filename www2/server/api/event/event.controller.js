@@ -43,19 +43,23 @@ var canWrite = function(req, event) {
 function sendEventsWithQuery(res, query) {
   Event.find(query, function (err, events) {
     if(err) { return handleError(res, err); }
-
-    var promises = [];
-    for (var i in events) {
-      promises.push(extendEventWithBoatData(events[i]));
+  
+    if (true) {
+      res.status(200).json(events);
+    } else {
+      var promises = [];
+      for (var i in events) {
+        promises.push(extendEventWithBoatData(events[i]));
+      }
+       
+      Q.all(promises).then(function(_events) {
+        res.status(200).json(_events);
+      })
+      .catch(function (err) {
+        console.log(err + (err.stack ? err.stack : ''));
+        res.status(500);
+      });
     }
-     
-    Q.all(promises).then(function(_events) {
-      res.status(200).json(_events);
-    })
-    .catch(function (err) {
-      console.log(err + (err.stack ? err.stack : ''));
-      res.status(500);
-    });
   });
 }
 

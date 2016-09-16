@@ -1,7 +1,9 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('vectormap', function ($timeout, $window, $http, $httpParamSerializer, userDB, boatList, Auth, Lightbox) {
+  .directive('vectormap', function ($timeout, $window, $http,
+                                    $httpParamSerializer, $location,
+                                    userDB, boatList, Auth, Lightbox) {
     return {
       template: '<canvas style="width:100%;height:100%"></canvas>',
       restrict: 'EA',
@@ -44,24 +46,26 @@ angular.module('www2App')
               "features": []
             };
 
-          var poiLayer = new POILayer({
-            renderer: canvas,
-            geojson: geojson,
-            onFeatureClic: function(feature, pos) {
-              goToEventTile(feature);
+          if ($location.search().preview) {
+            var poiLayer = new POILayer({
+              renderer: canvas,
+              geojson: geojson,
+              onFeatureClic: function(feature, pos) {
+                goToEventTile(feature);
 
-              if(feature.properties.icon == "image")
-                Lightbox.openModal(images, feature.index);
-            }
-          });
-          var options = {
-            "width": 30,
-            "height": 30
-          };
-          poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
-          poiLayer.loadIcon('image', "/assets/images/image.svg", options);
+                if(feature.properties.icon == "image")
+                  Lightbox.openModal(images, feature.index);
+              }
+            });
+            var options = {
+              "width": 30,
+              "height": 30
+            };
+            poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
+            poiLayer.loadIcon('image', "/assets/images/image.svg", options);
 
-          canvas.addLayer(poiLayer);
+            canvas.addLayer(poiLayer);
+          }
 
           scope.photoUrl = function(event, size) {
             var url = [

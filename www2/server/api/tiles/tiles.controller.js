@@ -117,8 +117,9 @@ module.exports.boatInfoAtTime = function(boat, time, callback) {
   var query = {
     $and: [
       {boat: mongoose.Types.ObjectId(boat) },
-      {startTime: {$lte: time} },
-      {endTime: {$gt: time} }
+      {startTime: {$lte: time, $gte: new Date(time.getTime() - 60 * 60 * 1000)} },
+      {endTime: {$gt: time} },
+      {key: {$regex : /^s18/}} // only scale 18
     ]
   };
   Tiles.find(query, function(err, tiles) {
@@ -127,6 +128,8 @@ module.exports.boatInfoAtTime = function(boat, time, callback) {
        return;
      }
 
+     console.log('Searching for boat info at time ' + time
+                 + ': ' + tiles.length + ' tiles returned by mongo');
      var closest;
      tiles.forEach(function(tile) {
        tile.curves.forEach(function(c) {
