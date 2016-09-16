@@ -156,6 +156,7 @@ public:
     minusJtF->setAll(T(0.0));
     for (auto &f: _costFunctions) {
       if (!f->accumulateNormalEquations(X, JtJ, minusJtF)) {
+        LOG(ERROR) << "Failed to accumulate normal equations";
         return false;
       }
     }
@@ -198,20 +199,25 @@ struct Results {
   enum TerminationType {
     None = 0,
 
-    //
-    Converged,
+    Converged = 1,
 
     // Used all iterations
-    MaxIterationsReached,
+    MaxIterationsReached = 2,
 
     // Failures. Probably a bad solution
-    FullEvaluationFailed,
-    ResidualEvaluationFailed,
-    PbsvFailed,
+    FullEvaluationFailed = 3,
+    ResidualEvaluationFailed = 4,
+    PbsvFailed = 5
   };
 
   TerminationType type = None;
   int lastCompletedIteration = -1;
+
+  bool failure() const {
+    return 3 <= static_cast<int>(type);
+  }
+
+  bool success() const {return !failure();}
 };
 
 template <typename T>
@@ -289,8 +295,9 @@ Results runLevmar(
   SymmetricBandMatrixL<T> JtJ0;
   MDArray<T, 2> minusJtF0;
   for (int i = 0; i < settings.iters; i++) {
-    if (problem.fillNormalEquations(X->data(), &JtJ0, &minusJtF0)) {
+    if (!problem.fillNormalEquations(X->data(), &JtJ0, &minusJtF0)) {
       results.type = Results::FullEvaluationFailed;
+      LOG(ERROR) << "Full evaluation failed";
       return results;
     }
 
@@ -300,8 +307,12 @@ Results runLevmar(
 
     bool found = false;
     for (int i = 0; i < settings.subIters; i++) {
+      LOG(INFO) << "--------- Iteration " << i;
+      std::cout << " X = " << X->transpose() << std::endl;
       auto JtJ = JtJ0.dup();
       auto minusJtF = minusJtF0.dup();
+
+      LOG(INFO) << "Damping: " << mu;
 
       addDamping(mu, &JtJ);
       if (!Pbsv<T>::apply(&JtJ, &minusJtF)) {
@@ -316,7 +327,6 @@ Results runLevmar(
         return results;
       }
 
-      T oldResidualNorm = residuals.norm();
       Vec<T> xNew = *X + eigenStep;
       Vec<T> newResiduals(problem.residualCount());
       if (!problem.evaluate(xNew.data(), newResiduals.data())) {
@@ -325,11 +335,17 @@ Results runLevmar(
       }
 
       // Is positive when improved:
-      T improvement = oldResidualNorm - newResiduals.norm();
+      T improvement = residuals.squaredNorm() - newResiduals.squaredNorm();
+      LOG(INFO) << "Improvements: " << improvement;
+
       auto eigenMinusJtF = wrapEigen1(minusJtF);
       T denom = eigenStep.dot(mu*eigenStep + eigenMinusJtF);
       T rho = improvement/denom;
+
+      LOG(INFO) << "RHO = " << rho;
+
       if (T(0.0) < rho) {
+        LOG(INFO) << "Accept the update";
         residuals = newResiduals;
         *X = xNew;
         if (maxAbs(minusJtF) < settings.e1

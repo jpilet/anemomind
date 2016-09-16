@@ -75,21 +75,23 @@ TEST(BandedLevmarTest, BasicLineFit) {
     X[i] = 0.0;
   }
 
-  {
-    SymmetricBandMatrixL<double> JtJ;
-    MDArray2d minusJtF;
-    EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
-    EXPECT_TRUE(Pbsv<double>::apply(&JtJ, &minusJtF));
-    for (int i = 0; i < n; i++) {
-      EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
-    }
+  SymmetricBandMatrixL<double> JtJ;
+  MDArray2d minusJtF;
+  EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
+  EXPECT_TRUE(Pbsv<double>::apply(&JtJ, &minusJtF));
+  for (int i = 0; i < n; i++) {
+    EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
   }
 
-  /*Eigen::VectorXd Xe = Eigen::VectorXd::Zero(n);
+  Eigen::VectorXd Xe = Eigen::VectorXd::Zero(n);
 
   Settings settings;
   auto results = runLevmar(settings, problem, &Xe);
-  EXPECT_EQ(results.type, Results::Converged);*/
+  EXPECT_TRUE(results.success());
+  EXPECT_EQ(Xe.size(), n);
+  for (int i = 0; i < n; i++) {
+    EXPECT_NEAR(Xe(i), minusJtF(i, 0), 1.0e-6);
+  }
 }
 
 
