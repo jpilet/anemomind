@@ -45,7 +45,7 @@ namespace {
 TEST(BandedLevmarTest, BasicLineFit) {
   std::default_random_engine rng(0);
 
-  std::uniform_real_distribution<double> distrib(0.0, 0.0); //0.01);
+  std::uniform_real_distribution<double> distrib(0.0, 1.0);
 
   const int n = 3;
 
