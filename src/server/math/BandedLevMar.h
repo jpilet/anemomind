@@ -188,7 +188,7 @@ private:
 
 struct Settings {
   int iters = 30;
-  int subIters = 300;
+  int subIters = 30;
   double tau = 1.0e-3;
   double e1 = 1.0e-15;
   double e2 = 1.0e-15;
@@ -296,6 +296,7 @@ Results runLevmar(
   SymmetricBandMatrixL<T> JtJ0;
   MDArray<T, 2> minusJtF0;
   for (int i = 0; i < settings.iters; i++) {
+    std::cout << "\n\n\n";
     LOG(INFO) << "--------- Iteration " << i;
     std::cout << " X = " << X->transpose() << std::endl;
     if (!problem.fillNormalEquations(X->data(), &JtJ0, &minusJtF0)) {
@@ -303,13 +304,17 @@ Results runLevmar(
       LOG(ERROR) << "Full evaluation failed";
       return results;
     }
+    std::cout << "Right hand side: \n";
+    std::cout << "  " << minusJtF0;
 
     if (i == 0) {
       mu = settings.tau*getMaxDiagElement(JtJ0);
+      mu = 0.0;
     }
 
     bool found = false;
     for (int j = 0; j < settings.subIters; j++) {
+      LOG(INFO) << "#### Inner iteration " << j;
       auto JtJ = JtJ0.dup();
       auto minusJtF = minusJtF0.dup();
 
