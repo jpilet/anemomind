@@ -109,7 +109,7 @@ class MDArray {
     allocate(sizes);
   }
 
-  MDArray(int *sizes) {
+  MDArray(const int *sizes) {
     allocate(sizes);
   }
 
@@ -121,7 +121,7 @@ class MDArray {
   MDArray(const MDInds<dims> &size, Array<T> data) :
     _data(data), _size(size), _index(size) {}
 
-  void allocate(int *sizes) {
+  void allocate(const int *sizes) {
     setSize(sizes);
     _data = Array<T>(_size.numel());
   }
@@ -192,7 +192,7 @@ class MDArray {
     }
   }
 
-  void initInds(int *inds) {
+  void initInds(int *inds) const {
     for (int i = 0; i < dims; i++) {
       inds[i] = 0;
     }
@@ -341,7 +341,7 @@ class MDArray {
   virtual ~MDArray() {}
 
   // Returns true upon reaching the end
-  bool step(int *inds, int stepsize) {
+  bool step(int *inds, int stepsize) const {
     return _size.step(inds, stepsize);
   }
 
@@ -499,21 +499,9 @@ class MDArray {
     return _size.get(dim);
   }
 
-  template <typename S>
-  MDArray<S, dims> cast() {
-    MDArray<S, dims> dst(_size.getData());
-    int count = numel();
-    int inds[dims];
-    initInds(inds);
-    for (int i = 0; i < count; i++) {
-      dst.set(inds, (S)(get(inds)));
-      _size.step(inds, 1);
-    }
-    return dst;
-  }
 
   template <typename Function>
-  auto map(const Function &f) ->
+  auto map(const Function &f) const ->
     MDArray<decltype(std::declval<Function>()(std::declval<T>())),
       dims> const {
     typedef decltype(std::declval<Function>()(std::declval<T>())) S;
@@ -526,6 +514,11 @@ class MDArray {
       _size.step(inds, 1);
     }
     return dst;
+  }
+
+  template <typename S>
+  MDArray<S, dims> cast() const{
+    return map([](const T &x) {return static_cast<S>(x);});
   }
 
   int getStep() const {
@@ -577,7 +570,7 @@ class MDArray {
     return _index.calcIndex(inds);
   }
 
-  void setSize(int *sizes) {
+  void setSize(const int *sizes) {
     _index = MDInds<dims>(sizes);
     _size = MDInds<dims>(sizes);
   }
