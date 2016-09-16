@@ -164,7 +164,11 @@ TEST(PbsvTest, LineFitWithDerivative) {
   adWeight.v[0] = 1.0;
   auto adX = computeLineFit(n, adWeight);
 
-  std::cout << "X = \n" << X << std::endl;
-  std::cout << "dX = \n" << dX << std::endl;
-  std::cout << "adX = \n" << adX << std::endl;
+  for (int i = 0; i < n; i++) {
+    auto x = X(i, 0);
+    auto dx = dX(i, 0);
+    auto adx = adX(i, 0);
+    EXPECT_NEAR(x, adx.a, 1.0e-4);
+    EXPECT_NEAR(dx, adx.v[0], 1.0e-4);
+  }
 }
