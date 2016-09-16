@@ -211,7 +211,11 @@ TEST(BandedLevMarTest, Differentiable) {
 
     EXPECT_NEAR(adPt(0).a, k, 1.0e-6);
     EXPECT_NEAR(adPt(1).a, k, 1.0e-6);
-
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        EXPECT_NEAR(adPt(i).v[j], J(i, j), 1.0e-2);
+      }
+    }
   }
 }
 
