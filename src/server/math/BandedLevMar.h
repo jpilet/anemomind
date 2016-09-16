@@ -192,7 +192,7 @@ private:
 struct Settings {
   int verbosity = 0;
   int iters = 30;
-  int subIters = 30;
+  int subIters = 300;
   double tau = 1.0e-3;
   double e1 = 1.0e-15;
   double e2 = 1.0e-15;
@@ -372,10 +372,14 @@ Results runLevmar(
       T denom = eigenStep.dot(mu*eigenStep + eigenMinusJtF);
       T rho = improvement/denom;
 
-      LOG(INFO) << "RHO = " << rho;
+      if (2 <= settings.verbosity) {
+        LOG(INFO) << "RHO = " << rho;
+      }
 
       if (T(0.0) < rho) {
-        LOG(INFO) << "Accept the update";
+        if (2 <= settings.verbosity) {
+          LOG(INFO) << "Accept the update";
+        }
         residuals = newResiduals;
         *X = xNew;
         if (maxAbs(minusJtF) < settings.e1
@@ -389,6 +393,9 @@ Results runLevmar(
         found = true;
         break;
       } else {
+        if (2 <= settings.verbosity) {
+          LOG(INFO) << "Reject the update";
+        }
         mu *= v;
         v *= T(2.0);
       }
