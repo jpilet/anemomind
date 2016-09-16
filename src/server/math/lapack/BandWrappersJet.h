@@ -118,8 +118,7 @@ struct Pbsv<ceres::Jet<T, N> > {
       auto dxSub = DX.sliceColBlock(j, N);
       fillDerivatives<T, N>(*lhs, X.sliceCol(j),
           rhs->sliceCol(j), &dxSub);
-    }
-    {
+    }{
       auto A = getScalarBandMatrix(*lhs);
       if (!Pbsv<T>::apply(&A, &DX)) {
         return false;
