@@ -253,6 +253,9 @@ class G001SA : public StateAssign {
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
   Nav nav = _navs[timeIndex];
   if (isOff(stateIndex)) {
+    if (nav.gpsSpeed() < .5_kn) {
+      return 0;
+    }
     return _settings.majorStateCost;
   } else {
     int iQueried = getMinorState(stateIndex);
@@ -265,6 +268,9 @@ double G001SA::getStateCost(int stateIndex, int timeIndex) {
     double matchCost =
         (iQueried == iRawObserved || iRawObserved == -1)? 0 : 1;
 
+    if (nav.gpsSpeed() < .5_kn) {
+      matchCost += .5;
+    }
     return stateCost + matchCost;
   }
 }
