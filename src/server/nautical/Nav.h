@@ -135,6 +135,7 @@ class Nav {
   // very accurate.
   HorizontalMotion<double> estimateTrueWind() const;
   Angle<double> bestTwaEstimate() const;
+  Velocity<double> bestTwsEstimate() const;
 
  private:
   enum {
