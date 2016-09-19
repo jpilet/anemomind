@@ -37,6 +37,9 @@ angular.module('www2App')
         if ($scope.selectedCurve) {
           search += '&c=' + $scope.selectedCurve;
         }
+        if ($location.search().preview) {
+          search += '&preview=' + $location.search().preview;
+        }
         $location.search(search).replace();
       }
 
