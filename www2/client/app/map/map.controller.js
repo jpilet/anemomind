@@ -40,6 +40,14 @@ angular.module('www2App')
         if ($location.search().preview) {
           search += '&preview=' + $location.search().preview;
         }
+        if (typeof $scope.currentTime !== 'undefined' && !isNaN($scope.currentTime)) {
+          search += '&t=' + $scope.currentTime.getTime();
+        }
+        if (typeof $scope.currentTime === 'undefined' && $location.search().t != null) {
+          search += '&t=' + $location.search().t;
+          $scope.currentTime = new Date(parseInt($location.search().t));
+        }
+        
         $location.search(search).replace();
       }
 
@@ -258,6 +266,8 @@ angular.module('www2App')
         $scope.deviceVmg = Math.abs($scope.deviceVmg);
       }
       $scope.deviceTargetVmg = getPointValue(['deviceTargetVmg']);
+
+      setLocation();
     });
 
     $scope.replaySpeed = 8;
