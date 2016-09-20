@@ -76,6 +76,11 @@ angular.module('www2App')
           };
 
           var goToEventTile = function(event) {
+            if(event == null) {
+              angular.element('#eventsContainer li').removeClass('selected');
+              return true;
+            }
+            
             var sidebar = angular.element('.mapAndGraphAndSidebar #tabs');
             var target = angular.element('#eventsContainer li[data-id="'+event.id+'"]');
             var posTop = target.position();
@@ -212,6 +217,28 @@ angular.module('www2App')
           scope.$watch('currentTime', function(newValue, oldValue) {
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
+
+              if(scope.eventList.length > 0) {
+                var closest = null;
+
+                for(var i in scope.eventList) {
+                  var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
+
+                  if(Math.abs(eventTime.getTime() - newValue.getTime()) < (300 * 1000)) {
+                    if(closest == null)
+                      closest = scope.eventList[i];
+                    else {
+                      if(Math.abs(eventTime.getTime() - newValue.getTime()) < closest)
+                        closest = scope.eventList[i];
+                    }
+                  }
+                }
+
+                if(closest)
+                  goToEventTile({'id': closest._id});
+                else
+                  goToEventTile(null);
+              }
             }
           });
 
