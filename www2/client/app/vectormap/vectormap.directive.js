@@ -58,13 +58,12 @@ angular.module('www2App')
               }
             });
             var options = {
-              "width": 30,
-              "height": 30
+              width: 30,
+              height: 30,
+              ratioY: 1
             };
             poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
             poiLayer.loadIcon('image', "/assets/images/image.svg", options);
-
-            canvas.addLayer(poiLayer);
           }
 
           scope.photoUrl = function(event, size) {
