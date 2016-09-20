@@ -23,12 +23,10 @@ function boatInfoAtTime(boat, time) {
 };
 
 db.events.find().forEach(function(ev) {
-  if (ev.dataAtEventTime) {
-    return;
-  }
+  //if (ev.dataAtEventTime) { return; }
   var info = boatInfoAtTime(ev.boat, ev.when);
   if (info) {
-    var delta = (ev.when.getTime() - info.time.getTime()) / 1000;
+    var delta = Math.abs(ev.when.getTime() - info.time.getTime()) / 1000;
     if (delta < 10) {
       db.events.update({"_id": ev._id}, {$set: { dataAtEventTime: info }});
     } else {
