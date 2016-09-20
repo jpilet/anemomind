@@ -53,7 +53,9 @@ std::string makeFilteredGpsName(const NavDataset &src) {
   return "merged+filtered";
 }
 
-NavDataset filterNavs(NavDataset navs) {
+}  // namespace
+
+NavDataset filterNavs(const NavDataset& navs) {
   GpsFilterSettings settings;
   auto results = filterGpsData(navs, settings);
   if (results.empty()) {
@@ -89,8 +91,6 @@ NavDataset filterNavs(NavDataset navs) {
 
   return cleanGps;
 }
-
-}  // namespace
 
 // Convenience method to extract the description of a tree.
 std::string treeDescription(const shared_ptr<HTree>& tree,

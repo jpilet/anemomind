@@ -86,12 +86,15 @@ namespace {
     return groups;
   }
 
-  void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles, int index, Array<Array<Velocity<double> > > out) {
+  void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles,
+                          int index, int minDataSize,
+                          Array<Array<Velocity<double> > > out) {
     int qCount = quantiles.size();
-    LineKM map(0, 1.0, 0, data.size() - 1);
+    LineKM map(0, 1.0, 0, data.size());
     for (int i = 0; i < qCount; i++) {
-      int i2 = int(round(map(quantiles[i])));
-      if (0 <= i2 && i2 < data.size()) {
+      if (data.size() >= minDataSize) {
+        int i2 = int(floor(map(quantiles[i])));
+        assert(0 <= i2 && i2 < data.size());
         out[i][index] = data[i2];
       } else {
         out[i][index] = Velocity<double>::knots(NAN);
@@ -128,7 +131,10 @@ TargetSpeed::TargetSpeed(bool isUpwind_, Array<Velocity<double> > tws,
   medianValues = Array<Array<Velocity<double> > >::fill(qCount, [=](int i) {return Array<Velocity<double> >(binCount);});
   for (int i = 0; i < binCount; i++) {
     binCenters[i] = (bounds[i] + bounds[i + 1]).scaled(0.5);
-    outputMedianValues(groups[i], quantiles, i, medianValues);
+    outputMedianValues(
+        groups[i], quantiles, i,
+        15 * 60, // we need at least 15 minutes of measurement at this wind speed
+        medianValues);
   }
 }
 
