@@ -205,6 +205,30 @@ angular.module('www2App')
                                                    endsBefore));
           }
 
+          function findEventByTime(time) {
+            var closest = null;
+            var target = null;
+
+            if(scope.eventList.length > 0) {
+              for(var i in scope.eventList) {
+                var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
+                var diffTime = Math.abs(eventTime.getTime() - time.getTime());
+
+                if(diffTime < (300 * 1000)) {
+                  if(closest == null || diffTime < closest) {
+                    closest = diffTime;
+                    target = scope.eventList[i];
+                  }
+                }
+              }
+
+              if(target)
+                goToEventTile({'id': target._id});
+              else
+                goToEventTile(null);
+            }
+          }
+
           scope.$watch('selectedCurve', function(newValue, oldValue) {
             if (newValue != oldValue) {
               updateTileUrl();
@@ -216,29 +240,8 @@ angular.module('www2App')
           scope.$watch('currentTime', function(newValue, oldValue) {
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
-
-              if(scope.eventList.length > 0) {
-                var closest = null;
-
-                for(var i in scope.eventList) {
-                  var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
-
-                  if(Math.abs(eventTime.getTime() - newValue.getTime()) < (300 * 1000)) {
-                    if(closest == null)
-                      closest = scope.eventList[i];
-                    else {
-                      if(Math.abs(eventTime.getTime() - newValue.getTime()) < closest)
-                        closest = scope.eventList[i];
-                    }
-                  }
-                }
-
-                if(closest)
-                  goToEventTile({'id': closest._id});
-                else
-                  goToEventTile(null);
-              }
-            }
+              findEventByTime(newValue);
+            }            
           });
 
           updateTileUrl();
