@@ -206,24 +206,22 @@ angular.module('www2App')
           }
 
           function findEventByTime(time) {
-            var closest = null;
-            var target = null;
+            var bestTimeDiff = 300 * 1000;
+            var bestEvent = null;
 
             if(scope.eventList.length > 0) {
               for(var i in scope.eventList) {
                 var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
                 var diffTime = Math.abs(eventTime.getTime() - time.getTime());
 
-                if(diffTime < (300 * 1000)) {
-                  if(closest == null || diffTime < closest) {
-                    closest = diffTime;
-                    target = scope.eventList[i];
-                  }
+                if(diffTime < bestTimeDiff) {
+                  bestTimeDiff = diffTime;
+                  bestEvent = scope.eventList[i];
                 }
               }
 
-              if(target)
-                goToEventTile({'id': target._id});
+              if(bestEvent)
+                goToEventTile({'id': bestEvent._id});
               else
                 goToEventTile(null);
             }
