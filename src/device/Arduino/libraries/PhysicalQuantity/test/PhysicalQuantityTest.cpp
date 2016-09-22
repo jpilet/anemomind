@@ -197,3 +197,11 @@ TEST(PhysQuantTest, Literals) {
   EXPECT_NEAR((134.0_deg).degrees(), 134, 1.0e-6);
 }
 
+TEST(PhysQuantTest, MapObjectValues) {
+  Angle<double> a = Angle<double>::radians(0.25*M_PI);
+  Angle<float> b = a.mapObjectValues([](float radians) {
+    return static_cast<float>(radians);
+  });
+  EXPECT_NEAR(a.radians(), b.radians(), 1.0e-5);
+}
+

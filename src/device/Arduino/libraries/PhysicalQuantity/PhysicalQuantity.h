@@ -329,6 +329,15 @@ public:
   bool operator == (ThisType other) const {return _x == other._x;}
 
 
+  template <typename Function>
+  PhysicalQuantity<decltype(std::declval<Function>()(std::declval<T>())),
+      System, TimeDim, LengthDim, AngleDim, MassDim> mapObjectValues(Function f) {
+    typedef PhysicalQuantity<decltype(std::declval<Function>()(std::declval<T>())),
+        System, TimeDim, LengthDim, AngleDim, MassDim> DstType;
+    static constexpr Unit unit = DstType::UInfo::unit;
+    return DstType::template make<unit>(f(get<unit>()));
+  }
+
   template <typename S>
   PhysicalQuantity<S, System, TimeDim, LengthDim, AngleDim, MassDim> cast() const {
     typedef PhysicalQuantity<S, System,
