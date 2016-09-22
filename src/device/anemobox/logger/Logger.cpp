@@ -9,7 +9,10 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
+#include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/gzip_stream.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <server/common/Optional.h>
 
 using namespace google::protobuf::io;
@@ -176,8 +179,15 @@ bool Logger::read(const std::string& filename, LogFile *dst) {
     filtering_istream in;
     in.push(gzip_decompressor());
     in.push(file);
-    dst->Clear();
-    return dst->ParseFromIstream(&in);
+    google::protobuf::io::IstreamInputStream zero_copy_input(&in);
+    google::protobuf::io::CodedInputStream decoder(&zero_copy_input);
+    // By default, google protobufs have a limit of about 60MB.
+    // If we save the full boat history in a single protobug, it will
+    // easily exceed this size. Of course, we should split it into
+    // multiple smaller files... but for now we simply increase the limit
+    // to 500MB, with a warning at 400.
+    decoder.SetTotalBytesLimit(500 * 1024 * 1024, 400 * 1024 * 1024);
+    return dst->ParseFromCodedStream(&decoder);
 }
 
 void Logger::unpack(const AngleValueSet& values, std::vector<Angle<double>>* angles) {
