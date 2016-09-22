@@ -12,6 +12,7 @@
 #include <ceres/jet.h>
 #include <Eigen/Geometry>
 #include <random>
+#include <server/math/JetUtils.h>
 
 using namespace sail;
 
@@ -171,5 +172,27 @@ TEST(BoatStateTest, InterpolationTest) {
   }
   EXPECT_EQ(a, interpolate(0.0, a, b));
   EXPECT_EQ(b, interpolate(1.0, a, b));
+}
+
+TEST(BoatStateTest, MapToJetAndBack) {
+  typedef ceres::Jet<ceres::Jet<double, 2>, 3> ADType;
+
+  GeographicPosition<double> pos(45.0_deg, 45.0_deg);
+  HorizontalMotion<double> gps(1.0_kn, 1.0_kn);
+  HorizontalMotion<double> wind(0.0_kn, -1.0_kn);
+  HorizontalMotion<double> current(0.0_kn, 0.0_kn);
+  auto angle = 45.0_deg;
+  BS a(pos, gps, wind, current,
+      AbsoluteOrientation::onlyHeading(angle));
+
+  BoatState<ADType> b = a.mapObjectValues([](double x) {
+    return MakeConstant<ADType>::apply(x);
+  });
+
+  BS c = b.mapObjectValues([](ADType x) {
+    return x.a.a;
+  });
+
+  EXPECT_EQ(a, c);
 }
 

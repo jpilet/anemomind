@@ -28,7 +28,7 @@ struct TypedAbsoluteOrientation {
 
   template <typename Function>
   TypedAbsoluteOrientation<typename FunctionReturnType<Function, T>::type>
-    mapObjectValues(Function f) {
+    mapObjectValues(Function f) const {
     return TypedAbsoluteOrientation<
         typename FunctionReturnType<Function, T>::type>{
       heading.template mapObjectValues<Function>(f),

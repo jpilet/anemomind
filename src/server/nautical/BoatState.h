@@ -359,6 +359,17 @@ public:
         && _currentOverGround == other._currentOverGround
         && _orientation == other._orientation;
   }
+
+  template <typename Function>
+  BoatState<typename FunctionReturnType<Function, T>::type>
+    mapObjectValues(Function f) const {
+    return BoatState<typename FunctionReturnType<Function, T>::type>(
+        _position.template mapObjectValues<Function>(f),
+        _boatOverGround.template mapObjectValues<Function>(f),
+        _windOverGround.template mapObjectValues<Function>(f),
+        _currentOverGround.template mapObjectValues<Function>(f),
+        _orientation.template mapObjectValues<Function>(f));
+  }
 private:
   GeographicPosition<T> _position;
   HorizontalMotion<T> _boatOverGround;

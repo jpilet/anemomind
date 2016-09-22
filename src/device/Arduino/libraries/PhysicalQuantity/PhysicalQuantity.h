@@ -218,6 +218,23 @@ struct DimensionlessTraits<T, System, 0, 0, 0, 0> {
 };
 
 
+template <typename T, typename Enable = void>
+struct InitialValue {
+  static T get() {return T();}
+};
+
+template <typename T>
+struct InitialValue<T, typename std::enable_if<std::is_floating_point<T>::value>::type> {
+  static T get() {return std::numeric_limits<T>::signaling_NaN();}
+};
+
+template <typename T>
+struct InitialValue<T,
+  typename std::enable_if<std::is_integral<T>::value>::type> {
+  static T get() {return T(0);}
+};
+
+
 template <typename T, typename System, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity {
 public:
@@ -226,7 +243,7 @@ public:
   typedef T ValueType;
 
 #if ON_SERVER
-  PhysicalQuantity() : _x(T(std::numeric_limits<double>::signaling_NaN())) {} // TODO: FIX THIS!!!
+  PhysicalQuantity() : _x(T(InitialValue<T>::get())) {}
 #else
   PhysicalQuantity() : _x() {}
 #endif
