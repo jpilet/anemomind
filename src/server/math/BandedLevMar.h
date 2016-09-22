@@ -46,12 +46,12 @@ public:
 };
 
 template <typename CostEvaluator, typename T>
-class UniqueCostFunction : public CostFunctionBase<T> {
+class SharedCostFunction : public CostFunctionBase<T> {
 public:
   static const int N = CostEvaluator::inputCount;
   typedef ceres::Jet<T, N> ADType;
 
-  UniqueCostFunction(
+  SharedCostFunction(
       const Spani &inputRange,
       CostEvaluator *f) :
         _inputRange(inputRange),
@@ -135,14 +135,6 @@ struct IterationSummary {
   Eigen::Matrix<T, Eigen::Dynamic, 1> X;
 };
 
-/*template <typename T>
-class MeasurementGroup {
-public:
-private:
-  std::vector<std::shared_ptr<CostFunction<T> > >
-};*/
-
-
 template <typename T>
 class Problem {
 public:
@@ -157,7 +149,7 @@ public:
   void addCostFunction(Spani inputRange,
       CostEvaluator *f) {
     std::shared_ptr<CostFunctionBase<T>> cost(
-        new UniqueCostFunction<CostEvaluator, T>(inputRange, f));
+            new SharedCostFunction<CostEvaluator, T>(inputRange, f));
     addCost(cost);
   }
 
@@ -206,10 +198,6 @@ public:
   const std::vector<IterationCallback> &callbacks() const {
     return _callbacks;
   }
-private:
-  int _kd, _paramCount, _residualCount;
-  std::vector<std::shared_ptr<CostFunctionBase<T> > > _costFunctions;
-  std::vector<IterationCallback> _callbacks;
 
   void addCost(std::shared_ptr<CostFunctionBase<T>> &cost) {
     _kd = std::max(_kd, cost->inputCount()-1);
@@ -217,7 +205,74 @@ private:
     _residualCount += cost->outputCount();
     _costFunctions.push_back(std::move(cost));
   }
+private:
+  int _kd, _paramCount, _residualCount;
+  std::vector<std::shared_ptr<CostFunctionBase<T> > > _costFunctions;
+  std::vector<IterationCallback> _callbacks;
+
 };
+
+template <typename T>
+struct GemanMcClureLoss {
+  T operator()(T x) const {
+    T x2 = x*x;
+    return x2/(x2 + T(1.0));
+  }
+};
+
+template <typename T, typename LossFunction>
+class RobustCost {
+public:
+  RobustCost(const shared_ptr<CostFunctionBase<T> > &src,
+      const LossFunction &loss,
+      T *median) : _src(src), _loss(loss), _median(median) {}
+private:
+  shared_ptr<CostFunctionBase<T> > _src;
+  LossFunction _loss;
+  T *_median;
+};
+
+template <typename T, typename LossFunction>
+class MeasurementGroup {
+public:
+  typedef MeasurementGroup<T, LossFunction> ThisType;
+
+  MeasurementGroup(
+      Problem<T> *dstProblem, const LossFunction &loss) :
+    _dstProblem(dstProblem), _loss(loss),
+    _medianResidual(T(-1.0)) {
+    dstProblem->addIterationCallback([this](
+        const IterationSummary<T> &summary) {
+      this->update(summary);
+    });
+  }
+
+  template <typename CostEvaluator>
+    void addCostFunction(Spani inputRange,
+        CostEvaluator *f) {
+    _indices.push_back(_costs.size());
+    std::shared_ptr<CostFunctionBase<T>> hiddenCost(
+            new SharedCostFunction<CostEvaluator, T>(inputRange, f));
+    _costs.push_back(hiddenCost);
+    _dstProblem->addCost(
+        shared_ptr<CostFunctionBase<T> >(new RobustCost<T, LossFunction>(
+            hiddenCost, _loss, &_medianResidual)));
+  }
+private:
+  void update(const IterationSummary<T> &summary) {
+
+  }
+
+  MeasurementGroup(const ThisType &other) = delete;
+  ThisType &operator=(const ThisType &other) = delete;
+  Problem<T> *_dstProblem;
+  LossFunction _loss;
+  T _medianResidual;
+  std::vector<T> _residuals;
+  std::vector<std::shared_ptr<CostFunctionBase<T> > > _costs;
+  std::vector<int> _indices;
+};
+
 
 struct Settings {
   int verbosity = 0;
