@@ -16,6 +16,13 @@ TEST(GeoPosTest, ConstructAndAccessTest) {
   EXPECT_NEAR(pos.lon().radians(), lon.radians(), 1.0e-6);
   EXPECT_NEAR(pos.lat().radians(), lat.radians(), 1.0e-6);
   EXPECT_NEAR(pos.alt().meters(), alt.meters(), 1.0e-6);
+
+  GeographicPosition<float> posf = pos.mapObjectValues([](double x) {
+    return static_cast<float>(x);
+  });
+  EXPECT_NEAR(posf.lon().radians(), lon.radians(), 1.0e-6);
+  EXPECT_NEAR(posf.lat().radians(), lat.radians(), 1.0e-6);
+  EXPECT_NEAR(posf.alt().meters(), alt.meters(), 1.0e-6);
 }
 
 
