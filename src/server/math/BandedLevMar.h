@@ -18,6 +18,7 @@
 #include <ceres/jet.h>
 #include <Eigen/Dense>
 #include <server/math/lapack/BandWrappersJet.h>
+#include <server/common/math.h>
 
 namespace sail {
 namespace BandedLevMar {
@@ -229,20 +230,50 @@ private:
 
 template <typename T>
 struct GemanMcClureLoss {
-  T operator()(T x) const {
-    T x2 = x*x;
+  T evaluateSquared(T x2) const {
     return x2/(x2 + T(1.0));
   }
 };
 
-template <typename T, typename LossFunction>
+template <typename T,
+          typename CostEvaluator,
+          typename LossFunction>
 class RobustCost {
 public:
-  RobustCost(const shared_ptr<CostFunctionBase<T> > &src,
+  static const int inputCount = CostEvaluator::inputCount;
+  static const int outputCount = 1;
+
+  template <typename S>
+  bool evaluateInner(const S *X, S *outSquared) const {
+    T output[CostEvaluator::outputCount];
+    if (!_src->evaluate(X, output)) {
+      return false;
+    }
+    T sum(0.0);
+    for (int i = 0; i < CostEvaluator::outputCount; i++) {
+      auto x = output[i];
+      sum += x*x;
+    }
+    *outSquared = sum;
+    return true;
+  }
+
+  template <typename S>
+  bool evaluate(const S *X, S *dst) const {
+    T squared(0.0);
+    if (!evaluateInner(X, &squared)) {
+      return false;
+    }
+    *dst = sqrt(std::max(T(0.0),
+        T(1.0e-12) + _loss.evaluateSquared(squared/sqr(*_median))));
+    return true;
+  }
+
+  RobustCost(const shared_ptr<CostEvaluator> &src,
       const LossFunction &loss,
       T *median) : _src(src), _loss(loss), _median(median) {}
 private:
-  shared_ptr<CostFunctionBase<T> > _src;
+  shared_ptr<CostEvaluator> _src;
   LossFunction _loss;
   T *_median;
 };
@@ -265,13 +296,14 @@ public:
   template <typename CostEvaluator>
     void addCostFunction(Spani inputRange,
         CostEvaluator *f) {
+    auto augmented = new RobustCost<T, CostEvaluator, LossFunction>(
+        f, _loss, &_medianResidual);
     _indices.push_back(_costs.size());
-    std::shared_ptr<CostFunctionBase<T>> hiddenCost(
-            new SharedCostFunction<CostEvaluator, T>(inputRange, f));
-    _costs.push_back(hiddenCost);
-    _dstProblem->addCost(
-        shared_ptr<CostFunctionBase<T> >(new RobustCost<T, LossFunction>(
-            hiddenCost, _loss, &_medianResidual)));
+    std::shared_ptr<CostFunctionBase<T>> wrapped(
+            new SharedCostFunction<CostEvaluator, T>(
+                inputRange, augmented));
+    _costs.push_back(wrapped);
+    _dstProblem->addCost(wrapped);
   }
 private:
   void update(const IterationSummary<T> &summary) {
