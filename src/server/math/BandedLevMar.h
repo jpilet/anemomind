@@ -19,6 +19,7 @@
 #include <Eigen/Dense>
 #include <server/math/lapack/BandWrappersJet.h>
 #include <server/common/math.h>
+#include <random>
 
 namespace sail {
 namespace BandedLevMar {
@@ -54,7 +55,7 @@ public:
 
   SharedCostFunction(
       const Spani &inputRange,
-      CostEvaluator *f) :
+      const std::shared_ptr<CostEvaluator> &f) :
         _inputRange(inputRange),
         _f(f) {
     CHECK(_inputRange.width() == CostEvaluator::inputCount);
@@ -163,11 +164,20 @@ public:
 
   template <typename CostEvaluator>
   void addCostFunction(Spani inputRange,
-      CostEvaluator *f) {
+      const std::shared_ptr<CostEvaluator> &f) {
     std::shared_ptr<CostFunctionBase<T>> cost(
-            new SharedCostFunction<CostEvaluator, T>(inputRange, f));
+            new SharedCostFunction<CostEvaluator, T>(
+                inputRange, f));
     addCost(cost);
   }
+
+  template <typename CostEvaluator>
+  void addCostFunction(Spani inputRange,
+      CostEvaluator *f) {
+    addCostFunction<CostEvaluator>(inputRange,
+        std::shared_ptr<CostEvaluator>(f));
+  }
+
 
   int kd() const {return _kd;}
   int paramCount() const {return _paramCount;}
@@ -235,10 +245,18 @@ struct GemanMcClureLoss {
   }
 };
 
+template <typename T>
+class Augmented {
+public:
+  virtual bool evaluateRaw(const T *X, T *outSquared) const = 0;
+  virtual ~Augmented() {}
+};
+
+// Sorry about the pointer-spaghetti of this class...
 template <typename T,
           typename CostEvaluator,
           typename LossFunction>
-class RobustCost {
+class RobustCost : public Augmented<T> {
 public:
   static const int inputCount = CostEvaluator::inputCount;
   static const int outputCount = 1;
@@ -258,35 +276,50 @@ public:
     return true;
   }
 
+  bool evaluateRaw(const T *X, T *outSquared) const override {
+    return evaluateInner<T>(X, outSquared);
+  }
+
   template <typename S>
   bool evaluate(const S *X, S *dst) const {
-    T squared(0.0);
-    if (!evaluateInner(X, &squared)) {
+    T cost = T(0.0);
+    if (!evaluateInner(X, &cost)) {
       return false;
     }
     *dst = sqrt(std::max(T(0.0),
-        T(1.0e-12) + _loss.evaluateSquared(squared/sqr(*_median))));
+        T(1.0e-12) +
+        _loss.evaluateSquared(cost/(*_squaredMedian))));
     return true;
   }
 
   RobustCost(const shared_ptr<CostEvaluator> &src,
       const LossFunction &loss,
-      T *median) : _src(src), _loss(loss), _median(median) {}
+      T *squaredMedian) : _src(src), _loss(loss),
+          _squaredMedian(squaredMedian) {}
 private:
   shared_ptr<CostEvaluator> _src;
   LossFunction _loss;
-  T *_median;
+  T *_squaredMedian;
 };
 
+/*
+ * Sorry about this spaghetti code with pointers to mutable
+ * values pointing in various directions, but I found it convenient to
+ * do it like this. If we only use it in isolated parts of our code,
+ * it should be sort of OK :-)
+ */
 template <typename T, typename LossFunction>
 class MeasurementGroup {
 public:
+  struct CostWithData {};
+
   typedef MeasurementGroup<T, LossFunction> ThisType;
 
   MeasurementGroup(
-      Problem<T> *dstProblem, const LossFunction &loss) :
+      Problem<T> *dstProblem, const LossFunction &loss,
+      std::default_random_engine *rng) :
     _dstProblem(dstProblem), _loss(loss),
-    _medianResidual(T(-1.0)) {
+    _medianResidual(T(-1.0)), _rng(rng) {
     dstProblem->addIterationCallback([this](
         const IterationSummary<T> &summary) {
       this->update(summary);
@@ -298,7 +331,6 @@ public:
         CostEvaluator *f) {
     auto augmented = new RobustCost<T, CostEvaluator, LossFunction>(
         f, _loss, &_medianResidual);
-    _indices.push_back(_costs.size());
     std::shared_ptr<CostFunctionBase<T>> wrapped(
             new SharedCostFunction<CostEvaluator, T>(
                 inputRange, augmented));
@@ -307,7 +339,10 @@ public:
   }
 private:
   void update(const IterationSummary<T> &summary) {
+    if (summary.iterationsCompleted == 0) {
+      std::shuffle(_indices.begin(), _indices.end(), *_rng);
 
+    }
   }
 
   MeasurementGroup(const ThisType &other) = delete;
@@ -315,9 +350,10 @@ private:
   Problem<T> *_dstProblem;
   LossFunction _loss;
   T _medianResidual;
-  std::vector<T> _residuals;
   std::vector<std::shared_ptr<CostFunctionBase<T> > > _costs;
   std::vector<int> _indices;
+  std::vector<double> _residuals;
+  std::default_random_engine *_rng;
 };
 
 
