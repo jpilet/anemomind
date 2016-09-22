@@ -1,6 +1,7 @@
 #include <server/nautical/tiles/ChartTiles.h>
 
 #include <functional>
+#include <device/anemobox/Dispatcher.h>
 #include <server/nautical/NavDataset.h>
 #include <string>
 #include <server/common/logging.h>
@@ -148,7 +149,7 @@ bool uploadChartTile(const ChartTile<T> tile,
   BSONObjBuilder key;
 
 
-  key.append("boat", boatId);
+  key.append("boat", mongo::OID(boatId));
   key.append("zoom", tile.zoom);
   key.append("tileno", (long long) tile.tileno);
   key.append("what", data->wordIdentifier());
@@ -244,6 +245,30 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
   bool _result;
 };
 
+class GetMinMaxTime : public DispatchDataVisitor {
+ public:
+  GetMinMaxTime() : valid(false) { }
+
+  template<typename T>
+  void getFirstLast(TypedDispatchData<T> *tdd) {
+    const TimedSampleCollection<T> values = tdd->dispatcher()->values();
+    if (values.size() > 0) {
+      first = values[0].time;
+      last = values.lastTimeStamp();
+      valid = true;
+    }
+  }
+  TimeStamp first, last;
+  bool valid;
+
+  virtual void run(DispatchAngleData *angle) { getFirstLast(angle); }
+  virtual void run(DispatchVelocityData *velocity) { getFirstLast(velocity); }
+  virtual void run(DispatchLengthData *length) { getFirstLast(length); }
+  virtual void run(DispatchGeoPosData *pos) { /* nothing for pos */ }
+  virtual void run(DispatchTimeStampData *timestamp) { /* nothing */ }
+  virtual void run(DispatchAbsoluteOrientationData *orient) { }
+};
+
 bool uploadChartTiles(DispatchData* data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
@@ -259,7 +284,6 @@ bool uploadChartTiles(const NavDataset& data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
                       DBClientConnection *db) {
-
   const map<DataCode, map<string, shared_ptr<DispatchData>>> &allSources =
     data.dispatcher()->allSources();
 
@@ -271,6 +295,55 @@ bool uploadChartTiles(const NavDataset& data,
     }
   }
   return true;
+}
+
+bool uploadChartSourceIndex(const NavDataset& data,
+                            const std::string& boatId,
+                            const ChartTileSettings& settings,
+                            DBClientConnection *db) {
+  BSONObjBuilder channels;
+  const map<DataCode, map<string, shared_ptr<DispatchData>>> &allSources =
+    data.dispatcher()->allSources();
+
+  for (auto channel : allSources) {
+    BSONObjBuilder chanObj;
+    int numSources = 0;
+    for (auto source : channel.second) {
+
+      GetMinMaxTime minMaxTime;
+      source.second->visit(&minMaxTime);
+      if (!minMaxTime.valid) {
+        continue;
+      }
+      BSONObjBuilder sourceObj;
+      append(sourceObj, "first", minMaxTime.first);
+      append(sourceObj, "last", minMaxTime.last);
+      sourceObj.append("priority", data.dispatcher()->sourcePriority(source.first));
+
+      ++numSources;
+      chanObj.append(source.first, sourceObj.obj());
+    }
+    if (numSources > 0) {
+      channels.append(wordIdentifierForCode(channel.first),
+                      chanObj.obj());
+    }
+  }
+
+  BSONObjBuilder index;
+  index.append("_id", mongo::OID(boatId));
+  index.append("channels", channels.obj());
+  auto obj = index.obj();
+
+  return safeMongoOps(
+      "Inserting dispatcher index entry", db,
+      [=](DBClientConnection *db) {
+        db->update(settings.sourceTable(),
+                   MONGO_QUERY("_id" << obj["_id"]),  // <-- what to update
+                   obj,                         // <-- the new data
+                   true,                        // <-- upsert
+                   false);                      // <-- multi
+      }
+    );
 }
 
 void appendStats(const MeanAndVar& stats, BSONObjBuilder* builder) {

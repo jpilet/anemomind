@@ -375,7 +375,8 @@ this code some time, we should think carefully how we want to do the merging.
   }
 
   if (_generateChartTiles) {
-    if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)) {
+    if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)
+        || !uploadChartSourceIndex(simulated, _boatid, _chartTileSettings, &db)) {
       LOG(ERROR) << "Failed to upload chart tiles!";
       return false;
     }

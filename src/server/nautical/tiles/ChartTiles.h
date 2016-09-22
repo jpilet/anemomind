@@ -17,8 +17,10 @@ struct ChartTileSettings {
   int highestZoomLevel = 28; // 2^28 seconds = about 10 years
   std::string dbName = "anemomind-dev";
   std::string chartTileTable = "charttiles";
+  std::string chartTileSourceTable = "chartsources";
 
   std::string table() const { return dbName + "." + chartTileTable; }
+  std::string sourceTable() const { return dbName + "." + chartTileSourceTable; }
 };
 
 bool uploadChartTiles(const NavDataset& data,
@@ -26,6 +28,10 @@ bool uploadChartTiles(const NavDataset& data,
                       const ChartTileSettings& settings,
                       mongo::DBClientConnection *db);
 
+bool uploadChartSourceIndex(const NavDataset& data,
+                            const std::string& boatId,
+                            const ChartTileSettings& settings,
+                            mongo::DBClientConnection *db);
 
 void appendStats(const MeanAndVar& stats, mongo::BSONObjBuilder* builder);
 

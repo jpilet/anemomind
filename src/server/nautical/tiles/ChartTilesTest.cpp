@@ -118,7 +118,7 @@ TEST(ChartTiles, UploadOneTile) {
                      numSamplesWithCount(settings.samplesPerTile, 1),
                      true, false, nullptr));
 
-  uploadChartTiles(ds, "fakeboatid", settings, &db);
+  EXPECT_TRUE(uploadChartTiles(ds, "fakeboatid", settings, &db));
 }
 
 TEST(ChartTiles, UploadTwoTilesPlusOneCombined) {
@@ -162,7 +162,52 @@ TEST(ChartTiles, UploadTwoTilesPlusOneCombined) {
                          tileQuery("fakeboatid", zoom + 1, 34 / 2),
                          numSamplesWithCount(settings.samplesPerTile, 2),
                          true, false, nullptr));
-  uploadChartTiles(ds, "fakeboatid", settings, &db);
+  EXPECT_TRUE(uploadChartTiles(ds, "fakeboatid", settings, &db));
+}
+
+MATCHER_P(with_id, id, "") {
+  // arg is a mongo::Query
+  return 
+    id == arg.obj["_id"].String();
+}
+
+MATCHER_P2(hasSource, channel, source, "") {
+  return
+    !arg["channels"].Obj()[channel].Obj()[source].eoo();
+}
+
+TEST(ChartTiles, UploadSourceIndex) {
+  std::shared_ptr<FakeClockDispatcher> disp =
+    std::make_shared<FakeClockDispatcher>();
+
+  ChartTileSettings settings;
+  const int zoom = 7;
+  settings.lowestZoomLevel = zoom;
+  settings.highestZoomLevel = zoom;
+  settings.samplesPerTile = 8;
+
+  // Align with tile start
+  TimeStamp base = TimeStamp::fromMilliSecondsSince1970((34 << zoom) * 1000);
+  disp->setTime(base);
+
+  // These measurements should fill exactly 1 tile
+  for (int i = 0; i < settings.samplesPerTile; ++i) {
+    disp->publishValue(GPS_SPEED, "testSource", Velocity<>::knots(5 + (i % 16)));
+    disp->advance(Duration<>::seconds(double(1 << zoom) / settings.samplesPerTile));
+  }
+
+  NavDataset ds(disp);
+
+  MockDBClientConnection db;
+  EXPECT_CALL(db, runCommand(_, _, _, _)).WillRepeatedly(Return(true));
+
+  EXPECT_CALL(db, update("anemomind-dev.chartsources",
+                         with_id("fakeboatid"),
+                         hasSource("gpsSpeed", "testSource"),
+                         true, false, nullptr));
+
+
+  EXPECT_TRUE(uploadChartSourceIndex(ds, "fakeboatid", settings, &db));
 }
 
 }  // namespace sail
