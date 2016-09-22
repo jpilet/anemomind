@@ -5,6 +5,7 @@
 
 #include <device/anemobox/DispatcherUtils.h>
 
+#include <assert.h>
 #include <device/anemobox/logger/Logger.h>
 #include <server/common/MultiMerge.h>
 #include <server/common/logging.h>
@@ -670,6 +671,7 @@ class DispatcherStream : public SortedStream<TimeStamp> {
 
   virtual TimeStamp value() const { return _it->time; }
   virtual bool next() {
+    assert(!end());
     _destination->publishTimedValue<T>(_dispatchData->dataCode(),
                                        _dispatchData->source(),
                                        *_it);

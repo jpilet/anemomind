@@ -42,3 +42,12 @@ TEST(MultiMergeTest, BasicSort3) {
   EXPECT_TRUE(b.end());
   EXPECT_TRUE(c.end());
 }
+
+TEST(MultiMergeTest, EmptyMerge) {
+  MultiMerge<int> merged;
+
+  EXPECT_TRUE(merged.end());
+  IntStream emptyStream{};
+  merged.addStream(&emptyStream);
+  EXPECT_TRUE(merged.end());
+}
