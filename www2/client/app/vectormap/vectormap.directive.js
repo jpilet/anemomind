@@ -205,7 +205,7 @@ angular.module('www2App')
                                                    endsBefore));
           }
 
-          function findEventByTime(time) {
+          var findEventByTime = function(time) {
             var bestTimeDiff = 300 * 1000;
             var bestEvent = null;
 
