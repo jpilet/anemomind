@@ -364,7 +364,7 @@ std::pair<Eigen::Vector2d, Eigen::Vector2d>
 TEST(BandedLevMarTest, MixedAnglesAndDistances) {
   std::default_random_engine rng(0);
   const int dataCount = 30;
-  const int commonInlierCount = 30;
+  const int commonInlierCount = 25;
 
   Eigen::Vector2d gtA(2.4, 4.5);
   Eigen::Vector2d gtB(9.6, -7.4);
