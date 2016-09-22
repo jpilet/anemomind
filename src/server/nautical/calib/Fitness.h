@@ -56,41 +56,33 @@ struct BoatStateParamCount {
       (Settings::recoverGpsMotion? 2 : 0);
 };
 
-template <typename T, typename DstType>
-struct TypeVectorizer {};
+template <typename T, typename DstType, int Size>
+struct SizedTypeVectorizer {
 
-template <typename T>
-struct TypeVectorizer<T, HorizontalMotion<T> > {
-  static HorizontalMotion<T> read(const T **src0) {
-    const T *src = *src0;
-    src0 += 2;
-    return HorizontalMotion<T>(
-        Velocity<T>::metersPerSecond(src[0]),
-        Velocity<T>::metersPerSecond(src[1]));
+};
+
+template <typename T, typename Type>
+struct TypeVectorizer {
+  static Type read(const T **src0) {
+    Type dummy;
+    return dummy.mapObjectValues([&](T) {
+      const T *src = *src0;
+      T x = *src;
+      src++;
+      return x;
+    });
   }
 
-  static void write(const HorizontalMotion<T> &src, T **dst0) {
-    T *dst = *dst0;
-    dst0 += 2;
-    dst[0] = src[0].metersPerSecond();
-    dst[1] = src[1].metersPerSecond();
+  static void write(const Type &src, T **dst0) {
+    src.mapObjectValues([&](T x) {
+      T *dst = *dst0;
+      *dst = x;
+      dst++;
+    });
   }
 };
 
-template <typename T>
-struct TypeVectorizer<T, Angle<T> > {
-  static Angle<T> read(const T **src0) {
-    const T *src = *src0;
-    src0++;
-    return Angle<T>::radians(src[0]);
-  }
 
-  static void write(Angle<T> src, T **dst0) {
-    T *dst = *dst0;
-    dst0++;
-    dst[0] = src.radians();
-  }
-};
 
 template <typename T, typename BoatStateSettings>
 struct BoatStateVectorizer {
