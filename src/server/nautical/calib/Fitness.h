@@ -47,20 +47,21 @@ struct BandWidth :
 struct ServerBoatStateSettings {
   static const bool recoverGpsMotion = false;
   static const bool recoverHeelAngle = false;
+  static const bool recoverPitch = false;
   static const bool withIMU = false;
 };
 
 template <typename Settings>
 struct BoatStateParamCount {
-  static const int value = 2/*wind*/ + 2/*current*/ + 3/*orientation*/ +
-      (Settings::recoverGpsMotion? 2 : 0);
+  static const int value = 2/*wind*/ + 2/*current*/
+      + 1 /*heading*/
+      + (Settings::recoverHeelAngle? 1 : 0)
+      + (Settings::recoverPitch? 1 : 0)
+      + (Settings::recoverGpsMotion? 2 : 0);
 };
 
-template <typename T, typename DstType, int Size>
-struct SizedTypeVectorizer {
-
-};
-
+// So that we can read a numeric representation
+// of a type easily.
 template <typename T, typename Type>
 struct TypeVectorizer {
   static Type read(const T **src0) {
