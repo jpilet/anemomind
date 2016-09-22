@@ -13,6 +13,7 @@
 #include <device/anemobox/Dispatcher.h>
 #include <server/nautical/calib/SensorSet.h>
 #include <server/nautical/BoatState.h>
+#include <server/math/JetUtils.h>
 
 namespace sail {
 
@@ -65,21 +66,28 @@ public:
   static const int inputCount =
       BoatStateParamCount<BoatStateSettings>::value;
 
-  double realIndex;
-  ObservationType observation;
-
-  BoatStateFitness(double index, const ObservationType &value) :
-    realIndex(index), observation(value) {}
+  BoatStateFitness(
+      double index,
+      const ObservationType &value,
+      const Array<BoatState<double> > &base) :
+    _realIndex(index), _observation(value) {}
 
   template <typename T>
   bool evaluate(const T *X, T *y) const {
+    BoatState<double> base = interpolate(
+        _realIndex, _base[0], _base[1]);
+
     BoatState<T> a = BoatStateVectorizer<T,
         BoatStateSettings>::read(X + 0);
     BoatState<T> b = BoatStateVectorizer<T,
         BoatStateSettings>::read(X + inputCount);
     BoatState<T> x = interpolate(
-        BandedLevMar::MakeConstant(realIndex), a, b);
+        MakeConstant<T>::apply(_realIndex), a, b);
   }
+private:
+  double _realIndex;
+  ObservationType _observation;
+  BoatState<double> *_base;
 };
 
 } /* namespace sail */

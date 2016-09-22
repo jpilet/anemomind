@@ -29,12 +29,17 @@ public:
       TimedValue<typename TypeForCode<code>::type> &x) {
     double realIndex = (x.time - _offsetTime)/_samplingPeriod;
     int index = int(round(realIndex));
-    if (0 <= index && index < sampleCount()-1)
-    _problem.addCost(
-        new BoatStateFitness<code, BoatStateSettings>(
-            realIndex, x.value,
-            interpolate(realIndex,
-                _base[index], _base[index+1])));
+    const int inputCount = BoatStateParamCount<BoatStateSettings>::value;
+    if (0 <= index && index < sampleCount()-1) {
+      int from = index*inputCount;
+      int to = from + 2*inputCount;
+      _problem.addCost(
+          Spani(from, to),
+          new BoatStateFitness<code, BoatStateSettings>(
+              realIndex, x.value,
+              _base.ptr() + index));
+
+    }
   }
 
   int sampleCount() const {
