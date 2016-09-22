@@ -154,10 +154,18 @@ namespace {
     Problem<T> problem;
     problem.addCostFunction(Spani(0, 1),
         new EllipseFittingCost<T>{A, B, target});
+
+    int counter = -1;
+
+    problem.addIterationCallback([&](const IterationSummary<T> &summary) {
+      counter++;
+      EXPECT_EQ(summary.iterationsCompleted, counter);
+    });
     Eigen::Matrix<T, Eigen::Dynamic, 1> X(1);
     X[0] = T(0.0);
     Settings settings;
-    runLevMar(settings, problem, &X);
+    auto results = runLevMar(settings, problem, &X);
+    EXPECT_EQ(counter, results.iterationsCompleted);
     return mapAngleToEllipse(A, B, X(0));
   }
 

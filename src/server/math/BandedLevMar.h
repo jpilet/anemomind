@@ -238,7 +238,7 @@ struct Results {
   };
 
   TerminationType type = None;
-  int lastCompletedIteration = -1;
+  int iterationsCompleted = 0;
 
   bool failure() const {
     return 3 <= static_cast<int>(type);
@@ -446,7 +446,7 @@ Results runLevMar(
       return results;
     }
 
-    results.lastCompletedIteration = i;
+    results.iterationsCompleted = i+1;
     callIterationCallbacks<T>(i+1, *X, problem.callbacks());
   }
 
