@@ -66,9 +66,9 @@ struct TypeVectorizer {
   static Type read(const T **src0) {
     Type dummy;
     return dummy.mapObjectValues([&](T) {
-      const T *src = *src0;
-      T x = *src;
-      src++;
+      T x = **src0;
+      std::cout << "READ IT!" << x << std::endl;
+      (*src0)++;
       return x;
     });
   }

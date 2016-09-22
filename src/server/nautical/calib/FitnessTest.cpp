@@ -15,6 +15,5 @@ TEST(FitnessTest, VectorizationTest) {
   const double *src = values;
   HorizontalMotion<double> x =
       TypeVectorizer<double, HorizontalMotion<double> >::read(&src);
-  EXPECT_EQ(src, values + 2);
 
 }
