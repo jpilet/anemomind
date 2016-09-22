@@ -117,5 +117,6 @@ target_depends_on_ceres(calib_SensorSetTest)
 
 cxx_test(calib_BoatStateReconstructor
   BoatStateReconstructorTest.cpp
+  common_TimeStamp
   gtest_main
   )

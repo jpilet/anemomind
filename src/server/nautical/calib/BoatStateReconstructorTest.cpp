@@ -8,4 +8,16 @@
 #include <server/nautical/calib/BoatStateReconstructor.h>
 #include <gtest/gtest.h>
 
+using namespace sail;
 
+namespace {
+  TimeStamp offsetTime = TimeStamp::UTC(2016, 9, 22, 15, 17, 0);
+
+}
+
+TEST(BoatStateReconstructor, BasicTest) {
+  Array<BoatState<double> > initialStates(1);
+  BoatStateReconstructor<double, ServerBoatStateSettings>
+    reconstructor(offsetTime, 1.0_s, initialStates);
+
+}
