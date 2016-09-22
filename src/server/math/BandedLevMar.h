@@ -373,6 +373,8 @@ public:
   }
 private:
   void update(const IterationSummary<T> &summary) {
+    std::cout << "Iteration callback "
+        << summary.iterationsCompleted << std::endl;
     if (summary.iterationsCompleted == 0) {
       std::shuffle(_indices.begin(), _indices.end(), *_rng);
       _estSize = std::min(_estSize, int(_costs.size()));
@@ -391,6 +393,7 @@ private:
     std::sort(_squaredResiduals.begin(), _squaredResiduals.end());
     if (!_squaredResiduals.empty()) {
       _squaredMedianResidual = _squaredResiduals[_squaredResiduals.size()/2];
+      std::cout << "  Median residual: " << sqrt(_squaredMedianResidual) << std::endl;
     }
   }
 

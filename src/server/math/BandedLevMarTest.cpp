@@ -250,7 +250,7 @@ Array<PointFit> makePointFitData(
     std::default_random_engine *rng,
     const Eigen::Vector2d &a,
     const Eigen::Vector2d &b) {
-  std::normal_distribution<double> noise(0.0, 0.1);
+  std::normal_distribution<double> noise(0.0, 0.01);
   std::uniform_real_distribution<double> weights(0.0, 1.0);
   std::uniform_real_distribution<double> outliers(-30.0, 30.0);
   Array<PointFit> dst(n);
@@ -332,14 +332,14 @@ std::pair<Eigen::Vector2d, Eigen::Vector2d>
 
 
   Problem<double> problem;
-  MeasurementGroup<double, GemanMcClureLoss> angleGroup(
+  /*MeasurementGroup<double, GemanMcClureLoss> angleGroup(
       angles.size(), &problem,
       GemanMcClureLoss(), &rng, angles.size());
 
   for (auto angle: angles) {
     angleGroup.addCostFunction(Spani(0, 4),
         new AngleFitness{angleWeight, angle});
-  }
+  }*/
 
   MeasurementGroup<double, GemanMcClureLoss> pointGroup(
       points.size(), &problem,
@@ -364,7 +364,7 @@ std::pair<Eigen::Vector2d, Eigen::Vector2d>
 TEST(BandedLevMarTest, MixedAnglesAndDistances) {
   std::default_random_engine rng(0);
   const int dataCount = 30;
-  const int commonInlierCount = 18;
+  const int commonInlierCount = 30;
 
   Eigen::Vector2d gtA(2.4, 4.5);
   Eigen::Vector2d gtB(9.6, -7.4);
@@ -376,17 +376,26 @@ TEST(BandedLevMarTest, MixedAnglesAndDistances) {
   auto points = makePointFitData(
       dataCount, commonInlierCount, &rng, gtA, gtB);
 
+  {
+    for (auto pt: points) {
+      std::cout << "  " << pt.dst << std::endl;
+    }
+  }
+
   // We should end up with the same solution no matter how we
   // weigh the two data series.
   auto ab0 = solveAngleAndPointFitProblemWithWeights(
       1.4, angles, 30.0, points);
-  auto ab1 = solveAngleAndPointFitProblemWithWeights(
+
+  std::cout << "First endpoint: \n" << ab0.first << std::endl;
+  std::cout << "Second endpoint: \n" << ab0.second << std::endl;
+  /*auto ab1 = solveAngleAndPointFitProblemWithWeights(
       30.0, angles, 4.5, points);
 
   EXPECT_NEAR(ab0.first(0), ab1.first(0), 1.0e-3);
   EXPECT_NEAR(ab0.first(1), ab1.first(1), 1.0e-3);
   EXPECT_NEAR(ab0.second(0), ab1.second(0), 1.0e-3);
-  EXPECT_NEAR(ab0.second(1), ab1.second(1), 1.0e-3);
+  EXPECT_NEAR(ab0.second(1), ab1.second(1), 1.0e-3);*/
 }
 
 
