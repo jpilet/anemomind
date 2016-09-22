@@ -76,6 +76,7 @@ struct TypeVectorizer {
     src.mapObjectValues([&](T x) {
       (**dst0) = x;
       (*dst0)++;
+      return x; // not used.
     });
   }
 };
