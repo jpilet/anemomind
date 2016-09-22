@@ -43,6 +43,8 @@ public:
         _lat.eqWithNan(other._lat) &&
         _alt.eqWithNan(other._alt);
   }
+
+
 private:
   Angle<T> _lon, _lat;
   Length<T> _alt; // E.g. 300 metres if we are sailing on Lac Léman

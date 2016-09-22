@@ -44,6 +44,11 @@
 
 namespace sail {
 
+template <typename Function, typename T>
+struct FunctionReturnType {
+  typedef decltype(std::declval<T>()(std::declval<T>())) type;
+};
+
 // OP(type, name, factor)
 #define FOREACH_TIME_UNIT(OP) \
     OP(Time, milliseconds, 0.001) \

@@ -37,6 +37,9 @@ struct BandWidthForType<Velocity<double> > {
 // TODO: Study the literature on how noise is estimated
 // in a Kalman filter, for different kinds of measurements.
 // That is a related problem.
+/*
+ * http://jbrwww.che.wisc.edu/tech-reports/twmcc-2003-04.pdf
+ */
 template <DataCode code>
 struct BandWidth :
     BandWidthForType<typename TypeForCode<code>::type>{};
