@@ -126,7 +126,7 @@ public:
   }
 private:
   Spani _inputRange;
-  std::unique_ptr<CostEvaluator> _f;
+  std::shared_ptr<CostEvaluator> _f;
 };
 
 template <typename T>
@@ -134,6 +134,14 @@ struct IterationSummary {
   int iterationsCompleted;
   Eigen::Matrix<T, Eigen::Dynamic, 1> X;
 };
+
+/*template <typename T>
+class MeasurementGroup {
+public:
+private:
+  std::vector<std::shared_ptr<CostFunction<T> > >
+};*/
+
 
 template <typename T>
 class Problem {
@@ -148,7 +156,7 @@ public:
   template <typename CostEvaluator>
   void addCostFunction(Spani inputRange,
       CostEvaluator *f) {
-    std::unique_ptr<CostFunctionBase<T>> cost(
+    std::shared_ptr<CostFunctionBase<T>> cost(
         new UniqueCostFunction<CostEvaluator, T>(inputRange, f));
     addCost(cost);
   }
@@ -200,10 +208,10 @@ public:
   }
 private:
   int _kd, _paramCount, _residualCount;
-  std::vector<std::unique_ptr<CostFunctionBase<T> > > _costFunctions;
+  std::vector<std::shared_ptr<CostFunctionBase<T> > > _costFunctions;
   std::vector<IterationCallback> _callbacks;
 
-  void addCost(std::unique_ptr<CostFunctionBase<T>> &cost) {
+  void addCost(std::shared_ptr<CostFunctionBase<T>> &cost) {
     _kd = std::max(_kd, cost->inputCount()-1);
     _paramCount = std::max(_paramCount, cost->inputRange().maxv());
     _residualCount += cost->outputCount();

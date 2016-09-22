@@ -291,6 +291,20 @@ std::pair<Eigen::Matrix<T, 2, 1>, Eigen::Matrix<T, 2, 1> >
       a, b);
 }
 
+struct PointFitObjf {
+  PointFit fit;
+
+  static const int inputCount = 4;
+  static const int outputCount = 1;
+
+  template <typename T>
+  bool evaluate(const T *X, T *y) const {
+    auto pts = getLineEndpoints<T>(X);
+    y[0] = (fit.aWeight*pts.first + fit.bWeight*pts.second
+        - fit.dst.cast<T>()).norm();
+  }
+};
+
 
 std::pair<Eigen::Vector2d, Eigen::Vector2d>
   solveAngleAndPointFitProblemWithWeights(
@@ -298,6 +312,8 @@ std::pair<Eigen::Vector2d, Eigen::Vector2d>
       double pointWeight, const Array<PointFit> &points) {
   Eigen::VectorXd X(4);
   X << 0, 0, 1, 1;
+
+  Problem<double> problem;
 
   return getLineEndpoints<double>(X.data());
 }
