@@ -76,10 +76,12 @@ public:
     if (!_f->evaluate(X + _inputRange.minv(), residuals)) {
       return false;
     }
+    T sum = T(0.0);
     for (int i = 0; i < CostEvaluator::outputCount; i++) {
       T f = residuals[i];
-      *totalCost += f*f;
+      sum += f*f;
     }
+    *totalCost = sum;
     return true;
   }
 
