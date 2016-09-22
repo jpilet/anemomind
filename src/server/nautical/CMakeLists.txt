@@ -297,6 +297,11 @@ add_library(nautical_AbsoluteOrientation
   AbsoluteOrientation.cpp
   )
 
+cxx_test(nautical_AbsoluteOrientationTest
+  AbsoluteOrientationTest.cpp
+  gtest_main
+  )
+
 add_library(nautical_InvWGS84
             InvWGS84.h
             InvWGS84.cpp
@@ -377,4 +382,3 @@ cxx_test(nautical_BoatStateTest
   nautical_BoatState
   gtest_main
   )
-  

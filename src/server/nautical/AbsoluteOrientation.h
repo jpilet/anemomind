@@ -29,7 +29,8 @@ struct TypedAbsoluteOrientation {
   template <typename Function>
   TypedAbsoluteOrientation<typename FunctionReturnType<Function, T>::type>
     mapObjectValues(Function f) {
-    return TypedAbsoluteOrientation<T>{
+    return TypedAbsoluteOrientation<
+        typename FunctionReturnType<Function, T>::type>{
       heading.template mapObjectValues<Function>(f),
       roll.template mapObjectValues<Function>(f),
       pitch.template mapObjectValues<Function>(f)
