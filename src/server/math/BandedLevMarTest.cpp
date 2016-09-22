@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 #include <random>
 #include <server/common/LineKM.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 using namespace sail;
 using namespace sail::BandedLevMar;
@@ -224,6 +225,114 @@ TEST(BandedLevMarTest, Differentiable) {
       }
     }
   }
+}
+
+
+template <typename T>
+Angle<T> computeLineAngle(
+    const Eigen::Matrix<T, 2, 1> &a,
+    const Eigen::Matrix<T, 2, 1> &b) {
+  Eigen::Matrix<T, 2, 1> diff = b - a;
+  return Angle<T>::radians(atan2(diff(1), diff(0)));
+}
+
+Array<Angle<double> > makeAngleData(int n, int inlierCount,
+    std::default_random_engine *rng,
+    const Angle<double> gtAngle) {
+  std::normal_distribution<double> noiseDegrees(0.0, 4.0);
+  std::uniform_real_distribution<double> outliersDegrees(0.0, 360.0);
+  Array<Angle<double> > dst(n);
+  for (int i = 0; i < inlierCount; i++) {
+    dst[i] = gtAngle + Angle<double>::degrees(noiseDegrees(*rng));
+  }
+  for (int i = inlierCount; i < n; i++) {
+    dst[i] = Angle<double>::degrees(outliersDegrees(*rng));
+  }
+  std::shuffle(dst.begin(), dst.end(), *rng);
+  return dst;
+}
+
+struct PointFit {
+  double aWeight, bWeight;
+  Eigen::Vector2d dst;
+};
+
+Array<PointFit> makePointFitData(
+    int n, int inlierCount,
+    std::default_random_engine *rng,
+    const Eigen::Vector2d &a,
+    const Eigen::Vector2d &b) {
+  std::normal_distribution<double> noise(0.0, 0.1);
+  std::uniform_real_distribution<double> weights(0.0, 1.0);
+  std::uniform_real_distribution<double> outliers(-30.0, 30.0);
+  Array<PointFit> dst(n);
+  for (int i = 0; i < n; i++) {
+    double aWeight = weights(*rng);
+    double bWeight = 1.0 - aWeight;
+    if (i < inlierCount) {
+      Eigen::Vector2d at = aWeight*a + bWeight*b;
+      dst[i] = PointFit{aWeight, bWeight,
+        at + Eigen::Vector2d(noise(*rng), noise(*rng))};
+    } else {
+      dst[i] = PointFit{aWeight, bWeight,
+        Eigen::Vector2d(outliers(*rng), outliers(*rng))};
+    }
+  }
+  std::shuffle(dst.begin(), dst.end(), *rng);
+  return dst;
+}
+
+template <typename T>
+std::pair<Eigen::Matrix<T, 2, 1>, Eigen::Matrix<T, 2, 1> >
+  getLineEndpoints(const T *X) {
+  auto a = Eigen::Matrix<T, 2, 1>(X[0], X[1]);
+  auto b = Eigen::Matrix<T, 2, 1>(X[2], X[3]);
+  return std::pair<Eigen::Matrix<T, 2, 1>, Eigen::Matrix<T, 2, 1>>(
+      a, b);
+}
+
+
+std::pair<Eigen::Vector2d, Eigen::Vector2d>
+  solveAngleAndPointFitProblemWithWeights(
+      double angleWeight, const Array<Angle<double> > &angles,
+      double pointWeight, const Array<PointFit> &points) {
+  Eigen::VectorXd X(4);
+  X << 0, 0, 1, 1;
+
+  return getLineEndpoints<double>(X.data());
+}
+
+// Here we demonstrate a technique that lets us
+// fit a line using both distances and angle data,
+// while rejecting outliers. The only assumption is
+// that at least half of the measurements of any kind are
+// inliers.
+TEST(BandedLevMarTest, MixedAnglesAndDistances) {
+  std::default_random_engine rng(0);
+  const int dataCount = 30;
+  const int commonInlierCount = 18;
+
+  Eigen::Vector2d gtA(2.4, 4.5);
+  Eigen::Vector2d gtB(9.6, -7.4);
+  auto gtAngle = computeLineAngle(gtA, gtB);
+
+  auto angles = makeAngleData(
+      dataCount, commonInlierCount, &rng, gtAngle);
+
+  auto points = makePointFitData(
+      dataCount, commonInlierCount, &rng, gtA, gtB);
+
+  // We should end up with the same solution no matter how we
+  // weigh the two data series.
+  auto ab0 = solveAngleAndPointFitProblemWithWeights(
+      1.4, angles, 30.0, points);
+  auto ab1 = solveAngleAndPointFitProblemWithWeights(
+      30.0, angles, 4.5, points);
+
+  EXPECT_NEAR(ab0.first(0), ab1.first(0), 1.0e-6);
+  EXPECT_NEAR(ab0.first(1), ab1.first(1), 1.0e-6);
+  EXPECT_NEAR(ab0.second(0), ab1.second(0), 1.0e-6);
+  EXPECT_NEAR(ab0.second(1), ab1.second(1), 1.0e-6);
 }
 
 
