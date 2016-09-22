@@ -37,11 +37,12 @@ public:
   virtual int inputCount() const = 0;
   virtual int outputCount() const = 0;
   virtual Spani inputRange() const = 0;
-  virtual bool evaluate(const T *X, T *outLocal) = 0;
+  virtual bool accumulateCost(const T *X, T *totalCost) = 0;
   virtual bool accumulateNormalEquations(
       const T *X,
       SymmetricBandMatrixL<T> *JtJ,
-      MDArray<T, 2> *minusJtF) = 0;
+      MDArray<T, 2> *minusJtF,
+      T *totalCost) = 0;
 };
 
 template <typename CostEvaluator, typename T>
@@ -70,8 +71,16 @@ public:
     return CostEvaluator::inputCount;
   }
 
-  bool evaluate(const T *X, T *outLocal) override {
-    return _f->evaluate(X + _inputRange.minv(), outLocal);
+  bool accumulateCost(const T *X, T *totalCost) override {
+    T residuals[CostEvaluator::outputCount];
+    if (!_f->evaluate(X + _inputRange.minv(), residuals)) {
+      return false;
+    }
+    for (int i = 0; i < CostEvaluator::outputCount; i++) {
+      T f = residuals[i];
+      *totalCost += f*f;
+    }
+    return true;
   }
 
   bool evaluate(const T *X, T *Y, T *J) {
@@ -100,11 +109,16 @@ public:
 
   bool accumulateNormalEquations(
       const T *X, SymmetricBandMatrixL<T> *JtJ,
-      MDArray<T, 2> *minusJtF) override {
+      MDArray<T, 2> *minusJtF, T *totalCost) override {
     T F[CostEvaluator::outputCount];
     T J[CostEvaluator::outputCount*CostEvaluator::inputCount];
     if (!evaluate(X, F, J)) {
       return false;
+    }
+
+    for (int i = 0; i < CostEvaluator::outputCount; i++) {
+      T f = F[i];
+      *totalCost += f*f;
     }
 
     int offset = _inputRange.minv();
@@ -158,14 +172,16 @@ public:
 
   bool fillNormalEquations(
       const T *X,
-      SymmetricBandMatrixL<T> *JtJ, MDArray<T, 2> *minusJtF) const {
+      SymmetricBandMatrixL<T> *JtJ, MDArray<T, 2> *minusJtF,
+      T *totalCost) const {
     *JtJ = SymmetricBandMatrixL<T>::zero(_paramCount, _kd);
     *minusJtF = MDArray<T, 2>(_paramCount, 1);
     minusJtF->setAll(T(0.0));
+    *totalCost = T(0.0);
     int counter = 0;
     for (auto &f: _costFunctions) {
       if (!f->accumulateNormalEquations(f->inputRange().minv() + X,
-          JtJ, minusJtF)) {
+          JtJ, minusJtF, totalCost)) {
         LOG(ERROR) << "Failed to accumulate normal equations";
         return false;
       }
@@ -174,15 +190,13 @@ public:
     return true;
   }
 
-  bool evaluate(const T *X, T *dst) const {
-    int offset = 0;
+  bool evaluate(const T *X, T *totalCost) const {
+    *totalCost = T(0.0);
     for (const auto &f: _costFunctions) {
-      if (!f->evaluate(X, dst + offset)) {
+      if (!f->accumulateCost(X, totalCost)) {
         return false;
       }
-      offset += f->outputCount();
     }
-    assert(offset == _residualCount);
     return true;
   }
 
@@ -388,14 +402,6 @@ Results runLevMar(
   T v = T(2.0);
   T mu = T(-1.0);
 
-  Vec<T> residuals(problem.residualCount());
-
-  if (!problem.evaluate(X->data(), residuals.data())) {
-    LOG(ERROR) << "Residual evaluation failed at beginning";
-    results.type = Results::ResidualEvaluationFailed;
-    return results;
-  }
-
   SymmetricBandMatrixL<T> JtJ0;
   MDArray<T, 2> minusJtF0;
   callIterationCallbacks<T>(0, *X, problem.callbacks());
@@ -403,7 +409,9 @@ Results runLevMar(
     if (1 <= settings.verbosity) {
       LOG(INFO) << "--------- LevMar Iteration " << i;
     }
-    if (!problem.fillNormalEquations(X->data(), &JtJ0, &minusJtF0)) {
+    T currentCost = T(0.0);
+    if (!problem.fillNormalEquations(X->data(), &JtJ0, &minusJtF0,
+        &currentCost)) {
       results.type = Results::FullEvaluationFailed;
       LOG(ERROR) << "Full evaluation failed";
       return results;
@@ -452,18 +460,18 @@ Results runLevMar(
       Vec<T> xNew = *X + eigenStep;
 
 
-      Vec<T> newResiduals(problem.residualCount());
-      if (!problem.evaluate(xNew.data(), newResiduals.data())) {
+      T newCost = T(0.0);
+      if (!problem.evaluate(xNew.data(), &newCost)) {
         results.type = Results::ResidualEvaluationFailed;
         LOG(ERROR) << "Residual evaluation failed";
         return results;
       }
 
       // Is positive when improved:
-      T improvement = residuals.squaredNorm() - newResiduals.squaredNorm();
+      T improvement = currentCost - newCost;
       if (2 <= settings.verbosity) {
-        LOG(INFO) << "Old residual norm: " << residuals.squaredNorm();
-        LOG(INFO) << "New residual norm: " << newResiduals.squaredNorm();
+        LOG(INFO) << "Old residual squared norm: " << currentCost;
+        LOG(INFO) << "New residual squared norm: " << newCost;
         LOG(INFO) << "Improvements: " << improvement;
       }
 
@@ -479,10 +487,9 @@ Results runLevMar(
         if (2 <= settings.verbosity) {
           LOG(INFO) << "Accept the update";
         }
-        residuals = newResiduals;
         *X = xNew;
         if (maxAbs(minusJtF) < settings.e1
-            || residuals.norm() < settings.e3) {
+            || sqrt(currentCost) < settings.e3) {
           if (1 <= settings.verbosity) {
             LOG(INFO) << "LevMar converged with low gradient or residual norm";
           }

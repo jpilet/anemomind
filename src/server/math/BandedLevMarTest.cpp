@@ -94,11 +94,13 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
   SymmetricBandMatrixL<double> JtJ;
   MDArray2d minusJtF;
-  EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF));
+  double sum = 0.0;
+  EXPECT_TRUE(problem.fillNormalEquations(X, &JtJ, &minusJtF, &sum));
   EXPECT_TRUE(Pbsv<double>::apply(&JtJ, &minusJtF));
   for (int i = 0; i < n; i++) {
     EXPECT_NEAR(minusJtF(i, 0), gtLine(i), 0.1);
   }
+  EXPECT_LT(0.0, sum);
 
   Eigen::VectorXd Xe = Eigen::VectorXd::Zero(n);
 
