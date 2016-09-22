@@ -27,6 +27,13 @@ height:100%;
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
+
+  /* see http://stackoverflow.com/questions/12022288/how-to-keep-a-flex-item-from-overflowing-due-to-its-text
+  W3C specification says, "By default, flex items won't shrink below their
+  minimum content size (the length of the longest word or fixed-size element).
+  To change this, set the ‘min-width’ or ‘min-height’ property."
+  */
+  min-height: 0;
 }
 
 .mapAndGraph {
@@ -39,6 +46,7 @@ height:100%;
   -webkit-flex-direction: column;
       -ms-flex-direction: column;
           flex-direction: column;
+  min-height: 0;
 }
 
 .map {
@@ -117,6 +125,7 @@ perfplot {
       -ms-flex:1;
           flex:1;
   overflow: auto;
+  min-height: 0;
 }
 
 .responsiveNavButtons {

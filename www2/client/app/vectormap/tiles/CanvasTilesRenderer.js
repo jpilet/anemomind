@@ -72,8 +72,15 @@ function CanvasTilesRenderer(params) {
 
   // We are ready, let's allow drawing.  
   this.inDraw = false;
+
+  t.clicHandlers = [];
+  t.pinchZoom.onClic = function(pos) {
+    for(var i=0; i<t.clicHandlers.length; i++) {
+      if(t.clicHandlers[i](pos))
+        return false;
+    }
+  }
   
-  this.pinchZoom.onClic = function(pos) { };
 
   var location = params.initialLocation || {
     x: (this.params.width || 1) / 2,
@@ -86,6 +93,10 @@ function CanvasTilesRenderer(params) {
 CanvasTilesRenderer.prototype.addLayer = function(layer) {
   this.layers.push(layer);
   this.refreshIfNotMoving();
+};
+
+CanvasTilesRenderer.prototype.addClicHandler = function(func) {
+  this.clicHandlers.push(func);
 };
 
 /** Get the current view location.

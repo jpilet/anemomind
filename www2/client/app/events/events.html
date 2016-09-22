@@ -1,6 +1,6 @@
 <section class="eventlist">
   <ul class="timeline">
-    <li ng-repeat="event in events | orderBy:'when'">
+    <li ng-repeat="event in events | orderBy:'when'" data-id="{{ event._id }}">
       
       <article class="timeline-panel">
         <div ng-if="event.photo" class="top">
