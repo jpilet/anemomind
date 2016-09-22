@@ -130,6 +130,12 @@ private:
 };
 
 template <typename T>
+struct IterationSummary {
+  int iterationsCompleted;
+  Eigen::Matrix<T, Eigen::Dynamic, 1> X;
+};
+
+template <typename T>
 class Problem {
 public:
   Problem(int expectedCostFunctionCount = -1) : _kd(0),
@@ -180,9 +186,22 @@ public:
     assert(offset == _residualCount);
     return true;
   }
+
+
+  typedef std::function<void(IterationSummary<T>)> IterationCallback;
+
+  void addIterationCallback(
+      IterationCallback cb) {
+    _callbacks.push_back(cb);
+  }
+
+  const std::vector<IterationCallback> &callbacks() const {
+    return _callbacks;
+  }
 private:
   int _kd, _paramCount, _residualCount;
   std::vector<std::unique_ptr<CostFunctionBase<T> > > _costFunctions;
+  std::vector<IterationCallback> _callbacks;
 
   void addCost(std::unique_ptr<CostFunctionBase<T>> &cost) {
     _kd = std::max(_kd, cost->inputCount()-1);
@@ -283,6 +302,19 @@ T maxAbs(const MDArray<T, 2> &X) {
   return maxv;
 }
 
+template <typename T>
+void callIterationCallbacks(
+    int iterationsCompleted,
+    const Vec<T> &X,
+    const std::vector<std::function<void(IterationSummary<T>)>> &callbacks) {
+  if (!callbacks.empty()) {
+    IterationSummary<T> summary{iterationsCompleted, X};
+    for (auto cb: callbacks) {
+      cb(summary);
+    }
+  }
+}
+
 // Implemented closely according to
 // http://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
 template <typename T>
@@ -304,6 +336,7 @@ Results runLevMar(
 
   SymmetricBandMatrixL<T> JtJ0;
   MDArray<T, 2> minusJtF0;
+  callIterationCallbacks<T>(0, *X, problem.callbacks());
   for (int i = 0; i < settings.iters; i++) {
     if (1 <= settings.verbosity) {
       LOG(INFO) << "--------- LevMar Iteration " << i;
@@ -414,6 +447,7 @@ Results runLevMar(
     }
 
     results.lastCompletedIteration = i;
+    callIterationCallbacks<T>(i+1, *X, problem.callbacks());
   }
 
   if (1 <= settings.verbosity) {
