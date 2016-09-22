@@ -25,6 +25,16 @@ struct TypedAbsoluteOrientation {
         && roll == other.roll
         && pitch == other.pitch;
   }
+
+  template <typename Function>
+  TypedAbsoluteOrientation<typename FunctionReturnType<Function, T>::type>
+    mapObjectValues(Function f) {
+    return TypedAbsoluteOrientation<T>{
+      heading.template mapObjectValues<Function>(f),
+      roll.template mapObjectValues<Function>(f),
+      pitch.template mapObjectValues<Function>(f)
+    };
+  }
 };
 
 template <typename T>
