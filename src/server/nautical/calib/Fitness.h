@@ -16,6 +16,27 @@
 
 namespace sail {
 
+template <typename T>
+struct BandWidthForType {};
+
+template <>
+struct BandWidthForType<Angle<double> > {
+  static Angle<double> get() {
+    return Angle<double>::degrees(5.0);
+  }
+};
+
+template <>
+struct BandWidthForType<Velocity<double> > {
+  static Velocity<double> get() {
+    return Velocity<double>::knots(0.5);
+  }
+};
+
+template <DataCode code>
+struct BandWidth :
+    BandWidthForType<typename TypeForCode<code>::type>{};
+
 template <typename T, DataCode code,
   typename Q=typename TypeForCode<code>::type>
 void computeResidual(
