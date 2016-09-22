@@ -15,20 +15,6 @@
 using namespace sail;
 using namespace sail::BandedLevMar;
 
-template <typename T>
-struct MakeConstant {
-  static T apply(double x) {
-    return T(x);
-  };
-};
-
-template <typename T, int N>
-struct MakeConstant<ceres::Jet<T, N> > {
-  static ceres::Jet<T, N> apply(double x) {
-    return ceres::Jet<T, N>(MakeConstant<T>::apply(x));
-  }
-};
-
 namespace {
   struct DataCost{
     double data;
@@ -304,7 +290,8 @@ struct PointFitness {
   bool evaluate(const T *X, T *y) const {
     auto pts = getLineEndpoints<T>(X);
     Eigen::Matrix<T, 2, 1> err =
-        T(weight)*(fit.aWeight*pts.first + fit.bWeight*pts.second
+        T(weight)*(MakeConstant<T>::apply(fit.aWeight)*pts.first
+            + MakeConstant<T>::apply(fit.bWeight)*pts.second
         - fit.dst.cast<T>());
     y[0] = err(0);
     y[1] = err(1);
@@ -345,18 +332,18 @@ std::pair<Eigen::Vector2d, Eigen::Vector2d>
 
 
   Problem<double> problem;
-  MeasurementGroup<double, GemanMcClureLoss<double> > angleGroup(
+  MeasurementGroup<double, GemanMcClureLoss> angleGroup(
       angles.size(), &problem,
-      GemanMcClureLoss<double>(), &rng, angles.size());
+      GemanMcClureLoss(), &rng, angles.size());
 
   for (auto angle: angles) {
     angleGroup.addCostFunction(Spani(0, 4),
         new AngleFitness{angleWeight, angle});
   }
 
-  MeasurementGroup<double, GemanMcClureLoss<double> > pointGroup(
+  MeasurementGroup<double, GemanMcClureLoss> pointGroup(
       points.size(), &problem,
-      GemanMcClureLoss<double>(), &rng, points.size());
+      GemanMcClureLoss(), &rng, points.size());
 
   for (auto pt: points) {
     pointGroup.addCostFunction(Spani(0, 4),

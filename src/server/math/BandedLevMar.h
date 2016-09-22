@@ -24,6 +24,20 @@
 namespace sail {
 namespace BandedLevMar {
 
+template <typename T>
+struct MakeConstant {
+  static T apply(double x) {
+    return T(x);
+  };
+};
+
+template <typename T, int N>
+struct MakeConstant<ceres::Jet<T, N> > {
+  static ceres::Jet<T, N> apply(double x) {
+    return ceres::Jet<T, N>(MakeConstant<T>::apply(x));
+  }
+};
+
 template <int dim, typename T>
 T dotProduct(T *a, T *b) {
   T sum = T(0.0);
@@ -238,8 +252,8 @@ private:
 
 };
 
-template <typename T>
 struct GemanMcClureLoss {
+  template <typename T>
   T evaluateSquared(T x2) const {
     return x2/(x2 + T(1.0));
   }
@@ -263,11 +277,11 @@ public:
 
   template <typename S>
   bool evaluateInner(const S *X, S *outSquared) const {
-    T output[CostEvaluator::outputCount];
-    if (!_src->evaluate(X, output)) {
+    S output[CostEvaluator::outputCount];
+    if (!_src->template evaluate<S>(X, output)) {
       return false;
     }
-    T sum(0.0);
+    S sum(0.0);
     for (int i = 0; i < CostEvaluator::outputCount; i++) {
       auto x = output[i];
       sum += x*x;
@@ -287,13 +301,13 @@ public:
       return false;
     }
 
-    T cost = T(0.0);
-    if (!evaluateInner(X, &cost)) {
+    S cost = MakeConstant<S>::apply(0.0);
+    if (!evaluateInner<S>(X, &cost)) {
       return false;
     }
-    *dst = sqrt(std::max(T(0.0),
-        T(1.0e-12) +
-        _loss.evaluateSquared(cost/(*_squaredMedian))));
+    *dst = S(sqrt(std::max(S(0.0),
+        S(1.0e-12) +
+        _loss.template evaluateSquared<S>(cost/S(*_squaredMedian)))));
     return true;
   }
 
@@ -305,7 +319,7 @@ private:
   shared_ptr<CostEvaluator> _src;
   LossFunction _loss;
   T *_squaredMedian;
-  T _offset;
+  int _offset;
 };
 
 /*
@@ -340,16 +354,22 @@ public:
 
   template <typename CostEvaluator>
     void addCostFunction(Spani inputRange,
-        CostEvaluator *f) {
+        const std::shared_ptr<CostEvaluator> &f) {
     typedef RobustCost<T, CostEvaluator, LossFunction> AugmentedType;
     _indices.push_back(_costs.size());
-    auto augmented = std::make_shared<AugmentedType>(
+    auto augmentedRaw = new AugmentedType(
         f, _loss, &_squaredMedianResidual, inputRange.minv());
+    auto augmented = std::shared_ptr<AugmentedType>(augmentedRaw);
     std::shared_ptr<CostFunctionBase<T>> wrapped(
             new SharedCostFunction<AugmentedType, T>(
                 inputRange, augmented));
-    _costs.push_back(wrapped);
+    _costs.push_back(augmented);
     _dstProblem->addCost(wrapped);
+  }
+
+  template <typename CostEvaluator>
+  void addCostFunction(Spani inputRange, CostEvaluator *f) {
+    addCostFunction(inputRange, std::shared_ptr<CostEvaluator>(f));
   }
 private:
   void update(const IterationSummary<T> &summary) {
