@@ -67,7 +67,6 @@ struct TypeVectorizer {
     Type dummy;
     return dummy.mapObjectValues([&](T) {
       T x = **src0;
-      std::cout << "READ IT!" << x << std::endl;
       (*src0)++;
       return x;
     });
@@ -75,9 +74,8 @@ struct TypeVectorizer {
 
   static void write(const Type &src, T **dst0) {
     src.mapObjectValues([&](T x) {
-      T *dst = *dst0;
-      *dst = x;
-      dst++;
+      (**dst0) = x;
+      (*dst0)++;
     });
   }
 };
