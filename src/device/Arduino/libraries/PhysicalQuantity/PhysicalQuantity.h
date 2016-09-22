@@ -243,7 +243,7 @@ public:
   typedef T ValueType;
 
 #if ON_SERVER
-  PhysicalQuantity() : _x(T(InitialValue<T>::get())) {}
+  PhysicalQuantity() : _x(InitialValue<T>::get()) {}
 #else
   PhysicalQuantity() : _x() {}
 #endif

@@ -9,6 +9,16 @@
 
 using namespace sail;
 
+TEST(PhysQuantTest, InitialValue) {
+  EXPECT_TRUE(std::isnan(InitialValue<double>::get()));
+  EXPECT_TRUE(std::isnan(InitialValue<float>::get()));
+  EXPECT_EQ(0i, InitialValue<int>::get());
+
+  struct MyLittleType {
+    int value = 34;
+  };
+  EXPECT_EQ(34, InitialValue<MyLittleType>::get().value);
+}
 
 TEST(PhysQuantTest, ScaleByDimensionless) {
   Dimensionless<double> factor = Dimensionless<double>::dimensionless(2.0);
