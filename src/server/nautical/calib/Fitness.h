@@ -45,13 +45,37 @@ struct DeviceBoatStateSettings {
   static const bool recoverGpsMotion = true;
 };
 
+template <typename Settings>
+struct BoatStateParamCount {
+  static const int value = 2/*wind*/ + 2/*current*/ + 3/*orientation*/ +
+      (Settings::recoverGpsMotion? 2 : 0);
+};
 
+template <typename T, typename BoatStateSettings>
+struct BoatStateVectorizer {
+
+};
 
 template <DataCode code, typename BoatStateSettings>
 class BoatStateFitness {
 public:
-  //static const int inputCount = BoatStateSettings
-private:
+  typedef typename TypeForCode<code>::type ObservationType;
+  static const int inputCount =
+      BoatStateParamCount<BoatStateSettings>::value;
+
+  double realIndex;
+  ObservationType observation;
+
+  BoatStateFitness(double index, const ObservationType &value) :
+    realIndex(index), observation(value) {}
+
+  template <typename T>
+  bool evaluate(const T *X, T *y) const {
+    BoatState<T> a = BoatStateVectorizer<T,
+        BoatStateSettings>::read(X + 0);
+    BoatState<T> b = BoatStateVectorizer<T,
+        BoatStateSettings>::read(X + inputCount);
+  }
 };
 
 } /* namespace sail */
