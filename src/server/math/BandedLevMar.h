@@ -38,7 +38,6 @@ public:
   virtual int outputCount() const = 0;
   virtual Spani inputRange() const = 0;
   virtual bool evaluate(const T *X, T *outLocal) = 0;
-  virtual bool evaluate(const T *X, T *Y, T *JcolMajor) = 0;
   virtual bool accumulateNormalEquations(
       const T *X,
       SymmetricBandMatrixL<T> *JtJ,
@@ -75,7 +74,7 @@ public:
     return _f->evaluate(X + _inputRange.minv(), outLocal);
   }
 
-  bool evaluate(const T *X, T *Y, T *J) override {
+  bool evaluate(const T *X, T *Y, T *J) {
     ADType _adX[CostEvaluator::inputCount];
     ADType _adY[CostEvaluator::outputCount];
     for (int i = 0; i < CostEvaluator::inputCount; i++) {
