@@ -680,6 +680,14 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
       return HorizontalMotion<Dst>((*this)[0], (*this)[1]);
     }
 
+    template <typename Function>
+    HorizontalMotion<decltype(std::declval<Function>()(std::declval<T>()))>
+      mapObjectValues(Function f) {
+      return HorizontalMotion<decltype(std::declval<Function>()(std::declval<T>()))>(
+          (*this)[0].template mapObjectValues<Function>(f),
+          (*this)[1].template mapObjectValues<Function>(f));
+    }
+
     // Define what the vector dimensions mean.
     enum {
         EAST_TO_WEST = 0,

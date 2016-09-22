@@ -198,10 +198,21 @@ TEST(PhysQuantTest, Literals) {
 }
 
 TEST(PhysQuantTest, MapObjectValues) {
-  Angle<double> a = Angle<double>::radians(0.25*M_PI);
-  Angle<float> b = a.mapObjectValues([](float radians) {
-    return static_cast<float>(radians);
-  });
-  EXPECT_NEAR(a.radians(), b.radians(), 1.0e-5);
+  auto mapper = [](double hiddenValue) {
+        return static_cast<float>(hiddenValue);
+      };
+  {
+    Angle<double> a = Angle<double>::radians(0.25*M_PI);
+    Angle<float> b = a.mapObjectValues(mapper);
+    EXPECT_NEAR(a.radians(), b.radians(), 1.0e-5);
+  }{
+    HorizontalMotion<double> motion{
+      3.4_kn, 5.6_kn
+    };
+    HorizontalMotion<float> fmotion = motion.mapObjectValues(mapper);
+    EXPECT_NEAR(fmotion[0].knots(), motion[0].knots(), 1.0e-5);
+    EXPECT_NEAR(fmotion[1].knots(), motion[1].knots(), 1.0e-5);
+  }
 }
+
 
