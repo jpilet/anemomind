@@ -267,6 +267,20 @@ public:
     return _currentOverGround;
   }
 
+  void setWindOverGround(const HorizontalMotion<T> &src) {
+    _windOverGround = src;
+  }
+
+  void setCurrentOverGround(const HorizontalMotion<T> &src) {
+    _currentOverGround = src;
+  }
+
+  void setBoatOverGround(const HorizontalMotion<T> &src) {
+
+  }
+
+
+
   // Or should it be "over current"? But that doesn't sound quite right.
   HorizontalMotion<T> boatOverWater() const {
     return _boatOverGround - _currentOverGround;

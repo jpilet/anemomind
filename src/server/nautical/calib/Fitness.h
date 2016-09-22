@@ -34,16 +34,17 @@ struct BandWidthForType<Velocity<double> > {
   }
 };
 
+// TODO: Study the literature on how noise is estimated
+// in a Kalman filter, for different kinds of measurements.
+// That is a related problem.
 template <DataCode code>
 struct BandWidth :
     BandWidthForType<typename TypeForCode<code>::type>{};
 
 struct ServerBoatStateSettings {
   static const bool recoverGpsMotion = false;
-};
-
-struct DeviceBoatStateSettings {
-  static const bool recoverGpsMotion = true;
+  static const bool recoverHeelAngle = false;
+  static const bool withIMU = false;
 };
 
 template <typename Settings>
@@ -52,10 +53,52 @@ struct BoatStateParamCount {
       (Settings::recoverGpsMotion? 2 : 0);
 };
 
+template <typename T, typename DstType>
+struct TypeVectorizer {};
+
+template <typename T>
+struct TypeVectorizer<T, HorizontalMotion<T> > {
+  static HorizontalMotion<T> read(const T **src0) {
+    const T *src = *src0;
+    src0 += 2;
+    return HorizontalMotion<T>(
+        Velocity<T>::metersPerSecond(src[0]),
+        Velocity<T>::metersPerSecond(src[1]));
+  }
+
+  static void write(const HorizontalMotion<T> &src, T **dst0) {
+    T *dst = *dst0;
+    dst0 += 2;
+    dst[0] = src[0].metersPerSecond();
+    dst[1] = src[1].metersPerSecond();
+  }
+};
+
+template <typename T>
+struct TypeVectorizer<T, Angle<T> > {
+  static Angle<T> read(const T **src0) {
+    const T *src = *src0;
+    src0++;
+    return Angle<T>::radians(src[0]);
+  }
+
+  static void write(Angle<T> src, T **dst0) {
+    T *dst = *dst0;
+    dst0++;
+    dst[0] = src.radians();
+  }
+};
+
+
 template <typename T, typename BoatStateSettings>
 struct BoatStateVectorizer {
-  BoatState<T> read(const T *src) {
-
+  BoatState<T> read(const BoatState<double> &base, const T *src0) {
+    const T *src = src0;
+    /*HorizontalMotion<T> wind = ReFromArray<T,
+        HorizontalMotion<T> >::apply(&src);
+    HorizontalMotion<T> current = ReadFromArray<T,
+        HorizontalMotion<T> >::apply(&src);
+*/
   }
 };
 
@@ -69,8 +112,9 @@ public:
   BoatStateFitness(
       double index,
       const ObservationType &value,
-      const Array<BoatState<double> > &base) :
-    _realIndex(index), _observation(value) {}
+      BoatState<double> *base) :
+    _realIndex(index), _observation(value),
+    _base(base) {}
 
   template <typename T>
   bool evaluate(const T *X, T *y) const {
@@ -78,9 +122,9 @@ public:
         _realIndex, _base[0], _base[1]);
 
     BoatState<T> a = BoatStateVectorizer<T,
-        BoatStateSettings>::read(X + 0);
+        BoatStateSettings>::read(base, X + 0);
     BoatState<T> b = BoatStateVectorizer<T,
-        BoatStateSettings>::read(X + inputCount);
+        BoatStateSettings>::read(base, X + inputCount);
     BoatState<T> x = interpolate(
         MakeConstant<T>::apply(_realIndex), a, b);
   }
