@@ -9,6 +9,7 @@
 #include <Poco/Path.h>
 #include <server/common/ArgMap.h>
 #include <server/nautical/Nav.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/MongoUtils.h>
@@ -42,13 +43,13 @@ struct BoatLogProcessor {
   Poco::Path _dstPath;
   TileGeneratorParameters _tileParams;
   ChartTileSettings _chartTileSettings;
+  GpsFilterSettings _gpsFilterSettings;
   GrammarRunner _grammar;
   bool _generateTiles = false;
   bool _generateChartTiles = false;
   VmgSampleSelection _vmgSampleSelection;
   std::string _saveSimulated;
   bool _gpsFilter = false;
-  bool _earlyFiltering = false;
 
   mongo::DBClientConnection db;
 };
