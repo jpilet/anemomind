@@ -1,7 +1,9 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('vectormap', function ($timeout, $window, $http, $httpParamSerializer, userDB, boatList, Auth, Lightbox) {
+  .directive('vectormap', function ($timeout, $window, $http,
+                                    $httpParamSerializer, $location,
+                                    userDB, boatList, Auth, Lightbox) {
     return {
       template: '<canvas style="width:100%;height:100%"></canvas>',
       restrict: 'EA',
@@ -44,24 +46,25 @@ angular.module('www2App')
               "features": []
             };
 
-          var poiLayer = new POILayer({
-            renderer: canvas,
-            geojson: geojson,
-            onFeatureClic: function(feature, pos) {
-              goToEventTile(feature);
+          if ($location.search().preview) {
+            var poiLayer = new POILayer({
+              renderer: canvas,
+              geojson: geojson,
+              onFeatureClic: function(feature, pos) {
+                selectEvent(feature);
 
-              if(feature.properties.icon == "image")
-                Lightbox.openModal(images, feature.index);
-            }
-          });
-          var options = {
-            "width": 30,
-            "height": 30
-          };
-          poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
-          poiLayer.loadIcon('image', "/assets/images/image.svg", options);
-
-          canvas.addLayer(poiLayer);
+                if(feature.properties.icon == "image")
+                  Lightbox.openModal(images, feature.index);
+              }
+            });
+            var options = {
+              width: 30,
+              height: 30,
+              ratioY: 1
+            };
+            poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
+            poiLayer.loadIcon('image', "/assets/images/image.svg", options);
+          }
 
           scope.photoUrl = function(event, size) {
             var url = [
@@ -71,7 +74,12 @@ angular.module('www2App')
             return url.join('?');
           };
 
-          var goToEventTile = function(event) {
+          var selectEvent = function(event) {
+            if(event == null) {
+              angular.element('#eventsContainer li').removeClass('selected');
+              return true;
+            }
+            
             var sidebar = angular.element('.mapAndGraphAndSidebar #tabs');
             var target = angular.element('#eventsContainer li[data-id="'+event.id+'"]');
             var posTop = target.position();
@@ -87,6 +95,10 @@ angular.module('www2App')
             if(newV.length > 0) {
               geojson.features = [];
               for(var i in scope.eventList) {
+                var event = scope.eventList[i];
+                if (!event.dataAtEventTime || !event.dataAtEventTime.pos) {
+                  continue;
+                }
                 geojson.features.push({
                   "type": "Feature",
                   "id": scope.eventList[i]._id,
@@ -99,8 +111,8 @@ angular.module('www2App')
                   "geometry": {
                     "type": "Point",
                     "osmCoordinates": {
-                      x: scope.eventList[i].dataAtEventTime.pos[0],
-                      y: scope.eventList[i].dataAtEventTime.pos[1]
+                      x: event.dataAtEventTime.pos[0],
+                      y: event.dataAtEventTime.pos[1]
                     }                    
                   }
                 });
@@ -193,6 +205,28 @@ angular.module('www2App')
                                                    endsBefore));
           }
 
+          var selectEventByTime = function(time) {
+            var bestTimeDiff = 300 * 1000;
+            var bestEvent = null;
+
+            if(scope.eventList.length > 0) {
+              for(var i in scope.eventList) {
+                var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
+                var diffTime = Math.abs(eventTime.getTime() - time.getTime());
+
+                if(diffTime < bestTimeDiff) {
+                  bestTimeDiff = diffTime;
+                  bestEvent = scope.eventList[i];
+                }
+              }
+
+              if(bestEvent)
+                selectEvent({'id': bestEvent._id});
+              else
+                selectEvent(null);
+            }
+          };
+
           scope.$watch('selectedCurve', function(newValue, oldValue) {
             if (newValue != oldValue) {
               updateTileUrl();
@@ -204,7 +238,8 @@ angular.module('www2App')
           scope.$watch('currentTime', function(newValue, oldValue) {
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
-            }
+              selectEventByTime(newValue);
+            }            
           });
 
           updateTileUrl();

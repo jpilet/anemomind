@@ -30,7 +30,7 @@ function forEachFeature(geojson, callback) {
   if (geojson.type == "FeatureCollection") {
     var n = geojson.features.length;
     for (var i = 0; i < n; ++i) {
-      this.forEachFeature(geojson.features[i], callback);
+      forEachFeature(geojson.features[i], callback);
     }
   } else if (geojson.type == "Feature") {
     callback(geojson);

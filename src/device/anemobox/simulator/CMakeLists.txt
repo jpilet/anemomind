@@ -13,5 +13,5 @@ cxx_test(anemobox_SimulateBoxTest
   SimulateBoxTest.cpp
   gtest_main
   anemobox_SimulateBox
-  anemobox_DispatcherUtils
+  calib_Calibrator
   )
