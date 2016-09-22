@@ -13,7 +13,7 @@
 
 namespace sail {
 
-template <typename T, bool RecoverGpsMotion>
+template <typename T, typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
   BoatStateReconstructor(
@@ -27,7 +27,9 @@ public:
   void addObservation(
       TimedValue<typename TypeForCode<code>::type> &x) {
     double realIndex = (x.time - _offsetTime)/_samplingPeriod;
-    _problem.addCost(new BoatStateFitness<code>(realIndex, x.value));
+    _problem.addCost(
+        new BoatStateFitness<code, BoatStateSettings>(
+            realIndex, x.value));
   }
 private:
   TimeStamp _offsetTime;

@@ -37,14 +37,20 @@ template <DataCode code>
 struct BandWidth :
     BandWidthForType<typename TypeForCode<code>::type>{};
 
-template <DataCode code, bool RecoverGpsMotion>
+struct ServerBoatStateSettings {
+  static const bool recoverGpsMotion = false;
+};
+
+struct DeviceBoatStateSettings {
+  static const bool recoverGpsMotion = true;
+};
+
+
+
+template <DataCode code, typename BoatStateSettings>
 class BoatStateFitness {
 public:
-  static const int windParamCount = 2;
-  static const int currentParamCount = 2;
-  static const int orientationParamCount = 3;
-  static const int
-  static const int inputCount =
+  //static const int inputCount = BoatStateSettings
 private:
 };
 
