@@ -46,7 +46,7 @@ namespace sail {
 
 template <typename Function, typename T>
 struct FunctionReturnType {
-  typedef decltype(std::declval<T>()(std::declval<T>())) type;
+  typedef decltype(std::declval<Function>()(std::declval<T>())) type;
 };
 
 // OP(type, name, factor)
@@ -335,9 +335,9 @@ public:
 
 
   template <typename Function>
-  PhysicalQuantity<decltype(std::declval<Function>()(std::declval<T>())),
-      System, TimeDim, LengthDim, AngleDim, MassDim> mapObjectValues(Function f) {
-    typedef PhysicalQuantity<decltype(std::declval<Function>()(std::declval<T>())),
+  PhysicalQuantity<typename FunctionReturnType<Function, T>::type,
+      System, TimeDim, LengthDim, AngleDim, MassDim> mapObjectValues(Function f) const {
+    typedef PhysicalQuantity<typename FunctionReturnType<Function, T>::type,
         System, TimeDim, LengthDim, AngleDim, MassDim> DstType;
     static constexpr Unit unit = DstType::UInfo::unit;
     return DstType::template make<unit>(f(get<unit>()));
@@ -686,9 +686,9 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
     }
 
     template <typename Function>
-    HorizontalMotion<decltype(std::declval<Function>()(std::declval<T>()))>
-      mapObjectValues(Function f) {
-      return HorizontalMotion<decltype(std::declval<Function>()(std::declval<T>()))>(
+    HorizontalMotion<typename FunctionReturnType<Function, T>::type>
+      mapObjectValues(Function f) const {
+      return HorizontalMotion<typename FunctionReturnType<Function, T>::type>(
           (*this)[0].template mapObjectValues<Function>(f),
           (*this)[1].template mapObjectValues<Function>(f));
     }

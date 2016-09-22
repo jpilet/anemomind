@@ -44,6 +44,15 @@ public:
         _alt.eqWithNan(other._alt);
   }
 
+  template <typename Function>
+  GeographicPosition<typename FunctionReturnType<Function, T>::type>
+    mapObjectValues(Function f) const {
+    return GeographicPosition<
+        typename FunctionReturnType<Function, T>::type>(
+            _lon.template mapObjectValues<Function>(f),
+            _lat.template mapObjectValues<Function>(f),
+            _alt.template mapObjectValues<Function>(f));
+  }
 
 private:
   Angle<T> _lon, _lat;
