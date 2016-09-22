@@ -89,11 +89,13 @@ struct TypeVectorizer<T, Angle<T> > {
   }
 };
 
-
 template <typename T, typename BoatStateSettings>
 struct BoatStateVectorizer {
   BoatState<T> read(const BoatState<double> &base, const T *src0) {
     const T *src = src0;
+
+    //BoatState<T> baseT = initializeBoatState<T>(base);
+
     /*HorizontalMotion<T> wind = ReFromArray<T,
         HorizontalMotion<T> >::apply(&src);
     HorizontalMotion<T> current = ReadFromArray<T,
