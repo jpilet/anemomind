@@ -9,6 +9,7 @@
 #define SERVER_NAUTICAL_CALIB_BOATSTATERECONSTRUCTOR_H_
 
 #include <server/nautical/calib/Fitness.h>
+#include <server/math/BandedLevMar.h>
 
 namespace sail {
 
@@ -18,14 +19,20 @@ public:
   BoatStateReconstructor(
       TimeStamp offsetTime,
       Duration<double> samplingPeriod,
-      int sampleCount);
+      int sampleCount) : _offsetTime(offsetTime),
+        _samplingPeriod(samplingPeriod),
+        _sampleCount(sampleCount) {}
 
   template <DataCode code>
   void addObservation(
       TimedValue<typename TypeForCode<code>::type> &x) {
-
+    double realIndex = (x.time - _offsetTime)/_samplingPeriod;
+    _problem.addCost(new BoatStateFitness<code>(realIndex, x.value));
   }
 private:
+  TimeStamp _offsetTime;
+  Duration<double> _samplingPeriod;
+  int _sampleCount;
   BandedLevMar::Problem<T> _problem;
 };
 

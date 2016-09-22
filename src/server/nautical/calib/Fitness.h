@@ -37,14 +37,16 @@ template <DataCode code>
 struct BandWidth :
     BandWidthForType<typename TypeForCode<code>::type>{};
 
-template <typename T, DataCode code,
-  typename Q=typename TypeForCode<code>::type>
-void computeResidual(
-    const DistortionModel<T, code> &sensorModel,
-    const BoatState<T> &estimatedState,
-    const Q &observedValue) {
-
-}
+template <DataCode code, bool RecoverGpsMotion>
+class BoatStateFitness {
+public:
+  static const int windParamCount = 2;
+  static const int currentParamCount = 2;
+  static const int orientationParamCount = 3;
+  static const int
+  static const int inputCount =
+private:
+};
 
 } /* namespace sail */
 

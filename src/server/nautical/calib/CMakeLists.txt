@@ -114,3 +114,8 @@ cxx_test(calib_SensorSetTest
   )
 
 target_depends_on_ceres(calib_SensorSetTest)
+
+cxx_test(calib_BoatStateReconstructor
+  BoatStateReconstructorTest.cpp
+  gtest_main
+  )
