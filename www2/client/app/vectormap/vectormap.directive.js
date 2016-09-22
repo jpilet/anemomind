@@ -51,7 +51,7 @@ angular.module('www2App')
               renderer: canvas,
               geojson: geojson,
               onFeatureClic: function(feature, pos) {
-                goToEventTile(feature);
+                selectEvent(feature);
 
                 if(feature.properties.icon == "image")
                   Lightbox.openModal(images, feature.index);
@@ -74,7 +74,7 @@ angular.module('www2App')
             return url.join('?');
           };
 
-          var goToEventTile = function(event) {
+          var selectEvent = function(event) {
             if(event == null) {
               angular.element('#eventsContainer li').removeClass('selected');
               return true;
@@ -205,7 +205,7 @@ angular.module('www2App')
                                                    endsBefore));
           }
 
-          var findEventByTime = function(time) {
+          var selectEventByTime = function(time) {
             var bestTimeDiff = 300 * 1000;
             var bestEvent = null;
 
@@ -221,11 +221,11 @@ angular.module('www2App')
               }
 
               if(bestEvent)
-                goToEventTile({'id': bestEvent._id});
+                selectEvent({'id': bestEvent._id});
               else
-                goToEventTile(null);
+                selectEvent(null);
             }
-          }
+          };
 
           scope.$watch('selectedCurve', function(newValue, oldValue) {
             if (newValue != oldValue) {
@@ -238,7 +238,7 @@ angular.module('www2App')
           scope.$watch('currentTime', function(newValue, oldValue) {
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
-              findEventByTime(newValue);
+              selectEventByTime(newValue);
             }            
           });
 
