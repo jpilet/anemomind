@@ -40,6 +40,9 @@ angular.module('www2App')
         if ($location.search().preview) {
           search += '&preview=' + $location.search().preview;
         }
+        if ($location.search().queue) {
+          search += '&queue=' + $location.search().queue;
+        }
         if (typeof $scope.currentTime !== 'undefined' && !isNaN($scope.currentTime)) {
           search += '&t=' + $scope.currentTime.getTime();
         }

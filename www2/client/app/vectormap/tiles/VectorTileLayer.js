@@ -53,6 +53,7 @@ function VectorTileLayer(params, renderer) {
   this.numCachedTiles = 0;
   this.visibleCurves = {};
   this.curvesFlat = {};
+  this.queueSeconds = 0;
 
   if (!("tileSize" in this.params)) this.params.tileSize = 256;
   if ("vectorurl" in this.params) {
@@ -306,6 +307,7 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
 
 VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   // prepare the Cavas path
+  console.log(this.queueSeconds);
 
   if (this.isHighlighted(curveId)) {
     context.strokeStyle="#FF0033";
