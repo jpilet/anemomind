@@ -293,8 +293,28 @@ std::pair<Eigen::Matrix<T, 2, 1>, Eigen::Matrix<T, 2, 1> >
       a, b);
 }
 
-struct PointFitObjf {
+struct PointFitness {
+  double weight;
   PointFit fit;
+
+  static const int inputCount = 4;
+  static const int outputCount = 2;
+
+  template <typename T>
+  bool evaluate(const T *X, T *y) const {
+    auto pts = getLineEndpoints<T>(X);
+    Eigen::Matrix<T, 2, 1> err =
+        T(weight)*(fit.aWeight*pts.first + fit.bWeight*pts.second
+        - fit.dst.cast<T>());
+    y[0] = err(0);
+    y[1] = err(1);
+    return true;
+  }
+};
+
+struct AngleFitness {
+  double weight;
+  Angle<double> dst;
 
   static const int inputCount = 4;
   static const int outputCount = 1;
@@ -302,20 +322,48 @@ struct PointFitObjf {
   template <typename T>
   bool evaluate(const T *X, T *y) const {
     auto pts = getLineEndpoints<T>(X);
-    y[0] = (fit.aWeight*pts.first + fit.bWeight*pts.second
-        - fit.dst.cast<T>()).norm();
+    auto angle = computeLineAngle<T>(pts.first, pts.second);
+    y[0] = T(weight)*(angle - dst.cast<T>()).normalizedAt0().radians();
+    return true;
   }
 };
-
 
 std::pair<Eigen::Vector2d, Eigen::Vector2d>
   solveAngleAndPointFitProblemWithWeights(
       double angleWeight, const Array<Angle<double> > &angles,
       double pointWeight, const Array<PointFit> &points) {
+  std::default_random_engine rng;
+
   Eigen::VectorXd X(4);
   X << 0, 0, 1, 1;
 
+
+  /*int expectedCount,
+        Problem<T> *dstProblem, const LossFunction &loss,
+        std::default_random_engine *rng,
+        int estSize*/
+
+
   Problem<double> problem;
+  MeasurementGroup<double, GemanMcClureLoss<double> > angleGroup(
+      angles.size(), &problem,
+      GemanMcClureLoss<double>(), &rng, angles.size());
+
+  for (auto angle: angles) {
+    angleGroup.addCostFunction(Spani(0, 4),
+        new AngleFitness{angleWeight, angle});
+  }
+
+  MeasurementGroup<double, GemanMcClureLoss<double> > pointGroup(
+      points.size(), &problem,
+      GemanMcClureLoss<double>(), &rng, points.size());
+
+  for (auto pt: points) {
+    pointGroup.addCostFunction(Spani(0, 4),
+        new PointFitness{pointWeight, pt});
+  }
+
+
 
   return getLineEndpoints<double>(X.data());
 }

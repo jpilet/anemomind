@@ -276,12 +276,17 @@ public:
     return true;
   }
 
-  bool evaluateRaw(const T *X, T *outSquared) const override {
-    return evaluateInner<T>(X, outSquared);
+  // Used to compute the median.
+  bool evaluateRaw(const T *Xall, T *outSquared) const override {
+    return evaluateInner<T>(Xall + _offset, outSquared);
   }
 
   template <typename S>
   bool evaluate(const S *X, S *dst) const {
+    if (*_squaredMedian < T(0.0)) {
+      return false;
+    }
+
     T cost = T(0.0);
     if (!evaluateInner(X, &cost)) {
       return false;
@@ -294,12 +299,13 @@ public:
 
   RobustCost(const shared_ptr<CostEvaluator> &src,
       const LossFunction &loss,
-      T *squaredMedian) : _src(src), _loss(loss),
-          _squaredMedian(squaredMedian) {}
+      T *squaredMedian, int offset) : _src(src), _loss(loss),
+          _squaredMedian(squaredMedian), _offset(offset) {}
 private:
   shared_ptr<CostEvaluator> _src;
   LossFunction _loss;
   T *_squaredMedian;
+  T _offset;
 };
 
 /*
@@ -316,10 +322,16 @@ public:
   typedef MeasurementGroup<T, LossFunction> ThisType;
 
   MeasurementGroup(
+      int expectedCount,
       Problem<T> *dstProblem, const LossFunction &loss,
-      std::default_random_engine *rng) :
+      std::default_random_engine *rng,
+      int estSize) :
     _dstProblem(dstProblem), _loss(loss),
-    _medianResidual(T(-1.0)), _rng(rng) {
+    _squaredMedianResidual(T(-1.0)), _rng(rng),
+    _offset(0),
+    _estSize(estSize) {
+    _indices.reserve(expectedCount);
+    _costs.reserve(expectedCount);
     dstProblem->addIterationCallback([this](
         const IterationSummary<T> &summary) {
       this->update(summary);
@@ -329,10 +341,12 @@ public:
   template <typename CostEvaluator>
     void addCostFunction(Spani inputRange,
         CostEvaluator *f) {
-    auto augmented = new RobustCost<T, CostEvaluator, LossFunction>(
-        f, _loss, &_medianResidual);
+    typedef RobustCost<T, CostEvaluator, LossFunction> AugmentedType;
+    _indices.push_back(_costs.size());
+    auto augmented = std::make_shared<AugmentedType>(
+        f, _loss, &_squaredMedianResidual, inputRange.minv());
     std::shared_ptr<CostFunctionBase<T>> wrapped(
-            new SharedCostFunction<CostEvaluator, T>(
+            new SharedCostFunction<AugmentedType, T>(
                 inputRange, augmented));
     _costs.push_back(wrapped);
     _dstProblem->addCost(wrapped);
@@ -341,7 +355,22 @@ private:
   void update(const IterationSummary<T> &summary) {
     if (summary.iterationsCompleted == 0) {
       std::shuffle(_indices.begin(), _indices.end(), *_rng);
-
+      _estSize = std::min(_estSize, int(_costs.size()));
+    }
+    for (int i = 0; i < _estSize; i++) {
+      T cost = T(0.0);
+      if (_costs[_indices[_offset % _indices.size()]]->evaluateRaw(
+          summary.X.data(), &cost)) {
+        _squaredResiduals.push_back(cost);
+      } else {
+        _squaredMedianResidual = T(-1.0);
+        return;
+      }
+      _offset++;
+    }
+    std::sort(_squaredResiduals.begin(), _squaredResiduals.end());
+    if (!_squaredResiduals.empty()) {
+      _squaredMedianResidual = _squaredResiduals[_squaredResiduals.size()/2];
     }
   }
 
@@ -349,11 +378,12 @@ private:
   ThisType &operator=(const ThisType &other) = delete;
   Problem<T> *_dstProblem;
   LossFunction _loss;
-  T _medianResidual;
-  std::vector<std::shared_ptr<CostFunctionBase<T> > > _costs;
+  T _squaredMedianResidual;
+  std::vector<std::shared_ptr<Augmented<T> > > _costs;
   std::vector<int> _indices;
-  std::vector<double> _residuals;
+  std::vector<double> _squaredResiduals;
   std::default_random_engine *_rng;
+  int _offset, _estSize;
 };
 
 
