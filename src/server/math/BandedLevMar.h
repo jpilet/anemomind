@@ -20,23 +20,10 @@
 #include <server/math/lapack/BandWrappersJet.h>
 #include <server/common/math.h>
 #include <random>
+#include <server/math/JetUtils.h>
 
 namespace sail {
 namespace BandedLevMar {
-
-template <typename T>
-struct MakeConstant {
-  static T apply(double x) {
-    return T(x);
-  };
-};
-
-template <typename T, int N>
-struct MakeConstant<ceres::Jet<T, N> > {
-  static ceres::Jet<T, N> apply(double x) {
-    return ceres::Jet<T, N>(MakeConstant<T>::apply(x));
-  }
-};
 
 template <int dim, typename T>
 T dotProduct(T *a, T *b) {

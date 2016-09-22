@@ -53,7 +53,9 @@ struct BoatStateParamCount {
 
 template <typename T, typename BoatStateSettings>
 struct BoatStateVectorizer {
+  BoatState<T> read(const T *src) {
 
+  }
 };
 
 template <DataCode code, typename BoatStateSettings>
@@ -75,6 +77,8 @@ public:
         BoatStateSettings>::read(X + 0);
     BoatState<T> b = BoatStateVectorizer<T,
         BoatStateSettings>::read(X + inputCount);
+    BoatState<T> x = interpolate(
+        BandedLevMar::MakeConstant(realIndex), a, b);
   }
 };
 

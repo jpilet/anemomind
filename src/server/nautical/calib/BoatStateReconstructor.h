@@ -19,22 +19,31 @@ public:
   BoatStateReconstructor(
       TimeStamp offsetTime,
       Duration<double> samplingPeriod,
-      int sampleCount) : _offsetTime(offsetTime),
+      const Array<BoatState<T> > &base) :
+        _offsetTime(offsetTime),
         _samplingPeriod(samplingPeriod),
-        _sampleCount(sampleCount) {}
+        _base(base) {}
 
   template <DataCode code>
   void addObservation(
       TimedValue<typename TypeForCode<code>::type> &x) {
     double realIndex = (x.time - _offsetTime)/_samplingPeriod;
+    int index = int(round(realIndex));
+    if (0 <= index && index < sampleCount()-1)
     _problem.addCost(
         new BoatStateFitness<code, BoatStateSettings>(
-            realIndex, x.value));
+            realIndex, x.value,
+            interpolate(realIndex,
+                _base[index], _base[index+1])));
+  }
+
+  int sampleCount() const {
+    return _base.size();
   }
 private:
   TimeStamp _offsetTime;
   Duration<double> _samplingPeriod;
-  int _sampleCount;
+  Array<BoatState<double> > _base;
   BandedLevMar::Problem<T> _problem;
 };
 
