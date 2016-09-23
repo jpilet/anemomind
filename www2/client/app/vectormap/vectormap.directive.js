@@ -51,7 +51,7 @@ angular.module('www2App')
               renderer: canvas,
               geojson: geojson,
               onFeatureClic: function(feature, pos) {
-                goToEventTile(feature);
+                selectEvent(feature);
 
                 if(feature.properties.icon == "image")
                   Lightbox.openModal(images, feature.index);
@@ -74,7 +74,12 @@ angular.module('www2App')
             return url.join('?');
           };
 
-          var goToEventTile = function(event) {
+          var selectEvent = function(event) {
+            if(event == null) {
+              angular.element('#eventsContainer li').removeClass('selected');
+              return true;
+            }
+            
             var sidebar = angular.element('.mapAndGraphAndSidebar #tabs');
             var target = angular.element('#eventsContainer li[data-id="'+event.id+'"]');
             var posTop = target.position();
@@ -200,6 +205,28 @@ angular.module('www2App')
                                                    endsBefore));
           }
 
+          var selectEventByTime = function(time) {
+            var bestTimeDiff = 300 * 1000;
+            var bestEvent = null;
+
+            if(scope.eventList.length > 0) {
+              for(var i in scope.eventList) {
+                var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
+                var diffTime = Math.abs(eventTime.getTime() - time.getTime());
+
+                if(diffTime < bestTimeDiff) {
+                  bestTimeDiff = diffTime;
+                  bestEvent = scope.eventList[i];
+                }
+              }
+
+              if(bestEvent)
+                selectEvent({'id': bestEvent._id});
+              else
+                selectEvent(null);
+            }
+          };
+
           scope.$watch('selectedCurve', function(newValue, oldValue) {
             if (newValue != oldValue) {
               updateTileUrl();
@@ -211,7 +238,8 @@ angular.module('www2App')
           scope.$watch('currentTime', function(newValue, oldValue) {
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
-            }
+              selectEventByTime(newValue);
+            }            
           });
 
           updateTileUrl();

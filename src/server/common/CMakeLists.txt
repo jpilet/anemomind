@@ -428,3 +428,8 @@ cxx_test(common_HtmlLogTest
   gtest_main
   common_HtmlLog
   )
+
+cxx_test(common_MultiMergeTest
+         MultiMergeTest.cpp
+         gtest_main
+        )
