@@ -13,19 +13,6 @@
 
 namespace sail {
 
-template <typename T>
-struct ValueAccumulator {
-  struct ValueGroup {
-    int sensorIndex;
-    int sampleIndex;
-    Spani span;
-  };
-  std::map<std::string, int> sensorIndices;
-  std::vector<Spani> valueGroupPerIndex;
-  std::vector<ValueGroup> valueGroups;
-  std::vector<T> allValues;
-};
-
 struct TimeStampToIndexMapper {
 public:
   TimeStamp offset;
@@ -60,40 +47,52 @@ void foreachSpan(const TimeStampToIndexMapper &mapper,
   }
 }
 
-/*template <typename T>
-ValueAccumulator<T> makeValueAccumulator(
+template <typename T>
+struct ValueAccumulator {
+  struct ValueGroup {
+    int sensorIndex;
+    int sampleIndex;
+    Spani span;
+  };
+
+  ValueAccumulator(
     const TimeStampToIndexMapper &mapper,
     const std::map<std::string, Array<TimedValue<T> > > &srcData) {
-  ValueAccumulator<T> dst;
-  int sensorCounter = 0;
-  int sampleCounter = 0;
-  int groupCounter = 0;
-  for (auto kv: srcData) {
-    dst.sensorIndices[kv.first] = sensorCounter++;
-    foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
-      groupCounter++;
-      sampleCounter += span.width();
-    });
-  }
-  dst.valueGroupPerIndex.reserve(mapper.sampleCount);
-  dst.valueGroups.reserve(groupCounter);
-  dst.allValues.reserve(sampleCounter);
+    int sensorCounter = 0;
+    int sampleCounter = 0;
+    int groupCounter = 0;
+    for (auto kv: srcData) {
+      sensorIndices[kv.first] = sensorCounter++;
+      foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
+        groupCounter++;
+        sampleCounter += span.width();
+      });
+    }
+    valueGroupPerIndex.reserve(mapper.sampleCount);
+    valueGroups.reserve(groupCounter);
+    allValues.reserve(sampleCounter);
 
-  assert(sensorCounter == dst.sensorIndices.size());
-  for (auto kv: srcData) {
-    assert(dst.sensorIndices.count(kv.first) == 1);
-    int sensorIndex = dst.sensorIndices[kv.first];
-    foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
-      int from = dst.allValues.size();
-      for (auto i: span) {
-        dst.allValues.push_back(kv.second[i]);
-      }
-      int to = dst.allValues.size();
-      dst.valueGroups.push_back();
-    });
+    assert(sensorCounter == sensorIndices.size());
+    for (auto kv: srcData) {
+      assert(sensorIndices.count(kv.first) == 1);
+      int sensorIndex = sensorIndices[kv.first];
+      foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
+        int from = allValues.size();
+        for (auto i: span) {
+          allValues.push_back(kv.second[i]);
+        }
+        int to = allValues.size();
+        valueGroups.push_back();
+      });
+    }
   }
-}*/
 
+
+  std::map<std::string, int> sensorIndices;
+  std::vector<Spani> valueGroupPerIndex;
+  std::vector<ValueGroup> valueGroups;
+  std::vector<T> allValues;
+};
 
 
 template <typename T, typename BoatStateSettings>
