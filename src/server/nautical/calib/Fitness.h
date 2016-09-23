@@ -226,12 +226,28 @@ struct ReconstructedBoatState {
   }
 };
 
+template <typename T, DataCode code>
+struct ValueToFit {
+  typedef typename TypeForCode<code>::type Observation;
+  typedef typename DistortionModel<T, code>::type Distortion;
+  Distortion distortion;
+  Observation observation;
+};
+
+template <typename T, DataCode code>
+using ValuesToFit = std::vector<ValueToFit<T, code> >;
+
 template <typename T, typename Settings>
 struct DataFit {
   typedef ReconstructedBoatState<T, Settings> State;
 
   static const int inputCount = State::valueDimension;
 
+  ValuesToFit<T, AWA> AWA;
+  ValuesToFit<T, AWS> AWS;
+  ValuesToFit<T, MAG_HEADING> MAG_HEADING;
+  ValuesToFit<T, WAT_SPEED> WAT_SPEED;
+  ValuesToFit<T, ORIENT> ORIENT;
 };
 
 template <DataCode code, typename BoatStateSettings>

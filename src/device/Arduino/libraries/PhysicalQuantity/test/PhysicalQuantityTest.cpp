@@ -9,6 +9,15 @@
 
 using namespace sail;
 
+#define TEST_PACKING(TYPE) \
+    static_assert(sizeof(Velocity<TYPE>) == sizeof(TYPE), "Not packed");
+
+TEST_PACKING(int)
+TEST_PACKING(float)
+TEST_PACKING(double)
+TEST_PACKING(unsigned char)
+TEST_PACKING(char)
+
 TEST(PhysQuantTest, InitialValue) {
   EXPECT_TRUE(std::isnan(InitialValue<double>::get()));
   EXPECT_TRUE(std::isnan(InitialValue<float>::get()));
