@@ -92,6 +92,15 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   EXPECT_EQ(assignedIndices, (std::vector<int>{0, 1}));
   EXPECT_EQ(acc.values.size(), 4 + 2);
   EXPECT_EQ(acc.valuesPerIndex.size(), 3);
+
+  EXPECT_EQ(acc.valuesPerIndex[0].first, 0);
+  EXPECT_EQ(acc.valuesPerIndex[1].first, 4);
+  EXPECT_EQ(acc.valuesPerIndex[2].first, 9);
+
+  EXPECT_EQ(acc.valuesPerIndex[0].second, Spani(0, 1));
+  EXPECT_EQ(acc.valuesPerIndex[1].second, Spani(1, 4));
+  EXPECT_EQ(acc.valuesPerIndex[2].second, Spani(4, 6));
+
   {
     auto x = acc.values[0];
     EXPECT_EQ(x.sampleIndex, 0);

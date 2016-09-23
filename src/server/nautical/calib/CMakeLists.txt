@@ -119,6 +119,7 @@ cxx_test(calib_BoatStateReconstructor
   BoatStateReconstructorTest.cpp
   common_TimeStamp
   gtest_main
+  common_Span
   )
   
 add_library(calib_Reconstructor
