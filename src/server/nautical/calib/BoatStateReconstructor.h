@@ -47,51 +47,56 @@ void foreachSpan(const TimeStampToIndexMapper &mapper,
   }
 }
 
+// A memory- and cache efficient data structure
+// used by the optimizer
 template <typename T>
 struct ValueAccumulator {
-  struct ValueGroup {
+  struct TaggedValue {
     int sensorIndex;
     int sampleIndex;
-    Spani span;
+    T value;
+
+    bool operator<(const TaggedValue &other) const {
+      return sampleIndex < other.sampleIndex;
+    }
   };
 
   ValueAccumulator(
     const TimeStampToIndexMapper &mapper,
     const std::map<std::string, Array<TimedValue<T> > > &srcData) {
+    assert(std::is_sorted(srcData.begin(), srcData.end()));
     int sensorCounter = 0;
     int sampleCounter = 0;
-    int groupCounter = 0;
     for (auto kv: srcData) {
       sensorIndices[kv.first] = sensorCounter++;
       foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
-        groupCounter++;
         sampleCounter += span.width();
       });
     }
-    valueGroupPerIndex.reserve(mapper.sampleCount);
-    valueGroups.reserve(groupCounter);
-    allValues.reserve(sampleCounter);
+    valuesPerIndex.reserve(mapper.sampleCount);
+    values.reserve(sampleCounter);
 
     assert(sensorCounter == sensorIndices.size());
     for (auto kv: srcData) {
       assert(sensorIndices.count(kv.first) == 1);
       int sensorIndex = sensorIndices[kv.first];
       foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
-        int from = allValues.size();
         for (auto i: span) {
-          allValues.push_back(kv.second[i]);
+          values.push_back(TaggedValue{
+            sensorIndex, sampleIndex, kv.second[i]});
         }
-        int to = allValues.size();
-        valueGroups.push_back();
       });
+    }
+    assert(values.size() == sampleCounter);
+    std::sort(values.begin(), values.end());
+    for (int i = 0; i < values.size(); i++) {
+      valuesPerIndex[values[i].sampleIndex].extend(i);
     }
   }
 
-
   std::map<std::string, int> sensorIndices;
-  std::vector<Spani> valueGroupPerIndex;
-  std::vector<ValueGroup> valueGroups;
-  std::vector<T> allValues;
+  std::vector<Spani> valuesPerIndex;
+  std::vector<TaggedValue> values;
 };
 
 

@@ -16,11 +16,12 @@ namespace {
   TimeStamp t(double s) {
     return offsetTime + Duration<double>::seconds(s);
   }
+
+  TimeStampToIndexMapper mapper{
+    offsetTime, 2.0_s, 4};
 }
 
 TEST(BoatStateReconstructor, TimeMapper) {
-  TimeStampToIndexMapper mapper{
-    offsetTime, 2.0_s, 4};
   EXPECT_EQ(mapper.offset, offsetTime);
   EXPECT_EQ(mapper.period, 2.0_s);
   EXPECT_EQ(mapper.sampleCount, 4);
@@ -59,6 +60,9 @@ TEST(BoatStateReconstructor, TimeMapper) {
   EXPECT_EQ(c1.span.maxv(), 5);
 }
 
+TEST(BoatStateReconstructor, ValueAccumulator) {
+
+}
 /*TEST(BoatStateReconstructor, BasicTest) {
   Array<BoatState<double> > initialStates(1);
   BoatStateReconstructor<double, ServerBoatStateSettings>
