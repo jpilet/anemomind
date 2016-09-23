@@ -115,12 +115,17 @@ public:
   BoatStateReconstructor(
       const TimeStampToIndexMapper &mapper,
       const CalibDataChunk &chunk) :
+#define INITIALIZE_VALUE_ACC(HANDLE) \
+  HANDLE(mapper, chunk.HANDLE),
+FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
+#undef INITIALIZE_VALUE_ACC
+
         _timeMapper(mapper) {}
 private:
   TimeStampToIndexMapper _timeMapper;
 #define DECLARE_VALUE_ACC(HANDLE) \
   ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
-FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
+  FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
 #undef DECLARE_VALUE_ACC
 };
 
