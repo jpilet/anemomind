@@ -42,9 +42,10 @@ public:
 
   CostFunctionBase(Spani ir) : inputRange(ir) {}
 
-  virtual bool accumulateCost(const T *Xfull, T *totalCost) = 0;
+  virtual bool accumulateCost(
+      const T *Xlocal, T *totalCost) = 0;
   virtual bool accumulateNormalEquations(
-      const T *Xfull,
+      const T *Xlocal,
       SymmetricBandMatrixL<T> *JtJ,
       MDArray<T, 2> *minusJtF,
       T *totalCost) = 0;
