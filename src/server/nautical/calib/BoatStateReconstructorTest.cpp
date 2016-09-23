@@ -17,19 +17,19 @@ namespace {
     return offsetTime + Duration<double>::seconds(s);
   }
 
-  TimeStampToIndexMapper mapper{
+  TimeStampToIndexMapper mapper0{
     offsetTime, 2.0_s, 4};
 }
 
 TEST(BoatStateReconstructor, TimeMapper) {
-  EXPECT_EQ(mapper.offset, offsetTime);
-  EXPECT_EQ(mapper.period, 2.0_s);
-  EXPECT_EQ(mapper.sampleCount, 4);
-  EXPECT_EQ(mapper.map(offsetTime - 1.0_s), -1);
-  EXPECT_EQ(mapper.map(offsetTime - 9.0_s), -1);
-  EXPECT_EQ(mapper.map(offsetTime + 1.0_s), 0);
-  EXPECT_EQ(mapper.map(offsetTime + 3.0_s), 1);
-  EXPECT_EQ(mapper.map(offsetTime + 9.0_s), -1);
+  EXPECT_EQ(mapper0.offset, offsetTime);
+  EXPECT_EQ(mapper0.period, 2.0_s);
+  EXPECT_EQ(mapper0.sampleCount, 4);
+  EXPECT_EQ(mapper0.map(offsetTime - 1.0_s), -1);
+  EXPECT_EQ(mapper0.map(offsetTime - 9.0_s), -1);
+  EXPECT_EQ(mapper0.map(offsetTime + 1.0_s), 0);
+  EXPECT_EQ(mapper0.map(offsetTime + 3.0_s), 1);
+  EXPECT_EQ(mapper0.map(offsetTime + 9.0_s), -1);
 
   struct Call {
     int index;
@@ -45,7 +45,7 @@ TEST(BoatStateReconstructor, TimeMapper) {
     {t(5), 9.0_kn},
     {t(11), 9.4_kn}
   };
-  foreachSpan<Velocity<double> >(mapper, values,
+  foreachSpan<Velocity<double> >(mapper0, values,
       [&](int index, Spani span) {
     calls.push_back(Call{index, span});
   });
@@ -61,7 +61,13 @@ TEST(BoatStateReconstructor, TimeMapper) {
 }
 
 TEST(BoatStateReconstructor, ValueAccumulator) {
+  TimeStampToIndexMapper mapper{
+    offsetTime, 1.0_s, 30};
 
+  std::map<std::string, Array<TimedValue<Velocity<double>>>> src{
+    {"NMEA2000", {}},
+    {"Anemobox", {}}
+  };
 }
 /*TEST(BoatStateReconstructor, BasicTest) {
   Array<BoatState<double> > initialStates(1);
