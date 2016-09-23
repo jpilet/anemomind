@@ -13,6 +13,9 @@ using namespace sail;
 namespace {
   TimeStamp offsetTime = TimeStamp::UTC(2016, 9, 22, 15, 17, 0);
 
+  TimeStamp t(double s) {
+    return offsetTime + Duration<double>::seconds(s);
+  }
 }
 
 TEST(BoatStateReconstructor, TimeMapper) {
@@ -26,6 +29,25 @@ TEST(BoatStateReconstructor, TimeMapper) {
   EXPECT_EQ(mapper.map(offsetTime + 1.0_s), 0);
   EXPECT_EQ(mapper.map(offsetTime + 3.0_s), 1);
   EXPECT_EQ(mapper.map(offsetTime + 9.0_s), -1);
+
+  struct Call {
+    int index;
+    Spani span;
+  };
+  std::vector<Call> calls;
+
+  Array<TimedValue<Velocity<double> > > values{
+    {t(0.1), 3.4_kn},
+    {t(1.0), 4.4_kn},
+    {t(1.5), 4.5_kn},
+    {t(7), 9.0_kn},
+    {t(11), 9.4_kn}
+  };
+  foreachSpan<Velocity<double> >(mapper, values,
+      [&](int index, Spani span) {
+    calls.push_back(Call{index, span});
+  });
+
 }
 
 /*TEST(BoatStateReconstructor, BasicTest) {

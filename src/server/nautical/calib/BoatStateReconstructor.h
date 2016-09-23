@@ -40,7 +40,8 @@ public:
 
 template <typename T>
 void foreachSpan(const TimeStampToIndexMapper &mapper,
-    const Array<TimedValue<T> > &values, std::function<void(Spani)> cb) {
+    const Array<TimedValue<T> > &values,
+    std::function<void(int, Spani)> cb) {
   int currentPosition = 0;
   while (currentPosition < values.size()) {
     int currentIndex = mapper.map(values[currentPosition].time);
@@ -53,8 +54,9 @@ void foreachSpan(const TimeStampToIndexMapper &mapper,
       nextPosition++;
     }
     if (currentIndex != -1) {
-      cb(Spani(currentPosition, nextPosition));
+      cb(currentIndex, Spani(currentPosition, nextPosition));
     }
+    currentPosition = nextPosition;
   }
 }
 
