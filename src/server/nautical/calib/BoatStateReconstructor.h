@@ -30,7 +30,7 @@ public:
   int sampleCount;
 
   int map(TimeStamp t) const {
-    int index = int(floor((t - offset)/period));
+    int index = int(round((t - offset)/period));
     return 0 <= index && index < sampleCount? index : -1;
   }
 };
@@ -125,31 +125,54 @@ struct ValueAccumulator {
 };
 
 
+template <typename T, DataCode code>
+void addObjfs(
+    const std::map<std::string, DistortionModel<T, code> > &sensors,
+    const Array<BoatState<double> > &initialStates,
+    const ValueAccumulator<typename TypeForCode<code>::type> &values,
+    BandedLevMar::Problem<T> *dst) {
+
+}
+
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
   BoatStateReconstructor(
+      const Array<BoatState<double> > &initialStates,
       const TimeStampToIndexMapper &mapper,
       const CalibDataChunk &chunk) :
 #define INITIALIZE_VALUE_ACC(HANDLE) \
   HANDLE(mapper, chunk.HANDLE),
 FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
 #undef INITIALIZE_VALUE_ACC
-        _timeMapper(mapper) {}
+        _timeMapper(mapper),
+        _initialStates(initialStates) {
+    CHECK(initialStates.size() == mapper.sampleCount);
+  }
 
   template <typename T>
   Array<BoatState<T> > reconstruct(
       const SensorDistortionSet<T> &sensorParams) const {
     using namespace BandedLevMar;
-    Problem<T> problem;
-    //runLevMar();
+    int regCount = _timeMapper.sampleCount - 1;
+    int dataCount = 0;
+#define COUNT_DATAFITS(HANDLE) \
+  dataCount += HANDLE.valuesPerIndex.size();
+FOREACH_MEASURE_TO_CONSIDER(COUNT_DATAFITS)
+#undef COUNT_DATAFITS
+    Problem<T> problem(dataCount + regCount);
+#define ADD_OBJF(HANDLE) \
+  addObjfs<T, HANDLE>(sensorParams.HANDLE, _initialStates, HANDLE, &problem);
+FOREACH_MEASURE_TO_CONSIDER(ADD_OBJF)
+#undef ADD_OBJFS
   }
 private:
-  TimeStampToIndexMapper _timeMapper;
 #define DECLARE_VALUE_ACC(HANDLE) \
   ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
   FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
 #undef DECLARE_VALUE_ACC
+  TimeStampToIndexMapper _timeMapper;
+  Array<BoatState<double> > _initialStates;
 };
 
 

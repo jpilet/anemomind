@@ -25,11 +25,11 @@ TEST(BoatStateReconstructor, TimeMapper) {
   EXPECT_EQ(mapper0.offset, offsetTime);
   EXPECT_EQ(mapper0.period, 2.0_s);
   EXPECT_EQ(mapper0.sampleCount, 4);
-  EXPECT_EQ(mapper0.map(offsetTime - 1.0_s), -1);
+  EXPECT_EQ(mapper0.map(offsetTime - 10.0_s), -1);
   EXPECT_EQ(mapper0.map(offsetTime - 9.0_s), -1);
-  EXPECT_EQ(mapper0.map(offsetTime + 1.0_s), 0);
-  EXPECT_EQ(mapper0.map(offsetTime + 3.0_s), 1);
-  EXPECT_EQ(mapper0.map(offsetTime + 9.0_s), -1);
+  EXPECT_EQ(mapper0.map(offsetTime + 0.9_s), 0);
+  EXPECT_EQ(mapper0.map(offsetTime + 1.9_s), 1);
+  EXPECT_EQ(mapper0.map(offsetTime + 356.0_s), -1);
 
   struct Call {
     int index;
@@ -40,9 +40,9 @@ TEST(BoatStateReconstructor, TimeMapper) {
   Array<TimedValue<Velocity<double> > > values{
     {t(-11.3), 3.4_kn},
     {t(0.1), 3.4_kn},
-    {t(1.0), 4.4_kn},
-    {t(1.5), 4.5_kn},
-    {t(5), 9.0_kn},
+    {t(0.8), 4.4_kn},
+    {t(0.9), 4.5_kn},
+    {t(4.9), 9.0_kn},
     {t(11), 9.4_kn}
   };
   foreachSpan<Velocity<double> >(mapper0, values,
@@ -67,13 +67,13 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   std::map<std::string, Array<TimedValue<Velocity<double>>>> src{
     {"NMEA2000", {
         {t(0.4), 3.4_kn},
-        {t(4.56), 2.0_kn},
-        {t(9.6), 5.5_kn},
-        {t(9.7), 5.4_kn}
+        {t(4.3), 2.0_kn},
+        {t(8.9), 5.5_kn},
+        {t(9.2), 5.4_kn}
     }},
     {"Anemobox", {
-        {t(4.5), 9.9_kn},
-        {t(4.6), 11.4_kn}
+        {t(3.9), 9.9_kn},
+        {t(4.2), 11.4_kn}
     }}
   };
 
