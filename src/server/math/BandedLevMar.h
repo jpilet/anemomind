@@ -47,6 +47,61 @@ public:
       T *totalCost) = 0;
 };
 
+template <typename T, int inputCount, int outputCount>
+struct WithJacobianOutput {
+  typedef ceres::Jet<T, inputCount> ADType;
+
+  ADType X[inputCount];
+  ADType F[outputCount];
+
+  WithJacobianOutput(const T *srcX) {
+    for (int i = 0; i < inputCount; i++) {
+      auto x = ADType(srcX[i]);
+      x.v[i] = T(1.0);
+      X[i] = x;
+    }
+  }
+
+  void done(T *Fout, T *Jout) const {
+    for (int i = 0; i < outputCount; i++) {
+      auto y = F[i];
+      Fout[i] = y.a;
+      auto Jsub = Jout + i;
+      for (int j = 0; j < inputCount; j++) {
+        Jsub[j*outputCount] = y.v[j];
+      }
+    }
+  }
+
+  void done(
+      int offset,
+      SymmetricBandMatrixL<T> *JtJ,
+      MDArray<T, 2> *minusJtF, T *totalCost) {
+    T Ftmp[outputCount];
+    T Jtmp[outputCount*inputCount];
+
+    done(Ftmp, Jtmp);
+
+    for (int i = 0; i < outputCount; i++) {
+      T f = Ftmp[i];
+      *totalCost += f*f;
+    }
+
+    // TODO: Wrap it with Eigen::Map, so that
+    // we can use Eigen instead of our home-made matrix multiplication...
+    for (int i = 0; i < inputCount; i++) {
+      T *j0 = Jtmp + i*outputCount;
+      (*minusJtF)(offset + i, 0) -=
+          dotProduct<outputCount>(j0, Ftmp);
+      for (int j = 0; j < inputCount; j++) {
+        T *j1 = Jtmp + j*outputCount;
+        JtJ->add(offset + i, offset + j,
+            dotProduct<outputCount>(j0, j1));
+      }
+    }
+  }
+};
+
 template <typename CostEvaluator, typename T>
 class SharedCostFunction : public CostFunctionBase<T> {
 public:
