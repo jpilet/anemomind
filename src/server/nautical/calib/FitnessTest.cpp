@@ -144,7 +144,11 @@ TEST(FitnessTest, ValuesToFit) {
 
 TEST(FitnessTest, DataFitTest) {
 
-  DataFit<double, FullSettings> fit;
+  BoatState<double> bs;
+  Spani span(0,
+      ReconstructedBoatState<double,
+        FullSettings>::valueDimension);
+  DataFit<double, FullSettings> fit(span, bs);
 
 
 }

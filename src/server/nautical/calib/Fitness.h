@@ -15,6 +15,7 @@
 #include <server/nautical/BoatState.h>
 #include <server/math/JetUtils.h>
 #include <server/common/Span.h>
+#include <server/math/BandedLevMar.h>
 
 namespace sail {
 
@@ -262,25 +263,44 @@ struct ValuesToFit {
 // The part of the objective function related to
 // fitting measures
 template <typename T, typename Settings>
-struct DataFit {
+struct DataFit : public BandedLevMar::CostFunctionBase<T> {
   typedef ReconstructedBoatState<T, Settings> State;
 
-  static const int inputCount = State::valueDimension;
+  static const int N = State::valueDimension;
 
-  BoatState<double> prototype;
+
+  DataFit(
+      Spani inputRange,
+      const BoatState<T> &prototype) :
+        _inputRange(inputRange),
+        _prototype(prototype) {
+    assert(inputRange.width() == N);
+  }
+
+  int inputCount() const override {return State::valueDimension;}
+  Spani inputRange() const override {return _inputRange;}
+
+  bool accumulateCost(const T *X, T *totalCost) override {
+    return true;
+  }
+
+  bool accumulateNormalEquations(
+      const T *X,
+      SymmetricBandMatrixL<T> *JtJ,
+      MDArray<T, 2> *minusJtF,
+      T *totalCost) override {
+    return true;
+  }
 
 #define LIST_MEASURE_FIELD(CODE) \
   ValuesToFit<T, CODE> CODE;
 FOREACH_MEASURE_TO_CONSIDER(LIST_MEASURE_FIELD)
 #undef LIST_MEASURE_FIELD
 
-  template <typename S>
-  bool evaluate(const S *X, S *Y) const {
-    ReconstructedBoatState<S, Settings> state
-      = ReconstructedBoatState<S, Settings>::make(prototype);
-    state.read(&X);
-    return true;
-  }
+  virtual ~DataFit() {}
+private:
+  Spani _inputRange;
+  BoatState<double> _prototype;
 };
 
 } /* namespace sail */

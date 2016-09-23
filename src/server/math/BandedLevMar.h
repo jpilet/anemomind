@@ -47,6 +47,7 @@ public:
       T *totalCost) = 0;
 };
 
+
 template <typename T, int outputCount>
 struct WithCostOutput {
   T F[outputCount];
@@ -60,20 +61,25 @@ struct WithCostOutput {
   }
 };
 
-template <typename T, int outputCount, int inputCount>
-struct WithJacobianOutput {
+template <typename T, int inputCount>
+struct ADInputVector {
   typedef ceres::Jet<T, inputCount> ADType;
-
   ADType X[inputCount];
-  ADType F[outputCount];
 
-  WithJacobianOutput(const T *srcX) {
+  ADInputVector(const T *srcX) {
     for (int i = 0; i < inputCount; i++) {
       auto x = ADType(srcX[i]);
       x.v[i] = T(1.0);
       X[i] = x;
     }
   }
+};
+
+
+template <typename T, int outputCount, int inputCount>
+struct WithJacobianOutput {
+  typedef ceres::Jet<T, inputCount> ADType;
+  ADType F[outputCount];
 
   void done(T *Fout, T *Jout) const {
     for (int i = 0; i < outputCount; i++) {
@@ -139,7 +145,7 @@ public:
 
   bool accumulateCost(const T *X, T *totalCost) override {
     WithCostOutput<T, CostEvaluator::outputCount> with;
-    if (!_f->evaluate(X + _inputRange.minv(), with.F)) {
+    if (!_f->evaluate(X, with.F)) {
       return false;
     }
     with.done(totalCost);
@@ -149,12 +155,13 @@ public:
   bool accumulateNormalEquations(
       const T *X, SymmetricBandMatrixL<T> *JtJ,
       MDArray<T, 2> *minusJtF, T *totalCost) override {
+    ADInputVector<T, CostEvaluator::inputCount> input(X);
     WithJacobianOutput<T, CostEvaluator::outputCount,
-      CostEvaluator::inputCount> with(X);
-    if (!_f->evaluate(with.X, with.F)) {
+      CostEvaluator::inputCount> output;
+    if (!_f->evaluate(input.X, output.F)) {
       return false;
     }
-    with.done(_inputRange.minv(), JtJ, minusJtF, totalCost);
+    output.done(_inputRange.minv(), JtJ, minusJtF, totalCost);
     return true;
   }
 private:
@@ -221,7 +228,7 @@ public:
   bool evaluate(const T *X, T *totalCost) const {
     *totalCost = T(0.0);
     for (const auto &f: _costFunctions) {
-      if (!f->accumulateCost(X, totalCost)) {
+      if (!f->accumulateCost(X + f->inputRange().minv(), totalCost)) {
         return false;
       }
     }
