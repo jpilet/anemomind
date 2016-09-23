@@ -47,7 +47,7 @@ public:
       T *totalCost) = 0;
 };
 
-template <typename T, int inputCount, int outputCount>
+template <typename T, int outputCount, int inputCount>
 struct WithJacobianOutput {
   typedef ceres::Jet<T, inputCount> ADType;
 
@@ -165,31 +165,12 @@ public:
   bool accumulateNormalEquations(
       const T *X, SymmetricBandMatrixL<T> *JtJ,
       MDArray<T, 2> *minusJtF, T *totalCost) override {
-    T F[CostEvaluator::outputCount];
-    T J[CostEvaluator::outputCount*CostEvaluator::inputCount];
-    if (!evaluate(X, F, J)) {
+    WithJacobianOutput<T, CostEvaluator::outputCount,
+      CostEvaluator::inputCount> with(X);
+    if (!_f->evaluate(with.X, with.F)) {
       return false;
     }
-
-    for (int i = 0; i < CostEvaluator::outputCount; i++) {
-      T f = F[i];
-      *totalCost += f*f;
-    }
-
-    int offset = _inputRange.minv();
-
-    // TODO: Wrap it with Eigen::Map, so that
-    // we can use Eigen instead of our home-made matrix multiplication...
-    for (int i = 0; i < CostEvaluator::inputCount; i++) {
-      T *j0 = J + i*CostEvaluator::outputCount;
-      (*minusJtF)(offset + i, 0) -=
-          dotProduct<CostEvaluator::outputCount>(j0, F);
-      for (int j = 0; j < CostEvaluator::inputCount; j++) {
-        T *j1 = J + j*CostEvaluator::outputCount;
-        JtJ->add(offset + i, offset + j,
-            dotProduct<CostEvaluator::outputCount>(j0, j1));
-      }
-    }
+    with.done(_inputRange.minv(), JtJ, minusJtF, totalCost);
     return true;
   }
 private:
