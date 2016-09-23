@@ -260,6 +260,18 @@ struct ValuesToFit {
   OP(WAT_SPEED) \
   OP(ORIENT)
 
+template <typename T>
+struct ValueAccumulator {
+  struct ValueGroup {
+    int sensorIndex;
+    int sampleIndex;
+    Spani span;
+  };
+  std::vector<Spani> valueGroupGroups;
+  std::vector<ValueGroup> valueGroups;
+  std::vector<T> allValues;
+};
+
 // The part of the objective function related to
 // fitting measures
 template <typename T, typename Settings>
