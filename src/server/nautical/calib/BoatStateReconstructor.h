@@ -29,6 +29,7 @@ template <typename T>
 void foreachSpan(const TimeStampToIndexMapper &mapper,
     const Array<TimedValue<T> > &values,
     std::function<void(int, Spani)> cb) {
+  assert(std::is_sorted(values.begin(), values.end()));
   int currentPosition = 0;
   while (currentPosition < values.size()) {
     int currentIndex = mapper.map(values[currentPosition].time);
@@ -64,7 +65,6 @@ struct ValueAccumulator {
   ValueAccumulator(
     const TimeStampToIndexMapper &mapper,
     const std::map<std::string, Array<TimedValue<T> > > &srcData) {
-    assert(std::is_sorted(srcData.begin(), srcData.end()));
     int sensorCounter = 0;
     int sampleCounter = 0;
     for (auto kv: srcData) {
@@ -83,7 +83,7 @@ struct ValueAccumulator {
       foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
         for (auto i: span) {
           values.push_back(TaggedValue{
-            sensorIndex, sampleIndex, kv.second[i]});
+            sensorIndex, sampleIndex, kv.second[i].value});
         }
       });
     }

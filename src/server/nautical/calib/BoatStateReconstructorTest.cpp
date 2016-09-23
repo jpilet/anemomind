@@ -67,12 +67,16 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   std::map<std::string, Array<TimedValue<Velocity<double>>>> src{
     {"NMEA2000", {
         {t(0.4), 3.4_kn},
-        {t(9.6), 5.5_kn}
+        {t(4.56), 2.0_kn},
+        {t(9.6), 5.5_kn},
+        {t(9.7), 5.4_kn}
     }},
     {"Anemobox", {
-        {t(4.5), 9.9_kn}
+        {t(4.5), 9.9_kn},
+        {t(4.6), 11.4_kn}
     }}
   };
 
+  ValueAccumulator<Velocity<double> > acc(mapper, src);
 
 }
