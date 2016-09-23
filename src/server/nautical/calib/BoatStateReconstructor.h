@@ -13,6 +13,15 @@
 
 namespace sail {
 
+// A CalibDataChunk are measurements that are grouped together
+struct CalibDataChunk {
+  Array<TimedValue<GeographicPosition<double>>> filteredPositions;
+#define MAKE_DATA_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  std::map<std::string, Array<TimedValue<TYPE>>> HANDLE;
+FOREACH_CHANNEL(MAKE_DATA_MAP)
+#undef MAKE_DATA_MAP
+};
+
 struct TimeStampToIndexMapper {
 public:
   TimeStamp offset;
@@ -100,43 +109,19 @@ struct ValueAccumulator {
 };
 
 
-template <typename T, typename BoatStateSettings>
+template <typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
   BoatStateReconstructor(
-      TimeStamp offsetTime,
-      Duration<double> samplingPeriod,
-      const Array<BoatState<T> > &base) :
-        _offsetTime(offsetTime),
-        _samplingPeriod(samplingPeriod),
-        _base(base) {}
-
-  /*template <DataCode code>
-  void addObservation(
-      TimedValue<typename TypeForCode<code>::type> &x) {
-    double realIndex = (x.time - _offsetTime)/_samplingPeriod;
-    int index = int(round(realIndex));
-    const int inputCount = BoatStateParamCount<BoatStateSettings>::value;
-    if (0 <= index && index < sampleCount()-1) {
-      int from = index*inputCount;
-      int to = from + 2*inputCount;
-      _problem.addCost(
-          Spani(from, to),
-          new BoatStateFitness<code, BoatStateSettings>(
-              realIndex, x.value,
-              _base.ptr() + index));
-
-    }
-  }*/
-
-  int sampleCount() const {
-    return _base.size();
-  }
+      const TimeStampToIndexMapper &mapper,
+      const CalibDataChunk &chunk) :
+        _timeMapper(mapper) {}
 private:
-  TimeStamp _offsetTime;
-  Duration<double> _samplingPeriod;
-  Array<BoatState<double> > _base;
-  BandedLevMar::Problem<T> _problem;
+  TimeStampToIndexMapper _timeMapper;
+#define DECLARE_VALUE_ACC(HANDLE) \
+  ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
+FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
+#undef DECLARE_VALUE_ACC
 };
 
 

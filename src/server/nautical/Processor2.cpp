@@ -25,10 +25,10 @@ namespace sail {
 namespace Processor2 {
 
 struct CutVisitor {
-  Array<Reconstructor::CalibDataChunk> &_chunks;
+  Array<CalibDataChunk> &_chunks;
   Array<Span<TimeStamp>> _timeSpans;
 
-  CutVisitor(Array<Reconstructor::CalibDataChunk> *chunks,
+  CutVisitor(Array<CalibDataChunk> *chunks,
       const Array<Span<TimeStamp>> &timeSpans) :
     _chunks(*chunks),
     _timeSpans(timeSpans) {}
@@ -63,7 +63,7 @@ std::string getSpanString(const Array<TimedValue<T>> &data) {
 }
 
 std::ostream &operator<<(std::ostream &stream,
-    const Reconstructor::CalibDataChunk &chunk) {
+    const CalibDataChunk &chunk) {
   stream << "Filtered GPS positions: "
       << getSpanString(chunk.filteredPositions) << std::endl;
 #define DISP_CHANNELS(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
@@ -78,7 +78,7 @@ FOREACH_CHANNEL(DISP_CHANNELS)
 void outputChunkInformation(
     std::string filename,
     const Array<Span<TimeStamp>> &timeSpans,
-    const Array<Reconstructor::CalibDataChunk> &chunks) {
+    const Array<CalibDataChunk> &chunks) {
   std::ofstream file(filename);
   std::cout << "Number of time spans: " << timeSpans.size() << std::endl;
   CHECK(timeSpans.size() == chunks.size());
@@ -94,7 +94,7 @@ void outputChunkInformation(
   }
 }
 
-Array<Reconstructor::CalibDataChunk> makeCalibChunks(
+Array<CalibDataChunk> makeCalibChunks(
     const Array<Span<TimeStamp>> &timeSpans,
     const Array<TimedValue<GeographicPosition<double>>> &filteredPositions,
     const Dispatcher *d) {
@@ -105,7 +105,7 @@ Array<Reconstructor::CalibDataChunk> makeCalibChunks(
       timeSpans);
 
   int n = timeSpans.size();
-  Array<Reconstructor::CalibDataChunk> chunks(n);
+  Array<CalibDataChunk> chunks(n);
   for (int i = 0; i < n; i++) {
     chunks[i].filteredPositions = cutGpsPositions[i];
   }
@@ -132,7 +132,7 @@ Array<Reconstructor::Results> reconstructAllGroups(
     const Dispatcher *d,
     const Settings &settings) {
 
-  Array<Reconstructor::CalibDataChunk> chunks
+  Array<CalibDataChunk> chunks
     = makeCalibChunks(smallSessions, positions, d);
 
   if (settings.debug) {

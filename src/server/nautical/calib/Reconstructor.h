@@ -14,6 +14,7 @@
 #include <ceres/ceres.h>
 #include <server/nautical/BoatState.h>
 #include <unordered_map>
+#include <server/nautical/calib/BoatStateReconstructor.h>
 #include <server/nautical/calib/SensorSet.h>
 
 namespace sail {
@@ -21,15 +22,6 @@ namespace Reconstructor {
 
 struct Settings {
   Duration<double> windowSize = Duration<double>::minutes(1.0);
-};
-
-// A CalibDataChunk are measurements that are grouped together
-struct CalibDataChunk {
-  Array<TimedValue<GeographicPosition<double>>> filteredPositions;
-#define MAKE_DATA_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, Array<TimedValue<TYPE>>> HANDLE;
-FOREACH_CHANNEL(MAKE_DATA_MAP)
-#undef MAKE_DATA_MAP
 };
 
 class ChannelRef {
