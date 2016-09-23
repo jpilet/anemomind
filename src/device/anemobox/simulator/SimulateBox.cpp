@@ -20,49 +20,61 @@ bool isFresh(const Dispatcher& dispatcher) {
 
 namespace {
 
-  class EventListener:
+  class EstimateOnNewValue:
     public Listener<Angle<double>>,
-    public Listener<Velocity<double>>,
-    public Listener<Length<double>>,
-    public Listener<GeographicPosition<double>>,
-    public Listener<TimeStamp>,
-    public Listener<AbsoluteOrientation> {
+    public Listener<Velocity<double>> {
    public:
-    EventListener(const std::function<void()> &cb) : _cb(cb) {}
+     EstimateOnNewValue(DispatcherTrueWindEstimator *estimator,
+                        const std::string& srcName,
+                        ReplayDispatcher *replayDispatcher)
+         : _estimator(estimator), _srcName(srcName), _timer(false),
+         _replayDispatcher(replayDispatcher) {
 
-    void onNewValue(const ValueDispatcher<Angle<double> > &dispatcher) {
-      _cb();
+       // This list should match the 'triggeringFields' in estimator.js
+       replayDispatcher->get<AWA>()->dispatcher()->subscribe(this);
+       replayDispatcher->get<AWS>()->dispatcher()->subscribe(this);
+       replayDispatcher->get<GPS_SPEED>()->dispatcher()->subscribe(this);
+       replayDispatcher->get<GPS_BEARING>()->dispatcher()->subscribe(this);
+       replayDispatcher->get<WAT_SPEED>()->dispatcher()->subscribe(this);
+       replayDispatcher->get<MAG_HEADING>()->dispatcher()->subscribe(this);
+
+       // The _onTimeout callback is created as a member to avoid closure
+       // creation (and environment capture) at every estimate() call.
+       // The methode estimate() is called many time during replay.
+       _onTimeout = [&]() {
+         _timer = false;
+         _estimator->compute(_srcName);
+       };
+     }
+
+    void estimate() {
+      // Inspired by the function 'start' in anemonode/components/estimator.js
+      if (!_timer) {
+        _timer = true;
+        _replayDispatcher->setTimeout(_onTimeout, 20);
+      }
     }
 
-    void onNewValue(const ValueDispatcher<Velocity<double> > &dispatcher) {
-      _cb();
+    virtual void onNewValue(const ValueDispatcher<Angle<double> > &) {
+      estimate();
     }
 
-    void onNewValue(const ValueDispatcher<Length<double> > &dispatcher) {
-      _cb();
-    }
-
-    void onNewValue(const ValueDispatcher<GeographicPosition<double> > &dispatcher) {
-      _cb();
-    }
-
-    void onNewValue(const ValueDispatcher<TimeStamp> &dispatcher) {
-      _cb();
-    }
-
-    void onNewValue(const ValueDispatcher<AbsoluteOrientation> &dispatcher) {
-      _cb();
+    virtual void onNewValue(const ValueDispatcher<Velocity<double> > &) {
+      estimate();
     }
 
    private:
-    EventListener(const EventListener &other) = delete;
-
-    std::function<void()> _cb;
+    DispatcherTrueWindEstimator* _estimator;
+    std::string _srcName;
+    bool _timer;
+    std::function<void()> _onTimeout;
+    ReplayDispatcher *_replayDispatcher;
   };
 }
 
 
 
+/*
 // Inspired by the function 'start' in anemonode/components/estimator.js
 void generateComputeCallbacks(Dispatcher *src,
     ReplayDispatcher *replayDispatcher,
@@ -98,6 +110,7 @@ void generateComputeCallbacks(Dispatcher *src,
 
   replayDispatcher->replay(src);
 }
+*/
 
 NavDataset SimulateBox(const std::string& boatDat, const NavDataset &ds) {
   std::ifstream file(boatDat);
@@ -111,11 +124,19 @@ NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
     return NavDataset();
   }
   auto srcName = std::string("Simulated ") + estimator.sourceName();
-  auto src = ds.dispatcher().get();
 
-  generateComputeCallbacks(src, replay.get(), [&]() {
-    estimator.compute(srcName);
-  });
+  // For now, the UI makes no difference between what has been computed
+  // live on the box and what is simulated.
+  // Therefore, it is useless to let both go through.
+  // We keep only the simulated stuff, except for TWA and TWS, because
+  // they can go in 'externalTw[sa]'.
+  NavDataset src = ds
+    .stripChannel(TWDIR)
+    .stripChannel(TARGET_VMG);
+
+  EstimateOnNewValue listener(&estimator, srcName, replay.get());
+
+  replay.get()->replay(src.dispatcher().get());
 
   replay->setSourcePriority(srcName, replay->sourcePriority(estimator.sourceName()) + 1);
   return NavDataset(std::static_pointer_cast<Dispatcher>(replay));

@@ -82,6 +82,14 @@ Array<Array<Nav>> generateTiles(TileKey tileKey,
     first += i;
 
     int end = inOrOut.sliceFrom(first).find(false);
+
+    Duration<> threshold = Duration<>::minutes(1);
+    for (int j = first + 1; j < end; ++j) {
+      if ((navs[j].time() - navs[j-1].time()) > threshold) {
+          end = j - 1;
+      }
+    }
+
     if (end == -1) {
       end = inOrOut.size();
     } else {

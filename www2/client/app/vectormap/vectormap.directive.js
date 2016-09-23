@@ -14,15 +14,20 @@ angular.module('www2App')
           canvas = new CanvasTilesRenderer({
             canvas: element.children()[0],
             url: function(scale, x, y) { 
-              // The token corresponds to account anemojp on mapbox.
+              var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
+              return "//stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
+                + scale + "/" + x + "/" + y + ".png";
 	      /*
               return "http://a.tiles.wmflabs.org/bw-mapnik/"
                 + scale + "/" + x + "/" + y + ".png";
               */
+              /*
+              // The token corresponds to account anemojp on mapbox.
               return "//api.tiles.mapbox.com/v4/anemojp.d4524095/"
                 + scale + "/" + x + "/" + y
                 + ".png32?access_token="
                 + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
+              */
             },
             maxNumCachedTiles: 256,
             initialLocation: scope.mapLocation,
@@ -33,6 +38,20 @@ angular.module('www2App')
             }
           });
 
+          scope.scaleLayer = new ScaleLayer({
+            verticalPlacement: 'bottom',
+            horizontalPlacement: 'right',
+            margin: [5, 20],
+            minCanvasWidth: 500
+          }, canvas);
+          canvas.addLayer(scope.scaleLayer);
+
+          scope.copyrightLayer = new CopyrightLayer({
+            text: 'Background by Stamen Design, CC BY 3.0. Data by OpenStreetMap (ODbL)',
+            margin: [5, 1]
+          }, canvas);
+          canvas.addLayer(scope.copyrightLayer);
+            
           scope.pathLayer = new VectorTileLayer({
             maxNumCachedTiles: 512,
             token: Auth.getToken()
@@ -51,7 +70,7 @@ angular.module('www2App')
               renderer: canvas,
               geojson: geojson,
               onFeatureClic: function(feature, pos) {
-                goToEventTile(feature);
+                selectEvent(feature);
 
                 if(feature.properties.icon == "image")
                   Lightbox.openModal(images, feature.index);
@@ -74,7 +93,12 @@ angular.module('www2App')
             return url.join('?');
           };
 
-          var goToEventTile = function(event) {
+          var selectEvent = function(event) {
+            if(event == null) {
+              angular.element('#eventsContainer li').removeClass('selected');
+              return true;
+            }
+            
             var sidebar = angular.element('.mapAndGraphAndSidebar #tabs');
             var target = angular.element('#eventsContainer li[data-id="'+event.id+'"]');
             var posTop = target.position();
@@ -200,6 +224,28 @@ angular.module('www2App')
                                                    endsBefore));
           }
 
+          var selectEventByTime = function(time) {
+            var bestTimeDiff = 300 * 1000;
+            var bestEvent = null;
+
+            if(scope.eventList.length > 0) {
+              for(var i in scope.eventList) {
+                var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
+                var diffTime = Math.abs(eventTime.getTime() - time.getTime());
+
+                if(diffTime < bestTimeDiff) {
+                  bestTimeDiff = diffTime;
+                  bestEvent = scope.eventList[i];
+                }
+              }
+
+              if(bestEvent)
+                selectEvent({'id': bestEvent._id});
+              else
+                selectEvent(null);
+            }
+          };
+
           scope.$watch('selectedCurve', function(newValue, oldValue) {
             if (newValue != oldValue) {
               updateTileUrl();
@@ -211,7 +257,8 @@ angular.module('www2App')
           scope.$watch('currentTime', function(newValue, oldValue) {
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
-            }
+              selectEventByTime(newValue);
+            }            
           });
 
           updateTileUrl();

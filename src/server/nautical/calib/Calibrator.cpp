@@ -161,11 +161,17 @@ void Calibrator::addTack(int pos, double weight) {
 
   if ((tackTime < beginning + length + delta)
        || (tackTime > end - length - delta)) {
-    LOG(WARNING) << "Ignoring maneuver too close to beginning or end of recording";
+    LOG_IF(INFO, _verbose)
+      << "Ignoring maneuver too close to beginning or end of recording";
     return;
   }
 
-  //LOG(INFO) << "maneuver at: " << tackTime << " with weight " << weight;
+  if (_allnavs.samples<GPS_SPEED>().evaluate(tackTime).get().value < .5_kn) {
+    LOG_IF(INFO, _verbose) << "Ignoring maneuver with speed below .5 knot.";
+    return;
+  }
+  LOG_IF(INFO, _verbose)
+    << "maneuver at: " << tackTime << " with weight " << weight;
 
   const Duration<> largeMargin = Duration<>::minutes(3);
   NavDataset beforeds = _allnavs.slice(maxDefined(beginning, tackTime - delta - largeMargin),
@@ -174,7 +180,9 @@ void Calibrator::addTack(int pos, double weight) {
                                     tackTime + delta + length);
 
   if (getNavSize(afterds) == 0 || getNavSize(beforeds) == 0) {
-    LOG(WARNING) << "Ignoring invalid manoeuver: got empty nav array.";
+    if (_verbose) {
+      LOG_IF(INFO, _verbose) << "Ignoring invalid manoeuver: got empty nav array.";
+    }
     return;
   }
 
@@ -190,7 +198,8 @@ void Calibrator::addTack(int pos, double weight) {
   */
 
   const Velocity<double> minWindSpeed = Velocity<double>::knots(2.0);
-  if (after.aws() < minWindSpeed || before.aws() < minWindSpeed) {
+  if (after.bestTwsEstimate() < minWindSpeed
+      || before.bestTwsEstimate() < minWindSpeed) {
     // less than 2 knots of wind is not a useful measure.
     return;
   }

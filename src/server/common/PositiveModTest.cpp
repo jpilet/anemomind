@@ -93,7 +93,7 @@ TEST(PositiveModTest, NaNValue) {
 }
 
 TEST(PositiveModTest, InfValue) {
-  EXPECT_TRUE(std::isinf(positiveMod(std::numeric_limits<double>::infinity(), 2.0)));
-  EXPECT_TRUE(std::isinf(positiveMod(-std::numeric_limits<double>::infinity(), 2.0)));
+  EXPECT_FALSE(std::isfinite(positiveMod(std::numeric_limits<double>::infinity(), 2.0)));
+  EXPECT_FALSE(std::isfinite(positiveMod(-std::numeric_limits<double>::infinity(), 2.0)));
 }
 
