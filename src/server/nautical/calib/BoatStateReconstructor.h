@@ -24,7 +24,7 @@ public:
         _samplingPeriod(samplingPeriod),
         _base(base) {}
 
-  template <DataCode code>
+  /*template <DataCode code>
   void addObservation(
       TimedValue<typename TypeForCode<code>::type> &x) {
     double realIndex = (x.time - _offsetTime)/_samplingPeriod;
@@ -40,7 +40,7 @@ public:
               _base.ptr() + index));
 
     }
-  }
+  }*/
 
   int sampleCount() const {
     return _base.size();

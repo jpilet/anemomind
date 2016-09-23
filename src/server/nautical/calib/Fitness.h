@@ -66,15 +66,6 @@ struct ServerBoatStateSettings {
   static const bool withIMU = false;
 };
 
-template <typename Settings>
-struct BoatStateParamCount {
-  static const int value = 2/*wind*/ + 2/*current*/
-      + 1 /*heading*/
-      + (Settings::recoverHeelAngle? 1 : 0)
-      + (Settings::recoverPitch? 1 : 0)
-      + (Settings::recoverGpsMotion? 2 : 0);
-};
-
 // So that we can read a numeric representation
 // of a type easily.
 template <typename T, typename Type>
@@ -99,6 +90,12 @@ struct TypeVectorizer {
 
 
 
+template <typename T, typename Settings>
+class ReconstructedBoatState {
+
+};
+
+
 template <typename T, typename BoatStateSettings>
 struct BoatStateVectorizer {
   BoatState<T> read(const BoatState<double> &base, const T *src0) {
@@ -118,7 +115,7 @@ template <DataCode code, typename BoatStateSettings>
 class BoatStateFitness {
 public:
   typedef typename TypeForCode<code>::type ObservationType;
-  static const int inputCount =
+  /*static const int inputCount =
       BoatStateParamCount<BoatStateSettings>::value;
 
   BoatStateFitness(
@@ -139,7 +136,7 @@ public:
         BoatStateSettings>::read(base, X + inputCount);
     BoatState<T> x = interpolate(
         MakeConstant<T>::apply(_realIndex), a, b);
-  }
+  }*/
 private:
   double _realIndex;
   ObservationType _observation;
