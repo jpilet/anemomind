@@ -98,11 +98,18 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
     EXPECT_EQ(x.sensorIndex, acc.sensorIndices["NMEA2000"]);
     EXPECT_EQ(x.value, 3.4_kn);
   }
-  bool found = false;
+  int foundNmea2000 = 0;
   for (int i = 1; i < 4; i++) {
-    auto x = acc.values[1];
+    auto x = acc.values[i];
+    std::cout << "The value is " << x.value.knots() << std::endl;
     EXPECT_EQ(x.sampleIndex, 4);
+    if (x.sensorIndex == acc.sensorIndices["NMEA2000"]) {
+      foundNmea2000++;
+      EXPECT_EQ(x.value, 2.0_kn);
+    }
   }
+  EXPECT_EQ(foundNmea2000, 1);
+
 
 
 }
