@@ -43,6 +43,11 @@ ScaleLayer.prototype.draw = function(canvas, pinchZoom,
     Math.min(pinchZoom.bottomRightWorld().x, bboxBottomRight.x)
     - Math.max(pinchZoom.topLeftWorld().x, bboxTopLeft.x);
 
+  if (scaleWorld <= 0) {
+    // this should never happen.
+    return;
+  }
+
   var scaleKm = nice(scaleWorld / 4 * xToKm);
 
   if (this.params.maxDist && scaleKm > this.params.maxDist) {
@@ -104,20 +109,45 @@ ScaleLayer.prototype.draw = function(canvas, pinchZoom,
     context.stroke();
   }
 
-  context.textAlign = (this.horizontalPlacement == 'right' ? 'end' : 'start');
-  context.textBaseline = (this.verticalPlacement == 'top' ? 'top' : 'bottom');
-
-  var fontSize = 12;
-  context.font = (fontSize * this.renderer.pixelRatio) + 'px '
-      + 'Roboto, "Helvetica Neue", HelveticaNeue, "Helvetica-Neue", Helvetica, Arial, "Lucida Grande", sans-serif';
-  var text = formatScale(scaleKm);
-  var textX = startViewer.x + dy * (this.horizontalPlacement == 'right' ? -1 : 1);
-  var textY = startViewer.y;
-
-  context.strokeStyle = this.shadowColor;
-  context.lineWidth = 3 * this.renderer.pixelRatio;
-  context.strokeText(text, textX, textY);
-
-  context.fillStyle = this.scaleColor;
-  context.fillText(text, textX, textY);
+  renderShadowedText(context, pixelRatio, formatScale(scaleKm),
+    startViewer.x + dy * (this.horizontalPlacement == 'right' ? -1 : 1),
+    startViewer.y,
+    {
+      endOrStart: (this.horizontalPlacement == 'right' ? 'end' : 'start'),
+      topOrBottom: (this.verticalPlacement == 'top' ? 'top' : 'bottom'),
+      color: this.scaleColor,
+      shadowColor: this.shadowColor
+    }
+  );
 };
+
+/* Options:
+     endOrStart,
+     topOrBottom,
+     color, shadowColor,
+     fontSize,
+     font
+     measureCondition
+*/
+function renderShadowedText(context, pixelRatio, text, x, y, options) {
+
+  context.textAlign = (options.endOrStart == 'end' ? 'end' : 'start');
+  context.textBaseline = (options.topOrBottom == 'top' ? 'top' : 'bottom');
+
+  var fontSize = (options.fontSize || 12) * pixelRatio;
+  var font = options.font || 
+      'Roboto, "Helvetica Neue", HelveticaNeue, "Helvetica-Neue", Helvetica, Arial, "Lucida Grande", sans-serif';
+  context.font = fontSize + 'px ' + font;
+
+  context.strokeStyle = options.shadowColor || '#fff';
+  context.lineWidth = 3 * pixelRatio;
+  context.fillStyle = options.color || '#000';
+
+  if (options.measureCondition
+      && !options.measureCondition(context.measureText(text))) {
+    return;
+  }
+
+  context.strokeText(text, x, y);
+  context.fillText(text, x, y);
+}
