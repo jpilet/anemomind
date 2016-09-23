@@ -211,14 +211,12 @@ public:
     *minusJtF = MDArray<T, 2>(_paramCount, 1);
     minusJtF->setAll(T(0.0));
     *totalCost = T(0.0);
-    int counter = 0;
     for (auto &f: _costFunctions) {
       if (!f->accumulateNormalEquations(X + f->inputRange.minv(),
           JtJ, minusJtF, totalCost)) {
         LOG(ERROR) << "Failed to accumulate normal equations";
         return false;
       }
-      counter++;
     }
     return true;
   }
