@@ -14,6 +14,7 @@
 #include <server/nautical/calib/SensorSet.h>
 #include <server/nautical/BoatState.h>
 #include <server/math/JetUtils.h>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -227,59 +228,58 @@ struct ReconstructedBoatState {
 };
 
 template <typename T, DataCode code>
-struct ValueToFit {
+struct ValuesToFit {
+  typedef DistortionModel<T, code> Distortion;
   typedef typename TypeForCode<code>::type Observation;
-  typedef typename DistortionModel<T, code>::type Distortion;
-  Distortion distortion;
-  Observation observation;
+
+  struct DistortionSpan {
+    Distortion distortion;
+    Spani span;
+  };
+
+  std::vector<DistortionSpan> distortionSpans;
+  std::vector<Observation> values;
+
+  void addValues(
+      Distortion distortion,
+      const Array<TimedValue<Observation> > &src) {
+    int from = values.size();
+    for (auto v: src) {
+      values.push_back(v.value);
+    }
+    int to = values.size();
+    distortionSpans.push_back(DistortionSpan{distortion, Spani(from, to)});
+  }
 };
 
-template <typename T, DataCode code>
-using ValuesToFit = std::vector<ValueToFit<T, code> >;
+#define FOREACH_MEASURE_TO_CONSIDER(OP) \
+  OP(AWA) \
+  OP(AWS) \
+  OP(MAG_HEADING) \
+  OP(WAT_SPEED) \
+  OP(ORIENT)
 
+// The part of the objective function related to
+// fitting measures
 template <typename T, typename Settings>
 struct DataFit {
   typedef ReconstructedBoatState<T, Settings> State;
 
   static const int inputCount = State::valueDimension;
 
-  ValuesToFit<T, AWA> AWA;
-  ValuesToFit<T, AWS> AWS;
-  ValuesToFit<T, MAG_HEADING> MAG_HEADING;
-  ValuesToFit<T, WAT_SPEED> WAT_SPEED;
-  ValuesToFit<T, ORIENT> ORIENT;
-};
+  BoatState<double> prototype;
 
-template <DataCode code, typename BoatStateSettings>
-class BoatStateFitness {
-public:
-  typedef typename TypeForCode<code>::type ObservationType;
-  /*static const int inputCount =
-      BoatStateParamCount<BoatStateSettings>::value;
+#define LIST_MEASURE_FIELD(CODE) \
+  ValuesToFit<T, CODE> CODE;
+FOREACH_MEASURE_TO_CONSIDER(LIST_MEASURE_FIELD)
+#undef LIST_MEASURE_FIELD
 
-  BoatStateFitness(
-      double index,
-      const ObservationType &value,
-      BoatState<double> *base) :
-    _realIndex(index), _observation(value),
-    _base(base) {}
-
-  template <typename T>
-  bool evaluate(const T *X, T *y) const {
-    BoatState<double> base = interpolate(
-        _realIndex, _base[0], _base[1]);
-
-    BoatState<T> a = BoatStateVectorizer<T,
-        BoatStateSettings>::read(base, X + 0);
-    BoatState<T> b = BoatStateVectorizer<T,
-        BoatStateSettings>::read(base, X + inputCount);
-    BoatState<T> x = interpolate(
-        MakeConstant<T>::apply(_realIndex), a, b);
-  }*/
-private:
-  double _realIndex;
-  ObservationType _observation;
-  BoatState<double> *_base;
+  template <typename S>
+  bool evaluate(const S *X, S *Y) const {
+    ReconstructedBoatState<S, Settings> state;
+    state.read(&X);
+    return true;
+  }
 };
 
 } /* namespace sail */

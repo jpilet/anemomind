@@ -110,3 +110,9 @@ TEST(FitnessTest, VectorizationTest) {
   EXPECT_NEAR(values[0], values2[0], 1.0e-6);
   EXPECT_NEAR(values[1], values2[1], 1.0e-6);
 }
+
+TEST(FitnessTest, DataFitTest) {
+
+  DataFit<double, FullSettings> fit;
+
+}
