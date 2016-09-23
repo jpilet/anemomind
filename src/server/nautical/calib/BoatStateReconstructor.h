@@ -10,6 +10,7 @@
 
 #include <server/nautical/calib/Fitness.h>
 #include <server/math/BandedLevMar.h>
+#include <unordered_map>
 
 namespace sail {
 
@@ -82,7 +83,6 @@ struct ValueAccumulator {
         sampleCounter += span.width();
       });
     }
-    valuesPerIndex.resize(mapper.sampleCount);
     values.reserve(sampleCounter);
 
     assert(sensorCounter == sensorIndices.size());
@@ -96,15 +96,31 @@ struct ValueAccumulator {
         }
       });
     }
+    std::unordered_map<int, Spani> tmp;
     assert(values.size() == sampleCounter);
     std::sort(values.begin(), values.end());
     for (int i = 0; i < values.size(); i++) {
-      valuesPerIndex[values[i].sampleIndex].extend(i);
+      int index = values[i].sampleIndex;
+      auto f = tmp.find(index);
+      if (f == tmp.end()) {
+        tmp.insert(std::pair<int, Spani>(index, Spani(i, i+1)));
+      } else {
+        f->second.extend(i);
+        f->second.extend(i+1);
+      }
     }
+    for (auto kv: tmp) {
+      valuesPerIndex.push_back(kv);
+    }
+    std::sort(valuesPerIndex.begin(), valuesPerIndex.end(),
+        [](const std::pair<int, Spani> &a,
+            const std::pair<int, Spani> &b) {
+      return a.first < b.first;
+    });
   }
 
   std::map<std::string, int> sensorIndices;
-  std::vector<Spani> valuesPerIndex;
+  std::vector<std::pair<int, Spani> > valuesPerIndex;
   std::vector<TaggedValue> values;
 };
 
@@ -119,8 +135,15 @@ public:
   HANDLE(mapper, chunk.HANDLE),
 FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
 #undef INITIALIZE_VALUE_ACC
-
         _timeMapper(mapper) {}
+
+  template <typename T>
+  Array<BoatState<T> > reconstruct(
+      const SensorDistortionSet<T> &sensorParams) const {
+    using namespace BandedLevMar;
+    Problem<T> problem;
+    //runLevMar();
+  }
 private:
   TimeStampToIndexMapper _timeMapper;
 #define DECLARE_VALUE_ACC(HANDLE) \
