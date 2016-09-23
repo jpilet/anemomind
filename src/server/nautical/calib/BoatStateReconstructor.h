@@ -13,6 +13,75 @@
 
 namespace sail {
 
+template <typename T>
+struct ValueAccumulator {
+  struct ValueGroup {
+    int sensorIndex;
+    int sampleIndex;
+    Spani span;
+  };
+  std::map<std::string, int> sensorIndices;
+  std::vector<Spani> valueGroupPerIndex;
+  std::vector<ValueGroup> valueGroups;
+  std::vector<T> allValues;
+};
+
+struct TimeStampToIndexMapper {
+public:
+  TimeStamp offset;
+  Duration<double> period;
+  int sampleCount;
+
+  int map(TimeStamp t) const {
+    int index = int(floor((t - offset)/period));
+    return 0 <= index && index < sampleCount? index : -1;
+  }
+};
+
+template <typename T>
+void foreachSpan(const TimeStampToIndexMapper &mapper,
+    const Array<TimedValue<T> > &values, std::function<void(Spani)> cb) {
+  int currentPosition = 0;
+  while (currentPosition < values.size()) {
+    int currentIndex = mapper.map(values[currentPosition].time);
+    int nextPosition = currentPosition + 1;
+    while (nextPosition < values.size()) {
+      int nextIndex = mapper.map(values[nextPosition].time);
+      if (nextIndex != currentIndex) {
+        break;
+      }
+      nextPosition++;
+    }
+    if (currentIndex != -1) {
+      cb(Spani(currentPosition, nextPosition));
+    }
+  }
+}
+
+template <typename T>
+ValueAccumulator<T> makeValueAccumulator(
+    const TimeStampToIndexMapper &mapper,
+    const std::map<std::string, Array<TimedValue<T> > > &srcData) {
+  ValueAccumulator<T> dst;
+  int sensorCounter = 0;
+  int sampleCounter = 0;
+  int groupCounter = 0;
+  for (auto kv: srcData) {
+    dst.sensorIndices[kv.first] = sensorCounter++;
+    foreachSpan<T>(mapper, kv.second, [&](Spani span) {
+      groupCounter++;
+      sampleCounter += span.width();
+    });
+  }
+  dst.valueGroupPerIndex.reserve(mapper.sampleCount);
+  dst.valueGroups.reserve(groupCounter);
+  dst.allValues.reserve(sampleCounter);
+
+  assert(sensorCounter == dst.sensorIndices.size());
+}
+
+
+
 template <typename T, typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
