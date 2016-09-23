@@ -38,7 +38,6 @@ template <typename T>
 class CostFunctionBase {
 public:
   virtual int inputCount() const = 0;
-  virtual int outputCount() const = 0;
   virtual Spani inputRange() const = 0;
   virtual bool accumulateCost(const T *X, T *totalCost) = 0;
   virtual bool accumulateNormalEquations(
@@ -64,10 +63,6 @@ public:
 
   Spani inputRange() const override {
     return _inputRange;
-  }
-
-  int outputCount() const override {
-    return CostEvaluator::outputCount;
   }
 
   int inputCount() const override {
@@ -157,7 +152,7 @@ template <typename T>
 class Problem {
 public:
   Problem(int expectedCostFunctionCount = -1) : _kd(0),
-    _paramCount(0), _residualCount(0) {
+    _paramCount(0) {
     if (expectedCostFunctionCount > 0) {
       _costFunctions.reserve(expectedCostFunctionCount);
     }
@@ -182,7 +177,6 @@ public:
 
   int kd() const {return _kd;}
   int paramCount() const {return _paramCount;}
-  int residualCount() const {return _residualCount;}
 
   bool fillNormalEquations(
       const T *X,
@@ -229,11 +223,10 @@ public:
   void addCost(std::shared_ptr<CostFunctionBase<T>> &cost) {
     _kd = std::max(_kd, cost->inputCount()-1);
     _paramCount = std::max(_paramCount, cost->inputRange().maxv());
-    _residualCount += cost->outputCount();
     _costFunctions.push_back(std::move(cost));
   }
 private:
-  int _kd, _paramCount, _residualCount;
+  int _kd, _paramCount;
   std::vector<std::shared_ptr<CostFunctionBase<T> > > _costFunctions;
   std::vector<IterationCallback> _callbacks;
 

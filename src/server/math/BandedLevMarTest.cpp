@@ -60,7 +60,6 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
   EXPECT_EQ(0, problem.kd());
   EXPECT_EQ(n, problem.paramCount());
-  EXPECT_EQ(n, problem.residualCount());
 
   double reg = 1.0; //1000;
 
@@ -71,7 +70,6 @@ TEST(BandedLevmarTest, BasicLineFit) {
 
   EXPECT_EQ(2, problem.kd());
   EXPECT_EQ(n, problem.paramCount());
-  EXPECT_EQ(n + n-2, problem.residualCount());
 
   double X[n];
   for (int i = 0; i < n; i++) {
