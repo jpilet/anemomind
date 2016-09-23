@@ -352,7 +352,7 @@ target_link_libraries(nautical_Processor2
   segment_SessionCut
   common_Span
   filters_SmoothGpsFilter
-  nautical_Reconstructor
+  calib_Reconstructor
   )
 
 cxx_test(nautical_Processor2Test
@@ -369,13 +369,6 @@ add_library(nautical_BoatState
 target_link_libraries(nautical_BoatState
   common_logging
   )
-
-add_library(nautical_Reconstructor
-  Reconstructor.h
-  Reconstructor.cpp
-  )
-
-target_link_libraries(nautical_Reconstructor)
 
 cxx_test(nautical_BoatStateTest
   BoatStateTest.cpp

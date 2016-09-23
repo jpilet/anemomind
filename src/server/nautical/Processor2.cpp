@@ -17,7 +17,7 @@
 #include <server/common/logging.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/BoatState.h>
-#include <server/nautical/Reconstructor.h>
+#include <server/nautical/calib/Reconstructor.h>
 #include <server/common/TimedValueCutter.h>
 #include <server/common/logging.h>
 

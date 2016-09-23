@@ -120,3 +120,10 @@ cxx_test(calib_BoatStateReconstructor
   common_TimeStamp
   gtest_main
   )
+  
+add_library(calib_Reconstructor
+  Reconstructor.h
+  Reconstructor.cpp
+  )
+
+target_link_libraries(calib_Reconstructor)
