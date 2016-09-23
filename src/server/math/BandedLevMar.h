@@ -39,9 +39,9 @@ class CostFunctionBase {
 public:
   virtual int inputCount() const = 0;
   virtual Spani inputRange() const = 0;
-  virtual bool accumulateCost(const T *X, T *totalCost) = 0;
+  virtual bool accumulateCost(const T *Xfull, T *totalCost) = 0;
   virtual bool accumulateNormalEquations(
-      const T *X,
+      const T *Xfull,
       SymmetricBandMatrixL<T> *JtJ,
       MDArray<T, 2> *minusJtF,
       T *totalCost) = 0;
