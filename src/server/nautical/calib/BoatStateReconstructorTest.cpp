@@ -40,7 +40,7 @@ TEST(BoatStateReconstructor, TimeMapper) {
     {t(0.1), 3.4_kn},
     {t(1.0), 4.4_kn},
     {t(1.5), 4.5_kn},
-    {t(7), 9.0_kn},
+    {t(5), 9.0_kn},
     {t(11), 9.4_kn}
   };
   foreachSpan<Velocity<double> >(mapper, values,
@@ -48,7 +48,14 @@ TEST(BoatStateReconstructor, TimeMapper) {
     calls.push_back(Call{index, span});
   });
   EXPECT_EQ(calls.size(), 2);
-
+  auto c0 = calls[0];
+  auto c1 = calls[1];
+  EXPECT_EQ(c0.index, 0);
+  EXPECT_EQ(c0.span.minv(), 0);
+  EXPECT_EQ(c0.span.maxv(), 3);
+  EXPECT_EQ(c1.index, 2);
+  EXPECT_EQ(c1.span.minv(), 3);
+  EXPECT_EQ(c1.span.maxv(), 4);
 }
 
 /*TEST(BoatStateReconstructor, BasicTest) {
