@@ -14,15 +14,20 @@ angular.module('www2App')
           canvas = new CanvasTilesRenderer({
             canvas: element.children()[0],
             url: function(scale, x, y) { 
-              // The token corresponds to account anemojp on mapbox.
+              var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
+              return "//stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
+                + scale + "/" + x + "/" + y + ".png";
 	      /*
               return "http://a.tiles.wmflabs.org/bw-mapnik/"
                 + scale + "/" + x + "/" + y + ".png";
               */
+              /*
+              // The token corresponds to account anemojp on mapbox.
               return "//api.tiles.mapbox.com/v4/anemojp.d4524095/"
                 + scale + "/" + x + "/" + y
                 + ".png32?access_token="
                 + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
+              */
             },
             maxNumCachedTiles: 256,
             initialLocation: scope.mapLocation,
@@ -33,6 +38,20 @@ angular.module('www2App')
             }
           });
 
+          scope.scaleLayer = new ScaleLayer({
+            verticalPlacement: 'bottom',
+            horizontalPlacement: 'right',
+            margin: [5, 20],
+            minCanvasWidth: 500
+          }, canvas);
+          canvas.addLayer(scope.scaleLayer);
+
+          scope.copyrightLayer = new CopyrightLayer({
+            text: 'Background by Stamen Design, CC BY 3.0. Data by OpenStreetMap (ODbL)',
+            margin: [5, 1]
+          }, canvas);
+          canvas.addLayer(scope.copyrightLayer);
+            
           scope.pathLayer = new VectorTileLayer({
             maxNumCachedTiles: 512,
             token: Auth.getToken()
