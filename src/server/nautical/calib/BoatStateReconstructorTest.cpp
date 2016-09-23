@@ -92,6 +92,10 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   EXPECT_EQ(assignedIndices, (std::vector<int>{0, 1}));
   EXPECT_EQ(acc.values.size(), 4 + 2);
   EXPECT_EQ(acc.valuesPerIndex.size(), 30);
-
-
+  {
+    auto x = acc.values[0];
+    EXPECT_EQ(x.sampleIndex, 0);
+    EXPECT_EQ(x.sensorIndex, acc.sensorIndices["NMEA2000"]);
+    EXPECT_EQ(x.value, 3.4_kn);
+  }
 }
