@@ -34,6 +34,21 @@ struct BandWidthForType<Velocity<double> > {
   }
 };
 
+// Used to reinterpret angles as velocity vectors.
+template <typename T>
+Velocity<T> referenceVelocityForAngles(
+    Velocity<T> velocityWidth,
+    Angle<T> angleWidth) {
+  /*
+   * Reasoning:
+   *
+   * An angle in radians multiplied by a radius gives an arc length.
+   * The arc length in this case is velocityWidth. The radius is unknown.
+   * The angle is angleWidth. So from that we get the expression below.
+   */
+  return (MakeConstant<T>::apply(1.0)/angleWidth.radians())*velocityWidth;
+}
+
 // TODO: Study the literature on how noise is estimated
 // in a Kalman filter, for different kinds of measurements.
 // That is a related problem.
