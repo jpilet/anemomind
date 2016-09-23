@@ -47,6 +47,19 @@ public:
       T *totalCost) = 0;
 };
 
+template <typename T, int outputCount>
+struct WithCostOutput {
+  T F[outputCount];
+
+  void done(T *totalCost) {
+    T sum = MakeConstant<T>::apply(0.0);
+    for (int i = 0; i < outputCount; i++) {
+      sum += sqr(F[i]);
+    }
+    *totalCost += sum;
+  }
+};
+
 template <typename T, int outputCount, int inputCount>
 struct WithJacobianOutput {
   typedef ceres::Jet<T, inputCount> ADType;
@@ -125,40 +138,11 @@ public:
   }
 
   bool accumulateCost(const T *X, T *totalCost) override {
-    T residuals[CostEvaluator::outputCount];
-    if (!_f->evaluate(X + _inputRange.minv(), residuals)) {
+    WithCostOutput<T, CostEvaluator::outputCount> with;
+    if (!_f->evaluate(X + _inputRange.minv(), with.F)) {
       return false;
     }
-    T sum = T(0.0);
-    for (int i = 0; i < CostEvaluator::outputCount; i++) {
-      T f = residuals[i];
-      sum += f*f;
-    }
-    *totalCost = sum;
-    return true;
-  }
-
-  bool evaluate(const T *X, T *Y, T *J) {
-    ADType _adX[CostEvaluator::inputCount];
-    ADType _adY[CostEvaluator::outputCount];
-    for (int i = 0; i < CostEvaluator::inputCount; i++) {
-      auto ad = ADType(X[i]);
-      ad.v[i] = T(1.0);
-      _adX[i] = ad;
-    }
-
-    if (!_f->template evaluate<ADType>(_adX, _adY)) {
-      return false;
-    }
-
-    for (int i = 0; i < CostEvaluator::outputCount; i++) {
-      auto y = _adY[i];
-      Y[i] = y.a;
-      auto Jsub = J + i;
-      for (int j = 0; j < CostEvaluator::inputCount; j++) {
-        Jsub[j*CostEvaluator::outputCount] = y.v[j];
-      }
-    }
+    with.done(totalCost);
     return true;
   }
 
