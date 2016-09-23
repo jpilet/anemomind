@@ -143,9 +143,9 @@ public:
     return CostEvaluator::inputCount;
   }
 
-  bool accumulateCost(const T *X, T *totalCost) override {
+  bool accumulateCost(const T *Xfull, T *totalCost) override {
     WithCostOutput<T, CostEvaluator::outputCount> with;
-    if (!_f->evaluate(X, with.F)) {
+    if (!_f->evaluate(Xfull + _inputRange.minv(), with.F)) {
       return false;
     }
     with.done(totalCost);
@@ -153,9 +153,10 @@ public:
   }
 
   bool accumulateNormalEquations(
-      const T *X, SymmetricBandMatrixL<T> *JtJ,
+      const T *Xfull, SymmetricBandMatrixL<T> *JtJ,
       MDArray<T, 2> *minusJtF, T *totalCost) override {
-    ADInputVector<T, CostEvaluator::inputCount> input(X);
+    ADInputVector<T, CostEvaluator::inputCount> input(
+        Xfull + _inputRange.minv());
     WithJacobianOutput<T, CostEvaluator::outputCount,
       CostEvaluator::inputCount> output;
     if (!_f->evaluate(input.X, output.F)) {
@@ -215,7 +216,7 @@ public:
     *totalCost = T(0.0);
     int counter = 0;
     for (auto &f: _costFunctions) {
-      if (!f->accumulateNormalEquations(f->inputRange().minv() + X,
+      if (!f->accumulateNormalEquations(X,
           JtJ, minusJtF, totalCost)) {
         LOG(ERROR) << "Failed to accumulate normal equations";
         return false;
@@ -228,7 +229,7 @@ public:
   bool evaluate(const T *X, T *totalCost) const {
     *totalCost = T(0.0);
     for (const auto &f: _costFunctions) {
-      if (!f->accumulateCost(X + f->inputRange().minv(), totalCost)) {
+      if (!f->accumulateCost(X, totalCost)) {
         return false;
       }
     }
