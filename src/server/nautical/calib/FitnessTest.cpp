@@ -111,6 +111,37 @@ TEST(FitnessTest, VectorizationTest) {
   EXPECT_NEAR(values[1], values2[1], 1.0e-6);
 }
 
+namespace {
+  TimedValue<Angle<double> > tv(double x) {
+    return TimedValue<Angle<double>>(
+        TimeStamp::UTC(2016, 9, 23, 11, 1, 0),
+        Angle<double>::degrees(x));
+  }
+}
+
+TEST(FitnessTest, ValuesToFit) {
+  typedef DistortionModel<double, AWA> Model;
+  Model srcModel;
+  double params[Model::paramCount];
+  for (int i = 0; i < Model::paramCount; i++) {
+    params[i] = i;
+  }
+  srcModel.readFrom(params);
+
+  ValuesToFit<double, AWA> valuesToFit;
+  valuesToFit.addValues(srcModel, {tv(1.4), tv(5.6), tv(6.7)});
+  EXPECT_EQ(valuesToFit.distortionSpans.size(), 1);
+  double params2[Model::paramCount];
+  auto sp = valuesToFit.distortionSpans[0];
+  sp.distortion.writeTo(params2);
+  for (int i = 0; i < Model::paramCount; i++) {
+    EXPECT_NEAR(params[i], params2[i], 1.0e-6);
+  }
+  EXPECT_EQ(sp.span.minv(), 0);
+  EXPECT_EQ(sp.span.maxv(), 3);
+  EXPECT_EQ(valuesToFit.values.size(), 3);
+}
+
 TEST(FitnessTest, DataFitTest) {
 
   DataFit<double, FullSettings> fit;
