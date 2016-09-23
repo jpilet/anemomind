@@ -58,7 +58,7 @@ void foreachSpan(const TimeStampToIndexMapper &mapper,
   }
 }
 
-template <typename T>
+/*template <typename T>
 ValueAccumulator<T> makeValueAccumulator(
     const TimeStampToIndexMapper &mapper,
     const std::map<std::string, Array<TimedValue<T> > > &srcData) {
@@ -68,7 +68,7 @@ ValueAccumulator<T> makeValueAccumulator(
   int groupCounter = 0;
   for (auto kv: srcData) {
     dst.sensorIndices[kv.first] = sensorCounter++;
-    foreachSpan<T>(mapper, kv.second, [&](Spani span) {
+    foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
       groupCounter++;
       sampleCounter += span.width();
     });
@@ -78,7 +78,19 @@ ValueAccumulator<T> makeValueAccumulator(
   dst.allValues.reserve(sampleCounter);
 
   assert(sensorCounter == dst.sensorIndices.size());
-}
+  for (auto kv: srcData) {
+    assert(dst.sensorIndices.count(kv.first) == 1);
+    int sensorIndex = dst.sensorIndices[kv.first];
+    foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
+      int from = dst.allValues.size();
+      for (auto i: span) {
+        dst.allValues.push_back(kv.second[i]);
+      }
+      int to = dst.allValues.size();
+      dst.valueGroups.push_back();
+    });
+  }
+}*/
 
 
 
