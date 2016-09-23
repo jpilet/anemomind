@@ -273,12 +273,10 @@ struct DataFit : public BandedLevMar::CostFunctionBase<T> {
       Spani inputRange,
       const BoatState<T> &prototype) :
         _inputRange(inputRange),
-        _prototype(prototype) {
+        _prototype(prototype),
+        BandedLevMar::CostFunctionBase<T>(inputRange) {
     assert(inputRange.width() == N);
   }
-
-  int inputCount() const override {return State::valueDimension;}
-  Spani inputRange() const override {return _inputRange;}
 
   bool accumulateCost(const T *X, T *totalCost) override {
     return true;

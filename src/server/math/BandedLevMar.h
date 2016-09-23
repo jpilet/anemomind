@@ -37,14 +37,19 @@ T dotProduct(T *a, T *b) {
 template <typename T>
 class CostFunctionBase {
 public:
-  virtual int inputCount() const = 0;
-  virtual Spani inputRange() const = 0;
+  Spani inputRange;
+  int inputCount() const {return inputRange.width();}
+
+  CostFunctionBase(Spani ir) : inputRange(ir) {}
+
   virtual bool accumulateCost(const T *Xfull, T *totalCost) = 0;
   virtual bool accumulateNormalEquations(
       const T *Xfull,
       SymmetricBandMatrixL<T> *JtJ,
       MDArray<T, 2> *minusJtF,
       T *totalCost) = 0;
+
+  virtual ~CostFunctionBase() {}
 };
 
 
@@ -130,22 +135,14 @@ public:
   SharedCostFunction(
       const Spani &inputRange,
       const std::shared_ptr<CostEvaluator> &f) :
-        _inputRange(inputRange),
+        CostFunctionBase<T>(inputRange),
         _f(f) {
-    CHECK(_inputRange.width() == CostEvaluator::inputCount);
+    CHECK(inputRange.width() == CostEvaluator::inputCount);
   }
 
-  Spani inputRange() const override {
-    return _inputRange;
-  }
-
-  int inputCount() const override {
-    return CostEvaluator::inputCount;
-  }
-
-  bool accumulateCost(const T *Xfull, T *totalCost) override {
+  bool accumulateCost(const T *Xlocal, T *totalCost) override {
     WithCostOutput<T, CostEvaluator::outputCount> with;
-    if (!_f->evaluate(Xfull + _inputRange.minv(), with.F)) {
+    if (!_f->evaluate(Xlocal, with.F)) {
       return false;
     }
     with.done(totalCost);
@@ -153,20 +150,19 @@ public:
   }
 
   bool accumulateNormalEquations(
-      const T *Xfull, SymmetricBandMatrixL<T> *JtJ,
+      const T *Xlocal, SymmetricBandMatrixL<T> *JtJ,
       MDArray<T, 2> *minusJtF, T *totalCost) override {
     ADInputVector<T, CostEvaluator::inputCount> input(
-        Xfull + _inputRange.minv());
+        Xlocal);
     WithJacobianOutput<T, CostEvaluator::outputCount,
       CostEvaluator::inputCount> output;
     if (!_f->evaluate(input.X, output.F)) {
       return false;
     }
-    output.done(_inputRange.minv(), JtJ, minusJtF, totalCost);
+    output.done(this->inputRange.minv(), JtJ, minusJtF, totalCost);
     return true;
   }
 private:
-  Spani _inputRange;
   std::shared_ptr<CostEvaluator> _f;
 };
 
@@ -216,7 +212,7 @@ public:
     *totalCost = T(0.0);
     int counter = 0;
     for (auto &f: _costFunctions) {
-      if (!f->accumulateNormalEquations(X,
+      if (!f->accumulateNormalEquations(X + f->inputRange.minv(),
           JtJ, minusJtF, totalCost)) {
         LOG(ERROR) << "Failed to accumulate normal equations";
         return false;
@@ -229,7 +225,7 @@ public:
   bool evaluate(const T *X, T *totalCost) const {
     *totalCost = T(0.0);
     for (const auto &f: _costFunctions) {
-      if (!f->accumulateCost(X, totalCost)) {
+      if (!f->accumulateCost(X + f->inputRange.minv(), totalCost)) {
         return false;
       }
     }
@@ -250,7 +246,7 @@ public:
 
   void addCost(std::shared_ptr<CostFunctionBase<T>> &cost) {
     _kd = std::max(_kd, cost->inputCount()-1);
-    _paramCount = std::max(_paramCount, cost->inputRange().maxv());
+    _paramCount = std::max(_paramCount, cost->inputRange.maxv());
     _costFunctions.push_back(std::move(cost));
   }
 private:
