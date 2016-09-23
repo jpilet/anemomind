@@ -37,6 +37,7 @@ TEST(BoatStateReconstructor, TimeMapper) {
   std::vector<Call> calls;
 
   Array<TimedValue<Velocity<double> > > values{
+    {t(-11.3), 3.4_kn},
     {t(0.1), 3.4_kn},
     {t(1.0), 4.4_kn},
     {t(1.5), 4.5_kn},
@@ -51,11 +52,11 @@ TEST(BoatStateReconstructor, TimeMapper) {
   auto c0 = calls[0];
   auto c1 = calls[1];
   EXPECT_EQ(c0.index, 0);
-  EXPECT_EQ(c0.span.minv(), 0);
-  EXPECT_EQ(c0.span.maxv(), 3);
+  EXPECT_EQ(c0.span.minv(), 1);
+  EXPECT_EQ(c0.span.maxv(), 4);
   EXPECT_EQ(c1.index, 2);
-  EXPECT_EQ(c1.span.minv(), 3);
-  EXPECT_EQ(c1.span.maxv(), 4);
+  EXPECT_EQ(c1.span.minv(), 4);
+  EXPECT_EQ(c1.span.maxv(), 5);
 }
 
 /*TEST(BoatStateReconstructor, BasicTest) {
