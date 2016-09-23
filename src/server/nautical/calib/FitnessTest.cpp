@@ -10,6 +10,26 @@
 
 using namespace sail;
 
+
+/*struct ServerBoatStateSettings {
+  static const bool withBoatOverGround = false;
+  static const bool withCurrentOverGround = true;
+  static const bool withHeel = false;
+  static const bool withPitch = false;
+  static const bool withIMU = false;
+};*/
+struct TestSettings1 {
+  static const bool withBoatOverGround = false;
+  static const bool withCurrentOverGround = false;
+  static const bool withHeel = false;
+  static const bool withPitch = false;
+};
+
+static_assert(
+    ReconstructedBoatState<double, TestSettings1>::valueDimension ==
+        0 + 2 + 0 + 2 + 0 + 0, "Failed");
+
+
 TEST(FitnessTest, VectorizationTest) {
   double values[2] = {4.5, 5.6};
   const double *src = values;

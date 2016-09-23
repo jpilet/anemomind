@@ -60,9 +60,10 @@ struct BandWidth :
     BandWidthForType<typename TypeForCode<code>::type>{};
 
 struct ServerBoatStateSettings {
-  static const bool recoverGpsMotion = false;
-  static const bool recoverHeelAngle = false;
-  static const bool recoverPitch = false;
+  static const bool withBoatOverGround = false;
+  static const bool withCurrentOverGround = true;
+  static const bool withHeel = false;
+  static const bool withPitch = false;
   static const bool withIMU = false;
 };
 
@@ -88,28 +89,63 @@ struct TypeVectorizer {
   }
 };
 
+// This type is used to control whether a value should
+// have corresponding optimization parameters or kept
+// constant. That choice is made at compile-time.
+template <typename Type, typename T, bool variable>
+struct Parameterized {
+  static const int valueDimension = variable? Type::valueDimension : 0;
+  Parameterized() {}
 
+  template <typename ProtoType>
+  Parameterized make(const ProtoType &prototype) {
+    return Parameterized(prototype.mapObjectValues([](double x) {
+      return MakeConstant<T>::apply(x);
+    }));
+  }
+
+  void read(const T **src) {
+    if (variable) {
+      value = TypeVectorizer<T, Type>::read(src);
+    }
+  }
+
+  Type value;
+  Parameterized(const Type &x) : value(x) {}
+};
 
 template <typename T, typename Settings>
-class ReconstructedBoatState {
+struct ReconstructedBoatState {
+  typedef Parameterized<HorizontalMotion<T>,
+      T, Settings::withBoatOverGround> BOG;
+  BOG boatOverGround;
 
+  typedef Parameterized<HorizontalMotion<T>,
+      T, true> WOG;
+  WOG windOverGround;
+
+  typedef Parameterized<HorizontalMotion<T>,
+      T, Settings::withCurrentOverGround> COG;
+  COG currentOverGround;
+
+  // Heading is represented as a horizontal motion
+  // to help optimizer convergence
+  typedef Parameterized<HorizontalMotion<T>,
+      T, true> Heading;
+  Heading heading;
+
+  typedef Parameterized<Angle<T>, T, Settings::withHeel> Heel;
+  Heel heel;
+
+  typedef Parameterized<Angle<T>, T, Settings::withPitch> Pitch;
+  Pitch pitch;
+
+  static const int valueDimension =
+        BOG::valueDimension + WOG::valueDimension + COG::valueDimension
+        + Heading::valueDimension + Heel::valueDimension
+        + Pitch::valueDimension;
 };
 
-
-template <typename T, typename BoatStateSettings>
-struct BoatStateVectorizer {
-  BoatState<T> read(const BoatState<double> &base, const T *src0) {
-    const T *src = src0;
-
-    //BoatState<T> baseT = initializeBoatState<T>(base);
-
-    /*HorizontalMotion<T> wind = ReFromArray<T,
-        HorizontalMotion<T> >::apply(&src);
-    HorizontalMotion<T> current = ReadFromArray<T,
-        HorizontalMotion<T> >::apply(&src);
-*/
-  }
-};
 
 template <DataCode code, typename BoatStateSettings>
 class BoatStateFitness {
