@@ -97,6 +97,37 @@ struct TypeVectorizer {
   }
 };
 
+template <typename T>
+struct Zero {
+  static T get() {
+    return MakeConstant<T>::apply(0.0);
+  }
+};
+
+template <typename T>
+struct Zero<Angle<T> > {
+  static Angle<T> get() {
+    return Angle<T>::radians(Zero<T>::get());
+  }
+};
+
+template <typename T>
+struct Zero<Velocity<T> > {
+  static Velocity<T> get() {
+    return Velocity<T>::knots(Zero<T>::get());
+  }
+};
+
+template <typename T>
+struct Zero<HorizontalMotion<T> > {
+  static HorizontalMotion<T> get() {
+    return HorizontalMotion<T>{
+      Zero<Velocity<T>>::get(),
+      Zero<Velocity<T>>::get()
+    };
+  }
+};
+
 // This type is used to control whether a value should
 // have corresponding optimization parameters or kept
 // constant. That choice is made at compile-time.
@@ -124,7 +155,7 @@ struct Parameterized {
     }
   }
 
-  Type value;
+  Type value = Zero<Type>::get();
   Parameterized(const Type &x) : value(x) {}
 };
 
@@ -176,6 +207,21 @@ struct ReconstructedBoatState {
     heading.write(dst);
     heel.write(dst);
     pitch.write(dst);
+  }
+
+  // Suppose we have previously already reconstructed some of the state,
+  // somehow. Then we can use that to initializer this object.
+  static ReconstructedBoatState<T, Settings> make(const BoatState<T> &prototype) {
+    ReconstructedBoatState<T, Settings> dst;
+
+    dst.boatOverGround = prototype.boatOverGround()
+        .mapObjectValues([](double x) {
+      return MakeConstant<T>::apply(x);
+    });
+
+    // Todo: Anything else to initialize?
+
+    return dst;
   }
 };
 
