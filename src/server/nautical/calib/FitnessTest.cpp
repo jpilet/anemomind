@@ -73,6 +73,31 @@ static_assert(
     ReconstructedBoatState<double, TestSettings5>::valueDimension ==
         2 + 2 + 2 + 2 + 1 + 1, "Failed");
 
+TEST(FitnessTest, ReconstructedBoatStateTest) {
+  typedef ReconstructedBoatState<
+      double, FullSettings> State;
+
+  const int n = State::valueDimension;
+  double values[n];
+  static_assert(0 < n, "It should be non-empty");
+  for (int i = 0; i < n; i++) {
+    values[i] = i;
+  }
+
+  State state;
+  const double *src = values;
+  state.read(&src);
+  EXPECT_EQ(values + n, src);
+
+  double values2[n];
+  double *dst = values2;
+  state.write(&dst);
+  EXPECT_EQ(values2 + n, dst);
+
+  for (int i = 0; i < n; i++) {
+    EXPECT_NEAR(values[i], values2[i], 1.0e-6);
+  }
+}
 
 TEST(FitnessTest, VectorizationTest) {
   double values[2] = {4.5, 5.6};

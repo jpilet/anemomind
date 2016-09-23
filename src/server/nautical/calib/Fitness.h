@@ -60,11 +60,19 @@ struct BandWidth :
     BandWidthForType<typename TypeForCode<code>::type>{};
 
 struct ServerBoatStateSettings {
-  static const bool withBoatOverGround = false;
+      static const bool withBoatOverGround = false;
+      static const bool withCurrentOverGround = true;
+      static const bool withHeel = false;
+      static const bool withPitch = false;
+      static const bool withIMU = false;
+};
+
+struct FullSettings {
+  static const bool withBoatOverGround = true;
   static const bool withCurrentOverGround = true;
-  static const bool withHeel = false;
-  static const bool withPitch = false;
-  static const bool withIMU = false;
+  static const bool withHeel = true;
+  static const bool withPitch = true;
+  static const bool withIMU = true;
 };
 
 // So that we can read a numeric representation
@@ -110,10 +118,17 @@ struct Parameterized {
     }
   }
 
+  void write(T **dst) const {
+    if (variable) {
+      TypeVectorizer<T, Type>::write(value, dst);
+    }
+  }
+
   Type value;
   Parameterized(const Type &x) : value(x) {}
 };
 
+// This object is used internally by the optimizer
 template <typename T, typename Settings>
 struct ReconstructedBoatState {
   typedef Parameterized<HorizontalMotion<T>,
@@ -144,6 +159,24 @@ struct ReconstructedBoatState {
         BOG::valueDimension + WOG::valueDimension + COG::valueDimension
         + Heading::valueDimension + Heel::valueDimension
         + Pitch::valueDimension;
+
+  void read(const T **src) {
+    boatOverGround.read(src);
+    windOverGround.read(src);
+    currentOverGround.read(src);
+    heading.read(src);
+    heel.read(src);
+    pitch.read(src);
+  }
+
+  void write(T **dst) const {
+    boatOverGround.write(dst);
+    windOverGround.write(dst);
+    currentOverGround.write(dst);
+    heading.write(dst);
+    heel.write(dst);
+    pitch.write(dst);
+  }
 };
 
 
