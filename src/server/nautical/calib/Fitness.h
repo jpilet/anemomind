@@ -228,78 +228,12 @@ struct ReconstructedBoatState {
   }
 };
 
-template <typename T, DataCode code>
-struct ValuesToFit {
-  typedef DistortionModel<T, code> Distortion;
-  typedef typename TypeForCode<code>::type Observation;
-
-  struct DistortionSpan {
-    Distortion distortion;
-    Spani span;
-  };
-
-  std::vector<DistortionSpan> distortionSpans;
-  std::vector<Observation> values;
-
-  void addValues(
-      Distortion distortion,
-      const Array<TimedValue<Observation> > &src) {
-    int from = values.size();
-    for (auto v: src) {
-      values.push_back(v.value);
-    }
-    int to = values.size();
-    distortionSpans.push_back(DistortionSpan{distortion, Spani(from, to)});
-  }
-};
-
 #define FOREACH_MEASURE_TO_CONSIDER(OP) \
   OP(AWA) \
   OP(AWS) \
   OP(MAG_HEADING) \
   OP(WAT_SPEED) \
   OP(ORIENT)
-
-// The part of the objective function related to
-// fitting measures
-template <typename T, typename Settings>
-struct DataFit : public BandedLevMar::CostFunctionBase<T> {
-  typedef ReconstructedBoatState<T, Settings> State;
-
-  static const int N = State::valueDimension;
-
-
-  DataFit(
-      Spani inputRange,
-      const BoatState<T> &prototype) :
-        _inputRange(inputRange),
-        _prototype(prototype),
-        BandedLevMar::CostFunctionBase<T>(inputRange) {
-    assert(inputRange.width() == N);
-  }
-
-  bool accumulateCost(const T *X, T *totalCost) override {
-    return true;
-  }
-
-  bool accumulateNormalEquations(
-      const T *X,
-      SymmetricBandMatrixL<T> *JtJ,
-      MDArray<T, 2> *minusJtF,
-      T *totalCost) override {
-    return true;
-  }
-
-#define LIST_MEASURE_FIELD(CODE) \
-  ValuesToFit<T, CODE> CODE;
-FOREACH_MEASURE_TO_CONSIDER(LIST_MEASURE_FIELD)
-#undef LIST_MEASURE_FIELD
-
-  virtual ~DataFit() {}
-private:
-  Spani _inputRange;
-  BoatState<double> _prototype;
-};
 
 } /* namespace sail */
 

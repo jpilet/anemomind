@@ -119,36 +119,3 @@ namespace {
   }
 }
 
-TEST(FitnessTest, ValuesToFit) {
-  typedef DistortionModel<double, AWA> Model;
-  Model srcModel;
-  double params[Model::paramCount];
-  for (int i = 0; i < Model::paramCount; i++) {
-    params[i] = i;
-  }
-  srcModel.readFrom(params);
-
-  ValuesToFit<double, AWA> valuesToFit;
-  valuesToFit.addValues(srcModel, {tv(1.4), tv(5.6), tv(6.7)});
-  EXPECT_EQ(valuesToFit.distortionSpans.size(), 1);
-  double params2[Model::paramCount];
-  auto sp = valuesToFit.distortionSpans[0];
-  sp.distortion.writeTo(params2);
-  for (int i = 0; i < Model::paramCount; i++) {
-    EXPECT_NEAR(params[i], params2[i], 1.0e-6);
-  }
-  EXPECT_EQ(sp.span.minv(), 0);
-  EXPECT_EQ(sp.span.maxv(), 3);
-  EXPECT_EQ(valuesToFit.values.size(), 3);
-}
-
-TEST(FitnessTest, DataFitTest) {
-
-  BoatState<double> bs;
-  Spani span(0,
-      ReconstructedBoatState<double,
-        FullSettings>::valueDimension);
-  DataFit<double, FullSettings> fit(span, bs);
-
-
-}
