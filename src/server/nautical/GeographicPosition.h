@@ -14,6 +14,8 @@ template <typename T>
 class GeographicPosition {
 public:
   typedef GeographicPosition<T> ThisType;
+  static const int valueDimension =
+      2*Angle<T>::valueDimension + Length<T>::valueDimension;
 
   GeographicPosition() :
     _alt(Length<T>::meters(T(0.0))) // In our domain, we are almost always close to sea level.

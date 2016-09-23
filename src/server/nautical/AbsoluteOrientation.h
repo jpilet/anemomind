@@ -10,6 +10,7 @@ struct TypedAbsoluteOrientation {
   Angle<T> heading; // Where the boat is heading on the surface
   Angle<T> roll;
   Angle<T> pitch;
+  static const int valueDimension = 3*Angle<T>::valueDimension;
 
   static TypedAbsoluteOrientation<T> onlyHeading(Angle<T> x) {
     return TypedAbsoluteOrientation<T>{

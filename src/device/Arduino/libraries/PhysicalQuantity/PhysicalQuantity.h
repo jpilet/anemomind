@@ -238,6 +238,7 @@ struct InitialValue<T,
 template <typename T, typename System, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity {
 public:
+  static const int valueDimension = 1; // How many elements that are needed to represent this object as vector.
   typedef DimensionlessTraits<T, System, TimeDim, LengthDim, AngleDim, MassDim> DimensionlessInfo;
 
   typedef T ValueType;
@@ -662,7 +663,7 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
   public:
     typedef Velocity<T> InnerType;
     typedef Vectorize<Velocity<T>, 2> BaseType;
-
+    static const int valueDimension = 2*Velocity<T>::valueDimension;
     HorizontalMotion(InnerType eastWest, InnerType southNorth) {
       (*this)[0] = eastWest;
       (*this)[1] = southNorth;
