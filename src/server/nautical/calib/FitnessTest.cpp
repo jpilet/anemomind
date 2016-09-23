@@ -29,6 +29,28 @@ static_assert(
     ReconstructedBoatState<double, TestSettings1>::valueDimension ==
         0 + 2 + 0 + 2 + 0 + 0, "Failed");
 
+struct TestSettings2 {
+  static const bool withBoatOverGround = true;
+  static const bool withCurrentOverGround = false;
+  static const bool withHeel = false;
+  static const bool withPitch = false;
+};
+
+static_assert(
+    ReconstructedBoatState<double, TestSettings2>::valueDimension ==
+        2 + 2 + 0 + 2 + 0 + 0, "Failed");
+
+struct TestSettings3 {
+  static const bool withBoatOverGround = true;
+  static const bool withCurrentOverGround = true;
+  static const bool withHeel = false;
+  static const bool withPitch = false;
+};
+
+static_assert(
+    ReconstructedBoatState<double, TestSettings3>::valueDimension ==
+        2 + 2 + 2 + 2 + 0 + 0, "Failed");
+
 
 TEST(FitnessTest, VectorizationTest) {
   double values[2] = {4.5, 5.6};
