@@ -47,6 +47,7 @@ TEST(BoatStateReconstructor, TimeMapper) {
       [&](int index, Spani span) {
     calls.push_back(Call{index, span});
   });
+  EXPECT_EQ(calls.size(), 2);
 
 }
 
