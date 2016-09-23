@@ -111,11 +111,3 @@ TEST(FitnessTest, VectorizationTest) {
   EXPECT_NEAR(values[1], values2[1], 1.0e-6);
 }
 
-namespace {
-  TimedValue<Angle<double> > tv(double x) {
-    return TimedValue<Angle<double>>(
-        TimeStamp::UTC(2016, 9, 23, 11, 1, 0),
-        Angle<double>::degrees(x));
-  }
-}
-

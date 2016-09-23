@@ -65,13 +65,14 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
     offsetTime, 1.0_s, 30};
 
   std::map<std::string, Array<TimedValue<Velocity<double>>>> src{
-    {"NMEA2000", {}},
-    {"Anemobox", {}}
+    {"NMEA2000", {
+        {t(0.4), 3.4_kn},
+        {t(9.6), 5.5_kn}
+    }},
+    {"Anemobox", {
+        {t(4.5), 9.9_kn}
+    }}
   };
-}
-/*TEST(BoatStateReconstructor, BasicTest) {
-  Array<BoatState<double> > initialStates(1);
-  BoatStateReconstructor<double, ServerBoatStateSettings>
-    reconstructor(offsetTime, 1.0_s, initialStates);
 
-}*/
+
+}
