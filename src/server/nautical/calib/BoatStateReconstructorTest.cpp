@@ -77,6 +77,19 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
     }}
   };
 
+  std::vector<std::string> sensorNames;
+  std::vector<int> assignedIndices;
+
   ValueAccumulator<Velocity<double> > acc(mapper, src);
+  EXPECT_EQ(acc.sensorIndices.size(), 2);
+  for (auto kv: acc.sensorIndices) {
+    sensorNames.push_back(kv.first);
+    assignedIndices.push_back(kv.second);
+  }
+  std::sort(sensorNames.begin(), sensorNames.end());
+  EXPECT_EQ(sensorNames, (std::vector<std::string>{"Anemobox", "NMEA2000"}));
+  std::sort(assignedIndices.begin(), assignedIndices.end());
+  EXPECT_EQ(assignedIndices, (std::vector<int>{0, 1}));
+
 
 }
