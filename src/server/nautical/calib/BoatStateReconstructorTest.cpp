@@ -15,9 +15,14 @@ namespace {
 
 }
 
-TEST(BoatStateReconstructor, BasicTest) {
+TEST(BoatStateReconstructor, TimeMapper) {
+  TimeStampToIndexMapper mapper{
+    offsetTime, Duration<double>::seconds(2.0), 4};
+}
+
+/*TEST(BoatStateReconstructor, BasicTest) {
   Array<BoatState<double> > initialStates(1);
   BoatStateReconstructor<double, ServerBoatStateSettings>
     reconstructor(offsetTime, 1.0_s, initialStates);
 
-}
+}*/
