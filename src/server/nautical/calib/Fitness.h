@@ -276,7 +276,8 @@ FOREACH_MEASURE_TO_CONSIDER(LIST_MEASURE_FIELD)
 
   template <typename S>
   bool evaluate(const S *X, S *Y) const {
-    ReconstructedBoatState<S, Settings> state;
+    ReconstructedBoatState<S, Settings> state
+      = ReconstructedBoatState<S, Settings>::make(prototype);
     state.read(&X);
     return true;
   }

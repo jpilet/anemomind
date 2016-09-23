@@ -146,4 +146,5 @@ TEST(FitnessTest, DataFitTest) {
 
   DataFit<double, FullSettings> fit;
 
+
 }
