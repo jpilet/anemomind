@@ -17,7 +17,10 @@ namespace {
 
 TEST(BoatStateReconstructor, TimeMapper) {
   TimeStampToIndexMapper mapper{
-    offsetTime, Duration<double>::seconds(2.0), 4};
+    offsetTime, 2.0_s, 4};
+  EXPECT_EQ(mapper.offset, offsetTime);
+  EXPECT_EQ(mapper.period, 2.0_s);
+  EXPECT_EQ(mapper.sampleCount, 4);
 }
 
 /*TEST(BoatStateReconstructor, BasicTest) {
