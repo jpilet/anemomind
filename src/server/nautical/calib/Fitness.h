@@ -214,6 +214,7 @@ struct ReconstructedBoatState {
   static ReconstructedBoatState<T, Settings> make(const BoatState<T> &prototype) {
     ReconstructedBoatState<T, Settings> dst;
 
+    // From the GPS filter...
     dst.boatOverGround = prototype.boatOverGround()
         .mapObjectValues([](double x) {
       return MakeConstant<T>::apply(x);
