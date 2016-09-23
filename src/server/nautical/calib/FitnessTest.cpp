@@ -102,7 +102,8 @@ TEST(FitnessTest, ReconstructedBoatStateTest) {
   BoatState<double> bs;
   bs.setBoatOverGround(HorizontalMotion<double>(3.4_kn, 4.5_kn));
   auto state2 = State::make(bs);
-
+  EXPECT_NEAR(state2.boatOverGround.value[0].knots(), 3.4, 1.0e-6);
+  EXPECT_NEAR(state2.boatOverGround.value[1].knots(), 4.5, 1.0e-6);
 }
 
 TEST(FitnessTest, VectorizationTest) {

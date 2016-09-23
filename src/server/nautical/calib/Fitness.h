@@ -226,6 +226,13 @@ struct ReconstructedBoatState {
   }
 };
 
+template <typename T, typename Settings>
+struct DataFit {
+  typedef ReconstructedBoatState<T, Settings> State;
+
+  static const int inputCount = State::valueDimension;
+
+};
 
 template <DataCode code, typename BoatStateSettings>
 class BoatStateFitness {
