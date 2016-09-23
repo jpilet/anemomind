@@ -73,7 +73,7 @@ struct ValueAccumulator {
         sampleCounter += span.width();
       });
     }
-    valuesPerIndex.reserve(mapper.sampleCount);
+    valuesPerIndex.resize(mapper.sampleCount);
     values.reserve(sampleCounter);
 
     assert(sensorCounter == sensorIndices.size());

@@ -90,6 +90,8 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   EXPECT_EQ(sensorNames, (std::vector<std::string>{"Anemobox", "NMEA2000"}));
   std::sort(assignedIndices.begin(), assignedIndices.end());
   EXPECT_EQ(assignedIndices, (std::vector<int>{0, 1}));
+  EXPECT_EQ(acc.values.size(), 4 + 2);
+  EXPECT_EQ(acc.valuesPerIndex.size(), 30);
 
 
 }
