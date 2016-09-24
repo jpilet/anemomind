@@ -45,7 +45,7 @@ TEST(BoatStateTest, OrientationOrthonormality) {
   };
 
   for (int i = 0; i < 30; i++) {
-    AbsoluteOrientation o{
+    AbsoluteBoatOrientation<double> o{
       randomAngle(), randomAngle(), randomAngle()
     };
 
@@ -62,7 +62,7 @@ TEST(BoatStateTest, OrientationOrthonormality) {
 TEST(BoatStateTest, ElementaryOrientations) {
   double k = 1.0/sqrt(2.0);
   { // heading
-    AbsoluteOrientation o{45.0_deg, 0.0_deg, 0.0_deg};
+    AbsoluteBoatOrientation<double> o{45.0_deg, 0.0_deg, 0.0_deg};
     auto R = orientationToMatrix(o);
     EXPECT_LT(
         (R*Eigen::Vector3d(1, 0, 0)
@@ -74,7 +74,7 @@ TEST(BoatStateTest, ElementaryOrientations) {
         (R*Eigen::Vector3d(0, 0, 1)
            - Eigen::Vector3d(0, 0, 1)).norm(), 1.0e-6);
   }{ // roll
-    AbsoluteOrientation o{0.0_deg, 45.0_deg, 0.0_deg};
+    AbsoluteBoatOrientation<double> o{0.0_deg, 45.0_deg, 0.0_deg};
     auto R = orientationToMatrix(o);
     EXPECT_LT(
         (R*Eigen::Vector3d(1, 0, 0)
@@ -86,7 +86,7 @@ TEST(BoatStateTest, ElementaryOrientations) {
         (R*Eigen::Vector3d(0, 0, 1)
            - Eigen::Vector3d(k, 0, k)).norm(), 1.0e-6);
   }{ // pitch
-    AbsoluteOrientation o{0.0_deg, 0.0_deg, 45.0_deg};
+    AbsoluteBoatOrientation<double> o{0.0_deg, 0.0_deg, 45.0_deg};
     auto R = orientationToMatrix(o);
     EXPECT_LT(
         (R*Eigen::Vector3d(1, 0, 0)
@@ -109,7 +109,7 @@ TEST(BoatStateTest, VariousProperties) {
   auto angle = 0.0_deg;
 
   BS bs0(pos, gps, wind,
-      current, AbsoluteOrientation::onlyHeading(angle));
+      current, AbsoluteBoatOrientation<double>::onlyHeading(angle));
 
   EXPECT_EQ(bs0, bs0);
 
@@ -122,7 +122,7 @@ TEST(BoatStateTest, VariousProperties) {
   auto angle2 = 45.0_deg;
   {
     BS bs2(pos, gps, wind, current,
-        AbsoluteOrientation::onlyHeading(angle2));
+        AbsoluteBoatOrientation<double>::onlyHeading(angle2));
     /*Eigen::Vector3d wh = bs2.worldHeadingVector();
     EXPECT_NEAR(wh(0), -1.0/sqrt(2.0), 1.0e-6);
     EXPECT_NEAR(wh(1), 1.0/sqrt(2.0), 1.0e-6);
@@ -139,7 +139,7 @@ TEST(BoatStateTest, LeewayTestNoDrift) {
   auto angle = 45.0_deg;
 
   BS bs(pos, gps, wind, current,
-      AbsoluteOrientation::onlyHeading(angle));
+      AbsoluteBoatOrientation<double>::onlyHeading(angle));
 
 
   EXPECT_TRUE(eq(hm(-1.0_kn, -2.0_kn), bs.apparentWind()));
@@ -160,7 +160,7 @@ TEST(BoatStateTest, InterpolationTest) {
     HorizontalMotion<double> current(0.0_kn, 0.0_kn);
     auto angle = 45.0_deg;
     a = BS(pos, gps, wind, current,
-        AbsoluteOrientation::onlyHeading(angle));
+        AbsoluteBoatOrientation<double>::onlyHeading(angle));
   }{
     GeographicPosition<double> pos(-45.0_deg, 135.0_deg);
     HorizontalMotion<double> gps(4.0_kn, 5.0_kn);
@@ -168,7 +168,7 @@ TEST(BoatStateTest, InterpolationTest) {
     HorizontalMotion<double> current(3.0_kn, 4.0_kn);
     auto angle = 70.0_deg;
     b = BS(pos, gps, wind, current,
-        AbsoluteOrientation::onlyHeading(angle));
+        AbsoluteBoatOrientation<double>::onlyHeading(angle));
   }
   EXPECT_EQ(a, interpolate(0.0, a, b));
   EXPECT_EQ(b, interpolate(1.0, a, b));
@@ -183,7 +183,7 @@ TEST(BoatStateTest, MapToJetAndBack) {
   HorizontalMotion<double> current(0.0_kn, 0.0_kn);
   auto angle = 45.0_deg;
   BS a(pos, gps, wind, current,
-      AbsoluteOrientation::onlyHeading(angle));
+      AbsoluteBoatOrientation<double>::onlyHeading(angle));
 
   BoatState<ADType> b = a.mapObjectValues([](double x) {
     return MakeConstant<ADType>::apply(x);

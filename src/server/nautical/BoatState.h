@@ -133,6 +133,10 @@ will rotate the boat clockwise in this plane.
 namespace sail {
 
 template <typename T>
+using AbsoluteBoatOrientation
+    = TypedAbsoluteOrientation<T, OrientCoding::Boat>;
+
+template <typename T>
 Eigen::Matrix<T, 3, 3> headingMatrix(Angle<T> h) {
   Eigen::Matrix<T, 3, 3> H;
   H << cos(h), sin(h), 0,
@@ -170,7 +174,7 @@ Eigen::Matrix<T, 3, 3> rollMatrix(Angle<T> r) {
  */
 template <typename T>
 Eigen::Matrix<T, 3, 3> orientationToMatrix(
-    const TypedAbsoluteOrientation<T> &orient) {
+    const AbsoluteBoatOrientation<T> &orient) {
   return headingMatrix(orient.heading)
       *pitchMatrix(orient.pitch)
       *rollMatrix(orient.roll);
@@ -236,7 +240,7 @@ public:
       const HorizontalMotion<T> &bog,
       const HorizontalMotion<T> &windOverGround,
       const HorizontalMotion<T> &currentOverGround,
-      const TypedAbsoluteOrientation<T> &orientation) :
+      const AbsoluteBoatOrientation<T> &orientation) :
         _position(position),
         _boatOverGround(bog),
         _windOverGround(windOverGround),
@@ -338,7 +342,7 @@ public:
         angleOfWindDirection);
   }
 
-  const TypedAbsoluteOrientation<T> &orientation() const {
+  const AbsoluteBoatOrientation<T> &orientation() const {
     return _orientation;
   }
 
@@ -365,7 +369,7 @@ private:
   HorizontalMotion<T> _boatOverGround;
   HorizontalMotion<T> _windOverGround;
   HorizontalMotion<T> _currentOverGround;
-  TypedAbsoluteOrientation<T> _orientation;
+  AbsoluteBoatOrientation<T> _orientation;
 };
 
 

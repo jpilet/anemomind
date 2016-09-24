@@ -11,11 +11,11 @@
 using namespace sail;
 
 TEST(AbsoluteOrientationTest, MapObjectValuesTest) {
-  TypedAbsoluteOrientation<double> orient0{
+  TypedAbsoluteOrientation<double, OrientCoding::BNO055> orient0{
     45.0_deg, 60.0_deg, 74.0_deg
   };
 
-  TypedAbsoluteOrientation<float> orient1 = orient0.mapObjectValues(
+  TypedAbsoluteOrientation<float, OrientCoding::BNO055> orient1 = orient0.mapObjectValues(
       [](double x) {return static_cast<float>(x);});
 
   EXPECT_NEAR(orient0.heading.degrees(), orient1.heading.degrees(), 1.0e-5);
