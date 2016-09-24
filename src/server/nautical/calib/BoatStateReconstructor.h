@@ -124,15 +124,8 @@ struct ValueAccumulator {
   std::vector<TaggedValue> values;
 };
 
-
-template <typename T, DataCode code>
-void addObjfs(
-    const std::map<std::string, DistortionModel<T, code> > &sensors,
-    const Array<BoatState<double> > &initialStates,
-    const ValueAccumulator<typename TypeForCode<code>::type> &values,
-    BandedLevMar::Problem<T> *dst) {
-
-}
+template <typename T>
+struct ReconstructionDataFit;
 
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
@@ -147,6 +140,7 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
 #undef INITIALIZE_VALUE_ACC
         _timeMapper(mapper),
         _initialStates(initialStates) {
+    _dataCount = countDataTerms();
     CHECK(initialStates.size() == mapper.sampleCount);
   }
 
@@ -155,24 +149,41 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
       const SensorDistortionSet<T> &sensorParams) const {
     using namespace BandedLevMar;
     int regCount = _timeMapper.sampleCount - 1;
-    int dataCount = 0;
-#define COUNT_DATAFITS(HANDLE) \
-  dataCount += HANDLE.valuesPerIndex.size();
-FOREACH_MEASURE_TO_CONSIDER(COUNT_DATAFITS)
-#undef COUNT_DATAFITS
-    Problem<T> problem(dataCount + regCount);
-#define ADD_OBJF(HANDLE) \
-  addObjfs<T, HANDLE>(sensorParams.HANDLE, _initialStates, HANDLE, &problem);
-FOREACH_MEASURE_TO_CONSIDER(ADD_OBJF)
-#undef ADD_OBJFS
+    Problem<T> problem(_dataCount + regCount);
+
+    assert(false); // TODO
   }
-private:
 #define DECLARE_VALUE_ACC(HANDLE) \
   ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
   FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
 #undef DECLARE_VALUE_ACC
+private:
+  int _dataCount;
   TimeStampToIndexMapper _timeMapper;
   Array<BoatState<double> > _initialStates;
+
+  bool hasDataForIndex(int i) const {
+//#define HAS_DATA(HANDLE) \
+//  if (HANDLE.values.count())
+    return false;
+  }
+
+  int countDataTerms() {
+    int counter = 0;
+    for (int i = 0; i < _timeMapper.sampleCount; i++) {
+      if (hasDataForIndex(i)) {
+        counter++;
+      }
+    }
+    return counter;
+  }
+
+};
+
+template <typename T>
+struct ReconstructionDataFit : public
+  BandedLevMar::CostFunctionBase<T> {
+
 };
 
 
