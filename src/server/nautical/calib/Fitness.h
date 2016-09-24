@@ -394,7 +394,8 @@ struct OrientFitness {
       // boat-to-world rotation matrix (from the sensor) to the
       // other boat-to-world roation matrix (estimated from the state).
 
-      auto obsR = BNO055AnglesToRotation(observation);
+      auto obsR = distortion.computeBoatToWorldRotation(
+          BNO055AnglesToRotation(observation));
       auto boatR = orientationToMatrix<T>(orient.get());
       // obsR = relR*boatR <=> relR = obsR*boatR'
       auto relR = obsR*boatR.transpose();
