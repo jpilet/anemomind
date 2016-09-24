@@ -447,18 +447,17 @@ struct HeelFitness {
 
   static bool apply(const ReconstructedBoatState<T, Settings> &state,
                     const AnglePerVelocity<T> &heelPerWindSpeed,
-                    const AbsoluteOrientation &observation,
                     T *residuals) {
     residuals[0] = DefaultUndefinedResidual<T>::get();
     auto hnorm = state.heading.value.norm();
-    if (MakeConstant<T>::apply(0.0) < hnorm) {
+    if (MakeConstant<T>::apply(0.0) < hnorm.knots()) {
       T x = state.heading.value[1]/hnorm;
       T y = -state.heading.value[0]/hnorm;
       auto aw = computeApparentWind<T>(
           state.boatOverGround.value,
           state.windOverGround.value);
       Velocity<T> proj = x*aw[0] + y*aw[1];
-      Velocity<T> error = state.heel.value - heelPerWindSpeed*proj;
+      Angle<T> error = state.heel.value - heelPerWindSpeed*proj;
       residuals[0] = sqrtHuber<T>(error/bandWidth());
     }
     return true;

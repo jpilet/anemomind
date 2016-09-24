@@ -259,6 +259,14 @@ TEST(FitnessTest, ResidualTest) {
         + BandWidth<double, WAT_SPEED>::get(), residuals)));
     EXPECT_NEAR(1.0, std::abs(residuals[0]), 1.0e-6);
   }
+
+  // Heel angle tests
+  {
+    double residuals[1] = {10.0};
+    EXPECT_TRUE((HeelFitness<double, FullSettings>::apply(
+        state, heelCoef, residuals)));
+    EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
+  }
 }
 
 TEST(FitnessTest, OrientationTest) {
