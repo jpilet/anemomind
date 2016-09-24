@@ -3,6 +3,9 @@
  *
  *  Created on: 24 Sep 2016
  *      Author: jonas
+ *
+ * Note: Eigen also has code for axis-angle representation,
+ * but it is not written with differentiability in mind.
  */
 
 #ifndef SERVER_MATH_AXISANGLE_H_

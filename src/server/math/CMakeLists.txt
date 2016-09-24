@@ -165,6 +165,11 @@ cxx_test(math_BandedLevMarTest
   common_LineKM
   )
 
+cxx_test(math_AxisAngleTest
+  AxisAngleTest.cpp
+  gtest_main
+  )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
