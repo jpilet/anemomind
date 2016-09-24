@@ -260,6 +260,7 @@ TEST(FitnessTest, ResidualTest) {
 
 TEST(FitnessTest, OrientationTest) {
   ReconstructedBoatState<double, FullSettings> state;
+
   state.heading.value = HorizontalMotion<double>::polar(
       referenceVelocityForAngles<double>(), 0.0_deg);
 
@@ -292,5 +293,17 @@ TEST(FitnessTest, OrientationTest) {
     EXPECT_NEAR(r[0], 1.0, 1.0e-3);
   }
 
+  state.heading.value = HorizontalMotion<double>::polar(
+      referenceVelocityForAngles<double>(), 0.0_deg);
+  {
+    DistortionModel<double, ORIENT> model;
+    double params[3] = {1.0, 3.4, 99.34};
+    model.readFrom(params);
+    auto observed = AbsoluteOrientation{0.0_deg, 0.0_deg, 0.0_deg};
+    double r[1] = {0.0};
+    EXPECT_TRUE((OrientFitness<double, FullSettings>::apply(
+        state, model, observed, r)));
+    EXPECT_LT(0.001, r[0]);
+  }
 
 }
