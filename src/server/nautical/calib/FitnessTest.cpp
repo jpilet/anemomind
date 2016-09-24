@@ -183,5 +183,11 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_TRUE((AWSFitness<double, FullSettings>::apply(
         state, awsModel, 30.0_kn, residuals)));
     EXPECT_LT(0.1, std::abs(residuals[0]));
+  }{
+    double residuals[1] = {0.0};
+    EXPECT_TRUE((AWSFitness<double, FullSettings>::apply(
+        state, awsModel, expectedAWS +
+          BandWidth<double, AWS>::get(), residuals)));
+    EXPECT_NEAR(1.0, std::abs(residuals[0]), 1.0e-6);
   }
 }
