@@ -439,6 +439,10 @@ using AnglePerVelocity = decltype(
 // (see BoatState.h for a drawing). I am not sure how true this generally
 // is. Maybe we should increase the band width a little bit to accomodate
 // for the uncertainty...
+//
+// TODO: If we don't attempt to recover the heel angle,
+// we should (withHeel = false), then heelPerWindSpeed
+// should be overridden by 0 (here or elsewhere).
 template <typename T, typename Settings>
 struct HeelFitness {
   static const int outputCount = 1;
@@ -467,6 +471,9 @@ struct HeelFitness {
 };
 
 // Not related to any particular sensor
+// TODO: If we don't attempt to model drift, the heading of
+// the boat should coinside with the angle of the vector
+// of the boatOverWater (which is a maxLeewayAngle of 0)
 template <typename T, typename Settings>
 struct DriftFitness {
   static const int outputCount = 1;
