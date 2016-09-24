@@ -41,7 +41,7 @@ Eigen::Matrix<T, 3, 3> computeRotationFromOmega(
     auto one = MakeConstant<T>::apply(1.0);
     auto K = crossProductMatrix(axis);
     auto cosTheta = cos(theta);
-    return cosTheta*Eigen::Matrix<T, 3, 3>::Identity()
+    return Eigen::Matrix<T, 3, 3>::Identity()
         + sin(theta)*K + (one - cosTheta)*K*K;
   }
 }
