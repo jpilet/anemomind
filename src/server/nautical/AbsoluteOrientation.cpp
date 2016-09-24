@@ -13,7 +13,7 @@ namespace sail {
 
 // See this src/device/anemobox/anemonode/components/http/static/3d.js
 // and the function drawScene()
-Eigen::Matrix3d boxAnglesToRotation(
+Eigen::Matrix3d BNO055AnglesToRotation(
     const AbsoluteOrientation &orientation) {
   Eigen::Matrix3d R0 = computeRotationFromOmega<double>(
       -orientation.heading.radians()*Eigen::Vector3d(0, 1, 0));

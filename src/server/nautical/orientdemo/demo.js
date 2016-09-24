@@ -25,10 +25,34 @@ function computeMatrix(orientDegrees) {
   return mvMatrix;
 }
 
-var testOrient = {
-  heading: 45,
-  pitch: 3.4,
-  roll: -0.5
-};
+function dispOrient(orient) {
+  console.log("The orientation ");
+  console.log(orient);
+  console.log("Maps to " + computeMatrix(orient));
+}
 
-console.log("The matrix is " + computeMatrix(testOrient));
+dispOrient({
+  heading: 0,
+  pitch: 0,
+  roll: 0
+});
+
+dispOrient({
+  heading: 90,
+  pitch: 0,
+  roll: 0
+});
+
+dispOrient({
+  heading: 0,
+  pitch: 90,
+  roll: 0
+});
+
+dispOrient({
+  heading: 45,
+  pitch: 20.0,
+  roll: -14.3
+});
+
+

@@ -299,6 +299,7 @@ add_library(nautical_AbsoluteOrientation
 
 cxx_test(nautical_AbsoluteOrientationTest
   AbsoluteOrientationTest.cpp
+  nautical_AbsoluteOrientation
   gtest_main
   )
 

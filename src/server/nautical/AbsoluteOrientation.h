@@ -60,6 +60,9 @@ bool isFinite(const TypedAbsoluteOrientation<T> &x) {
       && isFinite(x.roll);
 }
 
+Eigen::Matrix3d BNO055AnglesToRotation(
+    const AbsoluteOrientation &orientation);
+
 
 }  // namespace sail
 
