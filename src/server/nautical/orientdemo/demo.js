@@ -36,6 +36,8 @@ function computeMatrix(orientDegrees) {
 function dispOrient(orient) {
   console.log("\n\n\nThe orientation ");
   console.log(orient);
+  // See the note on matrix format here:
+  // http://glmatrix.net/
   console.log("Maps to (row by row): \n" + computeMatrix(orient));
 }
 
