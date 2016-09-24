@@ -301,14 +301,11 @@ struct AWAFitness {
       HorizontalMotion<T> cleanAW = computeApparentWind<T>(
           state.boatOverGround.value,
           state.windOverGround.value);
-      std::cout << "cleanAW: " << cleanAW << std::endl;
       auto distortedAW = distortion.apply(cleanAW);
-      std::cout << "distortedAW: " << cleanAW << std::endl;
       auto observedAW = makeApparentWind(
           cleanAW.norm(),
           MakeConstant<Angle<T>>::apply(observation),
           h.get());
-      std::cout << "observedAW: " << cleanAW << std::endl;
       auto error = HorizontalMotion<T>(distortedAW - observedAW);
       auto bw = BandWidth<T, AWA>::get();
       residuals[0] = sqrtHuber<T>(T(error.norm()/bw));
