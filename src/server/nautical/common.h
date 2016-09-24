@@ -27,8 +27,8 @@ HorizontalMotion<T> computeApparentWind(
 }
 
 template <typename T>
-Angle<T> angleFrom(const Angle<T> &angle) {
-  return angle - Angle<T>::degrees(MakeConstant<T>::apply(180.0));
+Angle<T> flipAngle(Angle<T> x) {
+  return x + Angle<T>::degrees(MakeConstant<T>::apply(180.0));
 }
 
 template <typename T>
@@ -36,7 +36,7 @@ Optional<Angle<T> > computeAWA(const HorizontalMotion<T> &apparentWind,
                     Angle<T> heading) {
   auto alpha = apparentWind.optionalAngle();
   return alpha.defined()?
-    angleFrom(alpha.get()) - heading
+    flipAngle(alpha.get()) - heading
     : Optional<Angle<T> >();
 }
 
@@ -44,8 +44,21 @@ template <typename T>
 Angle<T> computeAWA(const HorizontalMotion<T> &boatOverGround,
                     const HorizontalMotion<T> &windOverGround,
                     const Angle<T> &heading) {
-  return angleFrom(computeApparentWind(
+  return flipAngle(computeApparentWind(
       boatOverGround, windOverGround).angle()) - heading;
+}
+
+template <typename T>
+HorizontalMotion<T> computeBoatOverWater(
+    const HorizontalMotion<T> &boatOverGround,
+    const HorizontalMotion<T> &currentOverGround) {
+  return boatOverGround - currentOverGround;
+}
+
+template <typename T>
+HorizontalMotion<T> makeApparentWind(
+    Velocity<T> aws, Angle<T> awa, Angle<T> heading) {
+  return HorizontalMotion<T>::polar(aws, flipAngle(awa) + heading);
 }
 
 

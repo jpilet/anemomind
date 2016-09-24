@@ -86,6 +86,13 @@ Velocity<T> referenceVelocityForAngles(
   return (MakeConstant<T>::apply(1.0)/angleWidth.radians())*velocityWidth;
 }
 
+template <typename T>
+Velocity<T> referenceVelocityForAngles() {
+  return referenceVelocityForAngles<T>(
+      BandWidthForType<T, Velocity<double>>::get(),
+      BandWidthForType<T, Angle<double>>::get());
+}
+
 // TODO: Study the literature on how noise is estimated
 // in a Kalman filter, for different kinds of measurements.
 // That is a related problem.
@@ -275,19 +282,17 @@ struct AWAFitness {
     residuals[0] = DefaultUndefinedResidual<T>::get();
     auto h = state.heading.value.optionalAngle();
     if (h.defined()) {
-      HorizontalMotion<T> AW = computeApparentWind(
+      HorizontalMotion<T> cleanAW = computeApparentWind(
           state.boatOverGround,
           state.windOverGround);
-      auto awa = computeAWA(AW, h.get());
-      if (awa.defined()) {
-        auto prediction = distortion.apply(awa.get());
-        auto angleError = observation -
-            MakeConstant<Angle<T>>::apply(prediction);
-        Velocity<T> velocityError = (angleError).radians()*AW.norm();
-        auto bw = BandWidth<T, AWA>::get();
-        residuals[0] = sqrtHuber<T>(
-            velocityError/bw);
-      }
+      auto distortedAW = distortion.apply(cleanAW);
+      auto observedAW = makeApparentWind(
+          cleanAW.norm(),
+          MakeConstant<Angle<T>>::apply(observation),
+          h.get());
+      auto error = distortedAW - observedAW;
+      auto bw = BandWidth<T, AWA>::get();
+      residuals[0] = sqrtHuber<T>(error.norm()/bw);
     }
     return true;
   }
@@ -319,13 +324,40 @@ struct MagHeadingFitness {
                     const DistortionModel<T, MAG_HEADING> &distortion,
                     const Angle<double> &observation,
                     T *residuals) {
-    residuals[0] = DefaultUndefinedResidual<T>::get();
-    auto h = state.heading.value.optionalAngle();
-    if (h.defined()) {
-      //auto error = distortion.apply(h.get()) -
-    }
+    auto bw = BandWidth<T, MAG_HEADING>::get();
+    auto velBW = BandWidthForType<T, Velocity<double>>::get();
+    auto observedHeadingVector = HorizontalMotion<T>::polar(
+        referenceVelocityForAngles<T>(velBW, bw),
+        MakeConstant<Angle<T>>::apply(observation));
+    auto distortedHeadingVector = distortion.apply(state.heading.value);
+    auto error = (observedHeadingVector - distortedHeadingVector).norm();
+    residuals[0] = sqrtHuber<T>(error/velBW);
     return true;
   }
+};
+
+template <typename T, typename Settings>
+struct WatSpeedFitness {
+  static const int outputCount = 1;
+
+  static bool apply(const ReconstructedBoatState<T, Settings> &state,
+                    const DistortionModel<T, WAT_SPEED> &distortion,
+                    const Velocity<double> &observation,
+                    T *residuals) {
+    auto boatOverWater = computeBoatOverWater<T>(
+        state.boatOverGround.value,
+        state.currentOverGround.value);
+    auto error = distortion.apply(boatOverWater.norm()) -
+        MakeConstant<Velocity<T>>::apply(observation);
+    auto bw = BandWidth<T, WAT_SPEED>::get();
+    residuals[0] = sqrtHuber<T>(error/bw);
+    return true;
+  }
+};
+
+template <typename T, typename Settings>
+struct OrientFitness {
+
 };
 
 #define FOREACH_MEASURE_TO_CONSIDER(OP) \

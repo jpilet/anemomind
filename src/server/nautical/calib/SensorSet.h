@@ -10,6 +10,7 @@
 
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/DispatcherUtils.h>
+#include <Eigen/Dense>
 
 namespace sail {
 
@@ -272,6 +273,10 @@ public:
   Angle<T> apply(Angle<T> x) const {
     return x + _offset;
   }
+
+  HorizontalMotion<T> apply(const HorizontalMotion<T> &x) const {
+    return x.rotate(_offset);
+  }
 private:
   Angle<T> _offset;
 };
@@ -309,6 +314,48 @@ public:
   T bias() const {return _bias;}
 private:
   T _bias;
+};
+
+/*
+ * Orientation formulation:
+ *  The IMU measures a rotation from coordinate system of the sensor
+ *  to the world, R_imu
+ *
+ *  So if we have a vector X_s in sensor coordinates, we get its world
+ *  coordinates as
+ *  X_w = R_imu*X_s
+ *
+ *  But we like to work with coordinates X_b in the coordinate system of
+ *  the boat. So we need another rotation R_c that maps those coordinates
+ *  to the box:
+ *
+ *  X_s = R_c*X_b
+ *  and then
+ *  X_w = R_imu*X_s
+ *
+ *  that we can wrap up as
+ *  X_w = R_imu*R_c*X_c
+ *
+ *  In other words, the full rotation from the boat to the world is
+ *
+ *  R = R_imu*R_c
+ *
+ *  We can think of the R_c matrix as the calibration of the sensor.
+ *  We choose to use the compact axis-angle representation to represent
+ *  that matrix.
+ *
+ */
+template <typename T>
+class OrientationSensor {
+public:
+  typedef T ParameterType;
+
+
+  Eigen::Matrix<T, 3, 3> boatToSensorRotation() const {
+    return Eigen::Matrix<T, 3, 3>();
+  }
+private:
+  Eigen::Matrix<T, 3, 1> _omega;
 };
 
 template <typename T>
