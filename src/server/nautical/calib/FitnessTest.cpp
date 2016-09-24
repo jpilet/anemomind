@@ -197,9 +197,20 @@ TEST(FitnessTest, ResidualTest) {
   // MAG_HEADING tests
   DistortionModel<double, MAG_HEADING> hdgModel;
   {
+    static_assert(1 == MagHeadingFitness<double,
+        FullSettings>::outputCount,
+        "Not what we expected");
     double residuals[1] = {10.0};
     EXPECT_TRUE((MagHeadingFitness<double, FullSettings>::apply(
         state, hdgModel, expectedHeading, residuals)));
     EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
+  }{
+    double residuals[1] = {0.0};
+    DistortionModel<double, MAG_HEADING> bad;
+    double params[1] = {6435.543};
+    bad.readFrom(params);
+    EXPECT_TRUE((MagHeadingFitness<double, FullSettings>::apply(
+        state, bad, expectedHeading, residuals)));
+    EXPECT_LT(0.001, std::abs(residuals[0]));
   }
 }
