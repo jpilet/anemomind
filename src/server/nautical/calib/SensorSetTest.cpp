@@ -13,6 +13,38 @@
 
 using namespace sail;
 
+TEST(SensorTest, OrientationSensorTest) {
+  DistortionModel<double, ORIENT> sensor;
+  {
+    Eigen::Matrix3d rot = sensor.boatToSensorRotation();
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        EXPECT_NEAR(rot(i, j), i == j? 1.0 : 0.0, 1.0e-6);
+      }
+    }
+  }
+  double params[3] = {0.0, 0.0, 0.25*M_PI};
+  sensor.readFrom(params);
+  {
+    double k = 1.0/sqrt(2.0);
+    Eigen::Matrix3d rot = sensor.boatToSensorRotation();
+    Eigen::Matrix3d expected;
+    expected << k, -k, 0,
+                k, k, 0,
+                0, 0, 1;
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        EXPECT_NEAR(expected(i, j), rot(i, j), 1.0e-5);
+      }
+    }
+  }
+  double params2[3] = {9, 9, 9};
+  sensor.writeTo(params2);
+  for (int i = 0; i < 3; i++) {
+    EXPECT_EQ(params[i], params2[i]);
+  }
+}
+
 TEST(SensorTest, Various) {
 
   SensorSet<double> sensorSet;

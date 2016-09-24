@@ -10,6 +10,7 @@
 
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/DispatcherUtils.h>
+#include <server/math/AxisAngle.h>
 #include <Eigen/Dense>
 
 namespace sail {
@@ -181,7 +182,6 @@ template <typename T>
 struct NoiseCost<T, MAG_HEADING> :
   public RobustNoiseCost<T, Velocity<T> > {};
 
-
 // This object groups a distortion model with a noise cost.
 template <typename T, DataCode code>
 struct SensorModel {
@@ -351,10 +351,55 @@ public:
   typedef T ParameterType;
 
   Eigen::Matrix<T, 3, 3> boatToSensorRotation() const {
-    return compuateRotationFromOmega(_omega);
+    return computeRotationFromOmega(_omega);
   }
 
+  Eigen::Matrix<T, 3, 3> computeBoatToWorldRotation( // this is what 'apply' is for the other sensors...
+      const Eigen::Matrix<T, 3, 3> &sensorToWorld) const {
+    return sensorToWorld*boatToSensorRotation();
+  }
 
+  OrientationSensor() : _omega(T(0.0), T(0.0), T(0.0)) {}
+
+  static const int paramCount = 3;
+
+  void readFrom(const T *src) {
+    for (int i = 0; i < paramCount; i++) {
+      _omega(i) = src[i];
+    }
+  }
+
+  void writeTo(T *dst) const {
+    for (int i = 0; i < paramCount; i++) {
+      dst[i] = _omega(i);
+    }
+  }
+
+  void readFrom(const ParamMap<T> &src) {
+    const char keys[3] = {'x', 'y', 'z'};
+    for (int i = 0; i < paramCount; i++) {
+      auto f = src.find(std::string("omega-") + keys[i] + "-radians");
+      if (f != src.end()) {
+        _omega(i) = f->second;
+      }
+    }
+
+  }
+
+  void writeTo(ParamMap<T> *dst) const {
+    (*dst)["omega-x-radians"] = _omega(0);
+    (*dst)["omega-y-radians"] = _omega(1);
+    (*dst)["omega-z-radians"] = _omega(2);
+  }
+
+  void outputSummary(std::ostream *dst) const {
+    *dst << "OrientationSensor(omega="
+        << _omega.transpose() << ")";
+  }
+
+  Eigen::Matrix<T, 3, 1> omega() const {
+    return _omega;
+  }
 private:
   Eigen::Matrix<T, 3, 1> _omega;
 };
@@ -375,6 +420,9 @@ template <typename T>
 struct DistortionModel<T, WAT_SPEED> :
   public BasicSpeedSensor1<T> {};
 
+template <typename T>
+struct DistortionModel<T, ORIENT> :
+  public OrientationSensor<T>{};
 
 struct SensorSetParamCounter {
   int counter = 0;

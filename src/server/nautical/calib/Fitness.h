@@ -176,7 +176,8 @@ template <typename T>
 struct Zero<HorizontalMotion<T> > {
   static HorizontalMotion<T> get() {
     return HorizontalMotion<T>{
-      Zero<Velocity<T>>::get(),
+      // To avoid undefined angles. Maybe a random number would be better?
+      Velocity<T>::knots(MakeConstant<T>::apply(1.0e-9)),
       Zero<Velocity<T>>::get()
     };
   }
