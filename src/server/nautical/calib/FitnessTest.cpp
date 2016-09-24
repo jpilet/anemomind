@@ -274,6 +274,9 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_NEAR(std::abs(residuals[0]), 1.0, 1.0e-6);
   }
 
+  // Drift tests
+
+
 }
 
 TEST(FitnessTest, OrientationTest) {

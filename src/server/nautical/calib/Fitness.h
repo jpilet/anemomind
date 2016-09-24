@@ -78,7 +78,7 @@ Velocity<T> referenceVelocityForAngles(
     Velocity<T> velocityWidth,
     Angle<T> angleWidth) {
   /*
-   * Reasoning:
+   * Explanation:
    *
    * An angle in radians multiplied by a radius gives an arc length.
    * The arc length in this case is velocityWidth. The radius is unknown.
@@ -467,7 +467,14 @@ struct HeelFitness {
 // Not related to any particular sensor
 template <typename T, typename Settings>
 struct DriftFitness {
+  static const int outputCount = 1;
 
+  static bool apply(const ReconstructedBoatState<T, Settings> &state,
+      const Angle<T> &maxLeewayAngle,
+      T *residuals) {
+    assert(false); // TODO!!!
+    return true;
+  }
 };
 
 #define FOREACH_MEASURE_TO_CONSIDER(OP) \
