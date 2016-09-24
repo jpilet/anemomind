@@ -147,5 +147,10 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_TRUE((AWAFitness<double, FullSettings>::apply(state, bad,
         expectedAWA, residuals)));
     EXPECT_LT(0.001, std::abs(residuals[0]));
+  }{
+    double residuals[1] = {0.0};
+    EXPECT_TRUE((AWAFitness<double, FullSettings>::apply(state, awaModel,
+        20.0_deg, residuals)));
+    EXPECT_LT(0.001, std::abs(residuals[0]));
   }
 }
