@@ -121,12 +121,15 @@ TEST(FitnessTest, HuberTest) {
 }
 
 TEST(FitnessTest, ResidualTest) {
+  AnglePerVelocity<double> heelCoef = 2.3_deg/1.0_kn;
+
   ReconstructedBoatState<double, FullSettings> state;
   state.boatOverGround.value = HorizontalMotion<double>{4.0_kn, 0.0_kn};
   state.windOverGround.value = HorizontalMotion<double>{0.0_kn, -4.0_kn};
   state.heading.value = HorizontalMotion<double>{
     referenceVelocityForAngles<double>(), 0.0_kn};
-  state.currentOverGround = HorizontalMotion<double>{-1.0_kn, 0.0_kn};
+  state.currentOverGround.value = HorizontalMotion<double>{-1.0_kn, 0.0_kn};
+  state.heel.value = 4.0_kn*heelCoef;
 
   auto expectedAWA = -45.0_deg;
   auto expectedAWS = sqrt(2.0)*4.0_kn;

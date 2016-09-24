@@ -422,13 +422,47 @@ struct OrientFitness {
     }
     return true;
   }
-
 };
 
+template <typename T>
+using AnglePerVelocity = decltype(
+    std::declval<Angle<T>>()/std::declval<Velocity<T>>());
+
+
+    /*PhysicalQuantity<T,
+    UnitSystem::CustomAnemoUnits,
+    1, -1, 1, 0>;*/
+
 // Not related to any particular sensor
+// Here we suppose that the heel angle is roughly proportional to the
+// apparent wind speed projected on the X basis vector of the boat
+// (see BoatState.h for a drawing)
 template <typename T, typename Settings>
 struct HeelFitness {
+  static const int outputCount = 1;
 
+  static Angle<T> bandWidth() {
+    return BandWidthForType<T, Angle<double>>::get();
+  }
+
+  static bool apply(const ReconstructedBoatState<T, Settings> &state,
+                    const AnglePerVelocity<T> &heelPerWindSpeed,
+                    const AbsoluteOrientation &observation,
+                    T *residuals) {
+    residuals[0] = DefaultUndefinedResidual<T>::get();
+    auto hnorm = state.heading.value.norm();
+    if (MakeConstant<T>::apply(0.0) < hnorm) {
+      T x = state.heading.value[1]/hnorm;
+      T y = -state.heading.value[0]/hnorm;
+      auto aw = computeApparentWind<T>(
+          state.boatOverGround.value,
+          state.windOverGround.value);
+      Velocity<T> proj = x*aw[0] + y*aw[1];
+      Velocity<T> error = state.heel.value - heelPerWindSpeed*proj;
+      residuals[0] = sqrtHuber<T>(error/bandWidth());
+    }
+    return true;
+  }
 };
 
 // Not related to any particular sensor
