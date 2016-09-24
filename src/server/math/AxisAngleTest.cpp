@@ -104,6 +104,9 @@ void compareDifs(const Eigen::Vector3d &omega) {
 
 TEST(AxisAngleTest, DifTest) {
   compareDifs(Eigen::Vector3d(0, 0, 0));
+  compareDifs(Eigen::Vector3d(0, 4.5, 0));
+  compareDifs(Eigen::Vector3d(0, 4.5, 98.3));
+  compareDifs(Eigen::Vector3d(1003, 4.5, 98.3));
 }
 
 
