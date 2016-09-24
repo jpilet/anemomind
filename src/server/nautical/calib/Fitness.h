@@ -48,7 +48,7 @@ T sqrtHuber(T x) {
   static const T one = MakeConstant<T>::apply(1.0);
   static const T two = MakeConstant<T>::apply(2.0);
   if (x < zero) {
-    return sqrtHuber(-x);
+    return -sqrtHuber(-x);
   } else {
     return x < one? x : sqrt(one + two*(x - one));
   }
