@@ -191,4 +191,15 @@ TEST(FitnessTest, ResidualTest) {
           BandWidth<double, AWS>::get(), residuals)));
     EXPECT_NEAR(1.0, std::abs(residuals[0]), 1.0e-6);
   }
+
+  Angle<double> expectedHeading = 90.0_deg;
+
+  // MAG_HEADING tests
+  DistortionModel<double, MAG_HEADING> hdgModel;
+  {
+    double residuals[1] = {10.0};
+    EXPECT_TRUE((MagHeadingFitness<double, FullSettings>::apply(
+        state, hdgModel, expectedHeading, residuals)));
+    EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
+  }
 }

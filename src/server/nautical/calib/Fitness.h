@@ -346,7 +346,8 @@ struct MagHeadingFitness {
         referenceVelocityForAngles<T>(velBW, bw),
         MakeConstant<Angle<T>>::apply(observation));
     auto distortedHeadingVector = distortion.apply(state.heading.value);
-    auto error = (observedHeadingVector - distortedHeadingVector).norm();
+    auto error = HorizontalMotion<T>(
+        observedHeadingVector - distortedHeadingVector).norm();
     residuals[0] = sqrtHuber<T>(error/velBW);
     return true;
   }
