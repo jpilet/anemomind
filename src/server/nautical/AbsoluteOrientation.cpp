@@ -15,8 +15,8 @@ namespace sail {
 // and the function drawScene()
 Eigen::Matrix3d BNO055AnglesToRotation(
     const AbsoluteOrientation &orientation) {
-
   double s = -1.0;
+/*
 
   Eigen::Matrix3d R0 = computeRotationFromOmega<double>(
       -s*orientation.heading.radians()*Eigen::Vector3d(0, 1, 0));
@@ -26,6 +26,12 @@ Eigen::Matrix3d BNO055AnglesToRotation(
       s*orientation.roll.radians()*Eigen::Vector3d(0, 0, 1));
 
   return R2*R1*R0;
+  */
+  using namespace Eigen;
+  return (AngleAxisd(s*orientation.roll.radians(), Vector3d::UnitZ())
+      *AngleAxisd(-s*orientation.pitch.radians(), Vector3d::UnitX())
+      *AngleAxisd(-s*orientation.heading.radians(), Vector3d::UnitY()))
+      .toRotationMatrix();
 }
 
 }
