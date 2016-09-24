@@ -212,5 +212,10 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_TRUE((MagHeadingFitness<double, FullSettings>::apply(
         state, bad, expectedHeading, residuals)));
     EXPECT_LT(0.001, std::abs(residuals[0]));
+  }{
+    double residuals[1] = {0.0};
+    EXPECT_TRUE((MagHeadingFitness<double, FullSettings>::apply(
+        state, hdgModel, 180.0_deg, residuals)));
+    EXPECT_LT(0.001, std::abs(residuals[0]));
   }
 }
