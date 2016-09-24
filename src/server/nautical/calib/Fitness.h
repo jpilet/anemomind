@@ -325,8 +325,8 @@ struct AWSFitness {
       const DistortionModel<T, AWS> &distortion,
       const Velocity<double> &observation,
       T *residuals) {
-    auto aw = computeApparentWind(
-        state.boatOverGround, state.windOverGround);
+    auto aw = computeApparentWind<double>(
+        state.boatOverGround.value, state.windOverGround.value);
     auto bw = BandWidth<T, AWS>::get();
     Velocity<T> error = distortion.apply(aw.norm())
         - MakeConstant<Velocity<T>>::apply(observation);

@@ -129,8 +129,8 @@ TEST(FitnessTest, ResidualTest) {
   auto expectedAWA = -45.0_deg;
   auto expectedAWS = sqrt(2.0)*4.0_kn;
 
+  // AWA tests
   DistortionModel<double, AWA> awaModel;
-  DistortionModel<double, AWS> awsModel;
   {
     static_assert(1 == AWAFitness<double, FullSettings>::outputCount,
         "Not what we expected");
@@ -159,5 +159,16 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_TRUE((AWAFitness<double, FullSettings>::apply(state, awaModel,
       expectedAWA + atBandWidth, residuals)));
     EXPECT_NEAR(std::abs(residuals[0]), 1.0, 1.0e-3);
+  }
+
+  // AWS tests
+  DistortionModel<double, AWS> awsModel;
+  {
+    static_assert(1 == AWSFitness<double, FullSettings>::outputCount,
+        "Not what we expected");
+    double residuals[1] = {0.0};
+    EXPECT_TRUE((AWSFitness<double, FullSettings>::apply(
+        state, awsModel, expectedAWS, residuals)));
+    EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
   }
 }
