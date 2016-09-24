@@ -436,7 +436,9 @@ using AnglePerVelocity = decltype(
 // Not related to any particular sensor
 // Here we suppose that the heel angle is roughly proportional to the
 // apparent wind speed projected on the X basis vector of the boat
-// (see BoatState.h for a drawing)
+// (see BoatState.h for a drawing). I am not sure how true this generally
+// is. Maybe we should increase the band width a little bit to accomodate
+// for the uncertainty...
 template <typename T, typename Settings>
 struct HeelFitness {
   static const int outputCount = 1;
