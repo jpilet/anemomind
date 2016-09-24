@@ -109,6 +109,10 @@ template <typename T>
 struct BandWidth<T, AWA> :
   public BandWidthForType<T, Velocity<double>> {};
 
+template <typename T>
+struct BandWidth<T, ORIENT> :
+  public BandWidthForType<T, Angle<double>> {};
+
 struct ServerBoatStateSettings {
       static const bool withBoatOverGround = false;
       static const bool withCurrentOverGround = true;
@@ -383,8 +387,35 @@ struct OrientFitness {
                     T *residuals) {
     auto orient = state.orientation();
     if (orient.defined()) {
+
+      // We are going to measure the angle that relates one
+      // boat-to-world rotation matrix (from the sensor) to the
+      // other boat-to-world roation matrix (estimated from the state).
+
       auto obsR = BNO055AnglesToRotation(observation);
-      //auto boatR =
+      auto boatR = orientationToMatrix<T>(orient.get());
+      // obsR = relR*boatR <=> relR = obsR*boatR'
+      auto relR = obsR*boatR.transpose();
+
+      // According to https://en.wikipedia.org/wiki/Rotation_matrix#Determining_the_angle
+      // we can compute cos(theta) from the trace (theta being the angle):
+      Velocity<T> hNorm = state.heading.norm();
+      T cosTheta = (relR.trace()
+          - MakeConstant<T>::apply(1.0))/MakeConstant<T>::apply(2.0);
+
+      // Because the heading is represented using a vector,
+      // we are going to formulate the residual so that
+      // the length of that vector approaches a reference
+      // velocity, in addition to optimizing all the angles.
+      auto bw = BandWidth<T, ORIENT>::get();
+      auto velbw = BandWidthForType<T, Velocity<double>>::get();
+      auto refVel = referenceVelocityForAngles(velbw, bw);
+      T squaredXError = sqr<T>((hNorm*cosTheta - refVel)/velbw);
+      T squaredYError = sqr<T>(hNorm)*(
+          MakeConstant<T>::apply(1.0) - cosTheta*cosTheta);
+      T totalError = sqrt(MakeConstant<T>::apply(1.0e-9)
+          + squaredXError + squaredYError);
+      residuals[0] = sqrtHuber<T>(totalError/velbw);
     }
     return true;
   }
