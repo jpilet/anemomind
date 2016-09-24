@@ -166,9 +166,22 @@ TEST(FitnessTest, ResidualTest) {
   {
     static_assert(1 == AWSFitness<double, FullSettings>::outputCount,
         "Not what we expected");
-    double residuals[1] = {0.0};
+    double residuals[1] = {10.0};
     EXPECT_TRUE((AWSFitness<double, FullSettings>::apply(
         state, awsModel, expectedAWS, residuals)));
     EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
+  }{
+    DistortionModel<double, AWS> bad;
+    double params[2] = {34.4, 34.4};
+    bad.readFrom(params);
+    double residuals[1] = {0.0};
+    EXPECT_TRUE((AWSFitness<double, FullSettings>::apply(
+        state, bad, expectedAWS, residuals)));
+    EXPECT_LT(0.001, std::abs(residuals[0]));
+  }{
+    double residuals[1] = {0.0};
+    EXPECT_TRUE((AWSFitness<double, FullSettings>::apply(
+        state, awsModel, 30.0_kn, residuals)));
+    EXPECT_LT(0.1, std::abs(residuals[0]));
   }
 }
