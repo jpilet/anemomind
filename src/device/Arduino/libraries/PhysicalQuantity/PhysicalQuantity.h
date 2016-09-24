@@ -717,7 +717,7 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
           (*this)[1].template mapObjectValues<Function>(f));
     }
 
-    HorizontalMotion<T> rotate(Angle<T> angle) {
+    HorizontalMotion<T> rotate(Angle<T> angle) const {
       auto cosa = cos(angle);
       auto sina = sin(angle);
       return HorizontalMotion<T>{

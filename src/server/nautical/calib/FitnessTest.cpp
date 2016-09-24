@@ -5,6 +5,8 @@
  *      Author: jonas
  */
 
+#include <iostream>
+#include <server/common/PhysicalQuantityIO.h>
 #include <gtest/gtest.h>
 #include <server/nautical/calib/Fitness.h>
 
@@ -116,4 +118,25 @@ TEST(FitnessTest, HuberTest) {
   EXPECT_NEAR(sqrtHuber<double>(1), 1.0, 1.0e-6);
   EXPECT_NEAR(sqrtHuber<double>(2), sqrt(1 + 2), 1.0e-6);
   EXPECT_NEAR(sqrtHuber<double>(-2), -sqrt(1 + 2), 1.0e-6);
+}
+
+TEST(FitnessTest, ResidualTest) {
+  ReconstructedBoatState<double, FullSettings> state;
+  state.boatOverGround.value = HorizontalMotion<double>{4.0_kn, 0.0_kn};
+  state.windOverGround.value = HorizontalMotion<double>{0.0_kn, -4.0_kn};
+  state.heading.value = HorizontalMotion<double>{4.0_kn, 0.0_kn};
+
+  auto expectedAWA = -45.0_deg;
+  auto expectedAWS = sqrt(2.0)*4.0_kn;
+
+  DistortionModel<double, AWA> awaModel;
+  DistortionModel<double, AWS> awsModel;
+  {
+    static_assert(1 == AWAFitness<double, FullSettings>::outputCount,
+        "Not what we expected");
+    double residuals[1] = {0.0};
+    AWAFitness<double, FullSettings>::apply(state, awaModel,
+        expectedAWA, residuals);
+    EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
+  }
 }

@@ -24,20 +24,16 @@
 
 namespace sail {
 
-template <typename T, int N>
-struct MakeConstant<Velocity<ceres::Jet<T, N> > > {
-  static Velocity<ceres::Jet<T, N> > apply(Velocity<T> x) {
-    return x.mapObjectValues([](T x) {
-      return MakeConstant<ceres::Jet<T, N> >::apply(x);
-    });
-  }
-};
-
-template <typename T, int N>
-struct MakeConstant<Angle<ceres::Jet<T, N> > > {
-  static Angle<ceres::Jet<T, N> > apply(Angle<T> x) {
-    return x.mapObjectValues([](T x) {
-      return MakeConstant<ceres::Jet<T, N> >::apply(x);
+template <typename T, typename system, int TimeDim/*t*/,
+  int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
+struct MakeConstant<PhysicalQuantity<T, system, TimeDim,
+LengthDim, AngleDim, MassDim>> {
+  static PhysicalQuantity<T, system, TimeDim,
+      LengthDim, AngleDim, MassDim> apply(
+          PhysicalQuantity<double, system, TimeDim,
+            LengthDim, AngleDim, MassDim> x) {
+    return x.mapObjectValues([](double x) {
+      return MakeConstant<T>::apply(x);
     });
   }
 };
@@ -297,17 +293,20 @@ struct AWAFitness {
     residuals[0] = DefaultUndefinedResidual<T>::get();
     auto h = state.heading.value.optionalAngle();
     if (h.defined()) {
-      HorizontalMotion<T> cleanAW = computeApparentWind(
-          state.boatOverGround,
-          state.windOverGround);
+      HorizontalMotion<T> cleanAW = computeApparentWind<T>(
+          state.boatOverGround.value,
+          state.windOverGround.value);
+      std::cout << "cleanAW: " << cleanAW << std::endl;
       auto distortedAW = distortion.apply(cleanAW);
+      std::cout << "distortedAW: " << cleanAW << std::endl;
       auto observedAW = makeApparentWind(
           cleanAW.norm(),
           MakeConstant<Angle<T>>::apply(observation),
           h.get());
-      auto error = distortedAW - observedAW;
-      auto bw = BandWidth<T, AWA>::get();
-      residuals[0] = sqrtHuber<T>(error.norm()/bw);
+      std::cout << "observedAW: " << cleanAW << std::endl;
+      auto error = HorizontalMotion<T>(distortedAW - observedAW);
+      auto bw = BandWidthForType<T, Velocity<double>>::get();
+      residuals[0] = sqrtHuber<T>(T(error.norm()/bw));
     }
     return true;
   }
