@@ -29,14 +29,15 @@ Eigen::Matrix<T, 3, 3> crossProductMatrix(
 template <typename T>
 Eigen::Matrix<T, 3, 3> computeRotationFromOmega(
   Eigen::Matrix<T, 3, 1> &omega) {
-    T theta = omega.norm();
+    T theta2 = omega.squaredNorm();
 
     // Add a small number to the denominator
     // to keep things differentiable.
     auto reg = MakeConstant<T>::apply(1.0e-12);
+    T theta = sqrt(theta2 + reg);
 
     Eigen::Matrix<T, 3, 1> axis =
-        (MakeConstant<T>::apply(1.0)/(theta + reg))*omega;
+        (MakeConstant<T>::apply(1.0)/(theta))*omega;
 
     auto one = MakeConstant<T>::apply(1.0);
     auto K = crossProductMatrix(axis);
