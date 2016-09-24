@@ -244,6 +244,11 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_TRUE((WatSpeedFitness<double, FullSettings>::apply(
         state, bad, expectedWatSpeed, residuals)));
     EXPECT_LT(0.01, std::abs(residuals[0]));
+  }{
+    double residuals[1] = {0.0};
+    EXPECT_TRUE((WatSpeedFitness<double, FullSettings>::apply(
+        state, watModel, 90.0_kn, residuals)));
+    EXPECT_LT(0.01, std::abs(residuals[0]));
   }
 
 }
