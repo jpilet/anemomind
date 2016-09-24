@@ -5,6 +5,11 @@
  *      Author: jonas
  *
  * This code is about generating the residuals for fitting to data.
+ *
+ * Interesting papers:
+ *
+ * - "HEEL SAILING YACHT PERFORMANCE THE EFFECTS OF ANGLE AND LEEWAY ANGLE ON RESISTANCE AND SIDEFORCE"
+ *   http://160.75.46.2/staff/insel/Publications/Cesme.PDF
  */
 
 #ifndef SERVER_NAUTICAL_CALIB_FITNESS_H_
@@ -268,6 +273,16 @@ struct ReconstructedBoatState {
 
     return dst;
   }
+
+  Optional<AbsoluteBoatOrientation<T>> orientation() const {
+    auto h = heading.value.optionalAngle();
+    if (h.defined()) {
+      return AbsoluteBoatOrientation<T>{
+        heading, heel, pitch
+      };
+    }
+    return Optional<AbsoluteBoatOrientation<T>>();
+  }
 };
 
 template <typename T, typename Settings>
@@ -355,8 +370,29 @@ struct WatSpeedFitness {
   }
 };
 
+// Compare the boat-to-world rotation matrices
+// (the one of the state and the observed one)
 template <typename T, typename Settings>
 struct OrientFitness {
+  static const int outputCount = 1;
+  static bool apply(const ReconstructedBoatState<T, Settings> &state,
+                    const DistortionModel<T, ORIENT> &distortion,
+                    const AbsoluteOrientation &observation,
+                    T *residuals) {
+    //auto obsevered
+  }
+
+};
+
+// Not related to any particular sensor
+template <typename T, typename Settings>
+struct HeelFitness {
+
+};
+
+// Not related to any particular sensor
+template <typename T, typename Settings>
+struct DriftFitness {
 
 };
 

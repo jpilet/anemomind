@@ -111,3 +111,9 @@ TEST(FitnessTest, VectorizationTest) {
   EXPECT_NEAR(values[1], values2[1], 1.0e-6);
 }
 
+TEST(FitnessTest, HuberTest) {
+  EXPECT_NEAR(sqrtHuber<double>(0), 0.0, 1.0e-6);
+  EXPECT_NEAR(sqrtHuber<double>(1), 1.0, 1.0e-6);
+  EXPECT_NEAR(sqrtHuber<double>(2), sqrt(1 + 2), 1.0e-6);
+  EXPECT_NEAR(std::abs(sqrtHuber<double>(-2)), sqrt(1 + 2), 1.0e-6);
+}
