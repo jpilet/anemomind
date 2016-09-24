@@ -28,7 +28,7 @@ Eigen::Matrix<T, 3, 3> crossProductMatrix(
 
 template <typename T>
 Eigen::Matrix<T, 3, 3> computeRotationFromOmega(
-  Eigen::Matrix<T, 3, 1> &omega) {
+  const Eigen::Matrix<T, 3, 1> &omega) {
     T theta2 = omega.squaredNorm();
 
     // Add a small number in order to make it differentiable

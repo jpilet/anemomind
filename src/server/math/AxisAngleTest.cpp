@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <server/math/AxisAngle.h>
 #include <server/common/Array.h>
+#include <Eigen/Geometry>
 
 using namespace sail;
 
@@ -110,4 +111,23 @@ TEST(AxisAngleTest, DifTest) {
   compareDifs(Eigen::Vector3d(00, 1.0e-2, 0.0));
 }
 
+void compareToEigenImplementation(const Eigen::Vector3d &omega) {
+  auto theta = omega.norm();
+  auto axis = (1.0/theta)*omega;
+  Eigen::AngleAxis<double> aa(theta, axis);
+  Eigen::Matrix3d R = aa.toRotationMatrix();
+  auto R2 = computeRotationFromOmega(omega);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      EXPECT_NEAR(R2(i, j), R(i, j), 1.0e-6);
+    }
+  }
+}
+
+TEST(AxisAngleTest, CompareToEigenImpl) {
+  compareToEigenImplementation(Eigen::Vector3d(1, 0, 0));
+  compareToEigenImplementation(Eigen::Vector3d(0, 1, 0));
+  compareToEigenImplementation(Eigen::Vector3d(0, 0, 1));
+  compareToEigenImplementation(Eigen::Vector3d(1, 0, 1));
+}
 
