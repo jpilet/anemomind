@@ -256,5 +256,12 @@ TEST(FitnessTest, ResidualTest) {
         + BandWidth<double, WAT_SPEED>::get(), residuals)));
     EXPECT_NEAR(1.0, std::abs(residuals[0]), 1.0e-6);
   }
+}
 
+TEST(FitnessTest, OrientationTest) {
+  ReconstructedBoatState<double, FullSettings> state;
+  state.heading.value = HorizontalMotion<double>::polar(
+      referenceVelocityForAngles<double>(), 0.0_deg);
+
+  DistortionModel<double, ORIENT> model;
 }
