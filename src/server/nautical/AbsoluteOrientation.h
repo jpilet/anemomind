@@ -2,6 +2,7 @@
 #define NAUTICAL_ABSOLUTE_ORIENTATION_H
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <Eigen/Dense>
 
 namespace sail {
 
@@ -58,6 +59,7 @@ bool isFinite(const TypedAbsoluteOrientation<T> &x) {
   return isFinite(x.heading) && isFinite(x.pitch)
       && isFinite(x.roll);
 }
+
 
 }  // namespace sail
 

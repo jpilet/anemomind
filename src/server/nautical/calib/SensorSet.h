@@ -350,10 +350,11 @@ class OrientationSensor {
 public:
   typedef T ParameterType;
 
-
   Eigen::Matrix<T, 3, 3> boatToSensorRotation() const {
-    return Eigen::Matrix<T, 3, 3>();
+    return compuateRotationFromOmega(_omega);
   }
+
+
 private:
   Eigen::Matrix<T, 3, 1> _omega;
 };
