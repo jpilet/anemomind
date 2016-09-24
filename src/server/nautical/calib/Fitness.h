@@ -100,9 +100,14 @@ Velocity<T> referenceVelocityForAngles() {
 /*
  * http://jbrwww.che.wisc.edu/tech-reports/twmcc-2003-04.pdf
  */
+
 template <typename T, DataCode code>
 struct BandWidth :
     BandWidthForType<T, typename TypeForCode<code>::type>{};
+
+template <typename T>
+struct BandWidth<T, AWA> :
+  public BandWidthForType<T, Velocity<double>> {};
 
 struct ServerBoatStateSettings {
       static const bool withBoatOverGround = false;
@@ -305,7 +310,7 @@ struct AWAFitness {
           h.get());
       std::cout << "observedAW: " << cleanAW << std::endl;
       auto error = HorizontalMotion<T>(distortedAW - observedAW);
-      auto bw = BandWidthForType<T, Velocity<double>>::get();
+      auto bw = BandWidth<T, AWA>::get();
       residuals[0] = sqrtHuber<T>(T(error.norm()/bw));
     }
     return true;
