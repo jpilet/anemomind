@@ -134,9 +134,18 @@ TEST(FitnessTest, ResidualTest) {
   {
     static_assert(1 == AWAFitness<double, FullSettings>::outputCount,
         "Not what we expected");
-    double residuals[1] = {0.0};
-    AWAFitness<double, FullSettings>::apply(state, awaModel,
-        expectedAWA, residuals);
+    double residuals[1] = {10.0};
+    EXPECT_TRUE((AWAFitness<double, FullSettings>::apply(state, awaModel,
+        expectedAWA, residuals)));
     EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
+
+  }{
+    double residuals[1] = {0.0};
+    DistortionModel<double, AWA> bad;
+    double awaParam = 234234.234234;
+    bad.readFrom(&awaParam);
+    EXPECT_TRUE((AWAFitness<double, FullSettings>::apply(state, bad,
+        expectedAWA, residuals)));
+    EXPECT_LT(0.001, std::abs(residuals[0]));
   }
 }
