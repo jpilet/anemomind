@@ -1,1 +1,1 @@
-var mat4 = require('gl-matrix-mat4');
+var mat4 = require('gl-mat4');
