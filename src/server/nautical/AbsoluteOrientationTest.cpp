@@ -34,12 +34,17 @@ TEST(AbsoluteOrientationTest, RotationMatrix) {
               -0.6644629836082458,0.3420201539993286,0.6644629836082458,0,
               0,0,0,1;
 
+
   orient.heading = 45.0_deg;
   orient.pitch = 20.0_deg;
   orient.roll = -14.3_deg;
   auto R = BNO055AnglesToRotation(orient);
 
-  std::cout << "Got rotation \n" << R << std::endl;
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      EXPECT_NEAR(R(i, j), expected(i, j), 1.0e-5);
+    }
+  }
 }
 
 

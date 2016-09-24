@@ -14,7 +14,15 @@ function computeMatrix(orientDegrees) {
   var mvMatrix = mat4.create();
   mat4.identity(mvMatrix);
 
-// Copied from 3d.js of the anemobox:
+  // Copied from 3d.js of the anemobox, but with the modification that
+  // I had to insert 'mvMatrix' in the second position of
+  // the argument list too, because rotate expects 4 args.
+  // I think rotate(Y, X, angle, axis) outputs
+  //
+  // Y = X*K(angle, axis)
+  //
+  // where 'K' is the rotation matrix of a rotation by 'angle' around 'axis'.
+  // The documentation is very vague...
 
 // IMPORTANT: This is The Correct Way(tm) to combine
 // heading, pitch, and roll from BNO055 to produce a rotation matrix.
@@ -26,9 +34,9 @@ function computeMatrix(orientDegrees) {
 }
 
 function dispOrient(orient) {
-  console.log("The orientation ");
+  console.log("\n\n\nThe orientation ");
   console.log(orient);
-  console.log("Maps to " + computeMatrix(orient));
+  console.log("Maps to (row by row): \n" + computeMatrix(orient));
 }
 
 dispOrient({
@@ -47,6 +55,12 @@ dispOrient({
   heading: 0,
   pitch: 90,
   roll: 0
+});
+
+dispOrient({
+  heading: 0,
+  pitch: 0,
+  roll: 90
 });
 
 dispOrient({
