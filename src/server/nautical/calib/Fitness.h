@@ -229,7 +229,7 @@ struct ReconstructedBoatState {
   COG currentOverGround;
 
   // Heading is represented as a horizontal motion
-  // to help optimizer convergence
+  // to help optimizer convergence.
   typedef Parameterized<HorizontalMotion<T>,
       T, true> Heading;
   Heading heading;
