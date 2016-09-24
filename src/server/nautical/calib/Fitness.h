@@ -381,7 +381,12 @@ struct OrientFitness {
                     const DistortionModel<T, ORIENT> &distortion,
                     const AbsoluteOrientation &observation,
                     T *residuals) {
-    //auto obsevered
+    auto orient = state.orientation();
+    if (orient.defined()) {
+      auto obsR = BNO055AnglesToRotation(observation);
+      //auto boatR =
+    }
+    return true;
   }
 
 };

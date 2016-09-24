@@ -133,54 +133,6 @@ will rotate the boat clockwise in this plane.
 namespace sail {
 
 template <typename T>
-using AbsoluteBoatOrientation
-    = TypedAbsoluteOrientation<T, OrientCoding::Boat>;
-
-template <typename T>
-Eigen::Matrix<T, 3, 3> headingMatrix(Angle<T> h) {
-  Eigen::Matrix<T, 3, 3> H;
-  H << cos(h), sin(h), 0,
-       -sin(h), cos(h), 0,
-       0, 0, 1;
-  return H;
-}
-
-template <typename T>
-Eigen::Matrix<T, 3, 3> pitchMatrix(Angle<T> p) {
-  Eigen::Matrix<T, 3, 3> P;
-  P << 1, 0, 0,
-      0, cos(p), -sin(p),
-      0, sin(p), cos(p);
-  return P;
-}
-
-template <typename T>
-Eigen::Matrix<T, 3, 3> rollMatrix(Angle<T> r) {
-  Eigen::Matrix<T, 3, 3> R;
-  R << cos(r), 0, sin(r),
-       0, 1, 0,
-       -sin(r), 0, cos(r);
-  return R;
-}
-
-/*
- * Implementation of the rotation, as described
- * previously. I think this representation makes a
- * lot of sense for performing optimization.
- * I am not sure this function should go
- * here, but I will keep it here, because maybe the
- * mapping of AbsoluteOrientation to a rotation matrix
- * is different in some other part of the code.
- */
-template <typename T>
-Eigen::Matrix<T, 3, 3> orientationToMatrix(
-    const AbsoluteBoatOrientation<T> &orient) {
-  return headingMatrix(orient.heading)
-      *pitchMatrix(orient.pitch)
-      *rollMatrix(orient.roll);
-}
-
-template <typename T>
 class BoatState;
 
 template <typename T>
