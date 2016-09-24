@@ -311,7 +311,7 @@ public:
   }
 
   Angle<T> AWA() const {
-    return angleBlowingFrom(apparentWind()) - heading();
+    return computeAWA(_boatOverGround, _windOverGround, heading());
   }
 
 

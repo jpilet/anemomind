@@ -268,6 +268,10 @@ public:
   }
 
   Angle<T> offset() const {return _offset;}
+
+  Angle<T> apply(Angle<T> x) const {
+    return x + _offset;
+  }
 private:
   Angle<T> _offset;
 };

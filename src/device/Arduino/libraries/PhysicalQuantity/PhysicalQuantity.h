@@ -19,6 +19,7 @@
 #include <server/common/numerics.h>
 #include <type_traits>
 #include <server/common/PositiveMod.h>
+#include <server/common/Optional.h>
 #ifdef ON_SERVER
 #include <cmath>
 #include <limits>
@@ -698,6 +699,11 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
                 (*this)[1].knots());
     }
 
+    Optional<Angle<T>> optionalAngle() const {
+      auto alpha = angle();
+      return isFinite(alpha)? alpha : Optional<Angle<T>>();
+    }
+
     template <typename Dst>
     HorizontalMotion<Dst> cast() const {
       return HorizontalMotion<Dst>((*this)[0], (*this)[1]);
@@ -709,6 +715,15 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
       return HorizontalMotion<typename FunctionReturnType<Function, T>::type>(
           (*this)[0].template mapObjectValues<Function>(f),
           (*this)[1].template mapObjectValues<Function>(f));
+    }
+
+    HorizontalMotion<T> rotate(Angle<T> angle) {
+      auto cosa = cos(angle);
+      auto sina = sin(angle);
+      return HorizontalMotion<T>{
+        cosa*(*this)[0] + sina*(*this)[1],
+        -sina*(*this)[0] + cosa*(*this)[1]
+      };
     }
 
     // Define what the vector dimensions mean.

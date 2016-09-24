@@ -235,3 +235,13 @@ TEST(PhysQuantTest, MapObjectValues) {
 }
 
 
+TEST(PhysQuantTest, Rotation) {
+  HorizontalMotion<double> a{1.0_kn, 2.0_kn};
+  auto alpha = 36.7_deg;
+  auto expected = HorizontalMotion<double>::polar(
+      a.norm(),
+      a.angle() + alpha);
+  auto rotated = a.rotate(alpha);
+  EXPECT_NEAR(rotated[0].knots(), expected[0].knots(), 1.0e-5);
+  EXPECT_NEAR(rotated[1].knots(), expected[1].knots(), 1.0e-5);
+}

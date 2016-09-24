@@ -19,20 +19,55 @@
 
 namespace sail {
 
-template <typename T>
-struct BandWidthForType {};
-
-template <>
-struct BandWidthForType<Angle<double> > {
-  static Angle<double> get() {
-    return Angle<double>::degrees(5.0);
+template <typename T, int N>
+struct MakeConstant<Velocity<ceres::Jet<T, N> > > {
+  static Velocity<ceres::Jet<T, N> > apply(Velocity<T> x) {
+    return x.mapObjectValues([](T x) {
+      return MakeConstant<ceres::Jet<T, N> >::apply(x);
+    });
   }
 };
 
-template <>
-struct BandWidthForType<Velocity<double> > {
-  static Velocity<double> get() {
-    return Velocity<double>::knots(0.5);
+template <typename T, int N>
+struct MakeConstant<Angle<ceres::Jet<T, N> > > {
+  static Angle<ceres::Jet<T, N> > apply(Angle<T> x) {
+    return x.mapObjectValues([](T x) {
+      return MakeConstant<ceres::Jet<T, N> >::apply(x);
+    });
+  }
+};
+
+template <typename T>
+T sqrtHuber(T x) {
+  static const T zero = MakeConstant<T>::apply(0.0);
+  static const T one = MakeConstant<T>::apply(1.0);
+  static const T two = MakeConstant<T>::apply(2.0);
+  if (x < zero) {
+    return sqrtHuber(-x);
+  } else {
+    return x < one? x : sqrt(one + two*(x - one));
+  }
+}
+
+template <typename T>
+struct DefaultUndefinedResidual {
+  static T get() {return MakeConstant<T>::apply(4.0);}
+};
+
+template <typename T, typename Q>
+struct BandWidthForType {};
+
+template <typename T>
+struct BandWidthForType<T, Angle<double> > {
+  static Angle<T> get() {
+    return Angle<T>::degrees(MakeConstant<double>::apply(5.0));
+  }
+};
+
+template <typename T>
+struct BandWidthForType<T, Velocity<double> > {
+  static Velocity<T> get() {
+    return Velocity<T>::knots(MakeConstant<double>::apply(0.5));
   }
 };
 
@@ -57,9 +92,9 @@ Velocity<T> referenceVelocityForAngles(
 /*
  * http://jbrwww.che.wisc.edu/tech-reports/twmcc-2003-04.pdf
  */
-template <DataCode code>
+template <typename T, DataCode code>
 struct BandWidth :
-    BandWidthForType<typename TypeForCode<code>::type>{};
+    BandWidthForType<T, typename TypeForCode<code>::type>{};
 
 struct ServerBoatStateSettings {
       static const bool withBoatOverGround = false;
@@ -225,6 +260,71 @@ struct ReconstructedBoatState {
     // Todo: Anything else to initialize?
 
     return dst;
+  }
+};
+
+template <typename T, typename Settings>
+struct AWAFitness {
+  static const int outputCount = 1;
+
+  static bool apply(
+      const ReconstructedBoatState<T, Settings> &state,
+      const DistortionModel<T, AWA> &distortion,
+      const Angle<double> &observation,
+      T *residuals) {
+    residuals[0] = DefaultUndefinedResidual<T>::get();
+    auto h = state.heading.value.optionalAngle();
+    if (h.defined()) {
+      HorizontalMotion<T> AW = computeApparentWind(
+          state.boatOverGround,
+          state.windOverGround);
+      auto awa = computeAWA(AW, h.get());
+      if (awa.defined()) {
+        auto prediction = distortion.apply(awa.get());
+        auto angleError = observation -
+            MakeConstant<Angle<T>>::apply(prediction);
+        Velocity<T> velocityError = (angleError).radians()*AW.norm();
+        auto bw = BandWidth<T, AWA>::get();
+        residuals[0] = sqrtHuber<T>(
+            velocityError/bw);
+      }
+    }
+    return true;
+  }
+};
+
+template <typename T, typename Settings>
+struct AWSFitness {
+  static const int outputCount = 1;
+
+  static bool apply(const ReconstructedBoatState<T, Settings> &state,
+      const DistortionModel<T, AWS> &distortion,
+      const Velocity<double> &observation,
+      T *residuals) {
+    auto aw = computeApparentWind(
+        state.boatOverGround, state.windOverGround);
+    auto bw = BandWidth<T, AWS>::get();
+    Velocity<T> error = distortion.apply(aw.norm())
+        - MakeConstant<Velocity<T>>::apply(observation);
+    residuals[0] = sqrtHuber<T>(error/bw);
+    return true;
+  }
+};
+
+template <typename T, typename Settings>
+struct MagHeadingFitness {
+  static const int outputCount = 1;
+
+  static bool apply(const ReconstructedBoatState<T, Settings> &state,
+                    const DistortionModel<T, MAG_HEADING> &distortion,
+                    const Angle<double> &observation,
+                    T *residuals) {
+    residuals[0] = DefaultUndefinedResidual<T>::get();
+    auto h = state.heading.value.optionalAngle();
+    if (h.defined()) {
+      //auto error = distortion.apply(h.get()) -
+    }
+    return true;
   }
 };
 
