@@ -226,4 +226,18 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_NEAR(1.0, std::abs(residuals[0]), 1.0e-3);
   }
 
+  // WAT_SPEED tests
+  auto expectedWatSpeed = 5.0_kn;
+  DistortionModel<double, WAT_SPEED> watModel;
+  {
+    static_assert(1 == MagHeadingFitness<double,
+        FullSettings>::outputCount, "Bad");
+    double residuals[1] = {10.0};
+    EXPECT_TRUE((WatSpeedFitness<double, FullSettings>::apply(
+        state, watModel, expectedWatSpeed, residuals)));
+    EXPECT_NEAR(0.0, residuals[0], 1.0e-6);
+  }{
+
+  }
+
 }
