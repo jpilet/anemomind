@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "gl-mat4": "^1.1.4"
+    "gl-mat4": "^1.1.4",
+    "gl-matrix-mat4": "^2.2.1-npm"
   }
 }

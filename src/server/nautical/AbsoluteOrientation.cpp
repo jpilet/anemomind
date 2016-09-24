@@ -16,11 +16,11 @@ namespace sail {
 Eigen::Matrix3d boxAnglesToRotation(
     const AbsoluteOrientation &orientation) {
   Eigen::Matrix3d R0 = computeRotationFromOmega<double>(
-      -orientation.heading*Eigen::Vector3d(0, 1, 0));
+      -orientation.heading.radians()*Eigen::Vector3d(0, 1, 0));
   Eigen::Matrix3d R1 = computeRotationFromOmega<double>(
-      -orientation.pitch*Eigen::Vector3d(1, 0, 0));
+      -orientation.pitch.radians()*Eigen::Vector3d(1, 0, 0));
   Eigen::Matrix3d R2 = computeRotationFromOmega<double>(
-      orientation.roll*Eigen::Vector3d(0, 0, 1));
+      orientation.roll.radians()*Eigen::Vector3d(0, 0, 1));
   return R2*R1*R0;
 }
 
