@@ -237,7 +237,13 @@ TEST(FitnessTest, ResidualTest) {
         state, watModel, expectedWatSpeed, residuals)));
     EXPECT_NEAR(0.0, residuals[0], 1.0e-6);
   }{
-
+    double residuals[1] = {0.0};
+    DistortionModel<double, WAT_SPEED> bad;
+    double ws[2] = {34.4, 5.6};
+    bad.readFrom(ws);
+    EXPECT_TRUE((WatSpeedFitness<double, FullSettings>::apply(
+        state, bad, expectedWatSpeed, residuals)));
+    EXPECT_LT(0.01, std::abs(residuals[0]));
   }
 
 }
