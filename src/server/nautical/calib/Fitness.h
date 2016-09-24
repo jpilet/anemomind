@@ -283,7 +283,8 @@ struct ReconstructedBoatState {
     auto h = heading.value.optionalAngle();
     if (h.defined()) {
       return AbsoluteBoatOrientation<T>{
-        heading, heel, pitch
+        heading.value.angle(),
+            heel.value, pitch.value
       };
     }
     return Optional<AbsoluteBoatOrientation<T>>();
@@ -399,7 +400,7 @@ struct OrientFitness {
 
       // According to https://en.wikipedia.org/wiki/Rotation_matrix#Determining_the_angle
       // we can compute cos(theta) from the trace (theta being the angle):
-      Velocity<T> hNorm = state.heading.norm();
+      Velocity<T> hNorm = state.heading.value.norm();
       T cosTheta = (relR.trace()
           - MakeConstant<T>::apply(1.0))/MakeConstant<T>::apply(2.0);
 
@@ -411,11 +412,11 @@ struct OrientFitness {
       auto velbw = BandWidthForType<T, Velocity<double>>::get();
       auto refVel = referenceVelocityForAngles(velbw, bw);
       T squaredXError = sqr<T>((hNorm*cosTheta - refVel)/velbw);
-      T squaredYError = sqr<T>(hNorm)*(
+      T squaredYError = sqr<T>(hNorm/velbw)*(
           MakeConstant<T>::apply(1.0) - cosTheta*cosTheta);
       T totalError = sqrt(MakeConstant<T>::apply(1.0e-9)
           + squaredXError + squaredYError);
-      residuals[0] = sqrtHuber<T>(totalError/velbw);
+      residuals[0] = sqrtHuber<T>(totalError);
     }
     return true;
   }

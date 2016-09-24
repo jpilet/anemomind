@@ -263,5 +263,21 @@ TEST(FitnessTest, OrientationTest) {
   state.heading.value = HorizontalMotion<double>::polar(
       referenceVelocityForAngles<double>(), 0.0_deg);
 
-  DistortionModel<double, ORIENT> model;
+  {
+    DistortionModel<double, ORIENT> model;
+    auto observed = AbsoluteOrientation{0.0_deg, 0.0_deg, 0.0_deg};
+    double r[1] = {10.0};
+    EXPECT_TRUE((OrientFitness<double, FullSettings>::apply(
+        state, model, observed, r)));
+    EXPECT_NEAR(r[0], 0.0, 1.0e-3);
+  }{
+    DistortionModel<double, ORIENT> model;
+    auto observed = AbsoluteOrientation{0.0_deg, 0.0_deg,
+      BandWidthForType<double, Angle<double>>::get()};
+    double r[1] = {10.0};
+    EXPECT_TRUE((OrientFitness<double, FullSettings>::apply(
+        state, model, observed, r)));
+    EXPECT_NEAR(r[0], 1.0, 1.0e-3);
+  }
+
 }

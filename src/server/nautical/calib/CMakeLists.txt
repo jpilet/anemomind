@@ -99,6 +99,7 @@ add_library(calib_Fitness
 
 target_link_libraries(calib_Fitness
   anemobox_Dispatcher
+  nautical_AbsoluteOrientation
   )
 
 cxx_test(calib_FitnessTest
