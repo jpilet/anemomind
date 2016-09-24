@@ -217,5 +217,11 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_TRUE((MagHeadingFitness<double, FullSettings>::apply(
         state, hdgModel, 180.0_deg, residuals)));
     EXPECT_LT(0.001, std::abs(residuals[0]));
+  }{
+    double residuals[1] = {0.0};
+    EXPECT_TRUE((MagHeadingFitness<double, FullSettings>::apply(
+        state, hdgModel, expectedHeading +
+        BandWidth<double, MAG_HEADING>::get(), residuals)));
+    EXPECT_NEAR(1.0, std::abs(residuals[0]), 1.0e-3);
   }
 }
