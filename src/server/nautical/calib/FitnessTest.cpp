@@ -126,6 +126,7 @@ TEST(FitnessTest, ResidualTest) {
   state.windOverGround.value = HorizontalMotion<double>{0.0_kn, -4.0_kn};
   state.heading.value = HorizontalMotion<double>{
     referenceVelocityForAngles<double>(), 0.0_kn};
+  state.currentOverGround = HorizontalMotion<double>{-1.0_kn, 0.0_kn};
 
   auto expectedAWA = -45.0_deg;
   auto expectedAWS = sqrt(2.0)*4.0_kn;
@@ -224,4 +225,5 @@ TEST(FitnessTest, ResidualTest) {
         BandWidth<double, MAG_HEADING>::get(), residuals)));
     EXPECT_NEAR(1.0, std::abs(residuals[0]), 1.0e-3);
   }
+
 }
