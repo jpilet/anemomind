@@ -266,7 +266,14 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_TRUE((HeelFitness<double, FullSettings>::apply(
         state, heelCoef, residuals)));
     EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
+  }{
+    state.heel.value += BandWidthForType<double, Angle<double>>::get();
+    double residuals[1] = {10.0};
+    EXPECT_TRUE((HeelFitness<double, FullSettings>::apply(
+        state, heelCoef, residuals)));
+    EXPECT_NEAR(std::abs(residuals[0]), 1.0, 1.0e-6);
   }
+
 }
 
 TEST(FitnessTest, OrientationTest) {
