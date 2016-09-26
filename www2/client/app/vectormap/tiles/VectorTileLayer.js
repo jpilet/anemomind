@@ -54,6 +54,7 @@ function VectorTileLayer(params, renderer) {
   this.visibleCurves = {};
   this.curvesFlat = {};
   this.queueSeconds = 0;
+  this.currentTime = 0;
 
   if (!("tileSize" in this.params)) this.params.tileSize = 256;
   if ("vectorurl" in this.params) {
@@ -70,6 +71,18 @@ function VectorTileLayer(params, renderer) {
   if (!this.params.maxSimultaneousLoads) this.params.maxSimultaneousLoads = 3;
 
 
+}
+
+var setTail = function(currentTime, queueSeconds, context, point) {
+  var queueTime = new Date(Math.abs(currentTime.getTime() - (parseInt(queueSeconds) * 1000)));
+  var pointTime = point.time;
+
+  if(pointTime.getTime() >= queueTime.getTime() && pointTime.getTime() <= currentTime.getTime()) {
+    return true;
+  }
+    
+
+  return false;
 }
 
 VectorTileLayer.prototype.setUrl = function(url) {
@@ -307,10 +320,9 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
 
 VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   // prepare the Cavas path
-  console.log(this.queueSeconds);
 
   if (this.isHighlighted(curveId)) {
-    context.strokeStyle="#FF0033";
+    context.strokeStyle="#FFFFFF";
     context.lineWidth = 3;
   } else {
     if (this.highlight) {
@@ -323,6 +335,10 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
       context.lineWidth = 2;
     }
   }
+  
+  var hasTail = false;
+  var origStrokeStyle = context.strokeStyle;
+  var origlineWidth = context.lineWidth;
 
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
@@ -334,10 +350,36 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var first = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
                                               points[0].pos[1]);
   context.moveTo(first.x, first.y);
+
   for (var i = 1; i < points.length; ++i) {
+    var tail = false;
     var point = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
                                                 points[i].pos[1]);
-    context.lineTo(point.x, point.y);
+
+    if(parseInt(this.queueSeconds) > 0 && point)
+      tail = setTail(this.currentTime, this.queueSeconds, context, points[i]);
+
+    if(tail) {
+      if(!hasTail) {
+        context.stroke();
+        context.closePath();
+        context.beginPath();
+        context.strokeStyle="#000000";
+        hasTail = true;
+      }
+      context.strokeStyle="#000000";
+      context.lineTo(point.x, point.y);
+    }
+    else {
+      context.lineTo(point.x, point.y);
+      if(context.strokeStyle != origStrokeStyle) {
+        context.stroke();
+        context.closePath();
+        context.beginPath();
+        context.strokeStyle = origStrokeStyle;
+      }
+    }
+    
   }
   context.stroke();
   /*

@@ -82,7 +82,7 @@ angular.module('www2App')
                 lineWidth: 3
               };
 
-              scope.pathLayer.queueSeconds = $location.search().queue;
+              
             }
           }
           
@@ -232,8 +232,7 @@ angular.module('www2App')
           scope.$watch('currentTime', function(newValue, oldValue) {
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
-
-              setTailTrack();
+              scope.pathLayer.queueSeconds = $location.search().queue;
             }
           });
 
