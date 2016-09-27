@@ -181,9 +181,13 @@ if (withWatchdog) {
   require('./components/watchdog.js').startWatchdog();
 }
 
+var wifi = require('./components/wifi.js');
+config.events.on('change', wifi.applyNetworkConfig);
+
 var callrpc = require('./components/callrpc.js');
 callrpc.WITH_BT = withBT;
 callrpc.WITH_HTTP = withHttp;
+
 if (withNmea0183Udp) {
   var nmea0183udp = require('./components/nmea0183udp.js');
   function listenUdpPort() {
@@ -203,4 +207,3 @@ if (withNmea0183Udp) {
   listenUdpPort();
   config.events.on('change', listenUdpPort);
 }
-
