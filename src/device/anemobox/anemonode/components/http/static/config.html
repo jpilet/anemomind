@@ -52,9 +52,15 @@
       <dl id="wifiPasswd" class="dl-horizontal">
         <dt> WPA password </dt>
         <dd>
-          <input type=text class="form-control"/>
+          <input type="text" class="form-control"/>
         </dd>
       </dl>
+
+      <dl class = "dl-horizontal">
+        <dt>NMEA0183 UDP input port</dt>
+        <dd><input type="number" id="nmea0183UdpPort"/></dd>
+      </dl>
+
       <dl class ="dl-horizontal">
         <dd>
           <button id="saveButton" type="button" class="btn btn-primary">Save</button>
@@ -137,6 +143,8 @@
           var table = $('#dataTable');
           table.html('');
 
+          $('#nmea0183UdpPort').val(data.boxConfig.nmea0183UdpPort || 50000);
+
           for (var i in tableEntries) {
             var entry = tableEntries[i];
           
@@ -151,7 +159,7 @@
           }
         }
     function reportError(err) {
-      $('#reportError').text(err ? 'Error ' + err : '');
+      $('#reportError').text(err || '');
     }
 
     function fetchConfig() {
@@ -162,8 +170,8 @@
         type: "GET",
         success: readConfig,
         error: function(jqxhr, status, err) {
-          reportError('Error when reading configuration: ' + status + ' ' + err);
-        }
+          reportError("Error when reading configuration: " + status + " " + err);
+        },
         dataType: "json",
         timeout: 200
       })
@@ -183,6 +191,7 @@
             changes[key] = value;
             if (key in networkSettings) {
               networkChanged = true;
+            }
           }
         }
         if (same) {
@@ -219,7 +228,8 @@
         nmea0183Speed: $("#nmea0183Speed option:selected").val(),
         wifi_mode: $("#wifiMode option:selected").val(),
         wpa_ssid: $('#wifiSSID input').val(),
-        wpa_password: $('#wifiPasswd input').val()
+        wpa_password: $('#wifiPasswd input').val(),
+        nmea0183UdpPort: $('#nmea0183UdpPort').val()
       };
 
       changeBoxConfig(changes);
@@ -239,7 +249,7 @@
       });
       $('#wifiMode').change(function(e) {
         var newMode = $("#wifiMode option:selected").val();
-        if (newMode == 'WPA') {
+        if (newMode == "WPA" ) {
           $('#wifiSSID').show();
           $('#wifiPasswd').show();
         } else {

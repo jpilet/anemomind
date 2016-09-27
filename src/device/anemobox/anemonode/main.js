@@ -194,7 +194,7 @@ if (withNmea0183Udp) {
     config.get(function(err, cfg) {
       // default port: Box WiFi NKE
       var port = cfg.nmea0183UdpPort || 50000;
-      nmea0183UdpPort.listenToUdpPort(
+      nmea0183udp.listenToUdpPort(
           port,
           function(source, data) { 
             if (withLogger && logExternalNmea) {

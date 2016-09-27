@@ -7,6 +7,8 @@ var server;
 var currentPort;
 
 function listenToUdpPort(port, dataCB) {
+  port = parseInt(port);
+
   if (currentPort && currentPort == port) {
     // already listening on the same port.
     return;
@@ -19,9 +21,10 @@ function listenToUdpPort(port, dataCB) {
   };
 
   if (server) {
-    server.close(openPort);
+    server.on('close', open);
+    server.close();
   } else {
-    openPort();
+    open();
   }
 }
 
@@ -29,12 +32,12 @@ function openPort(port, dataCB) {
   currentPort = port;
   server = dgram.createSocket('udp4');
 
-  server.on('error', (err) => {
+  server.on('error', function (err) {
     console.log('server error: ' + err.stack);
     server.close();
   });
 
-  server.on('message', (msg, rinfo) => {
+  server.on('message', function(msg, rinfo) {
     var source = 'NMEA0183 ' + rinfo.address + ':' + rinfo.port + ' UDP';
 
     if (!(source in nmeaParsers)) {
@@ -48,9 +51,9 @@ function openPort(port, dataCB) {
     }
   });
 
-  server.on('listening', () => {
+  server.on('listening', function() {
               var address = server.address();
-                console.log(`server listening ${address.address}:${address.port}`);
+                console.log("listening for NMEA0183 on UDP: " + address.address + ":" + address.port);
                 });
 
   server.bind(port);
