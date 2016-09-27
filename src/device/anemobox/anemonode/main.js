@@ -21,6 +21,7 @@ var withIMU = true;
 var withCUPS = false;
 var withNMEA2000 = true;
 var withWatchdog = !process.env['NO_WATCHDOG'];
+var withNmea0183Udp = true;
 
 var spiBugDetected = false;
 
@@ -183,4 +184,23 @@ if (withWatchdog) {
 var callrpc = require('./components/callrpc.js');
 callrpc.WITH_BT = withBT;
 callrpc.WITH_HTTP = withHttp;
+if (withNmea0183Udp) {
+  var nmea0183udp = require('./components/nmea0183udp.js');
+  function listenUdpPort() {
+    config.get(function(err, cfg) {
+      // default port: Box WiFi NKE
+      var port = cfg.nmea0183UdpPort || 50000;
+      nmea0183UdpPort.listenToUdpPort(
+          port,
+          function(source, data) { 
+            if (withLogger && logExternalNmea) {
+              logger.logText(source, data.toString('ascii'));
+            }
+          }
+      );
+    });
+  }
+  listenUdpPort();
+  config.events.on('change', listenUdpPort);
+}
 
