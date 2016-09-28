@@ -339,6 +339,10 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var hasTail = false;
   var origStrokeStyle = context.strokeStyle;
   var origlineWidth = context.lineWidth;
+  var colors = ['red','green','blue','yellow','violet'];
+  var currentColor = '';
+  var gap1 = 0;
+  var gap2 = 0;
 
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
@@ -360,15 +364,82 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
       tail = setTail(this.currentTime, this.queueSeconds, context, points[i]);
 
     if(tail) {
+      context.lineTo(point.x, point.y);
+      
       if(!hasTail) {
         context.stroke();
         context.closePath();
+        context.lineWidth = 10;
+        
+        if(perfAtPoint(points[i]) > 0 && perfAtPoint(points[i]) <= 20) {
+          currentColor = 'red';
+          var grd = context.createLinearGradient(point.x, 0, point.y, 0);
+          grd.addColorStop(0, "red");
+          grd.addColorStop(1 / 5, "green");
+        }
+        else if(perfAtPoint(points[i]) > 20 && perfAtPoint(points[i]) <= 50) {
+          currentColor = 'blue';
+          var grd = context.createLinearGradient(point.x, 0, point.y, 0);
+          grd.addColorStop(2 / 5, "green");
+          grd.addColorStop(3 / 5, "blue");
+        }
+        else {
+          currentColor = 'green';
+          var grd = context.createLinearGradient(point.x, 0, point.y, 0);
+          grd.addColorStop(4 / 5, "blue");
+          grd.addColorStop(1, "yellow");
+        }
+        context.strokeStyle = grd;
         context.beginPath();
-        context.strokeStyle="#000000";
         hasTail = true;
       }
-      context.strokeStyle="#000000";
-      context.lineTo(point.x, point.y);
+      else {
+        console.log(Math.abs(point.x - gap1));
+        console.log(Math.abs(point.y - gap2));
+        point.x = (Math.abs(point.x - gap1)) + point.x;
+        point.y = (Math.abs(point.y - gap2)) + point.y;
+        console.log(Math.abs(point.x - gap1));
+        console.log(Math.abs(point.y - gap2));
+        
+
+        if(perfAtPoint(points[i]) > 0 && perfAtPoint(points[i]) <= 20) {
+          if(currentColor != 'red') {
+            currentColor = 'red';
+            context.stroke();
+            context.closePath();
+            var grd = context.createLinearGradient(point.x, 0, point.y, 0);
+            grd.addColorStop(0, "red");
+            grd.addColorStop(1 / 5, "green");
+            context.beginPath();
+          }
+        }
+        else if(perfAtPoint(points[i]) > 20 && perfAtPoint(points[i]) <= 50) {
+          if(currentColor != 'blue') {
+            currentColor = 'blue';
+            context.stroke();
+            context.closePath();
+            var grd = context.createLinearGradient(point.x, 0, point.y, 0);
+            grd.addColorStop(2 / 5, "green");
+            grd.addColorStop(3 / 5, "blue");
+            context.beginPath();
+          }
+        }
+        else {
+          if(currentColor != 'green') {
+            currentColor = 'green';
+            context.stroke();
+            context.closePath();
+            var grd = context.createLinearGradient(point.x, 0, point.y, 0);
+            grd.addColorStop(4 / 5, "blue");
+            grd.addColorStop(1, "yellow");
+            context.beginPath();
+          }
+        }
+        context.strokeStyle = grd;
+      }
+
+      gap1 = point.x;
+      gap2 = point.y;
     }
     else {
       context.lineTo(point.x, point.y);
@@ -377,6 +448,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
         context.closePath();
         context.beginPath();
         context.strokeStyle = origStrokeStyle;
+        context.lineWidth = origlineWidth;
       }
     }
     
