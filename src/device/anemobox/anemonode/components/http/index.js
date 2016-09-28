@@ -2,7 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 
 var app = express();
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '10mb'}));
 
 var server = require('http').createServer(app);
 require('./routes')(app);
