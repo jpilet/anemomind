@@ -9,9 +9,9 @@
 #include <map>
 #include <memory>
 #include <string>
-
 #include <device/anemobox/ValueDispatcher.h>
 #include <server/common/string.h>
+#include <device/anemobox/Channels.h>
 
 namespace sail {
 

@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include <anemobox/Channels.h>
+#include <device/anemobox/Channels.h>
 
 namespace sail {
 
