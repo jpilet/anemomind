@@ -293,7 +293,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     resampled = downSampleGpsTo1Hz(raw);
 
     if (_gpsFilter) {
-      resampled = filterNavs(resampled);
+      resampled = filterNavs(resampled, _gpsFilterSettings);
     }
   }
 
