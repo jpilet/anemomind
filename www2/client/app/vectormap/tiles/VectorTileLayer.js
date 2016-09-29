@@ -323,7 +323,6 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
       context.lineWidth = 2;
     }
   }
-  console.log(context.strokeStyle, context.lineWidth);
   
   var hasTail = false;
   var gradient = null;
@@ -358,15 +357,18 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
 
   var createGradient = function(color, pointX, pointY) {
     var index = colorSpectrum.indexOf(color);
-    
-    if(currentColor == '')
-      currentColor = color;
+    var nextColor = '';
+
+    if(typeof colorSpectrum[index + 1] == 'undefined')
+      nextColor = colorSpectrum[0];
+    else
+      nextColor = colorSpectrum[index + 1];
 
     var grd = context.createLinearGradient(pointX, 0, pointY, 0);
     if(currentColor == '') {
-      currentColor = color;
+      currentColor = nextColor;
       grd.addColorStop(0, color);
-      grd.addColorStop((index + 1) / 16, colorSpectrum[index + 1]);
+      grd.addColorStop((index + 1) / 16, nextColor);
 
       return grd;
     }
@@ -374,7 +376,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
     grd.addColorStop(0, currentColor);
     grd.addColorStop((index + 1) / 16, color);
 
-    currentColor = color;
+    currentColor = nextColor;
 
     return grd;
   };
