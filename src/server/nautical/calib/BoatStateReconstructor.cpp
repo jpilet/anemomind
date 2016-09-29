@@ -100,7 +100,32 @@ template ValueAccumulator<Velocity<double>> makeValueAccumulator<Velocity<double
   const TimeStampToIndexMapper &mapper,
   const std::map<std::string, Array<TimedValue<Velocity<double>> > > &srcData);
 
+template <typename BoatStateSettings>
+class BoatStateReconstructor {
+public:
+  BoatStateReconstructor(
+      const Array<BoatState<double> > &initialStates,
+      const TimeStampToIndexMapper &mapper,
+      const CalibDataChunk &chunk) :
+#define INITIALIZE_VALUE_ACC(HANDLE) \
+  HANDLE(makeValueAccumulator(mapper, chunk.HANDLE)),
+FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
+#undef INITIALIZE_VALUE_ACC
+        _timeMapper(mapper),
+        _initialStates(initialStates) {
+    CHECK(initialStates.size() == mapper.sampleCount);
+  }
 
+  Array<BoatState<double> > reconstruct(
+      const BoatParameters<double> &sensorParams) const;
+#define DECLARE_VALUE_ACC(HANDLE) \
+  ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
+  FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
+#undef DECLARE_VALUE_ACC
+private:
+  TimeStampToIndexMapper _timeMapper;
+  Array<BoatState<double> > _initialStates;
+};
 
 }
 
