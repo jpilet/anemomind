@@ -146,13 +146,7 @@ struct RegCost {
 };
 
 template <typename Settings>
-struct DataCost {
-  template <typename T>
-  bool operator()(T const* const* parameters,
-      T *residuals) const {
-    return true;
-  }
-};
+struct DataCost;
 
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
@@ -246,6 +240,31 @@ private:
   TimeStampToIndexMapper _timeMapper;
   Array<BoatState<double> > _initialStates;
 };
+
+template <typename Settings>
+struct DataCost {
+
+  template <typename T>
+  bool operator()(T const* const* parameters,
+      T *residuals) const {
+    ReconstructedBoatState<T, Settings> state;
+    state.readFrom(parameters[0]);
+
+    BoatParameters<T> boatParams;
+    boatParams.readFrom(parameters[1]);
+
+    return true;
+  }
+};
+
+ReconstructionResults resconstruct(
+    const Array<CalibDataChunk> &chunks,
+    const ReconstructionSettings &settings,
+    HtmlNode::Ptr logNode) {
+  return ReconstructionResults();
+}
+
+
 
 
 

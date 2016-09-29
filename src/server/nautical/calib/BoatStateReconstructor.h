@@ -16,6 +16,7 @@
 #include <server/common/TimedValue.h>
 #include <server/nautical/calib/BoatParameters.h>
 #include <server/common/Array.h>
+#include <server/common/HtmlLog.h>
 
 namespace sail {
 
@@ -76,8 +77,21 @@ ValueAccumulator<T> makeValueAccumulator(
   const TimeStampToIndexMapper &mapper,
   const std::map<std::string, Array<TimedValue<T> > > &srcData);
 
+struct ReconstructionResults {
+  BoatParameters<double> parameters;
+  Array<Array<BoatState<double>>> boatStates;
+};
+
+struct ReconstructionSettings {
+  double regWeight = 1.0;
+};
+
+ReconstructionResults resconstruct(
+    const Array<CalibDataChunk> &chunks,
+    const ReconstructionSettings &settings,
+    HtmlNode::Ptr logNode = HtmlNode::Ptr());
+
+
+
 }
-
-
-
 #endif /* SERVER_NAUTICAL_CALIB_BOATSTATERECONSTRUCTOR_H_ */
