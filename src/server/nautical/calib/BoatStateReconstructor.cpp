@@ -158,6 +158,7 @@ public:
 
   BoatStateReconstructor(
       const Array<BoatState<double> > &initialStates,
+      const Array<Spani> &continuousGroups,
       const TimeStampToIndexMapper &mapper,
       const CalibDataChunk &chunk) :
 #define INITIALIZE_VALUE_ACC(HANDLE) \
@@ -300,10 +301,23 @@ namespace {
 
 }
 
-ReconstructionResults resconstruct(
-    const Array<CalibDataChunk> &chunks,
+Array<BoatState<double> > initializeBoatStates(
+    const CalibDataChunk &chunk) {
+  int n = chunk.filteredPositions.size();
+  Array<BoatState<double>> dst(n);
+  for (int i = 0; i < n; i++) {
+    BoatState<double> state;
+    dst[i] = state;
+  }
+  return dst;
+}
+
+ReconstructionResults reconstruct(
+    const CalibDataChunk &chunk,
+    const Spani &continuousGroups,
     const ReconstructionSettings &settings,
     HtmlNode::Ptr logNode) {
+  BoatStateReconstructor<double> reconstructor();
   return ReconstructionResults();
 }
 

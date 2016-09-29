@@ -50,6 +50,13 @@ struct FunctionReturnType {
   typedef decltype(std::declval<Function>()(std::declval<T>())) type;
 };
 
+template <typename A, typename B>
+using Per = decltype(std::declval<A>()/std::declval<B>());
+
+// For instance, we could define Acceleration as
+// typedef Per<Velocity<double>, Duration<double>> Acceleration;
+
+
 // OP(type, name, factor)
 #define FOREACH_TIME_UNIT(OP) \
     OP(Time, milliseconds, 0.001) \

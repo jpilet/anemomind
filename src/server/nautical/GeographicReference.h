@@ -15,6 +15,8 @@ namespace sail {
 
 class GeographicReference {
  public:
+  typedef Per<Length<double>, Angle<double>> DType;
+
   GeographicReference();
   GeographicReference(const GeographicPosition<double> &pos_);
 
@@ -27,11 +29,11 @@ class GeographicReference {
 
   bool operator== (const GeographicReference &other) const;
 
-  double dlon() const {
+  DType dlon() const {
     return _dlon;
   }
 
-  double dlat() const {
+  DType dlat() const {
     return _dlat;
   }
  private:
@@ -42,7 +44,7 @@ class GeographicReference {
   Length<double> mapZAlt(Length<double> alt) const;
   Length<double> unmapZAlt(Length<double> z) const;
 
-  double _dlon, _dlat;
+  DType _dlon, _dlat;
   GeographicPosition<double> _pos;
 };
 

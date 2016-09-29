@@ -189,10 +189,11 @@ public:
   BoatState() {}
   BoatState(
       const GeographicPosition<T> &position,
-      const HorizontalMotion<T> &bog,
-      const HorizontalMotion<T> &windOverGround,
-      const HorizontalMotion<T> &currentOverGround,
-      const AbsoluteBoatOrientation<T> &orientation) :
+      const HorizontalMotion<T> &bog = HorizontalMotion<T>(),
+      const HorizontalMotion<T> &windOverGround = HorizontalMotion<T>(),
+      const HorizontalMotion<T> &currentOverGround = HorizontalMotion<T>(),
+      const AbsoluteBoatOrientation<T> &orientation =
+          AbsoluteBoatOrientation<T>()) :
         _position(position),
         _boatOverGround(bog),
         _windOverGround(windOverGround),

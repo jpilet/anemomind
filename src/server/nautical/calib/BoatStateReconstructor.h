@@ -92,11 +92,11 @@ struct ReconstructionSettings {
   Duration<double> windowSize = Duration<double>::minutes(1.0);
 };
 
-ReconstructionResults resconstruct(
-    const Array<CalibDataChunk> &chunks,
+ReconstructionResults reconstruct(
+    const CalibDataChunk &chunk,
+    const Spani &continuousGroups,
     const ReconstructionSettings &settings,
     HtmlNode::Ptr logNode = HtmlNode::Ptr());
-
 
 
 }

@@ -17,9 +17,17 @@ GeographicReference::GeographicReference() {
 
 
 GeographicReference::GeographicReference(const GeographicPosition<double> &pos_) : _pos(pos_) {
-  double xyz3[3];
-  WGS84<double>::toXYZLocal(pos_.lon().radians(), pos_.lat().radians(), pos_.alt().meters(),
-      xyz3, &_dlon, &_dlat);
+  double xyz3[3] = {NAN, NAN, NAN};
+  double dlon = NAN;
+  double dlat = NAN;
+  WGS84<double>::toXYZLocal(
+      pos_.lon().radians(),
+      pos_.lat().radians(),
+      pos_.alt().meters(),
+      xyz3, &dlon, &dlat);
+  auto unit = (1.0_m/1.0_rad);
+  _dlon = dlon*unit;
+  _dlat = dlat*unit;
 }
 
 GeographicReference::ProjectedPosition
@@ -28,7 +36,8 @@ GeographicReference::ProjectedPosition
 }
 
 GeographicPosition<double> GeographicReference::unmap(const ProjectedPosition &src) const {
-  return GeographicPosition<double>(unmapXLon(src[0]),
+  return GeographicPosition<double>(
+      unmapXLon(src[0]),
       unmapYLat(src[1]),
       Length<double>::meters(0));
 }
@@ -41,19 +50,19 @@ bool GeographicReference::operator== (const GeographicReference &other) const {
 
 
 Length<double> GeographicReference::mapXLon(Angle<double> lon) const {
-  return Length<double>::meters(_dlon*lon.directionDifference(_pos.lon()).radians());
+  return _dlon*lon.directionDifference(_pos.lon());
 }
 
 Length<double> GeographicReference::mapYLat(Angle<double> lat) const {
-  return Length<double>::meters(_dlat*lat.directionDifference(_pos.lat()).radians());
+  return _dlat*lat.directionDifference(_pos.lat());
 }
 
 Angle<double> GeographicReference::unmapXLon(Length<double> x) const {
-  return Angle<double>::radians(x.meters()/_dlon) + _pos.lon();
+  return x/_dlon + _pos.lon();
 }
 
 Angle<double> GeographicReference::unmapYLat(Length<double> y) const {
-  return Angle<double>::radians(y.meters()/_dlat) + _pos.lat();
+  return y/_dlat + _pos.lat();
 }
 
 Length<double> GeographicReference::unmapZAlt(Length<double> z) const {
