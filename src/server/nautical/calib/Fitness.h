@@ -196,13 +196,13 @@ struct Parameterized {
     }));
   }
 
-  void read(const T **src) {
+  void readAndStepPtr(const T **src) {
     if (variable) {
       value = TypeVectorizer<T, Type>::read(src);
     }
   }
 
-  void write(T **dst) const {
+  void writeAndStepPtr(T **dst) const {
     if (variable) {
       TypeVectorizer<T, Type>::write(value, dst);
     }
@@ -245,21 +245,21 @@ struct ReconstructedBoatState {
         + Pitch::valueDimension;
 
   void readFrom(const T *src) {
-    boatOverGround.read(&src);
-    windOverGround.read(&src);
-    currentOverGround.read(&src);
-    heading.read(&src);
-    heel.read(&src);
-    pitch.read(&src);
+    boatOverGround.readAndStepPtr(&src);
+    windOverGround.readAndStepPtr(&src);
+    currentOverGround.readAndStepPtr(&src);
+    heading.readAndStepPtr(&src);
+    heel.readAndStepPtr(&src);
+    pitch.readAndStepPtr(&src);
   }
 
   void writeTo(T *dst) const {
-    boatOverGround.write(&dst);
-    windOverGround.write(&dst);
-    currentOverGround.write(&dst);
-    heading.write(&dst);
-    heel.write(&dst);
-    pitch.write(&dst);
+    boatOverGround.writeAndStepPtr(&dst);
+    windOverGround.writeAndStepPtr(&dst);
+    currentOverGround.writeAndStepPtr(&dst);
+    heading.writeAndStepPtr(&dst);
+    heel.writeAndStepPtr(&dst);
+    pitch.writeAndStepPtr(&dst);
   }
 
   // Suppose we have previously already reconstructed some of the state,
