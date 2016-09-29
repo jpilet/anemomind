@@ -50,25 +50,7 @@ public:
 template <typename T>
 void foreachSpan(const TimeStampToIndexMapper &mapper,
     const Array<TimedValue<T> > &values,
-    std::function<void(int, Spani)> cb) {
-  assert(std::is_sorted(values.begin(), values.end()));
-  int currentPosition = 0;
-  while (currentPosition < values.size()) {
-    int currentIndex = mapper.map(values[currentPosition].time);
-    int nextPosition = currentPosition + 1;
-    while (nextPosition < values.size()) {
-      int nextIndex = mapper.map(values[nextPosition].time);
-      if (nextIndex != currentIndex) {
-        break;
-      }
-      nextPosition++;
-    }
-    if (currentIndex != -1) {
-      cb(currentIndex, Spani(currentPosition, nextPosition));
-    }
-    currentPosition = nextPosition;
-  }
-}
+    std::function<void(int, Spani)> cb);
 
 // A memory- and cache efficient data structure
 // used by the optimizer
@@ -84,57 +66,16 @@ struct ValueAccumulator {
     }
   };
 
-  ValueAccumulator(
-    const TimeStampToIndexMapper &mapper,
-    const std::map<std::string, Array<TimedValue<T> > > &srcData) {
-    int sensorCounter = 0;
-    int sampleCounter = 0;
-    for (auto kv: srcData) {
-      sensorIndices[kv.first] = sensorCounter++;
-      foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
-        sampleCounter += span.width();
-      });
-    }
-    values.reserve(sampleCounter);
-
-    assert(sensorCounter == sensorIndices.size());
-    for (auto kv: srcData) {
-      assert(sensorIndices.count(kv.first) == 1);
-      int sensorIndex = sensorIndices[kv.first];
-      foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
-        for (auto i: span) {
-          values.push_back(TaggedValue{
-            sensorIndex, sampleIndex, kv.second[i].value});
-        }
-      });
-    }
-    std::unordered_map<int, Spani> tmp;
-    assert(values.size() == sampleCounter);
-    std::sort(values.begin(), values.end());
-    for (int i = 0; i < values.size(); i++) {
-      int index = values[i].sampleIndex;
-      auto f = tmp.find(index);
-      if (f == tmp.end()) {
-        tmp.insert(std::pair<int, Spani>(index, Spani(i, i+1)));
-      } else {
-        f->second.extend(i);
-        f->second.extend(i+1);
-      }
-    }
-    for (auto kv: tmp) {
-      valuesPerIndex.push_back(kv);
-    }
-    std::sort(valuesPerIndex.begin(), valuesPerIndex.end(),
-        [](const std::pair<int, Spani> &a,
-            const std::pair<int, Spani> &b) {
-      return a.first < b.first;
-    });
-  }
-
   std::map<std::string, int> sensorIndices;
   std::vector<std::pair<int, Spani> > valuesPerIndex;
   std::vector<TaggedValue> values;
 };
+
+template <typename T>
+ValueAccumulator<T> makeValueAccumulator(
+  const TimeStampToIndexMapper &mapper,
+  const std::map<std::string, Array<TimedValue<T> > > &srcData);
+
 
 template <typename T>
 struct ReconstructionDataFit;

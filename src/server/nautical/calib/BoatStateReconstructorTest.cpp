@@ -80,7 +80,7 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   std::vector<std::string> sensorNames;
   std::vector<int> assignedIndices;
 
-  ValueAccumulator<Velocity<double> > acc(mapper, src);
+  auto acc = makeValueAccumulator(mapper, src);
   EXPECT_EQ(acc.sensorIndices.size(), 2);
   for (auto kv: acc.sensorIndices) {
     sensorNames.push_back(kv.first);
