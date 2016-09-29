@@ -75,3 +75,30 @@ TEST(GpsUtilsTest, TestSomeFunctions) {
   auto refTime = GpsUtils::getReferenceTime(positions);
   EXPECT_NEAR((refTime - offset).seconds(), 1.0, 1.0e-6);
 }
+
+TEST(GpsUtilsTest, MotionTest) {
+  GeographicReference ref(GeographicPosition<double>(34.0_deg, 19.0_deg));
+
+  GeographicReference::ProjectedPosition A2{
+    1.0_m,
+    1.0_m
+  };
+  GeographicReference::ProjectedPosition B2{
+    5.0_m,
+    4.0_m
+  };
+
+  auto At = TimeStamp::UTC(2016, 9, 29, 16, 10, 0);
+  auto Bt = At + 2.0_s;
+  HorizontalMotion<double> expectedMotion{2.0_mps, 1.5_mps};
+
+  auto A3 = ref.unmap(A2);
+  auto B3 = ref.unmap(B2);
+
+  auto motion = GpsUtils::computeHorizontalMotion(
+      TimedValue<GeographicPosition<double>>{At, A3},
+      TimedValue<GeographicPosition<double>>{Bt, B3});
+
+  EXPECT_NEAR(motion[0].knots(), expectedMotion[0].knots(), 1.0e-5);
+  EXPECT_NEAR(motion[1].knots(), expectedMotion[1].knots(), 1.0e-5);
+}
