@@ -239,7 +239,7 @@ struct ReconstructedBoatState {
   typedef Parameterized<Angle<T>, T, Settings::withPitch> Pitch;
   Pitch pitch;
 
-  static const int valueDimension =
+  static const int dynamicValueDimension =
         BOG::valueDimension + WOG::valueDimension + COG::valueDimension
         + Heading::valueDimension + Heel::valueDimension
         + Pitch::valueDimension;

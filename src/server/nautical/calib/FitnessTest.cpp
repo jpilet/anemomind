@@ -20,7 +20,7 @@ struct TestSettings1 {
 };
 
 static_assert(
-    ReconstructedBoatState<double, TestSettings1>::valueDimension ==
+    ReconstructedBoatState<double, TestSettings1>::dynamicValueDimension ==
         0 + 2 + 0 + 2 + 0 + 0, "Failed");
 
 struct TestSettings2 {
@@ -31,7 +31,7 @@ struct TestSettings2 {
 };
 
 static_assert(
-    ReconstructedBoatState<double, TestSettings2>::valueDimension ==
+    ReconstructedBoatState<double, TestSettings2>::dynamicValueDimension ==
         2 + 2 + 0 + 2 + 0 + 0, "Failed");
 
 struct TestSettings3 {
@@ -42,7 +42,7 @@ struct TestSettings3 {
 };
 
 static_assert(
-    ReconstructedBoatState<double, TestSettings3>::valueDimension ==
+    ReconstructedBoatState<double, TestSettings3>::dynamicValueDimension ==
         2 + 2 + 2 + 2 + 0 + 0, "Failed");
 
 struct TestSettings4 {
@@ -53,7 +53,7 @@ struct TestSettings4 {
 };
 
 static_assert(
-    ReconstructedBoatState<double, TestSettings4>::valueDimension ==
+    ReconstructedBoatState<double, TestSettings4>::dynamicValueDimension ==
         2 + 2 + 2 + 2 + 1 + 0, "Failed");
 
 struct TestSettings5 {
@@ -64,13 +64,13 @@ struct TestSettings5 {
 };
 
 static_assert(
-    ReconstructedBoatState<double, TestSettings5>::valueDimension ==
+    ReconstructedBoatState<double, TestSettings5>::dynamicValueDimension ==
         2 + 2 + 2 + 2 + 1 + 1, "Failed");
 
 TEST(FitnessTest, ReconstructedBoatStateTest) {
   typedef ReconstructedBoatState<
       double, FullSettings> State;
-  const int n = State::valueDimension;
+  const int n = State::dynamicValueDimension;
   static_assert(0 < n, "It should be non-empty");
   {
     double values[n];

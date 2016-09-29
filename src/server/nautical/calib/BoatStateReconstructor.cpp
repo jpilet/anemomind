@@ -102,13 +102,65 @@ template ValueAccumulator<Velocity<double>> makeValueAccumulator<Velocity<double
   const TimeStampToIndexMapper &mapper,
   const std::map<std::string, Array<TimedValue<Velocity<double>> > > &srcData);
 
+template <typename T>
+void evaluateMotionReg(
+    const HorizontalMotion<T> &dif,
+    T weight, Velocity<T> bw,
+    T *dst) {
+  dst[0] = weight*(dif[0]/bw);
+  dst[1] = weight*(dif[1]/bw);
+}
+
+template <typename Settings>
+struct RegCost {
+  double *globalScale;
+  double regWeight;
+
+  RegCost(double *gs, double w) : globalScale(gs), regWeight(w) {}
+
+  template <typename T>
+  bool operator()(const T *X, const T *Y, T *dst) {
+    ReconstructedBoatState<T, Settings> A, B;
+    A.readFrom(X);
+    B.readFrom(Y);
+    T weight = MakeConstant<T>::apply(regWeight);
+
+    auto vbw = BandWidthForType<T, Velocity<double>>::get();
+    auto abw = BandWidthForType<T, Angle<double>>::get();
+
+    evaluateMotionReg<T>(
+        A.boatOverGround - B.boatOverGround,
+        weight, vbw, dst + 0);
+    evaluateMotionReg<T>(
+        A.windOverGround - B.windOverGround,
+        weight, vbw, dst + 2);
+    evaluateMotionReg<T>(
+        A.currentOverGround - B.currentOverGround,
+        weight, vbw, dst + 4);
+    dst[6] = weight*((A.heel - B.heel)/abw);
+    dst[7] = weight*((A.pitch - B.pitch)/abw);
+    dst[8] = weight*((A.heading - B.heading)/abw);
+    static_assert(9 == A.valueDimension, "Bad dim");
+    return true;
+  }
+};
+
+template <typename Settings>
+struct DataCost {
+  template <typename T>
+  bool operator()(T const* const* parameters,
+      T *residuals) const {
+    return true;
+  }
+};
+
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
   template <typename T>
   using State = ReconstructedBoatState<T, BoatStateSettings>;
 
-  static const int stateDim = State<double>::valueDimension;
+  static const int dynamicStateDim = State<double>::valueDimension;
 
   BoatStateReconstructor(
       const Array<BoatState<double> > &initialStates,
@@ -124,12 +176,13 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
   }
 
   Array<BoatState<double> > reconstruct(
-      const BoatParameters<double> &sensorParams) const {
+      const BoatParameters<double> &boatParams) const {
+    double globalScale = 1.0;
     int n = _initialStates.size();
     ceres::Problem problem;
 
     Array<double> reconstructedStates(
-        n*stateDim);
+        n*dynamicStateDim);
     std::default_random_engine rng;
     std::uniform_real_distribution<double> hdgDistrib(0.0, 2.0*M_PI);
     for (int i = 0; i < n; i++) {
@@ -138,23 +191,48 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
           0.0001_mps, hdgDistrib(rng)*1.0_rad);
 
       double *p = reconstructedStates.blockPtr(
-          i, stateDim);
-      problem.AddParameterBlock(p, stateDim);
+          i, dynamicStateDim);
+      problem.AddParameterBlock(p, dynamicStateDim);
 
       state.write(&p);
     }
 
-    Array<double> reconstructedParameters(sensorParams.paramCount());
-    sensorParams.writeTo(reconstructedParameters.ptr());
+    Array<double> reconstructedBoatParameters(boatParams.paramCount());
+    boatParams.writeTo(reconstructedBoatParameters.ptr());
     problem.AddParameterBlock(
-        reconstructedParameters.ptr(),
-        sensorParams.paramCount());
+        reconstructedBoatParameters.ptr(),
+        boatParams.paramCount());
 
-    int regCount = n-1;
-    int dataCount = n;
+    { // Regularization
+      int regCount = n-1;
+      for (int i = 0; i < regCount; i++) {
+        typedef RegCost<BoatStateSettings> RegFunctor;
+        problem.AddResidualBlock(
+            new ceres::AutoDiffCostFunction<RegFunctor,
+              dynamicStateDim, dynamicStateDim, dynamicStateDim>(
+                  new RegFunctor(&globalScale, 1.0)),
+            nullptr,
+            reconstructedStates.blockPtr(i, dynamicStateDim),
+            reconstructedStates.blockPtr(i+1, dynamicStateDim));
+      }
+    }
 
-
-    /// TODO!!!
+    { // Data
+      int dataCount = n;
+      for (int i = 0; i < dataCount; i++) {
+        typedef DataCost<BoatStateSettings> DataFunctor;
+        auto f = new DataFunctor();
+        auto cost = new ceres::DynamicAutoDiffCostFunction<DataFunctor>(f);
+        cost->AddParameterBlock(dynamicStateDim);
+        cost->AddParameterBlock(boatParams.paramCount());
+        cost-SetNumResiduals(f->outputCount());
+        std::vector<double*> params{
+          reconstructedStates.blockPtr(i, dynamicStateDim),
+          reconstructedBoatParameters.ptr()
+        };
+        problem.AddResidualBlock(cost, nullptr, params);
+      }
+    }
 
 
     return Array<BoatState<double>>();
