@@ -33,9 +33,9 @@ NavDataset getDataset(int argc, const char **argv) {
 }
 
 int main(int argc, const char **argv) {
-  auto log = HtmlPage::make(
-      Env::BINARY_DIR, "v2demo_log.html");
   auto ds = getDataset(argc, argv);
+  auto log = HtmlPage::make(
+      Env::BINARY_DIR, "v2demo_log");
   Processor2::runDemoOnDataset(ds, log);
   return 0;
 }

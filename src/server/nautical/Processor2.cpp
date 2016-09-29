@@ -198,6 +198,7 @@ void runDemoOnDataset(
     HtmlNode::Ptr dstLogNode) {
   auto logBody = HtmlTag::initializePage(
       dstLogNode, "V2 Reconstruction results");
+  HtmlTag::tagWithData(logBody, "h1", "Results summary");
 
   dataset.mergeAll();
 
@@ -219,10 +220,7 @@ void runDemoOnDataset(
       filteredTimeStamps, settings.subSessionCut);
 
   if (logBody) {
-    {
-      auto h = HtmlTag::make(logBody, "h2");
-      h->stream() << "Small sessions";
-    }
+    HtmlTag::tagWithData(logBody, "h2", "Small sessions");
     outputTimeSpans(smallSessions, logBody);
   }
 
@@ -231,11 +229,11 @@ void runDemoOnDataset(
   auto calibGroups = computeCalibrationGroups(
       smallSessions, settings.minCalibDur);
 
-  if (settings.debug) {
-    outputGroupsToFile(
-        settings.makeLogFilename("calibration_groups.txt"),
+  if (logBody) {
+    HtmlTag::tagWithData(logBody, "h2", "Calibration groups");
+    outputGroups(
         calibGroups,
-        smallSessions);
+        smallSessions, logBody);
   }
 
   auto reconstructions
@@ -388,19 +386,18 @@ void outputTimeSpans(
   }
 }
 
-void outputGroupsToFile(
-      const std::string &filename,
+void outputGroups(
       const Array<Spani> &groups,
-      const Array<Span<TimeStamp> > sessions) {
-  std::ofstream file(filename);
+      const Array<Span<TimeStamp> > sessions,
+      HtmlNode::Ptr dst) {
   for (int i = 0; i < groups.size(); i++) {
-    file << "Group " << i+1 << " of " << groups.size() << std::endl;
-    auto g = groups[i];
-    for (auto j: g) {
-      auto span = sessions[j];
-      file << "   Span from " << span.minv() << " to " << span.maxv()
-          << std::endl;
+    {
+      auto h3 = HtmlTag::make(dst, "h3");
+      h3->stream() << "Group " << i+1 <<
+          " of " << groups.size() << std::endl;
     }
+    auto g = groups[i];
+    outputTimeSpans(sessions.slice(g.minv(), g.maxv()), dst);
   }
 }
 

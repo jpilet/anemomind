@@ -64,10 +64,10 @@ void outputTimeSpans(
     const Array<Span<TimeStamp> > &timeSpans,
     HtmlNode::Ptr dst);
 
-void outputGroupsToFile(
-      const std::string &filename,
+void outputGroups(
       const Array<Spani> &groups,
-      const Array<Span<TimeStamp> > sessions);
+      const Array<Span<TimeStamp> > sessions,
+      HtmlNode::Ptr dst);
 
 Array<Spani> groupSessionsByThreshold(
     const Array<Span<TimeStamp> > &timeSpans,

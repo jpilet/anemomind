@@ -62,6 +62,10 @@ public:
       HtmlNode::Ptr emptyPage,
       const std::string &title);
 
+  static void tagWithData(HtmlNode::Ptr parent,
+      const std::string &tagName,
+      const std::string &data);
+
   std::ostream &stream() override {return _stream;}
 
   HtmlNode::Ptr makeNewRoot() override {return _parent->makeNewRoot();}

@@ -66,6 +66,13 @@ HtmlNode::Ptr HtmlTag::initializePage(
   return HtmlTag::make(emptyPage, "body");
 }
 
+void HtmlTag::tagWithData(HtmlNode::Ptr parent,
+      const std::string &tagName,
+      const std::string &data) {
+  auto dst = make(parent, tagName);
+  dst->stream() << data;
+}
+
 HtmlTag::HtmlTag(HtmlNode::Ptr parent, const std::string &tagName,
       const std::vector<std::pair<std::string, AttribValue> > &attribs) :
         _parent(parent), _tagName(tagName), _attributes(attribs), _stream(parent->stream()) {
