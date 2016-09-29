@@ -13,12 +13,10 @@
 namespace sail {
 
 template <typename T>
-using HeelConstant = decltype(
-    std::declval<Angle<T>>()/std::declval<Velocity<T>>());
+using HeelConstant = QuantityPerQuantity<Angle<T>, Velocity<T>>;
 
 template <typename T>
-using LeewayConstant = decltype(
-    std::declval<Velocity<T>>()*std::declval<Velocity<T>>());
+using LeewayConstant = QuantitySquared<Velocity<T>>;
 
 template <typename T>
 struct BoatParameters {

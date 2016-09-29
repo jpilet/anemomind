@@ -51,7 +51,13 @@ struct FunctionReturnType {
 };
 
 template <typename A, typename B>
-using Per = decltype(std::declval<A>()/std::declval<B>());
+using QuantityPerQuantity = decltype(std::declval<A>()/std::declval<B>());
+
+template <typename A, typename B>
+using QuantityByQuantity = decltype(std::declval<A>()*std::declval<B>());
+
+template <typename T>
+using QuantitySquared = QuantityByQuantity<T, T>;
 
 // For instance, we could define Acceleration as
 // typedef Per<Velocity<double>, Duration<double>> Acceleration;
