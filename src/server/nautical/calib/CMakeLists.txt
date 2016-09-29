@@ -131,10 +131,3 @@ cxx_test(calib_BoatStateReconstructorTest
   gtest_main
   calib_BoatStateReconstructor
   )
-  
-add_library(calib_Reconstructor
-  Reconstructor.h
-  Reconstructor.cpp
-  )
-
-target_link_libraries(calib_Reconstructor)

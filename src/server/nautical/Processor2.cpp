@@ -17,7 +17,7 @@
 #include <server/common/logging.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/BoatState.h>
-#include <server/nautical/calib/Reconstructor.h>
+#include <server/nautical/calib/BoatStateReconstructor.h>
 #include <server/common/TimedValueCutter.h>
 #include <server/common/logging.h>
 
@@ -115,17 +115,7 @@ Array<CalibDataChunk> makeCalibChunks(
   return chunks;
 }
 
-void outputReconstructionsToFile(const std::string &filename,
-    const Array<Reconstructor::Results> &reconstructions) {
-  std::ofstream file(filename);
-  for (int i = 0; i < reconstructions.size(); i++) {
-    file << "------ Reconstruction " << i << std::endl;
-    reconstructions[i].outputSummary(&file);
-    file << std::endl;
-  }
-}
-
-Array<Reconstructor::Results> reconstructAllGroups(
+Array<ReconstructionResults> reconstructAllGroups(
     const Array<Spani> &calibGroups,
     const Array<Span<TimeStamp>> &smallSessions,
     const Array<TimedValue<GeographicPosition<double>>> &positions,
@@ -141,7 +131,7 @@ Array<Reconstructor::Results> reconstructAllGroups(
   }
 
 
-  Reconstructor::Settings recSettings;
+  /*Reconstructor::Settings recSettings;
   recSettings.windowSize = settings.calibWindowSize;
   int n = calibGroups.size();
   Array<Reconstructor::Results> results(n);
@@ -152,7 +142,8 @@ Array<Reconstructor::Results> reconstructAllGroups(
         recSettings);
   }
 
-  return results;
+  return results;*/
+  return Array<ReconstructionResults>();
 }
 
 void runDemoOnDataset(NavDataset &dataset) {
@@ -193,14 +184,12 @@ void runDemoOnDataset(NavDataset &dataset) {
         smallSessions);
   }
 
-  Array<Reconstructor::Results> reconstructions
+  auto reconstructions
     = reconstructAllGroups(calibGroups, smallSessions,
         allFilteredPositions, d, settings);
 
   if (settings.debug) {
-    outputReconstructionsToFile(
-        settings.makeLogFilename("reconstructions.txt"),
-        reconstructions);
+    // TODO
   }
 }
 
