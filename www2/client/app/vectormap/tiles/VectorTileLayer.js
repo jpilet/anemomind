@@ -39,16 +39,17 @@ function VectorTileLayer(params, renderer) {
 
   this.renderer = renderer;
 
-  this.boatIcon = new Image();
-  this.boatIcon.src = '/assets/images/boat.svg';
-  this.trueWindIcon = new Image();
-  this.trueWindIcon.src = '/assets/images/truewind.svg';
-  this.trueWindIcon.width = 14;
-  this.trueWindIcon.height = 28;
-  this.appWindIcon = new Image();
-  this.appWindIcon.src = '/assets/images/appwind.svg';
-  this.appWindIcon.width = 14;
-  this.appWindIcon.height = 28;
+  var t = this;
+  var loadIcon = function(url, name, w, h) {
+    renderer.loadImage('/assets/images/' + url, function(image) {
+      t[name] = image;
+      if (w) { image.width = w; }
+      if (h) { image.height = h; }
+    });
+  };
+  loadIcon('boat.svg', 'boatIcon');
+  loadIcon('truewind.svg', 'trueWindIcon', 14, 28);
+  loadIcon('appwind.svg', 'appWindIcon', 14, 28);
 
   this.tiles = {};
   this.numLoading = 0;
@@ -57,6 +58,7 @@ function VectorTileLayer(params, renderer) {
   this.numCachedTiles = 0;
   this.visibleCurves = {};
   this.curvesFlat = {};
+  this.maxUpLevel = this.params.maxUpLevel || 4;
 
   if (!("tileSize" in this.params)) this.params.tileSize = 256;
   if ("vectorurl" in this.params) {
@@ -158,7 +160,7 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
     return;
   }
 
-  for (var upLevel = 0; upLevel <= scale && upLevel < 4; ++upLevel) {
+  for (var upLevel = 0; upLevel <= scale && upLevel < this.maxUpLevel; ++upLevel) {
     var upTileX = tileX >> upLevel;
     var upTileY = tileY >> upLevel;
     
@@ -282,8 +284,8 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
 
   var elementsAsArray = [];
   for (var e in curveElements) {
-    if (e != "length") {
-      var element = curveElements[e];
+    var element = curveElements[e];
+    if (typeof(element) == 'object' && element.curveId) { 
       if (curveOverlap(element.curveId, curveId)) {
         elementsAsArray.push(element.points);
       }
@@ -544,10 +546,9 @@ VectorTileLayer.prototype.processQueue = function() {
       // Force the creation of a new scope to make sure
       // a new closure is created for every "query" object. 
       var f = (function(t, query) {
-        $.ajax({
-          url: query.url,
-          dataType: "json",
-          success: function(data) {
+        t.fetchTile(
+          query.url,
+          function(data) {
             t.numLoading--;
             t.numCachedTiles++;
             if (data.length > 0) {
@@ -568,19 +569,12 @@ VectorTileLayer.prototype.processQueue = function() {
               query.tile.state = "empty";
             }
           },
-          error: function() {
+          function() {
             t.numLoading--;
             query.tile.state = "failed";
             console.log('Failed to load: ' + query.url);
             t.processQueue();
-          },
-          timeout: 2000,
-          beforeSend: function(xhr) {
-            if (t.params.token) {
-              xhr.setRequestHeader('Authorization','Bearer ' + t.params.token);
-            }
-          }
-        });  
+          });  
       })(this, query);
       
     } else {
@@ -737,3 +731,20 @@ VectorTileLayer.prototype.findPointAt = function(x, y) {
   }
   return bestPoint;
 }
+
+VectorTileLayer.prototype.fetchTile = function(url, success, error) {
+  var me = this;
+  $.ajax({
+    url: url,
+    dataType: "json",
+    success: success,
+    error: error,
+    timeout: 2000,
+    beforeSend: function(xhr) {
+      if (me.params.token) {
+        xhr.setRequestHeader('Authorization','Bearer ' + me.params.token);
+      }
+    }
+  });  
+};
+
