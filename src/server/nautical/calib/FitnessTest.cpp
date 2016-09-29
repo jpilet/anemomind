@@ -284,12 +284,22 @@ TEST(FitnessTest, ResidualTest) {
         residuals)));
     EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
   }{
+    auto old = state.heading;
     state.heading.value = state.heading.value.rotate(5.0_deg);
     double residuals[1] = {0.0};
     EXPECT_TRUE(
         (LeewayFitness<double, FullSettings>::apply(state, leewayConstant,
         residuals)));
     EXPECT_LT(0.01, std::abs(residuals[0]));
+    state.heading = old;
+  }{
+    state.heel.value = 12.0_deg;
+    double residuals[1] = {0.0};
+    EXPECT_TRUE(
+        (LeewayFitness<double, FullSettings>::apply(state, leewayConstant,
+        residuals)));
+    EXPECT_LT(0.01, std::abs(residuals[0]));
+    state.heel.value = 0.0_deg;
   }
 
 
