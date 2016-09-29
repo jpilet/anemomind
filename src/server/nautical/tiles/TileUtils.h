@@ -14,7 +14,8 @@
 
 namespace sail {
 
-NavDataset filterNavs(const NavDataset& navs, const GpsFilterSettings& settings);
+NavDataset filterNavs(const NavDataset& navs,
+    const GpsFilterSettings& settings = GpsFilterSettings());
 
 Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
                              const WindOrientedGrammar& grammar,

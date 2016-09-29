@@ -7,6 +7,7 @@
 
 #include <server/nautical/calib/BoatStateReconstructor.h>
 #include <server/nautical/calib/Fitness.h>
+#include <ceres/ceres.h>
 
 namespace sail {
 
@@ -117,7 +118,18 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
   }
 
   Array<BoatState<double> > reconstruct(
-      const BoatParameters<double> &sensorParams) const;
+      const BoatParameters<double> &sensorParams) const {
+    ceres::Problem problem;
+    int n = _initialStates.size();
+
+    int regCount = n-1;
+    int dataCount = n;
+
+    for (int i = 0; i < regCount; i++) {
+
+    }
+  }
+
 #define DECLARE_VALUE_ACC(HANDLE) \
   ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
   FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
@@ -126,6 +138,8 @@ private:
   TimeStampToIndexMapper _timeMapper;
   Array<BoatState<double> > _initialStates;
 };
+
+
 
 }
 
