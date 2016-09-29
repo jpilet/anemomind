@@ -9,6 +9,7 @@
 #define SERVER_NAUTICAL_CALIB_BOATSTATERECONSTRUCTOR_H_
 
 #include <unordered_map>
+#include <map>
 #include <server/common/Span.h>
 #include <server/common/TimeStamp.h>
 #include <server/nautical/BoatState.h>
@@ -138,10 +139,10 @@ public:
       const Array<BoatState<double> > &initialStates,
       const TimeStampToIndexMapper &mapper,
       const CalibDataChunk &chunk) :
-#define INITIALIZE_VALUE_ACC(HANDLE) \
+/*#define INITIALIZE_VALUE_ACC(HANDLE) \
   HANDLE(mapper, chunk.HANDLE),
 FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
-#undef INITIALIZE_VALUE_ACC
+#undef INITIALIZE_VALUE_ACC*/
         _timeMapper(mapper),
         _initialStates(initialStates) {
     CHECK(initialStates.size() == mapper.sampleCount);
@@ -149,12 +150,12 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
 
   Array<BoatState<double> > reconstruct(
       const BoatParameters<double> &sensorParams) const {
-    ceres::Problem problem;
+    //ceres::Problem problem;
   }
-/*#define DECLARE_VALUE_ACC(HANDLE) \
+#define DECLARE_VALUE_ACC(HANDLE) \
   ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
   FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
-#undef DECLARE_VALUE_ACC*/
+#undef DECLARE_VALUE_ACC
 private:
   TimeStampToIndexMapper _timeMapper;
   Array<BoatState<double> > _initialStates;

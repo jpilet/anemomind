@@ -548,13 +548,6 @@ struct LeewayFitness {
   }
 };
 
-template <typename T>
-struct BoatParameters {
-  AnglePerVelocity<T> heelConstant;
-  LeewayConstant<T> leewayConstant;
-  SensorDistortionSet<T> sensors;
-};
-
 #define FOREACH_MEASURE_TO_CONSIDER(OP) \
   OP(AWA) \
   OP(AWS) \
