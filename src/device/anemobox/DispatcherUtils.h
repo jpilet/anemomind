@@ -214,43 +214,6 @@ class ReplayDispatcher : public Dispatcher {
 bool saveDispatcher(const std::string& filename, const Dispatcher& nav);
 
 
-// Assuming that an object of type Object has instance variables
-// named exactly, like channel handles, e.g. Object::AWA, Object::MAG_HEADING,
-// etc, then we can access those variables using this class by calling
-// ChannelFieldAccess<AWA>::get(object) which will return a pointer.
-// That is useful when writing generic code, for instance if we
-// get the handle of type DataCode as a template parameter.
-template <DataCode code>
-struct ChannelFieldAccess {};
-#define MAKE_FIELD_ACCESS(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  template <> struct ChannelFieldAccess<HANDLE> { \
-  template <typename OBJECT> \
-    static auto get(OBJECT &object) -> decltype(&(object.HANDLE)) {return &(object.HANDLE);} \
-    template <typename OBJECT> \
-    static auto get(const OBJECT &object) -> decltype(&(object.HANDLE)) {return &(object.HANDLE);} \
-  };
-FOREACH_CHANNEL(MAKE_FIELD_ACCESS)
-#undef MAKE_FIELD_ACCESS
-
-// This function is similar in spirit to visitDispatcherChannels,
-// but instead it is used to visit the instance variables of an object
-// when those variables have names that are valid handles, such as AWA.
-template <typename Target, typename Visitor>
-void visitFieldsConst(const Target &target, Visitor *v) {
-#define VISIT_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  v->template visit<HANDLE, TYPE, decltype(target.HANDLE)>(target.HANDLE);
-  FOREACH_CHANNEL(VISIT_FIELD)
-#undef VISIT_FIELD
-}
-
-template <typename Target, typename Visitor>
-void visitFieldsMutable(Target *target, Visitor *v) {
-#define VISIT_FIELD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  v->template visit<HANDLE, TYPE, decltype(target->HANDLE)>(&(target->HANDLE));
-  FOREACH_CHANNEL(VISIT_FIELD)
-#undef VISIT_FIELD
-}
-
 }  // namespace sail
 
 #endif /* DEVICE_ANEMOBOX_DISPATCHERUTILS_H_ */

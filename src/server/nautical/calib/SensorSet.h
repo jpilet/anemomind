@@ -8,10 +8,11 @@
 #ifndef SERVER_NAUTICAL_CALIB_SENSORSET_H_
 #define SERVER_NAUTICAL_CALIB_SENSORSET_H_
 
-#include <device/anemobox/Dispatcher.h>
-#include <device/anemobox/DispatcherUtils.h>
+#include <device/anemobox/Channels.h>
 #include <server/math/AxisAngle.h>
 #include <Eigen/Dense>
+#include <string>
+#include <map>
 
 namespace sail {
 

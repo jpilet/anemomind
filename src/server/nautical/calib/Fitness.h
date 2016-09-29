@@ -15,11 +15,10 @@
 #ifndef SERVER_NAUTICAL_CALIB_FITNESS_H_
 #define SERVER_NAUTICAL_CALIB_FITNESS_H_
 
-#include <device/anemobox/Dispatcher.h>
-#include <server/nautical/calib/SensorSet.h>
 #include <server/nautical/BoatState.h>
 #include <server/math/JetUtils.h>
 #include <server/common/Span.h>
+#include <server/nautical/calib/BoatParameters.h>
 
 namespace sail {
 
@@ -423,11 +422,6 @@ struct OrientFitness {
   }
 };
 
-template <typename T>
-using AnglePerVelocity = decltype(
-    std::declval<Angle<T>>()/std::declval<Velocity<T>>());
-
-
     /*PhysicalQuantity<T,
     UnitSystem::CustomAnemoUnits,
     1, -1, 1, 0>;*/
@@ -452,7 +446,7 @@ struct HeelFitness {
   }
 
   static bool apply(const ReconstructedBoatState<T, Settings> &state,
-                    const AnglePerVelocity<T> &heelPerWindSpeed,
+                    const HeelConstant<T> &heelConstant,
                     T *residuals) {
     residuals[0] = DefaultUndefinedResidual<T>::get();
     auto hnorm = state.heading.value.norm();
@@ -463,7 +457,7 @@ struct HeelFitness {
           state.boatOverGround.value,
           state.windOverGround.value);
       Velocity<T> proj = x*aw[0] + y*aw[1];
-      Angle<T> error = state.heel.value - heelPerWindSpeed*proj;
+      Angle<T> error = state.heel.value - heelConstant*proj;
       residuals[0] = sqrtHuber<T>(error/bandWidth());
     }
     return true;
@@ -495,13 +489,6 @@ struct HeelFitness {
 //
 // Also, Fig. 2 in that paper is useful.
 // This entire paper contains interesting corrections that we can use!!!
-
-
-// Proportionality constant is of this type (to cancel out the denominator
-// so that we get an angle):
-template <typename T>
-using LeewayConstant = decltype(
-    std::declval<Velocity<T>>()*std::declval<Velocity<T>>());
 
 // I am not exactly sure about the concepts here.
 // Is "leeway" angle the right word for this. It seems that
@@ -547,13 +534,6 @@ struct LeewayFitness {
     return true;
   }
 };
-
-#define FOREACH_MEASURE_TO_CONSIDER(OP) \
-  OP(AWA) \
-  OP(AWS) \
-  OP(MAG_HEADING) \
-  OP(WAT_SPEED) \
-  OP(ORIENT)
 
 } /* namespace sail */
 

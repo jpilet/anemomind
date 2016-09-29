@@ -121,7 +121,7 @@ TEST(FitnessTest, HuberTest) {
 }
 
 TEST(FitnessTest, ResidualTest) {
-  AnglePerVelocity<double> heelCoef = 2.3_deg/1.0_kn;
+  HeelConstant<double> heelCoef = 2.3_deg/1.0_kn;
 
   ReconstructedBoatState<double, FullSettings> state;
   state.boatOverGround.value = HorizontalMotion<double>{4.0_kn, 0.0_kn};

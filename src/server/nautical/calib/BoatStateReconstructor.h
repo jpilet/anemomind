@@ -14,10 +14,17 @@
 #include <server/common/TimeStamp.h>
 #include <server/nautical/BoatState.h>
 #include <server/common/TimedValue.h>
-#include <device/anemobox/Channels.h>
+#include <server/nautical/calib/BoatParameters.h>
 #include <server/common/Array.h>
 
 namespace sail {
+
+#define FOREACH_MEASURE_TO_CONSIDER(OP) \
+  OP(AWA) \
+  OP(AWS) \
+  OP(MAG_HEADING) \
+  OP(WAT_SPEED) \
+  OP(ORIENT)
 
 // A CalibDataChunk are measurements that are grouped together
 struct CalibDataChunk {
@@ -148,10 +155,10 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
     CHECK(initialStates.size() == mapper.sampleCount);
   }
 
-  Array<BoatState<double> > reconstruct(
+  /*Array<BoatState<double> > reconstruct(
       const BoatParameters<double> &sensorParams) const {
     //ceres::Problem problem;
-  }
+  }*/
 #define DECLARE_VALUE_ACC(HANDLE) \
   ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
   FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
