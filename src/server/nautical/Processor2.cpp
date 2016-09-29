@@ -98,7 +98,8 @@ void outputChunkInformation(
 /**/
 
 bool isValidChunk(const CalibDataChunk &chunk) {
-  return !chunk.timeMapper.empty();
+  return !chunk.timeMapper.empty() && !chunk.initialStates.empty() &&
+      (chunk.initialStates.size() == chunk.timeMapper.sampleCount);
 }
 
 Array<HorizontalMotion<double>> computeMotionPerPosition(
@@ -117,7 +118,13 @@ Array<HorizontalMotion<double>> computeMotionPerPosition(
 Array<BoatState<double> > makeInitialStates(
     const TimeStampToIndexMapper &mapper,
     const Array<TimedValue<GeographicPosition<double>>> &positions) {
+  int n = positions.size();
   auto motions = computeMotionPerPosition(positions);
+  Array<BoatState<double>> states(n);
+  for (int i = 0; i < n; i++) {
+    states[i] = BoatState<double>{positions[i].value, motions[i]};
+  }
+  return states;
 }
 
 Array<CalibDataChunk> makeCalibChunks(

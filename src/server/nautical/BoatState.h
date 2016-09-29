@@ -318,6 +318,12 @@ public:
         _orientation.template mapObjectValues<Function>(f));
   }
 private:
+  // If we need time to, I think it is best
+  // to put it inside a TimedValue, that is a
+  // TimedValue<BoatState<T>>. That way, it becomes
+  // natural to treat this object as a regular
+  // measurement if we need to.
+
   GeographicPosition<T> _position;
   HorizontalMotion<T> _boatOverGround;
   HorizontalMotion<T> _windOverGround;
