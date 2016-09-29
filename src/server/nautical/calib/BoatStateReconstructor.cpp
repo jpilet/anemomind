@@ -8,6 +8,7 @@
 #include <server/nautical/calib/BoatStateReconstructor.h>
 #include <server/nautical/calib/Fitness.h>
 #include <ceres/ceres.h>
+#include <random>
 
 namespace sail {
 
@@ -104,6 +105,11 @@ template ValueAccumulator<Velocity<double>> makeValueAccumulator<Velocity<double
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
+  template <typename T>
+  using State = ReconstructedBoatState<T, BoatStateSettings>;
+
+  static const int stateDim = State<double>::valueDimension;
+
   BoatStateReconstructor(
       const Array<BoatState<double> > &initialStates,
       const TimeStampToIndexMapper &mapper,
@@ -119,15 +125,39 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
 
   Array<BoatState<double> > reconstruct(
       const BoatParameters<double> &sensorParams) const {
-    ceres::Problem problem;
     int n = _initialStates.size();
+    ceres::Problem problem;
+
+    Array<double> reconstructedStates(
+        n*stateDim);
+    std::default_random_engine rng;
+    std::uniform_real_distribution<double> hdgDistrib(0.0, 2.0*M_PI);
+    for (int i = 0; i < n; i++) {
+      State<double> state;
+      state.heading.value = HorizontalMotion<double>::polar(
+          0.0001_mps, hdgDistrib(rng)*1.0_rad);
+
+      double *p = reconstructedStates.blockPtr(
+          i, stateDim);
+      problem.AddParameterBlock(p, stateDim);
+
+      state.write(&p);
+    }
+
+    Array<double> reconstructedParameters(sensorParams.paramCount());
+    sensorParams.writeTo(reconstructedParameters.ptr());
+    problem.AddParameterBlock(
+        reconstructedParameters.ptr(),
+        sensorParams.paramCount());
 
     int regCount = n-1;
     int dataCount = n;
 
-    for (int i = 0; i < regCount; i++) {
 
-    }
+    /// TODO!!!
+
+
+    return Array<BoatState<double>>();
   }
 
 #define DECLARE_VALUE_ACC(HANDLE) \
