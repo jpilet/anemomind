@@ -12,6 +12,7 @@
 #include <server/common/Span.h>
 #include <server/nautical/segment/SessionCut.h>
 #include <device/anemobox/Dispatcher.h>
+#include <server/common/HtmlLog.h>
 
 namespace sail {
 
@@ -59,10 +60,9 @@ Array<Span<TimeStamp> > segmentSubSessions(
 Array<TimedValue<GeographicPosition<double> > >
   filterAllGpsData(const NavDataset &ds, const Settings &settings);
 
-
-void outputTimeSpansToFile(
-    const std::string &filename,
-    const Array<Span<TimeStamp> > &timeSpans);
+void outputTimeSpans(
+    const Array<Span<TimeStamp> > &timeSpans,
+    HtmlNode::Ptr dst);
 
 void outputGroupsToFile(
       const std::string &filename,
@@ -77,7 +77,9 @@ Array<Spani> computeCalibrationGroups(
     Array<Span<TimeStamp> > timeSpans,
     Duration<double> minCalibDur);
 
-void runDemoOnDataset(NavDataset &dataset);
+void runDemoOnDataset(
+    NavDataset &dataset,
+    HtmlNode::Ptr logNode);
 
 }
 }

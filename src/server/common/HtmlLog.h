@@ -58,6 +58,10 @@ public:
         const std::vector<std::pair<std::string, AttribValue> > &attribs
            = std::vector<std::pair<std::string, AttribValue> >());
 
+  static HtmlNode::Ptr initializePage(
+      HtmlNode::Ptr emptyPage,
+      const std::string &title);
+
   std::ostream &stream() override {return _stream;}
 
   HtmlNode::Ptr makeNewRoot() override {return _parent->makeNewRoot();}

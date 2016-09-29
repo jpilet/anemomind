@@ -44,7 +44,26 @@ AttribValue::AttribValue(int v) {
 
 HtmlNode::Ptr HtmlTag::make(HtmlNode::Ptr parent, const std::string &tagName,
       const std::vector<std::pair<std::string, AttribValue> > &attribs) {
+  if (!bool(parent)) {
+    return HtmlNode::Ptr();
+  }
   return HtmlNode::Ptr(new HtmlTag(parent, tagName, attribs));
+}
+
+HtmlNode::Ptr HtmlTag::initializePage(
+    HtmlNode::Ptr emptyPage,
+    const std::string &titleStr) {
+  {
+    auto head = HtmlTag::make(emptyPage, "head");
+    {
+      auto title = HtmlTag::make(head, "title");
+      title->stream() << titleStr;
+    }{
+      auto style = HtmlTag::make(head, "style");
+      style->stream() << "td, th {border: 1px solid black;}";
+    }
+  }
+  return HtmlTag::make(emptyPage, "body");
 }
 
 HtmlTag::HtmlTag(HtmlNode::Ptr parent, const std::string &tagName,

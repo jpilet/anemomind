@@ -172,10 +172,10 @@ Array<ReconstructionResults> reconstructAllGroups(
   Array<CalibDataChunk> chunks
     = makeCalibChunks(smallSessions, d, positions);
 
-  if (settings.debug) {
+  /*if (settings.debug) {
     outputChunkInformation(settings.makeLogFilename("calibchunks.txt"),
         smallSessions, chunks);
-  }
+  }*/
 
 
   /*Reconstructor::Settings recSettings;
@@ -193,7 +193,12 @@ Array<ReconstructionResults> reconstructAllGroups(
   return Array<ReconstructionResults>();
 }
 
-void runDemoOnDataset(NavDataset &dataset) {
+void runDemoOnDataset(
+    NavDataset &dataset,
+    HtmlNode::Ptr dstLogNode) {
+  auto logBody = HtmlTag::initializePage(
+      dstLogNode, "V2 Reconstruction results");
+
   dataset.mergeAll();
 
   auto d = dataset.dispatcher().get();
@@ -213,10 +218,12 @@ void runDemoOnDataset(NavDataset &dataset) {
   auto smallSessions = Processor2::segmentSubSessions(
       filteredTimeStamps, settings.subSessionCut);
 
-  if (settings.debug) {
-    Processor2::outputTimeSpansToFile(
-        settings.makeLogFilename("small_sessions.txt"),
-        smallSessions);
+  if (logBody) {
+    {
+      auto h = HtmlTag::make(logBody, "h2");
+      h->stream() << "Small sessions";
+    }
+    outputTimeSpans(smallSessions, logBody);
   }
 
   // In order to perform calibration, we need to make sure that there is
@@ -232,7 +239,8 @@ void runDemoOnDataset(NavDataset &dataset) {
   }
 
   auto reconstructions
-    = reconstructAllGroups(calibGroups, smallSessions,
+    = reconstructAllGroups(
+        calibGroups, smallSessions,
         allFilteredPositions, d, settings);
 
   if (settings.debug) {
@@ -334,9 +342,7 @@ Array<TimedValue<GeographicPosition<double> > >
       timeStamps, settings.mainSessionCut);
 
   if (settings.debug) {
-    outputTimeSpansToFile(
-        settings.makeLogFilename("presegmented_for_gps_filter.txt"),
-        timeSpans);
+    //timeSpans, "presegmented for gps filter);
   }
 
   GpsFilterSettings gpsSettings;
@@ -355,15 +361,30 @@ Array<TimedValue<GeographicPosition<double> > >
 }
 
 
-void outputTimeSpansToFile(
-    const std::string &filename,
-    const Array<Span<TimeStamp> > &timeSpans) {
-  std::ofstream file(filename);
-  for (int i = 0; i < timeSpans.size(); i++) {
-    auto s = timeSpans[i];
-    file << "Span " << i+1 << " of "
-        << timeSpans.size() << ": " << s.minv()
-        << " to " << s.maxv() << std::endl;
+void outputTimeSpans(
+    const Array<Span<TimeStamp> > &timeSpans,
+    HtmlNode::Ptr dst) {
+  auto table = HtmlTag::make(dst, "table");
+  {
+    auto th = HtmlTag::make(table, "tr");
+    {
+      auto from = HtmlTag::make(th, "th");
+      from->stream() << "From time";
+    }{
+      auto to = HtmlTag::make(th, "th");
+      to->stream() << "To time";
+    }
+  }{
+    for (auto span: timeSpans) {
+      auto tr = HtmlTag::make(table, "tr");
+      {
+        auto td = HtmlTag::make(tr, "td");
+        td->stream() << span.minv().toString();
+      }{
+        auto td = HtmlTag::make(tr, "td");
+        td->stream() << span.maxv().toString();
+      }
+    }
   }
 }
 

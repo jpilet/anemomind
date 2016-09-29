@@ -124,6 +124,7 @@ add_library(calib_BoatStateReconstructor
 target_link_libraries(calib_BoatStateReconstructor
   common_TimeStamp
   common_Span
+  common_HtmlLog
   )
 
 cxx_test(calib_BoatStateReconstructorTest
