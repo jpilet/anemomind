@@ -8,6 +8,15 @@ cxx_test(anemobox_ValueDispatcherTest ValueDispatcherTest.cpp
          gmock
          gtest_main)
 
+add_library(anemobox_Channels
+            Channels.h
+            Channels.cpp
+           )
+
+target_link_libraries(anemobox_Channels
+                      common_TimeStamp
+                     )
+
 add_library(anemobox_Dispatcher
             Dispatcher.h
             Dispatcher.cpp
@@ -16,8 +25,9 @@ add_library(anemobox_Dispatcher
             )
 target_link_libraries(anemobox_Dispatcher
                       common_string
-                      common_TimeStamp
+                      anemobox_Channels
                      )
+
 cxx_test(anemobox_DispatcherTest DispatcherTest.cpp
          anemobox_Dispatcher
          gtest_main

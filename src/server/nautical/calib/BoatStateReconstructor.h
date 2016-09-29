@@ -13,6 +13,8 @@
 #include <server/common/TimeStamp.h>
 #include <server/nautical/BoatState.h>
 #include <server/common/TimedValue.h>
+#include <device/anemobox/Channels.h>
+#include <server/common/Array.h>
 
 namespace sail {
 
