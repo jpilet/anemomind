@@ -90,6 +90,51 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
   return result.arr();
 }
 
+class BulkInserter {
+ public:
+  BulkInserter(const TileGeneratorParameters& params, DBClientConnection* db)
+    : _params(params), _db(db), _success(true) { }
+
+  ~BulkInserter() { finish(); }
+
+  bool insert(const BSONObj& obj) {
+    if (!_params.fullClean) {
+      safeMongoOps("cleaning old tiles",
+          _db, [=](DBClientConnection *db) {
+        db->remove(_params.tileTable(),
+                   MONGO_QUERY("key" << obj["key"]
+                         << "boat" << obj["boat"]
+                         << "startTime" << GTE << obj["startTime"]
+                         << "endTime" << LTE << obj["endTime"]));
+      });
+    }
+    _toInsert.push_back(obj);
+    if (_toInsert.size() > 1000) {
+      return finish();
+    }
+    return _success;
+  }
+
+  bool finish() {
+    if (_toInsert.size() == 0) {
+      return _success;
+    }
+    bool r = safeMongoOps("inserting tiles in mongoDB",
+        _db, [=](DBClientConnection *db) {
+      db->insert(_params.tileTable(), _toInsert);
+    });
+    _toInsert.clear();
+    _success = _success && r;
+    return _success;
+  }
+
+ private:
+  TileGeneratorParameters _params;
+  DBClientConnection* _db;
+  std::vector<BSONObj> _toInsert;
+  bool _success;
+};
+
 bool insertOrUpdateTile(const BSONObj& obj,
     const TileGeneratorParameters& params,
                         DBClientConnection* db) {
@@ -348,6 +393,8 @@ bool generateAndUploadTiles(std::string boatId,
                MONGO_QUERY("boat" << OID(boatId)));
   }
 
+  BulkInserter inserter(params, db);
+
   for (const NavDataset& curve : allNavs) {
     Array<Nav> navs = makeArray(curve);
 
@@ -366,7 +413,7 @@ bool generateAndUploadTiles(std::string boatId,
 
       BSONObj tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
 
-      if (!insertOrUpdateTile(tile, params, db)) {
+      if (!inserter.insert(tile)) {
         // There is no point to continue if we can't write to the DB.
         return false;
       }
@@ -376,7 +423,8 @@ bool generateAndUploadTiles(std::string boatId,
       return false;
     }
   }
-  return true;
+
+  return inserter.finish();
 }
 
 }  // namespace sail
