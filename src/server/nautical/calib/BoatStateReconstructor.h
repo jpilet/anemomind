@@ -82,8 +82,14 @@ struct ReconstructionResults {
   Array<Array<BoatState<double>>> boatStates;
 };
 
+class ChannelRef {
+  DataCode code;
+  std::string sourceName;
+};
+
 struct ReconstructionSettings {
   double regWeight = 1.0;
+  Duration<double> windowSize = Duration<double>::minutes(1.0);
 };
 
 ReconstructionResults resconstruct(

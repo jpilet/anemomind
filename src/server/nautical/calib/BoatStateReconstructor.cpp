@@ -243,6 +243,10 @@ private:
 
 template <typename Settings>
 struct DataCost {
+  BoatStateReconstructor<Settings> *rec;
+
+  DataCost(BoatStateReconstructor<Settings> *p) :
+    rec(p) {}
 
   template <typename T>
   bool operator()(T const* const* parameters,
@@ -256,6 +260,45 @@ struct DataCost {
     return true;
   }
 };
+
+namespace {
+
+  template <FunctionCode fcode, DataCode code>
+  void initializeFields(const CalibDataChunk &src,
+      SensorFunctionSet<fcode, double> *dst) {
+    typedef typename
+        SensorFunctionType<fcode, double, code>::type FType;
+    const auto &srcMap =
+        *ChannelFieldAccess<code>::template get<CalibDataChunk>(src);
+    auto &dstMap =
+        *ChannelFieldAccess<code>
+          ::template get<SensorFunctionSet<fcode, double> >(*dst);
+    for (const auto &kv: srcMap) {
+      dstMap[kv.first] = FType();
+    }
+  }
+
+  template <FunctionCode code>
+  void initializeSensorSetFromChunk(
+      const CalibDataChunk &chunk,
+      SensorFunctionSet<code, double> *dst) {
+    initializeFields<code, AWA>(chunk, dst);
+    initializeFields<code, AWS>(chunk, dst);
+    initializeFields<code, MAG_HEADING>(chunk, dst);
+    initializeFields<code, WAT_SPEED>(chunk, dst);
+  }
+
+  template <FunctionCode code>
+  SensorFunctionSet<code, double> initializeSensorSet(
+      const Array<CalibDataChunk> &chunks) {
+    SensorFunctionSet<code, double> dst;
+    for (auto chunk: chunks) {
+      initializeSensorSetFromChunk<code>(chunk, &dst);
+    }
+    return dst;
+  }
+
+}
 
 ReconstructionResults resconstruct(
     const Array<CalibDataChunk> &chunks,

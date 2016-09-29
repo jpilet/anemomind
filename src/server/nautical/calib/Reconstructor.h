@@ -21,13 +21,10 @@ namespace sail {
 namespace Reconstructor {
 
 struct Settings {
-  Duration<double> windowSize = Duration<double>::minutes(1.0);
+
 };
 
-class ChannelRef {
-  DataCode code;
-  std::string sourceName;
-};
+
 
 struct Results {
   SensorNoiseSet<double> sensorNoise;
