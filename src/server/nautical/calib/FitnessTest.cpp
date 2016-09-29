@@ -63,6 +63,8 @@ struct TestSettings5 {
   static const bool withPitch = true;
 };
 
+
+
 static_assert(
     ReconstructedBoatState<double, TestSettings5>::dynamicValueDimension ==
         2 + 2 + 2 + 2 + 1 + 1, "Failed");

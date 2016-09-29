@@ -536,7 +536,7 @@ struct LeewayFitness {
   }
 };
 
-template <typename T, typename nonsense = void>
+template <typename T, typename nonsense = bool>
 struct AreFitnessSettings {
   static const bool value = false;
 };
@@ -549,6 +549,8 @@ struct AreFitnessSettings<T, decltype(T::withBoatOverGround ||
   T::withIMU)> {
   static const bool value = true;
 };
+
+static_assert(AreFitnessSettings<FullSettings>::value, "Bad");
 
 } /* namespace sail */
 
