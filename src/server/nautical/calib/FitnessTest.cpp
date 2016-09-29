@@ -80,13 +80,13 @@ TEST(FitnessTest, ReconstructedBoatStateTest) {
 
     State state;
     const double *src = values;
-    state.read(&src);
-    EXPECT_EQ(values + n, src);
+    state.readFrom(src);
+    EXPECT_EQ(values, src);
 
     double values2[n];
     double *dst = values2;
-    state.write(&dst);
-    EXPECT_EQ(values2 + n, dst);
+    state.writeTo(dst);
+    EXPECT_EQ(values2, dst);
 
     for (int i = 0; i < n; i++) {
       EXPECT_NEAR(values[i], values2[i], 1.0e-6);

@@ -244,22 +244,22 @@ struct ReconstructedBoatState {
         + Heading::valueDimension + Heel::valueDimension
         + Pitch::valueDimension;
 
-  void read(const T **src) {
-    boatOverGround.read(src);
-    windOverGround.read(src);
-    currentOverGround.read(src);
-    heading.read(src);
-    heel.read(src);
-    pitch.read(src);
+  void readFrom(const T *src) {
+    boatOverGround.read(&src);
+    windOverGround.read(&src);
+    currentOverGround.read(&src);
+    heading.read(&src);
+    heel.read(&src);
+    pitch.read(&src);
   }
 
-  void write(T **dst) const {
-    boatOverGround.write(dst);
-    windOverGround.write(dst);
-    currentOverGround.write(dst);
-    heading.write(dst);
-    heel.write(dst);
-    pitch.write(dst);
+  void writeTo(T *dst) const {
+    boatOverGround.write(&dst);
+    windOverGround.write(&dst);
+    currentOverGround.write(&dst);
+    heading.write(&dst);
+    heel.write(&dst);
+    pitch.write(&dst);
   }
 
   // Suppose we have previously already reconstructed some of the state,
