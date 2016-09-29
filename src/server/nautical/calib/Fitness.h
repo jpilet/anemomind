@@ -448,7 +448,8 @@ struct HeelFitness {
   static const int outputCount = 1;
 
   static Angle<T> bandWidth() {
-    return BandWidthForType<T, Angle<double>>::get();
+    return MakeConstant<T>::apply(4.0)
+        *BandWidthForType<T, Angle<double>>::get();
   }
 
   static bool apply(const ReconstructedBoatState<T, Settings> &state,
@@ -471,19 +472,87 @@ struct HeelFitness {
 };
 
 // Not related to any particular sensor
-// TODO: If we don't attempt to model drift, the heading of
-// the boat should coinside with the angle of the vector
+// TODO: If we don't attempt to model leeway, the heading of
+// the boat should coincide with the angle of the vector
 // of the boatOverWater (which is a maxLeewayAngle of 0)
+//
+// If we have heel angle estimated, let's use the simple expression
+// under section "Leeway Algorithm":
+//
+//  lambda: Leeway angle
+//  k: Overall proportionality constant
+//  phi: Heel angle
+//  v_s: Boat speed (over water, I assume)
+//
+//  Then we predict Leeway angle as
+//
+//  lambda = k*phi/(v_s^2)
+//
+//  Here is the paper:
+//     Yacht Performance Analysis with Computers
+//     David R. Pedrick, Pedrick Yacht Designs, Newport, Rl. RichardS. McCurdy, Consultant, Darien, CT.
+//
+//     FOUND HERE: http://www.sname.org/HigherLogic/System/DownloadDocumentFile.ashx?DocumentFileKey=5d932796-f926-4262-88f4-aaca17789bb0
+//
+// Also, Fig. 2 in that paper is useful.
+
+
+// Proportionality constant is of this type (to cancel out the denominator
+// so that we get an angle):
+template <typename T>
+using LeewayConstant = decltype(
+    std::declval<Velocity<T>>()*std::declval<Velocity<T>>());
+
+// I am not exactly sure about the concepts here.
+// Is "leeway" angle the right word for this. It seems that
+// if an object drifs sligtly downwind, then the leeway angle would
+// be positive according to this Wikipedia page:
+// https://en.wikipedia.org/wiki/Leeway
+// But for our treatment, it is more convenient to treat it just as
+// the difference between the heading and the boat course over water.
 template <typename T, typename Settings>
-struct DriftFitness {
+struct LeewayFitness {
   static const int outputCount = 1;
 
   static bool apply(const ReconstructedBoatState<T, Settings> &state,
-      const Angle<T> &maxLeewayAngle,
+      const LeewayConstant<T> k,
       T *residuals) {
-    assert(false); // TODO!!!
+
+    residuals[0] = DefaultUndefinedResidual<T>::get();
+    auto heading0 = state.heading.value.optionalAngle();
+    if (heading0.defined()) {
+      auto heading = heading0.get();
+      auto bow = HorizontalMotion<T>(state.boatOverGround.value
+          - state.currentOverGround.value);
+
+      // We should compute the actual leeway angle and compare it
+      // against the predicted leeway angle. The leeway angle is undefined,
+      // I suppose, if the boat doesn't move across water. I think we
+      // should somehow make a comparison which is scaled by
+      // the boat velocity.
+
+      Velocity<T> vs = bow.norm();
+      if (Velocity<T>::knots(MakeConstant<T>::apply(0.0)) < vs) {
+        Angle<T> predictedLeeway = k*state.heel.value/(vs*vs);
+
+        Angle<T> trueLeeway = heading - bow.angle();
+
+        Angle<T> angleError = (trueLeeway - predictedLeeway)
+            .normalizedAt0();
+        Velocity<T> velocityError = angleError.radians()*vs;
+        residuals[0] = sqrtHuber<T>(
+            velocityError/BandWidthForType<T, Velocity<T>>::get());
+      }
+    }
     return true;
   }
+};
+
+template <typename T>
+struct BoatModel {
+  AnglePerVelocity<T> heelConstant;
+  LeewayConstant<T> leewayConstant;
+  SensorDistortionSet<T> sensors;
 };
 
 #define FOREACH_MEASURE_TO_CONSIDER(OP) \

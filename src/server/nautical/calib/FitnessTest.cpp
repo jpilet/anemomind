@@ -267,14 +267,30 @@ TEST(FitnessTest, ResidualTest) {
         state, heelCoef, residuals)));
     EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
   }{
-    state.heel.value += BandWidthForType<double, Angle<double>>::get();
+    state.heel.value += HeelFitness<double, FullSettings>::bandWidth();
     double residuals[1] = {10.0};
     EXPECT_TRUE((HeelFitness<double, FullSettings>::apply(
         state, heelCoef, residuals)));
     EXPECT_NEAR(std::abs(residuals[0]), 1.0, 1.0e-6);
   }
 
-  // Drift tests
+  // Leeway angle tests
+  LeewayConstant<double> leewayConstant = 1.0_kn*1.0_kn;
+  {
+    double residuals[1] = {10.0};
+    state.heel.value = Angle<double>::degrees(0.0);
+    EXPECT_TRUE(
+        (LeewayFitness<double, FullSettings>::apply(state, leewayConstant,
+        residuals)));
+    EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
+  }{
+    state.heading.value = state.heading.value.rotate(5.0_deg);
+    double residuals[1] = {0.0};
+    EXPECT_TRUE(
+        (LeewayFitness<double, FullSettings>::apply(state, leewayConstant,
+        residuals)));
+    EXPECT_LT(0.01, std::abs(residuals[0]));
+  }
 
 
 }
