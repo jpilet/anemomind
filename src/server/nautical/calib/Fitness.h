@@ -20,7 +20,6 @@
 #include <server/nautical/BoatState.h>
 #include <server/math/JetUtils.h>
 #include <server/common/Span.h>
-#include <server/math/BandedLevMar.h>
 
 namespace sail {
 
@@ -495,6 +494,7 @@ struct HeelFitness {
 //     FOUND HERE: http://www.sname.org/HigherLogic/System/DownloadDocumentFile.ashx?DocumentFileKey=5d932796-f926-4262-88f4-aaca17789bb0
 //
 // Also, Fig. 2 in that paper is useful.
+// This entire paper contains interesting corrections that we can use!!!
 
 
 // Proportionality constant is of this type (to cancel out the denominator
@@ -549,7 +549,7 @@ struct LeewayFitness {
 };
 
 template <typename T>
-struct BoatModel {
+struct BoatParameters {
   AnglePerVelocity<T> heelConstant;
   LeewayConstant<T> leewayConstant;
   SensorDistortionSet<T> sensors;

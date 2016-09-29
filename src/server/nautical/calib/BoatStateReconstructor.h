@@ -8,9 +8,11 @@
 #ifndef SERVER_NAUTICAL_CALIB_BOATSTATERECONSTRUCTOR_H_
 #define SERVER_NAUTICAL_CALIB_BOATSTATERECONSTRUCTOR_H_
 
-#include <server/nautical/calib/Fitness.h>
-#include <server/math/BandedLevMar.h>
 #include <unordered_map>
+#include <server/common/Span.h>
+#include <server/common/TimeStamp.h>
+#include <server/nautical/BoatState.h>
+#include <server/common/TimedValue.h>
 
 namespace sail {
 
@@ -140,52 +142,21 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
 #undef INITIALIZE_VALUE_ACC
         _timeMapper(mapper),
         _initialStates(initialStates) {
-    _dataCount = countDataTerms();
     CHECK(initialStates.size() == mapper.sampleCount);
   }
 
-  template <typename T>
-  Array<BoatState<T> > reconstruct(
-      const SensorDistortionSet<T> &sensorParams) const {
-    using namespace BandedLevMar;
-    int regCount = _timeMapper.sampleCount - 1;
-    Problem<T> problem(_dataCount + regCount);
-
-    assert(false); // TODO
+  Array<BoatState<double> > reconstruct(
+      const BoatParameters<double> &sensorParams) const {
+    ceres::Problem problem;
   }
-#define DECLARE_VALUE_ACC(HANDLE) \
+/*#define DECLARE_VALUE_ACC(HANDLE) \
   ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
   FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
-#undef DECLARE_VALUE_ACC
+#undef DECLARE_VALUE_ACC*/
 private:
-  int _dataCount;
   TimeStampToIndexMapper _timeMapper;
   Array<BoatState<double> > _initialStates;
-
-  bool hasDataForIndex(int i) const {
-//#define HAS_DATA(HANDLE) \
-//  if (HANDLE.values.count())
-    return false;
-  }
-
-  int countDataTerms() {
-    int counter = 0;
-    for (int i = 0; i < _timeMapper.sampleCount; i++) {
-      if (hasDataForIndex(i)) {
-        counter++;
-      }
-    }
-    return counter;
-  }
-
 };
-
-template <typename T>
-struct ReconstructionDataFit : public
-  BandedLevMar::CostFunctionBase<T> {
-
-};
-
 
 }
 
