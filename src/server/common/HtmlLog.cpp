@@ -69,8 +69,23 @@ HtmlNode::Ptr HtmlTag::initializePage(
 void HtmlTag::tagWithData(HtmlNode::Ptr parent,
       const std::string &tagName,
       const std::string &data) {
-  auto dst = make(parent, tagName);
-  dst->stream() << data;
+  if (parent) {
+    auto dst = make(parent, tagName);
+    dst->stream() << data;
+  }
+}
+
+HtmlNode::Ptr HtmlTag::linkToSubPage(
+    HtmlNode::Ptr parent,
+    const std::string &linkText) {
+  if (parent) {
+    auto subPage = parent->makeNewRoot();
+    auto link = HtmlTag::make(parent, "a",
+        {{"href", subPage->localAddress()}});
+    link->stream() << linkText;
+    return subPage;
+  }
+  return HtmlNode::Ptr();
 }
 
 HtmlTag::HtmlTag(HtmlNode::Ptr parent, const std::string &tagName,

@@ -127,18 +127,39 @@ Array<BoatState<double> > makeInitialStates(
   return states;
 }
 
+void outputChunkSummary(
+    const Array<CalibDataChunk> &chunks,
+    HtmlNode::Ptr log0) {
+  auto table = HtmlTag::make(log0, "table");
+  {
+    auto tr = HtmlTag::make(table, "tr");
+    HtmlTag::tagWithData(tr, "th", "Index");
+    HtmlTag::tagWithData(tr, "th", "Sample count");
+  }
+  for (int i = 0; i < chunks.size(); i++) {
+    auto tr = HtmlTag::make(table, "tr");
+    HtmlTag::tagWithData(tr, "td", stringFormat("%d", i));
+    HtmlTag::tagWithData(tr, "td",
+        stringFormat("%d", chunks[i].timeMapper.sampleCount));
+  }
+}
+
 Array<CalibDataChunk> makeCalibChunks(
     const Array<Span<TimeStamp>> &timeSpans,
     const Dispatcher *d,
     const Array<TimedValue<
-      GeographicPosition<double>>> &filteredPositions) {
+      GeographicPosition<double>>> &filteredPositions,
+      HtmlTag::Ptr log) {
 
   auto cutGpsPositions = cutTimedValues(
       filteredPositions.begin(),
       filteredPositions.end(),
       timeSpans);
 
+
   int n = timeSpans.size();
+  HtmlTag::tagWithData(log, "p",
+      stringFormat("Number of time spans: %d", n));
   Array<CalibDataChunk> chunks(n);
   {
     CutVisitor v(&chunks, timeSpans);
@@ -154,12 +175,20 @@ Array<CalibDataChunk> makeCalibChunks(
             stateCount);
         chunks[i].initialStates = makeInitialStates(mapper, pos);
         chunks[i].timeMapper = mapper;
+        CHECK(chunks[i].initialStates.size()
+            == chunks[i].timeMapper.sampleCount);
+      } else {
+        HtmlTag::tagWithData(log, "p",
+            stringFormat(
+                "Potential problem: Too few states %d for chunk %d",
+                stateCount, i));
       }
-
     }
   }
-
-  return filter(chunks, &isValidChunk);
+  if (log) {
+    outputChunkSummary(chunks, log);
+  }
+  return chunks;
 }
 
 Array<ReconstructionResults> reconstructAllGroups(
@@ -167,29 +196,33 @@ Array<ReconstructionResults> reconstructAllGroups(
     const Array<Span<TimeStamp>> &smallSessions,
     const Array<TimedValue<GeographicPosition<double>>> &positions,
     const Dispatcher *d,
-    const Settings &settings) {
+    const Settings &settings,
+    HtmlNode::Ptr log) {
+  HtmlTag::tagWithData(log, "h2", "Reconstruction of all groups");
 
   Array<CalibDataChunk> chunks
-    = makeCalibChunks(smallSessions, d, positions);
+    = makeCalibChunks(smallSessions, d, positions, log);
 
-  /*if (settings.debug) {
-    outputChunkInformation(settings.makeLogFilename("calibchunks.txt"),
-        smallSessions, chunks);
-  }*/
+  assert(chunks.size() == smallSessions.size());
 
-
-  /*Reconstructor::Settings recSettings;
-  recSettings.windowSize = settings.calibWindowSize;
+  HtmlTag::tagWithData(log, "h3", "Reconstruction per group");
+  ReconstructionSettings recSettings;
   int n = calibGroups.size();
-  Array<Reconstructor::Results> results(n);
+  auto ol = HtmlTag::make(log, "ol");
+  Array<ReconstructionResults> results(n);
   for (int i = 0; i < n; i++) {
     auto group = calibGroups[i];
-    results[i] = Reconstructor::reconstruct(
-        chunks.slice(group.minv(), group.maxv()),
-        recSettings);
+    auto title = stringFormat("Reconstruction for group %d of %d",
+                i+1, calibGroups.size());
+
+    auto li = HtmlTag::make(ol, "li");
+    auto subLog = HtmlTag::linkToSubPage(li, title);
+    if (subLog) {
+      subLog->stream() << "Some data goes here!!!";
+    }
   }
 
-  return results;*/
+  return results;
   return Array<ReconstructionResults>();
 }
 
@@ -239,7 +272,8 @@ void runDemoOnDataset(
   auto reconstructions
     = reconstructAllGroups(
         calibGroups, smallSessions,
-        allFilteredPositions, d, settings);
+        allFilteredPositions, d, settings,
+        logBody);
 
   if (settings.debug) {
     // TODO
@@ -364,13 +398,16 @@ void outputTimeSpans(
     HtmlNode::Ptr dst) {
   auto table = HtmlTag::make(dst, "table");
   {
-    auto th = HtmlTag::make(table, "tr");
+    auto tr = HtmlTag::make(table, "tr");
     {
-      auto from = HtmlTag::make(th, "th");
+      auto from = HtmlTag::make(tr, "th");
       from->stream() << "From time";
     }{
-      auto to = HtmlTag::make(th, "th");
+      auto to = HtmlTag::make(tr, "th");
       to->stream() << "To time";
+    }{
+      auto dur = HtmlTag::make(tr, "th");
+      dur->stream() << "Duration";
     }
   }{
     for (auto span: timeSpans) {
@@ -381,6 +418,10 @@ void outputTimeSpans(
       }{
         auto td = HtmlTag::make(tr, "td");
         td->stream() << span.maxv().toString();
+      }{
+        auto td = HtmlTag::make(tr, "td");
+        auto dur = span.maxv() - span.minv();
+        td->stream() << dur.str();
       }
     }
   }

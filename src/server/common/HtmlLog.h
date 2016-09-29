@@ -66,10 +66,16 @@ public:
       const std::string &tagName,
       const std::string &data);
 
+  static HtmlNode::Ptr linkToSubPage(
+      HtmlNode::Ptr parent,
+      const std::string &linkText);
+
+
   std::ostream &stream() override {return _stream;}
 
   HtmlNode::Ptr makeNewRoot() override {return _parent->makeNewRoot();}
   std::string localAddress() const override {return _parent->localAddress();}
+
 
   virtual ~HtmlTag();
 private:
