@@ -95,10 +95,17 @@ TEST(GpsUtilsTest, MotionTest) {
   auto A3 = ref.unmap(A2);
   auto B3 = ref.unmap(B2);
 
-  auto motion = GpsUtils::computeHorizontalMotion(
+  auto m0 = GpsUtils::computeHorizontalMotion(
       TimedValue<GeographicPosition<double>>{At, A3},
       TimedValue<GeographicPosition<double>>{Bt, B3});
+  auto m1 = GpsUtils::computeHorizontalMotion(
+      TimedValue<GeographicPosition<double>>{Bt, B3},
+      TimedValue<GeographicPosition<double>>{At, A3});
 
-  EXPECT_NEAR(motion[0].knots(), expectedMotion[0].knots(), 1.0e-5);
-  EXPECT_NEAR(motion[1].knots(), expectedMotion[1].knots(), 1.0e-5);
+  HorizontalMotion<double> motions[2] = {m0, m1};
+  for (int i = 0; i < 2; i++) {
+    auto motion = motions[i];
+    EXPECT_NEAR(motion[0].knots(), expectedMotion[0].knots(), 1.0e-5);
+    EXPECT_NEAR(motion[1].knots(), expectedMotion[1].knots(), 1.0e-5);
+  }
 }
