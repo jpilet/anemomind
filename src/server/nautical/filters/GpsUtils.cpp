@@ -20,6 +20,20 @@ namespace {
   auto pairThreshold = Duration<double>::seconds(12.0);
 }
 
+HorizontalMotion<double> computeHorizontalMotion(
+    Duration<double> dur,
+    const GeographicPosition<double> &from,
+    const GeographicPosition<double> &to) {
+  GeographicReference geoRef(from);
+  auto from2 = geoRef.map(from);
+  auto to2 = geoRef.map(to);
+  auto dif = to2 - from2;
+  return HorizontalMotion<double>{
+    dif[0]/dur,
+    dif[1]/dur
+  };
+}
+
 Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(const NavDataset &ds) {
   auto angle = ds.samples<GPS_BEARING>();
   auto speed = ds.samples<GPS_SPEED>();

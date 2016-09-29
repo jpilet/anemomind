@@ -509,7 +509,8 @@ struct LeewayFitness {
     auto heading0 = state.heading.value.optionalAngle();
     if (heading0.defined()) {
       auto heading = heading0.get();
-      auto bow = HorizontalMotion<T>(state.boatOverGround.value
+      auto bow = HorizontalMotion<T>(
+          state.boatOverGround.value
           - state.currentOverGround.value);
 
       // We should compute the actual leeway angle and compare it
