@@ -64,8 +64,6 @@ std::string getSpanString(const Array<TimedValue<T>> &data) {
 
 std::ostream &operator<<(std::ostream &stream,
     const CalibDataChunk &chunk) {
-  stream << "Filtered GPS positions: "
-      << getSpanString(chunk.filteredPositions) << std::endl;
 #define DISP_CHANNELS(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   stream << SHORTNAME << ":\n"; for (auto kv: chunk.HANDLE) { \
     stream << "  " << kv.first << ": " << getSpanString(kv.second);\
@@ -94,22 +92,18 @@ void outputChunkInformation(
   }
 }
 
+//const Array<TimedValue<GeographicPosition<double>>> &filteredPositions,
+/*auto cutGpsPositions = cutTimedValues(
+    filteredPositions.begin(),
+    filteredPositions.end(),
+    timeSpans);*/
+
 Array<CalibDataChunk> makeCalibChunks(
     const Array<Span<TimeStamp>> &timeSpans,
-    const Array<TimedValue<GeographicPosition<double>>> &filteredPositions,
     const Dispatcher *d) {
-
-  auto cutGpsPositions = cutTimedValues(
-      filteredPositions.begin(),
-      filteredPositions.end(),
-      timeSpans);
 
   int n = timeSpans.size();
   Array<CalibDataChunk> chunks(n);
-  for (int i = 0; i < n; i++) {
-    chunks[i].filteredPositions = cutGpsPositions[i];
-  }
-
   CutVisitor v(&chunks, timeSpans);
   visitDispatcherChannelsConst(d, &v);
   return chunks;
@@ -123,7 +117,7 @@ Array<ReconstructionResults> reconstructAllGroups(
     const Settings &settings) {
 
   Array<CalibDataChunk> chunks
-    = makeCalibChunks(smallSessions, positions, d);
+    = makeCalibChunks(smallSessions, d);
 
   if (settings.debug) {
     outputChunkInformation(settings.makeLogFilename("calibchunks.txt"),

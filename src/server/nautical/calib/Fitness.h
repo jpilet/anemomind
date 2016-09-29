@@ -536,6 +536,20 @@ struct LeewayFitness {
   }
 };
 
+template <typename T, typename nonsense = void>
+struct AreFitnessSettings {
+  static const bool value = false;
+};
+
+template <typename T>
+struct AreFitnessSettings<T, decltype(T::withBoatOverGround ||
+  T::withCurrentOverGround ||
+  T::withHeel ||
+  T::withPitch ||
+  T::withIMU)> {
+  static const bool value = true;
+};
+
 } /* namespace sail */
 
 #endif /* SERVER_NAUTICAL_CALIB_FITNESS_H_ */

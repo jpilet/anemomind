@@ -27,26 +27,34 @@ namespace sail {
   OP(WAT_SPEED) \
   OP(ORIENT)
 
-// A CalibDataChunk are measurements that are grouped together
-struct CalibDataChunk {
-  Array<TimedValue<GeographicPosition<double>>> filteredPositions;
-#define MAKE_DATA_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, Array<TimedValue<TYPE>>> HANDLE;
-FOREACH_CHANNEL(MAKE_DATA_MAP)
-#undef MAKE_DATA_MAP
-};
-
 struct TimeStampToIndexMapper {
 public:
   TimeStamp offset;
   Duration<double> period;
-  int sampleCount;
+  int sampleCount = 0;
+
+  TimeStampToIndexMapper() : sampleCount(0) {}
+  TimeStampToIndexMapper(TimeStamp offs, Duration<double> per,
+      int n) : offset(offs), period(per), sampleCount(n) {}
 
   int map(TimeStamp t) const {
     int index = int(round((t - offset)/period));
     return 0 <= index && index < sampleCount? index : -1;
   }
 };
+
+// A CalibDataChunk are measurements that are grouped together
+// They are dense without any gaps.
+struct CalibDataChunk {
+  Array<BoatState<double>> initialStates;
+  TimeStampToIndexMapper timeMapper;
+
+#define MAKE_DATA_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  std::map<std::string, Array<TimedValue<TYPE>>> HANDLE;
+FOREACH_CHANNEL(MAKE_DATA_MAP)
+#undef MAKE_DATA_MAP
+};
+
 
 template <typename T>
 void foreachSpan(const TimeStampToIndexMapper &mapper,
@@ -89,12 +97,12 @@ class ChannelRef {
 
 struct ReconstructionSettings {
   double regWeight = 1.0;
-  Duration<double> windowSize = Duration<double>::minutes(1.0);
+  int windowSize = 60;
+  Duration<double> samplingPeriod = 1.0_s;
 };
 
 ReconstructionResults reconstruct(
-    const CalibDataChunk &chunk,
-    const Spani &continuousGroups,
+    const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
     HtmlNode::Ptr logNode = HtmlNode::Ptr());
 

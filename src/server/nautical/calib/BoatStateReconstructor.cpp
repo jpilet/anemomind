@@ -151,29 +151,28 @@ struct DataCost;
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
+  /*static_assert(AreFitnessSettings<BoatStateSettings>::value,
+      "The parameter you passed are not valid settings");*/
+
   template <typename T>
   using State = ReconstructedBoatState<T, BoatStateSettings>;
 
-  static const int dynamicStateDim = State<double>::valueDimension;
+  //static const int dynamicStateDim = State<double>::valueDimension;
 
   BoatStateReconstructor(
-      const Array<BoatState<double> > &initialStates,
-      const Array<Spani> &continuousGroups,
-      const TimeStampToIndexMapper &mapper,
-      const CalibDataChunk &chunk) :
+      const Array<CalibDataChunk> &chunk,
+      const ReconstructionSettings &settings,
+      const HtmlNode::Ptr &logNode) /*:
 #define INITIALIZE_VALUE_ACC(HANDLE) \
-  HANDLE(makeValueAccumulator(mapper, chunk.HANDLE)),
+  HANDLE(makeValueAccumulators<HANDLE>(chunks)),
 FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
-#undef INITIALIZE_VALUE_ACC
-        _timeMapper(mapper),
-        _initialStates(initialStates) {
-    CHECK(initialStates.size() == mapper.sampleCount);
-  }
+#undef INITIALIZE_VALUE_ACC*/
+  {}
 
   Array<BoatState<double> > reconstruct(
       const BoatParameters<double> &boatParams) const {
     double globalScale = 1.0;
-    int n = _initialStates.size();
+    /*int n = _initialStates.size();
     ceres::Problem problem;
 
     Array<double> reconstructedStates(
@@ -228,18 +227,17 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
         problem.AddResidualBlock(cost, nullptr, params);
       }
     }
-
+*/
 
     return Array<BoatState<double>>();
   }
 
 #define DECLARE_VALUE_ACC(HANDLE) \
-  ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
+  Array<ValueAccumulator<typename TypeForCode<HANDLE>::type>> HANDLE;
   FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
 #undef DECLARE_VALUE_ACC
-private:
-  TimeStampToIndexMapper _timeMapper;
-  Array<BoatState<double> > _initialStates;
+
+  Array<CalibDataChunk> _chunks;
 };
 
 template <typename Settings>
@@ -298,26 +296,14 @@ namespace {
     }
     return dst;
   }
-
-}
-
-Array<BoatState<double> > initializeBoatStates(
-    const CalibDataChunk &chunk) {
-  int n = chunk.filteredPositions.size();
-  Array<BoatState<double>> dst(n);
-  for (int i = 0; i < n; i++) {
-    BoatState<double> state;
-    dst[i] = state;
-  }
-  return dst;
 }
 
 ReconstructionResults reconstruct(
-    const CalibDataChunk &chunk,
-    const Spani &continuousGroups,
+    const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
     HtmlNode::Ptr logNode) {
-  BoatStateReconstructor<double> reconstructor();
+  BoatStateReconstructor<FullSettings> reconstructor(
+      chunks, settings, logNode);
   return ReconstructionResults();
 }
 

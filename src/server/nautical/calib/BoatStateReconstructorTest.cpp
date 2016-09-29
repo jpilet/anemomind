@@ -17,8 +17,8 @@ namespace {
     return offsetTime + Duration<double>::seconds(s);
   }
 
-  TimeStampToIndexMapper mapper0{
-    offsetTime, 2.0_s, 4};
+  TimeStampToIndexMapper mapper0(
+    offsetTime, 2.0_s, 4);
 }
 
 TEST(BoatStateReconstructor, TimeMapper) {
