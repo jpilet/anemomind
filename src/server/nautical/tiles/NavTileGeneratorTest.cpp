@@ -28,7 +28,7 @@ TEST(NavTileGenerator, SmokeTest) {
   TileKey tile(1, 1, 0);
   Array<Array<Nav>> result = generateTiles(
       tile, // A quarter of the world
-      navs, 5);
+      navs, 5, 1.0_minutes);
 
   EXPECT_EQ(1, result.size());
   EXPECT_EQ(5, result[0].size());
@@ -68,7 +68,7 @@ TEST(NavTileGenerator, SplitTest) {
   TileKey tile(1, 1, 0);
   Array<Array<Nav>> result = generateTiles(
       tile, // A quarter of the world
-      navs, 5);
+      navs, 5, 1.0_minutes);
 
   EXPECT_EQ(2, result.size());
   EXPECT_EQ(5, result[0].size());

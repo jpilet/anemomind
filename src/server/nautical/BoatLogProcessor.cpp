@@ -304,7 +304,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     NavDataset raw = loadNavs(*amap, _boatid);
     resampled = downSampleGpsTo1Hz(raw);
 
-    if (_earlyFiltering) {
+    if (_gpsFilter) {
       resampled = filterNavs(resampled);
     }
   }
@@ -373,14 +373,10 @@ this code some time, we should think carefully how we want to do the merging.
   }
 
   if (_generateTiles) {
-    Array<NavDataset> rawSessions =
+    Array<NavDataset> sessions =
       extractAll("Sailing", simulated, _grammar.grammar, fulltree);
 
-    // GPS filtering: eliminates bad speed surprises
-    Array<NavDataset> filteredSessions =
-      (_gpsFilter ? filterSessions(rawSessions) : rawSessions);
-
-    if (!generateAndUploadTiles(_boatid, filteredSessions, &db, _tileParams)) {
+    if (!generateAndUploadTiles(_boatid, sessions, &db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
       return false;
     }
@@ -408,10 +404,6 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
     VMG_SAMPLES_BLIND : VMG_SAMPLES_FROM_GRAMMAR);
 
   _gpsFilter = !amap->optionProvided("--no-gps-filter");
-  _earlyFiltering = amap->optionProvided("--early-filter");
-  if (_earlyFiltering) {
-    _gpsFilter = false;
-  }
 
   _tileParams.fullClean = amap->optionProvided("--clean");
 
@@ -424,6 +416,9 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
       << (_vmgSampleSelection == VMG_SAMPLES_FROM_GRAMMAR ?
           "grammar vmg samples" : "blind vmg samples");
   }
+
+
+  _tileParams.curveCutThreshold = _gpsFilterSettings.subProblemThreshold;
 }
 
 bool BoatLogProcessor::prepare(ArgMap* amap) {
@@ -474,8 +469,6 @@ int mainProcessBoatLogs(int argc, const char **argv) {
     .setArgCount(0);
 
   amap.registerOption("--no-gps-filter", "skip gps filtering").setArgCount(0);
-  amap.registerOption("--early-filter", "apply GPS filtering before everything")
-    .setArgCount(0);
 
   amap.disableFreeArgs();
 

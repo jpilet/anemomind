@@ -358,7 +358,7 @@ bool generateAndUploadTiles(std::string boatId,
 
     for (auto tileKey : tiles) {
       Array<Array<Nav>> subCurvesInTile = generateTiles(
-          tileKey, navs, params.maxNumNavsPerSubCurve);
+          tileKey, navs, params.maxNumNavsPerSubCurve, params.curveCutThreshold);
 
       if (subCurvesInTile.size() == 0) {
         continue;
