@@ -111,6 +111,22 @@ template <typename T>
 struct BandWidth<T, ORIENT> :
   public BandWidthForType<T, Angle<double>> {};
 
+
+template <typename T, typename nonsense = bool>
+struct AreFitnessSettings {
+  static const bool value = false;
+};
+template <typename T>
+struct AreFitnessSettings<T,
+  decltype(
+    T::withBoatOverGround ||
+    T::withCurrentOverGround ||
+    T::withHeel ||
+    T::withPitch ||
+    T::withIMU)> {
+  static const bool value = true;
+};
+
 struct ServerBoatStateSettings {
       static const bool withBoatOverGround = false;
       static const bool withCurrentOverGround = true;
@@ -126,6 +142,9 @@ struct FullSettings {
   static const bool withPitch = true;
   static const bool withIMU = true;
 };
+
+static_assert(AreFitnessSettings<FullSettings>::value, "Bad settings");
+
 
 // So that we can read a numeric representation
 // of a type easily.
@@ -535,23 +554,6 @@ struct LeewayFitness {
     return true;
   }
 };
-
-template <typename T, typename nonsense = bool>
-struct AreFitnessSettings {
-  static const bool value = false;
-};
-
-template <typename T>
-struct AreFitnessSettings<T,
-  decltype(T::withBoatOverGround ||
-    T::withCurrentOverGround ||
-    T::withHeel ||
-    T::withPitch ||
-    T::withIMU)> {
-  static const bool value = true;
-};
-
-static_assert(AreFitnessSettings<FullSettings>::value, "Bad settings");
 
 } /* namespace sail */
 

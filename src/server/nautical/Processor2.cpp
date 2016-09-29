@@ -16,10 +16,12 @@
 #include <server/common/ReduceTree.h>
 #include <server/common/logging.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/BoatState.h>
 #include <server/nautical/calib/BoatStateReconstructor.h>
 #include <server/common/TimedValueCutter.h>
 #include <server/common/logging.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 namespace Processor2 {
@@ -93,31 +95,75 @@ void outputChunkInformation(
 }
 
 //const Array<TimedValue<GeographicPosition<double>>> &filteredPositions,
-/*auto cutGpsPositions = cutTimedValues(
-    filteredPositions.begin(),
-    filteredPositions.end(),
-    timeSpans);*/
+/**/
+
+bool isValidChunk(const CalibDataChunk &chunk) {
+  return !chunk.timeMapper.empty();
+}
+
+Array<HorizontalMotion<double>> computeMotionPerPosition(
+    const Array<TimedValue<GeographicPosition<double>>> &pos) {
+  int n = pos.size();
+  assert(2 <= n);
+  Array<HorizontalMotion<double>> dst(n);
+  dst[0] = GpsUtils::computeHorizontalMotion(pos[0], pos[1]);
+  for (int i = 1; i < n-1; i++) {
+    dst[i] = GpsUtils::computeHorizontalMotion(pos[i-1], pos[i+1]);
+  }
+  dst[n-1] = GpsUtils::computeHorizontalMotion(pos[n-2], pos[n-1]);
+  return dst;
+}
+
+Array<BoatState<double> > makeInitialStates(
+    const TimeStampToIndexMapper &mapper,
+    const Array<TimedValue<GeographicPosition<double>>> &positions) {
+  auto motions = computeMotionPerPosition(positions);
+}
 
 Array<CalibDataChunk> makeCalibChunks(
     const Array<Span<TimeStamp>> &timeSpans,
-    const Dispatcher *d) {
+    const Dispatcher *d,
+    const Array<TimedValue<
+      GeographicPosition<double>>> &filteredPositions) {
+
+  auto cutGpsPositions = cutTimedValues(
+      filteredPositions.begin(),
+      filteredPositions.end(),
+      timeSpans);
 
   int n = timeSpans.size();
   Array<CalibDataChunk> chunks(n);
-  CutVisitor v(&chunks, timeSpans);
-  visitDispatcherChannelsConst(d, &v);
-  return chunks;
+  {
+    CutVisitor v(&chunks, timeSpans);
+    visitDispatcherChannelsConst(d, &v);
+  }{
+    for (int i = 0; i < n; i++) {
+      auto pos = cutGpsPositions[i];
+      int stateCount = pos.size();
+      if (2 <= stateCount) {
+        TimeStampToIndexMapper mapper(
+            pos.first().time,
+            (1.0/stateCount)*(pos.last().time - pos.first().time),
+            stateCount);
+        chunks[i].initialStates = makeInitialStates(mapper, pos);
+        chunks[i].timeMapper = mapper;
+      }
+
+    }
+  }
+
+  return filter(chunks, &isValidChunk);
 }
 
 Array<ReconstructionResults> reconstructAllGroups(
-    const Array<Spani> &calibGroups,
+    const Array<Spani> &calibGroups, // Indices to to the sessions
     const Array<Span<TimeStamp>> &smallSessions,
     const Array<TimedValue<GeographicPosition<double>>> &positions,
     const Dispatcher *d,
     const Settings &settings) {
 
   Array<CalibDataChunk> chunks
-    = makeCalibChunks(smallSessions, d);
+    = makeCalibChunks(smallSessions, d, positions);
 
   if (settings.debug) {
     outputChunkInformation(settings.makeLogFilename("calibchunks.txt"),

@@ -21,12 +21,12 @@ namespace {
 }
 
 HorizontalMotion<double> computeHorizontalMotion(
-    Duration<double> dur,
-    const GeographicPosition<double> &from,
-    const GeographicPosition<double> &to) {
-  GeographicReference geoRef(from);
-  auto from2 = geoRef.map(from);
-  auto to2 = geoRef.map(to);
+    const TimedValue<GeographicPosition<double>> &from,
+    const TimedValue<GeographicPosition<double>> &to) {
+  auto dur = to.time - from.time;
+  GeographicReference geoRef(from.value);
+  auto from2 = geoRef.map(from.value);
+  auto to2 = geoRef.map(to.value);
   auto dif = to2 - from2;
   return HorizontalMotion<double>{
     dif[0]/dur,

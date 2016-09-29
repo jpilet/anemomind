@@ -33,6 +33,10 @@ public:
   Duration<double> period;
   int sampleCount = 0;
 
+  bool empty() const {
+    return 0 < sampleCount;
+  }
+
   TimeStampToIndexMapper() : sampleCount(0) {}
   TimeStampToIndexMapper(TimeStamp offs, Duration<double> per,
       int n) : offset(offs), period(per), sampleCount(n) {}

@@ -16,9 +16,8 @@ namespace sail {
 namespace GpsUtils {
 
 HorizontalMotion<double> computeHorizontalMotion(
-    Duration<double> dur,
-    const GeographicPosition<double> &from,
-    const GeographicPosition<double> &to);
+    const TimedValue<GeographicPosition<double>> &from,
+    const TimedValue<GeographicPosition<double>> &to);
 
 Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(const NavDataset &ds);
 

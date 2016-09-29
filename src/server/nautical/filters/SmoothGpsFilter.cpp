@@ -100,6 +100,21 @@ TimedSampleCollection<HorizontalMotion<double> >::TimedVector
   return samples;
 }
 
+/*TimedSampleCollection<HorizontalMotion<double>>::TimedVector
+  GpsFilterResults::getMotionPerPosition() const {
+  int n = filteredLocalPositions.size();
+  TimedSampleCollection<HorizontalMotion<double>>::TimedVector samples;
+  if (n < 2) {
+    LOG(WARNING) << "Too few position samples to compute motions";
+    return samples;
+  }
+  samples.push_back(computeMotion(filteredLocalPositions[0], filteredLocalPositions[1]));
+  for (int i = 1; i < n-1; i++) {
+    auto timeDif =
+  }
+  return samples;
+}*/
+
 typedef CeresTrajectoryFilter::Types<2> FTypes;
 
 Array<FTypes::TimedMotion> toLocalMotions(
