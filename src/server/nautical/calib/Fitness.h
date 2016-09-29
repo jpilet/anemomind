@@ -542,15 +542,16 @@ struct AreFitnessSettings {
 };
 
 template <typename T>
-struct AreFitnessSettings<T, decltype(T::withBoatOverGround ||
-  T::withCurrentOverGround ||
-  T::withHeel ||
-  T::withPitch ||
-  T::withIMU)> {
+struct AreFitnessSettings<T,
+  decltype(T::withBoatOverGround ||
+    T::withCurrentOverGround ||
+    T::withHeel ||
+    T::withPitch ||
+    T::withIMU)> {
   static const bool value = true;
 };
 
-static_assert(AreFitnessSettings<FullSettings>::value, "Bad");
+static_assert(AreFitnessSettings<FullSettings>::value, "Bad settings");
 
 } /* namespace sail */
 

@@ -151,8 +151,8 @@ struct DataCost;
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
-  /*static_assert(AreFitnessSettings<BoatStateSettings>::value,
-      "The parameter you passed are not valid settings");*/
+  static_assert(AreFitnessSettings<BoatStateSettings>::value,
+      "The parameter you passed are not valid settings");
 
   template <typename T>
   using State = ReconstructedBoatState<T, BoatStateSettings>;
