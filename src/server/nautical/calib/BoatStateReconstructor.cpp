@@ -70,27 +70,18 @@ ValueAccumulator<T> makeValueAccumulator(
       }
     });
   }
-  std::unordered_map<int, Spani> tmp;
   assert(dst.values.size() == sampleCounter);
   std::sort(dst.values.begin(), dst.values.end());
   for (int i = 0; i < dst.values.size(); i++) {
     int index = dst.values[i].sampleIndex;
-    auto f = tmp.find(index);
-    if (f == tmp.end()) {
-      tmp.insert(std::pair<int, Spani>(index, Spani(i, i+1)));
+    auto f = dst.valuesPerIndex.find(index);
+    if (f == dst.valuesPerIndex.end()) {
+      dst.valuesPerIndex.insert(std::pair<int, Spani>(index, Spani(i, i+1)));
     } else {
       f->second.extend(i);
       f->second.extend(i+1);
     }
   }
-  for (auto kv: tmp) {
-    dst.valuesPerIndex.push_back(kv);
-  }
-  std::sort(dst.valuesPerIndex.begin(), dst.valuesPerIndex.end(),
-      [](const std::pair<int, Spani> &a,
-          const std::pair<int, Spani> &b) {
-    return a.first < b.first;
-  });
   return dst;
 }
 

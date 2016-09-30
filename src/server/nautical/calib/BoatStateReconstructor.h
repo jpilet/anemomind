@@ -79,7 +79,7 @@ struct ValueAccumulator {
     }
   };
 
-  std::vector<std::pair<int, Spani> > valuesPerIndex;
+  std::unordered_map<int, Spani> valuesPerIndex;
   std::vector<TaggedValue> values;
 };
 

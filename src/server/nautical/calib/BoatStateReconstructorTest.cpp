@@ -86,15 +86,17 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
     };
   auto acc = makeValueAccumulator(sensorIndices, mapper, src);
   EXPECT_EQ(acc.values.size(), 4 + 2);
-  EXPECT_EQ(acc.valuesPerIndex.size(), 3);
 
-  EXPECT_EQ(acc.valuesPerIndex[0].first, 0);
-  EXPECT_EQ(acc.valuesPerIndex[1].first, 4);
-  EXPECT_EQ(acc.valuesPerIndex[2].first, 9);
+  std::set<int> nonEmptyInds{0, 4, 9};
+  EXPECT_EQ(acc.valuesPerIndex.size(), nonEmptyInds.size());
 
-  EXPECT_EQ(acc.valuesPerIndex[0].second, Spani(0, 1));
-  EXPECT_EQ(acc.valuesPerIndex[1].second, Spani(1, 4));
-  EXPECT_EQ(acc.valuesPerIndex[2].second, Spani(4, 6));
+  for (auto kv: acc.valuesPerIndex) {
+    EXPECT_TRUE(nonEmptyInds.count(kv.first));
+  }
+
+  EXPECT_EQ(acc.valuesPerIndex.find(0)->second, Spani(0, 1));
+  EXPECT_EQ(acc.valuesPerIndex.find(4)->second, Spani(1, 4));
+  EXPECT_EQ(acc.valuesPerIndex.find(9)->second, Spani(4, 6));
 
   {
     auto x = acc.values[0];
