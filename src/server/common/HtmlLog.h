@@ -67,7 +67,7 @@ public:
   static void tagWithData(HtmlNode::Ptr parent,
       const std::string &tagName,
       const std::string &data);
-  static void tagWithData2(HtmlNode::Ptr parent,
+  static void tagWithData(HtmlNode::Ptr parent,
       const std::string &tagName,
       const std::vector<std::pair<std::string, AttribValue> > &attribs,
       const std::string &data);

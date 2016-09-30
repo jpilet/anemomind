@@ -258,7 +258,7 @@ void outputChannelSummary(
           } else {
             DataCode code = codeVector[j-1];
             if (i == 0) {
-              e->stream() << descriptionForCode(code);
+              e->stream() << wordIdentifierForCode(code);
             } else if (i-1 < sourceVector.size()) {
               auto source = sourceVector[i-1];
               auto f = visitor.counts.find({code, source});
@@ -273,13 +273,12 @@ void outputChannelSummary(
             }
           }
         });
-    auto p = std::pair<std::string, AttribValue>{"class", "warning"};
     for (auto code: usefulChannels) {
       if (visitor.countPerChannel.count(code) == 0) {
-        HtmlTag::tagWithData2(dst, "p",
-            std::vector<std::pair<std::string, AttribValue>>{p},
+        HtmlTag::tagWithData(dst, "p",
+            {{"class", "warning"}},
             stringFormat("Channel of type %s is missing",
-                descriptionForCode(code)));
+                wordIdentifierForCode(code)));
       }
     }
 }
@@ -444,12 +443,16 @@ Array<TimedValue<GeographicPosition<double> > >
   GpsFilterSettings gpsSettings;
   gpsSettings.subProblemThreshold = settings.subSessionCut;
 
+  HtmlTag::tagWithData(log, "p",
+      "Here is a brief summary");
   auto table = HtmlTag::make(log, "table");
-  {
+  if (log) {
     auto h = HtmlTag::make(table, "tr");
     HtmlTag::tagWithData(h, "th", "Index");
     HtmlTag::tagWithData(h, "th", "Position count");
     HtmlTag::tagWithData(h, "th", "Max speed");
+    HtmlTag::tagWithData(h, "th", "Duration");
+    HtmlTag::tagWithData(h, "th", "Max distance to median");
   }
   ArrayBuilder<TimedValue<GeographicPosition<double> > > dst;
   int counter = 0;
@@ -472,6 +475,17 @@ Array<TimedValue<GeographicPosition<double> > >
       }
       HtmlTag::tagWithData(row, "td", stringFormat(
           "%.3g knots", maxSpeed.knots()));
+      auto dur = span.maxv() - span.minv();
+      HtmlTag::tagWithData(row, "td", dur.str().c_str());
+      auto maxDistanceToMedian = 0.0_m;
+      for (auto pos: results.filteredLocalPositions) {
+        auto p = pos.value;
+        maxDistanceToMedian = std::max(maxDistanceToMedian,
+            (p[0].meters(), p[1].meters())*1.0_m);
+      }
+      HtmlTag::tagWithData(row, "td", stringFormat("%.3g M",
+          maxDistanceToMedian.nauticalMiles()));
+
       counter++;
     }
   }

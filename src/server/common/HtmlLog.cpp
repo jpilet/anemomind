@@ -69,10 +69,10 @@ HtmlNode::Ptr HtmlTag::initializePage(
 void HtmlTag::tagWithData(HtmlNode::Ptr parent,
       const std::string &tagName,
       const std::string &data) {
-  tagWithData2(parent, tagName, {}, data);
+  tagWithData(parent, tagName, {}, data);
 }
 
-void HtmlTag::tagWithData2(HtmlNode::Ptr parent,
+void HtmlTag::tagWithData(HtmlNode::Ptr parent,
     const std::string &tagName,
     const std::vector<std::pair<std::string, AttribValue> > &attribs,
     const std::string &data) {
