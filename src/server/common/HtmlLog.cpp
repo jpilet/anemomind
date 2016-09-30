@@ -60,7 +60,7 @@ HtmlNode::Ptr HtmlTag::initializePage(
       title->stream() << titleStr;
     }{
       auto style = HtmlTag::make(head, "style");
-      style->stream() << "td, th {border: 1px solid black;} .warning {color: orange} .error {color: red}";
+      style->stream() << "td, th {border: 1px solid black;} .warning {color: orange} .error {color: red} .success {color: green}";
     }
   }
   return HtmlTag::make(emptyPage, "body");

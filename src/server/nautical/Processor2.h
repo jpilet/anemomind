@@ -13,6 +13,7 @@
 #include <server/nautical/segment/SessionCut.h>
 #include <device/anemobox/Dispatcher.h>
 #include <server/common/HtmlLog.h>
+#include <server/nautical/calib/BoatStateReconstructor.h>
 
 namespace sail {
 
@@ -32,6 +33,8 @@ struct Settings {
 
   SessionCut::Settings sessionCutSettings;
   std::string logRoot;
+
+  ReconstructionSettings reconstructionSettings;
 };
 
 // Used for cutting the sessions.

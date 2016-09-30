@@ -199,9 +199,8 @@ Array<ReconstructionResults> reconstructAllGroups(
 
     auto li = HtmlTag::make(ol, "li");
     auto subLog = HtmlTag::linkToSubPage(li, title);
-    if (subLog) {
-      subLog->stream() << "Some data goes here!!!";
-    }
+    results[i] = reconstruct(chunks.slice(group.minv(), group.maxv()),
+        settings.reconstructionSettings, subLog);
   }
 
   return results;
@@ -273,13 +272,20 @@ void outputChannelSummary(
             }
           }
         });
+    bool allGood = true;
     for (auto code: usefulChannels) {
       if (visitor.countPerChannel.count(code) == 0) {
+        allGood = false;
         HtmlTag::tagWithData(dst, "p",
             {{"class", "warning"}},
             stringFormat("Channel of type %s is missing",
                 wordIdentifierForCode(code)));
       }
+    }
+    if (allGood) {
+      HtmlTag::tagWithData(dst, "p",
+          {{"class", "success"}},
+          "All channels of interest are present");
     }
 }
 

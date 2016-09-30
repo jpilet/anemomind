@@ -9,6 +9,7 @@
 #include <server/nautical/calib/Fitness.h>
 #include <ceres/ceres.h>
 #include <random>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -302,6 +303,10 @@ ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
     HtmlNode::Ptr logNode) {
+  HtmlTag::tagWithData(logNode, "h1",
+      stringFormat("Reconstruction results for %d chunks",
+          chunks.size()));
+
   BoatStateReconstructor<FullSettings> reconstructor(
       chunks, settings, logNode);
   return ReconstructionResults();
