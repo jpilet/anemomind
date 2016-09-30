@@ -135,6 +135,21 @@ FOREACH_CHANNEL(DECLARE_PER_TYPE)
   BoatParameterLayout(const BoatParameters<double> &parameters);
 };
 
+template <typename Settings>
+struct CompatibleSettings {
+  bool test(const BoatParameters<double> &params) {
+    return implies(
+                Settings::withCurrentOverGround,
+                !params.sensors.WAT_SPEED.empty()) &&
+           implies(
+                Settings::withWindOverGround,
+                !params.sensors.AWS.empty() &&
+                !params.sensors.AWA.empty()) &&
+           implies(Settings::withHeel || Settings::withIMU,
+               !params.sensors.ORIENT.empty());
+  }
+};
+
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,

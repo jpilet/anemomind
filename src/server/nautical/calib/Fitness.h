@@ -128,11 +128,12 @@ struct AreFitnessSettings<T,
 };
 
 struct ServerBoatStateSettings {
-      static const bool withBoatOverGround = false;
-      static const bool withCurrentOverGround = true;
-      static const bool withHeel = false;
-      static const bool withPitch = false;
-      static const bool withIMU = false;
+  static const bool withBoatOverGround = false;
+  static const bool withWindOverGround = false;
+  static const bool withCurrentOverGround = true;
+  static const bool withHeel = false;
+  static const bool withPitch = false;
+  static const bool withIMU = false;
 };
 
 struct FullSettings {
