@@ -538,7 +538,7 @@ BoatParameterLayout::BoatParameterLayout(
     const BoatParameters<double> &parameters) {
   int offset = 2; // after leeway and heel.
 #define LAYOUT_SENSORS(HANDLE, INDEX, SHORTNAME, TYPE, DESCRIPTION) \
-  offset = layoutSensors<HANDLE>(offset, *(ChannelFieldAccess<HANDLE>::get(parameters.sensors)), &(sensors[HANDLE]));
+  offset = layoutSensors<DataCode::HANDLE>(offset, parameters.sensors.HANDLE, &HANDLE);
 FOREACH_CHANNEL(LAYOUT_SENSORS)
 #undef LAYOUT_SENSORS
   paramCount = offset;

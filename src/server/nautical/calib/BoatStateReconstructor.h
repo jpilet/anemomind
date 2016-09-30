@@ -125,7 +125,10 @@ struct BoatParameterLayout {
     std::map<std::string, IndexAndOffset> sensors;
   };
 
-  std::map<DataCode, PerType> sensors;
+#define DECLARE_PER_TYPE(HANDLE, INDEX, SHORTNAME, TYPE, DESCRIPTION) \
+  PerType HANDLE;
+FOREACH_CHANNEL(DECLARE_PER_TYPE)
+#undef DECLARE_PER_TYPE
 
   int paramCount = 0;
 
