@@ -321,6 +321,16 @@ public:
           calibrationParameters, stateParameters, _log);
     }
 
+    HtmlTag::tagWithData(_log, "h2", "Costs");
+    for (int i = 0; i < _chunks.size(); i++) {
+      HtmlTag::tagWithData(_log, "h3",
+          stringFormat("Costs for chunk %d", i));
+      addCostsForChunk(
+          calibrationParameters,
+          stateParameters[i],
+          _chunks[i], &problem);
+    }
+
     ReconstructionResults results;
     results.parameters = _initialParameters;
     results.parameters.readFrom(calibrationParameters.ptr());
@@ -340,6 +350,13 @@ public:
       dst[i] = initializeStateParameters(_chunks[i]);
     }
     return dst;
+  }
+
+  void addCostsForChunk(
+      Array<double> calibrationParameters,
+      Array<double> stateParameters,
+      const ChunkAccumulator &chunk, ceres::Problem *dst) const {
+
   }
 
   Array<double> initializeStateParameters(
