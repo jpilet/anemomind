@@ -370,7 +370,6 @@ public:
       Array<double> calibrationParameters,
       Array<double> stateParameters,
       const ChunkAccumulator &chunk, ceres::Problem *dst) const {
-    int regResiduals = 0;
     int regCount = chunk.initialStates.size()-1;
     for (int i = 0; i < regCount; i++) {
       typedef RegCost<BoatStateSettings> CostFunctor;
@@ -381,7 +380,10 @@ public:
       dst->AddResidualBlock(wrapped, nullptr,
           stateParameters.blockPtr(i+0, dynamicStateDim),
           stateParameters.blockPtr(i+1, dynamicStateDim));
-      regResiduals += CostFunctor::outputCount;
+    }
+    int stateCount = chunk.initialStates.size();
+    for (int i = 0; i < stateCount; i++) {
+
     }
   }
 
