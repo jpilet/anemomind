@@ -343,7 +343,7 @@ public:
         auto row = HtmlTag::make(table, "tr");
         HtmlTag::tagWithData(row, "th", "Chunk index");
         HtmlTag::tagWithData(row, "th", "State count");
-        HtmlTag::tagWithData(row, "th", "Residual cost count");
+        HtmlTag::tagWithData(row, "th", "Regularization cost count");
         HtmlTag::tagWithData(row, "th", "Data cost count");
       }
       for (int i = 0; i < _chunks.size(); i++) {
