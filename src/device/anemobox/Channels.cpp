@@ -31,4 +31,13 @@ const char* wordIdentifierForCode(DataCode code) {
   return nullptr;
 }
 
+std::vector<DataCode> getAllDataCodes() {
+  return std::vector<DataCode>{
+#define DATA_CODE_LINE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  HANDLE,
+FOREACH_CHANNEL(DATA_CODE_LINE)
+#undef DATA_CODE_LINE
+  };
+}
+
 }

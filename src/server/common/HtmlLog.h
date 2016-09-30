@@ -99,6 +99,26 @@ void renderTable(
     std::function<bool(int,int)> isHeader,
     std::function<void(HtmlNode::Ptr, int, int)> renderCell);
 
+struct SubTable {
+  typedef std::function<void(HtmlNode::Ptr, int, int)> Renderer;
+  int rows = 0;
+  int cols = 0;
+  Renderer renderer;
+
+  SubTable(int r, int c, Renderer ren);
+
+  static SubTable header(int r, int c, Renderer ren);
+  static SubTable cell(int r, int c, Renderer ren);
+  static SubTable cell(
+      const std::string &cellType, int r, int c,
+      Renderer ren);
+};
+
+SubTable vcat(const SubTable &a, const SubTable &b);
+SubTable hcat(const SubTable &a, const SubTable &b);
+
+void renderTable(HtmlNode::Ptr dst, const SubTable &table);
+
 
 
 } /* namespace sail */

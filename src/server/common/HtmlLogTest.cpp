@@ -44,6 +44,30 @@ TEST(HtmlLogTest, TableTest) {
   std::getline(file, line);
   EXPECT_EQ(line,
       "<table><tr><th>a</th><th>b</th><th>c</th></tr><tr><td>d</td><td>e</td><td>f</td></tr></table>");
+}
+
+TEST(HtmlLogTest, TableTest2) {
+  {
+    auto page = HtmlPage::make("/tmp", "tabletest2");
+    auto headerRow = SubTable::header(1, 3,
+        [](HtmlNode::Ptr dst, int i, int j) {
+      const char c[] = "abc";
+      dst->stream() << c[j];
+    });
+    auto bottomRow = SubTable::cell(1, 3,
+        [](HtmlNode::Ptr dst, int i, int j) {
+      const char c[] = "def";
+      dst->stream() << c[j];
+    });
+
+    renderTable(page, vcat(headerRow, bottomRow));
+  }
+  std::ifstream file("/tmp/tabletest2.html");
+  EXPECT_TRUE(file.good());
+  std::string line;
+  std::getline(file, line);
+  EXPECT_EQ(line,
+      "<table><tr><th>a</th><th>b</th><th>c</th></tr><tr><td>d</td><td>e</td><td>f</td></tr></table>");
 
 }
 

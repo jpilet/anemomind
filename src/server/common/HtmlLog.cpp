@@ -7,6 +7,7 @@
 
 #include "HtmlLog.h"
 #include <sstream>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -124,6 +125,73 @@ void renderTable(
       }
     }
   }
+}
+
+SubTable vcat(const SubTable &a, const SubTable &b) {
+  CHECK(a.cols == b.cols);
+  CHECK(a.renderer);
+  CHECK(b.renderer);
+  return SubTable{
+    a.rows + b.rows,
+    a.cols,
+    [=](HtmlNode::Ptr dst, int i, int j) {
+      if (i < a.rows) {
+        a.renderer(dst, i, j);
+      } else {
+        b.renderer(dst, i - a.rows, j);
+      }
+    }
+  };
+}
+
+SubTable hcat(const SubTable &a, const SubTable &b) {
+  CHECK(a.rows == b.rows);
+  CHECK(a.renderer);
+  CHECK(b.renderer);
+  return SubTable{
+    a.rows,
+    a.cols + b.cols,
+    [=](HtmlNode::Ptr dst, int i, int j) {
+      if (j < a.cols) {
+        a.renderer(dst, i, j);
+      } else {
+        b.renderer(dst, i, j - a.cols);
+      }
+    }
+  };
+}
+
+SubTable SubTable::cell(const std::string &cellType,
+    int r, int c, Renderer ren) {
+  return SubTable{r, c,
+      [=](HtmlNode::Ptr dst, int i, int j) {
+    auto cell = HtmlTag::make(dst, cellType);
+    ren(cell, i, j);
+  }};
+}
+
+SubTable SubTable::cell(
+    int r, int c, Renderer ren) {
+  return cell("td", r, c, ren);
+}
+
+void renderTable(HtmlNode::Ptr dst, const SubTable &src) {
+  auto table = HtmlTag::make(dst, "table");
+  for (int i = 0; i < src.rows; i++) {
+    auto row = HtmlTag::make(table, "tr");
+    for (int j = 0; j < src.cols; j++) {
+      src.renderer(row, i, j);
+    }
+  }
+}
+
+
+SubTable::SubTable(int r, int c, Renderer ren) : rows(r), cols(c),
+    renderer(ren) {}
+
+SubTable SubTable::header(
+    int r, int c, Renderer ren) {
+  return cell("th", r, c, ren);
 }
 
 

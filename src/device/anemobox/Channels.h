@@ -72,8 +72,7 @@ FOREACH_CHANNEL(DECL_TYPE)
 
 const char* descriptionForCode(DataCode code);
 const char* wordIdentifierForCode(DataCode code);
-DataCode indexToDataCode(int i);
-int dataCodeToIndex(DataCode code);
+std::vector<DataCode> getAllDataCodes();
 
 
 // Assuming that an object of type Object has instance variables

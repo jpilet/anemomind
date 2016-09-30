@@ -198,7 +198,9 @@ Array<ReconstructionResults> reconstructAllGroups(
                 i+1, calibGroups.size());
 
     auto li = HtmlTag::make(ol, "li");
-    auto subLog = HtmlTag::linkToSubPage(li, title);
+    auto subLog = HtmlTag::initializePage(
+        HtmlTag::linkToSubPage(li, title),
+        title);
     results[i] = reconstruct(chunks.slice(group.minv(), group.maxv()),
         settings.reconstructionSettings, subLog);
   }

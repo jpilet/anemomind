@@ -299,6 +299,30 @@ namespace {
   }
 }
 
+namespace {
+  void outputChunkOverview(
+      const Array<CalibDataChunk> &chunks,
+      HtmlNode::Ptr log) {
+    enum class Column {Index, Data, Misc};
+
+    auto codes = getAllDataCodes();
+    auto getType = [&](int i0) -> std::pair<Column, int> {
+      if (i0 == 0) {
+        return std::make_pair(Column::Index, i0);
+      } else {
+        int i1 = i0 - 1;
+        if (i1 < codes.size()) {
+          return std::make_pair(Column::Data, i1);
+        } else {
+          return std::make_pair(Column::Misc, i1 - codes.size());
+        }
+      }
+    };
+
+
+  }
+}
+
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
@@ -306,6 +330,9 @@ ReconstructionResults reconstruct(
   HtmlTag::tagWithData(logNode, "h1",
       stringFormat("Reconstruction results for %d chunks",
           chunks.size()));
+  if (logNode) {
+    outputChunkOverview(chunks, logNode);
+  }
 
   BoatStateReconstructor<FullSettings> reconstructor(
       chunks, settings, logNode);
