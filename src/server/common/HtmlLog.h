@@ -105,6 +105,8 @@ struct SubTable {
   int cols = 0;
   Renderer renderer;
 
+  static Renderer constant(const std::string &s);
+
   SubTable(int r, int c, Renderer ren);
 
   static SubTable header(int r, int c, Renderer ren);

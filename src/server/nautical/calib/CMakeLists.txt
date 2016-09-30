@@ -111,6 +111,7 @@ cxx_test(calib_FitnessTest
 cxx_test(calib_SensorSetTest
   SensorSetTest.cpp
   anemobox_Dispatcher
+  common_logging
   gtest_main
   )
 
@@ -126,6 +127,7 @@ target_link_libraries(calib_BoatStateReconstructor
   common_Span
   common_HtmlLog
   anemobox_Channels
+  common_logging
   )
 
 cxx_test(calib_BoatStateReconstructorTest

@@ -22,15 +22,15 @@ template <typename T>
 struct BoatParameters {
   static HeelConstant<T> heelConstantUnit() {
     return Angle<T>::radians(MakeConstant<T>::apply(1.0))/
-        Angle<T>::metersPerSecond(MakeConstant<T>::apply(1.0));
+        Velocity<T>::metersPerSecond(MakeConstant<T>::apply(1.0));
   }
   static LeewayConstant<T> leewayConstantUnit() {
-    return Angle<T>::metersPerSecond(MakeConstant<T>::apply(1.0))
-        *Angle<T>::metersPerSecond(MakeConstant<T>::apply(1.0));
+    return Velocity<T>::metersPerSecond(MakeConstant<T>::apply(1.0))
+        *Velocity<T>::metersPerSecond(MakeConstant<T>::apply(1.0));
   }
 
-  HeelConstant<T> heelConstant;
-  LeewayConstant<T> leewayConstant;
+  HeelConstant<T> heelConstant = MakeConstant<T>::apply(0.0)*heelConstantUnit();
+  LeewayConstant<T> leewayConstant = MakeConstant<T>::apply(0.0)*leewayConstantUnit();
   SensorDistortionSet<T> sensors;
 
   int paramCount() const {

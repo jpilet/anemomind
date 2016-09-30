@@ -294,6 +294,7 @@ void outputChannelSummary(
 void runDemoOnDataset(
     NavDataset &dataset,
     HtmlNode::Ptr dstLogNode) {
+  auto startTime = TimeStamp::now();
   auto logBody = HtmlTag::initializePage(
       dstLogNode, "V2 Reconstruction results");
   HtmlTag::tagWithData(logBody, "h1", "Results summary");
@@ -331,7 +332,7 @@ void runDemoOnDataset(
 
   HtmlTag::tagWithData(logBody, "p",
     "In order to perform calibration, we need to make sure that there is"
-    "enough data for every optimization problem, so we will form groups");
+    " enough data for every optimization problem, so we will form groups");
   auto calibGroups = computeCalibrationGroups(
       smallSessions, settings.minCalibDur);
 
@@ -348,8 +349,12 @@ void runDemoOnDataset(
         allFilteredPositions, d, settings,
         logBody);
 
-  if (settings.debug) {
-    // TODO
+  if (logBody) {
+    HtmlTag::tagWithData(logBody, "h2", "Summary");
+    auto totalDuration = TimeStamp::now() - startTime;
+    HtmlTag::tagWithData(logBody, "p",
+        stringFormat("Processing time: %s",
+            totalDuration.str().c_str()));
   }
 }
 

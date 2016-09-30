@@ -189,6 +189,12 @@ void renderTable(HtmlNode::Ptr dst, const SubTable &src) {
 SubTable::SubTable(int r, int c, Renderer ren) : rows(r), cols(c),
     renderer(ren) {}
 
+SubTable::Renderer SubTable::constant(const std::string &s) {
+  return [=](HtmlNode::Ptr dst, int i, int j) {
+    dst->stream() << s;
+  };
+}
+
 SubTable SubTable::header(
     int r, int c, Renderer ren) {
   return cell("th", r, c, ren);

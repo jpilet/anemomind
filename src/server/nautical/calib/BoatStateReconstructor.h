@@ -105,6 +105,33 @@ struct ReconstructionSettings {
   Duration<double> samplingPeriod = 1.0_s;
 };
 
+BoatParameters<double> initializeBoatParameters(
+    const Array<CalibDataChunk> &chunks);
+
+struct BoatParameterLayout {
+  const int heelConstantOffset = 0;
+  const int leewayConstantOffset = 1;
+
+  struct IndexAndOffset {
+    int sensorIndex = 0;
+    int sensorOffset = 0;
+    IndexAndOffset() {}
+    IndexAndOffset(int i, int o) : sensorIndex(i), sensorOffset(o) {}
+  };
+
+  struct PerType {
+    int offset = 0;
+    int paramCount = 0;
+    std::map<std::string, IndexAndOffset> sensors;
+  };
+
+  std::map<DataCode, PerType> sensors;
+
+  int paramCount = 0;
+
+  BoatParameterLayout(const BoatParameters<double> &parameters);
+};
+
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,

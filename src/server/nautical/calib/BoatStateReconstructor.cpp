@@ -300,27 +300,249 @@ namespace {
 }
 
 namespace {
+  struct CalibChunkSampleVisitor {
+    std::map<DataCode, int> counts;
+    template <DataCode code, typename T, typename Data>
+    void visit(const Data &d) {
+      int n = 0;
+      for (auto kv: d) {
+        n += kv.second.size();
+      }
+      counts[code] = n;
+    }
+  };
+
   void outputChunkOverview(
       const Array<CalibDataChunk> &chunks,
       HtmlNode::Ptr log) {
-    enum class Column {Index, Data, Misc};
+    std::map<std::pair<int, DataCode>, int> countMap;
+    for (int i = 0; i < chunks.size(); i++) {
+      CalibChunkSampleVisitor visitor;
+      visitFieldsConst(
+          chunks[i], &visitor);
+      for (auto kv: visitor.counts) {
+        countMap.insert({{i, kv.first}, kv.second});
+      }
+    }
 
     auto codes = getAllDataCodes();
-    auto getType = [&](int i0) -> std::pair<Column, int> {
-      if (i0 == 0) {
-        return std::make_pair(Column::Index, i0);
+    auto h1 = SubTable::header(1, 1,
+        SubTable::constant("Index"));
+    auto chunkIndices = SubTable::header(chunks.size(), 1,
+        [](HtmlNode::Ptr dst, int i, int j) {dst->stream() << i+1;});
+    auto leftCol = vcat(h1, chunkIndices);
+    auto channelHeaders = SubTable::header(1, codes.size(),
+        [&](HtmlNode::Ptr dst, int i, int j) {
+      dst->stream() << wordIdentifierForCode(codes[j]);
+    });
+    auto sampleCounts = SubTable::cell(chunks.size(), codes.size(),
+        [&](HtmlNode::Ptr dst, int i, int j) {
+      auto f = countMap.find({i, codes[j]});
+      if (f != countMap.end()) {
+        dst->stream() << f->second;
+      }
+    });
+    auto miscHeaders = SubTable::header(1, 3,
+        [&](HtmlNode::Ptr dst,
+        int i, int j) {
+      const char *h[3] = {"Reconstruction sample count",
+          "Sampling period", "Duration"};
+      dst->stream() << h[j];
+    });
+    auto misc = SubTable::cell(chunks.size(), 3,
+        [&](HtmlNode::Ptr dst, int i, int j) {
+      auto x = chunks[i].timeMapper;
+      switch (j) {
+      case 0:
+        dst->stream() << x.sampleCount;
+        break;
+      case 1:
+        dst->stream() << x.period.seconds() << " s";
+        break;
+      case 2:
+        dst->stream() << (double(x.sampleCount-1)*x.period).str();
+        break;
+      default:
+        break;
+      };
+    });
+
+    auto all = hcat(
+        hcat(leftCol, vcat(channelHeaders, sampleCounts)),
+        vcat(miscHeaders, misc));
+    renderTable(log, all);
+  }
+
+  struct InitialStateCharacteristics {
+    bool allMotionsDefined = true;
+    bool allPositionsDefined = true;
+    Velocity<double> maxGpsSpeed = 0.0_kn;
+  };
+
+  InitialStateCharacteristics analyzeInitialStates(
+      const Array<BoatState<double>> &src) {
+    InitialStateCharacteristics c;
+    for (auto x: src) {
+      auto goodMotion = isFinite(x.boatOverGround());
+      c.allMotionsDefined &= goodMotion;
+      c.allPositionsDefined &= isFinite(x.position());
+      if (goodMotion) {
+        c.maxGpsSpeed = std::max(
+            c.maxGpsSpeed, x.boatOverGround().norm());
+      }
+    }
+    return c;
+  }
+
+  void outputInitialStateOverview(
+      const Array<CalibDataChunk> &chunks,
+      HtmlNode::Ptr logNode) {
+    std::vector<InitialStateCharacteristics> ch;
+    for (auto chunk: chunks) {
+      ch.push_back(analyzeInitialStates(chunk.initialStates));
+    }
+    const char *headerStrings[4] = {
+        "Index", "Motions defined", "Positions defined", "Max gps speed"
+    };
+    auto h = SubTable::header(1, 4,
+        [&](HtmlNode::Ptr dst, int i, int j) {
+      dst->stream() << headerStrings[j];
+    });
+    auto inds = SubTable::header(chunks.size(), 1,
+        [&](HtmlNode::Ptr dst, int i, int j) {
+      dst->stream() << i+1;
+    });
+    auto yesOrNo = [](HtmlNode::Ptr dst, bool v) {
+      if (v) {
+        HtmlTag::tagWithData(dst, "p", {{"class", "success"}}, "Yes");
       } else {
-        int i1 = i0 - 1;
-        if (i1 < codes.size()) {
-          return std::make_pair(Column::Data, i1);
-        } else {
-          return std::make_pair(Column::Misc, i1 - codes.size());
-        }
+        HtmlTag::tagWithData(dst, "p", {{"class", "warning"}}, "No");
       }
     };
-
-
+    auto motionsDefined = SubTable::cell(chunks.size(), 1,
+            [&](HtmlNode::Ptr dst, int i, int j) {
+          yesOrNo(dst, ch[i].allMotionsDefined);
+        });
+    auto positionsDefined = SubTable::cell(chunks.size(), 1,
+            [&](HtmlNode::Ptr dst, int i, int j) {
+          yesOrNo(dst, ch[i].allPositionsDefined);
+        });
+    auto speeds = SubTable::cell(chunks.size(), 1,
+        [&](HtmlNode::Ptr dst, int i, int j) {
+      auto vel = ch[i].maxGpsSpeed.knots();
+      dst->stream() << vel << " knots";
+    });
+    auto data = hcat(motionsDefined, hcat(positionsDefined, speeds));
+    renderTable(logNode, vcat(h, hcat(inds, data)));
   }
+
+  template <DataCode code>
+  void registerSensors(const CalibDataChunk &chunk,
+      BoatParameters<double> *dst) {
+    const auto &src0 = ChannelFieldAccess<code>::get(chunk);
+    for (const auto &kv: *src0) {
+      auto &dst0 = *(ChannelFieldAccess<code>::get(dst->sensors));
+      dst0[kv.first] = DistortionModel<double, code>();
+    }
+  }
+
+  template <DataCode code>
+  void outputChannelTableRow(
+      const std::map<std::string, DistortionModel<double, code>> &map,
+      HtmlNode::Ptr dst) {
+    int n = map.size();
+    if (0 < n) {
+      auto row = HtmlTag::make(dst, "tr");
+      HtmlTag::tagWithData(row, "td", wordIdentifierForCode(code));
+      auto sensorData = HtmlTag::make(row, "td");
+      {
+        HtmlTag::tagWithData(sensorData, "p",
+                stringFormat("%d sensors", n));
+        auto sensorTable = HtmlTag::make(sensorData, "table");
+        for (auto kv: map) {
+          auto row = HtmlTag::make(sensorTable, "tr");
+          HtmlTag::tagWithData(row, "td", kv.first);
+          auto p = HtmlTag::make(row, "td");
+          kv.second.outputSummary(&(p->stream()));
+        }
+      }
+    }
+  }
+
+  void outputBoatParameters(
+      const BoatParameters<double> &params,
+      HtmlNode::Ptr dst) {
+    auto table = HtmlTag::make(dst, "table");
+    {
+      auto row = HtmlTag::make(table, "tr");
+      HtmlTag::tagWithData(row, "th", "Type");
+      HtmlTag::tagWithData(row, "th", "Data");
+    }{
+      auto row = HtmlTag::make(table, "tr");
+      HtmlTag::tagWithData(row, "td", "Heel constant");
+      HtmlTag::tagWithData(row, "td",
+          stringFormat("%.3g",
+              params.heelConstant/params.heelConstantUnit()));
+    }{
+      auto row = HtmlTag::make(table, "tr");
+      HtmlTag::tagWithData(row, "td", "Leeway constant");
+      HtmlTag::tagWithData(row, "td",
+          stringFormat("%.3g",
+              params.leewayConstant/params.leewayConstantUnit()));
+    }
+#define OUTPUT_CHANNEL_TABLE_ROW(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  outputChannelTableRow<HANDLE>(*(ChannelFieldAccess<HANDLE>::get(params.sensors)), table);
+FOREACH_CHANNEL(OUTPUT_CHANNEL_TABLE_ROW)
+#undef OUTPUT_CHANNEL_TABLE_ROW
+  }
+}
+
+BoatParameters<double> initializeBoatParameters(
+    const Array<CalibDataChunk> &chunks) {
+  BoatParameters<double> dst;
+  for (auto chunk: chunks) {
+#define REGISTER_SENSORS(CODE) \
+    registerSensors<CODE>(chunk, &dst);
+FOREACH_MEASURE_TO_CONSIDER(REGISTER_SENSORS)
+#undef REGISTER_SENSORS
+  }
+  return dst;
+}
+
+namespace {
+  template <DataCode code>
+  int layoutSensors(int offset,
+      const std::map<std::string, DistortionModel<double, code>> &params,
+      BoatParameterLayout::PerType *dst) {
+    int offset0 = offset;
+    dst->offset = offset;
+    int counter = 0;
+    for (auto kv: params) {
+      dst->sensors[kv.first] =
+          BoatParameterLayout::IndexAndOffset{counter, offset};
+      offset += DistortionModel<double, code>::paramCount;
+      counter++;
+    }
+    dst->paramCount = offset - offset0;
+    assert(counter == params.size());
+    return offset;
+  }
+
+  void outputParamLayout(const BoatParameterLayout &src,
+      HtmlNode::Ptr dst) {
+    HtmlTag::tagWithData(dst, "p", "TODO");
+  }
+}
+
+BoatParameterLayout::BoatParameterLayout(
+    const BoatParameters<double> &parameters) {
+  int offset = 2; // after leeway and heel.
+#define LAYOUT_SENSORS(HANDLE, INDEX, SHORTNAME, TYPE, DESCRIPTION) \
+  offset = layoutSensors<HANDLE>(offset, *(ChannelFieldAccess<HANDLE>::get(parameters.sensors)), &(sensors[HANDLE]));
+FOREACH_CHANNEL(LAYOUT_SENSORS)
+#undef LAYOUT_SENSORS
+  paramCount = offset;
+  assert(paramCount == parameters.paramCount());
 }
 
 ReconstructionResults reconstruct(
@@ -331,7 +553,20 @@ ReconstructionResults reconstruct(
       stringFormat("Reconstruction results for %d chunks",
           chunks.size()));
   if (logNode) {
+    HtmlTag::tagWithData(logNode, "h2", "Input data");
+    HtmlTag::tagWithData(logNode, "h3", "Chunks");
     outputChunkOverview(chunks, logNode);
+    HtmlTag::tagWithData(logNode, "h3", "Initial states");
+    outputInitialStateOverview(chunks, logNode);
+  }
+
+  auto initialParameters = initializeBoatParameters(chunks);
+  BoatParameterLayout layout(initialParameters);
+  if (logNode) {
+    HtmlTag::tagWithData(logNode, "h2", "Initial parameters");
+    outputBoatParameters(initialParameters, logNode);
+    HtmlTag::tagWithData(logNode, "h2", "Parameter layout");
+    outputParamLayout(layout, logNode);
   }
 
   BoatStateReconstructor<FullSettings> reconstructor(
