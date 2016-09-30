@@ -65,7 +65,7 @@ void foreachSpan(const TimeStampToIndexMapper &mapper,
     const Array<TimedValue<T> > &values,
     std::function<void(int, Spani)> cb);
 
-// A memory- and cache efficient data structure
+// A supposedly memory- and cache efficient data structure
 // used by the optimizer
 template <typename T>
 struct ValueAccumulator {
@@ -81,6 +81,11 @@ struct ValueAccumulator {
 
   std::unordered_map<int, Spani> valuesPerIndex;
   std::vector<TaggedValue> values;
+
+  Spani getValueRange(int i) const {
+    auto f = valuesPerIndex.find(i);
+    return f == valuesPerIndex.end()? Spani() : f->second;
+  }
 };
 
 

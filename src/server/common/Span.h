@@ -132,6 +132,10 @@ class Span {
     return width();
   }
 
+  bool empty() const {
+    return !_initialized || size() == 0;
+  }
+
   T middle() const {
     return (_minv + _maxv)/2;
   }

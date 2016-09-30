@@ -121,6 +121,10 @@ struct RegCost {
     auto vbw = BandWidthForType<T, Velocity<double>>::get();
     auto abw = BandWidthForType<T, Angle<double>>::get();
 
+    // TODO: Now we are regularizing for everything,
+    // possibly even state variables that we don't attempt
+    // to reconstruct. That is not wrong, but it is maybe
+    // a waste of time.
     evaluateMotionReg<T>(
         A.boatOverGround.value - B.boatOverGround.value,
         weight, vbw, dst + 0);
@@ -154,6 +158,14 @@ struct ChunkAccumulator {
   ChunkAccumulator(
       const BoatParameterLayout &layout,
       const CalibDataChunk &chunk);
+
+  bool hasData(int i) const {
+#define TEST_FOR_INDEX(HANDLE) \
+  if (!HANDLE.getValueRange(i).empty()) {return true;}
+  FOREACH_MEASURE_TO_CONSIDER(TEST_FOR_INDEX)
+#undef TEST_FOR_INDEX
+    return false;
+  }
 };
 
 ChunkAccumulator::ChunkAccumulator(
@@ -325,14 +337,24 @@ public:
     }
 
     HtmlTag::tagWithData(_log, "h2", "Costs");
-    for (int i = 0; i < _chunks.size(); i++) {
-      HtmlTag::tagWithData(_log, "h3",
-          stringFormat("Costs for chunk %d", i));
-      addCostsForChunk(
-          &globalScale,
-          calibrationParameters,
-          stateParameters[i],
-          _chunks[i], &problem);
+    {
+      auto table = HtmlTag::make(_log, "table");
+      {
+        auto row = HtmlTag::make(table, "tr");
+        HtmlTag::tagWithData(row, "th", "Chunk index");
+        HtmlTag::tagWithData(row, "th", "State count");
+        HtmlTag::tagWithData(row, "th", "Residual cost count");
+        HtmlTag::tagWithData(row, "th", "Data cost count");
+      }
+      for (int i = 0; i < _chunks.size(); i++) {
+        auto row = HtmlTag::make(table, "tr");
+        HtmlTag::tagWithData(row, "td", stringFormat("%d", i));
+        addCostsForChunk(
+            &globalScale,
+            calibrationParameters,
+            stateParameters[i],
+            _chunks[i], &problem, row);
+      }
     }
 
     ReconstructionResults results;
@@ -360,8 +382,14 @@ public:
       double *globalScale,
       Array<double> calibrationParameters,
       Array<double> stateParameters,
-      const ChunkAccumulator &chunk, ceres::Problem *dst) const {
+      const ChunkAccumulator &chunk, ceres::Problem *dst,
+      HtmlNode::Ptr tableRow) const {
+    int stateCount = chunk.initialStates.size();
+    HtmlTag::tagWithData(tableRow,
+        "td", stringFormat("%d", stateCount));
     int regCount = chunk.initialStates.size()-1;
+    HtmlTag::tagWithData(tableRow,
+        "td", stringFormat("%d", regCount));
     for (int i = 0; i < regCount; i++) {
       typedef RegCost<BoatStateSettings> CostFunctor;
       auto cost = new CostFunctor(globalScale, _settings.regWeight);
@@ -372,10 +400,33 @@ public:
           stateParameters.blockPtr(i+0, dynamicStateDim),
           stateParameters.blockPtr(i+1, dynamicStateDim));
     }
-    int stateCount = chunk.initialStates.size();
+    int dataCount = 0;
     for (int i = 0; i < stateCount; i++) {
-
+      if (chunk.hasData(i)) {
+        typedef DataCost<BoatStateSettings> CostFunctor;
+        auto cost = new CostFunctor{
+        #define GET_VALUE_RANGE(HANDLE) \
+          chunk.HANDLE.getValueRange(i),
+        FOREACH_MEASURE_TO_CONSIDER(GET_VALUE_RANGE)
+        #undef GET_VALUE_RANGE
+            *this
+                };
+        auto wrapped = new
+            ceres::DynamicAutoDiffCostFunction<CostFunctor>(
+                cost);
+        wrapped->SetNumResiduals(cost->outputCount());
+        wrapped->AddParameterBlock(calibrationParameters.size());
+        wrapped->AddParameterBlock(dynamicStateDim);
+        dst->AddResidualBlock(wrapped, nullptr, std::vector<double*>{
+          calibrationParameters.ptr(),
+          stateParameters.blockPtr(i, dynamicStateDim)
+        });
+        dataCount++;
+      }
     }
+    HtmlTag::tagWithData(tableRow,
+        "td", stringFormat("%d", dataCount));
+
   }
 
   Array<double> initializeStateParameters(
@@ -402,21 +453,23 @@ public:
 
 template <typename Settings>
 struct DataCost {
-  BoatStateReconstructor<Settings> *rec;
-
-  DataCost(BoatStateReconstructor<Settings> *p) :
-    rec(p) {}
+#define MAKE_RANGE(HANDLE) \
+  Spani HANDLE;
+FOREACH_MEASURE_TO_CONSIDER(MAKE_RANGE)
+#undef GET_VALUE_RANGE
+  const BoatStateReconstructor<Settings> &rec;
 
   template <typename T>
   bool operator()(T const* const* parameters,
       T *residuals) const {
-    ReconstructedBoatState<T, Settings> state;
-    state.readFrom(parameters[0]);
 
-    BoatParameters<T> boatParams;
-    boatParams.readFrom(parameters[1]);
-
+    //TODO: Check against outputCount!!!!
     return true;
+  }
+
+  int outputCount() const {
+    // TODO!!!!
+    return 0;
   }
 };
 
