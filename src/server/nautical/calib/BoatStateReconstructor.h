@@ -79,15 +79,10 @@ struct ValueAccumulator {
     }
   };
 
-  std::map<std::string, int> sensorIndices;
   std::vector<std::pair<int, Spani> > valuesPerIndex;
   std::vector<TaggedValue> values;
 };
 
-template <typename T>
-ValueAccumulator<T> makeValueAccumulator(
-  const TimeStampToIndexMapper &mapper,
-  const std::map<std::string, Array<TimedValue<T> > > &srcData);
 
 struct ReconstructionResults {
   BoatParameters<double> parameters;
@@ -118,11 +113,12 @@ struct BoatParameterLayout {
     IndexAndOffset() {}
     IndexAndOffset(int i, int o) : sensorIndex(i), sensorOffset(o) {}
   };
+  typedef std::map<std::string, IndexAndOffset> IndexAndOffsetMap;
 
   struct PerType {
     int offset = 0;
     int paramCount = 0;
-    std::map<std::string, IndexAndOffset> sensors;
+    IndexAndOffsetMap sensors;
   };
 
 #define DECLARE_PER_TYPE(HANDLE, INDEX, SHORTNAME, TYPE, DESCRIPTION) \
@@ -134,6 +130,12 @@ FOREACH_CHANNEL(DECLARE_PER_TYPE)
 
   BoatParameterLayout(const BoatParameters<double> &parameters);
 };
+
+template <typename T>
+ValueAccumulator<T> makeValueAccumulator(
+  const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
+  const std::map<std::string, Array<TimedValue<T> > > &srcData);
+
 
 template <typename Settings>
 struct CompatibleSettings {

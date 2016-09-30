@@ -78,18 +78,13 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   };
 
   std::vector<std::string> sensorNames;
-  std::vector<int> assignedIndices;
 
-  auto acc = makeValueAccumulator(mapper, src);
-  EXPECT_EQ(acc.sensorIndices.size(), 2);
-  for (auto kv: acc.sensorIndices) {
-    sensorNames.push_back(kv.first);
-    assignedIndices.push_back(kv.second);
-  }
-  std::sort(sensorNames.begin(), sensorNames.end());
-  EXPECT_EQ(sensorNames, (std::vector<std::string>{"Anemobox", "NMEA2000"}));
-  std::sort(assignedIndices.begin(), assignedIndices.end());
-  EXPECT_EQ(assignedIndices, (std::vector<int>{0, 1}));
+  std::map<std::string, BoatParameterLayout::IndexAndOffset>
+    sensorIndices{
+      {"NMEA2000", {0, 0}},
+      {"Anemobox", {1, 1}},
+    };
+  auto acc = makeValueAccumulator(sensorIndices, mapper, src);
   EXPECT_EQ(acc.values.size(), 4 + 2);
   EXPECT_EQ(acc.valuesPerIndex.size(), 3);
 
@@ -104,7 +99,7 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   {
     auto x = acc.values[0];
     EXPECT_EQ(x.sampleIndex, 0);
-    EXPECT_EQ(x.sensorIndex, acc.sensorIndices["NMEA2000"]);
+    EXPECT_EQ(x.sensorIndex, sensorIndices["NMEA2000"].sensorIndex);
     EXPECT_EQ(x.value, 3.4_kn);
   }
   int foundNmea2000 = 0;
@@ -112,10 +107,10 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   for (int i = 1; i < 4; i++) {
     auto x = acc.values[i];
     EXPECT_EQ(x.sampleIndex, 4);
-    if (x.sensorIndex == acc.sensorIndices["NMEA2000"]) {
+    if (x.sensorIndex == sensorIndices["NMEA2000"].sensorIndex) {
       foundNmea2000++;
       EXPECT_EQ(x.value, 2.0_kn);
-    } else if (x.sensorIndex == acc.sensorIndices["Anemobox"]) {
+    } else if (x.sensorIndex == sensorIndices["Anemobox"].sensorIndex) {
       EXPECT_TRUE((x.value == 9.9_kn) || (x.value == 11.4_kn));
       foundAbox++;
     }
@@ -125,7 +120,7 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
   for (int i = 4; i < 6; i++) {
     auto x = acc.values[i];
     EXPECT_EQ(x.sampleIndex, 9);
-    EXPECT_EQ(x.sensorIndex, acc.sensorIndices["NMEA2000"]);
+    EXPECT_EQ(x.sensorIndex, sensorIndices["NMEA2000"].sensorIndex);
     EXPECT_TRUE((x.value == 5.5_kn) || (x.value == 5.4_kn));
   }
 

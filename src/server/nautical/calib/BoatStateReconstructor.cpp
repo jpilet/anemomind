@@ -45,24 +45,23 @@ template void foreachSpan<Velocity<double>>(
 
 template <typename T>
 ValueAccumulator<T> makeValueAccumulator(
+    const BoatParameterLayout::IndexAndOffsetMap &sensorIndices,
   const TimeStampToIndexMapper &mapper,
   const std::map<std::string, Array<TimedValue<T> > > &srcData) {
   typedef ValueAccumulator<T> DstType;
   DstType dst;
-  int sensorCounter = 0;
   int sampleCounter = 0;
   for (auto kv: srcData) {
-    dst.sensorIndices[kv.first] = sensorCounter++;
     foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
       sampleCounter += span.width();
     });
   }
   dst.values.reserve(sampleCounter);
 
-  assert(sensorCounter == dst.sensorIndices.size());
   for (auto kv: srcData) {
-    assert(dst.sensorIndices.count(kv.first) == 1);
-    int sensorIndex = dst.sensorIndices[kv.first];
+    auto f = sensorIndices.find(kv.first);
+    assert(f != sensorIndices.end());
+    int sensorIndex = f->second.sensorIndex;
     foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
       for (auto i: span) {
         auto tagged = typename DstType::TaggedValue{
@@ -97,10 +96,10 @@ ValueAccumulator<T> makeValueAccumulator(
 
 // Forced instantiations for unit tests.
 template ValueAccumulator<Angle<double>> makeValueAccumulator<Angle<double>>(
-  const TimeStampToIndexMapper &mapper,
+    const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
   const std::map<std::string, Array<TimedValue<Angle<double>> > > &srcData);
 template ValueAccumulator<Velocity<double>> makeValueAccumulator<Velocity<double>>(
-  const TimeStampToIndexMapper &mapper,
+    const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
   const std::map<std::string, Array<TimedValue<Velocity<double>> > > &srcData);
 
 template <typename T>
@@ -163,11 +162,11 @@ public:
   BoatStateReconstructor(
       const Array<CalibDataChunk> &chunk,
       const ReconstructionSettings &settings,
-      const HtmlNode::Ptr &logNode) /*:
-#define INITIALIZE_VALUE_ACC(HANDLE) \
+      const HtmlNode::Ptr &logNode) : _log(logNode)
+/* define INITIALIZE_VALUE_ACC(HANDLE) \
   HANDLE(makeValueAccumulators<HANDLE>(chunks)),
 FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
-#undef INITIALIZE_VALUE_ACC*/
+undef INITIALIZE_VALUE_ACC*/
   {}
 
   Array<BoatState<double> > reconstruct(
@@ -238,6 +237,7 @@ FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
   FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
 #undef DECLARE_VALUE_ACC
 
+  HtmlNode::Ptr _log;
   Array<CalibDataChunk> _chunks;
 };
 
