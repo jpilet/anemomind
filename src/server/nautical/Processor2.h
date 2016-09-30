@@ -32,8 +32,6 @@ struct Settings {
 
   SessionCut::Settings sessionCutSettings;
   std::string logRoot;
-
-  std::string makeLogFilename(const std::string &s) const;
 };
 
 // Used for cutting the sessions.

@@ -75,25 +75,6 @@ FOREACH_CHANNEL(DISP_CHANNELS)
   return stream;
 }
 
-void outputChunkInformation(
-    std::string filename,
-    const Array<Span<TimeStamp>> &timeSpans,
-    const Array<CalibDataChunk> &chunks) {
-  std::ofstream file(filename);
-  std::cout << "Number of time spans: " << timeSpans.size() << std::endl;
-  CHECK(timeSpans.size() == chunks.size());
-  int n = timeSpans.size();
-  for (int i = 0; i < n; i++) {
-    auto span = timeSpans[i];
-    auto chunk = chunks[i];
-    file << "==== Calib chunk " << i+1 << " of " << n << " from "
-        << span.minv() << " to "
-        << span.maxv() << std::endl;
-    file << chunk;
-    file << "\n\n\n\n";
-  }
-}
-
 //const Array<TimedValue<GeographicPosition<double>>> &filteredPositions,
 /**/
 
@@ -312,11 +293,6 @@ Settings::Settings() : debug(true) {
 
   sessionCutSettings.cuttingThreshold = Duration<double>::hours(1.0);
   sessionCutSettings.regularization = 1.0;
-}
-
-std::string Settings::makeLogFilename(const std::string &s) const {
-  return PathBuilder::makeDirectory(logRoot)
-    .makeFile(s).get().toString();
 }
 
 Array<TimeStamp> getAllTimeStampsFiltered(
