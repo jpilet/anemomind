@@ -136,22 +136,6 @@ ValueAccumulator<T> makeValueAccumulator(
   const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
   const std::map<std::string, Array<TimedValue<T> > > &srcData);
 
-
-template <typename Settings>
-struct CompatibleSettings {
-  bool test(const BoatParameters<double> &params) {
-    return implies(
-                Settings::withCurrentOverGround,
-                !params.sensors.WAT_SPEED.empty()) &&
-           implies(
-                Settings::withWindOverGround,
-                !params.sensors.AWS.empty() &&
-                !params.sensors.AWA.empty()) &&
-           implies(Settings::withHeel || Settings::withIMU,
-               !params.sensors.ORIENT.empty());
-  }
-};
-
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,

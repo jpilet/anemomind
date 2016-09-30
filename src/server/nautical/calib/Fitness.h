@@ -120,10 +120,10 @@ template <typename T>
 struct AreFitnessSettings<T,
   decltype(
     T::withBoatOverGround ||
+    T::withWindOverGround ||
     T::withCurrentOverGround ||
     T::withHeel ||
-    T::withPitch ||
-    T::withIMU)> {
+    T::withPitch)> {
   static const bool value = true;
 };
 
@@ -133,15 +133,14 @@ struct ServerBoatStateSettings {
   static const bool withCurrentOverGround = true;
   static const bool withHeel = false;
   static const bool withPitch = false;
-  static const bool withIMU = false;
 };
 
 struct FullSettings {
   static const bool withBoatOverGround = true;
+  static const bool withWindOverGround = true;
   static const bool withCurrentOverGround = true;
   static const bool withHeel = true;
   static const bool withPitch = true;
-  static const bool withIMU = true;
 };
 
 static_assert(AreFitnessSettings<FullSettings>::value, "Bad settings");
