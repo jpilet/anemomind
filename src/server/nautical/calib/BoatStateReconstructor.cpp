@@ -148,6 +148,128 @@ struct RegCost {
 template <typename Settings>
 struct DataCost;
 
+struct ChunkAccumulator {
+  Array<BoatState<double>> initialStates;
+
+#define DECLARE_VALUE_ACC(HANDLE) \
+  ValueAccumulator<typename TypeForCode<HANDLE>::type> HANDLE;
+  FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
+#undef DECLARE_VALUE_ACC
+
+  ChunkAccumulator() {}
+  ChunkAccumulator(
+      const BoatParameterLayout &layout,
+      const CalibDataChunk &chunk);
+};
+
+ChunkAccumulator::ChunkAccumulator(
+    const BoatParameterLayout &layout,
+    const CalibDataChunk &chunk) :
+        initialStates(chunk.initialStates) {
+#define INIT_ACC(HANDLE) \
+  HANDLE = makeValueAccumulator(layout.HANDLE.sensors, chunk.timeMapper, chunk.HANDLE);
+  FOREACH_MEASURE_TO_CONSIDER(INIT_ACC)
+#undef DECLARE_VALUE_ACC
+}
+
+
+namespace {
+
+  void outputSensorOffsetData(DataCode code,
+      BoatParameterLayout::PerType data,
+      HtmlNode::Ptr dst0) {
+    if (!data.sensors.empty()) {
+      auto row0 = HtmlTag::make(dst0, "tr");
+      HtmlTag::tagWithData(row0, "td", wordIdentifierForCode(code));
+      auto dst = HtmlTag::make(row0, "td");
+
+      {
+        auto overview = HtmlTag::make(dst, "table");
+        {
+          auto row = HtmlTag::make(overview, "tr");
+          HtmlTag::tagWithData(row, "td", "offset");
+          HtmlTag::tagWithData(row, "td",
+              stringFormat("%d", data.offset));
+        }{
+          auto row = HtmlTag::make(overview, "tr");
+          HtmlTag::tagWithData(row, "td", "param count");
+          HtmlTag::tagWithData(row, "td",
+              stringFormat("%d", data.paramCount));
+        }
+      }{
+        auto perSensor = HtmlTag::make(dst, "table");
+        {
+          auto row = HtmlTag::make(perSensor, "tr");
+          HtmlTag::tagWithData(row, "th", "Source");
+          HtmlTag::tagWithData(row, "th", "Offset");
+          HtmlTag::tagWithData(row, "th", "Index");
+        }
+        for (auto kv: data.sensors) {
+          auto row = HtmlTag::make(perSensor, "tr");
+          HtmlTag::tagWithData(row, "td", kv.first);
+          HtmlTag::tagWithData(row, "td",
+              stringFormat("%d", kv.second.sensorOffset));
+          HtmlTag::tagWithData(row, "td",
+              stringFormat("%d", kv.second.sensorIndex));
+        }
+      }
+    }
+  }
+
+  void outputParamLayout(const BoatParameterLayout &src,
+      HtmlNode::Ptr dst) {
+    {
+      auto table = HtmlTag::make(dst, "table");
+      {
+        auto row = HtmlTag::make(table, "tr");
+        HtmlTag::tagWithData(row, "th", "Type");
+        HtmlTag::tagWithData(row, "th", "Data");
+      }{
+        auto row = HtmlTag::make(table, "tr");
+        HtmlTag::tagWithData(row, "td", "Heel offset");
+        HtmlTag::tagWithData(row, "td",
+            stringFormat("%d", src.heelConstantOffset));
+      }{
+        auto row = HtmlTag::make(table, "tr");
+        HtmlTag::tagWithData(row, "td", "Leeway offset");
+        HtmlTag::tagWithData(row, "td",
+            stringFormat("%d", src.leewayConstantOffset));
+      }
+  #define OUTPUT_SENSOR_OFFSET(HANDLE, INDEX, SHORTNAME, TYPE, DESCRIPTION) \
+      outputSensorOffsetData(DataCode::HANDLE, src.HANDLE, dst);
+  FOREACH_CHANNEL(OUTPUT_SENSOR_OFFSET)
+  #undef OUTPUT_SENSOR_OFFSET
+    }
+    HtmlTag::tagWithData(dst, "p",
+        stringFormat("Total parameter count: %d", src.paramCount));
+  }
+}
+
+void addParameterBlock(ceres::Problem *dst,
+    Array<double> X) {
+  dst->AddParameterBlock(X.ptr(), X.size());
+}
+
+void outputParameterCountOverview(
+    const Array<double> &calibrationParameters,
+    const Array<Array<double>> &stateVariables,
+    HtmlNode::Ptr dst) {
+  auto table = HtmlTag::make(dst, "table");
+  {
+    auto row = HtmlTag::make(table, "tr");
+    HtmlTag::tagWithData(row, "td", "Calibration parameters");
+    HtmlTag::tagWithData(row, "td",
+        stringFormat("%d", calibrationParameters.size()));
+  }
+  for (int i = 0; i < stateVariables.size(); i++) {
+    auto row = HtmlTag::make(table, "tr");
+    HtmlTag::tagWithData(row, "td",
+        stringFormat("State variables chunk %d", i+1));
+    HtmlTag::tagWithData(row, "td",
+        stringFormat("%d", stateVariables[i].size()));
+  }
+}
+
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
@@ -157,88 +279,88 @@ public:
   template <typename T>
   using State = ReconstructedBoatState<T, BoatStateSettings>;
 
-  //static const int dynamicStateDim = State<double>::valueDimension;
+  typedef State<double> Stated;
+
+  static const int dynamicStateDim = Stated::dynamicValueDimension;
 
   BoatStateReconstructor(
-      const Array<CalibDataChunk> &chunk,
+      const Array<CalibDataChunk> &chunks,
+      const BoatParameters<double> &initialParameters,
       const ReconstructionSettings &settings,
-      const HtmlNode::Ptr &logNode) : _log(logNode)
-/* define INITIALIZE_VALUE_ACC(HANDLE) \
-  HANDLE(makeValueAccumulators<HANDLE>(chunks)),
-FOREACH_MEASURE_TO_CONSIDER(INITIALIZE_VALUE_ACC)
-undef INITIALIZE_VALUE_ACC*/
-  {}
-
-  Array<BoatState<double> > reconstruct(
-      const BoatParameters<double> &boatParams) const {
-    double globalScale = 1.0;
-    /*int n = _initialStates.size();
-    ceres::Problem problem;
-
-    Array<double> reconstructedStates(
-        n*dynamicStateDim);
-    std::default_random_engine rng;
-    std::uniform_real_distribution<double> hdgDistrib(0.0, 2.0*M_PI);
+      const HtmlNode::Ptr &logNode) :
+        _log(logNode),
+        _initialParameters(initialParameters),
+        _layout(initialParameters) {
+    int n = chunks.size();
+    _chunks = Array<ChunkAccumulator>(n);
     for (int i = 0; i < n; i++) {
-      State<double> state;
-      state.heading.value = HorizontalMotion<double>::polar(
-          0.0001_mps, hdgDistrib(rng)*1.0_rad);
-
-      double *p = reconstructedStates.blockPtr(
-          i, dynamicStateDim);
-      problem.AddParameterBlock(p, dynamicStateDim);
-
-      state.write(&p);
+      _chunks[i] = ChunkAccumulator(_layout, chunks[i]);
     }
 
-    Array<double> reconstructedBoatParameters(boatParams.paramCount());
-    boatParams.writeTo(reconstructedBoatParameters.ptr());
-    problem.AddParameterBlock(
-        reconstructedBoatParameters.ptr(),
-        boatParams.paramCount());
-
-    { // Regularization
-      int regCount = n-1;
-      for (int i = 0; i < regCount; i++) {
-        typedef RegCost<BoatStateSettings> RegFunctor;
-        problem.AddResidualBlock(
-            new ceres::AutoDiffCostFunction<RegFunctor,
-              dynamicStateDim, dynamicStateDim, dynamicStateDim>(
-                  new RegFunctor(&globalScale, 1.0)),
-            nullptr,
-            reconstructedStates.blockPtr(i, dynamicStateDim),
-            reconstructedStates.blockPtr(i+1, dynamicStateDim));
-      }
+    if (logNode) {
+      HtmlTag::tagWithData(logNode, "h2", "Parameter layout");
+      outputParamLayout(_layout, logNode);
     }
-
-    { // Data
-      int dataCount = n;
-      for (int i = 0; i < dataCount; i++) {
-        typedef DataCost<BoatStateSettings> DataFunctor;
-        auto f = new DataFunctor();
-        auto cost = new ceres::DynamicAutoDiffCostFunction<DataFunctor>(f);
-        cost->AddParameterBlock(dynamicStateDim);
-        cost->AddParameterBlock(boatParams.paramCount());
-        cost-SetNumResiduals(f->outputCount());
-        std::vector<double*> params{
-          reconstructedStates.blockPtr(i, dynamicStateDim),
-          reconstructedBoatParameters.ptr()
-        };
-        problem.AddResidualBlock(cost, nullptr, params);
-      }
-    }
-*/
-
-    return Array<BoatState<double>>();
   }
 
-#define DECLARE_VALUE_ACC(HANDLE) \
-  Array<ValueAccumulator<typename TypeForCode<HANDLE>::type>> HANDLE;
-  FOREACH_MEASURE_TO_CONSIDER(DECLARE_VALUE_ACC)
-#undef DECLARE_VALUE_ACC
+  ReconstructionResults reconstruct() const {
+    double globalScale = 1.0;
+
+    Array<double> calibrationParameters
+      = initializeCalibrationParameters();
+
+    ceres::Problem problem;
+    addParameterBlock(&problem, calibrationParameters);
+
+    Array<Array<double>> stateParameters = initializeStateParameters();
+    assert(stateParameters.size() == _chunks.size());
+
+    if (_log) {
+      HtmlTag::tagWithData(_log, "h2", "Parameter blocks to optimize");
+      outputParameterCountOverview(
+          calibrationParameters, stateParameters, _log);
+    }
+
+    ReconstructionResults results;
+    results.parameters = _initialParameters;
+    results.parameters.readFrom(calibrationParameters.ptr());
+    return results;
+  }
+
+  Array<double> initializeCalibrationParameters() const {
+    Array<double> dst(_initialParameters.paramCount());
+    _initialParameters.writeTo(dst.ptr());
+    return dst;
+  }
+
+  Array<Array<double>> initializeStateParameters() const {
+    int n = _chunks.size();
+    Array<Array<double>> dst(n);
+    for (int i = 0; i < n; i++) {
+      dst[i] = initializeStateParameters(_chunks[i]);
+    }
+    return dst;
+  }
+
+  Array<double> initializeStateParameters(
+      const ChunkAccumulator &acc) const {
+    Array<double> dst(acc.initialStates.size()*dynamicStateDim);
+    // Having perfectly random numbers is not an issue in this case.
+    std::default_random_engine rng;
+    std::uniform_real_distribution<double> distrib(0.0, 2.0*M_PI);
+    for (int i = 0; i < acc.initialStates.size(); i++) {
+      auto tmp = State<double>::make(acc.initialStates[i]);
+      tmp.heading = HorizontalMotion<double>::polar(
+          1.0e-6_kn, distrib(rng)*1.0_rad);
+      tmp.writeTo(dst.blockPtr(i, dynamicStateDim));
+    }
+    return dst;
+  }
 
   HtmlNode::Ptr _log;
-  Array<CalibDataChunk> _chunks;
+  BoatParameters<double> _initialParameters;
+  BoatParameterLayout _layout;
+  Array<ChunkAccumulator> _chunks;
 };
 
 template <typename Settings>
@@ -527,75 +649,6 @@ namespace {
     assert(counter == params.size());
     return offset;
   }
-
-  void outputSensorOffsetData(DataCode code,
-      BoatParameterLayout::PerType data,
-      HtmlNode::Ptr dst0) {
-    if (!data.sensors.empty()) {
-      auto row0 = HtmlTag::make(dst0, "tr");
-      HtmlTag::tagWithData(row0, "td", wordIdentifierForCode(code));
-      auto dst = HtmlTag::make(row0, "td");
-
-      {
-        auto overview = HtmlTag::make(dst, "table");
-        {
-          auto row = HtmlTag::make(overview, "tr");
-          HtmlTag::tagWithData(row, "td", "offset");
-          HtmlTag::tagWithData(row, "td",
-              stringFormat("%d", data.offset));
-        }{
-          auto row = HtmlTag::make(overview, "tr");
-          HtmlTag::tagWithData(row, "td", "param count");
-          HtmlTag::tagWithData(row, "td",
-              stringFormat("%d", data.paramCount));
-        }
-      }{
-        auto perSensor = HtmlTag::make(dst, "table");
-        {
-          auto row = HtmlTag::make(perSensor, "tr");
-          HtmlTag::tagWithData(row, "th", "Source");
-          HtmlTag::tagWithData(row, "th", "Offset");
-          HtmlTag::tagWithData(row, "th", "Index");
-        }
-        for (auto kv: data.sensors) {
-          auto row = HtmlTag::make(perSensor, "tr");
-          HtmlTag::tagWithData(row, "td", kv.first);
-          HtmlTag::tagWithData(row, "td",
-              stringFormat("%d", kv.second.sensorOffset));
-          HtmlTag::tagWithData(row, "td",
-              stringFormat("%d", kv.second.sensorIndex));
-        }
-      }
-    }
-  }
-
-  void outputParamLayout(const BoatParameterLayout &src,
-      HtmlNode::Ptr dst) {
-    {
-      auto table = HtmlTag::make(dst, "table");
-      {
-        auto row = HtmlTag::make(table, "tr");
-        HtmlTag::tagWithData(row, "th", "Type");
-        HtmlTag::tagWithData(row, "th", "Data");
-      }{
-        auto row = HtmlTag::make(table, "tr");
-        HtmlTag::tagWithData(row, "td", "Heel offset");
-        HtmlTag::tagWithData(row, "td",
-            stringFormat("%d", src.heelConstantOffset));
-      }{
-        auto row = HtmlTag::make(table, "tr");
-        HtmlTag::tagWithData(row, "td", "Leeway offset");
-        HtmlTag::tagWithData(row, "td",
-            stringFormat("%d", src.leewayConstantOffset));
-      }
-  #define OUTPUT_SENSOR_OFFSET(HANDLE, INDEX, SHORTNAME, TYPE, DESCRIPTION) \
-      outputSensorOffsetData(DataCode::HANDLE, src.HANDLE, dst);
-  FOREACH_CHANNEL(OUTPUT_SENSOR_OFFSET)
-  #undef OUTPUT_SENSOR_OFFSET
-    }
-    HtmlTag::tagWithData(dst, "p",
-        stringFormat("Total parameter count: %d", src.paramCount));
-  }
 }
 
 BoatParameterLayout::BoatParameterLayout(
@@ -629,13 +682,21 @@ ReconstructionResults reconstruct(
   if (logNode) {
     HtmlTag::tagWithData(logNode, "h2", "Initial parameters");
     outputBoatParameters(initialParameters, logNode);
-    HtmlTag::tagWithData(logNode, "h2", "Parameter layout");
-    outputParamLayout(layout, logNode);
   }
 
   BoatStateReconstructor<FullSettings> reconstructor(
-      chunks, settings, logNode);
-  return ReconstructionResults();
+      chunks, initialParameters, settings, logNode);
+
+  auto results = reconstructor.reconstruct();
+  assert(results.parameters.paramCount()
+      == initialParameters.paramCount());
+
+  if (logNode) {
+    HtmlTag::tagWithData(logNode, "h2", "Reconstruction results");
+    outputBoatParameters(results.parameters, logNode);
+  }
+
+  return results;
 }
 
 

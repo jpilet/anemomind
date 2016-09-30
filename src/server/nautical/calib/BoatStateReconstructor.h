@@ -103,6 +103,10 @@ struct ReconstructionSettings {
 BoatParameters<double> initializeBoatParameters(
     const Array<CalibDataChunk> &chunks);
 
+// This object specifies how the different parameters can be found
+// in the vector that we are optimizing. So if we have pointer
+// at the beginning of that vector, the different offsets of
+// this objects are w.r.t. that pointer.
 struct BoatParameterLayout {
   const int heelConstantOffset = 0;
   const int leewayConstantOffset = 1;

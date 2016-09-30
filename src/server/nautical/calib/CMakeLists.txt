@@ -129,6 +129,7 @@ target_link_libraries(calib_BoatStateReconstructor
   anemobox_Channels
   common_logging
   )
+target_depends_on_ceres(calib_BoatStateReconstructor)
 
 cxx_test(calib_BoatStateReconstructorTest
   BoatStateReconstructorTest.cpp

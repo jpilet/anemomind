@@ -127,14 +127,18 @@ struct AreFitnessSettings<T,
   static const bool value = true;
 };
 
-struct ServerBoatStateSettings {
+// The settings specify what we want to reconstruct
+struct DefaultSettings {
+  // Provided by the GPS filter
   static const bool withBoatOverGround = false;
-  static const bool withWindOverGround = false;
+
+  static const bool withWindOverGround = true;
   static const bool withCurrentOverGround = true;
-  static const bool withHeel = false;
-  static const bool withPitch = false;
+  static const bool withHeel = true;
+  static const bool withPitch = true;
 };
 
+// Future version, also boat motion recover.
 struct FullSettings {
   static const bool withBoatOverGround = true;
   static const bool withWindOverGround = true;
