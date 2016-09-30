@@ -528,9 +528,73 @@ namespace {
     return offset;
   }
 
+  void outputSensorOffsetData(DataCode code,
+      BoatParameterLayout::PerType data,
+      HtmlNode::Ptr dst0) {
+    if (!data.sensors.empty()) {
+      auto row0 = HtmlTag::make(dst0, "tr");
+      HtmlTag::tagWithData(row0, "td", wordIdentifierForCode(code));
+      auto dst = HtmlTag::make(row0, "td");
+
+      {
+        auto overview = HtmlTag::make(dst, "table");
+        {
+          auto row = HtmlTag::make(overview, "tr");
+          HtmlTag::tagWithData(row, "td", "offset");
+          HtmlTag::tagWithData(row, "td",
+              stringFormat("%d", data.offset));
+        }{
+          auto row = HtmlTag::make(overview, "tr");
+          HtmlTag::tagWithData(row, "td", "param count");
+          HtmlTag::tagWithData(row, "td",
+              stringFormat("%d", data.paramCount));
+        }
+      }{
+        auto perSensor = HtmlTag::make(dst, "table");
+        {
+          auto row = HtmlTag::make(perSensor, "tr");
+          HtmlTag::tagWithData(row, "th", "Source");
+          HtmlTag::tagWithData(row, "th", "Offset");
+          HtmlTag::tagWithData(row, "th", "Index");
+        }
+        for (auto kv: data.sensors) {
+          auto row = HtmlTag::make(perSensor, "tr");
+          HtmlTag::tagWithData(row, "td", kv.first);
+          HtmlTag::tagWithData(row, "td",
+              stringFormat("%d", kv.second.sensorOffset));
+          HtmlTag::tagWithData(row, "td",
+              stringFormat("%d", kv.second.sensorIndex));
+        }
+      }
+    }
+  }
+
   void outputParamLayout(const BoatParameterLayout &src,
       HtmlNode::Ptr dst) {
-    HtmlTag::tagWithData(dst, "p", "TODO");
+    {
+      auto table = HtmlTag::make(dst, "table");
+      {
+        auto row = HtmlTag::make(table, "tr");
+        HtmlTag::tagWithData(row, "th", "Type");
+        HtmlTag::tagWithData(row, "th", "Data");
+      }{
+        auto row = HtmlTag::make(table, "tr");
+        HtmlTag::tagWithData(row, "td", "Heel offset");
+        HtmlTag::tagWithData(row, "td",
+            stringFormat("%d", src.heelConstantOffset));
+      }{
+        auto row = HtmlTag::make(table, "tr");
+        HtmlTag::tagWithData(row, "td", "Leeway offset");
+        HtmlTag::tagWithData(row, "td",
+            stringFormat("%d", src.leewayConstantOffset));
+      }
+  #define OUTPUT_SENSOR_OFFSET(HANDLE, INDEX, SHORTNAME, TYPE, DESCRIPTION) \
+      outputSensorOffsetData(DataCode::HANDLE, src.HANDLE, dst);
+  FOREACH_CHANNEL(OUTPUT_SENSOR_OFFSET)
+  #undef OUTPUT_SENSOR_OFFSET
+    }
+    HtmlTag::tagWithData(dst, "p",
+        stringFormat("Total parameter count: %d", src.paramCount));
   }
 }
 
