@@ -118,8 +118,10 @@ struct RegCost {
 
   RegCost(double *gs, double w) : globalScale(gs), regWeight(w) {}
 
+  static const int outputCount = 10;
+
   template <typename T>
-  bool operator()(const T *X, const T *Y, T *dst) {
+  bool operator()(const T *X, const T *Y, T *dst) const {
     ReconstructedBoatState<T, Settings> A, B;
     A.readFrom(X);
     B.readFrom(Y);
@@ -129,18 +131,19 @@ struct RegCost {
     auto abw = BandWidthForType<T, Angle<double>>::get();
 
     evaluateMotionReg<T>(
-        A.boatOverGround - B.boatOverGround,
+        A.boatOverGround.value - B.boatOverGround.value,
         weight, vbw, dst + 0);
     evaluateMotionReg<T>(
-        A.windOverGround - B.windOverGround,
+        A.windOverGround.value - B.windOverGround.value,
         weight, vbw, dst + 2);
     evaluateMotionReg<T>(
-        A.currentOverGround - B.currentOverGround,
+        A.currentOverGround.value - B.currentOverGround.value,
         weight, vbw, dst + 4);
-    dst[6] = weight*((A.heel - B.heel)/abw);
-    dst[7] = weight*((A.pitch - B.pitch)/abw);
-    dst[8] = weight*((A.heading - B.heading)/abw);
-    static_assert(9 == A.valueDimension, "Bad dim");
+    dst[6] = weight*((A.heel.value - B.heel.value).normalizedAt0()/abw);
+    dst[7] = weight*((A.pitch.value - B.pitch.value).normalizedAt0()/abw);
+    evaluateMotionReg<T>(A.heading.value - B.heading.value,
+        weight, vbw, dst + 8);
+    static_assert(10 == outputCount, "Bad dim");
     return true;
   }
 };
@@ -255,18 +258,27 @@ void outputParameterCountOverview(
     const Array<Array<double>> &stateVariables,
     HtmlNode::Ptr dst) {
   auto table = HtmlTag::make(dst, "table");
+  int total = 0;
   {
     auto row = HtmlTag::make(table, "tr");
     HtmlTag::tagWithData(row, "td", "Calibration parameters");
+    int n = calibrationParameters.size();
     HtmlTag::tagWithData(row, "td",
-        stringFormat("%d", calibrationParameters.size()));
+        stringFormat("%d", n));
+    total += n;
   }
   for (int i = 0; i < stateVariables.size(); i++) {
     auto row = HtmlTag::make(table, "tr");
     HtmlTag::tagWithData(row, "td",
         stringFormat("State variables chunk %d", i+1));
+    int n = stateVariables[i].size();
     HtmlTag::tagWithData(row, "td",
-        stringFormat("%d", stateVariables[i].size()));
+        stringFormat("%d", n));
+    total += n;
+  }{
+    auto row = HtmlTag::make(table, "tr");
+    HtmlTag::tagWithData(row, "td", "TOTAL");
+    HtmlTag::tagWithData(row, "td", stringFormat("%d", total));
   }
 }
 
@@ -326,6 +338,7 @@ public:
       HtmlTag::tagWithData(_log, "h3",
           stringFormat("Costs for chunk %d", i));
       addCostsForChunk(
+          &globalScale,
           calibrationParameters,
           stateParameters[i],
           _chunks[i], &problem);
@@ -353,10 +366,23 @@ public:
   }
 
   void addCostsForChunk(
+      double *globalScale,
       Array<double> calibrationParameters,
       Array<double> stateParameters,
       const ChunkAccumulator &chunk, ceres::Problem *dst) const {
-
+    int regResiduals = 0;
+    int regCount = chunk.initialStates.size()-1;
+    for (int i = 0; i < regCount; i++) {
+      typedef RegCost<BoatStateSettings> CostFunctor;
+      auto cost = new CostFunctor(globalScale, _settings.regWeight);
+      auto wrapped = new ceres::AutoDiffCostFunction<CostFunctor,
+          CostFunctor::outputCount, dynamicStateDim,
+          dynamicStateDim>(cost);
+      dst->AddResidualBlock(wrapped, nullptr,
+          stateParameters.blockPtr(i+0, dynamicStateDim),
+          stateParameters.blockPtr(i+1, dynamicStateDim));
+      regResiduals += CostFunctor::outputCount;
+    }
   }
 
   Array<double> initializeStateParameters(
@@ -378,6 +404,7 @@ public:
   BoatParameters<double> _initialParameters;
   BoatParameterLayout _layout;
   Array<ChunkAccumulator> _chunks;
+  ReconstructionSettings _settings;
 };
 
 template <typename Settings>

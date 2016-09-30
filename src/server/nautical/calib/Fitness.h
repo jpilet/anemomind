@@ -59,14 +59,14 @@ struct BandWidthForType {};
 template <typename T>
 struct BandWidthForType<T, Angle<double> > {
   static Angle<T> get() {
-    return Angle<T>::degrees(MakeConstant<double>::apply(5.0));
+    return Angle<T>::degrees(MakeConstant<T>::apply(5.0));
   }
 };
 
 template <typename T>
 struct BandWidthForType<T, Velocity<double> > {
   static Velocity<T> get() {
-    return Velocity<T>::knots(MakeConstant<double>::apply(0.5));
+    return Velocity<T>::knots(MakeConstant<T>::apply(0.5));
   }
 };
 
