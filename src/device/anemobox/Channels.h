@@ -72,6 +72,9 @@ FOREACH_CHANNEL(DECL_TYPE)
 
 const char* descriptionForCode(DataCode code);
 const char* wordIdentifierForCode(DataCode code);
+DataCode indexToDataCode(int i);
+int dataCodeToIndex(DataCode code);
+
 
 // Assuming that an object of type Object has instance variables
 // named exactly, like channel handles, e.g. Object::AWA, Object::MAG_HEADING,

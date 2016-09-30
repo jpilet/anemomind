@@ -212,6 +212,7 @@ class ReplayDispatcher : public Dispatcher {
  };
  
 bool saveDispatcher(const std::string& filename, const Dispatcher& nav);
+std::vector<DataCode> getAllDataCodes();
 
 
 }  // namespace sail

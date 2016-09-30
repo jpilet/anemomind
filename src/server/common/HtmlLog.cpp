@@ -60,7 +60,7 @@ HtmlNode::Ptr HtmlTag::initializePage(
       title->stream() << titleStr;
     }{
       auto style = HtmlTag::make(head, "style");
-      style->stream() << "td, th {border: 1px solid black;}";
+      style->stream() << "td, th {border: 1px solid black;} .warning {color: orange} .error {color: red}";
     }
   }
   return HtmlTag::make(emptyPage, "body");
@@ -69,8 +69,15 @@ HtmlNode::Ptr HtmlTag::initializePage(
 void HtmlTag::tagWithData(HtmlNode::Ptr parent,
       const std::string &tagName,
       const std::string &data) {
+  tagWithData2(parent, tagName, {}, data);
+}
+
+void HtmlTag::tagWithData2(HtmlNode::Ptr parent,
+    const std::string &tagName,
+    const std::vector<std::pair<std::string, AttribValue> > &attribs,
+    const std::string &data) {
   if (parent) {
-    auto dst = make(parent, tagName);
+    auto dst = make(parent, tagName, attribs);
     dst->stream() << data;
   }
 }
@@ -100,6 +107,23 @@ HtmlTag::HtmlTag(HtmlNode::Ptr parent, const std::string &tagName,
 
 HtmlTag::~HtmlTag() {
   _stream << "</" << _tagName << ">";
+}
+
+void renderTable(
+    HtmlNode::Ptr parent,
+    int rows, int cols,
+    std::function<bool(int,int)> isHeader,
+    std::function<void(HtmlNode::Ptr, int, int)> renderCell) {
+  if (parent) {
+    auto table = HtmlTag::make(parent, "table");
+    for (int i = 0; i < rows; i++) {
+      auto row = HtmlTag::make(table, "tr");
+      for (int j = 0; j < cols; j++) {
+        auto element = HtmlTag::make(row, isHeader(i, j)? "th" : "td");
+        renderCell(element, i, j);
+      }
+    }
+  }
 }
 
 

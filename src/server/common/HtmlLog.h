@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <server/common/MDArray.h>
 
 namespace sail {
 
@@ -44,6 +45,7 @@ private:
 
 class AttribValue {
 public:
+  AttribValue(const char *s) : _value(s) {}
   AttribValue(const std::string &s) : _value(s) {}
   AttribValue(double v);
   AttribValue(int v);
@@ -55,7 +57,7 @@ private:
 class HtmlTag : public HtmlNode {
 public:
   static HtmlNode::Ptr make(HtmlNode::Ptr parent, const std::string &tagName,
-        const std::vector<std::pair<std::string, AttribValue> > &attribs
+      const std::vector<std::pair<std::string, AttribValue> > &attribs
            = std::vector<std::pair<std::string, AttribValue> >());
 
   static HtmlNode::Ptr initializePage(
@@ -65,17 +67,19 @@ public:
   static void tagWithData(HtmlNode::Ptr parent,
       const std::string &tagName,
       const std::string &data);
+  static void tagWithData2(HtmlNode::Ptr parent,
+      const std::string &tagName,
+      const std::vector<std::pair<std::string, AttribValue> > &attribs,
+      const std::string &data);
 
   static HtmlNode::Ptr linkToSubPage(
       HtmlNode::Ptr parent,
       const std::string &linkText);
 
-
   std::ostream &stream() override {return _stream;}
 
   HtmlNode::Ptr makeNewRoot() override {return _parent->makeNewRoot();}
   std::string localAddress() const override {return _parent->localAddress();}
-
 
   virtual ~HtmlTag();
 private:
@@ -88,6 +92,14 @@ private:
   std::vector<std::pair<std::string, AttribValue> > _attributes;
   std::ostream &_stream;
 };
+
+void renderTable(
+    HtmlNode::Ptr parent,
+    int rows, int cols,
+    std::function<bool(int,int)> isHeader,
+    std::function<void(HtmlNode::Ptr, int, int)> renderCell);
+
+
 
 } /* namespace sail */
 

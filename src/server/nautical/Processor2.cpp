@@ -22,6 +22,7 @@
 #include <server/common/TimedValueCutter.h>
 #include <server/common/logging.h>
 #include <server/common/Functional.h>
+#include <unordered_map>
 
 namespace sail {
 namespace Processor2 {
@@ -207,6 +208,82 @@ Array<ReconstructionResults> reconstructAllGroups(
   return Array<ReconstructionResults>();
 }
 
+struct ChannelSummarizerVisitor {
+  std::set<std::string> sources;
+  std::map<DataCode, int> countPerChannel;
+  std::map<std::pair<DataCode, std::string>, int> counts;
+    template <DataCode Code, typename T>
+  void visit(const char *shortName, const std::string &sourceName,
+    const std::shared_ptr<DispatchData> &raw,
+    const TimedSampleCollection<T> &coll) {
+      sources.insert(sourceName);
+      int n = coll.size();
+      counts.insert({{Code, sourceName}, n});
+      if (countPerChannel.count(Code) == 0) {
+        countPerChannel[Code] = n;
+      } else {
+        countPerChannel[Code] += n;
+      }
+  }
+};
+std::set<DataCode> usefulChannels{
+  GPS_SPEED, GPS_BEARING,
+  AWA, AWS,
+  MAG_HEADING, WAT_SPEED,
+  ORIENT
+};
+void outputChannelSummary(
+    const Dispatcher *src,
+    HtmlNode::Ptr dst) {
+    ChannelSummarizerVisitor visitor;
+    visitDispatcherChannelsConst(src, &visitor);
+
+    auto codeVector = getAllDataCodes();
+
+    std::vector<std::string> sourceVector(
+        visitor.sources.begin(), visitor.sources.end());
+    renderTable(dst,
+        1 + visitor.sources.size() + 1,
+        1 + codeVector.size(),
+        [](int i, int j) {return i == 0;},
+        [&](HtmlNode::Ptr e, int i, int j) {
+          if (j == 0) {
+            if (i == 0) {
+              e->stream() << "Source";
+            } else if (i-1 < sourceVector.size()) {
+              e->stream() << sourceVector[i-1];
+            } else {
+              e->stream() << "TOTAL";
+            }
+          } else {
+            DataCode code = codeVector[j-1];
+            if (i == 0) {
+              e->stream() << descriptionForCode(code);
+            } else if (i-1 < sourceVector.size()) {
+              auto source = sourceVector[i-1];
+              auto f = visitor.counts.find({code, source});
+              if (f != visitor.counts.end()) {
+                e->stream() << f->second;
+              }
+            } else {
+              auto f = visitor.countPerChannel.find(code);
+              if (f != visitor.countPerChannel.end()) {
+                e->stream() << f->second;
+              }
+            }
+          }
+        });
+    auto p = std::pair<std::string, AttribValue>{"class", "warning"};
+    for (auto code: usefulChannels) {
+      if (visitor.countPerChannel.count(code) == 0) {
+        HtmlTag::tagWithData2(dst, "p",
+            std::vector<std::pair<std::string, AttribValue>>{p},
+            stringFormat("Channel of type %s is missing",
+                descriptionForCode(code)));
+      }
+    }
+}
+
 void runDemoOnDataset(
     NavDataset &dataset,
     HtmlNode::Ptr dstLogNode) {
@@ -214,18 +291,25 @@ void runDemoOnDataset(
       dstLogNode, "V2 Reconstruction results");
   HtmlTag::tagWithData(logBody, "h1", "Results summary");
 
+  if (logBody) {
+    HtmlTag::tagWithData(logBody, "h2", "Channel summary");
+    outputChannelSummary(
+        dataset.dispatcher().get(),
+        logBody);
+  }
   dataset.mergeAll();
 
   auto d = dataset.dispatcher().get();
   Processor2::Settings settings;
 
-  // First of all, we are going to filter all the GPS data
+  HtmlTag::tagWithData(logBody, "p",
+      "First of all, we are going to filter all the GPS data");
   Array<TimedValue<GeographicPosition<double> > > allFilteredPositions
-    = Processor2::filterAllGpsData(dataset, settings);
+    = Processor2::filterAllGpsData(dataset, settings, logBody);
 
-  // Based on the timestamps of the filtered GPS data, we will build short
-  // sessions of data.
-
+  HtmlTag::tagWithData(logBody, "p",
+      "Based on the timestamps of the filtered GPS data, "
+      "we will build short sessions of data.");
   auto filteredTimeStamps = getTimeStamps(
       allFilteredPositions.begin(),
       allFilteredPositions.end());
@@ -238,8 +322,9 @@ void runDemoOnDataset(
     outputTimeSpans(smallSessions, logBody);
   }
 
-  // In order to perform calibration, we need to make sure that there is
-  // enough data for every optimization problem.
+  HtmlTag::tagWithData(logBody, "p",
+    "In order to perform calibration, we need to make sure that there is"
+    "enough data for every optimization problem, so we will form groups");
   auto calibGroups = computeCalibrationGroups(
       smallSessions, settings.minCalibDur);
 
@@ -344,25 +429,50 @@ Array<Span<TimeStamp> > segmentSubSessions(
 
 
 Array<TimedValue<GeographicPosition<double> > >
-  filterAllGpsData(const NavDataset &ds, const Settings &settings) {
+  filterAllGpsData(const NavDataset &ds, const Settings &settings,
+      HtmlNode::Ptr log) {
+  HtmlTag::tagWithData(log, "h2", "GPS filtering");
+  HtmlTag::tagWithData(log, "h2",
+      "Filtering all the GPS data with some chopping");
   auto timeStamps = getAllGpsTimeStamps(ds.dispatcher().get());
   auto timeSpans = Processor2::segmentSubSessions(
       timeStamps, settings.mainSessionCut);
-
-  if (settings.debug) {
-    //timeSpans, "presegmented for gps filter);
-  }
+  HtmlTag::tagWithData(log, "p",
+      "The data is filtered with these time spans");
+  outputTimeSpans(timeSpans, log);
 
   GpsFilterSettings gpsSettings;
   gpsSettings.subProblemThreshold = settings.subSessionCut;
 
+  auto table = HtmlTag::make(log, "table");
+  {
+    auto h = HtmlTag::make(table, "tr");
+    HtmlTag::tagWithData(h, "th", "Index");
+    HtmlTag::tagWithData(h, "th", "Position count");
+    HtmlTag::tagWithData(h, "th", "Max speed");
+  }
   ArrayBuilder<TimedValue<GeographicPosition<double> > > dst;
+  int counter = 0;
   for (auto span: timeSpans) {
     auto sub = ds.slice(span.minv(), span.maxv());
     auto results = filterGpsData(sub, gpsSettings);
     auto positions = results.getGlobalPositions();
     for (auto x: positions) {
       dst.add(x);
+    }
+    auto row = HtmlTag::make(table, "tr");
+    if (row) {
+      HtmlTag::tagWithData(row, "td", stringFormat("%d", counter));
+      HtmlTag::tagWithData(row, "td", stringFormat(
+          "%d", positions.size()));
+      auto motions = results.getGpsMotions(60.0_s);
+      auto maxSpeed = 0.0_kn;
+      for (auto m: motions) {
+        maxSpeed = std::max(maxSpeed, m.value.norm());
+      }
+      HtmlTag::tagWithData(row, "td", stringFormat(
+          "%.3g knots", maxSpeed.knots()));
+      counter++;
     }
   }
   return dst.get();

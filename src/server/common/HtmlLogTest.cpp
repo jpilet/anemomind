@@ -28,3 +28,22 @@ TEST(HtmlLogTest, BasicRenderingTest) {
   EXPECT_EQ(line, "<html><head><title>This is the title!</title></head><body>This is the body!<p width='5.6'>A paragraph</p></body></html>");
 }
 
+TEST(HtmlLogTest, TableTest) {
+  {
+    auto page = HtmlPage::make("/tmp", "tabletest");
+    const char letters[] = "abcdef";
+    renderTable(page, 2, 3,
+        [](int i, int j) {return i == 0;},
+        [&](HtmlNode::Ptr dst, int i, int j) {
+          dst->stream() << letters[i*3 + j];
+        });
+  }
+  std::ifstream file("/tmp/tabletest.html");
+  EXPECT_TRUE(file.good());
+  std::string line;
+  std::getline(file, line);
+  EXPECT_EQ(line,
+      "<table><tr><th>a</th><th>b</th><th>c</th></tr><tr><td>d</td><td>e</td><td>f</td></tr></table>");
+
+}
+
