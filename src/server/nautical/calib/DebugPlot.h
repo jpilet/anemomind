@@ -115,18 +115,25 @@ public:
           stringFormat("matrix(%.3g, %.3g, %.3g, %.3g, %.3g, %.3g)",
               xmap.getK(), 0.0,
               0.0, ymap.getK(),
-              xmap.getM(), ymap.getM())}
+              xmap.getM(), ymap.getM())},
     });
     auto &stream = canvas->stream();
     //auto &stream = svg->stream();
     for (const SignalToPlot &curve: _data) {
-      /*if (curve.type == StrokeType::Line)*/ {
+      if (curve.type == StrokeType::Line) {
         stream << "<polyline points=\"";
         for (auto pt: curve.values) {
           stream << (pt.time - timeSpan.minv())/vpx
                  << "," << (pt.value/vpy) << " ";
         }
         stream << "\" style=\"fill: none; stroke:" << curve.color << "; stroke-width: 2\" />";
+      } else {
+        for (auto pt: curve.values) {
+          stream << "<circle cx=\"" << (pt.time - timeSpan.minv())/vpx
+              << "\" cy=\"" << (pt.value/vpy) <<
+              "\" r='2' stroke-width='0' fill='" <<
+              curve.color << "' />";
+        }
       }
     }
   }

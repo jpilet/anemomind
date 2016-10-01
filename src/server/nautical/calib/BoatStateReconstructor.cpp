@@ -1006,7 +1006,7 @@ struct MakeReprojectionPlot<Velocity<double>, AWS> {
         const Array<TimedValue<Velocity<double>>> &values,
         HtmlNode::Ptr dst) {
     TemporalSignalPlot<Velocity<double>> plot;
-    plot.add(StrokeType::Line, values);
+    plot.add(StrokeType::Dot, values);
     plot.renderTo(dst);
   }
 };
