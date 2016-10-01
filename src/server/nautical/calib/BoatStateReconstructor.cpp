@@ -10,6 +10,7 @@
 #include <ceres/ceres.h>
 #include <random>
 #include <server/common/string.h>
+#include <server/nautical/calib/DebugPlot.h>
 
 namespace sail {
 
@@ -156,7 +157,25 @@ struct RegCost {
 template <typename Settings>
 struct DataCost;
 
+template <typename Settings>
+Array<BoatState<double> > makeBoatStates(
+    const Array<BoatState<double>> &initialStates,
+    Array<double> parameters) {
+  typedef ReconstructedBoatState<double, Settings> State;
+  int n = initialStates.size();
+  Array<BoatState<double>> dst(n);
+  for (int i = 0; i < n; i++) {
+    auto init = initialStates[i];
+    auto state = State::make(init);
+    state.readFrom(parameters.blockPtr(i,
+        State::dynamicValueDimension));
+    dst[i] = state.makeBoatState(init);
+  }
+  return dst;
+}
+
 struct ChunkAccumulator {
+  TimeStampToIndexMapper mapper;
   Array<BoatState<double>> initialStates;
 
 #define DECLARE_VALUE_ACC(HANDLE) \
@@ -181,6 +200,7 @@ struct ChunkAccumulator {
 ChunkAccumulator::ChunkAccumulator(
     const BoatParameterLayout &layout,
     const CalibDataChunk &chunk) :
+        mapper(chunk.timeMapper),
         initialStates(chunk.initialStates) {
 #define INIT_ACC(HANDLE) \
   HANDLE = makeValueAccumulator(layout.HANDLE.sensors, chunk.timeMapper, chunk.HANDLE);
@@ -343,6 +363,37 @@ void outputSummary(
   }
 }
 
+namespace {
+  void dispSetting(const char *label,
+      bool value, std::set<bool> warnOn, HtmlNode::Ptr dst) {
+    auto row = HtmlTag::make(dst, "tr");
+    HtmlTag::tagWithData(row, "td", label);
+    HtmlTag::tagWithData(row, "td",
+        {{"class", warnOn.count(value) == 1? "warning" : "none"}},
+        value? "TRUE" : "FALSE");
+
+  }
+
+
+  template <typename Settings>
+  void dispSettings(HtmlNode::Ptr dst) {
+    HtmlTag::tagWithData(dst, "h2", "Static optimizer settings");
+    auto table = HtmlTag::make(dst, "table");
+    {
+      auto header = HtmlTag::make(table, "tr");
+      HtmlTag::tagWithData(header, "th", "Attribute");
+      HtmlTag::tagWithData(header, "th", "Value");
+    }
+#define DISP_SETTING(what, warnOnValue) \
+  dispSetting(#what, Settings::what, warnOnValue, table);
+    DISP_SETTING(withBoatOverGround, {true});
+    DISP_SETTING(withWindOverGround, {false});
+    DISP_SETTING(withCurrentOverGround, {false});
+    DISP_SETTING(withHeel, {});
+    DISP_SETTING(withPitch, {});
+#undef DISP_SETTING
+    }
+}
 
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
@@ -365,10 +416,13 @@ public:
         _log(logNode),
         _initialParameters(initialParameters),
         _layout(initialParameters) {
+    dispSettings<BoatStateSettings>(logNode);
     int n = chunks.size();
     _chunks = Array<ChunkAccumulator>(n);
     for (int i = 0; i < n; i++) {
-      _chunks[i] = ChunkAccumulator(_layout, chunks[i]);
+      const auto &chunk = chunks[i];
+      _chunks[i] = ChunkAccumulator(
+          _layout, chunk);
     }
 
     if (logNode) {
@@ -416,6 +470,7 @@ public:
     options.logging_type = ceres::LoggingType::PER_MINIMIZER_ITERATION;
     options.num_threads = 4;
     ceres::Solver::Summary summary;
+
     ceres::Solve(options, &problem, &summary);
 
     outputSummary(summary, _log);
@@ -423,7 +478,23 @@ public:
     ReconstructionResults results;
     results.parameters = _initialParameters;
     results.parameters.readFrom(calibrationParameters.ptr());
+    results.chunks = makeAllBoatStates(stateParameters);
     return results;
+  }
+
+  Array<ReconstructedChunk> makeAllBoatStates(
+      const Array<Array<double>> &parameters) const {
+    int n = parameters.size();
+    assert(n == _chunks.size());
+    Array<ReconstructedChunk> dst(n);
+    for (int i = 0; i < n; i++) {
+      dst[i] = ReconstructedChunk{
+        _chunks[i].mapper,
+        makeBoatStates<BoatStateSettings>(
+                  _chunks[i].initialStates, parameters[i])
+      };
+    }
+    return dst;
   }
 
   Array<double> initializeCalibrationParameters() const {
@@ -915,6 +986,30 @@ FOREACH_CHANNEL(LAYOUT_SENSORS)
   assert(paramCount == parameters.paramCount());
 }
 
+void makeReprojectionPlotForChunk(
+    const ReconstructedChunk &reconstructed,
+    const CalibDataChunk &chunk) {
+
+}
+
+void makeReprojectionPlots(
+    const ReconstructionResults &results,
+    const Array<CalibDataChunk> &chunks,
+    HtmlNode::Ptr dst) {
+  assert(results.chunks.size() == chunks.size()
+      || results.chunks.empty());
+  int n = chunks.size();
+  for (int i = 0; i < n; i++) {
+    HtmlTag::tagWithData(dst, "h3", stringFormat("Chunk %d",
+        i+1));
+    makeReprojectionPlotForChunk(
+        results.chunks.empty()?
+            ReconstructedChunk()
+            : results.chunks[i],
+        chunks[i], dst);
+  }
+}
+
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
@@ -937,12 +1032,18 @@ ReconstructionResults reconstruct(
     outputBoatParameters(initialParameters, logNode);
   }
 
-  BoatStateReconstructor<FullSettings> reconstructor(
+  BoatStateReconstructor<DefaultSettings> reconstructor(
       chunks, initialParameters, settings, logNode);
 
-  auto results = reconstructor.reconstruct();
+  ReconstructionResults results;
+  /*auto results = reconstructor.reconstruct();
   assert(results.parameters.paramCount()
-      == initialParameters.paramCount());
+      == initialParameters.paramCount());*/
+
+  if (logNode) {
+    HtmlTag::tagWithData(logNode, "h2", "Reprojection plots");
+    makeReprojectionPlots(results, chunks, logNode);
+  }
 
   if (logNode) {
     HtmlTag::tagWithData(logNode, "h2", "Reconstruction results");

@@ -456,6 +456,12 @@ Array<TimedValue<GeographicPosition<double> > >
   GpsFilterSettings gpsSettings;
   gpsSettings.subProblemThreshold = settings.subSessionCut;
 
+  {
+    HtmlTag::tagWithData(log, "p",
+        {{"class", "warning"}}, "A slice was cut");
+    timeSpans = timeSpans.slice(3, 4);
+  }
+
   HtmlTag::tagWithData(log, "p",
       "Here is a brief summary");
   auto table = HtmlTag::make(log, "table");

@@ -285,9 +285,24 @@ struct ReconstructedBoatState {
     pitch.writeAndStepPtr(&dst);
   }
 
+  BoatState<T> makeBoatState(const BoatState<T> &temp) const {
+    auto h = heading.value.optionalAngle();
+    return BoatState<T>(
+        temp.position(),
+        boatOverGround.value,
+        windOverGround.value,
+        currentOverGround.value,
+        AbsoluteBoatOrientation<T>{
+      h.defined()? h.get() :
+          Angle<T>::degrees(MakeConstant<T>::apply(0.0)),
+      heel.value, pitch.value
+    });
+  }
+
   // Suppose we have previously already reconstructed some of the state,
   // somehow. Then we can use that to initializer this object.
-  static ReconstructedBoatState<T, Settings> make(const BoatState<double> &prototype) {
+  static ReconstructedBoatState<T, Settings> make(
+      const BoatState<double> &prototype) {
     ReconstructedBoatState<T, Settings> dst;
 
     // From the GPS filter...

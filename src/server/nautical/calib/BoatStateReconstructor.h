@@ -88,10 +88,14 @@ struct ValueAccumulator {
   }
 };
 
+struct ReconstructedChunk {
+  TimeStampToIndexMapper mapper;
+  Array<BoatState<double>> states;
+};
 
 struct ReconstructionResults {
   BoatParameters<double> parameters;
-  Array<Array<BoatState<double>>> boatStates;
+  Array<ReconstructedChunk> chunks;
 };
 
 class ChannelRef {
