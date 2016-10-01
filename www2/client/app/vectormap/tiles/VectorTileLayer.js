@@ -324,8 +324,10 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
     }
   }
   
-  var hasTail = false;
+  var startOfTail = false;
   var gradient = null;
+  var startPoint = 0;
+  var endPoint = 0;
   var origStrokeStyle = context.strokeStyle;
   var origlineWidth = context.lineWidth;
   var currentColor = '';
@@ -333,6 +335,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
                         '#D26F81','#D86277','#DE546D','#E44663','#EA3858',
                         '#F02A4E','#F61C44','#FC0F3A','#DE0B66','#C10792',
                         '#A403BF'];
+  var vmgPerf = [0, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110];
 
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
@@ -340,10 +343,10 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   }
 
   var checkIfTail = function(currentTime, queueSeconds, context, point) {
-    var queueTime = new Date(Math.abs(currentTime.getTime() - (parseInt(queueSeconds) * 1000)));
+    var queueTime = Math.abs(currentTime.getTime() - (queueSeconds * 1000));
     var pointTime = point.time;
 
-    if(pointTime.getTime() >= queueTime.getTime() && pointTime.getTime() <= currentTime.getTime()) {
+    if(pointTime.getTime() >= queueTime && pointTime.getTime() <= currentTime.getTime()) {
       return true;
     }
     return false;
@@ -351,11 +354,10 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
 
   var strokePath = function() {
     context.stroke();
-    context.closePath();
     context.beginPath();
   };
 
-  var createGradient = function(color, pointX, pointY) {
+  var createGradient = function(color, startPoint, endPoint) {
     var index = colorSpectrum.indexOf(color);
     var nextColor = '';
 
@@ -364,230 +366,83 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
     else
       nextColor = colorSpectrum[index + 1];
 
-    var grd = context.createLinearGradient(pointX, 0, pointY, 0);
-    if(currentColor == '') {
-      currentColor = nextColor;
-      grd.addColorStop(0, color);
-      grd.addColorStop((index + 1) / 16, nextColor);
+    var grd = context.createLinearGradient(startPoint.x, endPoint.y, endPoint.x, endPoint.y);
 
-      return grd;
+    console.log(currentColor+' == '+color);
+    if(currentColor == color) {
+      console.log('here');
+      grd.addColorStop(0, currentColor);
+      grd.addColorStop(1, nextColor);
     }
-
-    grd.addColorStop(0, currentColor);
-    grd.addColorStop((index + 1) / 16, color);
-
-    currentColor = nextColor;
+    else {
+      grd.addColorStop(0, color);
+      grd.addColorStop(1, nextColor);
+    }
+    
 
     return grd;
   };
 
-  var vmgPerfOfTail = function(points, previousPoint) {
-    if(perfAtPoint(points) > 0 && perfAtPoint(points) <= 40) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[0], previousPoint.x, previousPoint.y);
-        return gradient;
-      }
-      if(currentColor != colorSpectrum[0]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[0], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 40 && perfAtPoint(points) <= 45) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[1], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[1]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[1], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 45 && perfAtPoint(points) <= 50) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[2], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[2]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[2], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 50 && perfAtPoint(points) <= 55) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[3], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[3]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[3], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 55 && perfAtPoint(points) <= 60) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[4], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[4]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[4], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 60 && perfAtPoint(points) <= 65) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[5], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[5]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[5], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 65 && perfAtPoint(points) <= 70) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[6], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[6]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[6], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 70 && perfAtPoint(points) <= 75) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[7], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[7]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[7], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 75 && perfAtPoint(points) <= 80) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[8], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[8]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[8], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 80 && perfAtPoint(points) <= 85) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[9], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[9]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[9], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 85 && perfAtPoint(points) <= 90) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[10], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[10]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[10], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 90 && perfAtPoint(points) <= 95) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[11], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[11]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[11], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 95 && perfAtPoint(points) <= 100) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[12], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[12]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[12], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 95 && perfAtPoint(points) <= 100) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[12], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[12]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[12], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 100 && perfAtPoint(points) <= 105) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[13], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[13]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[13], previousPoint.x, previousPoint.y);
-      }
-    }
-    else if(perfAtPoint(points) > 105 && perfAtPoint(points) <= 110) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[14], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[14]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[14], previousPoint.x, previousPoint.y);
-      }
-    }
-     else if(perfAtPoint(points) > 110) {
-      if(!hasTail) {
-        gradient = createGradient(colorSpectrum[15], previousPoint.x, previousPoint.y);
-        return;
-      }
-      if(currentColor != colorSpectrum[15]) {
-        strokePath();
-        context.moveTo(previousPoint.x, previousPoint.y);
-        gradient = createGradient(colorSpectrum[15], previousPoint.x, previousPoint.y);
-      }
-    }
+  
+  var vmgPerfOfTail = function(currentLineSegment, previousLineSegment, currentPoint, previousPoint) {
+    for(var i=0; i<vmgPerf.length; i++) {
+      if(vmgPerf[i] != vmgPerf[vmgPerf.length - 1]) {
+        if(perfAtPoint(currentLineSegment) > vmgPerf[i] && perfAtPoint(currentLineSegment) <= vmgPerf[i+1]) {
+          if(!startOfTail) {
+            startPoint = currentPoint;
+            currentColor = colorSpectrum[i];
 
-    return gradient;
+            return;
+          }
+          if(currentColor != colorSpectrum[i]) {
+            context.strokeStyle = createGradient(colorSpectrum[i], startPoint, currentPoint);
+            strokePath();
+            context.moveTo(previousPoint.x, previousPoint.y);
+
+            startPoint = currentPoint;
+          }
+
+          currentColor = colorSpectrum[i];
+          return;
+        }
+      }
+      else {
+        if(perfAtPoint(currentLineSegment) > vmgPerf[i]) {
+          if(!startOfTail) {
+            startPoint = currentPoint;
+            currentColor = colorSpectrum[i];
+
+            return;
+          }
+          if(currentColor != colorSpectrum[i]) {
+            context.strokeStyle = createGradient(colorSpectrum[i], startPoint, currentPoint);
+            strokePath();
+            context.moveTo(previousPoint.x, previousPoint.y);
+
+            startPoint = currentPoint;
+          }
+
+          currentColor = colorSpectrum[i];
+          return;
+        }
+      }
+    }
   };
 
-  var createTailTrack = function(points, currentPoint, previousPoint) {
-    if(!hasTail) {
+  var createTailTrack = function(currentLineSegment, previousLineSegment, currentPoint, previousPoint) {
+    if(!startOfTail) {
       strokePath();
       context.moveTo(previousPoint.x, previousPoint.y);
       context.lineTo(previousPoint.x, previousPoint.y);
-      context.lineWidth = 2;
-      context.strokeStyle = vmgPerfOfTail(points, previousPoint);
-      context.stroke();
-      hasTail = true;
+      context.lineWidth = 6;
+      vmgPerfOfTail(currentLineSegment, previousLineSegment, currentPoint, previousPoint);
+      startOfTail = true;
 
       return;
     }
     
     context.lineTo(previousPoint.x, previousPoint.y);
-    context.strokeStyle = vmgPerfOfTail(points, previousPoint);
+    vmgPerfOfTail(currentLineSegment, previousLineSegment, currentPoint, previousPoint);
 
     return;
   }
@@ -599,17 +454,16 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   context.moveTo(first.x, first.y);
 
   for (var i = 1; i < points.length; ++i) {
-    var tail = false;
-    var point = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
+    var currentPoint = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
                                                 points[i].pos[1]);
     var previousPoint = pinchZoom.viewerPosFromWorldPos(points[i-1].pos[0],
                                                 points[i-1].pos[1]);
 
-    if(parseInt(this.queueSeconds) > 0 && point)
-      tail = checkIfTail(this.currentTime, this.queueSeconds, context, points[i]);
+    if(this.queueSeconds > 0 && currentPoint)
+      var tail = checkIfTail(this.currentTime, this.queueSeconds, context, points[i]);
 
     if(tail) {
-      createTailTrack(points[i], point, previousPoint);
+      createTailTrack(points[i], points[i-1], currentPoint, previousPoint);
     }
     else {
       if(context.strokeStyle != origStrokeStyle) {
@@ -620,7 +474,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
         context.lineTo(previousPoint.x, previousPoint.y);
       }
       else {
-        context.lineTo(point.x, point.y);
+        context.lineTo(currentPoint.x, currentPoint.y);
       }
     }
     
