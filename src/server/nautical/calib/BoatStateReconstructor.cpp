@@ -412,8 +412,7 @@ public:
     }
 
     ceres::Solver::Options options;
-    options.linear_solver_type =
-        ceres::LinearSolverType::SPARSE_NORMAL_CHOLESKY;
+    options.num_threads = 4;
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
 
@@ -613,9 +612,10 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
     for (auto i: *ChannelFieldAccess<code>::get(*this)) {
       const auto &v = ChannelFieldAccess<code>::get(chunk)->values[i];
       typedef Fitness<T, code, Settings> F;
-      if (F::apply(state, rec._layout.template getModel<T, code>(
+      if (!F::apply(state, rec._layout.template getModel<T, code>(
           v.sensorIndex, calibParams),
         v.value, residuals + *offset)) {
+        assert(false);
         return false;
       }
       *offset += F::outputCount;
