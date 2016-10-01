@@ -137,7 +137,7 @@ private:
   double _margin = 30;
   std::default_random_engine _rng;
   std::vector<std::string> colors{
-    "red", "green", "blue", "cyan", "yellow", "magenta",
+    "red", "green", "blue",
   };
   Span<TimeStamp> timeSpan;
   Span<T> valueSpan;
