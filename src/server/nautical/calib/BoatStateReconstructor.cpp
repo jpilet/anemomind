@@ -986,13 +986,69 @@ FOREACH_CHANNEL(LAYOUT_SENSORS)
   assert(paramCount == parameters.paramCount());
 }
 
-void makeReprojectionPlotForChunk(
-    const ReconstructedChunk &reconstructed,
-    const CalibDataChunk &chunk) {
+template <typename T, DataCode code>
+struct MakeReprojectionPlot {
 
+  static void apply(TimeStampToIndexMapper mapper,
+      const ReconstructedChunk &chunk,
+      const Array<TimedValue<T>> &values,
+      HtmlNode::Ptr dst) {
+    HtmlTag::tagWithData(dst, "p",
+        std::string("Nothing to render for ")
+      + wordIdentifierForCode(code));
+  }
+};
+
+template <>
+struct MakeReprojectionPlot<Velocity<double>, AWS> {
+  static void apply(TimeStampToIndexMapper mapper,
+        const ReconstructedChunk &chunk,
+        const Array<TimedValue<Velocity<double>>> &values,
+        HtmlNode::Ptr dst) {
+    TemporalSignalPlot<Velocity<double>> plot;
+    plot.add(StrokeType::Line, values);
+    plot.renderTo(dst);
+  }
+};
+
+template <DataCode HANDLE,
+  typename T = typename TypeForCode<HANDLE>::type>
+void makeChunkPlotRow(
+    const TimeStampToIndexMapper &mapper,
+    const ReconstructedChunk &chunk,
+    const std::map<std::string, Array<TimedValue<T>>> &values,
+    HtmlNode::Ptr dst) {
+  auto row = HtmlTag::make(dst, "tr");
+  HtmlTag::tagWithData(row, "td",
+      wordIdentifierForCode(HANDLE));
+  {
+    auto ul = HtmlTag::make(HtmlTag::make(row, "td"), "ul");
+    for (auto kv: values) {
+      auto li = HtmlTag::make(ul, "li");
+      auto subPage = HtmlTag::linkToSubPage(li, kv.first, true);
+      MakeReprojectionPlot<T, HANDLE>::apply(
+          mapper, chunk, kv.second, subPage);
+    }
+  }
 }
 
-void makeReprojectionPlots(
+void makeReprojectionPlotForChunk(
+    const ReconstructedChunk &reconstructed,
+    const CalibDataChunk &chunk,
+    HtmlNode::Ptr dst) {
+  auto table = HtmlTag::make(dst, "table");
+  {
+    auto h = HtmlTag::make(table, "tr");
+    HtmlTag::tagWithData(h, "th", "Type");
+    HtmlTag::tagWithData(h, "th", "Plots");
+  }
+#define MAKE_PLOT_ROW(HANDLE) \
+  makeChunkPlotRow<HANDLE>(chunk.timeMapper, reconstructed, chunk.HANDLE, table);
+  FOREACH_MEASURE_TO_CONSIDER(MAKE_PLOT_ROW)
+#undef MAKE_PLOT_ROW
+}
+
+void makePlotsPerChunk(
     const ReconstructionResults &results,
     const Array<CalibDataChunk> &chunks,
     HtmlNode::Ptr dst) {
@@ -1042,7 +1098,7 @@ ReconstructionResults reconstruct(
 
   if (logNode) {
     HtmlTag::tagWithData(logNode, "h2", "Reprojection plots");
-    makeReprojectionPlots(results, chunks, logNode);
+    makePlotsPerChunk(results, chunks, logNode);
   }
 
   if (logNode) {

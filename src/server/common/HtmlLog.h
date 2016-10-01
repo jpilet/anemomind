@@ -74,7 +74,8 @@ public:
 
   static HtmlNode::Ptr linkToSubPage(
       HtmlNode::Ptr parent,
-      const std::string &linkText);
+      const std::string &linkText,
+      bool initialize = false);
 
   std::ostream &stream() override {return _stream;}
 

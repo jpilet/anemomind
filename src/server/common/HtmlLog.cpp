@@ -54,8 +54,10 @@ HtmlNode::Ptr HtmlTag::make(HtmlNode::Ptr parent, const std::string &tagName,
 HtmlNode::Ptr HtmlTag::initializePage(
     HtmlNode::Ptr emptyPage,
     const std::string &titleStr) {
+  emptyPage->stream() << "<!DOCTYPE html>";
+  auto html = HtmlTag::make(emptyPage, "html");
   {
-    auto head = HtmlTag::make(emptyPage, "head");
+    auto head = HtmlTag::make(html, "head");
     {
       auto title = HtmlTag::make(head, "title");
       title->stream() << titleStr;
@@ -64,7 +66,7 @@ HtmlNode::Ptr HtmlTag::initializePage(
       style->stream() << "td, th {border: 1px solid black;} .warning {color: orange} .error {color: red} .success {color: green}";
     }
   }
-  return HtmlTag::make(emptyPage, "body");
+  return HtmlTag::make(html, "body");
 }
 
 void HtmlTag::tagWithData(HtmlNode::Ptr parent,
@@ -85,13 +87,15 @@ void HtmlTag::tagWithData(HtmlNode::Ptr parent,
 
 HtmlNode::Ptr HtmlTag::linkToSubPage(
     HtmlNode::Ptr parent,
-    const std::string &linkText) {
+    const std::string &linkText, bool initialize) {
   if (parent) {
     auto subPage = parent->makeNewRoot();
     auto link = HtmlTag::make(parent, "a",
         {{"href", subPage->localAddress()}});
     link->stream() << linkText;
-    return subPage;
+    return initialize?
+        HtmlTag::initializePage(subPage, linkText) :
+        subPage;
   }
   return HtmlNode::Ptr();
 }

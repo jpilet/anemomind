@@ -15,6 +15,7 @@
 #include <iosfwd>
 #include <random>
 #include <sstream>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
@@ -42,14 +43,15 @@ struct ValuesPerPixel<Angle<double>> {
 template <>
 struct ValuesPerPixel<Duration<double>> {
   static Duration<double> get() {
-    return (1.0/200.0)*60.0_min;
+    return (1.0/200.0)*1.0_min;
   }
 };
+
+enum class StrokeType {Line, Dot};
 
 template <typename T>
 class TemporalSignalPlot {
 public:
-  enum StrokeType {Line, Dot};
 
   struct SignalToPlot {
     StrokeType type;
@@ -63,15 +65,18 @@ public:
       std::string color = "") {
     color = color.empty()? generateColor() : color;
     for (auto value: values) {
+      CHECK(value.time.defined());
       timeSpan.extend(value.time);
+      CHECK(timeSpan.initialized());
       valueSpan.extend(value.value);
+      CHECK(valueSpan.initialized());
     }
     _data.push_back(SignalToPlot{
-      type, colors.back()
+      type, colors.back(), values
     });
   }
 
-  std::string generateColor() const {
+  std::string generateColor() {
     if (!colors.empty()) {
       auto c = colors.back();
       colors.pop_back();
@@ -85,13 +90,44 @@ public:
   }
 
   void renderTo(HtmlNode::Ptr dst) const {
+    if (!(valueSpan.initialized() && timeSpan.initialized())) {
+      HtmlTag::tagWithData(dst, "p", "Nothing to plot");
+      return;
+    }
+    auto vpy = ValuesPerPixel<T>::get();
+    auto vpx = ValuesPerPixel<Duration<double>>::get();
+    auto dur = duration();
+    double pixelWidth = valueSpan.width()/vpy;
+    HtmlTag::tagWithData(dst, "p",
+        stringFormat("Duration: %s", dur.str().c_str()));
+    double pixelHeight = dur/vpx;
     auto svg = HtmlTag::make(dst, "svg", {
-        {"width", int(round(2.0*_margin
-            + valueSpan.width()/ValuesPerPixel<T>::get()))},
         {"height", int(round(2.0*_margin
-            + duration()/ValuesPerPixel<Duration<double>>::get()))}
+            + pixelWidth))},
+        {"width", int(round(2.0*_margin
+            + pixelHeight))}
     });
-
+    LineKM xmap(0.0, pixelWidth, _margin, _margin + pixelWidth);
+    LineKM ymap(valueSpan.minv()/vpy, valueSpan.maxv()/vpy,
+        _margin + pixelHeight, _margin);
+    /*auto canvas = HtmlTag::make(svg, "g", {
+      {"transform",
+          stringFormat("matrix(%.3g, %.3g, %.3g, %.3g, %.3g, %.3g)",
+              xmap.getK(), 0.0, xmap.getM(),
+              0.0, ymap.getK(), ymap.getM())}
+    });*/
+    //auto &stream = canvas->stream();
+    auto &stream = svg->stream();
+    for (const SignalToPlot &curve: _data) {
+      /*if (curve.type == StrokeType::Line)*/ {
+        stream << "<polyline points=\"";
+        for (auto pt: curve.values) {
+          stream << (pt.time - timeSpan.minv())/vpx
+                 << "," << (pt.value/vpy) << " ";
+        }
+        stream << "\" style=\"fill: none; stroke:" << curve.color << "; stroke-width: 2\" />";
+      }
+    }
   }
 
   Duration<double> duration() const {
