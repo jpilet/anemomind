@@ -122,8 +122,8 @@ public:
               xmap.getM(), ymap.getM())},
     });*/
     //std::cout << "Number of curves: " << _data.size() << std::endl;
-    for (int i = 0; i < _data.size(); i++) {
-      auto curve = _data[i];
+    for (const auto &curve : _data) {
+      //auto curve = _data[i];
       std::cout << "  Render curve with " << curve.values.size()
               << " values"<< std::endl;
       //std::cout << "RENDER CURVE\n";
