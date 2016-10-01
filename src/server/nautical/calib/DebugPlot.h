@@ -63,7 +63,9 @@ public:
       StrokeType type,
       const Array<TimedValue<T>> &values,
       std::string color = "") {
-    color = color.empty()? generateColor() : color;
+    if (color.empty()) {
+      color = generateColor();
+    }
     for (auto value: values) {
       CHECK(value.time.defined());
       timeSpan.extend(value.time);
@@ -72,7 +74,7 @@ public:
       CHECK(valueSpan.initialized());
     }
     _data.push_back(SignalToPlot{
-      type, colors.back(), values
+      type, color, values
     });
     std::cout << "   Added "
         << values.size() << " values to a plot\n";
@@ -121,9 +123,10 @@ public:
     });*/
     //std::cout << "Number of curves: " << _data.size() << std::endl;
     for (int i = 0; i < _data.size(); i++) {
-      //auto curve = _data[i];
-      //std::cout << "  Render curve with " << curve.values.size() << " values"<< std::endl;
-      std::cout << "RENDER CURVE\n";
+      auto curve = _data[i];
+      std::cout << "  Render curve with " << curve.values.size()
+              << " values"<< std::endl;
+      //std::cout << "RENDER CURVE\n";
       /*if (curve.type == StrokeType::Line) {
         auto &stream = canvas->stream();
         stream << "<polyline points=\"";
