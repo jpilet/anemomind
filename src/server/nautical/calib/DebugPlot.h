@@ -74,7 +74,8 @@ public:
     _data.push_back(SignalToPlot{
       type, colors.back(), values
     });
-    std::cout << "   Added " << values.size() << " values to a plot";
+    std::cout << "   Added "
+        << values.size() << " values to a plot\n";
   }
 
   std::string generateColor() {
@@ -91,11 +92,11 @@ public:
   }
 
   void renderTo(HtmlNode::Ptr dst) const {
-    if (!(valueSpan.initialized() && timeSpan.initialized())) {
+    /*if (!(valueSpan.initialized() && timeSpan.initialized())) {
       HtmlTag::tagWithData(dst, "p", "Nothing to plot");
       return;
-    }
-    auto vpy = ValuesPerPixel<T>::get();
+    }*/
+    /*auto vpy = ValuesPerPixel<T>::get();
     auto vpx = ValuesPerPixel<Duration<double>>::get();
     auto dur = duration();
     double pixelHeight = valueSpan.width()/vpy;
@@ -117,11 +118,12 @@ public:
               xmap.getK(), 0.0,
               0.0, ymap.getK(),
               xmap.getM(), ymap.getM())},
-    });
+    });*/
     //std::cout << "Number of curves: " << _data.size() << std::endl;
     for (int i = 0; i < _data.size(); i++) {
-      auto curve = _data[i];
-      std::cout << "  Render curve with " << curve.values.size() << " values"<< std::endl;
+      //auto curve = _data[i];
+      //std::cout << "  Render curve with " << curve.values.size() << " values"<< std::endl;
+      std::cout << "RENDER CURVE\n";
       /*if (curve.type == StrokeType::Line) {
         auto &stream = canvas->stream();
         stream << "<polyline points=\"";
