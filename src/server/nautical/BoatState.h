@@ -24,6 +24,7 @@
 #include <server/nautical/common.h>
 #include <server/common/logging.h>
 #include <server/nautical/AbsoluteOrientation.h>
+#include <device/anemobox/Channels.h>
 
 /*
 
@@ -330,6 +331,18 @@ private:
   HorizontalMotion<T> _currentOverGround;
   AbsoluteBoatOrientation<T> _orientation;
 };
+
+template <typename T, DataCode code>
+struct BoatStateValue {};
+
+template <typename T>
+struct BoatStateValue<T, AWS> {
+  static Velocity<T> get(const BoatState<T> &x) {
+    return x.apparentWind().norm();
+  }
+};
+
+
 
 
 

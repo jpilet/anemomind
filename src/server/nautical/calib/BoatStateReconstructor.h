@@ -45,6 +45,10 @@ public:
     int index = int(round((t - offset)/period));
     return 0 <= index && index < sampleCount? index : -1;
   }
+
+  TimeStamp unmap(int i) const {
+    return offset + double(i)*period;
+  }
 };
 
 // A CalibDataChunk are measurements that are grouped together

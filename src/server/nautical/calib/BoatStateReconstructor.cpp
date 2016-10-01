@@ -999,6 +999,20 @@ struct MakeReprojectionPlot {
   }
 };
 
+template <DataCode code, typename T = typename TypeForCode<code>::type>
+Array<TimedValue<T>>
+  makeTimedValuesFromRecChunk(
+      const ReconstructedChunk &chunk) {
+  int n = chunk.mapper.sampleCount;
+  Array<TimedValue<T>> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = TimedValue<T>(
+        chunk.mapper.unmap(i),
+        BoatStateValue<double, code>::get(chunk.states[i]));
+  }
+  return dst;
+}
+
 template <>
 struct MakeReprojectionPlot<Velocity<double>, AWS> {
   static void apply(TimeStampToIndexMapper mapper,
@@ -1007,6 +1021,13 @@ struct MakeReprojectionPlot<Velocity<double>, AWS> {
         HtmlNode::Ptr dst) {
     TemporalSignalPlot<Velocity<double>> plot;
     plot.add(StrokeType::Dot, values);
+    if (chunk.states.empty()) {
+      HtmlTag::tagWithData(dst,
+          "p", "No reprojected data to show (missing)");
+    } else {
+      plot.add(StrokeType::Line,
+          makeTimedValuesFromRecChunk<AWS>(chunk));
+    }
     plot.renderTo(dst);
   }
 };
