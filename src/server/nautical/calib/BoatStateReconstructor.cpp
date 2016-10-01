@@ -1019,14 +1019,19 @@ struct MakeReprojectionPlot<Velocity<double>, AWS> {
         const ReconstructedChunk &chunk,
         const Array<TimedValue<Velocity<double>>> &values,
         HtmlNode::Ptr dst) {
+    std::cout << "  number of raw values to plot: "
+        << values.size() << std::endl;
     TemporalSignalPlot<Velocity<double>> plot;
     plot.add(StrokeType::Dot, values);
     if (chunk.states.empty()) {
       HtmlTag::tagWithData(dst,
           "p", "No reprojected data to show (missing)");
     } else {
+      auto projected = makeTimedValuesFromRecChunk<AWS>(chunk);
+      std::cout << "  number of projected values: "
+          << projected.size() << std::endl;
       plot.add(StrokeType::Line,
-          makeTimedValuesFromRecChunk<AWS>(chunk));
+          projected);
     }
     plot.renderTo(dst);
   }
@@ -1045,6 +1050,7 @@ void makeChunkPlotRow(
   {
     auto ul = HtmlTag::make(HtmlTag::make(row, "td"), "ul");
     for (auto kv: values) {
+      std::cout << "Making chunk plot for " << kv.first << std::endl;
       auto li = HtmlTag::make(ul, "li");
       auto subPage = HtmlTag::linkToSubPage(li, kv.first, true);
       MakeReprojectionPlot<T, HANDLE>::apply(
