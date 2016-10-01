@@ -13,6 +13,15 @@
 
 namespace sail {
 
+template <typename T>
+bool finiteResiduals(int n, const T *x) {
+  for (int i = 0; i < n; i++) {
+    if (!isFinite(x[i])) {
+      return false;
+    }
+  }
+  return true;
+}
 
 template <typename T>
 void foreachSpan(const TimeStampToIndexMapper &mapper,
@@ -139,6 +148,7 @@ struct RegCost {
     evaluateMotionReg<T>(A.heading.value - B.heading.value,
         weight, vbw, dst + 8);
     static_assert(10 == outputCount, "Bad dim");
+    assert(finiteResiduals<T>(outputCount, dst));
     return true;
   }
 };
@@ -285,6 +295,55 @@ void outputParameterCountOverview(
   }
 }
 
+
+void makeCostTableHeaders(HtmlNode::Ptr table) {
+  if (table) {
+    auto row = HtmlTag::make(table, "tr");
+    HtmlTag::tagWithData(row, "th", "Chunk index");
+    HtmlTag::tagWithData(row, "th", "State count");
+    HtmlTag::tagWithData(row, "th", "Regularization cost count");
+    HtmlTag::tagWithData(row, "th", "Data cost count");
+  }
+}
+
+template <typename T>
+void attribAndValue(const std::string &attrib,
+    const T &value, HtmlNode::Ptr dst) {
+  auto row = HtmlTag::make(dst, "tr");
+  HtmlTag::tagWithData(row, "td", attrib);
+  {
+    auto e = HtmlTag::make(row, "td");
+    e->stream() << value;
+  }
+}
+
+void outputSummary(
+    const ceres::Solver::Summary &summary,
+    HtmlNode::Ptr dst) {
+  if (dst) {
+    HtmlTag::tagWithData(dst, "h2", "Ceres solver summary");
+    {
+      auto table = HtmlTag::make(dst, "table");
+      {
+        auto row = HtmlTag::make(table, "tr");
+        HtmlTag::tagWithData(row, "th", "Attribute");
+        HtmlTag::tagWithData(row, "th", "Value");
+      }
+      attribAndValue("initial cost", summary.initial_cost, table);
+      attribAndValue("final cost", summary.final_cost, table);
+    }
+    auto reportPage = HtmlTag::initializePage(
+        HtmlTag::linkToSubPage(dst, "Full report"),
+        "Full report");
+    {
+      auto pre = HtmlTag::make(reportPage, "pre");
+      pre->stream() << summary.FullReport();
+    }
+
+  }
+}
+
+
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
@@ -336,17 +395,12 @@ public:
           calibrationParameters, stateParameters, _log);
     }
 
+    // Build the costs.
     HtmlTag::tagWithData(_log, "h2", "Costs");
     {
       auto table = HtmlTag::make(_log, "table");
-      {
-        auto row = HtmlTag::make(table, "tr");
-        HtmlTag::tagWithData(row, "th", "Chunk index");
-        HtmlTag::tagWithData(row, "th", "State count");
-        HtmlTag::tagWithData(row, "th", "Regularization cost count");
-        HtmlTag::tagWithData(row, "th", "Data cost count");
-      }
-      for (int i = 0; i < _chunks.size(); i++) {
+      makeCostTableHeaders(table);
+      /*for (int i = 0; i < _chunks.size(); i++) {
         auto row = HtmlTag::make(table, "tr");
         HtmlTag::tagWithData(row, "td", stringFormat("%d", i));
         addCostsForChunk(
@@ -354,8 +408,16 @@ public:
             calibrationParameters,
             stateParameters[i],
             _chunks[i], &problem, row);
-      }
+      }*/
     }
+
+    ceres::Solver::Options options;
+    options.linear_solver_type =
+        ceres::LinearSolverType::SPARSE_NORMAL_CHOLESKY;
+    ceres::Solver::Summary summary;
+    ceres::Solve(options, &problem, &summary);
+
+    outputSummary(summary, _log);
 
     ReconstructionResults results;
     results.parameters = _initialParameters;
@@ -503,13 +565,15 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
 #undef EVAL_RESIDUALS
 
     if (!computeHeelResiduals<T>(state, calibParams, residuals, &offset)) {
+      CHECK(false);
       return false;
     }
     if (!computeLeewayResiduals<T>(state, calibParams, residuals, &offset)) {
+      CHECK(false);
       return false;
     }
-
     assert(offset == outputCount());
+    assert(finiteResiduals<T>(offset, residuals));
     return true;
   }
 
@@ -521,6 +585,7 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
         calibParams[rec._layout.heelConstantOffset]
                     *BoatParameters<T>::heelConstantUnit(),
         residuals + *offset)) {
+      CHECK(false);
       return false;
     }
     *offset += HeelFitness<T, Settings>::outputCount;

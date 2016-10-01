@@ -84,7 +84,7 @@ struct ValueAccumulator {
 
   Spani getValueRange(int i) const {
     auto f = valuesPerIndex.find(i);
-    return f == valuesPerIndex.end()? Spani() : f->second;
+    return f == valuesPerIndex.end()? Spani(0, 0) : f->second;
   }
 };
 

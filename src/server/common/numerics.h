@@ -51,7 +51,17 @@ template <typename T, int N>
 bool isNaN(const ceres::Jet<T, N> &x) {return std::isnan(x.a);}
 
 template <typename T, int N>
-bool isFinite(const ceres::Jet<T, N> &x) {return std::isfinite(x.a);}
+bool isFinite(const ceres::Jet<T, N> &x) {
+  if (!std::isfinite(x.a)) {
+    return false;
+  }
+  for (int i = 0; i < N; i++) {
+    if (!isFinite(x.v[i])) {
+      return false;
+    }
+  }
+  return true;
+}
 
 }
 
