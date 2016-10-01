@@ -107,17 +107,21 @@ public:
         {"width", int(round(2.0*_margin
             + pixelHeight))}
     });
-    LineKM xmap(0.0, pixelWidth, _margin, _margin + pixelWidth);
-    LineKM ymap(valueSpan.minv()/vpy, valueSpan.maxv()/vpy,
+    auto xmap = LineKM(0.0, pixelWidth,
+        _margin, _margin + pixelWidth);
+    auto ymap = LineKM(
+        valueSpan.minv()/vpy, valueSpan.maxv()/vpy,
         _margin + pixelHeight, _margin);
-    /*auto canvas = HtmlTag::make(svg, "g", {
+
+    auto canvas = HtmlTag::make(svg, "g", {
       {"transform",
           stringFormat("matrix(%.3g, %.3g, %.3g, %.3g, %.3g, %.3g)",
-              xmap.getK(), 0.0, xmap.getM(),
-              0.0, ymap.getK(), ymap.getM())}
-    });*/
-    //auto &stream = canvas->stream();
-    auto &stream = svg->stream();
+              xmap.getK(), 0.0,
+              0.0, ymap.getK(),
+              xmap.getM(), ymap.getM())}
+    });
+    auto &stream = canvas->stream();
+    //auto &stream = svg->stream();
     for (const SignalToPlot &curve: _data) {
       /*if (curve.type == StrokeType::Line)*/ {
         stream << "<polyline points=\"";
