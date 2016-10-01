@@ -400,7 +400,7 @@ public:
     {
       auto table = HtmlTag::make(_log, "table");
       makeCostTableHeaders(table);
-      /*for (int i = 0; i < _chunks.size(); i++) {
+      for (int i = 0; i < _chunks.size(); i++) {
         auto row = HtmlTag::make(table, "tr");
         HtmlTag::tagWithData(row, "td", stringFormat("%d", i));
         addCostsForChunk(
@@ -408,7 +408,7 @@ public:
             calibrationParameters,
             stateParameters[i],
             _chunks[i], &problem, row);
-      }*/
+      }
     }
 
     ceres::Solver::Options options;
@@ -560,16 +560,16 @@ FOREACH_MEASURE_TO_CONSIDER(MAKE_RANGE)
 
     int offset = 0;
 #define EVAL_RESIDUALS(HANDLE) \
-  if (!computeResidualsForType<T, DataCode::HANDLE>(state, calibParams, residuals, &offset)) {return false;}
+  if (!computeResidualsForType<T, DataCode::HANDLE>(state, calibParams, residuals, &offset)) {assert(false); return false;}
 FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
 #undef EVAL_RESIDUALS
 
     if (!computeHeelResiduals<T>(state, calibParams, residuals, &offset)) {
-      CHECK(false);
+      assert(false);
       return false;
     }
     if (!computeLeewayResiduals<T>(state, calibParams, residuals, &offset)) {
-      CHECK(false);
+      assert(false);
       return false;
     }
     assert(offset == outputCount());
@@ -585,7 +585,7 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
         calibParams[rec._layout.heelConstantOffset]
                     *BoatParameters<T>::heelConstantUnit(),
         residuals + *offset)) {
-      CHECK(false);
+      assert(false);
       return false;
     }
     *offset += HeelFitness<T, Settings>::outputCount;
