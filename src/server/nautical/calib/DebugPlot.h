@@ -94,11 +94,11 @@ public:
   }
 
   void renderTo(HtmlNode::Ptr dst) const {
-    /*if (!(valueSpan.initialized() && timeSpan.initialized())) {
+    if (!(valueSpan.initialized() && timeSpan.initialized())) {
       HtmlTag::tagWithData(dst, "p", "Nothing to plot");
       return;
-    }*/
-    /*auto vpy = ValuesPerPixel<T>::get();
+    }
+    auto vpy = ValuesPerPixel<T>::get();
     auto vpx = ValuesPerPixel<Duration<double>>::get();
     auto dur = duration();
     double pixelHeight = valueSpan.width()/vpy;
@@ -120,14 +120,11 @@ public:
               xmap.getK(), 0.0,
               0.0, ymap.getK(),
               xmap.getM(), ymap.getM())},
-    });*/
-    //std::cout << "Number of curves: " << _data.size() << std::endl;
+    });
     for (const auto &curve : _data) {
-      //auto curve = _data[i];
       std::cout << "  Render curve with " << curve.values.size()
               << " values"<< std::endl;
-      //std::cout << "RENDER CURVE\n";
-      /*if (curve.type == StrokeType::Line) {
+      if (curve.type == StrokeType::Line) {
         auto &stream = canvas->stream();
         stream << "<polyline points=\"";
         for (auto pt: curve.values) {
@@ -147,9 +144,8 @@ public:
               << "' cy='" << (pt.value/vpy) <<
               "' r='2' />";
         }
-      }*/
+      }
     }
-    std::cout << "Curve count: " << _data.size() << std::endl;
   }
 
   Duration<double> duration() const {
