@@ -19,7 +19,23 @@
 #include <server/common/MDArray.h>
 
 namespace sail {
-
+/*
+ * NOTE on MULTITHREADING:
+ *
+ *  - This code relies on the destructors being called
+ *    in the opposite order of the constructor call sequence.
+ *    Therefore, it is a bad idea to have multiple threads
+ *    write to the same HTML page because things can get
+ *    corrupted. Furthermore, the HtmlNode's have mutable
+ *    state, so that is also something that will go wrong
+ *    with mutable threads.
+ *
+ *  - But since the code does not use global variables,
+ *    it is fine to run multiple threads and generate pages
+ *    in those threads as long as they don't mutate the same
+ *    HtmlNode instances.
+ *
+ * */
 class HtmlNode {
 public:
   typedef std::shared_ptr<HtmlNode> Ptr;

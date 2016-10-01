@@ -471,7 +471,7 @@ public:
     options.num_threads = 4;
     ceres::Solver::Summary summary;
 
-    //ceres::Solve(options, &problem, &summary);
+    ceres::Solve(options, &problem, &summary);
 
     outputSummary(summary, _log);
 
