@@ -74,6 +74,7 @@ public:
     _data.push_back(SignalToPlot{
       type, colors.back(), values
     });
+    std::cout << "   Added " << values.size() << " values to a plot";
   }
 
   std::string generateColor() {
@@ -118,8 +119,9 @@ public:
               xmap.getM(), ymap.getM())},
     });
     auto &stream = canvas->stream();
-    //auto &stream = svg->stream();
+    std::cout << "Number of curves: " << _data.size() << std::endl;
     for (const SignalToPlot &curve: _data) {
+      std::cout << "  Render curve with " << curve.values.size() << " values"<< std::endl;
       if (curve.type == StrokeType::Line) {
         stream << "<polyline points=\"";
         for (auto pt: curve.values) {
