@@ -1024,8 +1024,7 @@ struct MakeReprojectionPlot<Velocity<double>, AWS> {
         << values.size() << std::endl;
     TemporalSignalPlot<Velocity<double>> plot;
     plot.add(StrokeType::Dot, values);
-    plot.add(StrokeType::Dot, values);
-    /*if (chunk.states.empty()) {
+    if (chunk.states.empty()) {
       HtmlTag::tagWithData(dst,
           "p", "No reprojected data to show (missing)");
     } else {
@@ -1034,7 +1033,7 @@ struct MakeReprojectionPlot<Velocity<double>, AWS> {
           << projected.size() << std::endl;
       plot.add(StrokeType::Line,
           projected);
-    }*/
+    }
     plot.renderTo(dst);
   }
 };
