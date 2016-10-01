@@ -97,21 +97,18 @@ public:
     auto vpy = ValuesPerPixel<T>::get();
     auto vpx = ValuesPerPixel<Duration<double>>::get();
     auto dur = duration();
-    double pixelWidth = valueSpan.width()/vpy;
+    double pixelHeight = valueSpan.width()/vpy;
     HtmlTag::tagWithData(dst, "p",
         stringFormat("Duration: %s", dur.str().c_str()));
-    double pixelHeight = dur/vpx;
+    double pixelWidth = dur/vpx;
     auto svg = HtmlTag::make(dst, "svg", {
-        {"height", int(round(2.0*_margin
-            + pixelWidth))},
-        {"width", int(round(2.0*_margin
-            + pixelHeight))}
+        {"height", int(round(pixelHeight))},
+        {"width", int(round(pixelWidth))}
     });
-    auto xmap = LineKM(0.0, pixelWidth,
-        _margin, _margin + pixelWidth);
+    auto xmap = LineKM::identity();
     auto ymap = LineKM(
         valueSpan.minv()/vpy, valueSpan.maxv()/vpy,
-        _margin + pixelHeight, _margin);
+        pixelHeight, 0.0);
 
     auto canvas = HtmlTag::make(svg, "g", {
       {"transform",
@@ -138,7 +135,6 @@ public:
     return timeSpan.maxv() - timeSpan.minv();
   }
 private:
-  double _margin = 30;
   std::default_random_engine _rng;
   std::vector<std::string> colors{
     "red", "green", "blue",
