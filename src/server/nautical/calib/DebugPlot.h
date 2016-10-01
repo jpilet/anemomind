@@ -128,11 +128,16 @@ public:
         }
         stream << "\" style=\"fill: none; stroke:" << curve.color << "; stroke-width: 2\" />";
       } else {
+        auto circleGroup = HtmlTag::make(canvas, "g", {
+            {"stroke-width", 0},
+            {"fill", curve.color},
+        });
+        auto &cstream = circleGroup->stream();
         for (auto pt: curve.values) {
-          stream << "<circle cx=\"" << (pt.time - timeSpan.minv())/vpx
-              << "\" cy=\"" << (pt.value/vpy) <<
-              "\" r='2' stroke-width='0' fill='" <<
-              curve.color << "' />";
+          cstream << "<circle cx='"
+              << (pt.time - timeSpan.minv())/vpx
+              << "' cy='" << (pt.value/vpy) <<
+              "' r='2' />";
         }
       }
     }
