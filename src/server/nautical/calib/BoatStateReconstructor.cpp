@@ -1004,6 +1004,7 @@ Array<TimedValue<T>>
   makeTimedValuesFromRecChunk(
       const ReconstructedChunk &chunk) {
   int n = chunk.mapper.sampleCount;
+  CHECK(chunk.states.size() == n);
   Array<TimedValue<T>> dst(n);
   for (int i = 0; i < n; i++) {
     dst[i] = TimedValue<T>(

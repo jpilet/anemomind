@@ -118,11 +118,15 @@ public:
               0.0, ymap.getK(),
               xmap.getM(), ymap.getM())},
     });
-    auto &stream = canvas->stream();
-    std::cout << "Number of curves: " << _data.size() << std::endl;
-    for (const SignalToPlot &curve: _data) {
+    //std::cout << "Number of curves: " << _data.size() << std::endl;
+    int curveCount = _data.size();
+    std::cout << "Curve count: " << curveCount << std::endl;
+    for (int i = 0; i < curveCount; i++) {
+      std::cout << " i = " << i << std::endl;
+      auto curve = _data[i];
       std::cout << "  Render curve with " << curve.values.size() << " values"<< std::endl;
       if (curve.type == StrokeType::Line) {
+        auto &stream = canvas->stream();
         stream << "<polyline points=\"";
         for (auto pt: curve.values) {
           stream << (pt.time - timeSpan.minv())/vpx
@@ -142,7 +146,9 @@ public:
               "' r='2' />";
         }
       }
+      std::cout << "Done i = " << i << std::endl;
     }
+    std::cout << "Curve count: " << _data.size() << std::endl;
   }
 
   Duration<double> duration() const {
