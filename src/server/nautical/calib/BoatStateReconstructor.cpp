@@ -412,6 +412,8 @@ public:
     }
 
     ceres::Solver::Options options;
+    options.minimizer_progress_to_stdout = true;
+    options.logging_type = ceres::LoggingType::PER_MINIMIZER_ITERATION;
     options.num_threads = 4;
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
