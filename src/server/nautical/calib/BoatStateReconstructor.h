@@ -135,6 +135,16 @@ struct BoatParameterLayout {
 FOREACH_CHANNEL(DECLARE_PER_TYPE)
 #undef DECLARE_PER_TYPE
 
+  template <typename T, DataCode code>
+  DistortionModel<T, code> getModel(int index, const T *params) const {
+    const auto &e = *ChannelFieldAccess<code>::get(*this);
+    DistortionModel<T, code> dst;
+    dst.readFrom(
+        params + e.offset +
+        DistortionModel<T, code>::paramCount*index);
+    return dst;
+  }
+
   int paramCount = 0;
 
   BoatParameterLayout(const BoatParameters<double> &parameters);

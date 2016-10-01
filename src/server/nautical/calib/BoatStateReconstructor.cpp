@@ -409,8 +409,10 @@ public:
           chunk.HANDLE.getValueRange(i),
         FOREACH_MEASURE_TO_CONSIDER(GET_VALUE_RANGE)
         #undef GET_VALUE_RANGE
-            *this
-                };
+              chunk,
+              chunk.initialStates[i],
+              *this
+             };
         auto wrapped = new
             ceres::DynamicAutoDiffCostFunction<CostFunctor>(
                 cost);
@@ -451,25 +453,119 @@ public:
   ReconstructionSettings _settings;
 };
 
+
+template <typename T, DataCode code>
+class IndexedSensors {
+public:
+  static const int maxSensors = 8;
+
+  int count = 0;
+
+  IndexedSensors(const BoatParameterLayout &layout, const T *parameters) {
+    count = ChannelFieldAccess<code>::apply(layout).count;
+    for (int i = 0; i < count; i++) {
+      _sensors[i] = layout.getModel(i, parameters);
+    }
+  }
+
+  const DistortionModel<T, code> &operator[](int i) const {
+    assert(0 <= i);
+    assert(i < count);
+    return _sensors[i];
+  }
+private:
+  DistortionModel<T, code> _sensors[maxSensors];
+};
+
 template <typename Settings>
 struct DataCost {
 #define MAKE_RANGE(HANDLE) \
   Spani HANDLE;
 FOREACH_MEASURE_TO_CONSIDER(MAKE_RANGE)
 #undef GET_VALUE_RANGE
+  const ChunkAccumulator &chunk;
+  const BoatState<double> &initState;
   const BoatStateReconstructor<Settings> &rec;
 
   template <typename T>
   bool operator()(T const* const* parameters,
       T *residuals) const {
+    auto calibParams = parameters[0];
+    auto stateParams = parameters[1];
 
-    //TODO: Check against outputCount!!!!
+    auto state = ReconstructedBoatState<T, Settings>::make(initState);
+    state.readFrom(stateParams);
+
+    int offset = 0;
+#define EVAL_RESIDUALS(HANDLE) \
+  if (!computeResidualsForType<T, DataCode::HANDLE>(state, calibParams, residuals, &offset)) {return false;}
+FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
+#undef EVAL_RESIDUALS
+
+    if (!computeHeelResiduals<T>(state, calibParams, residuals, &offset)) {
+      return false;
+    }
+    if (!computeLeewayResiduals<T>(state, calibParams, residuals, &offset)) {
+      return false;
+    }
+
+    assert(offset == outputCount());
+    return true;
+  }
+
+  template <typename T>
+  bool computeHeelResiduals(
+      const ReconstructedBoatState<T, Settings> &state,
+      const T *calibParams, T *residuals, int *offset) const {
+    if (!HeelFitness<T, Settings>::apply(state,
+        calibParams[rec._layout.heelConstantOffset]
+                    *BoatParameters<T>::heelConstantUnit(),
+        residuals + *offset)) {
+      return false;
+    }
+    *offset += HeelFitness<T, Settings>::outputCount;
+    return true;
+  }
+
+  template <typename T>
+  bool computeLeewayResiduals(
+      const ReconstructedBoatState<T, Settings> &state,
+      const T *calibParams, T *residuals, int *offset) const {
+    if (!LeewayFitness<T, Settings>::apply(state,
+        calibParams[rec._layout.leewayConstantOffset]
+                    *BoatParameters<T>::leewayConstantUnit(),
+                    residuals + *offset)) {
+      return false;
+    }
+    *offset += LeewayFitness<T, Settings>::outputCount;
+    return true;
+  }
+
+  template <typename T, DataCode code>
+  bool computeResidualsForType(
+      const ReconstructedBoatState<T, Settings> &state,
+      const T *calibParams, T *residuals, int *offset) const {
+    for (auto i: *ChannelFieldAccess<code>::get(*this)) {
+      const auto &v = ChannelFieldAccess<code>::get(chunk)->values[i];
+      typedef Fitness<T, code, Settings> F;
+      if (F::apply(state, rec._layout.getModel<T, code>(
+          v.sensorIndex, calibParams),
+        v.value, residuals + *offset)) {
+        return false;
+      }
+      *offset += F::outputCount;
+    }
     return true;
   }
 
   int outputCount() const {
-    // TODO!!!!
-    return 0;
+    return AWA.width()*AWAFitness<double, Settings>::outputCount +
+        AWS.width()*AWSFitness<double, Settings>::outputCount +
+        MAG_HEADING.width()*MagHeadingFitness<double, Settings>::outputCount +
+        WAT_SPEED.width()*WatSpeedFitness<double, Settings>::outputCount +
+        ORIENT.width()*OrientFitness<double, Settings>::outputCount
+        + HeelFitness<double, Settings>::outputCount
+        + LeewayFitness<double, Settings>::outputCount;
   }
 };
 

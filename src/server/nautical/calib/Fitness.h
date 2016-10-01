@@ -287,7 +287,7 @@ struct ReconstructedBoatState {
 
   // Suppose we have previously already reconstructed some of the state,
   // somehow. Then we can use that to initializer this object.
-  static ReconstructedBoatState<T, Settings> make(const BoatState<T> &prototype) {
+  static ReconstructedBoatState<T, Settings> make(const BoatState<double> &prototype) {
     ReconstructedBoatState<T, Settings> dst;
 
     // From the GPS filter...
@@ -445,6 +445,14 @@ struct OrientFitness {
   }
 };
 
+template <typename T, DataCode code, typename Settings> class Fitness {};
+template <typename T, typename Settings> class Fitness<T, AWA, Settings> : public AWAFitness<T, Settings> {};
+template <typename T, typename Settings> class Fitness<T, AWS, Settings> : public AWSFitness<T, Settings> {};
+template <typename T, typename Settings> class Fitness<T, MAG_HEADING, Settings> : public MagHeadingFitness<T, Settings> {};
+template <typename T, typename Settings> class Fitness<T, WAT_SPEED, Settings> : public WatSpeedFitness<T, Settings> {};
+template <typename T, typename Settings> class Fitness<T, ORIENT, Settings> : public OrientFitness<T, Settings> {};
+
+
     /*PhysicalQuantity<T,
     UnitSystem::CustomAnemoUnits,
     1, -1, 1, 0>;*/
@@ -552,7 +560,7 @@ struct LeewayFitness {
             .normalizedAt0();
         Velocity<T> velocityError = angleError.radians()*vs;
         residuals[0] = sqrtHuber<T>(
-            velocityError/BandWidthForType<T, Velocity<T>>::get());
+            velocityError/BandWidthForType<T, Velocity<double>>::get());
       }
     }
     return true;

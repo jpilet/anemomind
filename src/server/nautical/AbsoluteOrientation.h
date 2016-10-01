@@ -3,6 +3,7 @@
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <Eigen/Dense>
+#include <server/math/JetUtils.h>
 
 namespace sail {
 
@@ -99,27 +100,27 @@ using AbsoluteBoatOrientation
 template <typename T>
 Eigen::Matrix<T, 3, 3> headingMatrix(Angle<T> h) {
   Eigen::Matrix<T, 3, 3> H;
-  H << cos(h), sin(h), 0,
-       -sin(h), cos(h), 0,
-       0, 0, 1;
+  H << cos(h), sin(h), MakeConstant<T>::apply(0.0),
+       -sin(h), cos(h), MakeConstant<T>::apply(0.0),
+       MakeConstant<T>::apply(0.0), MakeConstant<T>::apply(0.0), MakeConstant<T>::apply(1.0);
   return H;
 }
 
 template <typename T>
 Eigen::Matrix<T, 3, 3> pitchMatrix(Angle<T> p) {
   Eigen::Matrix<T, 3, 3> P;
-  P << 1, 0, 0,
-      0, cos(p), -sin(p),
-      0, sin(p), cos(p);
+  P << MakeConstant<T>::apply(1.0), MakeConstant<T>::apply(0.0), MakeConstant<T>::apply(0.0),
+      MakeConstant<T>::apply(0.0), cos(p), -sin(p),
+      MakeConstant<T>::apply(0.0), sin(p), cos(p);
   return P;
 }
 
 template <typename T>
 Eigen::Matrix<T, 3, 3> rollMatrix(Angle<T> r) {
   Eigen::Matrix<T, 3, 3> R;
-  R << cos(r), 0, sin(r),
-       0, 1, 0,
-       -sin(r), 0, cos(r);
+  R << cos(r), MakeConstant<T>::apply(0.0), sin(r),
+      MakeConstant<T>::apply(0.0), MakeConstant<T>::apply(1.0), MakeConstant<T>::apply(0.0),
+       -sin(r), MakeConstant<T>::apply(0.0), cos(r);
   return R;
 }
 
