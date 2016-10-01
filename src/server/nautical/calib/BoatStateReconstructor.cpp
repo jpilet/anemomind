@@ -1112,10 +1112,10 @@ ReconstructionResults reconstruct(
   BoatStateReconstructor<DefaultSettings> reconstructor(
       chunks, initialParameters, settings, logNode);
 
-  ReconstructionResults results;
-  /*auto results = reconstructor.reconstruct();
+  //ReconstructionResults results;
+  auto results = reconstructor.reconstruct();
   assert(results.parameters.paramCount()
-      == initialParameters.paramCount());*/
+      == initialParameters.paramCount());
 
   if (logNode) {
     HtmlTag::tagWithData(logNode, "h2", "Reprojection plots");
