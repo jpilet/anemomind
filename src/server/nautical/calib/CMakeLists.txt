@@ -128,6 +128,7 @@ target_link_libraries(calib_BoatStateReconstructor
   common_HtmlLog
   anemobox_Channels
   common_logging
+  calib_Fitness
   )
 target_depends_on_ceres(calib_BoatStateReconstructor)
 

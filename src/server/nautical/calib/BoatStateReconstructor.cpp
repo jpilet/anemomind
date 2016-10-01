@@ -548,7 +548,7 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
     for (auto i: *ChannelFieldAccess<code>::get(*this)) {
       const auto &v = ChannelFieldAccess<code>::get(chunk)->values[i];
       typedef Fitness<T, code, Settings> F;
-      if (F::apply(state, rec._layout.getModel<T, code>(
+      if (F::apply(state, rec._layout.template getModel<T, code>(
           v.sensorIndex, calibParams),
         v.value, residuals + *offset)) {
         return false;

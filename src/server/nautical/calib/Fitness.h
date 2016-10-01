@@ -349,7 +349,7 @@ struct AWSFitness {
       const DistortionModel<T, AWS> &distortion,
       const Velocity<double> &observation,
       T *residuals) {
-    auto aw = computeApparentWind<double>(
+    auto aw = computeApparentWind<T>(
         state.boatOverGround.value, state.windOverGround.value);
     auto bw = BandWidth<T, AWS>::get();
     Velocity<T> error = distortion.apply(aw.norm())
@@ -399,6 +399,18 @@ struct WatSpeedFitness {
   }
 };
 
+template <typename T, int r, int c>
+Eigen::Matrix<T, r, c> matToT(
+    const Eigen::Matrix<double, r, c> &src) {
+  Eigen::Matrix<T, r, c> dst;
+  for (int i = 0; i < r; i++) {
+    for (int j = 0; j < c; j++) {
+      dst(i, j) = MakeConstant<T>::apply(src(i, j));
+    }
+  }
+  return dst;
+}
+
 // Compare the boat-to-world rotation matrices
 // (the one of the state and the observed one)
 template <typename T, typename Settings>
@@ -416,7 +428,7 @@ struct OrientFitness {
       // other boat-to-world roation matrix (estimated from the state).
 
       auto obsR = distortion.computeBoatToWorldRotation(
-          BNO055AnglesToRotation(observation));
+          matToT<T>(BNO055AnglesToRotation(observation)));
       auto boatR = orientationToMatrix<T>(orient.get());
       // obsR = relR*boatR <=> relR = obsR*boatR'
       auto relR = obsR*boatR.transpose();
@@ -426,6 +438,8 @@ struct OrientFitness {
       Velocity<T> hNorm = state.heading.value.norm();
       T cosTheta = (relR.trace()
           - MakeConstant<T>::apply(1.0))/MakeConstant<T>::apply(2.0);
+
+      // No need to recover the angle theta.
 
       // Because the heading is represented using a vector,
       // we are going to formulate the residual so that
