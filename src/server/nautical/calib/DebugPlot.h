@@ -16,6 +16,9 @@
 #include <random>
 #include <sstream>
 #include <server/common/LineKM.h>
+#include <server/common/Span.h>
+#include <server/common/HtmlLog.h>
+#include <server/common/TimedValue.h>
 
 namespace sail {
 
@@ -50,14 +53,26 @@ struct ValuesPerPixel<Duration<double>> {
 enum class StrokeType {Line, Dot};
 
 struct AxisMapping {
-  Spand sourceRange;
+  Span<double> sourceRange;
   double targetWidth;
-  double margin = 15;
+  double margin;
 };
 
 enum class AxisMode {XY, IJ};
 
-HtmlNode::Ptr makePlotSpace(AxisMode mode,
+HtmlNode::Ptr makeSvg(
+    HtmlNode::Ptr parent,
+    double pixelWidth, double pixelHeight);
+
+LineKM makeAxisFun(bool forward,
+    const AxisMapping &m);
+
+HtmlNode::Ptr makePlotSpace(
+    const HtmlNode::Ptr &parent,
+    const LineKM &xmap,
+    const LineKM &ymap);
+HtmlNode::Ptr makePlotSpace(HtmlNode::Ptr parent,
+                            AxisMode mode,
                             const AxisMapping &x,
                             const AxisMapping &y);
 
@@ -115,24 +130,24 @@ public:
     auto dur = duration();
     double pixelHeight = valueSpan.width()/vpy;
     HtmlTag::tagWithData(dst, "p",
-        stringFormat("Duration: %s", dur.str().c_str()));
+        stringFormat("Duration: %s",
+            dur.str().c_str()));
     double pixelWidth = dur/vpx;
-    auto svg = HtmlTag::make(dst, "svg", {
-        {"height", int(round(pixelHeight))},
-        {"width", int(round(pixelWidth))}
-    });
-    auto xmap = LineKM::identity();
-    auto ymap = LineKM(
-        valueSpan.minv()/vpy, valueSpan.maxv()/vpy,
-        pixelHeight, 0.0);
 
-    auto canvas = HtmlTag::make(svg, "g", {
-      {"transform",
-          stringFormat("matrix(%.3g, %.3g, %.3g, %.3g, %.3g, %.3g)",
-              xmap.getK(), 0.0,
-              0.0, ymap.getK(),
-              xmap.getM(), ymap.getM())},
+    auto svg = makeSvg(dst, pixelWidth + 2*_margin,
+        pixelHeight + 2*_margin);
+    auto xmap = makeAxisFun(true, AxisMapping{
+      Spand(0.0, pixelWidth), pixelWidth, _margin
     });
+    auto ymap = makeAxisFun(false, AxisMapping{
+      Spand(valueSpan.minv()/vpy, valueSpan.maxv()/vpy),
+      pixelHeight,
+      _margin
+    });
+
+    auto canvas = makePlotSpace(
+        svg, xmap, ymap);
+
     for (const auto &curve : _data) {
       std::cout << "  Render curve with " << curve.values.size()
               << " values"<< std::endl;
@@ -164,6 +179,7 @@ public:
     return timeSpan.maxv() - timeSpan.minv();
   }
 private:
+  double _margin = 30.0;
   std::default_random_engine _rng;
   std::vector<std::string> colors{
     "red", "green", "blue",
