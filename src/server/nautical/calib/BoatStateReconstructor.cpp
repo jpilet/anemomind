@@ -986,18 +986,6 @@ FOREACH_CHANNEL(LAYOUT_SENSORS)
   assert(paramCount == parameters.paramCount());
 }
 
-template <typename T, DataCode code>
-struct MakeReprojectionPlot {
-
-  static void apply(TimeStampToIndexMapper mapper,
-      const ReconstructedChunk &chunk,
-      const Array<TimedValue<T>> &values,
-      HtmlNode::Ptr dst) {
-    HtmlTag::tagWithData(dst, "p",
-        std::string("Nothing to render for ")
-      + wordIdentifierForCode(code));
-  }
-};
 
 template <DataCode code, typename T = typename TypeForCode<code>::type>
 Array<TimedValue<T>>
@@ -1014,21 +1002,31 @@ Array<TimedValue<T>>
   return dst;
 }
 
-template <>
-struct MakeReprojectionPlot<Velocity<double>, AWS> {
+template <typename T, DataCode code>
+struct MakeNoReprojectionPlot {
   static void apply(TimeStampToIndexMapper mapper,
-        const ReconstructedChunk &chunk,
-        const Array<TimedValue<Velocity<double>>> &values,
-        HtmlNode::Ptr dst) {
-    std::cout << "  number of raw values to plot: "
-        << values.size() << std::endl;
-    TemporalSignalPlot<Velocity<double>> plot;
+      const ReconstructedChunk &chunk,
+      const Array<TimedValue<T>> &values,
+      const DistortionModel<double, code> &model,
+      HtmlNode::Ptr dst) {
+    HtmlTag::tagWithData(dst, "p", "This type cannot be rendered");
+  }
+};
+
+template <typename T, DataCode code>
+struct MakeReprojectionPlot {
+  static void apply(TimeStampToIndexMapper mapper,
+      const ReconstructedChunk &chunk,
+      const Array<TimedValue<T>> &values,
+      const DistortionModel<double, code> &model,
+      HtmlNode::Ptr dst) {
+    TemporalSignalPlot<T> plot;
     plot.add(StrokeType::Dot, values);
     if (chunk.states.empty()) {
       HtmlTag::tagWithData(dst,
           "p", "No reprojected data to show (missing)");
     } else {
-      auto projected = makeTimedValuesFromRecChunk<AWS>(chunk);
+      auto projected = makeTimedValuesFromRecChunk<code>(chunk);
       std::cout << "  number of projected values: "
           << projected.size() << std::endl;
       plot.add(StrokeType::Line,
@@ -1038,12 +1036,16 @@ struct MakeReprojectionPlot<Velocity<double>, AWS> {
   }
 };
 
+template <typename T>
+struct MakeReprojectionPlot<T, ORIENT> : public MakeNoReprojectionPlot<T, ORIENT> {};
+
 template <DataCode HANDLE,
   typename T = typename TypeForCode<HANDLE>::type>
 void makeChunkPlotRow(
     const TimeStampToIndexMapper &mapper,
     const ReconstructedChunk &chunk,
     const std::map<std::string, Array<TimedValue<T>>> &values,
+    const std::map<std::string, DistortionModel<double, HANDLE>> &models,
     HtmlNode::Ptr dst) {
   auto row = HtmlTag::make(dst, "tr");
   HtmlTag::tagWithData(row, "td",
@@ -1054,13 +1056,17 @@ void makeChunkPlotRow(
       std::cout << "Making chunk plot for " << kv.first << std::endl;
       auto li = HtmlTag::make(ul, "li");
       auto subPage = HtmlTag::linkToSubPage(li, kv.first, true);
+      auto kvmodel = models.find(kv.first);
+      CHECK(kvmodel != models.end());
+      const auto &model = kvmodel->second;
       MakeReprojectionPlot<T, HANDLE>::apply(
-          mapper, chunk, kv.second, subPage);
+          mapper, chunk, kv.second, model, subPage);
     }
   }
 }
 
 void makeReprojectionPlotForChunk(
+    const BoatParameters<double> &parameters,
     const ReconstructedChunk &reconstructed,
     const CalibDataChunk &chunk,
     HtmlNode::Ptr dst) {
@@ -1071,7 +1077,7 @@ void makeReprojectionPlotForChunk(
     HtmlTag::tagWithData(h, "th", "Plots");
   }
 #define MAKE_PLOT_ROW(HANDLE) \
-  makeChunkPlotRow<HANDLE>(chunk.timeMapper, reconstructed, chunk.HANDLE, table);
+  makeChunkPlotRow<HANDLE>(chunk.timeMapper, reconstructed, chunk.HANDLE, parameters.sensors.HANDLE, table);
   FOREACH_MEASURE_TO_CONSIDER(MAKE_PLOT_ROW)
 #undef MAKE_PLOT_ROW
 }
@@ -1087,10 +1093,12 @@ void makePlotsPerChunk(
     HtmlTag::tagWithData(dst, "h3", stringFormat("Chunk %d",
         i+1));
     makeReprojectionPlotForChunk(
+        results.parameters,
         results.chunks.empty()?
             ReconstructedChunk()
             : results.chunks[i],
-        chunks[i], dst);
+        chunks[i],
+        dst);
   }
 }
 

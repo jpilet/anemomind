@@ -342,6 +342,27 @@ struct BoatStateValue<T, AWS> {
   }
 };
 
+template <typename T>
+struct BoatStateValue<T, WAT_SPEED> {
+  static Velocity<T> get(const BoatState<T> &x) {
+    return x.boatOverWater().norm();
+  }
+};
+
+template <typename T>
+struct BoatStateValue<T, MAG_HEADING> {
+  static Angle<T> get(const BoatState<T> &x) {
+    return x.heading();
+  }
+};
+
+template <typename T>
+struct BoatStateValue<T, AWA> {
+  static Angle<T> get(const BoatState<T> &x) {
+    return x.apparentWind().angle();
+  }
+};
+
 
 
 
