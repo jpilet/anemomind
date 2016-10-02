@@ -471,7 +471,7 @@ public:
     options.num_threads = 4;
     ceres::Solver::Summary summary;
 
-    //ceres::Solve(options, &problem, &summary);
+    ceres::Solve(options, &problem, &summary);
 
     outputSummary(summary, _log);
 
@@ -1015,20 +1015,24 @@ struct MakeNoReprojectionPlot {
 };
 
 template <typename T>
-Array<T> normalizeMeasuresForPlot(const Array<T> &m) {
-  return m;
-}
+struct NormalizeMeasures {
+  static Array<TimedValue<T>> apply(const Array<TimedValue<T>> &m) {
+    return m;
+  }
+};
 
 template <>
-Array<Angle<double>> normalizeMeasuresForPlot(
-    const Array<Angle<double>> &src) {
-  int n = src.size();
-  Array<Angle<double>> dst(n);
-  for (int i = 0; i < n; i++) {
-    dst[i] = src[i].normalizedAt0();
+struct NormalizeMeasures<Angle<double>> {
+  static Array<TimedValue<Angle<double>>> apply(const Array<TimedValue<Angle<double>>> &src) {
+    int n = src.size();
+    Array<TimedValue<Angle<double>>> dst(n);
+    for (int i = 0; i < n; i++) {
+      auto x = src[i];
+      dst[i] = TimedValue<Angle<double>>{x.time, x.value.normalizedAt0()};
+    }
+    return dst;
   }
-  return dst;
-}
+};
 
 template <typename T, DataCode code>
 struct MakeReprojectionPlot {
@@ -1038,7 +1042,7 @@ struct MakeReprojectionPlot {
       const DistortionModel<double, code> &model,
       HtmlNode::Ptr dst) {
     TemporalSignalPlot<T> plot;
-    plot.add(StrokeType::Dot, normalizeMeasuresForPlot(values));
+    plot.add(StrokeType::Dot, NormalizeMeasures<T>::apply(values));
     if (chunk.states.empty()) {
       HtmlTag::tagWithData(dst,
           "p", "No reprojected data to show (missing)");
@@ -1048,7 +1052,7 @@ struct MakeReprojectionPlot {
       std::cout << "  number of projected values: "
           << projected.size() << std::endl;
       plot.add(StrokeType::Line,
-          normalizeMeasuresForPlot(projected));
+          NormalizeMeasures<T>::apply(projected));
     }
     plot.renderTo(dst);
   }
@@ -1142,7 +1146,7 @@ ReconstructionResults reconstruct(
     outputBoatParameters(initialParameters, logNode);
   }
 
-  BoatStateReconstructor<DefaultSettings> reconstructor(
+  BoatStateReconstructor<MiniSettings> reconstructor(
       chunks, initialParameters, settings, logNode);
 
   //ReconstructionResults results;

@@ -138,6 +138,16 @@ struct DefaultSettings {
   static const bool withPitch = true;
 };
 
+struct MiniSettings {
+  // Provided by the GPS filter
+  static const bool withBoatOverGround = false;
+
+  static const bool withWindOverGround = true;
+  static const bool withCurrentOverGround = false;
+  static const bool withHeel = false;
+  static const bool withPitch = false;
+};
+
 // Future version, also boat motion recover.
 struct FullSettings {
   static const bool withBoatOverGround = true;

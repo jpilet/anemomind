@@ -9,6 +9,8 @@
 #include <server/common/PhysicalQuantityIO.h>
 #include <gtest/gtest.h>
 #include <server/nautical/calib/Fitness.h>
+#include <ceres/ceres.h>
+#include <server/common/LineKM.h>
 
 using namespace sail;
 
@@ -364,5 +366,30 @@ TEST(FitnessTest, OrientationTest) {
         state, model, observed, r)));
     EXPECT_NEAR(r[0], 1.0, 1.0e-3);
   }
+}
+
+
+
+bool eqMotion(const HorizontalMotion<double> &a,
+              const HorizontalMotion<double> &b) {
+  return HorizontalMotion<double>(a - b).norm().knots() < 1.0e-4;
+}
+
+
+TEST(FitnessTest, Convert) {
+  ReconstructedBoatState<double, DefaultSettings> bs;
+  bs.boatOverGround.value = HorizontalMotion<double>{1.0_kn, 2.0_kn};
+  bs.windOverGround.value = HorizontalMotion<double>{3.0_kn, 4.0_kn};
+  bs.currentOverGround.value = HorizontalMotion<double>{5.0_kn, 6.0_kn};
+  bs.heading.value = HorizontalMotion<double>::polar(3.0_kn, 94.0_deg);
+  bs.heel.value = 30.0_deg;
+  bs.pitch.value = 15.0_deg;
+
+  BoatState<double> bs0;
+
+  auto bs2 = bs.makeBoatState(bs0);
+  EXPECT_TRUE(eqMotion(bs2.boatOverGround(), bs.boatOverGround.value));
+  EXPECT_TRUE(eqMotion(bs2.windOverGround(), bs.windOverGround.value));
+  EXPECT_TRUE(eqMotion(bs2.currentOverGround(), bs.currentOverGround.value));
 
 }
