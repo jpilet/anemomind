@@ -130,6 +130,7 @@ target_link_libraries(calib_BoatStateReconstructor
   common_logging
   calib_Fitness
   calib_DebugPlot
+  common_MeanAndVar
   )
 target_depends_on_ceres(calib_BoatStateReconstructor)
 

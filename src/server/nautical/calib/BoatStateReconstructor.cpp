@@ -11,6 +11,7 @@
 #include <random>
 #include <server/common/string.h>
 #include <server/nautical/calib/DebugPlot.h>
+#include <server/common/MeanAndVar.h>
 
 namespace sail {
 
@@ -404,6 +405,25 @@ namespace {
     }
 }
 
+template <typename Settings>
+void analyzeReconstructedStates(
+    const Array<Array<ReconstructedBoatState<double, Settings>>> &states,
+    HtmlNode::Ptr dst) {
+  MeanAndVar magHdgStats;
+
+  for (auto chunk: states) {
+    for (auto state: chunk) {
+      magHdgStats.add(state.heading.value.norm().knots());
+    }
+  }
+
+  HtmlTag::tagWithData(dst, "p",
+      stringFormat("Mag heading mean norm: %.3g knots", magHdgStats.mean()));
+  HtmlTag::tagWithData(dst, "p",
+      stringFormat("Mag heading stddev norm: %.3g knots",
+          sqrt(magHdgStats.variance())));
+}
+
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
 public:
@@ -492,6 +512,7 @@ public:
 
     if (_log) {
       auto reconstructedStates = makeAllReconstructedStates(stateParameters);
+      analyzeReconstructedStates(reconstructedStates, _log);
     }
 
     return results;
