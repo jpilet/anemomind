@@ -489,6 +489,11 @@ public:
     results.parameters = _initialParameters;
     results.parameters.readFrom(calibrationParameters.ptr());
     results.chunks = makeAllBoatStates(stateParameters);
+
+    if (_log) {
+      auto reconstructedStates = makeAllReconstructedStates(stateParameters);
+    }
+
     return results;
   }
 
@@ -503,6 +508,36 @@ public:
         makeBoatStates<BoatStateSettings>(
                   _chunks[i].initialStates, parameters[i])
       };
+    }
+    return dst;
+  }
+
+  Array<Stated>
+    makeReconstructedStates(
+        const Array<BoatState<double>> &initStates,
+        const Array<double> &parameters) const {
+    int n = parameters.size()/Stated::dynamicValueDimension;
+    CHECK(n*Stated::dynamicValueDimension == parameters.size());
+    CHECK(n == initStates.size());
+    Array<Stated> dst(n);
+    for (int i = 0; i < n; i++) {
+      auto state = Stated::make(initStates[i]);
+      state.readFrom(parameters.blockPtr(i, Stated::dynamicValueDimension));
+      dst[i] = state;
+    }
+    return dst;
+  }
+
+  Array<Array<Stated>>
+    makeAllReconstructedStates(
+      const Array<Array<double>> &parameters) const {
+    int n = parameters.size();
+    CHECK(n == _chunks.size());
+    Array<Array<Stated>> dst(n);
+    for (int i = 0; i < n; i++) {
+      dst[i] = makeReconstructedStates(
+          _chunks[i].initialStates,
+          parameters[i]);
     }
     return dst;
   }

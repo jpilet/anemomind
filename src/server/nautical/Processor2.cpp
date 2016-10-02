@@ -220,7 +220,6 @@ Array<ReconstructionResults> reconstructAllGroups(
   }
 
   return results;
-  return Array<ReconstructionResults>();
 }
 
 struct ChannelSummarizerVisitor {
