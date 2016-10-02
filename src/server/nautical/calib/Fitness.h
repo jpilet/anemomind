@@ -48,6 +48,20 @@ T sqrtHuber(T x) {
   }
 }
 
+template <typename T, int N>
+void applyHuber(T *residuals) {
+  T norm2 = MakeConstant<T>::apply(0.0);
+  for (int i = 0; i < N; i++) {
+    auto r = residuals[i];
+    norm2 += r*r;
+  }
+  T norm = sqrt(1.0e-6 + norm2);
+  T f = sqrtHuber<T>(norm)/norm;
+  for (int i = 0; i < N; i++) {
+    residuals[i] *= f;
+  }
+}
+
 template <typename T>
 struct DefaultUndefinedResidual {
   static T get() {return MakeConstant<T>::apply(4.0);}
@@ -408,6 +422,7 @@ struct MagHeadingFitness {
     //residuals[0] = error/velBW;
     residuals[0] = dif[0]/velBW;
     residuals[1] = dif[1]/velBW;
+    applyHuber<T, 2>(residuals);
     return true;
   }
 };
