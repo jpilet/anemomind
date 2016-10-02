@@ -393,4 +393,8 @@ TEST(FitnessTest, Convert) {
   EXPECT_TRUE(eqMotion(bs2.currentOverGround(), bs.currentOverGround.value));
   EXPECT_NEAR((bs2.heading() - bs.heading.value.angle())
       .normalizedAt0().degrees(), 0.0, 1.0e-6);
+  EXPECT_NEAR((bs2.orientation().pitch - bs.pitch.value)
+      .normalizedAt0().degrees(), 0.0, 1.0e-6);
+  EXPECT_NEAR((bs2.orientation().roll - bs.heel.value)
+      .normalizedAt0().degrees(), 0.0, 1.0e-6);
 }
