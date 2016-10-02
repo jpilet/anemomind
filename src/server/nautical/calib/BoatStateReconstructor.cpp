@@ -57,7 +57,8 @@ template <typename T>
 ValueAccumulator<T> makeValueAccumulator(
     const BoatParameterLayout::IndexAndOffsetMap &sensorIndices,
   const TimeStampToIndexMapper &mapper,
-  const std::map<std::string, Array<TimedValue<T> > > &srcData) {
+  const std::map<std::string, Array<TimedValue<T> > > &srcData,
+  HtmlNode::Ptr log) {
   typedef ValueAccumulator<T> DstType;
   DstType dst;
   int sampleCounter = 0;
@@ -70,15 +71,19 @@ ValueAccumulator<T> makeValueAccumulator(
 
   for (auto kv: srcData) {
     auto f = sensorIndices.find(kv.first);
-    assert(f != sensorIndices.end());
-    int sensorIndex = f->second.sensorIndex;
-    foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
-      for (auto i: span) {
-        auto tagged = typename DstType::TaggedValue{
-          sensorIndex, sampleIndex, kv.second[i].value};
-        dst.values.push_back(tagged);
-      }
-    });
+    if (f != sensorIndices.end()) {
+      int sensorIndex = f->second.sensorIndex;
+      foreachSpan<T>(mapper, kv.second, [&](int sampleIndex, Spani span) {
+        for (auto i: span) {
+          auto tagged = typename DstType::TaggedValue{
+            sensorIndex, sampleIndex, kv.second[i].value};
+          dst.values.push_back(tagged);
+        }
+      });
+    } else {
+      HtmlTag::tagWithData(log, "p", {{"class", "warning"}},
+          "Skipping sensor " + kv.first);
+    }
   }
   assert(dst.values.size() == sampleCounter);
   std::sort(dst.values.begin(), dst.values.end());
@@ -98,10 +103,12 @@ ValueAccumulator<T> makeValueAccumulator(
 // Forced instantiations for unit tests.
 template ValueAccumulator<Angle<double>> makeValueAccumulator<Angle<double>>(
     const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
-  const std::map<std::string, Array<TimedValue<Angle<double>> > > &srcData);
+  const std::map<std::string, Array<TimedValue<Angle<double>> > > &srcData,
+  HtmlNode::Ptr log);
 template ValueAccumulator<Velocity<double>> makeValueAccumulator<Velocity<double>>(
     const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
-  const std::map<std::string, Array<TimedValue<Velocity<double>> > > &srcData);
+  const std::map<std::string, Array<TimedValue<Velocity<double>> > > &srcData,
+  HtmlNode::Ptr log);
 
 template <typename T>
 void evaluateMotionReg(
@@ -186,7 +193,8 @@ struct ChunkAccumulator {
   ChunkAccumulator() {}
   ChunkAccumulator(
       const BoatParameterLayout &layout,
-      const CalibDataChunk &chunk);
+      const CalibDataChunk &chunk,
+      HtmlNode::Ptr log);
 
   bool hasData(int i) const {
 #define TEST_FOR_INDEX(HANDLE) \
@@ -199,11 +207,12 @@ struct ChunkAccumulator {
 
 ChunkAccumulator::ChunkAccumulator(
     const BoatParameterLayout &layout,
-    const CalibDataChunk &chunk) :
+    const CalibDataChunk &chunk,
+    HtmlNode::Ptr log) :
         mapper(chunk.timeMapper),
         initialStates(chunk.initialStates) {
 #define INIT_ACC(HANDLE) \
-  HANDLE = makeValueAccumulator(layout.HANDLE.sensors, chunk.timeMapper, chunk.HANDLE);
+  HANDLE = makeValueAccumulator(layout.HANDLE.sensors, chunk.timeMapper, chunk.HANDLE, log);
   FOREACH_MEASURE_TO_CONSIDER(INIT_ACC)
 #undef DECLARE_VALUE_ACC
 }
@@ -419,10 +428,11 @@ public:
     dispSettings<BoatStateSettings>(logNode);
     int n = chunks.size();
     _chunks = Array<ChunkAccumulator>(n);
+    HtmlTag::tagWithData(logNode, "p", "Building a ChunkAccumulator...");
     for (int i = 0; i < n; i++) {
       const auto &chunk = chunks[i];
       _chunks[i] = ChunkAccumulator(
-          _layout, chunk);
+          _layout, chunk, logNode);
     }
 
     if (logNode) {

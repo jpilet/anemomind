@@ -107,6 +107,7 @@ class ChannelRef {
   std::string sourceName;
 };
 
+
 struct ReconstructionSettings {
   double regWeight = 1.0;
   int windowSize = 60;
@@ -161,7 +162,8 @@ FOREACH_CHANNEL(DECLARE_PER_TYPE)
 template <typename T>
 ValueAccumulator<T> makeValueAccumulator(
   const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
-  const std::map<std::string, Array<TimedValue<T> > > &srcData);
+  const std::map<std::string, Array<TimedValue<T> > > &srcData,
+  HtmlNode::Ptr log);
 
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,

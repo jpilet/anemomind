@@ -84,7 +84,7 @@ TEST(BoatStateReconstructor, ValueAccumulator) {
       {"NMEA2000", {0, 0}},
       {"Anemobox", {1, 1}},
     };
-  auto acc = makeValueAccumulator(sensorIndices, mapper, src);
+  auto acc = makeValueAccumulator(sensorIndices, mapper, src, HtmlNode::Ptr());
   EXPECT_EQ(acc.values.size(), 4 + 2);
 
   std::set<int> nonEmptyInds{0, 4, 9};

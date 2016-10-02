@@ -30,25 +30,37 @@ namespace Processor2 {
 struct CutVisitor {
   Array<CalibDataChunk> &_chunks;
   Array<Span<TimeStamp>> _timeSpans;
+  std::function<bool(DataCode, std::string)> _sensorFilter;
+  HtmlNode::Ptr _log;
 
   CutVisitor(Array<CalibDataChunk> *chunks,
-      const Array<Span<TimeStamp>> &timeSpans) :
+      const Array<Span<TimeStamp>> &timeSpans,
+      std::function<bool(DataCode, std::string)> sf,
+      HtmlNode::Ptr log) :
     _chunks(*chunks),
-    _timeSpans(timeSpans) {}
+    _timeSpans(timeSpans),
+    _sensorFilter(sf),
+    _log(log) {}
 
   template <DataCode Code, typename T>
   void visit(
       const char *shortName,
       const std::string &sourceName,
-    const std::shared_ptr<DispatchData> &raw,
-    const TimedSampleCollection<T> &coll) {
-    auto cut = cutTimedValues(
-        coll.samples().begin(), coll.samples().end(),
-        _timeSpans);
-    CHECK(cut.size() == _chunks.size());
-    CHECK(cut.size() == _timeSpans.size());
-    for (int i = 0; i < _chunks.size(); i++) {
-      (*ChannelFieldAccess<Code>::get(_chunks[i]))[sourceName] = cut[i];
+      const std::shared_ptr<DispatchData> &raw,
+      const TimedSampleCollection<T> &coll) {
+    if (_sensorFilter(Code, sourceName)) {
+      auto cut = cutTimedValues(
+          coll.samples().begin(), coll.samples().end(),
+          _timeSpans);
+      CHECK(cut.size() == _chunks.size());
+      CHECK(cut.size() == _timeSpans.size());
+      for (int i = 0; i < _chunks.size(); i++) {
+        (*ChannelFieldAccess<Code>::get(_chunks[i]))[sourceName] = cut[i];
+      }
+    } else {
+      HtmlTag::tagWithData(_log, "p", {{"class", "warning"}},
+          std::string("Measured values from ") + shortName + ", "
+          + sourceName + " will not be used.");
     }
   }
 };
@@ -131,6 +143,7 @@ Array<CalibDataChunk> makeCalibChunks(
     const Dispatcher *d,
     const Array<TimedValue<
       GeographicPosition<double>>> &filteredPositions,
+      std::function<bool(DataCode, std::string)> sensorFilter,
       HtmlTag::Ptr log) {
 
   auto cutGpsPositions = cutTimedValues(
@@ -144,7 +157,7 @@ Array<CalibDataChunk> makeCalibChunks(
       stringFormat("Number of time spans: %d", n));
   Array<CalibDataChunk> chunks(n);
   {
-    CutVisitor v(&chunks, timeSpans);
+    CutVisitor v(&chunks, timeSpans, sensorFilter, log);
     visitDispatcherChannelsConst(d, &v);
   }{
     for (int i = 0; i < n; i++) {
@@ -183,7 +196,8 @@ Array<ReconstructionResults> reconstructAllGroups(
   HtmlTag::tagWithData(log, "h2", "Reconstruction of all groups");
 
   Array<CalibDataChunk> chunks
-    = makeCalibChunks(smallSessions, d, positions, log);
+    = makeCalibChunks(smallSessions, d, positions, settings.sensorFilter,
+        log);
 
   assert(chunks.size() == smallSessions.size());
 
@@ -309,6 +323,9 @@ void runDemoOnDataset(
 
   auto d = dataset.dispatcher().get();
   Processor2::Settings settings;
+  settings.sensorFilter = [](DataCode c, std::string) {
+    return c == MAG_HEADING;
+  };
 
   HtmlTag::tagWithData(logBody, "p",
       "First of all, we are going to filter all the GPS data");

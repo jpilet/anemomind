@@ -20,6 +20,7 @@ namespace sail {
 class NavDataset;
 namespace Processor2 {
 
+inline bool allSensors(DataCode, std::string) {return true;}
 
 struct Settings {
   Settings();
@@ -35,6 +36,7 @@ struct Settings {
   std::string logRoot;
 
   ReconstructionSettings reconstructionSettings;
+  std::function<bool(DataCode,std::string)> sensorFilter = &allSensors;
 };
 
 // Used for cutting the sessions.
