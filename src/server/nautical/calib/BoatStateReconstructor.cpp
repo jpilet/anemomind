@@ -990,6 +990,7 @@ FOREACH_CHANNEL(LAYOUT_SENSORS)
 template <DataCode code, typename T = typename TypeForCode<code>::type>
 Array<TimedValue<T>>
   makeTimedValuesFromRecChunk(
+      const DistortionModel<double, code> &model,
       const ReconstructedChunk &chunk) {
   int n = chunk.mapper.sampleCount;
   CHECK(chunk.states.size() == n);
@@ -997,7 +998,7 @@ Array<TimedValue<T>>
   for (int i = 0; i < n; i++) {
     dst[i] = TimedValue<T>(
         chunk.mapper.unmap(i),
-        BoatStateValue<double, code>::get(chunk.states[i]));
+        model.apply(BoatStateValue<double, code>::get(chunk.states[i])));
   }
   return dst;
 }
@@ -1013,6 +1014,22 @@ struct MakeNoReprojectionPlot {
   }
 };
 
+template <typename T>
+Array<T> normalizeMeasuresForPlot(const Array<T> &m) {
+  return m;
+}
+
+template <>
+Array<Angle<double>> normalizeMeasuresForPlot(
+    const Array<Angle<double>> &src) {
+  int n = src.size();
+  Array<Angle<double>> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = src[i].normalizedAt0();
+  }
+  return dst;
+}
+
 template <typename T, DataCode code>
 struct MakeReprojectionPlot {
   static void apply(TimeStampToIndexMapper mapper,
@@ -1021,16 +1038,17 @@ struct MakeReprojectionPlot {
       const DistortionModel<double, code> &model,
       HtmlNode::Ptr dst) {
     TemporalSignalPlot<T> plot;
-    plot.add(StrokeType::Dot, values);
+    plot.add(StrokeType::Dot, normalizeMeasuresForPlot(values));
     if (chunk.states.empty()) {
       HtmlTag::tagWithData(dst,
           "p", "No reprojected data to show (missing)");
     } else {
-      auto projected = makeTimedValuesFromRecChunk<code>(chunk);
+      auto projected = makeTimedValuesFromRecChunk<code>(
+          model, chunk);
       std::cout << "  number of projected values: "
           << projected.size() << std::endl;
       plot.add(StrokeType::Line,
-          projected);
+          normalizeMeasuresForPlot(projected));
     }
     plot.renderTo(dst);
   }
