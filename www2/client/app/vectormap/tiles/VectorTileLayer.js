@@ -328,6 +328,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var gradient = null;
   var startPoint = 0;
   var endPoint = 0;
+  var testing = true;
   var origStrokeStyle = context.strokeStyle;
   var origlineWidth = context.lineWidth;
   var currentColor = '';
@@ -360,45 +361,56 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var createGradient = function(color, startPoint, endPoint) {
     var index = colorSpectrum.indexOf(color);
     var nextColor = '';
+    var grd = null;
 
     if(typeof colorSpectrum[index + 1] == 'undefined')
       nextColor = colorSpectrum[0];
     else
       nextColor = colorSpectrum[index + 1];
-
-    var grd = context.createLinearGradient(startPoint.x, endPoint.y, endPoint.x, endPoint.y);
-
-    console.log(currentColor+' == '+color);
-    if(currentColor == color) {
-      console.log('here');
-      grd.addColorStop(0, currentColor);
-      grd.addColorStop(1, nextColor);
-    }
-    else {
-      grd.addColorStop(0, color);
-      grd.addColorStop(1, nextColor);
-    }
     
+    if(currentColor != nextColor && currentColor != '') {
+      startPoint = startPoint == 0 ? endPoint : startPoint;
+      grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+      if(testing) {
+        grd.addColorStop(0, 'red');
+        grd.addColorStop(1, 'green');
+      }
+      else {
+        grd.addColorStop(0, 'green');
+        grd.addColorStop(1, 'red');
+      }
+      testing = !testing;
+        
+      // grd.addColorStop(0, currentColor);
+      // grd.addColorStop(1, color);
+    }
+    // else {
+    //   context.fillText('aaa', startPoint.x, startPoint.y);
+    //   startPoint = startPoint == 0 ? endPoint : startPoint;
+    //   grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+    //   grd.addColorStop(0, 'violet');
+    //   grd.addColorStop(1, 'orange');
+    // }
 
     return grd;
   };
 
   
-  var vmgPerfOfTail = function(currentLineSegment, previousLineSegment, currentPoint, previousPoint) {
+  var vmgPerfOfTail = function(currentLineSegment, currentPoint, previousPoint) {
     for(var i=0; i<vmgPerf.length; i++) {
       if(vmgPerf[i] != vmgPerf[vmgPerf.length - 1]) {
         if(perfAtPoint(currentLineSegment) > vmgPerf[i] && perfAtPoint(currentLineSegment) <= vmgPerf[i+1]) {
           if(!startOfTail) {
             startPoint = currentPoint;
             currentColor = colorSpectrum[i];
-
             return;
           }
+          
           if(currentColor != colorSpectrum[i]) {
             context.strokeStyle = createGradient(colorSpectrum[i], startPoint, currentPoint);
+            context.fillText('here', previousPoint.x, previousPoint.y);
             strokePath();
             context.moveTo(previousPoint.x, previousPoint.y);
-
             startPoint = currentPoint;
           }
 
@@ -429,20 +441,20 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
     }
   };
 
-  var createTailTrack = function(currentLineSegment, previousLineSegment, currentPoint, previousPoint) {
+  var createTailTrack = function(currentLineSegment, currentPoint, previousPoint) {
     if(!startOfTail) {
       strokePath();
       context.moveTo(previousPoint.x, previousPoint.y);
-      context.lineTo(previousPoint.x, previousPoint.y);
-      context.lineWidth = 6;
-      vmgPerfOfTail(currentLineSegment, previousLineSegment, currentPoint, previousPoint);
+      context.lineTo(currentPoint.x, currentPoint.y);
+      context.lineWidth = 5;
+      vmgPerfOfTail(currentLineSegment, currentPoint, previousPoint);
       startOfTail = true;
 
       return;
     }
     
     context.lineTo(previousPoint.x, previousPoint.y);
-    vmgPerfOfTail(currentLineSegment, previousLineSegment, currentPoint, previousPoint);
+    vmgPerfOfTail(currentLineSegment, currentPoint, previousPoint);
 
     return;
   }
@@ -456,6 +468,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   for (var i = 1; i < points.length; ++i) {
     var currentPoint = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
                                                 points[i].pos[1]);
+
     var previousPoint = pinchZoom.viewerPosFromWorldPos(points[i-1].pos[0],
                                                 points[i-1].pos[1]);
 
@@ -463,7 +476,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
       var tail = checkIfTail(this.currentTime, this.queueSeconds, context, points[i]);
 
     if(tail) {
-      createTailTrack(points[i], points[i-1], currentPoint, previousPoint);
+      createTailTrack(points[i], currentPoint, previousPoint);
     }
     else {
       if(context.strokeStyle != origStrokeStyle) {
