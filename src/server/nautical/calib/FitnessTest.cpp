@@ -387,9 +387,10 @@ TEST(FitnessTest, Convert) {
 
   BoatState<double> bs0;
 
-  auto bs2 = bs.makeBoatState(bs0);
+  BoatState<double> bs2 = bs.makeBoatState(bs0);
   EXPECT_TRUE(eqMotion(bs2.boatOverGround(), bs.boatOverGround.value));
   EXPECT_TRUE(eqMotion(bs2.windOverGround(), bs.windOverGround.value));
   EXPECT_TRUE(eqMotion(bs2.currentOverGround(), bs.currentOverGround.value));
-
+  EXPECT_NEAR((bs2.heading() - bs.heading.value.angle())
+      .normalizedAt0().degrees(), 0.0, 1.0e-6);
 }
