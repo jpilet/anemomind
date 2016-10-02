@@ -203,7 +203,7 @@ TEST(FitnessTest, ResidualTest) {
   Angle<double> expectedHeading = 90.0_deg;
 
   // MAG_HEADING tests
-  DistortionModel<double, MAG_HEADING> hdgModel;
+  /*DistortionModel<double, MAG_HEADING> hdgModel;
   {
     static_assert(1 == MagHeadingFitness<double,
         FullSettings>::outputCount,
@@ -231,13 +231,13 @@ TEST(FitnessTest, ResidualTest) {
         state, hdgModel, expectedHeading +
         BandWidth<double, MAG_HEADING>::get(), residuals)));
     EXPECT_NEAR(1.0, std::abs(residuals[0]), 1.0e-3);
-  }
+  }*/
 
   // WAT_SPEED tests
   auto expectedWatSpeed = 5.0_kn;
   DistortionModel<double, WAT_SPEED> watModel;
   {
-    static_assert(1 == MagHeadingFitness<double,
+    static_assert(1 == WatSpeedFitness<double,
         FullSettings>::outputCount, "Bad");
     double residuals[1] = {10.0};
     EXPECT_TRUE((WatSpeedFitness<double, FullSettings>::apply(

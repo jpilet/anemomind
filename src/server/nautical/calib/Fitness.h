@@ -386,7 +386,9 @@ struct AWSFitness {
 
 template <typename T, typename Settings>
 struct MagHeadingFitness {
-  static const int outputCount = 1;
+
+#warning "keep this ok"
+  static const int outputCount = 2;
 
   static bool apply(const ReconstructedBoatState<T, Settings> &state,
                     const DistortionModel<T, MAG_HEADING> &distortion,
@@ -398,11 +400,14 @@ struct MagHeadingFitness {
         referenceVelocityForAngles<T>(velBW, bw),
         MakeConstant<Angle<T>>::apply(observation));
 
-#warning "TODO activate this"
-    auto distortedHeadingVector = state.heading.value; //distortion.apply(state.heading.value);
-    auto error = HorizontalMotion<T>(
-        observedHeadingVector - distortedHeadingVector).norm();
-    residuals[0] = sqrtHuber<T>(error/velBW);
+    auto distortedHeadingVector = distortion.apply(state.heading.value);
+    auto dif = HorizontalMotion<T>(
+            observedHeadingVector - distortedHeadingVector);
+    auto error = dif.norm();
+    //residuals[0] = sqrtHuber<T>(error/velBW);
+    //residuals[0] = error/velBW;
+    residuals[0] = dif[0]/velBW;
+    residuals[1] = dif[1]/velBW;
     return true;
   }
 };
