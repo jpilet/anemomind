@@ -49,6 +49,18 @@ struct ValuesPerPixel<Duration<double>> {
 
 enum class StrokeType {Line, Dot};
 
+struct AxisMapping {
+  Spand sourceRange;
+  double targetWidth;
+  double margin = 15;
+};
+
+enum class AxisMode {XY, IJ};
+
+HtmlNode::Ptr makePlotSpace(AxisMode mode,
+                            const AxisMapping &x,
+                            const AxisMapping &y);
+
 template <typename T>
 class TemporalSignalPlot {
 public:

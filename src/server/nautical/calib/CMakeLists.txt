@@ -137,3 +137,14 @@ cxx_test(calib_BoatStateReconstructorTest
   gtest_main
   calib_BoatStateReconstructor
   )
+
+add_library(calib_DebugPlot
+  DebugPlot.h
+  DebugPlot.cpp
+  )
+
+target_link_libraries(calib_DebugPlot
+  common_HtmlLog
+  common_TimeStamp
+  common_logging
+  )
