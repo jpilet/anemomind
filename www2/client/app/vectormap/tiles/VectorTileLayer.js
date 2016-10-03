@@ -306,6 +306,22 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   return points;
 }
 
+
+VectorTileLayer.checkIfTail = function(currentTime, queueSeconds, context, point) {
+  var queueTime = Math.abs(currentTime.getTime() - (queueSeconds * 1000));
+  var pointTime = point.time;
+
+  if(pointTime.getTime() >= queueTime && pointTime.getTime() <= currentTime.getTime()) {
+    return true;
+  }
+  return false;
+}
+
+VectorTileLayer.strokePath = function(context) {
+  context.stroke();
+  context.beginPath();
+}
+
 VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   // prepare the Cavas path
 
@@ -328,9 +344,9 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var gradient = null;
   var startPoint = 0;
   var endPoint = 0;
-  var testing = true;
   var origStrokeStyle = context.strokeStyle;
   var origlineWidth = context.lineWidth;
+  var tailWidth = 3;
   var currentColor = '';
   var colorSpectrum = ['#B5B5B5','#BAA7AA','#C099A0','#C68B96','#CC7D8C',
                         '#D26F81','#D86277','#DE546D','#E44663','#EA3858',
@@ -343,21 +359,6 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
     return;
   }
 
-  var checkIfTail = function(currentTime, queueSeconds, context, point) {
-    var queueTime = Math.abs(currentTime.getTime() - (queueSeconds * 1000));
-    var pointTime = point.time;
-
-    if(pointTime.getTime() >= queueTime && pointTime.getTime() <= currentTime.getTime()) {
-      return true;
-    }
-    return false;
-  };
-
-  var strokePath = function() {
-    context.stroke();
-    context.beginPath();
-  };
-
   var createGradient = function(color, startPoint, endPoint) {
     var index = colorSpectrum.indexOf(color);
     var nextColor = '';
@@ -368,29 +369,12 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
     else
       nextColor = colorSpectrum[index + 1];
     
-    if(currentColor != nextColor && currentColor != '') {
-      startPoint = startPoint == 0 ? endPoint : startPoint;
+    if(currentColor != color && currentColor != '') {
       grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
-      if(testing) {
-        grd.addColorStop(0, 'red');
-        grd.addColorStop(1, 'green');
-      }
-      else {
-        grd.addColorStop(0, 'green');
-        grd.addColorStop(1, 'red');
-      }
-      testing = !testing;
         
-      // grd.addColorStop(0, currentColor);
-      // grd.addColorStop(1, color);
+      grd.addColorStop(0, currentColor);
+      grd.addColorStop(1, color);
     }
-    // else {
-    //   context.fillText('aaa', startPoint.x, startPoint.y);
-    //   startPoint = startPoint == 0 ? endPoint : startPoint;
-    //   grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
-    //   grd.addColorStop(0, 'violet');
-    //   grd.addColorStop(1, 'orange');
-    // }
 
     return grd;
   };
@@ -401,40 +385,55 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
       if(vmgPerf[i] != vmgPerf[vmgPerf.length - 1]) {
         if(perfAtPoint(currentLineSegment) > vmgPerf[i] && perfAtPoint(currentLineSegment) <= vmgPerf[i+1]) {
           if(!startOfTail) {
-            startPoint = currentPoint;
+            startPoint = previousPoint;
             currentColor = colorSpectrum[i];
             return;
           }
           
           if(currentColor != colorSpectrum[i]) {
-            context.strokeStyle = createGradient(colorSpectrum[i], startPoint, currentPoint);
-            context.fillText('here', previousPoint.x, previousPoint.y);
-            strokePath();
+            var grd = createGradient(colorSpectrum[i], startPoint, currentPoint);
+            if(grd === null) {
+              context.strokeStyle = origStrokeStyle;
+              context.lineWidth = origlineWidth;
+            }
+            else {
+              context.strokeStyle = grd;
+              context.lineWidth = tailWidth;
+            }            
+            VectorTileLayer.strokePath(context);
             context.moveTo(previousPoint.x, previousPoint.y);
-            startPoint = currentPoint;
+            startPoint = previousPoint;
+            currentColor = colorSpectrum[i];
           }
 
-          currentColor = colorSpectrum[i];
           return;
         }
       }
       else {
         if(perfAtPoint(currentLineSegment) > vmgPerf[i]) {
           if(!startOfTail) {
-            startPoint = currentPoint;
+            startPoint = previousPoint;
             currentColor = colorSpectrum[i];
 
             return;
           }
           if(currentColor != colorSpectrum[i]) {
-            context.strokeStyle = createGradient(colorSpectrum[i], startPoint, currentPoint);
-            strokePath();
+            var grd = createGradient(colorSpectrum[i], startPoint, currentPoint);
+            if(grd === null) {
+              context.strokeStyle = origStrokeStyle;
+              context.lineWidth = origlineWidth;
+            }
+            else {
+              context.strokeStyle = grd;
+              context.lineWidth = tailWidth;
+            }
+            VectorTileLayer.strokePath(context);
             context.moveTo(previousPoint.x, previousPoint.y);
 
-            startPoint = currentPoint;
+            startPoint = previousPoint;
+            currentColor = colorSpectrum[i];
           }
 
-          currentColor = colorSpectrum[i];
           return;
         }
       }
@@ -443,21 +442,19 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
 
   var createTailTrack = function(currentLineSegment, currentPoint, previousPoint) {
     if(!startOfTail) {
-      strokePath();
+      VectorTileLayer.strokePath(context);
       context.moveTo(previousPoint.x, previousPoint.y);
       context.lineTo(currentPoint.x, currentPoint.y);
-      context.lineWidth = 5;
       vmgPerfOfTail(currentLineSegment, currentPoint, previousPoint);
       startOfTail = true;
 
       return;
     }
-    
     context.lineTo(previousPoint.x, previousPoint.y);
     vmgPerfOfTail(currentLineSegment, currentPoint, previousPoint);
 
     return;
-  }
+  };
 
   // Draw.
   context.beginPath();
@@ -473,7 +470,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
                                                 points[i-1].pos[1]);
 
     if(this.queueSeconds > 0 && currentPoint)
-      var tail = checkIfTail(this.currentTime, this.queueSeconds, context, points[i]);
+      var tail = VectorTileLayer.checkIfTail(this.currentTime, this.queueSeconds, context, points[i]);
 
     if(tail) {
       createTailTrack(points[i], currentPoint, previousPoint);
@@ -481,7 +478,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
     else {
       if(context.strokeStyle != origStrokeStyle) {
         context.moveTo(previousPoint.x, previousPoint.y);
-        strokePath();
+        VectorTileLayer.strokePath(context);
         context.strokeStyle = origStrokeStyle;
         context.lineWidth = origlineWidth;
         context.lineTo(previousPoint.x, previousPoint.y);
