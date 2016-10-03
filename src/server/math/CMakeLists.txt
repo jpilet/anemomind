@@ -170,6 +170,11 @@ cxx_test(math_AxisAngleTest
   gtest_main
   )
 
+cxx_test(math_BandedDenseTest
+  BandedDenseTest.cpp
+  gtest_main
+  )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
