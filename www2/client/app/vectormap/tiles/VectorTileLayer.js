@@ -56,6 +56,12 @@ function VectorTileLayer(params, renderer) {
   this.queueSeconds = 0;
   this.currentTime = 0;
 
+  this.currentColor = '';
+  this.colorSpectrum = ['#B5B5B5','#BAA7AA','#C099A0','#C68B96','#CC7D8C',
+                        '#D26F81','#D86277','#DE546D','#E44663','#EA3858',
+                        '#F02A4E','#F61C44','#FC0F3A','#DE0B66','#C10792',
+                        '#A403BF'];
+
   if (!("tileSize" in this.params)) this.params.tileSize = 256;
   if ("vectorurl" in this.params) {
     this.url = this.params.vectorurl;
@@ -322,6 +328,25 @@ VectorTileLayer.strokePath = function(context) {
   context.beginPath();
 }
 
+VectorTileLayer.prototype.createGradient = function(context, color, startPoint, endPoint) {
+  var index = this.colorSpectrum.indexOf(color);
+  var nextColor = '';
+  var grd = null;
+
+  if(typeof this.colorSpectrum[index + 1] == 'undefined')
+    nextColor = this.colorSpectrum[0];
+  else
+    nextColor = this.colorSpectrum[index + 1];
+  
+  if(this.currentColor != color && this.currentColor != '' && startPoint != 0) {
+    grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
+    grd.addColorStop(0, this.currentColor);
+    grd.addColorStop(1, color);
+  }
+
+  return grd;
+};
+
 VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   // prepare the Cavas path
 
@@ -347,37 +372,22 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var origStrokeStyle = context.strokeStyle;
   var origlineWidth = context.lineWidth;
   var tailWidth = 3;
-  var currentColor = '';
+  var currentColor = this.currentColor;
   var colorSpectrum = ['#B5B5B5','#BAA7AA','#C099A0','#C68B96','#CC7D8C',
                         '#D26F81','#D86277','#DE546D','#E44663','#EA3858',
                         '#F02A4E','#F61C44','#FC0F3A','#DE0B66','#C10792',
                         '#A403BF'];
   var vmgPerf = [0, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110];
 
+  var vLayer = this;
+
+
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
     return;
   }
 
-  var createGradient = function(color, startPoint, endPoint) {
-    var index = colorSpectrum.indexOf(color);
-    var nextColor = '';
-    var grd = null;
-
-    if(typeof colorSpectrum[index + 1] == 'undefined')
-      nextColor = colorSpectrum[0];
-    else
-      nextColor = colorSpectrum[index + 1];
-    
-    if(currentColor != color && currentColor != '') {
-      grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
-        
-      grd.addColorStop(0, currentColor);
-      grd.addColorStop(1, color);
-    }
-
-    return grd;
-  };
+  
 
   
   var vmgPerfOfTail = function(currentLineSegment, currentPoint, previousPoint) {
@@ -386,12 +396,12 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
         if(perfAtPoint(currentLineSegment) > vmgPerf[i] && perfAtPoint(currentLineSegment) <= vmgPerf[i+1]) {
           if(!startOfTail) {
             startPoint = previousPoint;
-            currentColor = colorSpectrum[i];
+            vLayer.currentColor = colorSpectrum[i];
             return;
           }
           
-          if(currentColor != colorSpectrum[i]) {
-            var grd = createGradient(colorSpectrum[i], startPoint, currentPoint);
+          if(vLayer.currentColor != colorSpectrum[i]) {
+            var grd = vLayer.createGradient(context, colorSpectrum[i], startPoint, currentPoint);
             if(grd === null) {
               context.strokeStyle = origStrokeStyle;
               context.lineWidth = origlineWidth;
@@ -403,7 +413,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
             VectorTileLayer.strokePath(context);
             context.moveTo(previousPoint.x, previousPoint.y);
             startPoint = previousPoint;
-            currentColor = colorSpectrum[i];
+            vLayer.currentColor = colorSpectrum[i];
           }
 
           return;
@@ -413,12 +423,12 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
         if(perfAtPoint(currentLineSegment) > vmgPerf[i]) {
           if(!startOfTail) {
             startPoint = previousPoint;
-            currentColor = colorSpectrum[i];
+            vLayer.currentColor = colorSpectrum[i];
 
             return;
           }
-          if(currentColor != colorSpectrum[i]) {
-            var grd = createGradient(colorSpectrum[i], startPoint, currentPoint);
+          if(vLayer.currentColor != colorSpectrum[i]) {
+            var grd = vLayer.createGradient(context, colorSpectrum[i], startPoint, currentPoint);
             if(grd === null) {
               context.strokeStyle = origStrokeStyle;
               context.lineWidth = origlineWidth;
@@ -431,7 +441,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
             context.moveTo(previousPoint.x, previousPoint.y);
 
             startPoint = previousPoint;
-            currentColor = colorSpectrum[i];
+            vLayer.currentColor = colorSpectrum[i];
           }
 
           return;
