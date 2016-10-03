@@ -156,7 +156,7 @@ struct MiniSettings {
   // Provided by the GPS filter
   static const bool withBoatOverGround = false;
 
-  static const bool withWindOverGround = true;
+  static const bool withWindOverGround = false;
   static const bool withCurrentOverGround = false;
   static const bool withHeel = false;
   static const bool withPitch = false;
@@ -422,7 +422,7 @@ struct MagHeadingFitness {
     //residuals[0] = error/velBW;
     residuals[0] = dif[0]/velBW;
     residuals[1] = dif[1]/velBW;
-    applyHuber<T, 2>(residuals);
+    //applyHuber<T, 2>(residuals);
     return true;
   }
 };
