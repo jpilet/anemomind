@@ -278,6 +278,8 @@ TEST(FitnessTest, ResidualTest) {
     EXPECT_NEAR(std::abs(residuals[0]), 1.0, 1.0e-6);
   }
 
+  auto leewayReg = 1.0_kn*1.0_kn;
+
   // Leeway angle tests
   LeewayConstant<double> leewayConstant = 1.0_kn*1.0_kn;
   {
@@ -285,6 +287,7 @@ TEST(FitnessTest, ResidualTest) {
     state.heel.value = Angle<double>::degrees(0.0);
     EXPECT_TRUE(
         (LeewayFitness<double, FullSettings>::apply(state, leewayConstant,
+            leewayReg,
         residuals)));
     EXPECT_NEAR(residuals[0], 0.0, 1.0e-6);
   }{
@@ -293,6 +296,7 @@ TEST(FitnessTest, ResidualTest) {
     double residuals[1] = {0.0};
     EXPECT_TRUE(
         (LeewayFitness<double, FullSettings>::apply(state, leewayConstant,
+            leewayReg,
         residuals)));
     EXPECT_LT(0.01, std::abs(residuals[0]));
     state.heading = old;
@@ -301,6 +305,7 @@ TEST(FitnessTest, ResidualTest) {
     double residuals[1] = {0.0};
     EXPECT_TRUE(
         (LeewayFitness<double, FullSettings>::apply(state, leewayConstant,
+            leewayReg,
         residuals)));
     EXPECT_LT(0.01, std::abs(residuals[0]));
     state.heel.value = 0.0_deg;

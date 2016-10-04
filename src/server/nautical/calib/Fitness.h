@@ -590,10 +590,10 @@ struct HeelFitness {
 // the difference between the heading and the boat course over water.
 template <typename T, typename Settings>
 struct LeewayFitness {
-  static const int outputCount = 1;
+  static const int outputCount = 2;
 
   static bool apply(const ReconstructedBoatState<T, Settings> &state,
-      const LeewayConstant<T> k,
+      const LeewayConstant<T> k, const LeewayConstant<T> &leewayReg,
       T *residuals) {
 
     residuals[0] = DefaultUndefinedResidual<T>::get();
@@ -611,17 +611,16 @@ struct LeewayFitness {
       // the boat velocity.
 
       Velocity<T> vs = bow.norm();
-      if (Velocity<T>::knots(MakeConstant<T>::apply(0.0)) < vs) {
-        Angle<T> predictedLeeway = k*state.heel.value/(vs*vs);
+      Angle<T> predictedLeeway = k*state.heel.value/(vs*vs
+          + leewayReg);
 
-        Angle<T> trueLeeway = heading - bow.angle();
+      HorizontalMotion<T> error = HorizontalMotion<T>(
+          HorizontalMotion<T>::polar(vs, heading) -
+          bow.rotate(predictedLeeway));
 
-        Angle<T> angleError = (trueLeeway - predictedLeeway)
-            .normalizedAt0();
-        Velocity<T> velocityError = angleError.radians()*vs;
-        residuals[0] = sqrtHuber<T>(
-            velocityError/BandWidthForType<T, Velocity<double>>::get());
-      }
+      auto bw = BandWidthForType<T, Velocity<double>>::get();
+      residuals[0] = error[0]/bw;
+      residuals[1] = error[1]/bw;
     }
     return true;
   }

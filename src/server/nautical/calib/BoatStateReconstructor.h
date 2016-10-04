@@ -109,6 +109,7 @@ class ChannelRef {
 
 
 struct ReconstructionSettings {
+  LeewayConstant<double> leewayReg = 0.1_kn*0.1_kn;
   double regWeight = 1.0;
   int windowSize = 60;
   Duration<double> samplingPeriod = 1.0_s;

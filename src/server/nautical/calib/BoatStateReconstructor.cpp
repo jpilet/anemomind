@@ -702,13 +702,13 @@ FOREACH_MEASURE_TO_CONSIDER(MAKE_RANGE)
 FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
 #undef EVAL_RESIDUALS
 
-    if (Settings::withHeel) {
+    /*if (Settings::withHeel) {
       if (!computeHeelResiduals<T>(state, calibParams, residuals, &offset)) {
         return false;
       }
-    }
-    /*if (!computeLeewayResiduals<T>(state, calibParams, residuals, &offset)) {
-      assert(false);
+    }*/
+    /*if (!computeLeewayResiduals<T>(
+        state, calibParams, residuals, &offset)) {
       return false;
     }*/
     assert(offset == outputCount());
@@ -724,7 +724,6 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
         calibParams[rec._layout.heelConstantOffset]
                     *BoatParameters<T>::heelConstantUnit(),
         residuals + *offset)) {
-      assert(false);
       return false;
     }
     *offset += HeelFitness<T, Settings>::outputCount;
@@ -738,6 +737,9 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
     if (!LeewayFitness<T, Settings>::apply(state,
         calibParams[rec._layout.leewayConstantOffset]
                     *BoatParameters<T>::leewayConstantUnit(),
+                    rec._settings.leewayReg.mapObjectValues([](double x) {
+                      return MakeConstant<T>::apply(x);
+                    }),
                     residuals + *offset)) {
       return false;
     }
@@ -755,7 +757,6 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
       if (!F::apply(state, rec._layout.template getModel<T, code>(
           v.sensorIndex, calibParams),
         v.value, residuals + *offset)) {
-        assert(false);
         return false;
       }
       *offset += F::outputCount;
@@ -768,10 +769,9 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
         AWS.width()*AWSFitness<double, Settings>::outputCount +
         MAG_HEADING.width()*MagHeadingFitness<double, Settings>::outputCount +
         WAT_SPEED.width()*WatSpeedFitness<double, Settings>::outputCount +
-        ORIENT.width()*OrientFitness<double, Settings>::outputCount; /*
-        + HeelFitness<double, Settings>::outputCount
-        + LeewayFitness<double, Settings>::outputCount;*/
-#warning "put this back"
+        ORIENT.width()*OrientFitness<double, Settings>::outputCount;
+        //+ HeelFitness<double, Settings>::outputCount;
+        //+ LeewayFitness<double, Settings>::outputCount;
   }
 };
 
