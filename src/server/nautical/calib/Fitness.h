@@ -155,7 +155,6 @@ struct DefaultSettings {
 struct MiniSettings {
   // Provided by the GPS filter
   static const bool withBoatOverGround = false;
-
   static const bool withWindOverGround = false;
   static const bool withCurrentOverGround = false;
   static const bool withHeel = false;

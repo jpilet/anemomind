@@ -702,11 +702,12 @@ FOREACH_MEASURE_TO_CONSIDER(MAKE_RANGE)
 FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
 #undef EVAL_RESIDUALS
 
-    /*if (!computeHeelResiduals<T>(state, calibParams, residuals, &offset)) {
-      assert(false);
-      return false;
+    if (Settings::withHeel) {
+      if (!computeHeelResiduals<T>(state, calibParams, residuals, &offset)) {
+        return false;
+      }
     }
-    if (!computeLeewayResiduals<T>(state, calibParams, residuals, &offset)) {
+    /*if (!computeLeewayResiduals<T>(state, calibParams, residuals, &offset)) {
       assert(false);
       return false;
     }*/
