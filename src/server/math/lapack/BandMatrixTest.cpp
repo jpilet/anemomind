@@ -95,4 +95,25 @@ TEST(BandMatrixTest, PtrAccessAndDense) {
   }
 }
 
+TEST(BandMatrixTest, MultiplyTest) {
+  auto A = SymmetricBandMatrixL<double>::zero(3, 1);
+  A.atUnsafe(0, 0) = 1;
+  A.atUnsafe(1, 1) = 2;
+  A.atUnsafe(2, 2) = 4;
+  A.atUnsafe(1, 0) = 9;
+  A.atUnsafe(2, 1) = 7;
+  MDArray2d B(3, 1);
+  B(0, 0) = 9;
+  B(1, 0) = 3;
+  B(2, 0) = 1;
 
+
+  double expected[3] = {36, 94, 25};
+  MDArray2d C;
+  multiply(A, B, &C);
+  EXPECT_EQ(C.rows(), 3);
+  EXPECT_EQ(C.cols(), 1);
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(C(i, 0), expected[i], 1.0e-6);
+  }
+}

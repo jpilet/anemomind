@@ -204,6 +204,7 @@ public:
     return mat;
   }
 
+  // Always the lower-left part of the matrix.
   T &atUnsafe(int i, int j) {
     assert(i >= j);
     return _A(i - j, j);
@@ -264,6 +265,33 @@ public:
 private:
   MDArray<T, 2> _A;
 };
+
+template <typename T>
+bool multiply(const SymmetricBandMatrixL<T> &A, const MDArray<T, 2> &B,
+    MDArray<T, 2> *outAB) {
+  int n = A.size();
+  int cols = B.cols();
+  assert(A.size() == B.rows());
+  assert(outAB != nullptr);
+  if (outAB->rows() != A.size() || outAB->cols() != B.cols()) {
+    *outAB = MDArray<T, 2>(n, cols);
+  }
+  int kd = A.kd();
+  for (int bCol = 0; bCol < cols; bCol++) {
+    auto b = B.sliceCol(bCol).ptr();
+    auto c = outAB->sliceCol(bCol).ptr();
+    for (int i = 0; i < n; i++) {
+      int from = std::max(0, i - kd);
+      int to = std::min(n, i + 1 + kd);
+      T sum = b[0] - b[0];
+      for (int j = from; j < to; j++) {
+        sum += A.getSafe(i, j)*b[j];
+      }
+      c[i] = sum;
+    }
+  }
+  return true;
+}
 
 } /* namespace sail */
 
