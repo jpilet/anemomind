@@ -60,24 +60,25 @@ public:
 
   template <typename Map>
   void add(int left,     // Band left offset
-           Map F,
+           T bSign,
+           Map B,
            Map A0,     // Band part
            Map A1) {   // Dense part
     int m0 = A0.cols();
     CHECK(m0 <= _m0);
     CHECK(A1.cols() == _m1);
-    CHECK(F.cols() == 1);
-    int rows = F.rows();
+    CHECK(B.cols() == 1);
+    int rows = B.rows();
     CHECK(rows == A0.rows());
     CHECK(rows == A1.rows());
 
     addToDiag(left, A0, &_m0Scratch, &_P);
 
-    Q(left, m0) -= A0.transpose()*F; // B = -F
+    Q(left, m0) += bSign*A0.transpose()*B;
     R(left, m0) -= A0.tranpose()*A1;
 
     _S += A1.transpose()*A1;
-    _T -= A1.transpose()*F; // B = -F
+    _T += bSign*A1.transpose()*B;
     _U -= A1.transpose()*A0;
   }
 
@@ -90,6 +91,9 @@ public:
       return false;
     }
 
+    auto K0 = _QR.block(0, 0, _M0, 1);
+    auto K1 = _QR.block(0, 1, _M0, _m1);
+
     return true;
   }
 private:
@@ -97,6 +101,7 @@ private:
   SymmetricBandMatrixL<T> _P; // m0*m0
   Mat _QR, _S, _T, _U, _m0Scratch;
   Vec _X0;
+  Mat _lhs, _rhs;
 
   auto Q(int m0, int left) -> decltype(_QR.block(0, 0, 1, 1)) {
     return _QR.block(left, 0, m0, 1);
