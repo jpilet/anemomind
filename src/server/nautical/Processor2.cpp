@@ -323,7 +323,7 @@ void runDemoOnDataset(
   auto d = dataset.dispatcher().get();
   Processor2::Settings settings;
   settings.sensorFilter = [](DataCode c, std::string) {
-    return c == MAG_HEADING;
+    return c == MAG_HEADING|| c == AWS || c == AWA;
   };
 
   HtmlTag::tagWithData(logBody, "p",
