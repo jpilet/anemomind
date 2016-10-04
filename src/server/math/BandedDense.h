@@ -56,6 +56,8 @@ public:
     _T = Mat::Zero(_m1, 1);
     _U = Mat::Zero(_m1, _M0);
     _m0Scratch = Mat::zero(_m0, _m0);
+    _PK0 = Mat::Zero(_M0, 1);
+    _PK1 = Mat::Zero(_M0, _m1);
   }
 
   template <typename Map>
@@ -73,6 +75,7 @@ public:
     CHECK(rows == A1.rows());
 
     addToDiag(left, A0, &_m0Scratch, &_P);
+    addToDiag(left, A0, &_m0Scratch, &_Pbak);
 
     Q(left, m0) += bSign*A0.transpose()*B;
     R(left, m0) -= A0.tranpose()*A1;
@@ -86,7 +89,11 @@ public:
     if (X0->rows() != _M0) {
       *X0 = Vec(_M0);
     }
+    if (X1->rows() != _m1) {
+      *X1 = Vec(_m1);
+    }
     auto QRmat = wrap(_QR);
+    auto Pbak = _P.dup();
     if (!Pbsv<T>::apply(&_P, &QRmat)) {
       return false;
     }
@@ -94,17 +101,40 @@ public:
     auto K0 = _QR.block(0, 0, _M0, 1);
     auto K1 = _QR.block(0, 1, _M0, _m1);
 
+    {
+      auto pk0 = wrap(_PK0);
+      multiply(Pbak, wrap(K0), &pk0);
+      assert(pk0.rows() == _PK0.rows());
+      assert(pk0.cols() == _PK0.cols());
+    }{
+      auto pk1 = wrap(_PK1);
+      multiply(Pbak, wrap(K1), &pk1);
+      assert(pk1.rows() == _PK1.rows());
+      assert(pk1.cols() == _PK1.cols());
+    }
+
+    _lhs = K1.transpose()*(_PK1 + R()) + _U*K1;
+    _rhs = K1.transpose()*Q() + _T - K1.transpose()*_PK0 - _U*K0;
+    *X1 = _lhs.lu().solve(_rhs);
     return true;
   }
 private:
   int _M0, _m0, _m1, _kd;
-  SymmetricBandMatrixL<T> _P; // m0*m0
-  Mat _QR, _S, _T, _U, _m0Scratch;
+  SymmetricBandMatrixL<T> _P, _Pbak; // m0*m0
+  Mat _QR, _S, _T, _U, _m0Scratch, _PK1, _PK0;
   Vec _X0;
   Mat _lhs, _rhs;
 
   auto Q(int m0, int left) -> decltype(_QR.block(0, 0, 1, 1)) {
     return _QR.block(left, 0, m0, 1);
+  }
+
+  auto Q() -> decltype(_QR.block(0, 0, 1, 1)) {
+    return _QR.block(0, 0, _M0, 1);
+  }
+
+  auto R() -> decltype(_QR.block(0, 1, _M0, _m1)) {
+    return _QR.block(0, 1, _M0, _m1);
   }
 
   auto R(int m0, int left) -> decltype(_QR.block(0, 0, 1, 1)) {
