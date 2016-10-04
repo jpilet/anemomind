@@ -359,15 +359,18 @@ VectorTileLayer.strokePath = function(context) {
   context.beginPath();
 }
 
-VectorTileLayer.prototype.createGradient = function(context, color, startPoint, endPoint) {
-  var index = this.colorSpectrum.indexOf(color);
-  var nextColor = '';
-  var grd = null;
+VectorTileLayer.getNextSpectrumColor = function(colorSpectrum, color) {
+  var index = colorSpectrum.indexOf(color);
 
-  if(typeof this.colorSpectrum[index + 1] == 'undefined')
-    nextColor = this.colorSpectrum[0];
-  else
-    nextColor = this.colorSpectrum[index + 1];
+  if(typeof colorSpectrum[index + 1] == 'undefined')
+    return colorSpectrum[0];
+
+  return colorSpectrum[index + 1];
+}
+
+VectorTileLayer.prototype.createGradient = function(context, color, startPoint, endPoint) {
+  var grd = null;
+  var nextColor = VectorTileLayer.getNextSpectrumColor(this.colorSpectrum, color);
   
   if(this.currentColor != color && this.currentColor != '' && startPoint != 0) {
     grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
@@ -379,66 +382,39 @@ VectorTileLayer.prototype.createGradient = function(context, color, startPoint, 
 };
 
 VectorTileLayer.prototype.vmgPerfOfTail = function(context, startOfTail, currentLineSegment, currentPoint, previousPoint) {
+  var currentPerf = perfAtPoint(currentLineSegment);
   for(var i=0; i<this.vmgPerf.length; i++) {
-    if(this.vmgPerf[i] != this.vmgPerf[this.vmgPerf.length - 1]) {
-      if(perfAtPoint(currentLineSegment) > this.vmgPerf[i] && perfAtPoint(currentLineSegment) <= this.vmgPerf[i+1]) {
-        if(!startOfTail) {
-          this.startPoint = previousPoint;
-          this.currentColor = this.colorSpectrum[i];
-          return;
-        }
-        
-        if(this.currentColor != this.colorSpectrum[i]) {
-          var grd = this.createGradient(context, this.colorSpectrum[i], this.startPoint, currentPoint);
-          if(grd === null) {
-            context.strokeStyle = this.origStrokeStyle;
-            context.lineWidth = this.origlineWidth;
-          }
-          else {
-            if(this.tailColor)
-              context.strokeStyle = this.tailColor[0] == '#' ? this.tailColor : '#'+this.tailColor;
-            else
-              context.strokeStyle = grd;
-            context.lineWidth = this.tailWidth;
-          }            
-          VectorTileLayer.strokePath(context);
-          context.moveTo(previousPoint.x, previousPoint.y);
-          this.startPoint = previousPoint;
-          this.currentColor = this.colorSpectrum[i];
-        }
+    var inRange = false;
+    var notLast = this.vmgPerf[i] != this.vmgPerf[this.vmgPerf.length - 1];
+    if (notLast)
+      inRange = currentPerf > this.vmgPerf[i] && currentPerf <= this.vmgPerf[i+1];
+    else
+      inRange = currentPerf > this.vmgPerf[this.vmgPerf.length - 1];
 
+    if (inRange) {
+      if(!startOfTail) {
+        this.startPoint = previousPoint;
+        this.currentColor = this.colorSpectrum[i];
         return;
       }
-    }
-    else {
-      if(perfAtPoint(currentLineSegment) > this.vmgPerf[i]) {
-        if(!startOfTail) {
-          this.startPoint = previousPoint;
-          this.currentColor = this.colorSpectrum[i];
-
-          return;
+      
+      if(this.currentColor != this.colorSpectrum[i]) {
+        var grd = this.createGradient(context, this.colorSpectrum[i], this.startPoint, currentPoint);
+        if(grd === null) {
+          context.strokeStyle = this.origStrokeStyle;
+          context.lineWidth = this.origlineWidth;
         }
-        if(this.currentColor != this.colorSpectrum[i]) {
-          var grd = this.createGradient(context, this.colorSpectrum[i], this.startPoint, currentPoint);
-          if(grd === null) {
-            context.strokeStyle = this.origStrokeStyle;
-            context.lineWidth = this.origlineWidth;
-          }
-          else {
-            if(this.tailColor)
-              context.strokeStyle = this.tailColor[0] == '#' ? this.tailColor : '#'+this.tailColor;
-            else
-              context.strokeStyle = grd;
-            context.lineWidth = this.tailWidth;
-          }
-          VectorTileLayer.strokePath(context);
-          context.moveTo(previousPoint.x, previousPoint.y);
+        else {
+          if(this.tailColor)
+            context.strokeStyle = this.tailColor[0] == '#' ? this.tailColor : '#'+this.tailColor;
+          else
+            context.strokeStyle = grd;
+          context.lineWidth = this.tailWidth;
+        }            
+        VectorTileLayer.strokePath(context);
 
-          this.startPoint = previousPoint;
-          this.currentColor = this.colorSpectrum[i];
-        }
-
-        return;
+        this.startPoint = previousPoint;
+        this.currentColor = this.colorSpectrum[i];
       }
     }
   }
@@ -470,7 +446,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   if(typeof vLayer.tailColor != 'undefined' && vLayer.tailColor != null) {
     vLayer.tailColor = checkHex(vLayer.tailColor) ? vLayer.tailColor : colorNameToHex(vLayer.tailColor);
   }
-  
+
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
     return;
@@ -479,17 +455,14 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var createTailTrack = function(currentLineSegment, currentPoint, previousPoint) {
     if(!startOfTail) {
       VectorTileLayer.strokePath(context);
-      context.moveTo(previousPoint.x, previousPoint.y);
-      context.lineTo(currentPoint.x, currentPoint.y);
       vLayer.vmgPerfOfTail(context, startOfTail, currentLineSegment, currentPoint, previousPoint);
       startOfTail = true;
 
-      return;
+      return true;
     }
-    context.lineTo(previousPoint.x, previousPoint.y);
     vLayer.vmgPerfOfTail(context, startOfTail, currentLineSegment, currentPoint, previousPoint);
 
-    return;
+    return true;
   };
 
   // Draw.
@@ -509,7 +482,11 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
       var tail = VectorTileLayer.checkIfTail(this.currentTime, this.queueSeconds, context, points[i]);
 
     if(tail) {
-      createTailTrack(points[i], currentPoint, previousPoint);
+      var moveToPoint = createTailTrack(points[i], currentPoint, previousPoint);
+      if(moveToPoint) {
+        context.moveTo(previousPoint.x, previousPoint.y);
+        context.lineTo(currentPoint.x, currentPoint.y);
+      }
     }
     else {
       if(context.strokeStyle != vLayer.origStrokeStyle) {
