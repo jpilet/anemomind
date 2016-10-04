@@ -18,6 +18,7 @@ target_link_libraries(calib_Calibrator
                       anemobox_SimulateBox
                       common_Histogram
                       common_math
+                      logimport_LogLoader
                       nautical_FlowErrors
                       nautical_downsamplegps
                       nautical_grammars_WindOrientedGrammar

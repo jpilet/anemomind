@@ -8,7 +8,11 @@
 #ifndef SERVER_COMMON_POSITIVEMOD_H_
 #define SERVER_COMMON_POSITIVEMOD_H_
 
+#include <cmath>
+
 namespace sail {
+
+namespace {
 
 template <typename T>
 T makePositiveCyclic(T a, T b0) {
@@ -59,9 +63,27 @@ T positiveMod(T a, T b) {
   }
 }
 
-
+template<typename T>
+T positivefmod(T a, T b) {
+  T r = std::fmod(a, b);
+  if (r < 0) {
+    r += b;
+  }
+  return r;
 }
 
+template<>
+double positiveMod(double a, double b) {
+  return positivefmod(a, b);
+}
 
+template<>
+float positiveMod(float a, float b) {
+  return positivefmod(a, b);
+}
+
+}  // namespace 
+
+}  // namespace sail
 
 #endif /* SERVER_COMMON_POSITIVEMOD_H_ */

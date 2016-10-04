@@ -43,8 +43,12 @@ function VectorTileLayer(params, renderer) {
   this.boatIcon.src = '/assets/images/boat.svg';
   this.trueWindIcon = new Image();
   this.trueWindIcon.src = '/assets/images/truewind.svg';
+  this.trueWindIcon.width = 14;
+  this.trueWindIcon.height = 28;
   this.appWindIcon = new Image();
   this.appWindIcon.src = '/assets/images/appwind.svg';
+  this.appWindIcon.width = 14;
+  this.appWindIcon.height = 28;
 
   this.tiles = {};
   this.numLoading = 0;
@@ -599,8 +603,8 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
     context.strokeStyle = '#ff0033';
     context.stroke();
 
-    var l = 38 * pixelRatio;
-    var w = 25 * pixelRatio;
+    var l = 40 * pixelRatio;
+    var w = 20 * pixelRatio;
     context.drawImage(this.boatIcon,
                       - w/2,
                       - l/2,
