@@ -233,6 +233,7 @@ angular.module('www2App')
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
               scope.pathLayer.queueSeconds = $location.search().queue;
+              scope.pathLayer.tailColor = $location.search().tailColor;
             }
           });
 
