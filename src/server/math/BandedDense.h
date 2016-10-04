@@ -91,11 +91,12 @@ public:
     }
     if (X1->rows() != _m1) {
       *X1 = Vec(_m1);
-    }
-    auto QRmat = wrap(_QR);
-    auto Pbak = _P.dup();
-    if (!Pbsv<T>::apply(&_P, &QRmat)) {
-      return false;
+    }{
+      auto QRmat = wrap(_QR).dup();
+      auto Pdirty = _P.dup();
+      if (!Pbsv<T>::apply(&Pdirty, &QRmat)) {
+        return false;
+      }
     }
 
     auto K0 = _QR.block(0, 0, _M0, 1);
@@ -103,12 +104,12 @@ public:
 
     {
       auto pk0 = wrap(_PK0);
-      multiply(Pbak, wrap(K0), &pk0);
+      multiply(_P, wrap(K0), &pk0);
       assert(pk0.rows() == _PK0.rows());
       assert(pk0.cols() == _PK0.cols());
     }{
       auto pk1 = wrap(_PK1);
-      multiply(Pbak, wrap(K1), &pk1);
+      multiply(_P, wrap(K1), &pk1);
       assert(pk1.rows() == _PK1.rows());
       assert(pk1.cols() == _PK1.cols());
     }
