@@ -353,7 +353,7 @@ struct ReconstructedBoatState {
 
 template <typename T, typename Settings>
 struct AWAFitness {
-  static const int outputCount = 1;
+  static const int outputCount = 2;
 
   static bool apply(
       const ReconstructedBoatState<T, Settings> &state,
@@ -373,7 +373,9 @@ struct AWAFitness {
           h.get());
       auto error = HorizontalMotion<T>(distortedAW - observedAW);
       auto bw = BandWidth<T, AWA>::get();
-      residuals[0] = sqrtHuber<T>(T(error.norm()/bw));
+      //residuals[0] = sqrtHuber<T>(T(error.norm()/bw));
+      residuals[0] = error[0]/bw;
+      residuals[1] = error[1]/bw;
     } else {
       std::cout << "FAILED!!)))";
       std::exit(1);
@@ -395,7 +397,7 @@ struct AWSFitness {
     auto bw = BandWidth<T, AWS>::get();
     Velocity<T> error = distortion.apply(aw.norm())
         - MakeConstant<Velocity<T>>::apply(observation);
-    residuals[0] = sqrtHuber<T>(error/bw);
+    residuals[0] = error/bw; //sqrtHuber<T>(error/bw);
     return true;
   }
 };
