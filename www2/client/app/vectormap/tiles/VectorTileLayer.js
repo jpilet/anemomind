@@ -385,17 +385,19 @@ VectorTileLayer.prototype.createGradient = function(context, color, startPoint, 
   return grd;
 };
 
-VectorTileLayer.prototype.vmgPerfOfTail = function(context, startOfTail, currentLineSegment, currentPoint, previousPoint) {
+VectorTileLayer.prototype.drawPerLineSegment = function(context, startOfTail, currentLineSegment, currentPoint, previousPoint) {
   var currentPerf = perfAtPoint(currentLineSegment);
+
   for(var i=0; i<this.vmgPerf.length; i++) {
     var inRange = false;
     var notLast = this.vmgPerf[i] != this.vmgPerf[this.vmgPerf.length - 1];
+
     if (notLast)
       inRange = currentPerf > this.vmgPerf[i] && currentPerf <= this.vmgPerf[i+1];
     else
       inRange = currentPerf > this.vmgPerf[this.vmgPerf.length - 1];
 
-    if (inRange) {
+    if(inRange) {
       if(!startOfTail) {
         this.startPoint = previousPoint;
         this.currentColor = this.colorSpectrum[i];
@@ -459,12 +461,12 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var createTailTrack = function(currentLineSegment, currentPoint, previousPoint) {
     if(!startOfTail) {
       VectorTileLayer.strokePath(context);
-      vLayer.vmgPerfOfTail(context, startOfTail, currentLineSegment, currentPoint, previousPoint);
+      vLayer.drawPerLineSegment(context, startOfTail, currentLineSegment, currentPoint, previousPoint);
       startOfTail = true;
 
       return true;
     }
-    vLayer.vmgPerfOfTail(context, startOfTail, currentLineSegment, currentPoint, previousPoint);
+    vLayer.drawPerLineSegment(context, startOfTail, currentLineSegment, currentPoint, previousPoint);
 
     return true;
   };
