@@ -702,14 +702,14 @@ FOREACH_MEASURE_TO_CONSIDER(MAKE_RANGE)
 FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
 #undef EVAL_RESIDUALS
 
-    if (!computeHeelResiduals<T>(state, calibParams, residuals, &offset)) {
+    /*if (!computeHeelResiduals<T>(state, calibParams, residuals, &offset)) {
       assert(false);
       return false;
     }
     if (!computeLeewayResiduals<T>(state, calibParams, residuals, &offset)) {
       assert(false);
       return false;
-    }
+    }*/
     assert(offset == outputCount());
     assert(finiteResiduals<T>(offset, residuals));
     return true;
@@ -767,9 +767,10 @@ FOREACH_MEASURE_TO_CONSIDER(EVAL_RESIDUALS)
         AWS.width()*AWSFitness<double, Settings>::outputCount +
         MAG_HEADING.width()*MagHeadingFitness<double, Settings>::outputCount +
         WAT_SPEED.width()*WatSpeedFitness<double, Settings>::outputCount +
-        ORIENT.width()*OrientFitness<double, Settings>::outputCount
+        ORIENT.width()*OrientFitness<double, Settings>::outputCount; /*
         + HeelFitness<double, Settings>::outputCount
-        + LeewayFitness<double, Settings>::outputCount;
+        + LeewayFitness<double, Settings>::outputCount;*/
+#warning "put this back"
   }
 };
 
