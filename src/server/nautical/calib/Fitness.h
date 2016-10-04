@@ -374,6 +374,9 @@ struct AWAFitness {
       auto error = HorizontalMotion<T>(distortedAW - observedAW);
       auto bw = BandWidth<T, AWA>::get();
       residuals[0] = sqrtHuber<T>(T(error.norm()/bw));
+    } else {
+      std::cout << "FAILED!!)))";
+      std::exit(1);
     }
     return true;
   }
