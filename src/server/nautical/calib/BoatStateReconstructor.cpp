@@ -602,17 +602,19 @@ public:
     }
     int dataCount = 0;
     for (int i = 0; i < stateCount; i++) {
-      if (chunk.hasData(i)) {
-        typedef DataCost<BoatStateSettings> CostFunctor;
-        auto cost = new CostFunctor{
-        #define GET_VALUE_RANGE(HANDLE) \
-          chunk.HANDLE.getValueRange(i),
-        FOREACH_MEASURE_TO_CONSIDER(GET_VALUE_RANGE)
-        #undef GET_VALUE_RANGE
-              chunk,
-              chunk.initialStates[i],
-              *this
-             };
+      typedef DataCost<BoatStateSettings> CostFunctor;
+      auto cost = new CostFunctor{
+      #define GET_VALUE_RANGE(HANDLE) \
+        chunk.HANDLE.getValueRange(i),
+      FOREACH_MEASURE_TO_CONSIDER(GET_VALUE_RANGE)
+      #undef GET_VALUE_RANGE
+            chunk,
+            chunk.initialStates[i],
+            *this
+           };
+      if (cost->outputCount() == 0) {
+        delete cost;
+      } else {
         auto wrapped = new
             ceres::DynamicAutoDiffCostFunction<CostFunctor>(
                 cost);
