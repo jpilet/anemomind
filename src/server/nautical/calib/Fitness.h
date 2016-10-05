@@ -424,8 +424,11 @@ struct MagHeadingFitness {
     auto error = dif.norm();
     //residuals[0] = sqrtHuber<T>(error/velBW);
     //residuals[0] = error/velBW;
-    residuals[0] = dif[0]/velBW;
-    residuals[1] = dif[1]/velBW;
+
+    double weight = 10;
+
+    residuals[0] = weight*T(dif[0]/velBW);
+    residuals[1] = weight*T(dif[1]/velBW);
     //applyHuber<T, 2>(residuals);
     return true;
   }
