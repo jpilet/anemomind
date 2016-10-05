@@ -363,23 +363,15 @@ VectorTileLayer.strokePath = function(context) {
   context.beginPath();
 }
 
-VectorTileLayer.getNextSpectrumColor = function(colorSpectrum, color) {
-  var index = colorSpectrum.indexOf(color);
-
-  if(typeof colorSpectrum[index + 1] == 'undefined')
-    return colorSpectrum[0];
-
-  return colorSpectrum[index + 1];
-}
-
 VectorTileLayer.prototype.createGradient = function(context, color, startPoint, endPoint) {
   var grd = null;
-  var nextColor = VectorTileLayer.getNextSpectrumColor(this.colorSpectrum, color);
   
   if(this.currentColor != color && this.currentColor != '' && startPoint != 0) {
     grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
     grd.addColorStop(0, this.currentColor);
     grd.addColorStop(1, color);
+
+    console.log(this.currentColor, color);
   }
 
   return grd;
@@ -406,6 +398,7 @@ VectorTileLayer.prototype.drawPerLineSegment = function(context, startOfTail, cu
       
       if(this.currentColor != this.colorSpectrum[i]) {
         var grd = this.createGradient(context, this.colorSpectrum[i], this.startPoint, currentPoint);
+
         if(grd === null) {
           context.strokeStyle = this.origStrokeStyle;
           context.lineWidth = this.origlineWidth;
