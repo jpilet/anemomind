@@ -66,6 +66,8 @@ function VectorTileLayer(params, renderer) {
   this.origStrokeStyle = '';
   this.origlineWidth = 0;
   this.tailWidth = 3;
+  this.isTail = false;
+  this.startOfTail = false;
   this.vmgPerf = [0, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110];
   this.colorSpectrum = ['#B5B5B5','#BAA7AA','#C099A0','#C68B96','#CC7D8C',
                         '#D26F81','#D86277','#DE546D','#E44663','#EA3858',
@@ -363,6 +365,19 @@ VectorTileLayer.strokePath = function(context) {
   context.beginPath();
 }
 
+VectorTileLayer.getPointCoordinates = function(pinchZoom, points, index) {
+  var currentPoint = pinchZoom.viewerPosFromWorldPos(points[index].pos[0],
+                                                points[index].pos[1]);
+
+  var previousPoint = pinchZoom.viewerPosFromWorldPos(points[index-1].pos[0],
+                                              points[index-1].pos[1]);
+
+  return {
+    'current': currentPoint,
+    'previous': previousPoint
+  };
+}
+
 VectorTileLayer.prototype.createGradient = function(context, color, startPoint, endPoint) {
   var grd = null;
   
@@ -370,52 +385,105 @@ VectorTileLayer.prototype.createGradient = function(context, color, startPoint, 
     grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
     grd.addColorStop(0, this.currentColor);
     grd.addColorStop(1, color);
-
-    console.log(this.currentColor, color);
   }
 
   return grd;
 };
 
-VectorTileLayer.prototype.drawPerLineSegment = function(context, startOfTail, currentLineSegment, currentPoint, previousPoint) {
-  var currentPerf = perfAtPoint(currentLineSegment);
+VectorTileLayer.prototype.drawTailSegments = function(context, pointCoor, currentPoint) {
+  if(this.queueSeconds > 0 && pointCoor.current)
+      this.isTail = VectorTileLayer.checkIfTail(this.currentTime, this.queueSeconds, context, currentPoint);
+
+  if(!this.isTail)
+    return;
+
+  this.checkIfStartOfTail(context, pointCoor);
+
+  if(this.currentColor != this.colorSpectrum[pointCoor.colorIndex]) {
+    var grd = this.createGradient(context, this.colorSpectrum[pointCoor.colorIndex], this.startPoint, pointCoor.current);
+
+    if(grd === null) {
+      context.strokeStyle = this.origStrokeStyle;
+      context.lineWidth = this.origlineWidth;
+    }
+    else {
+      if(this.tailColor)
+        context.strokeStyle = this.tailColor[0] == '#' ? this.tailColor : '#'+this.tailColor;
+      else
+        context.strokeStyle = grd;
+      context.lineWidth = this.tailWidth;
+    }            
+    VectorTileLayer.strokePath(context);
+
+    this.startPoint = pointCoor.previous;
+    this.currentColor = this.colorSpectrum[pointCoor.colorIndex];
+  }
+
+  return;
+}
+
+VectorTileLayer.prototype.checkIfStartOfTail = function(context, values) {
+  if(this.isTail && !this.startOfTail) {
+    VectorTileLayer.strokePath(context);
+    this.startPoint = values.previous;
+    this.currentColor = this.colorSpectrum[values.colorIndex];
+    this.startOfTail = true;
+  }
+}
+
+VectorTileLayer.prototype.currentColorAndPosition = function(pinchZoom, points, index) {
+  var currentPos = pinchZoom.viewerPosFromWorldPos(points[index].pos[0],
+                                                points[index].pos[1]);
+  var previousPos = pinchZoom.viewerPosFromWorldPos(points[index-1 < 0 ? 0 : index-1].pos[0],
+                                              points[index-1 < 0 ? 0 : index-1].pos[1]);
+  var values = {
+    'current': currentPos,
+    'previous': previousPos,
+    'colorIndex': 0
+  };
+
+  var currentPerf = perfAtPoint(points[index]);
 
   for(var i=0; i<this.vmgPerf.length; i++) {
     var inRange = false;
     var notLast = this.vmgPerf[i] != this.vmgPerf[this.vmgPerf.length - 1];
 
-    if (notLast)
+    if(notLast)
       inRange = currentPerf > this.vmgPerf[i] && currentPerf <= this.vmgPerf[i+1];
     else
       inRange = currentPerf > this.vmgPerf[this.vmgPerf.length - 1];
 
-    if(inRange) {
-      if(!startOfTail) {
-        this.startPoint = previousPoint;
-        this.currentColor = this.colorSpectrum[i];
-        return;
-      }
-      
-      if(this.currentColor != this.colorSpectrum[i]) {
-        var grd = this.createGradient(context, this.colorSpectrum[i], this.startPoint, currentPoint);
-
-        if(grd === null) {
-          context.strokeStyle = this.origStrokeStyle;
-          context.lineWidth = this.origlineWidth;
-        }
-        else {
-          if(this.tailColor)
-            context.strokeStyle = this.tailColor[0] == '#' ? this.tailColor : '#'+this.tailColor;
-          else
-            context.strokeStyle = grd;
-          context.lineWidth = this.tailWidth;
-        }            
-        VectorTileLayer.strokePath(context);
-
-        this.startPoint = previousPoint;
-        this.currentColor = this.colorSpectrum[i];
-      }
+    if(inRange && this.isTail) {
+      values.colorIndex = i;
+      return values;
     }
+  }
+
+  return values;
+}
+
+VectorTileLayer.movePosition = function(context, values) {
+  context.moveTo(values.previous.x, values.previous.y);
+  context.lineTo(values.current.x, values.current.y); 
+
+  return;
+}
+
+VectorTileLayer.prototype.drawTrajectorySegments = function(context, pointCoor) {
+  if(this.isTail)
+    return;
+
+  if(context.strokeStyle != this.origStrokeStyle) {
+    context.moveTo(pointCoor.previous.x, pointCoor.previous.y);
+
+    VectorTileLayer.strokePath(context);
+    context.strokeStyle = this.origStrokeStyle;
+    context.lineWidth = this.origlineWidth;
+
+    context.lineTo(pointCoor.previous.x, pointCoor.previous.y);
+  }
+  else {
+    context.lineTo(pointCoor.current.x, pointCoor.current.y);
   }
 }
 
@@ -439,8 +507,10 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   
   this.origStrokeStyle = context.strokeStyle;
   this.origlineWidth = context.lineWidth;
-  var startOfTail = false;
+  this.isTail = false;
+  this.startOfTail = false;
   var vLayer = this;
+  var pointCoor = null;
 
   if(typeof vLayer.tailColor != 'undefined' && vLayer.tailColor != null) {
     vLayer.tailColor = checkHex(vLayer.tailColor) ? vLayer.tailColor : colorNameToHex(vLayer.tailColor);
@@ -451,19 +521,6 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
     return;
   }
 
-  var createTailTrack = function(currentLineSegment, currentPoint, previousPoint) {
-    if(!startOfTail) {
-      VectorTileLayer.strokePath(context);
-      vLayer.drawPerLineSegment(context, startOfTail, currentLineSegment, currentPoint, previousPoint);
-      startOfTail = true;
-
-      return true;
-    }
-    vLayer.drawPerLineSegment(context, startOfTail, currentLineSegment, currentPoint, previousPoint);
-
-    return true;
-  };
-
   // Draw.
   context.beginPath();
   var first = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
@@ -471,34 +528,12 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   context.moveTo(first.x, first.y);
 
   for (var i = 1; i < points.length; ++i) {
-    var currentPoint = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
-                                                points[i].pos[1]);
+    pointCoor = vLayer.currentColorAndPosition(pinchZoom, points, i);
 
-    var previousPoint = pinchZoom.viewerPosFromWorldPos(points[i-1].pos[0],
-                                                points[i-1].pos[1]);
+    vLayer.drawTailSegments(context, pointCoor, points[i]);
+    VectorTileLayer.movePosition(context, pointCoor);
 
-    if(this.queueSeconds > 0 && currentPoint)
-      var tail = VectorTileLayer.checkIfTail(this.currentTime, this.queueSeconds, context, points[i]);
-
-    if(tail) {
-      var moveToPoint = createTailTrack(points[i], currentPoint, previousPoint);
-      if(moveToPoint) {
-        context.moveTo(previousPoint.x, previousPoint.y);
-        context.lineTo(currentPoint.x, currentPoint.y);
-      }
-    }
-    else {
-      if(context.strokeStyle != vLayer.origStrokeStyle) {
-        context.moveTo(previousPoint.x, previousPoint.y);
-        VectorTileLayer.strokePath(context);
-        context.strokeStyle = vLayer.origStrokeStyle;
-        context.lineWidth = vLayer.origlineWidth;
-        context.lineTo(previousPoint.x, previousPoint.y);
-      }
-      else {
-        context.lineTo(currentPoint.x, currentPoint.y);
-      }
-    }
+    vLayer.drawTrajectorySegments(context, pointCoor);
     
   }
   context.stroke();
