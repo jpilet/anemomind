@@ -353,7 +353,7 @@ struct ReconstructedBoatState {
 
 template <typename T, typename Settings>
 struct AWAFitness {
-  static const int outputCount = 2;
+  static const int outputCount = 1;
 
   static bool apply(
       const ReconstructedBoatState<T, Settings> &state,
@@ -367,20 +367,29 @@ struct AWAFitness {
           state.boatOverGround.value,
           state.windOverGround.value);
       auto distortedAW = distortion.apply(cleanAW);
-      auto observedAW = makeApparentWind(
-          cleanAW.norm(),
-          MakeConstant<Angle<T>>::apply(observation),
-          h.get());
-      auto error = HorizontalMotion<T>(distortedAW - observedAW);
-      auto bw = BandWidth<T, AWA>::get();
-      //residuals[0] = sqrtHuber<T>(T(error.norm()/bw));
-      residuals[0] = error[0]/bw;
-      residuals[1] = error[1]/bw;
-    } else {
-      std::cout << "FAILED!!)))";
-      std::exit(1);
+      Optional<Angle<T>> awa0 = computeAWA<T>(distortedAW, h.get());
+      if (awa0.defined()) {
+        auto awa = awa0.get();
+        /*auto observedAW = makeApparentWind(
+            cleanAW.norm(),
+            MakeConstant<Angle<T>>::apply(observation),
+            h.get());*/
+        //auto error = HorizontalMotion<T>(distortedAW - observedAW);
+        //auto bw = BandWidth<T, AWA>::get();
+        //residuals[0] = sqrtHuber<T>(T(error.norm()/bw));
+        auto bw = BandWidthForType<T, Angle<double>>::get();
+        //residuals[0] = error[0]/bw;
+        //residuals[1] = error[1]/bw;
+        Angle<T> diff = (awa - observation.mapObjectValues([](double x) {
+          return MakeConstant<T>::apply(x);
+        }));
+        residuals[0] = 1000.0*T(diff.normalizedAt0()/bw);
+        return true;
+      }
     }
-    return true;
+    std::cout << "FAILED!!)))";
+    std::exit(1);
+    return false;
   }
 };
 
