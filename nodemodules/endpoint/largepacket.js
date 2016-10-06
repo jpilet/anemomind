@@ -156,7 +156,7 @@ function sendPacket(localEndpoint, dst, label, data, settings, cb) {
 }
 
 function handleFirstPacket(endpoint, packet) {
-  ep.withTransaction(endpoint.db, function(T, cb) {
+  endpoint.withDB(function(T, cb) {
     ep.storePacket(T, packet, cb);
   }, function(err) {
     if (err) {
@@ -292,7 +292,7 @@ function attemptToAssemblePacket(T, endpoint, lastPacket, cb) {
 }
 
 function handleRemainingPacket(endpoint, packet) {
-  ep.withTransaction(endpoint.db, function(T, cb) {
+  endpoint.withDB(function(T, cb) {
     ep.storePacket(T, packet, function(err) {
       if (err) {
         cb(err);

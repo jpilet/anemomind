@@ -4,8 +4,13 @@ var bigint = require('../bigint.js');
 var eq = require('deep-equal-ident');
 var schema = require('../endpoint-schema.js');
 
+function makeNamedEP(name, cb) {
+  endpoint.tryMakeAndResetEndpoint(
+    '/tmp/' + name + '.db', name, cb);
+}
+
 function makeTestEP(cb) {
-  endpoint.tryMakeAndResetEndpoint('/tmp/ep.db', 'ep', cb);
+  makeNamedEP('ep', cb);
 }
 
 
@@ -312,6 +317,51 @@ describe('Endpoint', function() {
     });
   });
 
+  it('openRawDBAndCloseIt', function(done) {
+    endpoint.openDBWithFilename('/tmp/db2close.db', function(err, db) {
+      if (err) {
+        done(err);
+      } else {
+        db.close(done);
+      }
+    });
+  });
+
+  it('withEP, flush and lower bounds', function(done) {
+    makeTestEP(function(err, ep) {
+      endpoint.withEP(ep, function(ep, cb) {
+        ep.updateLowerBounds([
+          {src:"a", dst:"b", lb:"0004"},
+          {src:"a", dst:"c", lb:"0005"}
+        ], function(err, lbs) {
+          assert(!err);
+          assert(eq(lbs, ["0004", "0005"]));
+          ep.flush(function(err) {
+
+            if (err) {
+              cb(err);
+            } else {
+              ep.updateLowerBounds([
+                {src:"a", dst:"b", lb:"0003"},
+                {src:"a", dst:"c", lb:"0006"}
+              ], function(err, lbs) {
+                assert(!err);
+                console.log("Any error? " + err);
+                assert(eq(lbs, ["0004", "0006"]));
+                console.log("SO FAR SO GOOD!!!");
+                cb(err);
+              });
+            }
+
+          });
+        });
+      }, function(err) {
+        console.log("DONE");
+        done(err);
+      });
+    });
+  });
+
   /*
 
 sqlite> select * from packets;
@@ -335,24 +385,29 @@ sqlite>
           // Adding these packets just like this is going to
           // put the table in a corrupt state, because the lowest packet number
           // is greater than the value in the lower bound table.
-          insertPackets(
-            ep.db,
-            [["boat553910775bfc1709601c6aa9",
-              "boxfcc2de3178ef", "0000014e1b4b8d6e", 129,
-              new Buffer(0)],
-             ["boat553910775bfc1709601c6aa9",
-              "boxfcc2de3178ef", "0000014e1b4b8d6f", 129,
-              new Buffer(0)],
-             ["boat553910775bfc1709601c6aa9",
-              "boxfcc2de3178ef", "0000014e1b4b8d70", 129,
-              new Buffer(0)],
-             ["boat553910775bfc1709601c6aa9",
-              "boxfcc2de3178ef", "0000014e1b4b8d71", 129,
-              new Buffer(0)]],
-            function(err) {
-              assert(!err);
-              ep.getLowerBound("boat553910775bfc1709601c6aa9",
-                               "boxfcc2de3178ef", function(err, lb) {
+          console.log("UPDATED LOWER BOUND");
+          ep.withDB(function(db, cb) {
+            console.log("ACQUIRED DB");
+            insertPackets(
+              db,
+              [["boat553910775bfc1709601c6aa9",
+                "boxfcc2de3178ef", "0000014e1b4b8d6e", 129,
+                new Buffer(0)],
+               ["boat553910775bfc1709601c6aa9",
+                "boxfcc2de3178ef", "0000014e1b4b8d6f", 129,
+                new Buffer(0)],
+               ["boat553910775bfc1709601c6aa9",
+                "boxfcc2de3178ef", "0000014e1b4b8d70", 129,
+                new Buffer(0)],
+               ["boat553910775bfc1709601c6aa9",
+                "boxfcc2de3178ef", "0000014e1b4b8d71", 129,
+                new Buffer(0)]], cb);
+          }, function(err) {
+            console.log("INSERTED PACKETS");
+            assert(!err);
+            ep.getLowerBound(
+              "boat553910775bfc1709601c6aa9",
+              "boxfcc2de3178ef", function(err, lb) {
                 var lb0 = "0000014e1b4b8d6e";
                 var lb1 = "0000014e1b4948c6";
                 assert(lb1 < lb0);
@@ -370,7 +425,7 @@ sqlite>
                   done();
                 });
               });
-            });
+          });
         });
     });
   });
