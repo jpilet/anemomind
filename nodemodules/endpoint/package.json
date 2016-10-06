@@ -9,9 +9,10 @@
   "author": "",
   "license": "BSD-2-Clause",
   "dependencies": {
-    "async": "~0.9.0",
+    "async": "~2.0.1",
     "deep-equal-ident": "^1.0.0",
     "json-buffer": "^2.0.11",
+    "locks": "^0.2.2",
     "mangler": "file:../mangler",
     "mkdirp": "^0.5.1",
     "msgpack-js": "^0.3.0",

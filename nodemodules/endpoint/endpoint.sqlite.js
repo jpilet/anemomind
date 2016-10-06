@@ -10,6 +10,7 @@ var schema = require('./endpoint-schema.js');
 var Q = require('q');
 var largepacket = require('./largepacket.js');
 var Path = require('path');
+var locks = require('locks');
 
 function isSrcDstPair(x) {
   if (typeof x == 'object') {
@@ -70,7 +71,7 @@ function filterByName(pairs, name) {
 function srcDstPairIntersection(A, B) {
   var result = [];
   assert(A instanceof Array); assert(B instanceof Array);
-    while (A.length > 0 && B.length > 0) {
+  while (A.length > 0 && B.length > 0) {
     if (eqSrcDstPair(A[0], B[0])) {
       result.push(A[0]);
       A = A.slice(1);
@@ -88,7 +89,7 @@ function srcDstPairIntersection(A, B) {
 function srcDstPairDifference(A, B) {
   var result = [];
   assert(A instanceof Array); assert(B instanceof Array);
-    while (A.length > 0 && B.length > 0) {
+  while (A.length > 0 && B.length > 0) {
     if (eqSrcDstPair(A[0], B[0])) {
       A = A.slice(1);
       B = B.slice(1);
@@ -108,14 +109,10 @@ seqNumber TEXT, label INT, data BLOB, PRIMARY KEY(src, dst, seqNumber)); \
 CREATE TABLE IF NOT EXISTS lowerBounds (src TEXT, dst TEXT, lowerBound TEXT, PRIMARY KEY(src, dst));";
 
 function beginTransaction(db, cb) {
-  //console.log("BEGIN TRANSACTION");
-  //inTransaction = true;
   db.beginTransaction(cb);
 }
 
 function commit(T, cb) {
-  //console.log("END TRANSACTION");
-  //inTransaction = false;
   T.commit(cb);
 }
 
@@ -170,9 +167,9 @@ function openDBWithFilename(dbFilename, cb) {
     new sqlite3.Database(
       dbFilename,
       function(err) {
-	if (err != undefined) {
-	  cb(err);
-	}
+	      if (err != undefined) {
+	        cb(err);
+	      }
       }
     )
   );
@@ -188,9 +185,16 @@ function openDBWithFilename(dbFilename, cb) {
 
 
 
-
-function Endpoint(filename, name, db) {
-  this.db = db;
+// The reason why the constructor of Endpoint does
+// not itself construct a db is because the construction
+// of a db is asynchronous, whereas calling "new Endpoint(...)"
+// is synchronous. The function "tryMakeEndpoint" below is the
+// actual function to call in order to make an endpoint.
+function Endpoint(filename, name, db, dbLoader) {
+  assert(dbLoader);
+  this.dbPrivateInstance = db;
+  this.dbLoader = dbLoader;
+  this.dbLock = locks.createMutex();
   this.dbFilename = filename;
   this.name = name;
   this.packetHandlers = [largepacket.largePacketHandler];
@@ -204,35 +208,62 @@ function tryMakeEndpoint(filename, name, cb) {
   if (!(common.isString(filename) && common.isIdentifier(name))) {
     cb(new Error('Invalid input to tryMakeEndpoint'));
   } else {
-    openDBWithFilename(filename, function(err, db) {
+
+    // The endpointLoader is passed as an argument to Endpoint in order
+    // to allow it to close and reopen, in order to flush changes.
+    var databaseLoader = function(cbLoaded) {
+      openDBWithFilename(filename, cbLoaded);
+    };
+
+    databaseLoader(function(err, db) {
       if (err) {
-        console.log(filename + ': error: ' + err);
+        console.log('In the function endpoint.sqlite.js, failed to load ' + filename + ' because: ' + err);
         cb(err);
       } else {
-        cb(null, new Endpoint(filename, name, db));
+        cb(null, new Endpoint(filename, name, db, databaseLoader));
       }
     });
   }
 }
 
-Endpoint.prototype.reset = function(cb) {
-  beginTransaction(this.db, function(err, T) {
-    if (err) {
-      cb(err);
-    } else {
-      dropTables(T, function(err) {
-	if (err) {
-	  cb(err);
-	} else {
-	  createAllTables(T, function(err) {
-	    commit(T, function(err2) {
-	      cb(err || err2);
-	    });
-	  });
-	}
-      });
-    }
+Endpoint.prototype.withRawDB = function(dbHandler, cb) {
+  assert(typeof dbHandler == 'function');
+  assert(typeof cb == 'function');
+  var self = this;
+  self.dbLock.lock(function() {
+    dbHandler(self.dbPrivateInstance, function(err, result) {
+      //Important: Always unlock before calling the callback.
+      self.dbLock.unlock();
+      cb(err, result);
+    });
   });
+}
+
+// Like withRawDB, but also a transaction. This should
+// be the preferred way to interact with a db.
+// 1. So first, we ensure that we have unique access to the db instance
+// 2. Then, we ensure that what we do with that instance is performed in a transaction.
+//
+// WARNING: withDB calls must not be nested in a callback chain.
+//          That will probably cause a deadlock! Only call it once
+//          at the top-level, that are the methods of Endpoint.
+Endpoint.prototype.withDB = function(dbHandler, cb) {
+  var self = this;
+  this.withRawDB(function(db, cb) {
+    withTransaction(db, dbHandler, cb);
+  }, cb);
+}
+
+Endpoint.prototype.reset = function(cb) {
+  this.withDB(function(T, cb) {
+    dropTables(T, function(err) {
+	    if (err) {
+	      cb(err);
+	    } else {
+	      createAllTables(T, cb);
+	    }
+    });
+  }, cb);
 }
 
 function tryMakeAndResetEndpoint(filename, name, cb) {
@@ -298,7 +329,7 @@ function computeTheLowerBound(lowerBound0, lowerBound1) {
   1. Read it from the table lowerBounds
   2. Try to retrieve the first packet index
   3. Return 0
-   
+  
 */
 function getLowerBound(T, src, dst, cb) {
   if (!(common.isIdentifier(src) && common.isIdentifier(dst))) {
@@ -321,11 +352,9 @@ function getLowerBound(T, src, dst, cb) {
 }
 
 Endpoint.prototype.getLowerBound = function(src, dst, cb) {
-  withTransaction(
-    this.db,
-    function(T, cb) {
-      getLowerBound(T, src, dst, cb);
-    }, cb);
+  this.withDB(function(T, cb) {
+    getLowerBound(T, src, dst, cb);
+  }, cb);
 }
 
 function getPacket(db, src, dst, seqNumber, cb) {
@@ -341,7 +370,10 @@ function getPacket(db, src, dst, seqNumber, cb) {
 }
 
 Endpoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
-  getPacket(this.db, src, dst, seqNumber, cb);
+  assert(typeof cb == "function");
+  this.withDB(function(db, cb) {
+    getPacket(db, src, dst, seqNumber, cb);
+  }, cb);
 }
 
 function getLastPacket(db, src, dst, cb) {
@@ -352,20 +384,20 @@ function getLastPacket(db, src, dst, cb) {
 function getUpperBound(db, src, dst, cb) {
   db.get('SELECT seqNumber FROM packets WHERE src = ? AND dst = ? ORDER BY seqNumber DESC',
          src, dst, function(err, row) {
-    if (err) {
-      cb(err);
-    } else if (row) {
-      cb(null, bigint.inc(row.seqNumber));
-    } else {
-      getLowerBound(db, src, dst, cb);
-    }
-  });
+           if (err) {
+             cb(err);
+           } else if (row) {
+             cb(null, bigint.inc(row.seqNumber));
+           } else {
+             getLowerBound(db, src, dst, cb);
+           }
+         });
 }
 
 Endpoint.prototype.getUpperBound = function(src, dst, cb) {
   // First try the lastPacket+1
   // Then the lower bound
-  withTransaction(this.db, function(T, cb) {
+  this.withDB(function(T, cb) {
     getUpperBound(T, src, dst, cb);
   }, cb);
 }
@@ -381,7 +413,9 @@ function getNextSeqNumber(T, src, dst, cb) {
 }
 
 Endpoint.prototype.getNextSeqNumber = function(src, dst, cb) {
-  getNextSeqNumber(this.db, src, dst, cb);
+  this.withDB(function(db, cb) {
+    getNextSeqNumber(db, src, dst, cb);
+  }, cb);
 }
 
 function storePacket(T, packet, cb) {
@@ -407,15 +441,15 @@ function sendSimplePacketBatch(T, src, sent, array, generator, cb) {
           nextPacket.seqNumber = seqNumber;
           nextPacket.src = src;
           storePacket(T, nextPacket,
-            function(err) {
-              if (err) {
-                cb(err, sent);
-              } else {
-                sent.push(nextPacket);
-                sendSimplePacketBatch(
-                  T, src, sent, array.slice(1), generator, cb);
-              }
-            });
+                      function(err) {
+                        if (err) {
+                          cb(err, sent);
+                        } else {
+                          sent.push(nextPacket);
+                          sendSimplePacketBatch(
+                            T, src, sent, array.slice(1), generator, cb);
+                        }
+                      });
         }
       });
     }
@@ -424,20 +458,20 @@ function sendSimplePacketBatch(T, src, sent, array, generator, cb) {
 
 /*
 
-Send multiple packets in one transaction, with contiguous
-sequence numbers:
+  Send multiple packets in one transaction, with contiguous
+  sequence numbers:
 
-Explanation:
+  Explanation:
 
   * 'array' is any type of array over which we iterator
   * 'generator' is a function with arguments
-    (sent, e), where 'sent' is an array of all packets
-    sent so far,  and 'e' is the next element in the array over which
-    we are iterating. The generator returns a map with entries 
-    (dst, label, data) for the packet to be sent next.
+  (sent, e), where 'sent' is an array of all packets
+  sent so far,  and 'e' is the next element in the array over which
+  we are iterating. The generator returns a map with entries 
+  (dst, label, data) for the packet to be sent next.
   * 'cb' is called once everything is done, with the first argument
-    being an error, or the first argument being null and the second
-    argument being all the packets that were sent.
+  being an error, or the first argument being null and the second
+  argument being all the packets that were sent.
 
 */
 Endpoint.prototype.sendSimplePacketBatch = function(array, generator, cb) {
@@ -449,7 +483,7 @@ Endpoint.prototype.sendSimplePacketBatch = function(array, generator, cb) {
     cb(new Error('Generator is not a function'));
   }
   var self = this;
-  withTransaction(this.db, function(T, cb) {
+  self.withDB(function(T, cb) {
     sendSimplePacketBatch(T, self.name, [], array, generator, cb);
   }, cb);
 };
@@ -535,14 +569,16 @@ function removeObsoletePackets(ep, db, src, dst, lowerBound, cb) {
 
 Endpoint.prototype.getTotalPacketCount = function(cb) {
   var query = 'SELECT count(*) FROM packets';
-  this.db.get(
-    query, function(err, row) {
-      if (err == undefined) {
-	cb(err, row['count(*)']);
-      } else {
-	cb(err);
-      }
-    });
+  this.withDB(function(db, cb) {
+    db.get(
+      query, function(err, row) {
+        if (err == undefined) {
+	        cb(err, row['count(*)']);
+        } else {
+	        cb(err);
+        }
+      });
+  }, cb);
 }
 
 function updateLowerBound(ep, db, src, dst, lowerBound, cb) {
@@ -583,7 +619,7 @@ function setLowerBound(ep, db, src, dst, lowerBound, cb) {
 
 Endpoint.prototype.updateLowerBound = function(src, dst, lb, cb) {
   var self = this;
-  withTransaction(this.db, function(T, cb) {
+  self.withDB(function(T, cb) {
     updateLowerBound(self, T, src, dst, lb, cb);
   }, function(err, lb) {
     if (err) {
@@ -597,7 +633,9 @@ Endpoint.prototype.updateLowerBound = function(src, dst, lb, cb) {
 }
 
 Endpoint.prototype.getSrcDstPairs = function(cb) {
-  getUniqueSrcDstPairs(this.db, 'packets', cb);
+  this.withDB(function(db, cb) {
+    getUniqueSrcDstPairs(db, 'packets', cb);
+  }, cb);
 }
 
 
@@ -615,7 +653,7 @@ function getPerPairData(T, pairs, fun, field, cb) {
 
 
 Endpoint.prototype.getLowerBounds = function(pairs, cb) {
-  withTransaction(this.db, function(T, cb) {
+  this.withDB(function(T, cb) {
     getPerPairData(T, pairs, getLowerBound, 'lb', cb);
   }, cb);
 }
@@ -632,7 +670,7 @@ Endpoint.prototype.updateLowerBounds = function(pairs, cb) {
 }
 
 Endpoint.prototype.getUpperBounds = function(pairs, cb) {
-  withTransaction(this.db, function(T, cb) {
+  this.withDB(function(T, cb) {
     getPerPairData(T, pairs, getUpperBound, 'ub', cb);
   }, cb);
 }
@@ -662,7 +700,7 @@ Endpoint.prototype.callPacketHandlers = function(p) {
 
 Endpoint.prototype.putPacket = function(packet, cb) {
   var self = this;
-  withTransaction(this.db, function(T, cb) {
+  self.withDB(function(T, cb) {
     getLowerBound(T, packet.src, packet.dst, function(err, lb) {
       if (err) {
         cb(err);
@@ -707,49 +745,98 @@ function getAllFromTable(db, tableName, cb) {
 
 Endpoint.prototype.disp = function(cb) {
   var self = this;
-  getAllFromTable(self.db, 'packets', function(err, packets) {
+  self.withDB(function(db, cb) {
+    getAllFromTable(db, 'packets', function(err, packets) {
+      if (err) {
+        cb(err);
+      } else {
+        getAllFromTable(db, 'lowerBounds', function(err, lowerBounds) {
+          if (err) {
+            cb(err);
+          } else {
+            console.log('DISPLAY ' + self.name);
+            console.log('  Packets');
+            for (var i = 0; i < packets.length; i++) {
+              var p = packets[i];
+              p.data = '(hidden)';
+              console.log('    %j', p);
+            }
+            console.log('  Lower bounds');
+            for (var i = 0; i < lowerBounds.length; i++) {
+              var p = lowerBounds[i];
+              console.log('    %j', p);
+            }
+            console.log('DONE DISPLAYING');
+            cb();
+          }
+        });
+      }
+    });
+  }, cb);
+}
+
+Endpoint.prototype.close = function(cb) {
+  var self = this;
+  this.withRawDB(function(db, cb) {
+    if (db) {
+      db.close(cb);
+    }
+    self.dbPrivateInstance = null;
+  }, cb);
+}
+
+// Only to be called from within a 'withRawDB' call
+Endpoint.prototype.reopenUnsafe = function(cb) {
+  var self = this;
+  self.dbPrivateInstance = null;
+  self.dbLoader(function(err, db) {
     if (err) {
       cb(err);
     } else {
-      getAllFromTable(self.db, 'lowerBounds', function(err, lowerBounds) {
-        if (err) {
-          cb(err);
-        } else {
-          console.log('DISPLAY ' + self.name);
-          console.log('  Packets');
-          for (var i = 0; i < packets.length; i++) {
-            var p = packets[i];
-            p.data = '(hidden)';
-            console.log('    %j', p);
-          }
-          console.log('  Lower bounds');
-          for (var i = 0; i < lowerBounds.length; i++) {
-            var p = lowerBounds[i];
-            console.log('    %j', p);
-          }
-          console.log('DONE DISPLAYING');
-          cb();
-        }
-      });
+      self.dbPrivateInstance = db;
+      cb();
     }
   });
 }
 
-Endpoint.prototype.close = function(cb) {
-  this.db.close(cb);
-  this.db = null;
+
+function closeDBIfNotNull(db, cb) {
+  if (db) {
+    db.close(cb);
+  } else {
+    cb();
+  }
+}
+
+// The node-sqlite3 API doesn't feature a 'flush' function,
+// so we achieve it by closing and opening the db.
+Endpoint.prototype.flush = function(cb) {
+  var self = this;
+  if (self.dbLoader == null) {
+    cb(new Error("The database at " + self.dbFilename 
+                 + " cannot be flushed, because it has no loader"));
+  } else {
+    self.withRawDB(function(oldDB, cb) {
+      closeDBIfNotNull(oldDB, function(err) {
+        if (err) {
+          cb(err);
+        } else {
+          self.reopenUnsafe(cb);
+        }
+      });
+    }, cb);
+  }
 }
 
 Endpoint.prototype.open = function(cb) {
   var self = this;
-  if (!self.db) {
-    openDBWithFilename(this.dbFilename, function(err, db) {
-      self.db = db;
-      cb(err);
-    });
-  } else {
-    cb();
-  }
+  self.withDB(function(oldDB, cb) {
+    if (!oldDB) {
+      self.reopenUnsafe(cb);
+    } else {
+      cb();
+    }
+  }, cb);
 }
 
 Endpoint.prototype.makeVerbose = function() {
@@ -780,6 +867,7 @@ function withEP(ep, epOperation, done) {
     } else {
       epOperation(ep, function(err) {
         ep.close(function(err2) {
+          console.log("Called ep close: " + err2);
           done(err || err2);
         });
       });
@@ -799,4 +887,4 @@ module.exports.filterByName = filterByName;
 module.exports.tryMakeEndpointFromFilename = tryMakeEndpointFromFilename;
 module.exports.withEP = withEP;
 module.exports.storePacket = storePacket;
-module.exports.withTransaction = withTransaction;
+module.exports.openDBWithFilename = openDBWithFilename;

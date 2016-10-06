@@ -54,12 +54,16 @@ function makeFilenameFromEndpointName(endpointName) {
 function registerEndpoint(endpointName, endpoint) {
   endpointData = {
     endpoint:endpoint,
-    close: new DelayedCall(function() {endpoint.close(function(err) {
-      if (err) {
-        console.log('Delayed call to close endpoint with name ' + endpointName + ' failed.');
-        console.log(err);
-      }
-    })})
+    close: new DelayedCall(function() {
+      // Do we really want to call 'close' here?
+      // Or would 'flush' be better?
+      endpoint.close(function(err) {
+        if (err) {
+          console.log('Delayed call to close endpoint with name ' 
+                      + endpointName + ' failed.');
+          console.log(err);
+        }
+      })})
   };
   endpoints[endpointName] = endpointData;
   if (endpointCount() > 1) {
@@ -104,7 +108,21 @@ function openNewEndpoint(endpointName, cb) {
             endpoint.addPacketHandler(
               files.makePacketHandler(config.getConfigPath(), handleIncomingFiles));
             var data = registerEndpoint(endpointName, endpoint);
+
+
+            /*
+              NOTE: This might have been a reason for
+              our issues with synchronization. While a long-
+              running transaction would be performed on a db,
+              it would be concurrently closed after 30 seconds
+              by this code. But that shouldn't be a problem any
+              more, because of the mutex. See
+
+   https://github.com/jpilet/anemomind/issues/870#issuecomment-251897407
+
+             */
             data.close.callDelayed(closeTimeoutMillis);
+
             cb(null, endpoint);
           }
         });
