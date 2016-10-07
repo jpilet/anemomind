@@ -57,17 +57,14 @@ function VectorTileLayer(params, renderer) {
   this.numCachedTiles = 0;
   this.visibleCurves = {};
   this.curvesFlat = {};
-  this.queueSeconds = 0;
-  this.currentTime = 0;
-  this.tailColor = null;
+  this.queueSeconds = undefined;
+  this.currentTime = undefined;
+  this.tailColor = undefined;
+  this.outOfTailColor = '#888888';
+  this.outOfTailWidth = .3;
 
-  this.currentColor = '';
   this.startPoint = 0;
-  this.origStrokeStyle = '';
-  this.origlineWidth = 0;
   this.tailWidth = 3;
-  this.isTail = false;
-  this.startOfTail = false;
   this.vmgPerf = [0, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110];
   this.colorSpectrum = ['#B5B5B5','#BAA7AA','#C099A0','#C68B96','#CC7D8C',
                         '#D26F81','#D86277','#DE546D','#E44663','#EA3858',
@@ -273,31 +270,6 @@ var selectByTime = function(points, start, end) {
   return points.slice(startBounds[0], endBounds[1]);
 };
 
-
-/**
- * Performs a checking of the passed tailColor if it's a valid
- * HEX color or color name. Returns a boolean value.
- * Referenced from http://stackoverflow.com/questions/14852545/if-color-value-is-not-valid-javascript
- *
- * @param '' tailColor. The color to look for.
- * @return {Boolean}
- */
-var colorNameToHex = function(color) {
-  // If the user wants to pass a color name so all colors needs to be stated below. 
-  var colors = {
-      "aliceblue":"#f0f8ff","antiquewhite":"#faebd7","aqua":"#00ffff","aquamarine":"#7fffd4","azure":"#f0ffff","beige":"#f5f5dc","bisque":"#ffe4c4","black":"#000000","blanchedalmond":"#ffebcd","blue":"#0000ff","blueviolet":"#8a2be2","brown":"#a52a2a","burlywood":"#deb887","cadetblue":"#5f9ea0","chartreuse":"#7fff00","chocolate":"#d2691e","coral":"#ff7f50","cornflowerblue":"#6495ed","cornsilk":"#fff8dc","crimson":"#dc143c","cyan":"#00ffff","darkblue":"#00008b","darkcyan":"#008b8b","darkgoldenrod":"#b8860b","darkgray":"#a9a9a9","darkgreen":"#006400","darkkhaki":"#bdb76b","darkmagenta":"#8b008b","darkolivegreen":"#556b2f","darkorange":"#ff8c00","darkorchid":"#9932cc","darkred":"#8b0000","darksalmon":"#e9967a","darkseagreen":"#8fbc8f","darkslateblue":"#483d8b","darkslategray":"#2f4f4f","darkturquoise":"#00ced1","darkviolet":"#9400d3","deeppink":"#ff1493","deepskyblue":"#00bfff","dimgray":"#696969","dodgerblue":"#1e90ff","firebrick":"#b22222","floralwhite":"#fffaf0","forestgreen":"#228b22","fuchsia":"#ff00ff","gainsboro":"#dcdcdc","ghostwhite":"#f8f8ff","gold":"#ffd700","goldenrod":"#daa520","gray":"#808080","green":"#008000","greenyellow":"#adff2f","honeydew":"#f0fff0","hotpink":"#ff69b4","indianred":"#cd5c5c","indigo":"#4b0082","ivory":"#fffff0","khaki":"#f0e68c","lavender":"#e6e6fa","lavenderblush":"#fff0f5","lawngreen":"#7cfc00","lemonchiffon":"#fffacd","lightblue":"#add8e6","lightcoral":"#f08080","lightcyan":"#e0ffff","lightgoldenrodyellow":"#fafad2","lightgrey":"#d3d3d3","lightgreen":"#90ee90","lightpink":"#ffb6c1","lightsalmon":"#ffa07a","lightseagreen":"#20b2aa","lightskyblue":"#87cefa","lightslategray":"#778899","lightsteelblue":"#b0c4de","lightyellow":"#ffffe0","lime":"#00ff00","limegreen":"#32cd32","linen":"#faf0e6","magenta":"#ff00ff","maroon":"#800000","mediumaquamarine":"#66cdaa","mediumblue":"#0000cd","mediumorchid":"#ba55d3","mediumpurple":"#9370d8","mediumseagreen":"#3cb371","mediumslateblue":"#7b68ee","mediumspringgreen":"#00fa9a","mediumturquoise":"#48d1cc","mediumvioletred":"#c71585","midnightblue":"#191970","mintcream":"#f5fffa","mistyrose":"#ffe4e1","moccasin":"#ffe4b5","navajowhite":"#ffdead","navy":"#000080","oldlace":"#fdf5e6","olive":"#808000","olivedrab":"#6b8e23","orange":"#ffa500","orangered":"#ff4500","orchid":"#da70d6","palegoldenrod":"#eee8aa","palegreen":"#98fb98","paleturquoise":"#afeeee","palevioletred":"#d87093","papayawhip":"#ffefd5","peachpuff":"#ffdab9","peru":"#cd853f","pink":"#ffc0cb","plum":"#dda0dd","powderblue":"#b0e0e6","purple":"#800080","red":"#ff0000","rosybrown":"#bc8f8f","royalblue":"#4169e1","saddlebrown":"#8b4513","salmon":"#fa8072","sandybrown":"#f4a460","seagreen":"#2e8b57","seashell":"#fff5ee","sienna":"#a0522d","silver":"#c0c0c0","skyblue":"#87ceeb","slateblue":"#6a5acd","slategray":"#708090","snow":"#fffafa","springgreen":"#00ff7f","steelblue":"#4682b4","tan":"#d2b48c","teal":"#008080","thistle":"#d8bfd8","tomato":"#ff6347","turquoise":"#40e0d0","violet":"#ee82ee","wheat":"#f5deb3","white":"#ffffff","whitesmoke":"#f5f5f5","yellow":"#ffff00","yellowgreen":"#9acd32"
-  };
-
-  if (typeof colors[String(color).toLowerCase()] != 'undefined')
-      return colors[String(color).toLowerCase()];
-
-  return false;
-}
-var checkHex = function(color) {
-  // If the user passes a HEX value
-  return /([0-9A-F]{6}$)|([0-9A-F]{3}$)/i.test(color);
-}
-
 VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   // Extract all points
   var curveElements = this.visibleCurves[curveId];
@@ -350,141 +322,73 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
 }
 
 
-VectorTileLayer.checkIfTail = function(currentTime, queueSeconds, context, point) {
-  var queueTime = Math.abs(currentTime.getTime() - (queueSeconds * 1000));
+VectorTileLayer.prototype.checkIfTail = function(point) {
+  if (this.queueSeconds == undefined) {
+    return false;
+  }
+
+  var queueTime = Math.abs(this.currentTime.getTime() - (this.queueSeconds * 1000));
   var pointTime = point.time;
 
-  if(pointTime.getTime() >= queueTime && pointTime.getTime() <= currentTime.getTime()) {
-    return true;
-  }
-  return false;
-}
-
-VectorTileLayer.strokePath = function(context) {
-  context.stroke();
-  context.beginPath();
-}
-
-VectorTileLayer.getPointCoordinates = function(pinchZoom, points, index) {
-  var currentPoint = pinchZoom.viewerPosFromWorldPos(points[index].pos[0],
-                                                points[index].pos[1]);
-
-  var previousPoint = pinchZoom.viewerPosFromWorldPos(points[index-1].pos[0],
-                                              points[index-1].pos[1]);
-
-  return {
-    'current': currentPoint,
-    'previous': previousPoint
-  };
-}
-
-VectorTileLayer.prototype.createGradient = function(context, color, startPoint, endPoint) {
-  var grd = null;
-  
-  if(this.currentColor != color && this.currentColor != '' && startPoint != 0) {
-    grd = context.createLinearGradient(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
-    grd.addColorStop(0, this.currentColor);
-    grd.addColorStop(1, color);
-  }
-
-  return grd;
+  return (pointTime.getTime() >= queueTime && pointTime.getTime() <= this.currentTime.getTime());
 };
 
-VectorTileLayer.prototype.drawTailSegments = function(context, pointCoor, currentPoint) {
-  if(this.queueSeconds > 0 && pointCoor.current)
-      this.isTail = VectorTileLayer.checkIfTail(this.currentTime, this.queueSeconds, context, currentPoint);
+VectorTileLayer.prototype.colorForPoint = function(point) {
+  if (this.queueSeconds) {
+    if (this.checkIfTail(point)) {
+      if (this.tailColor) {
+        return this.tailColor;
+      }
+      var currentPerf = perfAtPoint(point);
 
-  if(!this.isTail)
-    return;
-
-  this.checkIfStartOfTail(context, pointCoor);
-
-  if(this.currentColor != this.colorSpectrum[pointCoor.colorIndex]) {
-    var grd = this.createGradient(context, this.colorSpectrum[pointCoor.colorIndex], this.startPoint, pointCoor.current);
-
-    if(grd === null) {
-      context.strokeStyle = this.origStrokeStyle;
-      context.lineWidth = this.origlineWidth;
+      if (isNaN(currentPerf)) {
+        return this.colorSpectrum[0];
+      }
+      for(var i=0; i<this.vmgPerf.length; i++) {
+        if (currentPerf <= this.vmgPerf[i]) {
+          return this.colorSpectrum[i];
+        }
+      }
+      return this.colorSpectrum[this.colorSpectrum.length - 1];
+    } else {
+      return this.outOfTailColor;
     }
-    else {
-      if(this.tailColor)
-        context.strokeStyle = this.tailColor[0] == '#' ? this.tailColor : '#'+this.tailColor;
-      else
-        context.strokeStyle = grd;
-      context.lineWidth = this.tailWidth;
-    }            
-    VectorTileLayer.strokePath(context);
-
-    this.startPoint = pointCoor.previous;
-    this.currentColor = this.colorSpectrum[pointCoor.colorIndex];
+  } else {
+    // default color when no tail is displayed
+    return '#FF0033';
   }
+};
 
-  return;
-}
-
-VectorTileLayer.prototype.checkIfStartOfTail = function(context, values) {
-  if(this.isTail && !this.startOfTail) {
-    VectorTileLayer.strokePath(context);
-    this.startPoint = values.previous;
-    this.currentColor = this.colorSpectrum[values.colorIndex];
-    this.startOfTail = true;
+VectorTileLayer.prototype.widthForPoint = function(point) {
+  if (this.queueSeconds) {
+    return (this.checkIfTail(point) ? this.tailWidth : this.outOfTailWidth);
   }
-}
+  return 3;
+};
 
-VectorTileLayer.prototype.currentColorAndPosition = function(pinchZoom, points, index) {
-  var currentPos = pinchZoom.viewerPosFromWorldPos(points[index].pos[0],
-                                                points[index].pos[1]);
-  var previousPos = pinchZoom.viewerPosFromWorldPos(points[index-1 < 0 ? 0 : index-1].pos[0],
-                                              points[index-1 < 0 ? 0 : index-1].pos[1]);
-  var values = {
-    'current': currentPos,
-    'previous': previousPos,
-    'colorIndex': 0
-  };
-
-  var currentPerf = perfAtPoint(points[index]);
-
-  for(var i=0; i<this.vmgPerf.length; i++) {
-    var inRange = false;
-    var notLast = this.vmgPerf[i] != this.vmgPerf[this.vmgPerf.length - 1];
-
-    if(notLast)
-      inRange = currentPerf > this.vmgPerf[i] && currentPerf <= this.vmgPerf[i+1];
-    else
-      inRange = currentPerf > this.vmgPerf[this.vmgPerf.length - 1];
-
-    if(inRange && this.isTail) {
-      values.colorIndex = i;
-      return values;
-    }
-  }
-
-  return values;
-}
-
-VectorTileLayer.movePosition = function(context, values) {
-  context.moveTo(values.previous.x, values.previous.y);
-  context.lineTo(values.current.x, values.current.y); 
-
-  return;
-}
-
-VectorTileLayer.prototype.drawTrajectorySegments = function(context, pointCoor) {
-  if(this.isTail)
+VectorTileLayer.prototype.drawSegment = function(context, p1, col1, width1,
+                                                 p2, col2, width2) {
+  if (col1 == undefined && col2 == undefined) {
+    // undefined color = no draw.
     return;
-
-  if(context.strokeStyle != this.origStrokeStyle) {
-    context.moveTo(pointCoor.previous.x, pointCoor.previous.y);
-
-    VectorTileLayer.strokePath(context);
-    context.strokeStyle = this.origStrokeStyle;
-    context.lineWidth = this.origlineWidth;
-
-    context.lineTo(pointCoor.previous.x, pointCoor.previous.y);
   }
-  else {
-    context.lineTo(pointCoor.current.x, pointCoor.current.y);
+  context.beginPath();
+
+  if (col1 == col2 || width1 != width2) {
+    // If the width changed, it means we transitioned from tail to out-of-tail
+    // or vice-versa. No need to interpolate the color.
+    context.strokeStyle = col2;
+  } else {
+    var grd = context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+    grd.addColorStop(0, col1);
+    grd.addColorStop(1, col2);
+    context.strokeStyle = grd;
   }
+  context.lineWidth = width2;
+
+  context.moveTo(p1.x, p1.y);
+  context.lineTo(p2.x, p2.y);
+  context.stroke();
 }
 
 VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
@@ -509,12 +413,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   this.origlineWidth = context.lineWidth;
   this.isTail = false;
   this.startOfTail = false;
-  var vLayer = this;
   var pointCoor = null;
-
-  if(typeof vLayer.tailColor != 'undefined' && vLayer.tailColor != null) {
-    vLayer.tailColor = checkHex(vLayer.tailColor) ? vLayer.tailColor : colorNameToHex(vLayer.tailColor);
-  }
 
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
@@ -522,21 +421,24 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   }
 
   // Draw.
-  context.beginPath();
-  var first = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
-                                              points[0].pos[1]);
-  context.moveTo(first.x, first.y);
+  var prevPos = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
+                                                points[0].pos[1]);
+  var prevColor = this.colorForPoint(points[0]);
+  var prevWidth = this.widthForPoint(points[0]);
 
   for (var i = 1; i < points.length; ++i) {
-    pointCoor = vLayer.currentColorAndPosition(pinchZoom, points, i);
+    var currentColor = this.colorForPoint(points[i]);
+    var currentWidth = this.widthForPoint(points[i]);
+    var currentPos = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
+                                                     points[i].pos[1]);
 
-    vLayer.drawTailSegments(context, pointCoor, points[i]);
-    VectorTileLayer.movePosition(context, pointCoor);
+    this.drawSegment(context, prevPos, prevColor, prevWidth,
+                     currentPos, currentColor, currentWidth);
 
-    vLayer.drawTrajectorySegments(context, pointCoor);
-    
+    var prevPos = currentPos;
+    var prevColor = currentColor;
+    var prevWidth = currentWidth;
   }
-  context.stroke();
   /*
   console.log('Curve ' + curveId + ' span: ' + points[0].time + ' to '
               + points[points.length - 1].time);
