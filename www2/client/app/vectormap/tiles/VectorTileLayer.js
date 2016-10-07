@@ -392,29 +392,6 @@ VectorTileLayer.prototype.drawSegment = function(context, p1, col1, width1,
 }
 
 VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
-  // prepare the Cavas path
-
-  if (this.isHighlighted(curveId)) {
-    context.strokeStyle="#9E9E9E";
-    context.lineWidth = 1;
-  } else {
-    if (this.highlight) {
-      // Another curve is hightlighted
-      context.strokeStyle="#777777";
-      context.lineWidth = 1;
-    } else {
-      // Nothing is highlighted
-      context.strokeStyle="#333333";
-      context.lineWidth = 2;
-    }
-  }
-  
-  this.origStrokeStyle = context.strokeStyle;
-  this.origlineWidth = context.lineWidth;
-  this.isTail = false;
-  this.startOfTail = false;
-  var pointCoor = null;
-
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
     return;
