@@ -326,3 +326,14 @@ add_library(nautical_downsamplegps
 target_link_libraries(nautical_downsamplegps
                       nautical_NavDataset
                       )
+
+add_library(nautical_MaxSpeed
+            MaxSpeed.h
+            MaxSpeed.cpp
+           )
+
+target_link_libraries(nautical_MaxSpeed
+                      nautical_NavDataset
+                      common_TimeStamp
+                      )
+
