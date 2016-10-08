@@ -1,0 +1,97 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<div class="container challenge-list">
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    500m Challenge
+                </h3>
+            </div>
+            <div class="panel-body">
+                <form class="navbar-form navbar-left" role="search">
+                    <div class="form-group">
+                        <label for="filter">Filter</label>
+                    </div>
+                    <div class="form-group">
+                        <select id="class" name="class" class="selectpicker">
+                            <option data-hidden="true">CLASS</option>
+                            <option value="seascape 1">Seascape 1</option>
+                            <option value="seascape 2">Seascape 2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="length" name="length" class="selectpicker">
+                            <option data-hidden="true">LENGTH</option>
+                            <option value="3-5">3-5m</option>
+                            <option value="5-7">5-7m</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="type" name="type" class="selectpicker">
+                            <option data-hidden="true">TYPE</option>
+                            <option value="monohull">Monohull</option>
+                            <option value="multihull">Multihull</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="class" name="class" class="selectpicker">
+                            <option data-hidden="true">ALL TIME</option>
+                            <option value="test 1">Oct 2016</option>
+                            <option value="test 2">Sept 2016</option>
+                        </select>
+                    </div>
+                </form>
+                
+                <table class="table sortable"> 
+                    <thead> 
+                        <tr> 
+                            <th data-sortcolumn="1" data-mainsort="1">Rank</th> 
+                            <th data-sortcolumn="1">Name</th> 
+                            <th data-sortcolumn="2">Boat</th> 
+                            <th data-sortcolumn="3">Location</th>
+                            <th data-sortcolumn="4">Date</th>
+                            <th data-sortcolumn="5">Speed</th>
+                        </tr> 
+                    </thead> 
+                    <tbody> 
+                        <tr> 
+                            <th data-value="1" scope="row">1</th> 
+                            <td data-value="Larry Smith"><a href="/challenge/details">Larry Smith</a></td> 
+                            <td data-value="Irene"><a href="#">Irene</a></td> 
+                            <td data-value="Port du Vleux Stand">Port du Vleux Stand</td>
+                            <td data-value="2016/08/20/00/00/00">20.8.2016</td>  
+                            <td data-value="4.2 kn">4.2 kn</td>
+                        </tr> 
+                        <tr> 
+                            <th data-value="2" scope="row">2</th>
+                            <td data-value="Thornton Thompson"><a href="/challenge/details">Thornton Thompson</a></td> 
+                            <td data-value="Velocissima"><a href="#">Velocissima</a></td> 
+                            <td data-value="Port du Vleux Stand">Port du Vleux Stand</td>
+                            <td data-value="2016/08/18/00/00/00">18.8.2016</td>  
+                            <td data-value="4.2">4.2 kn</td>
+                        </tr> 
+                        <tr> 
+                            <th data-value="3" scope="row">3</th>
+                            <td data-value="John Doe"><a href="/challenge/details">John Doe</a></td>
+                            <td data-value="Dentuso"><a href="#">Dentuso</a></td> 
+                            <td data-value="Port du Vleux Stand">Port du Vleux Stand</td>
+                            <td data-value="2016/08/17/00/00/00">17.8.2016</td>  
+                            <td data-value="4.2">4.2 kn</td>
+                        </tr> 
+                    </tbody> 
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</div>
+
+<footer class="footer">
+  <div class="container">
+      <p>&copy; 2014 <a href="http://anemomind.com">Anemomind</a></p>
+  </div>
+</footer>

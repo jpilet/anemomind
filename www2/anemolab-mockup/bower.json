@@ -21,6 +21,11 @@
         "dist/fonts/glyphicons-halflings-regular.woff2"
       ]
     },
+    "bootstrap-sortable": {
+      "main": [
+        "Contents/bootstrap-sortable.css"
+      ]
+    },
     "components-font-awesome": {
       "main": [
         "css/font-awesome.css",
@@ -44,6 +49,7 @@
     "angular-touch": "1.4.x",
     "angular-translate": "2.x",
     "bootstrap": "3.x",
+    "bootstrap-sortable": "2.x",
     "fastclick": "1.x",
     "jquery": "2.x",
     "underscore": "1.x",
