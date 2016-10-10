@@ -46,7 +46,8 @@ double posToTileY(int scale, const GeographicPosition<double>& pos);
 
 Array<Array<Nav>> generateTiles(TileKey tileKey,
                                 const Array<Nav>& navs,
-                                int maxNumNavs);
+                                int maxNumNavs,
+                                Duration<> curveCutThreshold);
 
 // Return a set of tiles on which "navs" should appear.
 std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale);

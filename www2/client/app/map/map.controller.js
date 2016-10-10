@@ -37,6 +37,23 @@ angular.module('www2App')
         if ($scope.selectedCurve) {
           search += '&c=' + $scope.selectedCurve;
         }
+        if ($location.search().preview) {
+          search += '&preview=' + $location.search().preview;
+        }
+        if ($location.search().queue) {
+          search += '&queue=' + $location.search().queue;
+        }
+        if ($location.search().tailColor) {
+          search += '&tailColor=' + $location.search().tailColor;
+        }
+        if (typeof $scope.currentTime !== 'undefined' && !isNaN($scope.currentTime)) {
+          search += '&t=' + $scope.currentTime.getTime();
+        }
+        if (typeof $scope.currentTime === 'undefined' && $location.search().t != null) {
+          search += '&t=' + $location.search().t;
+          $scope.currentTime = new Date(parseInt($location.search().t));
+        }
+        
         $location.search(search).replace();
       }
 
@@ -76,6 +93,37 @@ angular.module('www2App')
       $scope.boat = data;
 
     });
+
+    $scope.eventList = [];
+    $scope.users = {};
+    $http.get('/api/events', { params: {
+        b: $scope.boat._id,
+        A: ($scope.startTime ? $scope.startTime.toISOString() : undefined),
+        B: ($scope.endTime ? $scope.endTime.toISOString() : undefined)
+      }})
+      .success(function(data, status, headers, config) {
+        if (status == 200) {
+          var times= {};
+          for (var i in data) {
+            var event = data[i];
+            
+            // Parse date
+            event.when = new Date(event.when);
+
+            // Fetch user details
+            userDB.resolveUser(event.author, function(user) {
+              $scope.users[user._id] = user;
+            });
+
+            // Remove duplicates
+            var key = "" + event.when.getTime();
+            if (!(key in times)) {
+              times[key] = 1;
+              $scope.eventList.push(event);
+            }
+          }
+        }
+      });
 
     $scope.plotField = 'devicePerf';
 
@@ -224,6 +272,8 @@ angular.module('www2App')
         $scope.deviceVmg = Math.abs($scope.deviceVmg);
       }
       $scope.deviceTargetVmg = getPointValue(['deviceTargetVmg']);
+
+      setLocation();
     });
 
     $scope.replaySpeed = 8;

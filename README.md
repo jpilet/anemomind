@@ -54,6 +54,11 @@ The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
   * libprotobuf-dev
   * protobuf-compiler
 
+
+Summary:
+
+    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcsparse3.1.2 libcxsparse3.1.2 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev
+
 ### For the web server
   * **node** and **npm**. Find packages here: ```https://nodejs.org/en/download/package-manager/```
   * **mocha**, for running unit tests: ```npm install -g mocha``` (possibly with ```sudo```)

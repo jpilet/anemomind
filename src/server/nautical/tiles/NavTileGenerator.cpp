@@ -64,7 +64,8 @@ std::string TileKey::stringKey() const {
 
 Array<Array<Nav>> generateTiles(TileKey tileKey,
                                 const Array<Nav>& navs,
-                                int maxNumNavs) {
+                                int maxNumNavs,
+                                Duration<> curveCutThreshold) {
   Array<bool> inOrOut = toArray(map(navs,
       [&] (const Nav& nav) -> bool {
           return tileKey.contains(nav.geographicPosition());
@@ -82,6 +83,13 @@ Array<Array<Nav>> generateTiles(TileKey tileKey,
     first += i;
 
     int end = inOrOut.sliceFrom(first).find(false);
+
+    for (int j = first + 1; j < end; ++j) {
+      if ((navs[j].time() - navs[j-1].time()) > curveCutThreshold) {
+          end = j - 1;
+      }
+    }
+
     if (end == -1) {
       end = inOrOut.size();
     } else {

@@ -1,9 +1,11 @@
 #ifndef NAUTICAL_TILES_NAVTILEUPLOADER_H
 #define NAUTICAL_TILES_NAVTILEUPLOADER_H
 
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <string>
 #include <server/common/Array.h>
 #include <server/nautical/NavCompatibility.h>
+#include <server/nautical/tiles/MongoUtils.h>
 
 namespace sail {
 
@@ -15,6 +17,7 @@ struct TileGeneratorParameters {
   bool fullClean;
   std::string user;
   std::string passwd;
+  Duration<> curveCutThreshold;
 
   std::string tileTable() const {
     return dbName + "." + _tileTable;
@@ -32,6 +35,7 @@ struct TileGeneratorParameters {
     _tileTable = "tiles";
     _sessionTable = "sailingsessions";
     fullClean = false;
+    curveCutThreshold = Duration<>::minutes(1);
   }
  private:
   std::string _tileTable, _sessionTable;
@@ -39,6 +43,7 @@ struct TileGeneratorParameters {
 
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
+                            mongo::DBClientConnection* db,
                             const TileGeneratorParameters& params);
 
 }  // namespace sail

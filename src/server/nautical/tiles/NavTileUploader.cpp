@@ -3,11 +3,10 @@
 
 #include <algorithm>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
-#include <mongo/client/dbclient.h>
-#include <mongo/bson/bson-inl.h>
 #include <server/common/Optional.h>
 #include <server/common/Span.h>
 #include <server/common/logging.h>
+#include <server/nautical/tiles/MongoUtils.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 
 using namespace mongo;
@@ -24,12 +23,6 @@ namespace sail {
 using namespace NavCompat;
 
 namespace {
-BSONObjBuilder& append(BSONObjBuilder& builder, const char* key,
-                       const TimeStamp& value) {
-  return builder.appendDate(key,
-      value.defined()? Date_t(value.toMilliSecondsSince1970()) : Date_t());
-}
-
 BSONObj navToBSON(const Nav& nav) {
   BSONObjBuilder result;
 
@@ -95,22 +88,6 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
     result.append(navToBSON(nav));
   }
   return result.arr();
-}
-
-bool safeMongoOps(std::string what,
-    DBClientConnection *db, std::function<void(DBClientConnection*)> f) {
-  try {
-    f(db);
-    std::string err = db->getLastError();
-    if (err != "") {
-      LOG(ERROR) << "error while " << what << ": " << err;
-      return false;
-    }
-  } catch (const DBException &e) {
-    LOG(ERROR) << "error while " << what << ": " << e.what();
-    return false;
-  }
-  return true;
 }
 
 bool insertOrUpdateTile(const BSONObj& obj,
@@ -362,30 +339,12 @@ BSONObj makeBsonTile(const TileKey& tileKey,
 
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
+                            DBClientConnection* db,
                             const TileGeneratorParameters& params) {
-  // Can cause segfault
-  // if driver is compiled as C++03, see:
-  // https://groups.google.com/forum/#!topic/mongodb-user/-dkp8q9ZEGM
-  mongo::client::initialize();
-
-  DBClientConnection db;
-  std::string err;
-  if (!db.connect(params.dbHost, err)) {
-    LOG(ERROR) << "mongoDB connection failed: " << err;
-    return false;
-  }
-
-  if (params.user.size() > 0) {
-    if (!db.auth(params.dbName, params.user, params.passwd, err)) {
-      LOG(ERROR) << "mongoDB authentication failed: " << err;
-      return false;
-    }
-  }
-
   if (params.fullClean) {
-    db.remove(params.tileTable(),
+    db->remove(params.tileTable(),
                MONGO_QUERY("boat" << OID(boatId)));
-    db.remove(params.sessionTable(),
+    db->remove(params.sessionTable(),
                MONGO_QUERY("boat" << OID(boatId)));
   }
 
@@ -399,7 +358,7 @@ bool generateAndUploadTiles(std::string boatId,
 
     for (auto tileKey : tiles) {
       Array<Array<Nav>> subCurvesInTile = generateTiles(
-          tileKey, navs, params.maxNumNavsPerSubCurve);
+          tileKey, navs, params.maxNumNavsPerSubCurve, params.curveCutThreshold);
 
       if (subCurvesInTile.size() == 0) {
         continue;
@@ -407,13 +366,13 @@ bool generateAndUploadTiles(std::string boatId,
 
       BSONObj tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
 
-      if (!insertOrUpdateTile(tile, params, &db)) {
+      if (!insertOrUpdateTile(tile, params, db)) {
         // There is no point to continue if we can't write to the DB.
         return false;
       }
     }
     BSONObj session = makeBsonSession(curveId, boatId, curve, navs);
-    if (!insertSession(session, params, &db)) {
+    if (!insertSession(session, params, db)) {
       return false;
     }
   }

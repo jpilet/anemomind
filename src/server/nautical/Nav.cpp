@@ -87,6 +87,19 @@ Angle<double> Nav::bestTwaEstimate() const {
   return Angle<>();
 }
 
+Velocity<double> Nav::bestTwsEstimate() const {
+  if (hasTrueWindOverGround()) {
+    return calcTws(trueWindOverGround());
+  }
+  if (hasExternalTrueWind()) {
+    return externalTws();
+  }
+  if (hasApparentWind()) {
+    return calcTws(estimateTrueWind());
+  }
+  return Velocity<>();
+}
+
 std::ostream &operator<<(std::ostream &s, const Nav &x) {
   s << "Nav:\n";
   s << "  time: " << x.time() << "\n";

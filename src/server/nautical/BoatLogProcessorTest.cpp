@@ -50,7 +50,4 @@ TEST(BoatLogProcessor, ProcessingTest) {
 
   TargetSpeedTable table;
   EXPECT_TRUE(loadTargetSpeedTable(boatDatPath.toString().c_str(), &table));
-
-  EXPECT_NEAR(2, (double)table._upwind[4], 0.5);
-  EXPECT_NEAR(2, (double)table._downwind[4], 0.5);
 }
