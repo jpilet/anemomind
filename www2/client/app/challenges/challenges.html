@@ -2,99 +2,18 @@
 
 <div class="container challenges">
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-4" ng-repeat="challenge in challenges">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">
-                    <a class="ng-binding" href="challenge/list">Fastest Distance</a>
+                    <a class="ng-binding" href="challenge/list">{{challenge.name}}</a>
                 </h3>
             </div>
             <div class="panel-body">
                 <a href="challenge/list">
                     <img src="assets/images/empty.image.png">
                 </a>
-                <div class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris odio nunc, 
-                accumsan vitae tristique faucibus, vulputate ut turpis. </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">
-                    <a class="ng-binding" href="challenge/list">Fastest period of time</a>
-                </h3>
-            </div>
-            <div class="panel-body">
-                <a href="challenge/list">
-                    <img src="assets/images/empty.image.png">
-                </a>
-                <div class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris odio nunc, 
-                accumsan vitae tristique faucibus, vulputate ut turpis. </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">
-                    <a class="ng-binding" href="challenge/list">Monocup Challenge</a>
-                </h3>
-            </div>
-            <div class="panel-body">
-                <a href="challenge/list">
-                    <img src="assets/images/empty.image.png">
-                </a>
-                <div class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris odio nunc, 
-                accumsan vitae tristique faucibus, vulputate ut turpis. </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">
-                    <a class="ng-binding" href="challenge/list">500m Challenge</a>
-                </h3>
-            </div>
-            <div class="panel-body">
-                <a href="challenge/list">
-                    <img src="assets/images/empty.image.png">
-                </a>
-                <div class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris odio nunc, 
-                accumsan vitae tristique faucibus, vulputate ut turpis. </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">
-                    <a class="ng-binding" href="challenge/list">1h Challenge</a>
-                </h3>
-            </div>
-            <div class="panel-body">
-                <a href="challenge/list">
-                    <img src="assets/images/empty.image.png">
-                </a>
-                <div class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris odio nunc, 
-                accumsan vitae tristique faucibus, vulputate ut turpis. </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">
-                    <a class="ng-binding" href="challenge/list">Monocup Challenge</a>
-                </h3>
-            </div>
-            <div class="panel-body">
-                <a href="challenge/list">
-                    <img src="assets/images/empty.image.png">
-                </a>
-                <div class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris odio nunc, 
-                accumsan vitae tristique faucibus, vulputate ut turpis. </div>
+                <div class="description">{{challenge.description}}</div>
             </div>
         </div>
     </div>
