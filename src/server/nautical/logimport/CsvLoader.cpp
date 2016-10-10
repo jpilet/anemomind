@@ -97,10 +97,7 @@ void CsvRowProcessor::process(const MDArray<std::string, 2> &row, SourceGroup *d
   _pushBack(_gpsBearing, dst->gpsBearing);
   auto pos = GeographicPosition<double>(_lon, _lat);
 
-  std::cout << "Push back the geo pos: " << pos.lon().degrees()
-      << ", " << pos.lat().degrees() << std::endl;
   _pushBack(pos, dst->geoPos);
-  std::cout << "Now the size is " << dst->geoPos->size() << std::endl;
 }
 
 void loadCsv(const MDArray<std::string, 2> &table, LogAccumulator *dst) {
