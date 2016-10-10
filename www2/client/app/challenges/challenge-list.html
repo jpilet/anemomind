@@ -48,11 +48,18 @@
                     <thead> 
                         <tr> 
                             <th data-sortcolumn="1" data-mainsort="1">Rank</th> 
-                            <th data-sortcolumn="1">Name</th> 
-                            <th data-sortcolumn="2">Boat</th> 
-                            <th data-sortcolumn="3">Location</th>
-                            <th data-sortcolumn="4">Date</th>
+                            <th data-sortcolumn="2">Name</th> 
+                            <th data-sortcolumn="3">Boat</th>
+                            <th data-sortcolumn="4">Type</th>
                             <th data-sortcolumn="5">Speed</th>
+                            <th>Time Elapsed</th>
+                            <th data-sortcolumn="6">Date</th>
+                            <th class="text-center">Summary</th>
+                            <th class="text-center">Track</th>
+                            <th class="text-center">Comment</th>      
+                            <th class="text-center">Share</th>
+                            
+                            
                         </tr> 
                     </thead> 
                     <tbody> 
@@ -60,25 +67,40 @@
                             <th data-value="1" scope="row">1</th> 
                             <td data-value="Larry Smith"><a href="/challenge/details">Larry Smith</a></td> 
                             <td data-value="Irene"><a href="#">Irene</a></td> 
-                            <td data-value="Port du Vleux Stand">Port du Vleux Stand</td>
-                            <td data-value="2016/08/20/00/00/00">20.8.2016</td>  
+                            <td data-value="Sailboat">Sailboat</td>
                             <td data-value="4.2 kn">4.2 kn</td>
+                            <td>1 hour, 29 minutes</td>
+                            <td data-value="2016/08/20/00/00/00">20.8.2016</td>
+                            <td class="text-center"><a href="#"><img src="assets/images/info.png"></a></td>
+                            <td class="text-center"><a href="#"><img src="assets/images/track.png"></a></td>
+                            <td class="text-center"><a href="#"><img src="assets/images/comment.png"></a></td>
+                            <td class="text-center"><a href="#" class="with-popover" uib-popover-template="sharePopup.templateUrl" popover-title="{{sharePopup.title}}"><img src="assets/images/share.png"></a></td>                            
                         </tr> 
                         <tr> 
                             <th data-value="2" scope="row">2</th>
                             <td data-value="Thornton Thompson"><a href="/challenge/details">Thornton Thompson</a></td> 
                             <td data-value="Velocissima"><a href="#">Velocissima</a></td> 
-                            <td data-value="Port du Vleux Stand">Port du Vleux Stand</td>
-                            <td data-value="2016/08/18/00/00/00">18.8.2016</td>  
+                            <td data-value="Sailboat">Sailboat</td>
                             <td data-value="4.2">4.2 kn</td>
+                            <td>1 hour, 29 minutes</td>
+                            <td data-value="2016/08/18/00/00/00">18.8.2016</td>  
+                            <td class="text-center"><a href="#"><img src="assets/images/info.png"></a></td>
+                            <td class="text-center"><a href="#"><img src="assets/images/track.png"></a></td>
+                            <td class="text-center"><a href="#"><img src="assets/images/comment.png"></a></td>
+                            <td class="text-center"><a href="#" class="with-popover" uib-popover-template="sharePopup.templateUrl" popover-title="{{sharePopup.title}}"><img src="assets/images/share.png"></a></td>
                         </tr> 
                         <tr> 
                             <th data-value="3" scope="row">3</th>
                             <td data-value="John Doe"><a href="/challenge/details">John Doe</a></td>
                             <td data-value="Dentuso"><a href="#">Dentuso</a></td> 
-                            <td data-value="Port du Vleux Stand">Port du Vleux Stand</td>
-                            <td data-value="2016/08/17/00/00/00">17.8.2016</td>  
+                            <td data-value="Sailboat">Sailboat</td>
                             <td data-value="4.2">4.2 kn</td>
+                            <td>1 hour, 29 minutes</td>
+                            <td data-value="2016/08/17/00/00/00">17.8.2016</td>  
+                            <td class="text-center"><a href="#"><img src="assets/images/info.png"></a></td>
+                            <td class="text-center"><a href="#"><img src="assets/images/track.png"></a></td>
+                            <td class="text-center"><a href="#"><img src="assets/images/comment.png"></a></td>
+                            <td class="text-center"><a href="#" class="with-popover" uib-popover-template="sharePopup.templateUrl" popover-title="{{sharePopup.title}}"><img src="assets/images/share.png"></a></td>
                         </tr> 
                     </tbody> 
                 </table>
@@ -87,6 +109,13 @@
     </div>
 </div>
 
+<script type="text/ng-template" id="shareTemplate.html">
+    <div class="form-group">
+        <a href="#"><img title="facebook" alt="Facebook" src="assets/images/sm-facebook.png"></a>
+        <a href="#"><img title="facebook" alt="Instagram" src="assets/images/sm-instagram.png"></a>
+        <a href="#"><img title="facebook" alt="Twitter" src="assets/images/sm-twitter.png"></a>
+    </div>
+</script>
 
 </div>
 

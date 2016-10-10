@@ -110,6 +110,7 @@ table.sortable>thead th div.mozilla {
 }
 
 
+
 .challenge-list form {
     padding: 10px 8px;
     margin-bottom: 22px;
@@ -139,4 +140,7 @@ table.sortable>thead th div.mozilla {
 }
 .challenge-list table th {
     cursor: pointer;
+}
+.challenge-list table td .popover-content {
+    padding: 9px;
 }
