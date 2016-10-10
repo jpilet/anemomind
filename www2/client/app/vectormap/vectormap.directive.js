@@ -85,6 +85,27 @@ angular.module('www2App')
             poiLayer.loadIcon('image', "/assets/images/image.svg", options);
           }
 
+          function setTailTrack() {
+            if ($location.search().queue) {
+              var lengthTime = new Date(
+                Math.abs(scope.currentTime.getTime() - 
+                (parseInt($location.search().queue) * 1000)));
+
+              var tailId = makeCurveId(
+                scope.boat._id,
+                lengthTime,
+                scope.currentTime);
+
+              var customContext = {
+                lineColor: '#8b27ef',
+                lineWidth: 3
+              };
+
+              
+            }
+          }
+          
+
           scope.photoUrl = function(event, size) {
             var url = [
               '/api/events/photo/' + event.boat + '/' + event.photo,
@@ -257,8 +278,10 @@ angular.module('www2App')
           scope.$watch('currentTime', function(newValue, oldValue) {
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
+              scope.pathLayer.queueSeconds = $location.search().queue;
+              scope.pathLayer.tailColor = $location.search().tailColor;
               selectEventByTime(newValue);
-            }            
+            }
           });
 
           updateTileUrl();

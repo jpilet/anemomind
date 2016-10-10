@@ -55,8 +55,7 @@ std::string makeFilteredGpsName(const NavDataset &src) {
 
 }  // namespace
 
-NavDataset filterNavs(const NavDataset& navs) {
-  GpsFilterSettings settings;
+NavDataset filterNavs(const NavDataset& navs, const GpsFilterSettings& settings) {
   auto results = filterGpsData(navs, settings);
   if (results.empty()) {
     LOG(ERROR) << "GPS filtering failed";
@@ -125,20 +124,6 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
     }
   }
   return result.get();
-}
-
-Array<NavDataset> filterSessions(const Array<NavDataset>& sessions) {
-  return filter(sail::map(sessions, filterNavs).toArray(),
-          [](NavDataset ds) {
-      if (getNavSize(ds) == 0) {
-        LOG(WARNING) << "Omitting dataset with 0 navs";
-        return false;
-      } else if (!isValid(ds.dispatcher().get())) {
-        LOG(WARNING) << "Omitting invalid dataset";
-        return false;
-      }
-      return true;
-    });
 }
 
 }  // namespace sail
