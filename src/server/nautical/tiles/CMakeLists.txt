@@ -34,6 +34,7 @@ if (MongoDB_LIBRARIES)
                         tiles_NavTileGenerator
                         common_logging
                         nautical_NavCompatibility
+                        nautical_MaxSpeed
                         tiles_MongoUtils
                        )
 
