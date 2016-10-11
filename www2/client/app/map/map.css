@@ -2,6 +2,36 @@ body > div.ng-scope {
 height:100%;
 }
 
+.close-btn{
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.close-btn:before, 
+.close-btn:after {
+  content: '';
+  position: absolute;
+  height: 5px;
+  margin-top: -3px;
+  width: 100%;
+  top: 50%;
+  left: 0;
+  background: #666;
+}
+.close-btn:before{
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+.close-btn:after{
+  -webkit-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+
 .mapScreenContainer {
   width:100%;
   height: 100%;
@@ -57,6 +87,196 @@ height:100%;
   overflow: hidden;
 }
 
+.mainControl {
+  position: absolute;
+  top: 4%;
+  left: 1%;
+  z-index: 11;
+  background-color: #f8f8f8;
+  width: 30%;
+  height: 600px;
+  overflow-y: scroll;
+}
+.mainControl .section {
+  border-top: 1px solid #d6d6d6;
+}
+.mainControl .heading {
+  display: flex;
+  width: 100%;
+}
+.mainControl .heading .boat-name {
+  background-color: #e7e7e7;
+  padding: 10px 10px 7px;
+  width: 40%;
+}
+.mainControl .boat-name label,
+.mainControl .share-boat-holder span {
+  color: #ed1a28;
+}
+.mainControl .boat-name label {
+  font-weight: normal;
+  margin-bottom: 0;
+  vertical-align: top;
+  padding-left: 6px;
+}
+.mainControl .heading .share-boat {
+  padding: 10px;
+  width: 60%;
+}
+.mainControl .share-boat-holder {
+  text-align: right;
+}
+.mainControl .share-boat-holder i {
+  margin-top: -2px;
+  background-color: #ed1a28;
+  color: #fff;
+  padding: 3px 5px;
+  font-size: 16px;
+  height: 23px;
+}
+.mainControl .share-boat-holder .share-popup {
+  border: 1px solid #d7d7d7;
+  padding: 3px 24px 3px 5px;
+  border-radius: 1px;
+  position: relative;
+}
+.mainControl .share-boat-holder .share-popup:after {
+  content: '';
+  background-image: url('/assets/images/sailboat.svg');
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  background-size: contain;
+  right: 4px;
+}
+.mainControl .control-btns,
+.mainControl .tail-inputs {
+  padding:5px;
+}
+.mainControl .control-btns,
+.mainControl .control-btns button,
+.mainControl .tail-inputs i,
+.mainControl .tail-inputs label {
+  color: #ed1a28;
+}
+.mainControl .control-btns button.play,
+.mainControl .control-btns .btn-grouped,
+.mainControl .control-btns button.cut-after,
+.mainControl .control-btns button.split {
+  margin-right: 5px;
+}
+.mainControl .control-btns .btn-grouped{
+  display: inline-block;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+.mainControl .control-btns .btn-grouped button {
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+}
+.mainControl .control-btns .btn-grouped button:hover {
+  background-color: #ebebeb;
+}
+.mainControl .tail-inputs {
+  display: flex;
+  padding: 5px 10px;
+}
+.mainControl .tail-inputs .group {
+  display: flex;
+  margin-right: 15px;
+}
+.mainControl .tail-inputs .group.tail-length {
+  position: relative;
+  margin-right: 0;
+}
+.mainControl .group.tail-length i {
+  position: absolute;
+  right: 0;
+  margin-top: 5px;
+}
+.mainControl .tail-inputs i {
+  margin-top: 3px;
+  margin-right: 5px;
+}
+.mainControl .tail-inputs .group.tail i {
+  padding-left: 6px;
+}
+.mainControl .tail-inputs i.with-circle {
+  border-radius: 50%;
+  width: 21px;
+  height: 21px;
+  padding-left: 3px;
+  padding-top: 3px;
+  margin-top: 1px;
+  color: #ffffff;
+  background-color: #ed1a28;
+}
+.mainControl .tail-inputs label {
+  font-weight: normal;
+  margin-bottom: 0;
+  vertical-align: top;
+  margin-right: 3px;
+}
+.mainControl .tail-inputs input {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+.mainControl .tail-inputs .thin {
+  width: 30px;
+}
+.mainControl .tail-inputs .wide {
+  width: 80px;
+}
+.mainControl .perf-speed .group,
+.mainControl .wind .group {
+  display: flex;
+  width: 100%;
+  padding: 0 30px;
+}
+.mainControl .perf-speed .group > div,
+.mainControl .wind .group > div {
+  width: 50%;
+  padding: 0 10px;
+}
+.mainControl .perf-speed label,
+.mainControl .wind label,
+.mainControl .details label {
+  padding: 5px 10px;
+  font-weight: normal;
+  color: #ed1a28;
+  cursor: pointer;
+}
+.mainControl .perf-speed label i,
+.mainControl .wind label i,
+.mainControl .details label i {
+  border: 1px solid #ed1a28;
+  border-radius: 50%;
+  width: 17px;
+  padding-left: 2px;
+  margin-left: 5px;
+  color: #ed1a28;
+}
+.mainControl .wind .top-wheel {
+  padding-top: 26px !important;
+}
+.mainControl .small-wheel .marginCenter {
+  margin-top: -20px;
+}
+.mainControl .details {
+  padding: 5px 10px;
+}
+.mainControl .details label {
+  padding: 5px 0;
+  margin-bottom: 10px;
+}
+.mainControl .indicator-label,
+.mainControl .indicator-value {
+  font-size: 15pt;
+}
+  
 .titleBox {
   position: absolute;
   top:20px;
@@ -82,16 +302,6 @@ height:100%;
   width: 100%;
   height: 100%;
   position: absolute;
-}
-
-.animationControls {
-  position: absolute;
-  bottom: 0px;
-  left:0px;
-  z-index: 10;
-  background:#ff0033;
-  color:white;
-  padding:5px;
 }
 
 .graph {

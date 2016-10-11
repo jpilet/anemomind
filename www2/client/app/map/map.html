@@ -3,59 +3,102 @@
   <div class="mapAndGraphAndSidebar">
     <div ng-show="mapActive || graphActive" class="mapAndGraph">
       <div class="map" ng-show="mapActive">
-        <div class="titleBox">{{boat.name}}
-          <button type="button" class="btn btn-default btn-sm"
-            onclick="window.history.go(-1)"><i class="fa fa-times"></i></button>
-        </div>
-
-        <div class="animationControls">
-          <button type="button" class="btn btn-default btn-sm" ng-hide="isPlaying" ng-click="togglePlayPause()">&#9658; play</button>
-          <button type="button" class="btn btn-default btn-sm" ng-show="isPlaying" ng-click="togglePlayPause()">&#10073;&#10073; pause</button>
-          <button type="button" class="btn btn-default btn-sm" ng-click="slower()">-</button>
-          <span>{{ replaySpeed }}x</span>
-          <button type="button" class="btn btn-default btn-sm" ng-click="faster()">+</button>
-          <button type="button" class="btn btn-default btn-sm" ng-click="cutBefore()">
-            <i class="fa fa-scissors" aria-hidden="true"></i>
-            <i class="fa fa-step-backward" aria-hidden="true"></i>
-           </button>
-          <button type="button" class="btn btn-default btn-sm" ng-click="cutAfter()">
-            <i class="fa fa-step-forward" aria-hidden="true"></i>
-            <i class="fa fa-scissors" aria-hidden="true"></i>
-          </button>
-        </div>
-        <div class="vectorMapContainer" vectormap></div>
-      </div>
-
-      <div class="graph" ng-show="graphActive">
-        <select id="dataSourceSelector"
-          ng-model="plotField"
-          ng-options="field as label for (field, label) in plotFieldLabels"></select>
-
-        <perfplot
-          plot-data="plotData"
-          current-time="currentTime"
-          field="plotField"></perfplot>
-      </div>
-    </div>
-
-    <sidebar ng-show="sideBarActive">
-      <div id="tabs" class="semitransp padding5px">
-        <uib-tabset>
-          <uib-tab heading="Perf">
-            <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
-          </uib-tab>
-          <uib-tab heading="Wind">
-            <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
-            <wheel-small-indicator id="smallwheelcog" label="'&deg;'" arrow="twdir | angle:360" boat="gpsBearing" north="0" description="'True Wind Direction'"></wheel-small-indicator>
-          </uib-tab>
-          <uib-tab heading="Speed">
-            <gauge-indicator
-              id="gaugeperf"
-              label="gpsSpeed | speed"
-              value="gpsSpeed"
-              description="'Speed over ground'" min="0" max="12" ></gauge-indicator>
-          </uib-tab>
-          <uib-tab heading="Raw">
+        <div class="mainControl">
+          <div class="section heading">
+            <div class="boat-name">
+              <span class="close-btn black" onclick="window.history.go(-1)"></span>
+              <label>{{boat.name}}</label>
+            </div>
+            <div class="share-boat">
+              <div class="share-boat-holder">
+                <i class="fa fa-share-alt" aria-hidden="true"></i> 
+                <span class="share-popup">
+                  Share
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="section control-btns animationControls">
+            <button type="button" class="btn btn-default btn-sm play" ng-hide="isPlaying" ng-click="togglePlayPause()">
+              <i class="fa fa-play" aria-hidden="true"></i> 
+              Play
+            </button>
+            <button type="button" class="btn btn-default btn-sm pause" ng-show="isPlaying" ng-click="togglePlayPause()">
+              <i class="fa fa-pause" aria-hidden="true"></i> 
+              pause
+            </button>
+            <div class="btn-grouped">
+              <button type="button" class="btn btn-default btn-sm slower" ng-click="slower()">
+                <i class="fa fa-minus" aria-hidden="true"></i>   
+              </button>
+              <span>{{ replaySpeed }}x</span>
+              <button type="button" class="btn btn-default btn-sm faster" ng-click="faster()">
+                <i class="fa fa-plus" aria-hidden="true"></i>  
+              </button>
+            </div>
+            <button type="button" class="btn btn-default btn-sm cut-before" ng-click="cutBefore()">
+              <i class="fa fa-scissors" aria-hidden="true"></i>
+              <i class="fa fa-step-backward" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-default btn-sm cut-after" ng-click="cutAfter()">
+              <i class="fa fa-step-forward" aria-hidden="true"></i>
+              <i class="fa fa-scissors" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-default btn-sm split" ng-click="">
+              Split
+            </button>
+            <button type="button" class="btn btn-default btn-sm jump-prev" ng-click="">
+              <i class="fa fa-undo" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-default btn-sm jump-next" ng-click="">
+              <i class="fa fa-repeat" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="section tail-inputs">
+            <div class="group perf-vmg">
+              <i class="fa fa-anchor with-circle" aria-hidden="true"></i>
+              <label>Perf VMG</label>
+              <input type="text" class="thin" name="perf-vmg">
+            </div>
+            <div class="group tail">
+              <i class="fa fa-tencent-weibo with-circle" aria-hidden="true"></i>
+              <label>Tail</label>
+              <input type="text" class="thin" name="tail">
+            </div>
+            <div class="group tail-length">
+              <i class="fa fa-level-up" aria-hidden="true"></i>
+              <label>Tail length</label>
+              <input type="text" class="wide" name="tail-length">
+            </div>
+          </div>
+          <div class="section perf-speed">
+            <label class="collapse-lbl">Performance & Speed <i class="fa fa-minus" aria-hidden="true"></i></label>
+            <div class="group">
+              <div class="perf">
+                <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
+              </div>
+              <div class="speed">
+                <gauge-indicator
+                id="gaugeperf"
+                label="gpsSpeed | speed"
+                value="gpsSpeed"
+                description="'Speed over ground'" min="0" max="12" ></gauge-indicator>
+              </div>
+            </div>
+          </div>
+          <div class="section wind">
+            <label class="collapse-lbl">Wind <i class="fa fa-minus" aria-hidden="true"></i></label>
+            <div class="group">
+              <div class="top-wheel">
+                <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
+              </div>
+              <div class="small-wheel">
+                <wheel-small-indicator id="smallwheelcog" label="'&deg;'" arrow="twdir | angle:360" boat="gpsBearing" north="0" description="'True Wind Direction'"></wheel-small-indicator>
+              </div>
+            </div>
+          </div>
+          <div class="section details">
+            <label class="collapse-lbl">Details <i class="fa fa-minus" aria-hidden="true"></i></label>
             <div class="instrumentsView">
               <table class="table table-bordered table-condensed">
                 <tr data-ng-hide='vmgPerf == undefined'><td>VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
@@ -75,8 +118,27 @@
                 <tr><td>Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
               </table>
             </div>
-          </uib-tab>
-        </uib-tabset>
+          </div>
+        </div>
+
+        
+        <div class="vectorMapContainer" vectormap></div>
+      </div>
+
+      <div class="graph" ng-show="graphActive">
+        <select id="dataSourceSelector"
+          ng-model="plotField"
+          ng-options="field as label for (field, label) in plotFieldLabels"></select>
+
+        <perfplot
+          plot-data="plotData"
+          current-time="currentTime"
+          field="plotField"></perfplot>
+      </div>
+    </div>
+
+    <sidebar ng-show="sideBarActive">
+      <div id="tabs" class="semitransp padding5px">
         <div id="eventsContainer">
           <events boat="boat._id" before="endTime" after="startTime"
             current-time="currentTime" events="eventList">
