@@ -1,0 +1,1 @@
+../../../../client/app/vectormap/tiles/pinchzoom.js

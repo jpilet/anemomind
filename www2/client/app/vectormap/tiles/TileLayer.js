@@ -23,16 +23,29 @@ function TileLayer(params, renderer) {
   if (!this.params.maxNumCachedTiles) this.params.maxNumCachedTiles = 64;
   if (!this.params.maxSimultaneousLoads) this.params.maxSimultaneousLoads = 3;
 
+  this.maxUpLevels = this.params.maxUpLevels || 5;
 
+}
+
+TileLayer.prototype.tileSizeOnCanvas = function(canvas) {
+  var density = (this.params.forceDevicePixelRatio || window.devicePixelRatio || 1);
+  return this.params.tileSize * density;
 }
 
 TileLayer.prototype.draw = function(canvas, pinchZoom,
                                     bboxTopLeft, bboxBottomRight) {
 
   // Compute the scale level
-  var numTiles = canvas.width / this.params.tileSize;
+  var numTiles = canvas.width / this.tileSizeOnCanvas();
   var targetUnitPerTile = (bboxBottomRight.x - bboxTopLeft.x) / numTiles;
   var scale = Math.max(0, Math.ceil(- Math.log(targetUnitPerTile) / Math.LN2));
+
+  // Are we in downsampled mode? if yes, artificially push to the next scale level.
+  if (canvas.canvasTilesRenderer.params.downsampleDuringMotion
+      && pinchZoom.isMoving()) {
+    scale += 1;
+  }
+
   var actualUnitPerTile = 1 / (1 << scale);
 
   var getTileX = function(unitX) { return  Math.floor(unitX * (1 << scale)); };
@@ -87,7 +100,7 @@ TileLayer.prototype.renderTile = function(scale, tileX, tileY, context, tileGeom
     return;
   }
 
-  for (var upLevel = 0; upLevel <= scale && upLevel < 5; ++upLevel) {
+  for (var upLevel = 0; upLevel <= scale && upLevel < this.maxUpLevels; ++upLevel) {
     var upTileX = tileX >> upLevel;
     var upTileY = tileY >> upLevel;
     
@@ -117,9 +130,18 @@ TileLayer.prototype.renderTile = function(scale, tileX, tileY, context, tileGeom
   }
 };
 
+TileLayer.prototype.tileKey = function(scale, x, y) {
+  if (typeof(scale) == 'object') {
+    var p = scale;
+    scale = p.scale;
+    x = p.x;
+    y = p.y;
+  }
+  return  scale + "," + x + "," + y;
+}
 
 TileLayer.prototype.getTile = function(scale, x, y, priority) {
-  var key = scale + "," + x + "," + y;
+  var key = this.tileKey(scale, x, y);
   
   if (key in this.tiles) {
     var tile = this.tiles[key];
@@ -170,29 +192,28 @@ TileLayer.prototype.processQueue = function() {
     if ((this.numDraw - query.tile.lastDrawRequest) < 3) {
       this.numLoading++;
         
-      var image = new Image();
-      image.src = query.url;
       query.tile.state = "loading";
-      query.tile.image = image;
-      
+
       // Force the creation of a new scope to make sure
       // a new closure is created for every "query" object. 
-      var f = (function(t, image, query) {
-        image.onload = function() { 
-          t.numLoading--;
-          t.numCachedTiles++;
-          query.tile.state = "loaded";
-          t.renderer.refreshIfNotMoving();
-        };
-        image.onerror = function() {
-          t.numLoading--;
-          query.tile.state = "failed";
-          delete query.tile.image;
-          console.log('Failed to load: ' + query.url);
-          t.processQueue();
-        };  
-      })(this, image, query);
-      
+      var f = (function(t, query) {
+        t.renderer.loadImage(query.url,
+          function(image) {
+            t.numLoading--;
+            t.numCachedTiles++;
+            query.tile.state = "loaded";
+            query.tile.image = image;
+            t.renderer.refreshIfNotMoving();
+          },
+          function(error) {
+            console.log('Failed to load image: ' + query.url + ': ' + error);
+            t.numLoading--;
+            query.tile.state = "failed";
+            t.processQueue();
+          });
+      })(this, query);
+
+
     } else {
       // There's no need to load this tile, it is not required anymore.
       delete this.tiles[query.key];
@@ -227,5 +248,49 @@ TileLayer.prototype.limitCacheSize = function() {
     delete this.tiles[key];
     this.numCachedTiles--;
   }
+};
+
+TileLayer.prototype.maxZoomAt = function(p) {
+  var maxScale = undefined;
+  var firstFailed
+
+  var me = this;
+  var stateAtScale = function(scale) {
+    var key = me.tileKey(Utils.worldToTile(scale, p));
+    if (key in me.tiles) {
+      return me.tiles[key].state;
+    }
+    return undefined;
+  };
+
+  var lastTileWithState = function(state) {
+    for (var i = 20; i >= 0; --i) {
+      if (stateAtScale(i) == state) {
+        return i;
+      }
+    }
+    return undefined;
+  };
+
+  var lastAvailable = lastTileWithState('loaded');
+  if (lastAvailable != undefined) {
+    if (stateAtScale(lastAvailable + 1) == 'failed') {
+      return lastAvailable;
+    }
+  }
+
+  return undefined;
+};
+
+TileLayer.prototype.minScaleAt = function(canvas, p) {
+  var maxZoomLevel = this.maxZoomAt(p);
+  if (maxZoomLevel == undefined) {
+    return undefined;
+  }
+
+  var numTiles = canvas.width / this.tileSizeOnCanvas(canvas);
+  var minScale = .5 * numTiles / (1 << maxZoomLevel);
+
+  return minScale;
 };
 
