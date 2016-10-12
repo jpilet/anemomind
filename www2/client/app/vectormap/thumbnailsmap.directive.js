@@ -1,5 +1,5 @@
 'use strict';
-
+  
 angular.module('www2App')
   .directive('thumbnailsmap', function ($timeout, $window, $parse, boatList, Auth) {
     return {
@@ -19,9 +19,12 @@ angular.module('www2App')
           });
 
 
-          scope.pathLayer = canvas.layers[1];
-
-
+          // init pathlayer
+          scope.pathLayer = new VectorTileLayer({
+            maxNumCachedTiles: 4,
+            token: Auth.getToken()
+          }, canvas);
+          canvas.addLayer(scope.pathLayer);
 
   
           // Watch for resize
