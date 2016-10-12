@@ -54,69 +54,83 @@
               <i class="fa fa-repeat" aria-hidden="true"></i>
             </button>
           </div>
-          <div class="section tail-inputs">
-            <div class="group perf-vmg">
-              <i class="fa fa-anchor with-circle" aria-hidden="true"></i>
-              <label>Perf VMG</label>
-              <input type="text" class="thin" name="perf-vmg">
-            </div>
-            <div class="group tail">
-              <i class="fa fa-tencent-weibo with-circle" aria-hidden="true"></i>
-              <label>Tail</label>
-              <input type="text" class="thin" name="tail">
-            </div>
-            <div class="group tail-length">
-              <i class="fa fa-level-up" aria-hidden="true"></i>
-              <label>Tail length</label>
-              <input type="text" class="wide" name="tail-length">
-            </div>
-          </div>
-          <div class="section perf-speed">
-            <label class="collapse-lbl">Performance & Speed <i class="fa fa-minus" aria-hidden="true"></i></label>
-            <div class="group">
-              <div class="perf">
-                <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
+          <div class="info-group collapse-area">
+            <div class="section tail-inputs">
+              <div class="group perf-vmg">
+                <i class="fa fa-anchor with-circle" aria-hidden="true"></i>
+                <label>Perf VMG</label>
+                <input type="text" class="thin" name="perf-vmg">
               </div>
-              <div class="speed">
-                <gauge-indicator
-                id="gaugeperf"
-                label="gpsSpeed | speed"
-                value="gpsSpeed"
-                description="'Speed over ground'" min="0" max="12" ></gauge-indicator>
+              <div class="group tail">
+                <i class="fa fa-tencent-weibo with-circle" aria-hidden="true"></i>
+                <label>Tail</label>
+                <input type="text" class="thin" name="tail">
+              </div>
+              <div class="group tail-length">
+                <i class="fa fa-level-up" aria-hidden="true"></i>
+                <label>Tail length</label>
+                <input type="text" class="wide" name="tail-length">
               </div>
             </div>
-          </div>
-          <div class="section wind">
-            <label class="collapse-lbl">Wind <i class="fa fa-minus" aria-hidden="true"></i></label>
-            <div class="group">
-              <div class="top-wheel">
-                <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
-              </div>
-              <div class="small-wheel">
-                <wheel-small-indicator id="smallwheelcog" label="'&deg;'" arrow="twdir | angle:360" boat="gpsBearing" north="0" description="'True Wind Direction'"></wheel-small-indicator>
+            <div class="section perf-speed">
+              <label class="expandable collapse-lbl" toggle-classes="collapse-area uncollapse-area">
+                Performance & Speed 
+                <i class="fa fa-plus" col-class="fa-plus" uncol-class="fa-minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+              </label>
+              <div class="collapsible group  collapse-area">
+                <div class="perf">
+                  <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
+                </div>
+                <div class="speed">
+                  <gauge-indicator
+                  id="gaugeperf"
+                  label="gpsSpeed | speed"
+                  value="gpsSpeed"
+                  description="'Speed over ground'" min="0" max="12" ></gauge-indicator>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="section details">
-            <label class="collapse-lbl">Details <i class="fa fa-minus" aria-hidden="true"></i></label>
-            <div class="instrumentsView">
-              <table class="table table-bordered table-condensed">
-                <tr data-ng-hide='vmgPerf == undefined'><td>VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
-                <tr data-ng-hide='deviceVmg == undefined'><td>VMG</td><td>{{ deviceVmg | speed }}</td></tr>
-                <tr data-ng-hide='deviceTargetVmg == undefined'><td>Target VMG</td><td>{{ deviceTargetVmg | speed }}</td></tr>
-                <tr data-ng-hide='twa == undefined'><td>TWA</td><td>{{ twa | angle:180 }}</td></tr>
-                <tr data-ng-hide='tws == undefined'><td>TWS</td><td>{{ tws | speed }}</td></tr>
-                <tr data-ng-hide='awa == undefined'><td>AWA</td><td>{{ awa | angle:180 }}</td></tr>
-                <tr data-ng-hide='aws == undefined'><td>AWS</td><td>{{ aws | speed }}</td></tr>
-                <tr><td>GPS speed</td><td>{{ gpsSpeed | speed }}</td></tr>
-                <tr><td></td><td></td></tr>
-                <tr data-ng-hide='twdir == undefined'><td>TWDIR</td><td>{{ twdir | angle:360 }}</td></tr>
-                <tr><td>GPS bearing</td><td>{{ gpsBearing | angle:360 }}</td></tr>
-                <tr><td>GPS pos.</td><td>{{ currentPoint.pos | geopos }}</td></tr>
-                <tr><td></td><td></td></tr>
-                <tr><td>Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
-                <tr><td>Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
-              </table>
+            <div class="section wind">
+              <label class="expandable collapse-lbl" toggle-classes="collapse-area uncollapse-area">
+                Wind 
+                <i class="fa fa-plus" col-class="fa-plus" uncol-class="fa-minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+              </label>
+              <div class="collapsible group collapse-area">
+                <div class="top-wheel">
+                  <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
+                </div>
+                <div class="small-wheel">
+                  <wheel-small-indicator id="smallwheelcog" label="'&deg;'" arrow="twdir | angle:360" boat="gpsBearing" north="0" description="'True Wind Direction'"></wheel-small-indicator>
+                </div>
+              </div>
+            </div>
+            <div class="section details">
+              <label class="expandable collapse-lbl" toggle-classes="collapse-area uncollapse-area">
+                Details 
+                <i class="fa fa-plus" col-class="fa-plus" uncol-class="fa-minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+              </label>
+              <div class="collapsible instrumentsView collapse-area">
+                <table class="table table-bordered table-condensed">
+                  <tr data-ng-hide='vmgPerf == undefined'><td>VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
+                  <tr data-ng-hide='deviceVmg == undefined'><td>VMG</td><td>{{ deviceVmg | speed }}</td></tr>
+                  <tr data-ng-hide='deviceTargetVmg == undefined'><td>Target VMG</td><td>{{ deviceTargetVmg | speed }}</td></tr>
+                  <tr data-ng-hide='twa == undefined'><td>TWA</td><td>{{ twa | angle:180 }}</td></tr>
+                  <tr data-ng-hide='tws == undefined'><td>TWS</td><td>{{ tws | speed }}</td></tr>
+                  <tr data-ng-hide='awa == undefined'><td>AWA</td><td>{{ awa | angle:180 }}</td></tr>
+                  <tr data-ng-hide='aws == undefined'><td>AWS</td><td>{{ aws | speed }}</td></tr>
+                  <tr><td>GPS speed</td><td>{{ gpsSpeed | speed }}</td></tr>
+                  <tr><td></td><td></td></tr>
+                  <tr data-ng-hide='twdir == undefined'><td>TWDIR</td><td>{{ twdir | angle:360 }}</td></tr>
+                  <tr><td>GPS bearing</td><td>{{ gpsBearing | angle:360 }}</td></tr>
+                  <tr><td>GPS pos.</td><td>{{ currentPoint.pos | geopos }}</td></tr>
+                  <tr><td></td><td></td></tr>
+                  <tr><td>Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
+                  <tr><td>Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="expandable extension bottom-curve" toggle-classes="collapse-area uncollapse-area">
+              <i class="fa fa-angle-double-down" col-class="fa-angle-double-down" uncol-class="fa-angle-double-up" col-state="true" col-target=".info-group" col-parent=".mainControl" aria-hidden="true"></i>
             </div>
           </div>
         </div>
@@ -125,20 +139,27 @@
         <div class="vectorMapContainer" vectormap></div>
       </div>
 
-      <div class="graph" ng-show="graphActive">
-        <select id="dataSourceSelector"
+      <div class="graph unhide-area" toggle-classes="hide-area unhide-area" ng-show="graphActive">
+        <div class="expandable extension top-curve" toggle-classes="show hidden" mode="hide-parent">
+          <i class="fa fa-angle-double-down" col-class="fa-angle-double-up" uncol-class="fa-angle-double-down" col-state="false" col-target=".graph-holder" col-parent=".graph" aria-hidden="true"></i>
+        </div>
+        <div class="graph-holder">
+          <select id="dataSourceSelector"
           ng-model="plotField"
           ng-options="field as label for (field, label) in plotFieldLabels"></select>
-
-        <perfplot
-          plot-data="plotData"
-          current-time="currentTime"
-          field="plotField"></perfplot>
+          <perfplot
+            plot-data="plotData"
+            current-time="currentTime"
+            field="plotField"></perfplot>
+        </div>
       </div>
     </div>
 
-    <sidebar ng-show="sideBarActive">
-      <div id="tabs" class="semitransp padding5px">
+    <sidebar class="sidebar-container unhide-area" toggle-classes="hide-area unhide-area" ng-show="sideBarActive">
+      <div class="expandable extension left-curve" toggle-classes="show hidden" mode="hide-parent">
+        <i class="fa fa-angle-double-right" col-class="fa-angle-double-left" uncol-class="fa-angle-double-right" col-state="false" col-target=".semitransp" col-parent=".sidebar-container" aria-hidden="true"></i>
+      </div>
+      <div id="tabs" class="semitransp padding5px show">
         <div id="eventsContainer">
           <events boat="boat._id" before="endTime" after="startTime"
             current-time="currentTime" events="eventList">

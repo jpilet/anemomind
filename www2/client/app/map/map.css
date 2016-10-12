@@ -21,6 +21,10 @@ height:100%;
   left: 0;
   background: #666;
 }
+.close-btn:hover:before,
+.close-btn:hover:after {
+  background: #ed1a28;
+}
 .close-btn:before{
   -webkit-transform: rotate(45deg);
   -moz-transform: rotate(45deg);
@@ -87,15 +91,43 @@ height:100%;
   overflow: hidden;
 }
 
+.extension {
+  position: absolute;
+  background-color: #f8f8f8;
+  padding: 0px 12px;
+  font-size: 22px;
+  line-height: 22px;
+  color: #ed1a28;
+  cursor: pointer;
+}
+.extension:hover {
+  color: #666;
+}
+.extension.top-curve {
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+.extension.bottom-curve {
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+.extension.left-curve {
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+.extension.right-curve {
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+
 .mainControl {
   position: absolute;
-  top: 4%;
+  top: 2%;
   left: 1%;
   z-index: 11;
   background-color: #f8f8f8;
-  width: 30%;
-  height: 600px;
-  overflow-y: scroll;
+  width: auto;
+  min-height: 84px;
 }
 .mainControl .section {
   border-top: 1px solid #d6d6d6;
@@ -183,6 +215,10 @@ height:100%;
   display: flex;
   padding: 5px 10px;
 }
+.mainControl .info-group .extension {
+  right: 4%;
+  bottom: -20px;
+}
 .mainControl .tail-inputs .group {
   display: flex;
   margin-right: 15px;
@@ -248,6 +284,12 @@ height:100%;
   font-weight: normal;
   color: #ed1a28;
   cursor: pointer;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .mainControl .perf-speed label i,
 .mainControl .wind label i,
@@ -260,10 +302,10 @@ height:100%;
   color: #ed1a28;
 }
 .mainControl .wind .top-wheel {
-  padding-top: 26px !important;
+  padding-top: 20px !important;
 }
 .mainControl .small-wheel .marginCenter {
-  margin-top: -20px;
+  margin-top: -6px;
 }
 .mainControl .details {
   padding: 5px 10px;
@@ -275,6 +317,16 @@ height:100%;
 .mainControl .indicator-label,
 .mainControl .indicator-value {
   font-size: 15pt;
+}
+.mainControl .indicator-description {
+  display: none;
+}
+@media only screen and (max-width: 800px) {
+  .mainControl {
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
 }
   
 .titleBox {
@@ -305,13 +357,23 @@ height:100%;
 }
 
 .graph {
+  position: relative;
+}
+.graph.unhide-area {
   -webkit-flex-basis: 120px;
       -ms-flex-preferred-size: 120px;
           flex-basis: 120px;
-  position: relative;
   -webkit-flex-grow: .1;
       -ms-flex-positive: .1;
           flex-grow: .1;
+}
+.graph.hide-area {
+  bottom: 0;
+}
+
+.graph .extension {
+  top: -22px;
+  left: 20px;
 }
 
 perfplot {
@@ -328,14 +390,6 @@ perfplot {
   top: 0px;
   display:inline-block;
   z-index:10;
-}
-
-.mapScreenContainer sidebar {
-  -webkit-flex:1;
-      -ms-flex:1;
-          flex:1;
-  overflow: auto;
-  min-height: 0;
 }
 
 .responsiveNavButtons {
@@ -424,6 +478,27 @@ perfplot {
 
 /*==================================================*/
 
+.mapScreenContainer sidebar {
+  overflow: initial;
+  min-height: 0;
+}
+.sidebar-container {
+  position: relative;
+}
+.sidebar-container.unhide-area {
+  -webkit-flex:1;
+      -ms-flex:1;
+          flex:1;
+}
+.sidebar-container.unhide-area {
+  right: 0;
+}
+.sidebar-container .extension{
+  left: -28px;
+  padding: 6px 8px;
+  top: 8px;
+}
+
 #tabs {
   margin-left: auto;
   margin-right: auto;
@@ -461,6 +536,15 @@ perfplot {
 
 .indicator-label, .indicator-value {
   font-size: 40pt;
+}
+
+
+.uncollapse-area {
+  height: auto;
+}
+.collapse-area {
+  height: 0;
+  overflow: hidden;
 }
 
 /* ========= bootstrap overrides ========= */
