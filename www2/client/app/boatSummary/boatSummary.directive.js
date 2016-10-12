@@ -142,6 +142,10 @@ var app = angular.module('www2App')
           if (knots < 63) { return 11; }
           return 12;
         };
+
+        scope.timeToInt = function(time) {
+          return new Date(time).getTime();
+        };
       }
     };
   });

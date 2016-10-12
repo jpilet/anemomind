@@ -400,3 +400,9 @@ cxx_test(common_PositiveModTest
          PositiveModTest.cpp
          gtest_main
         )
+
+cxx_test(common_MultiMergeTest
+         MultiMergeTest.cpp
+         gtest_main
+        )
+

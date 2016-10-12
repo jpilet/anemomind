@@ -8,9 +8,10 @@ angular.module('www2App', [
   'ui.router',
   'ui.bootstrap',
   'angularFileUpload',
-  'nvd3'
+  'nvd3',
+  'bootstrapLightbox'
 ])
-  .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
+  .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, LightboxProvider) {
     $urlRouterProvider
       .otherwise('/');
 
@@ -32,9 +33,7 @@ angular.module('www2App', [
     $locationProvider.html5Mode(true);
     $httpProvider.interceptors.push('authInterceptor');
 
-
-
-
+    LightboxProvider.fullScreenMode = true;
   })
 
   .factory('authInterceptor', function ($rootScope, $q, $cookieStore, $location) {

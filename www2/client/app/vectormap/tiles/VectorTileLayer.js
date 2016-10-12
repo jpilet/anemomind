@@ -39,12 +39,17 @@ function VectorTileLayer(params, renderer) {
 
   this.renderer = renderer;
 
-  this.boatIcon = new Image();
-  this.boatIcon.src = '/assets/images/boat.svg';
-  this.trueWindIcon = new Image();
-  this.trueWindIcon.src = '/assets/images/truewind.svg';
-  this.appWindIcon = new Image();
-  this.appWindIcon.src = '/assets/images/appwind.svg';
+  var t = this;
+  var loadIcon = function(url, name, w, h) {
+    renderer.loadImage('/assets/images/' + url, function(image) {
+      t[name] = image;
+      if (w) { image.width = w; }
+      if (h) { image.height = h; }
+    });
+  };
+  loadIcon('boat.svg', 'boatIcon');
+  loadIcon('truewind.svg', 'trueWindIcon', 14, 28);
+  loadIcon('appwind.svg', 'appWindIcon', 14, 28);
 
   this.tiles = {};
   this.numLoading = 0;
@@ -53,6 +58,21 @@ function VectorTileLayer(params, renderer) {
   this.numCachedTiles = 0;
   this.visibleCurves = {};
   this.curvesFlat = {};
+  this.maxUpLevel = this.params.maxUpLevel || 4;
+
+  this.queueSeconds = undefined;
+  this.currentTime = undefined;
+  this.tailColor = undefined;
+  this.outOfTailColor = '#888888';
+  this.outOfTailWidth = .3;
+
+  this.startPoint = 0;
+  this.tailWidth = 3;
+  this.vmgPerf = [0, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110];
+  this.colorSpectrum = ['#B5B5B5','#BAA7AA','#C099A0','#C68B96','#CC7D8C',
+                        '#D26F81','#D86277','#DE546D','#E44663','#EA3858',
+                        '#F02A4E','#F61C44','#FC0F3A','#DE0B66','#C10792',
+                        '#A403BF'];
 
   if (!("tileSize" in this.params)) this.params.tileSize = 256;
   if ("vectorurl" in this.params) {
@@ -168,7 +188,7 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
     return;
   }
 
-  for (var upLevel = 0; upLevel <= scale && upLevel < 4; ++upLevel) {
+  for (var upLevel = 0; upLevel <= scale && upLevel < this.maxUpLevel; ++upLevel) {
     var upTileX = tileX >> upLevel;
     var upTileY = tileY >> upLevel;
     
@@ -292,8 +312,8 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
 
   var elementsAsArray = [];
   for (var e in curveElements) {
-    if (e != "length") {
-      var element = curveElements[e];
+    var element = curveElements[e];
+    if (typeof(element) == 'object' && element.curveId) { 
       if (curveOverlap(element.curveId, curveId)) {
         elementsAsArray.push(element.points);
       }
@@ -318,40 +338,101 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   return points;
 }
 
-VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
-  // prepare the Cavas path
 
-  if (this.isHighlighted(curveId)) {
-    context.strokeStyle="#FF0033";
-    context.lineWidth = 3;
-  } else {
-    if (this.highlight) {
-      // Another curve is hightlighted
-      context.strokeStyle="#777777";
-      context.lineWidth = 1;
-    } else {
-      // Nothing is highlighted
-      context.strokeStyle="#333333";
-      context.lineWidth = 2;
-    }
+VectorTileLayer.prototype.checkIfTail = function(point) {
+  if (this.queueSeconds == undefined) {
+    return false;
   }
 
+  var queueTime = Math.abs(this.currentTime.getTime() - (this.queueSeconds * 1000));
+  var pointTime = point.time;
+
+  return (pointTime.getTime() >= queueTime && pointTime.getTime() <= this.currentTime.getTime());
+};
+
+VectorTileLayer.prototype.colorForPoint = function(point) {
+  if (this.queueSeconds) {
+    if (this.checkIfTail(point)) {
+      if (this.tailColor) {
+        return this.tailColor;
+      }
+      var currentPerf = perfAtPoint(point);
+
+      if (isNaN(currentPerf)) {
+        return this.colorSpectrum[0];
+      }
+      for(var i=0; i<this.vmgPerf.length; i++) {
+        if (currentPerf <= this.vmgPerf[i]) {
+          return this.colorSpectrum[i];
+        }
+      }
+      return this.colorSpectrum[this.colorSpectrum.length - 1];
+    } else {
+      return this.outOfTailColor;
+    }
+  } else {
+    // default color when no tail is displayed
+    return '#FF0033';
+  }
+};
+
+VectorTileLayer.prototype.widthForPoint = function(point) {
+  if (this.queueSeconds) {
+    return (this.checkIfTail(point) ? this.tailWidth : this.outOfTailWidth);
+  }
+  return 3;
+};
+
+VectorTileLayer.prototype.drawSegment = function(context, p1, col1, width1,
+                                                 p2, col2, width2) {
+  if (col1 == undefined && col2 == undefined) {
+    // undefined color = no draw.
+    return;
+  }
+  context.beginPath();
+
+  if (col1 == col2 || width1 != width2) {
+    // If the width changed, it means we transitioned from tail to out-of-tail
+    // or vice-versa. No need to interpolate the color.
+    context.strokeStyle = col2;
+  } else {
+    var grd = context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+    grd.addColorStop(0, col1);
+    grd.addColorStop(1, col2);
+    context.strokeStyle = grd;
+  }
+  context.lineWidth = width2;
+
+  context.moveTo(p1.x, p1.y);
+  context.lineTo(p2.x, p2.y);
+  context.stroke();
+}
+
+VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
     return;
   }
 
   // Draw.
-  context.beginPath();
-  var first = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
-                                              points[0].pos[1]);
-  context.moveTo(first.x, first.y);
+  var prevPos = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
+                                                points[0].pos[1]);
+  var prevColor = this.colorForPoint(points[0]);
+  var prevWidth = this.widthForPoint(points[0]);
+
   for (var i = 1; i < points.length; ++i) {
-    var point = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
-                                                points[i].pos[1]);
-    context.lineTo(point.x, point.y);
+    var currentColor = this.colorForPoint(points[i]);
+    var currentWidth = this.widthForPoint(points[i]);
+    var currentPos = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
+                                                     points[i].pos[1]);
+
+    this.drawSegment(context, prevPos, prevColor, prevWidth,
+                     currentPos, currentColor, currentWidth);
+
+    var prevPos = currentPos;
+    var prevColor = currentColor;
+    var prevWidth = currentWidth;
   }
-  context.stroke();
   /*
   console.log('Curve ' + curveId + ' span: ' + points[0].time + ' to '
               + points[points.length - 1].time);
@@ -408,6 +489,9 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   }
 
   var getTwdir = function(nav) {
+    if (nav.twdir) {
+      return nav.twdir;
+    }
     if (nav.deviceTwdir) {
       return nav.deviceTwdir;
     }
@@ -445,8 +529,8 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
     context.strokeStyle = '#ff0033';
     context.stroke();
 
-    var l = 38 * pixelRatio;
-    var w = 25 * pixelRatio;
+    var l = 40 * pixelRatio;
+    var w = 20 * pixelRatio;
     context.drawImage(this.boatIcon,
                       - w/2,
                       - l/2,
@@ -551,10 +635,9 @@ VectorTileLayer.prototype.processQueue = function() {
       // Force the creation of a new scope to make sure
       // a new closure is created for every "query" object. 
       var f = (function(t, query) {
-        $.ajax({
-          url: query.url,
-          dataType: "json",
-          success: function(data) {
+        t.fetchTile(
+          query.url,
+          function(data) {
             t.numLoading--;
             t.numCachedTiles++;
             if (data.length > 0) {
@@ -575,19 +658,12 @@ VectorTileLayer.prototype.processQueue = function() {
               query.tile.state = "empty";
             }
           },
-          error: function() {
+          function() {
             t.numLoading--;
             query.tile.state = "failed";
             console.log('Failed to load: ' + query.url);
             t.processQueue();
-          },
-          timeout: 2000,
-          beforeSend: function(xhr) {
-            if (t.params.token) {
-              xhr.setRequestHeader('Authorization','Bearer ' + t.params.token);
-            }
-          }
-        });  
+          });  
       })(this, query);
       
     } else {
@@ -744,3 +820,20 @@ VectorTileLayer.prototype.findPointAt = function(x, y) {
   }
   return bestPoint;
 }
+
+VectorTileLayer.prototype.fetchTile = function(url, success, error) {
+  var me = this;
+  $.ajax({
+    url: url,
+    dataType: "json",
+    success: success,
+    error: error,
+    timeout: 2000,
+    beforeSend: function(xhr) {
+      if (me.params.token) {
+        xhr.setRequestHeader('Authorization','Bearer ' + me.params.token);
+      }
+    }
+  });  
+};
+

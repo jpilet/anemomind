@@ -20,16 +20,30 @@ var makeQuery = function(boatId, s, x, y, startsAfter, endsBefore) {
   return search;
 };
 
-exports.retrieveRaw = function(req, res, next) {
-  var query = makeQuery(req.params.boat,
-                        req.params.scale,
-                        req.params.x,
-                        req.params.y,
-                        req.params.startsAfter,
-                        req.params.endsBefore);
-
-  console.log('get tile: ' + query.key);
+function fetchTiles(boatId, scale, x, y, startsAfter, endsBefore, callback) {
+  var query = makeQuery(boatId,
+                        scale,
+                        x,
+                        y,
+                        startsAfter,
+                        endsBefore);
   Tiles.find(query, function(err, tiles) {
+    if (err) {
+      return callback(err, null);
+    }
+    return callback(null, tiles);
+  });
+}
+module.exports.fetchTiles = fetchTiles;
+
+exports.retrieveRaw = function(req, res, next) {
+  fetchTiles(req.params.boat,
+             req.params.scale,
+             req.params.x,
+             req.params.y,
+             req.params.startsAfter,
+             req.params.endsBefore,
+             function(err, tiles) {
     if (err) {
       return next(err);
     }
@@ -111,3 +125,37 @@ function tile2LonLat(point) {
 function handleError(res, err) {
   return res.status(500).send(err);
 }
+
+
+module.exports.boatInfoAtTime = function(boat, time, callback) {
+  var query = {
+    $and: [
+      {boat: mongoose.Types.ObjectId(boat) },
+      {startTime: {$lte: time, $gte: new Date(time.getTime() - 60 * 60 * 1000)} },
+      {endTime: {$gt: time} },
+      {key: {$regex : /^s18/}} // only scale 18
+    ]
+  };
+  Tiles.find(query, function(err, tiles) {
+     if (err) {
+       callback(err, undefined);
+       return;
+     }
+
+     console.log('Searching for boat info at time ' + time
+                 + ': ' + tiles.length + ' tiles returned by mongo');
+     var closest;
+     tiles.forEach(function(tile) {
+       tile.curves.forEach(function(c) {
+         c.points.forEach(function(p) {
+           if (closest == undefined
+               || Math.abs(p.time - time) < Math.abs(closest.time - time)) {
+             closest = p;
+           }
+         });
+       });
+     });
+
+     callback(undefined, closest);
+  });
+};

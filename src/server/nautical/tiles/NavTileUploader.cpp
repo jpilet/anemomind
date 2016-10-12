@@ -6,6 +6,7 @@
 #include <server/common/Optional.h>
 #include <server/common/Span.h>
 #include <server/common/logging.h>
+#include <server/nautical/MaxSpeed.h>
 #include <server/nautical/tiles/MongoUtils.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 
@@ -257,24 +258,14 @@ BSONObj makeBsonSession(
   session.append("boat", OID(boatId));
   session.append("trajectoryLength",
       computeTrajectoryLength(navs).nauticalMiles());
-  int maxSpeedIndex = findMaxSpeedOverGround(navArray);
-  if (maxSpeedIndex >= 0) {
-    const Nav& nav = navArray[maxSpeedIndex];
-    auto speedKnots = nav.gpsSpeed().knots();
-    auto timeOfMax = nav.time();
-    if (!isFinite(speedKnots)) {
-      LOG(WARNING) << "The max speed is not finite for curve '"
-          << curveId << "' and boat '" << boatId << "'";
-    }
-    if (timeOfMax.undefined()) {
-      LOG(WARNING) << "The time of max speed is undefined";
-    }
 
-    session.append("maxSpeedOverGround", speedKnots);
-    append(session, "maxSpeedOverGroundTime", timeOfMax);
-
+  Optional<MaxSpeed> maxSpeed = computeMaxSpeed(navs, Duration<>::seconds(60));
+  if (maxSpeed.defined()) {
+    session.append("maxSpeedOverGround", maxSpeed.get().speed.knots());
+    append(session, "maxSpeedOverGroundTime", maxSpeed.get().begin);
   } else {
-    LOG(WARNING) << "No max speed found";
+    LOG(WARNING) << "The max speed is not defined for curve '"
+        << curveId << "' and boat '" << boatId << "'";
   }
 
   auto startTime = navArray[0].time();
@@ -358,7 +349,7 @@ bool generateAndUploadTiles(std::string boatId,
 
     for (auto tileKey : tiles) {
       Array<Array<Nav>> subCurvesInTile = generateTiles(
-          tileKey, navs, params.maxNumNavsPerSubCurve);
+          tileKey, navs, params.maxNumNavsPerSubCurve, params.curveCutThreshold);
 
       if (subCurvesInTile.size() == 0) {
         continue;

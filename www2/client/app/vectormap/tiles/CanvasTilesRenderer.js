@@ -34,6 +34,8 @@ function CanvasTilesRenderer(params) {
 
   this.params.downsampleDuringMotion = false;
 
+  this.pixelRatio = params.forceDevicePixelRatio || 1;
+
   this.layers = [
     new TileLayer(params, this)
   ];
@@ -79,8 +81,15 @@ function CanvasTilesRenderer(params) {
 
   // We are ready, let's allow drawing.  
   this.inDraw = false;
+
+  t.clicHandlers = [];
+  t.pinchZoom.onClic = function(pos) {
+    for(var i=0; i<t.clicHandlers.length; i++) {
+      if(t.clicHandlers[i](pos))
+        return false;
+    }
+  }
   
-  this.pinchZoom.onClic = function(pos) { };
 
   var location = params.initialLocation || {
     x: (this.params.width || 1) / 2,
@@ -115,6 +124,10 @@ CanvasTilesRenderer.prototype.addLayer = function(layer) {
   this.refreshIfNotMoving();
 };
 
+CanvasTilesRenderer.prototype.addClicHandler = function(func) {
+  this.clicHandlers.push(func);
+};
+
 /** Get the current view location.
  *
  *  Returns an object containing:
@@ -139,7 +152,7 @@ CanvasTilesRenderer.prototype.getLocation = function() {
  */
 CanvasTilesRenderer.prototype.setLocation = function(location) {
   if (isNaN(location.x) || isNaN(location.y) || isNaN(location.scale)) {
-    throw('invalid location');
+    throw(new Error('invalid location'));
   }
   var canvas = this.canvas;
   var ratio = [
@@ -332,3 +345,18 @@ CanvasTilesRenderer.prototype.refreshIfNotMoving = function() {
     this.refresh();
   }
 }
+
+// loadImage might be overloaded when rendering outside of a browser,
+// for example with node-canvas.
+CanvasTilesRenderer.prototype.loadImage = function(url, success, failure) {
+  var image = new Image();
+  image.src = url;
+  image.onload = function() {
+    success(image);
+  };
+  if (failure) {
+    image.onerror = function(err) {
+      failure(err);
+    };
+  }
+};

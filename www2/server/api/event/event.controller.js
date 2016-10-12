@@ -12,6 +12,8 @@ var mkdirp = require('mkdirp');
 var boatAccess = require('../boat/access.js');
 var backup = require('../../components/backup');
 
+var tiles = require('../tiles/tiles.controller.js');
+
 // Encoding hex mongoid in urls is too long.
 // we should switch to https://www.npmjs.com/package/hashids
 // at some point.
@@ -41,7 +43,8 @@ var canWrite = function(req, event) {
 function sendEventsWithQuery(res, query) {
   Event.find(query, function (err, events) {
     if(err) { return handleError(res, err); }
-    return res.status(200).json(events);
+  
+    res.status(200).json(events);
   });
 }
 
@@ -104,8 +107,16 @@ exports.show = function(req, res) {
     if(!event) { return res.sendStatus(404); }
 
     canRead(req, event)
-    .then(function() { res.json(event); })
-    .catch(function(err) { res.sendStatus(403); });
+    .then(function() {
+      return extendEventWithBoatData(event);
+    })
+    .then(function(event) {
+      res.json(event);
+    })
+    .catch(function(err) {
+      console.log(err + (err.stack ? err.stack : ''));
+      res.sendStatus(403);
+    });
   });
 };
 

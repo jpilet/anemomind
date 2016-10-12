@@ -92,6 +92,25 @@ this.Utils = {
       y: ((1 - Math.log(Math.tan(lat) + 1 / Math.cos(lat)) / Math.PI) / 2)
     };
   },
+  worldToLatLon: function(osm) {
+    var x;
+    var y;
+    if (osm == undefined) {
+      return undefined;
+    } else if (Array.isArray(osm)) {
+      x = osm[0];
+      y = osm[1];
+    } else if ('x' in osm && 'y' in osm) {
+      x = osm.x;
+      y = osm.y;
+    } else {
+      return undefined;
+    }
+    var lon_deg = x * 360.0 - 180.0;
+    var n = Math.PI-2*Math.PI*y;
+    var lat_deg = (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+    return {lat: lat_deg, lon: lon_deg};
+  },
 
 
   worldToTile: function(scale, coord) {

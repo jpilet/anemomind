@@ -150,7 +150,7 @@ bool uploadChartTile(const ChartTile<T> tile,
 
   key.append("boat", boatId);
   key.append("zoom", tile.zoom);
-  key.append("tileno", tile.tileno);
+  key.append("tileno", (long long) tile.tileno);
   key.append("what", data->wordIdentifier());
   key.append("source", data->source());
   result.append("_id", key.obj());
