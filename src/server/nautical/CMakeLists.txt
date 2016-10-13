@@ -138,6 +138,7 @@ add_executable(nautical_illustrate
 target_link_libraries(nautical_illustrate
   common_ArgMap
   common_TimeStamp
+  nautical_BoatLogProcessor
   )
 
 add_executable(nautical_processBoatLogs

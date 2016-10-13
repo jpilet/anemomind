@@ -7,6 +7,10 @@
 
 #include <server/common/ArgMap.h>
 #include <server/common/TimeStamp.h>
+#include <server/nautical/DownsampleGps.h>
+#include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/BoatLogProcessor.h>
+#include <server/nautical/tiles/TileUtils.h>
 
 using namespace sail;
 
@@ -23,25 +27,19 @@ struct Setup {
   }
 };
 
+NavDataset loadNavs(const std::string &path) {
+  LogLoader loader;
+  loader.load(path);
+  return loader.makeNavDataset();
+}
+
 void makeIllustrations(const Setup &setup) {
-  if (_resumeAfterPrepare.size() > 0) {
-      resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
-    } else {
-      NavDataset raw = loadNavs(*amap, _boatid);
-      resampled = downSampleGpsTo1Hz(raw);
+    GpsFilterSettings gpsFilterSettings;
+    NavDataset raw = loadNavs(setup.path);
+    auto resampled = downSampleGpsTo1Hz(raw);
+    resampled = filterNavs(resampled, gpsFilterSettings);
 
-      if (_gpsFilter) {
-        resampled = filterNavs(resampled, _gpsFilterSettings);
-      }
-    }
-
-    if (_savePreparedData.size() != 0) {
-      saveDispatcher(_savePreparedData.c_str(), *(resampled.dispatcher()));
-    }
-
-    // Note: the grammar does not have access to proper true wind.
-    // It has to do its own estimate.
-    std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
+    /*std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
 
     if (!fulltree) {
       LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
@@ -63,6 +61,7 @@ void makeIllustrations(const Setup &setup) {
 
     // First simulation pass: adds true wind
     NavDataset simulated = calibrator.simulate(resampled);
+*/
 
     /*
   Why this is needed:
@@ -74,7 +73,7 @@ void makeIllustrations(const Setup &setup) {
   slice that produce. This saves us a lot of memory. If we decide to refactor
   this code some time, we should think carefully how we want to do the merging.
      */
-    simulated.mergeAll();
+    /*simulated.mergeAll();
 
     if (_saveSimulated.size() > 0) {
       saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
@@ -117,8 +116,7 @@ void makeIllustrations(const Setup &setup) {
 
     LOG(INFO) << "Processing time for " << _boatid << ": "
       << (TimeStamp::now() - start).seconds() << " seconds.";
-    return true;
-
+    return true;*/
 }
 
 int main(int argc, const char **argv) {
