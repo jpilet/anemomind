@@ -21,6 +21,7 @@ if (${FULL_BUILD})
   include("cmake/ceres-solver.cmake")
   include("cmake/FindMongoDB.cmake")
   include("cmake/FindF2C.cmake")
+  include("cmake/cairo.cmake")
 
   find_package(Eigen3 REQUIRED)
   include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
