@@ -119,11 +119,11 @@ HtmlNode::Ptr makePlotCanvas(const HtmlNode::Ptr &dst,
   std::stringstream ss;
   ss.precision(17);
   ss << "matrix(";
-  ss << mat(0, 0) << ", ";
-  ss << mat(1, 0) << ", ";
-  ss << mat(0, 1) << ", ";
-  ss << mat(1, 1) << ", ";
-  ss << mat(0, last) << ", ";
+  ss << mat(0, 0) << ",";
+  ss << mat(1, 0) << ",";
+  ss << mat(0, 1) << ",";
+  ss << mat(1, 1) << ",";
+  ss << mat(0, last) << ",";
   ss << mat(1, last) << ")";
 
   return HtmlTag::make(dst, "g", {
@@ -133,10 +133,53 @@ HtmlNode::Ptr makePlotCanvas(const HtmlNode::Ptr &dst,
 
 void renderPlottablesToCanvas(
     const std::vector<Plottable::Ptr> &plottables,
-    HtmlNode::Ptr canvas) {
+    const RenderingContext &context) {
   for (auto obj: plottables) {
-    obj->render2d(canvas);
+    obj->render2d(context);
   }
+}
+
+Plottable::Ptr LineStrip::make(
+    const Array<Eigen::Vector3d> &pts,
+    const RenderSettings &rs) {
+  return Plottable::Ptr(new LineStrip(pts, rs));
+}
+
+Plottable::Ptr LineStrip::make(
+    const Array<Eigen::Vector2d> &pts,
+    const RenderSettings &rs) {
+  int n = pts.size();
+  Array<Eigen::Vector3d> dst(n);
+  return make(dst, rs);
+}
+
+void LineStrip::extend(BBox3d *dst) const {
+  for (auto pt: _pts) {
+    dst->extend(pt.data());
+  }
+}
+
+std::pair<std::string, AttribValue> vectorEffect(const RenderSize::SizeMode &x) {
+  return std::pair<std::string, AttribValue>(
+      "vector-effect",
+        x == RenderSize::Global? "non-scaling-stroke" : "none");
+}
+
+void LineStrip::render2d(const RenderingContext &dst) const {
+  std::stringstream points;
+  for (auto pt: _pts) {
+    points << pt(0) << "," << pt(1) << " ";
+  }
+
+  std::stringstream style;
+  style << "fill:none;stroke:"
+      << _rs.colorCode << ";stroke-width:" << _rs.lineWidth.value;
+
+  auto p = HtmlTag::make(dst.localCanvas, "polyline", {
+      {"points", points.str()},
+      {"style", style.str()},
+      vectorEffect(_rs.lineWidth.mode)
+  });
 }
 
 
@@ -145,9 +188,15 @@ void renderPlottablesToCanvas(
       HtmlNode::Ptr dst,
       const Settings2d &settings) {
   auto bbox = computeBBox(plottables, settings);
-  Eigen::Matrix<double, 2, 4> proj = computeTotalProjection(bbox, settings);
-  auto canvas = makePlotCanvas(dst, proj);
-  renderPlottablesToCanvas(plottables, canvas);
+  Eigen::Matrix<double, 2, 4> proj
+    = computeTotalProjection(bbox, settings);
+  auto svg = HtmlTag::make(dst, "svg", {
+    {"width", settings.width},
+    {"height", settings.height}
+  });
+  auto canvas = makePlotCanvas(svg, proj);
+  RenderingContext context{proj, canvas, svg};
+  renderPlottablesToCanvas(plottables, context);
 }
 
 

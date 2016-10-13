@@ -17,25 +17,55 @@
 namespace sail {
 namespace SvgPlot {
 
+struct RenderSize {
+  enum SizeMode {
+    Local, // Specifies the size in the global coordinate system.
+    Global // Specifies the size in the local coordinate system.
+  };
+
+  double value = 3.0;
+  SizeMode mode = Global;
+};
+
 struct RenderSettings {
   std::string colorCode = "blue";
+  RenderSize markerSize, lineWidth;
+};
+
+struct RenderingContext {
+  Eigen::Matrix<double, 2, 4> localToGlobalProj;
+  HtmlNode::Ptr localCanvas;
+  HtmlNode::Ptr globalCanvas;
 };
 
 // Makes
 class Plottable {
 public:
-  virtual void extend(BBox3d *dst) = 0;
-  virtual void render2d(HtmlNode::Ptr dst) = 0;
+  virtual void extend(BBox3d *dst) const = 0;
+  virtual void render2d(const RenderingContext &dst) const = 0;
 
   typedef std::shared_ptr<Plottable> Ptr;
 
-  virtual ~Plottable();
+  virtual ~Plottable() {}
 };
 
 class LineStrip : public Plottable {
 public:
+  LineStrip(const Array<Eigen::Vector3d> &pts, const RenderSettings &rs =
+      RenderSettings()) :
+    _pts(pts), _rs(rs) {}
 
+  static Plottable::Ptr make(
+      const Array<Eigen::Vector3d> &pts,
+      const RenderSettings &rs = RenderSettings());
+  static Plottable::Ptr make(
+      const Array<Eigen::Vector2d> &pts,
+      const RenderSettings &rs = RenderSettings());
+
+  void extend(BBox3d *dst) const;
+  void render2d(const RenderingContext &dst) const;
 private:
+  RenderSettings _rs;
   Array<Eigen::Vector3d> _pts;
 };
 
