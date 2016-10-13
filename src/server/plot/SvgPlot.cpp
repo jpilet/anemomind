@@ -24,9 +24,11 @@ BBox3d makeDefaultBBox() {
 bool isEmpty(const BBox3d &box) {
   double diag = 0.0;
   for (int i = 0; i < 3; i++) {
-    diag += sqr(box.getSpan(i).width());
+    double w = box.getSpan(i).width();
+    std::cout << "  w = " << w << std::endl;
+    diag += sqr(w);
   }
-  return sqrt(diag + 1.0e-12) < 1.0e-12;
+  return sqrt(diag + 1.0e-30) < 1.0e-9;
 }
 
 void dispBBox(const BBox3d &a) {
