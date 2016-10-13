@@ -11,6 +11,8 @@
 #include <server/common/HtmlLog.h>
 #include <server/common/BBox.h>
 #include <Eigen/Dense>
+#include <server/common/Optional.h>
+
 
 namespace sail {
 namespace SvgPlot {
@@ -30,23 +32,29 @@ public:
   virtual ~Plottable();
 };
 
+class LineStrip : public Plottable {
+public:
+
+private:
+  Array<Eigen::Vector3d> _pts;
+};
+
 struct Settings2d {
-  double innerMargin = 10;
+  static constexpr double masterMargin = 30;
+  double xMargin = masterMargin*1.61803398875;
+  double yMargin = masterMargin;
   double width = 640;
   double height = 480;
+  bool axisIJ = false;
+  bool orthogonal = true;
+  Optional<BBox3d> roi;
 };
 
 // Collects all the objects
-class Model {
-public:
-  void render2d(
-      HtmlNode::Ptr dst,
-      const Settings2d &settings);
-
-private:
-  BBox3d _bbox;
-  std::vector<Plottable::Ptr> _plottables;
-};
+void render2d(
+    const std::vector<Plottable::Ptr> &plottables,
+    HtmlNode::Ptr dst,
+    const Settings2d &settings);
 
 }
 }

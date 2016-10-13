@@ -16,6 +16,7 @@
 #include <server/nautical/calib/Calibrator.h>
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <server/common/HtmlLog.h>
+#include <server/plot/SvgPlot.h>
 
 using namespace sail;
 
@@ -46,6 +47,12 @@ void makeIllustrationsForSession(
   HtmlTag::tagWithData(dst, "h2", "Session");
   HtmlTag::tagWithData(dst, "p", stringFormat("Session of length %s",
       ds.duration().str().c_str()));
+
+  using namespace SvgPlot;
+
+  std::vector<Plottable::Ptr> objs;
+  Settings2d settings;
+  render2d(objs, dst, settings);
 }
 
 void makeAllIllustrations(const Setup &setup,

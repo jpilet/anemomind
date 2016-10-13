@@ -141,6 +141,7 @@ target_link_libraries(nautical_illustrate
   nautical_BoatLogProcessor
   common_Env
   common_HtmlLog
+  plot_SvgPlot
   )
 
 add_executable(nautical_processBoatLogs
