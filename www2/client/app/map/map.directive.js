@@ -55,4 +55,23 @@ angular.module('www2App')
         });
       }
     };
+  })
+  .directive('shareLightbox', function (Lightbox) {
+    return {
+      restrict: 'C',
+      link: function (scope, element, attrs) {
+        angular.element(element).on('click', function() {
+          // To fool the Lightbox that there is an image. 
+          // Sadly, this Lightbox plugin doesn't play friendly if there is no image passed.
+          var images = [{'url': '',}]; 
+
+          var oldTemplate = Lightbox.templateUrl;
+          
+          Lightbox.templateUrl = 'app/map/sharePopup.html';
+          Lightbox.openModal(images,0);
+
+          Lightbox.templateUrl = oldTemplate;
+        });
+      }
+    };
   });
