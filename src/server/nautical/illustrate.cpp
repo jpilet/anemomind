@@ -42,6 +42,10 @@ NavDataset loadNavs(const std::string &path) {
   return loader.makeNavDataset();
 }
 
+SvgPlot::Plottable::Ptr makeGpsPlot(const NavDataset &ds) {
+  auto positions = ds.samples<GPS_POS>();
+}
+
 void makeIllustrationsForSession(
     const NavDataset &ds, HtmlNode::Ptr dst) {
   HtmlTag::tagWithData(dst, "h2", "Session");
@@ -51,6 +55,8 @@ void makeIllustrationsForSession(
   using namespace SvgPlot;
 
   std::vector<Plottable::Ptr> objs;
+  objs.push_back(makeGpsPlot(ds));
+
   Settings2d settings;
   render2d(objs, dst, settings);
 }
