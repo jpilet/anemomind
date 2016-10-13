@@ -139,18 +139,22 @@ void renderPlottablesToCanvas(
   }
 }
 
-Plottable::Ptr LineStrip::make(
+Plottable::Ptr LineStrip::make3d(
     const Array<Eigen::Vector3d> &pts,
     const RenderSettings &rs) {
   return Plottable::Ptr(new LineStrip(pts, rs));
 }
 
-Plottable::Ptr LineStrip::make(
+Plottable::Ptr LineStrip::make2d(
     const Array<Eigen::Vector2d> &pts,
     const RenderSettings &rs) {
   int n = pts.size();
   Array<Eigen::Vector3d> dst(n);
-  return make(dst, rs);
+  for (int i = 0; i < n; i++) {
+    auto xy = pts[i];
+    dst[i] = Eigen::Vector3d(xy(0), xy(1), 0.0);
+  }
+  return make3d(dst, rs);
 }
 
 void LineStrip::extend(BBox3d *dst) const {

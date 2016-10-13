@@ -55,10 +55,10 @@ public:
       RenderSettings()) :
     _pts(pts), _rs(rs) {}
 
-  static Plottable::Ptr make(
+  static Plottable::Ptr make3d(
       const Array<Eigen::Vector3d> &pts,
       const RenderSettings &rs = RenderSettings());
-  static Plottable::Ptr make(
+  static Plottable::Ptr make2d(
       const Array<Eigen::Vector2d> &pts,
       const RenderSettings &rs = RenderSettings());
 

@@ -7,6 +7,7 @@
 
 #include <server/plot/SvgPlot.h>
 #include <gtest/gtest.h>
+#include <server/common/Env.h>
 
 using namespace sail;
 using namespace sail::SvgPlot;
@@ -53,14 +54,32 @@ TEST(SvgPlotTest, Geometry) {
 
   Eigen::Matrix4d pose = Eigen::Matrix<double, 4, 4>::Identity();
   pose(1, 1) = -1.0;
-  pose(2, 3) = -1.0;
+  pose(2, 2) = -1.0;
 
   auto projected = projectBBox(pose, box);
-  EXPECT_NEAR((getLower(projected) - Eigen::Vector3d(-1, -2 , -3)).norm(),
-      0.0, 1.0e-6);
-  EXPECT_NEAR((getUpper(projected) - Eigen::Vector3d(0, 0, 0)).norm(),
-      0.0, 1.0e-6);
 
-  //Eigen::Matrix<double, 2, 4> computeTotalProjection(
-  //const BBox3d &a, const Settings2d &settings);
+  EXPECT_NEAR((getLower(projected) - Eigen::Vector3d(0, -2 , -3)).norm(),
+      0.0, 1.0e-6);
+  EXPECT_NEAR((getUpper(projected) - Eigen::Vector3d(1, 0, 0)).norm(),
+      0.0, 1.0e-6);
+}
+
+TEST(SvgPlotTest, SampleRenderTriangle) { // Just so that we can expect what it does
+  auto dst = HtmlPage::make(Env::BINARY_DIR, "rendered_triangle");
+  HtmlTag::tagWithData(dst, "h1", "Triangle");
+  HtmlTag::tagWithData(dst, "p",
+      "You should see a red triangle with one corner pointing up");
+
+  RenderSettings rs;
+  rs.colorCode = "red";
+
+  double x = 0.01;
+  double y = sqrt(3.0)*x;
+
+  std::vector<Plottable::Ptr> parts;
+  parts.push_back(LineStrip::make2d({
+    Eigen::Vector2d(0, 0),
+    Eigen::Vector2d(x, y),
+    Eigen::Vector2d(2*x, 0)
+  }, rs));
 }

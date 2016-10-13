@@ -53,4 +53,5 @@ cxx_test(plot_SvgPlotTest
   SvgPlotTest.cpp
   gtest_main
   plot_SvgPlot
+  common_Env
   )
