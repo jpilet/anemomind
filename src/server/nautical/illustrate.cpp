@@ -5,8 +5,8 @@
  *      Author: jonas
  */
 
+using namespace sail;
+
 int main(int argc, const char **argv) {
   return 0;
 }
-
-

@@ -131,6 +131,14 @@ target_link_libraries(nautical_BoatLogProcessor
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)
 
+add_executable(nautical_illustrate
+  illustrate.cpp
+  )
+
+target_link_libraries(nautical_illustrate
+  common_ArgMap
+  )
+
 add_executable(nautical_processBoatLogs
                processBoatLogs.cpp
               )
