@@ -5,6 +5,8 @@
  *      Author: jonas
  */
 
+#include <server/common/ArgMap.h>
+
 using namespace sail;
 
 int main(int argc, const char **argv) {
