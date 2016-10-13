@@ -1,1 +1,2 @@
-./nautical_illustrate ~/prog/anemomind/datasets/Irene/2014
+./nautical_illustrate --path ~/prog/anemomind/datasets/Irene/2014/
+

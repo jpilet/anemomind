@@ -186,29 +186,9 @@ void collectSpeedSamplesBlind(const NavDataset& navs,
     return TargetSpeed(isUpwind, twsArr, vmgArr, bounds);
   }
 
-  void outputTargetSpeedTable(
-      bool debug,
-      std::shared_ptr<HTree> tree,
-      Array<HNode> nodeinfo,
-      NavDataset navs,
-      VmgSampleSelection vmgSampleSelection,
-      std::ofstream *file) {
-    TargetSpeed uw = makeTargetSpeedTable(true, vmgSampleSelection,
-                                          tree, nodeinfo, navs, "upwind-leg");
-    TargetSpeed dw = makeTargetSpeedTable(false, vmgSampleSelection,
-                                          tree, nodeinfo, navs, "downwind-leg");
-
-    if (debug) {
-      LOG(INFO) << "Upwind";
-      uw.plot();
-      LOG(INFO) << "Downwind";
-      dw.plot();
-    }
-
-    saveTargetSpeedTableChunk(file, uw, dw);
-  }
-
 }  // namespace
+
+
 
 void dispTargetSpeedTable(const char *label, const TargetSpeedTable &table, FP8_8 *data) {
   MDArray2d x(table.NUM_ENTRIES, 2);
@@ -223,6 +203,13 @@ void dispTargetSpeedTable(const char *label, const TargetSpeedTable &table, FP8_
   plot.show();
 }
 
+
+Nav::Id extractBoatId(Poco::Path path) {
+  return path.directory(path.depth()-1);
+}
+
+}  // namespace
+
 // For debugging purposes
 void visualizeBoatDat(Poco::Path dstPath) {
   auto boatDatPath = PathBuilder::makeDirectory(dstPath).makeFile("boat.dat").get().toString();
@@ -233,11 +220,28 @@ void visualizeBoatDat(Poco::Path dstPath) {
   dispTargetSpeedTable("Upwind", table, table._upwind);
 }
 
-Nav::Id extractBoatId(Poco::Path path) {
-  return path.directory(path.depth()-1);
-}
 
-}  // namespace
+void outputTargetSpeedTable(
+    bool debug,
+    std::shared_ptr<HTree> tree,
+    Array<HNode> nodeinfo,
+    NavDataset navs,
+    VmgSampleSelection vmgSampleSelection,
+    std::ofstream *file) {
+  TargetSpeed uw = makeTargetSpeedTable(true, vmgSampleSelection,
+                                        tree, nodeinfo, navs, "upwind-leg");
+  TargetSpeed dw = makeTargetSpeedTable(false, vmgSampleSelection,
+                                        tree, nodeinfo, navs, "downwind-leg");
+
+  if (debug) {
+    LOG(INFO) << "Upwind";
+    uw.plot();
+    LOG(INFO) << "Downwind";
+    dw.plot();
+  }
+
+  saveTargetSpeedTableChunk(file, uw, dw);
+}
 
 NavDataset loadNavs(ArgMap &amap, std::string boatId) {
   LogLoader loader;

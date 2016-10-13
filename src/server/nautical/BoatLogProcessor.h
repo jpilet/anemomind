@@ -57,6 +57,15 @@ struct BoatLogProcessor {
   mongo::DBClientConnection db;
 };
 
+void visualizeBoatDat(Poco::Path dstPath);
+void outputTargetSpeedTable(
+    bool debug,
+    std::shared_ptr<HTree> tree,
+    Array<HNode> nodeinfo,
+    NavDataset navs,
+    VmgSampleSelection vmgSampleSelection,
+    std::ofstream *file);
+
 int mainProcessBoatLogs(int argc, const char **argv);
 
 

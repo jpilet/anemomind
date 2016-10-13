@@ -14,6 +14,7 @@
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 #include <server/nautical/calib/Calibrator.h>
+#include <device/anemobox/simulator/SimulateBox.h>
 
 using namespace sail;
 
@@ -39,39 +40,40 @@ NavDataset loadNavs(const std::string &path) {
 }
 
 bool makeIllustrations(const Setup &setup) {
-    BoatLogProcessor proc;
+  auto start = TimeStamp::now();
+  BoatLogProcessor proc;
 
-    NavDataset raw = loadNavs(setup.path)
-        .fitBounds();
+  NavDataset raw = loadNavs(setup.path)
+      .fitBounds();
 
-    raw = raw.slice(earliest(setup.from(), raw.lowerBound()),
+  raw = raw.slice(earliest(setup.from(), raw.lowerBound()),
                     latest(setup.to(), raw.upperBound()));
 
-    auto resampled = downSampleGpsTo1Hz(raw);
-    resampled = filterNavs(resampled, proc._gpsFilterSettings);
+  auto resampled = downSampleGpsTo1Hz(raw);
+  resampled = filterNavs(resampled, proc._gpsFilterSettings);
 
-    std::shared_ptr<HTree> fulltree = proc._grammar.parse(resampled);
+  std::shared_ptr<HTree> fulltree = proc._grammar.parse(resampled);
 
-    if (!fulltree) {
-      LOG(WARNING) << "grammar parsing failed. No data?";
-      return false;
-    }
+  if (!fulltree) {
+    LOG(WARNING) << "grammar parsing failed. No data?";
+    return false;
+  }
 
-    Calibrator calibrator(proc._grammar.grammar);
-    if (proc._verboseCalibrator) { calibrator.setVerbose(); }
-    std::string boatDatPath = setup.prefix + "/boat.dat";
-    std::ofstream boatDatFile(boatDatPath);
+  Calibrator calibrator(proc._grammar.grammar);
+  if (proc._verboseCalibrator) { calibrator.setVerbose(); }
+  std::string boatDatPath = setup.prefix + "/boat.dat";
+  std::ofstream boatDatFile(boatDatPath);
 
-    // Calibrate. TODO: use filtered data instead of resampled.
-    if (calibrator.calibrate(resampled, fulltree, "illustrate")) {
-        calibrator.saveCalibration(&boatDatFile);
-    } else {
-      LOG(WARNING) << "Calibration failed. Using default calib values.";
-      calibrator.clear();
-    }
+  // Calibrate. TODO: use filtered data instead of resampled.
+  if (calibrator.calibrate(resampled, fulltree, proc._boatid)) {
+      calibrator.saveCalibration(&boatDatFile);
+  } else {
+    LOG(WARNING) << "Calibration failed. Using default calib values.";
+    calibrator.clear();
+  }
 
-    // First simulation pass: adds true wind
-    NavDataset simulated = calibrator.simulate(resampled);
+  // First simulation pass: adds true wind
+  NavDataset simulated = calibrator.simulate(resampled);
 
     /*
   Why this is needed:
@@ -83,47 +85,31 @@ bool makeIllustrations(const Setup &setup) {
   slice that produce. This saves us a lot of memory. If we decide to refactor
   this code some time, we should think carefully how we want to do the merging.
      */
-    simulated.mergeAll();
+  simulated.mergeAll();
 
-    /*outputTargetSpeedTable(_debug,
-                           fulltree,
-                           _grammar.grammar.nodeInfo(),
-                           simulated,
-                           _vmgSampleSelection,
-                           &boatDatFile);
+  outputTargetSpeedTable(proc._debug,
+                         fulltree,
+                         proc._grammar.grammar.nodeInfo(),
+                         simulated,
+                         proc._vmgSampleSelection,
+                         &boatDatFile);
+  // write calibration and target speed to disk
+  boatDatFile.close();
 
-    // write calibration and target speed to disk
-    boatDatFile.close();
+  // Second simulation path to apply target speed.
+  // Todo: simply lookup the target speed instead of recomputing true wind.
+  simulated = SimulateBox(boatDatPath, simulated);
 
-    // Second simulation path to apply target speed.
-    // Todo: simply lookup the target speed instead of recomputing true wind.
-    simulated = SimulateBox(boatDatPath, simulated);
+  if (proc._debug) {
+    visualizeBoatDat(setup.prefix);
+  }
 
-    if (_debug) {
-      visualizeBoatDat(_dstPath);
-    }
+    Array<NavDataset> sessions =
+      extractAll("Sailing", simulated, proc._grammar.grammar, fulltree);
 
-    if (_generateTiles) {
-      Array<NavDataset> sessions =
-        extractAll("Sailing", simulated, _grammar.grammar, fulltree);
-
-      if (!generateAndUploadTiles(_boatid, sessions, &db, _tileParams)) {
-        LOG(ERROR) << "generateAndUpload: tile generation failed";
-        return false;
-      }
-    }
-
-    if (_generateChartTiles) {
-      if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)) {
-        LOG(ERROR) << "Failed to upload chart tiles!";
-        return false;
-      }
-    }
-
-    LOG(INFO) << "Processing time for " << _boatid << ": "
-      << (TimeStamp::now() - start).seconds() << " seconds.";
-    return true;*/
-    return true;
+  LOG(INFO) << "Processing time for " << proc._boatid << ": "
+    << (TimeStamp::now() - start).seconds() << " seconds.";
+  return true;
 }
 
 int main(int argc, const char **argv) {
