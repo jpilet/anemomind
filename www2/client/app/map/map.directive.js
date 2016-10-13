@@ -24,4 +24,37 @@ angular.module('www2App')
         });
       }
     };
+  })
+  .directive('heightCheck', function ($timeout) {
+    return {
+      restrict: 'C',
+      link: function (scope, element, attrs) {
+        element.on('click', function() {
+          var el = angular.element(this);
+          var parent = el.parent();
+          var container = parent.find('.collapsible');
+          var offset = 5;
+          $timeout(function() {
+            if(container.hasClass('uncollapse-area')) {
+              var parentPos = parent.offset();
+              var containerPos = container.offset();
+              var resBtnsPos = angular.element('.responsiveNavButtons').offset();
+              var heightTotal = parent.height() + parentPos.top;
+
+              // checks if the container overlaps the footer
+              if(heightTotal > resBtnsPos.top) {
+                parent.outerHeight(resBtnsPos.top - parentPos.top);
+                
+                container.outerHeight(parent.outerHeight() - el.outerHeight());
+                container.css('overflow-y','scroll');
+              }
+            }
+            else {
+              parent.attr('style','');
+              container.attr('style','');
+            }
+          }, 100);
+        });
+      }
+    };
   });
