@@ -19,7 +19,7 @@ function vmgAtPoint(p) {
 }
 
 angular.module('www2App')
-  .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
+  .controller('MapCtrl', function ($scope, $stateParams, userDB, boatList, $timeout,
                                    $http, $interval, $state, $location) {
 
     $scope.boat = { _id: $stateParams.boatId, name: 'loading' };
@@ -88,11 +88,26 @@ angular.module('www2App')
     // Catches browser history navigation events (back,..)
     $scope.$on('$locationChangeSuccess', parseParams);
 
-    $http.get('/api/boats/' + $stateParams.boatId)
-    .success(function(data, status, headers, config) {
-      $scope.boat = data;
+    // $http.get('/api/boats/' + $stateParams.boatId)
+    // .success(function(data, status, headers, config) {
+    //   $scope.boat = data;
+    //   console.log('------------------',data)
 
+    // });
+
+    boatList.boats().then(function (boats) {
+      $scope.boat=boatList.boat($stateParams.boatId);
+      $scope.sharedLink=$location.absUrl();
     });
+
+    $scope.changePublicAccess=function() {
+      $scope.boat.publicAccess = ! $scope.boat.publicAccess;      
+      boatList.save($stateParams.boatId, $scope.boat)
+        .success(function(boat) { 
+          $scope.boat = boat; 
+        });
+    }
+
 
     $scope.eventList = [];
     $scope.users = {};
