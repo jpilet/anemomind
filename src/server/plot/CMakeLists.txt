@@ -15,27 +15,18 @@ target_link_libraries(examples_GnuplotExample
   common_LineKM
   plot_gnuplot) 
 
-add_library(plot_Plot
-  Plot.h
-  Plot.cpp
+add_library(plot_SvgPlot
+  SvgPlot.h
+  SvgPlot.cpp
   )
 
-target_link_libraries(plot_Plot
-  common_BBox
+target_link_libraries(plot_SvgPlot
+  common_HtmlGen
   )
 
-cxx_test(plot_PlotTest
-  PlotTest.cpp
+cxx_test(plot_SvgPlotTest
+  SvgPlotTest.cpp
   gtest_main
-  plot_Plot
-  )
-
-add_library(plot_GnuPlotModel
-  GnuPlotModel.h
-  GnuPlotModel.cpp
-  )
-
-target_link_libraries(plot_GnuPlotModel
-  plot_Plot
-  plot_gnuplot
+  plot_SvgPlot
+  common_Env
   )

@@ -47,7 +47,7 @@ class BBox {
     }
   }
 
-  const Span<T> &getSpan(int index) {
+  const Span<T> &getSpan(int index) const {
     return _span[index];
   }
 
