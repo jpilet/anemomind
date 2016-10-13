@@ -11,12 +11,17 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/BoatLogProcessor.h>
 #include <server/nautical/tiles/TileUtils.h>
+#include <server/common/Env.h>
+#include <server/common/PathBuilder.h>
+#include <server/nautical/calib/Calibrator.h>
 
 using namespace sail;
 
 struct Setup {
   std::string path;
   std::string fromStr, toStr;
+  std::string prefix = PathBuilder::makeDirectory(
+      Env::BINARY_DIR).makeFile("illustrate").get().toString();
 
   TimeStamp from() const {
     return TimeStamp::parse(fromStr);
@@ -33,7 +38,7 @@ NavDataset loadNavs(const std::string &path) {
   return loader.makeNavDataset();
 }
 
-void makeIllustrations(const Setup &setup) {
+bool makeIllustrations(const Setup &setup) {
     BoatLogProcessor proc;
 
     NavDataset raw = loadNavs(setup.path)
@@ -45,20 +50,20 @@ void makeIllustrations(const Setup &setup) {
     auto resampled = downSampleGpsTo1Hz(raw);
     resampled = filterNavs(resampled, proc._gpsFilterSettings);
 
-    /*std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
+    std::shared_ptr<HTree> fulltree = proc._grammar.parse(resampled);
 
     if (!fulltree) {
-      LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
+      LOG(WARNING) << "grammar parsing failed. No data?";
       return false;
     }
 
-    Calibrator calibrator(_grammar.grammar);
-    if (_verboseCalibrator) { calibrator.setVerbose(); }
-    std::string boatDatPath = _dstPath.toString() + "/boat.dat";
+    Calibrator calibrator(proc._grammar.grammar);
+    if (proc._verboseCalibrator) { calibrator.setVerbose(); }
+    std::string boatDatPath = setup.prefix + "/boat.dat";
     std::ofstream boatDatFile(boatDatPath);
 
     // Calibrate. TODO: use filtered data instead of resampled.
-    if (calibrator.calibrate(resampled, fulltree, _boatid)) {
+    if (calibrator.calibrate(resampled, fulltree, "illustrate")) {
         calibrator.saveCalibration(&boatDatFile);
     } else {
       LOG(WARNING) << "Calibration failed. Using default calib values.";
@@ -67,7 +72,6 @@ void makeIllustrations(const Setup &setup) {
 
     // First simulation pass: adds true wind
     NavDataset simulated = calibrator.simulate(resampled);
-*/
 
     /*
   Why this is needed:
@@ -123,6 +127,7 @@ void makeIllustrations(const Setup &setup) {
     LOG(INFO) << "Processing time for " << _boatid << ": "
       << (TimeStamp::now() - start).seconds() << " seconds.";
     return true;*/
+    return true;
 }
 
 int main(int argc, const char **argv) {
@@ -132,16 +137,17 @@ int main(int argc, const char **argv) {
   amap.registerOption("--path", "Path to dataset")
       .store(&(setup.path))
       .required();
-  amap.registerOption("--from", "YYYY-MM-DD").store(&(setup.toStr));
-  amap.registerOption("--to", "YYYY-MM-DD").store(&(setup.fromStr));
+  amap.registerOption("--from", "From date YYYY-MM-DD").store(&(setup.toStr));
+  amap.registerOption("--to", "To date YYYY-MM-DD").store(&(setup.fromStr));
+  amap.registerOption("--prefix", "Where output should be put")
+      .store(&(setup.prefix));
 
   auto status = amap.parse(argc, argv);
   switch (status) {
   case ArgMap::Done:
     return 0;
   case ArgMap::Continue:
-    makeIllustrations(setup);
-    return 0;
+    return makeIllustrations(setup)? 0 : -2;
   case ArgMap::Error:
     return -1;
   };
