@@ -15,6 +15,7 @@
 #include <server/common/PathBuilder.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <device/anemobox/simulator/SimulateBox.h>
+#include <server/common/HtmlLog.h>
 
 using namespace sail;
 
@@ -22,7 +23,8 @@ struct Setup {
   std::string path;
   std::string fromStr, toStr;
   std::string prefix = PathBuilder::makeDirectory(
-      Env::BINARY_DIR).makeFile("illustrate").get().toString();
+      Env::BINARY_DIR).get().toString();
+  std::string name = "illustrate";
 
   TimeStamp from() const {
     return TimeStamp::parse(fromStr);
@@ -37,6 +39,27 @@ NavDataset loadNavs(const std::string &path) {
   LogLoader loader;
   loader.load(path);
   return loader.makeNavDataset();
+}
+
+void makeIllustrationsForSession(
+    const NavDataset &ds, HtmlNode::Ptr dst) {
+  HtmlTag::tagWithData(dst, "h2", "Session");
+  HtmlTag::tagWithData(dst, "p", stringFormat("Session of length %s",
+      ds.duration().str().c_str()));
+}
+
+void makeAllIllustrations(const Setup &setup,
+    const Array<NavDataset> &sessions) {
+  auto root = HtmlPage::make(setup.prefix, setup.name);
+  auto page = HtmlTag::initializePage(root, "Sessions");
+  HtmlTag::tagWithData(page, "h2", "Sessions");
+  auto ol = HtmlTag::make(page, "ol");
+  for (int i = 0; i < sessions.size(); i++) {
+    auto li = HtmlTag::make(ol, "li");
+    std::string title = stringFormat("Session %d", i);
+    auto sub = HtmlTag::linkToSubPage(li, title, true);
+    makeIllustrationsForSession(sessions[i], sub);
+  }
 }
 
 bool makeIllustrations(const Setup &setup) {
@@ -104,8 +127,10 @@ bool makeIllustrations(const Setup &setup) {
     visualizeBoatDat(setup.prefix);
   }
 
-    Array<NavDataset> sessions =
-      extractAll("Sailing", simulated, proc._grammar.grammar, fulltree);
+  Array<NavDataset> sessions =
+    extractAll("Sailing", simulated, proc._grammar.grammar, fulltree);
+
+  makeAllIllustrations(setup, sessions);
 
   LOG(INFO) << "Processing time for " << proc._boatid << ": "
     << (TimeStamp::now() - start).seconds() << " seconds.";
@@ -121,8 +146,6 @@ int main(int argc, const char **argv) {
       .required();
   amap.registerOption("--from", "From date YYYY-MM-DD").store(&(setup.toStr));
   amap.registerOption("--to", "To date YYYY-MM-DD").store(&(setup.fromStr));
-  amap.registerOption("--prefix", "Where output should be put")
-      .store(&(setup.prefix));
 
   auto status = amap.parse(argc, argv);
   switch (status) {
