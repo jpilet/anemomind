@@ -33,8 +33,20 @@ angular.module('www2App')
         return {};
       }
 
-      // default super implementation
-      return boats[boats.length-1];
+      var bestBoat;
+      var mostRecentSession;
+      for (var boat in sessionsForBoats) {
+        var sessions = sessionsForBoats[boat];
+        for (var j in sessions) {
+          var s = sessions[j];
+          var time = new Date(s.endTime);
+          if (!bestBoat || mostRecentSession < time) {
+            mostRecentSession = time;
+            bestBoat = boat;
+          }
+        }
+      }
+      return (bestBoat ? boatDict[bestBoat] : undefined);
     }
 
     function update() {
