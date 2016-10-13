@@ -65,7 +65,8 @@ TEST(SvgPlotTest, Geometry) {
 }
 
 TEST(SvgPlotTest, SampleRenderTriangle) { // Just so that we can expect what it does
-  auto dst = HtmlPage::make(Env::BINARY_DIR, "rendered_triangle");
+  auto dst0 = HtmlPage::make(Env::BINARY_DIR, "rendered_triangle");
+  auto dst = HtmlTag::initializePage(dst0, "Red Triangle!");
   HtmlTag::tagWithData(dst, "h1", "Triangle");
   HtmlTag::tagWithData(dst, "p",
       "You should see a red triangle with one corner pointing up");
