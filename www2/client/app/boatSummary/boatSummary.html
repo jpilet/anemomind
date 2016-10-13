@@ -1,5 +1,5 @@
 <h2>{{::boat.name}} summary</h2>            
-
+ 
 <div class="card card-horizontal clearfix">
   <!-- BOAT IMAGE -->
   <div class="card-image ">
@@ -63,7 +63,7 @@
        ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |limitTo:pageSize" >
     <a ng-href="/map/{{boatId}}?c={{session._id}}">
     <div class="card-image">
-      <div class="" thumbnailsmap="{{session._id}}" boat-id="{{boatId}}"></div>
+      <div class="" thumbnailspng="{{session._id}}" boat-id="{{boatId}}"></div>
     </div>
     <div class="card-content" >
       <h3>{{session.startTime | date: 'd.M.yyyy'}}</h3>

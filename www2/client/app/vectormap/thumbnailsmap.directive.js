@@ -1,5 +1,5 @@
 'use strict';
-
+  
 angular.module('www2App')
   .directive('thumbnailsmap', function ($timeout, $window, $parse, boatList, Auth) {
     return {
@@ -24,7 +24,6 @@ angular.module('www2App')
             token: Auth.getToken()
           }, canvas);
           canvas.addLayer(scope.pathLayer);
-
 
   
           // Watch for resize
