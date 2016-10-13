@@ -37,7 +37,13 @@ TEST(SvgPlotTest, Geometry) {
   EXPECT_NEAR((getCorner(box, 1) - Eigen::Vector4d(1, 0, 0, 1)).norm(), 0.0, 1.0e-6);
   EXPECT_NEAR((getCorner(box, 7) - Eigen::Vector4d(1, 2, 3, 1)).norm(), 0.0, 1.0e-6);
 
-  //BBox3d projectBBox(const Eigen::Matrix4d &pose, const BBox3d &box);
+  Eigen::Matrix4d pose = Eigen::Matrix<double, 4, 4>::Identity();
+  pose(1, 1) = -1.0;
+  pose(2, 3) = -1.0;
+
+  auto projected = projectBBox(pose, box);
+
+
   //Eigen::Matrix<double, 2, 4> computeTotalProjection(
   //const BBox3d &a, const Settings2d &settings);
 }
