@@ -39,3 +39,18 @@ target_link_libraries(plot_GnuPlotModel
   plot_Plot
   plot_gnuplot
   )
+
+add_library(plot_SvgPlot
+  SvgPlot.h
+  SvgPlot.cpp
+  )
+
+target_link_libraries(plot_SvgPlot
+  common_HtmlLog
+  )
+
+cxx_test(plot_SvgPlotTest
+  SvgPlotTest.cpp
+  gtest_main
+  plot_SvgPlot
+  )

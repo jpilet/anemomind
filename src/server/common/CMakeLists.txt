@@ -406,3 +406,17 @@ cxx_test(common_MultiMergeTest
          gtest_main
         )
 
+add_library(common_HtmlLog
+  HtmlLog.h
+  HtmlLog.cpp
+  )
+
+target_link_libraries(common_HtmlLog
+  common_logging
+  )
+
+cxx_test(common_HtmlLogTest
+  HtmlLogTest.cpp
+  gtest_main
+  common_HtmlLog
+  )
