@@ -197,6 +197,9 @@ height:100%;
 .mainControl .control-btns button.split {
   margin-right: 5px;
 }
+.mainControl .control-btns .group-btn {
+  display: inline-block;
+}
 .mainControl .control-btns .btn-grouped{
   display: inline-block;
   background-color: #fff;
@@ -259,12 +262,14 @@ height:100%;
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 3px;
+  padding-left: 5px;
 }
 .mainControl .tail-inputs .thin {
   width: 30px;
 }
 .mainControl .tail-inputs .wide {
   width: 80px;
+  padding-right: 15px;
 }
 .mainControl .perf-speed .group,
 .mainControl .wind .group {
@@ -328,6 +333,59 @@ height:100%;
     width: 100%;
   }
 }
+@media only screen and (max-width: 400px) {
+  .mainControl .heading .boat-name {
+    padding: 4px;
+  }
+  .mainControl .heading .share-boat {
+    padding: 5px;
+  }
+  .close-btn:before, 
+  .close-btn:after {
+    margin-top: -1px;
+  }
+}
+@media only screen and (max-width: 396px) {
+  .mainControl .control-btns, 
+  .mainControl .control-btns button, 
+  .mainControl .tail-inputs i, 
+  .mainControl .tail-inputs label {
+    font-size: 10px;
+  }
+  .mainControl .tail-inputs i.with-circle {
+    padding-top: 5px;
+    padding-left: 6px;
+    width: 22px;
+  }
+  .mainControl .tail-inputs label {
+    line-height: 22px;
+  }
+  .mainControl .tail-inputs .thin {
+    width: 40px;
+  }
+  .mainControl .tail-inputs input {
+    height: 24px;
+  }
+  .mainControl .group.tail-length i {
+    font-size: 14px;
+  }
+  .mainControl .details table {
+    font-size: 11px;
+  }
+}
+@media only screen and (max-width: 360px) {
+  .mainControl .control-btns .group-btn {
+    margin-top: 5px;
+  }
+  .mainControl .tail-inputs input {
+    width: 45px;
+    font-size: 10px;
+  }
+  .mainControl .tail-inputs .wide {
+    width: 44px;
+  }
+}
+
   
 .titleBox {
   position: absolute;
