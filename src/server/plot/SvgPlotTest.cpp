@@ -80,7 +80,8 @@ TEST(SvgPlotTest, SampleRenderTriangle) { // Just so that we can expect what it 
   parts.push_back(LineStrip::make2d({
     Eigen::Vector2d(0, 0),
     Eigen::Vector2d(x, y),
-    Eigen::Vector2d(2*x, 0)
+    Eigen::Vector2d(2*x, 0),
+    Eigen::Vector2d(0, 0)
   }, rs));
 
   Settings2d s2d;

@@ -26,8 +26,17 @@ bool isEmpty(const BBox3d &box) {
   for (int i = 0; i < 3; i++) {
     diag += sqr(box.getSpan(i).width());
   }
-  return 1.0e-6 < sqrt(diag + 1.0e-6);
+  return sqrt(diag + 1.0e-12) < 1.0e-12;
 }
+
+void dispBBox(const BBox3d &a) {
+  for (int i = 0; i < 3; i++) {
+    auto sp = a.getSpan(i);
+    std::cout << "  i = " << i << "  "
+        << sp.minv() << ";" << sp.maxv() << std::endl;
+  }
+}
+
 
 BBox3d computeBBox(
     const std::vector<Plottable::Ptr> &plottables,
@@ -39,8 +48,11 @@ BBox3d computeBBox(
   BBox3d bbox;
   for (auto obj: plottables) {
     obj->extend(&bbox);
+    std::cout << "Extended it\n";
+    dispBBox(bbox);
   }
   if (isEmpty(bbox)) {
+    std::cout << "It is empty!" << std::endl;
     bbox = makeDefaultBBox();
   }
   return bbox;
@@ -70,6 +82,7 @@ BBox3d projectBBox(const Eigen::Matrix4d &pose, const BBox3d &box) {
   return dst;
 }
 
+
 Eigen::Matrix<double, 2, 4> computeTotalProjection(
     const BBox3d &a, const Settings2d &settings) {
 
@@ -81,12 +94,19 @@ Eigen::Matrix<double, 2, 4> computeTotalProjection(
     pose(1, 1) = -1;
     pose(2, 2) = -1; // So that z = cross(x, y) instead of z = -cross(x, y)
   }
+
+
   auto proj = projectBBox(pose, a);
+
+  std::cout << "Pose = \n" << pose << std::endl;
+  dispBBox(a);
 
   LineKM rawXFit(proj.getSpan(0).minv(), proj.getSpan(0).maxv(),
       settings.xMargin, settings.width - settings.xMargin);
   LineKM rawYFit(proj.getSpan(1).minv(), proj.getSpan(1).maxv(),
       settings.yMargin, settings.height - settings.yMargin);
+
+
 
 
   // Assuming homogenous 3d coordinates. But here, the z coordinate will just
@@ -159,6 +179,7 @@ Plottable::Ptr LineStrip::make2d(
 
 void LineStrip::extend(BBox3d *dst) const {
   for (auto pt: _pts) {
+    std::cout << "Extend by " << pt << std::endl;
     dst->extend(pt.data());
   }
 }
@@ -192,6 +213,10 @@ void LineStrip::render2d(const RenderingContext &dst) const {
       HtmlNode::Ptr dst,
       const Settings2d &settings) {
   auto bbox = computeBBox(plottables, settings);
+
+  std::cout << "THE BOUNDING BOX:\n";
+  dispBBox(bbox);
+
   Eigen::Matrix<double, 2, 4> proj
     = computeTotalProjection(bbox, settings);
   auto svg = HtmlTag::make(dst, "svg", {
