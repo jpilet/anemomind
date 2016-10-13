@@ -82,4 +82,7 @@ TEST(SvgPlotTest, SampleRenderTriangle) { // Just so that we can expect what it 
     Eigen::Vector2d(x, y),
     Eigen::Vector2d(2*x, 0)
   }, rs));
+
+  Settings2d s2d;
+  render2d(parts, dst, s2d);
 }
