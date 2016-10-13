@@ -33,11 +33,9 @@ angular.module('www2App')
           var el = angular.element(this);
           var parent = el.parent();
           var container = parent.find('.collapsible');
-          var offset = 5;
           $timeout(function() {
             if(container.hasClass('uncollapse-area')) {
               var parentPos = parent.offset();
-              var containerPos = container.offset();
               var resBtnsPos = angular.element('.responsiveNavButtons').offset();
               var heightTotal = parent.height() + parentPos.top;
 
