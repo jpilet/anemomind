@@ -80,6 +80,16 @@ struct Settings2d {
   Optional<BBox3d> roi;
 };
 
+
+bool isEmpty(const BBox3d &box);
+BBox3d computeBBox(
+    const std::vector<Plottable::Ptr> &plottables,
+    const Settings2d &settings);
+Eigen::Vector4d getCorner(const BBox3d &box, int cornerIndex0);
+BBox3d projectBBox(const Eigen::Matrix4d &pose, const BBox3d &box);
+Eigen::Matrix<double, 2, 4> computeTotalProjection(
+    const BBox3d &a, const Settings2d &settings);
+
 // Collects all the objects
 void render2d(
     const std::vector<Plottable::Ptr> &plottables,
