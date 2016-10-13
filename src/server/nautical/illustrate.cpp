@@ -15,7 +15,7 @@
 #include <server/common/PathBuilder.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <device/anemobox/simulator/SimulateBox.h>
-#include <server/common/HtmlLog.h>
+#include <server/common/HtmlGen.h>
 #include <server/plot/SvgPlot.h>
 
 using namespace sail;

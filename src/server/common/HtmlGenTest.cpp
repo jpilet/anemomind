@@ -1,4 +1,4 @@
-#include <server/common/HtmlLog.h>
+#include <server/common/HtmlGen.h>
 #include <gtest/gtest.h>
 
 using namespace sail;

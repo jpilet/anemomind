@@ -8,7 +8,7 @@
 #ifndef SERVER_PLOT_SVGPLOT_H_
 #define SERVER_PLOT_SVGPLOT_H_
 
-#include <server/common/HtmlLog.h>
+#include <server/common/HtmlGen.h>
 #include <server/common/BBox.h>
 #include <Eigen/Dense>
 #include <server/common/Optional.h>

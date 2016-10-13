@@ -140,7 +140,7 @@ target_link_libraries(nautical_illustrate
   common_TimeStamp
   nautical_BoatLogProcessor
   common_Env
-  common_HtmlLog
+  common_HtmlGen
   plot_SvgPlot
   )
 

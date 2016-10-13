@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include "HtmlLog.h"
+#include <server/common/HtmlGen.h>
 #include <sstream>
 #include <server/common/logging.h>
 

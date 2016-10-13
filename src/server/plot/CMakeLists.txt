@@ -46,7 +46,7 @@ add_library(plot_SvgPlot
   )
 
 target_link_libraries(plot_SvgPlot
-  common_HtmlLog
+  common_HtmlGen
   )
 
 cxx_test(plot_SvgPlotTest
