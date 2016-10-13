@@ -175,6 +175,17 @@ cxx_test(math_BandedDenseTest
   gtest_main
   )
 
+add_library(math_Spline
+  Spline.h
+  Spline.cpp
+  )
+
+cxx_test(math_SplineTest
+  SplineTest.cpp
+  gtest_main
+  math_Spline
+  )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)

@@ -376,3 +376,14 @@ cxx_test(nautical_BoatStateTest
   nautical_BoatState
   gtest_main
   )
+
+add_library(nautical_MaxSpeed
+            MaxSpeed.h
+            MaxSpeed.cpp
+           )
+
+target_link_libraries(nautical_MaxSpeed
+                      nautical_NavDataset
+                      common_TimeStamp
+                      )
+

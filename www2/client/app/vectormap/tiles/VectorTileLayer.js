@@ -57,6 +57,19 @@ function VectorTileLayer(params, renderer) {
   this.numCachedTiles = 0;
   this.visibleCurves = {};
   this.curvesFlat = {};
+  this.queueSeconds = undefined;
+  this.currentTime = undefined;
+  this.tailColor = undefined;
+  this.outOfTailColor = '#888888';
+  this.outOfTailWidth = .3;
+
+  this.startPoint = 0;
+  this.tailWidth = 3;
+  this.vmgPerf = [0, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110];
+  this.colorSpectrum = ['#B5B5B5','#BAA7AA','#C099A0','#C68B96','#CC7D8C',
+                        '#D26F81','#D86277','#DE546D','#E44663','#EA3858',
+                        '#F02A4E','#F61C44','#FC0F3A','#DE0B66','#C10792',
+                        '#A403BF'];
 
   if (!("tileSize" in this.params)) this.params.tileSize = 256;
   if ("vectorurl" in this.params) {
@@ -308,40 +321,101 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   return points;
 }
 
-VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
-  // prepare the Cavas path
 
-  if (this.isHighlighted(curveId)) {
-    context.strokeStyle="#FF0033";
-    context.lineWidth = 3;
-  } else {
-    if (this.highlight) {
-      // Another curve is hightlighted
-      context.strokeStyle="#777777";
-      context.lineWidth = 1;
-    } else {
-      // Nothing is highlighted
-      context.strokeStyle="#333333";
-      context.lineWidth = 2;
-    }
+VectorTileLayer.prototype.checkIfTail = function(point) {
+  if (this.queueSeconds == undefined) {
+    return false;
   }
 
+  var queueTime = Math.abs(this.currentTime.getTime() - (this.queueSeconds * 1000));
+  var pointTime = point.time;
+
+  return (pointTime.getTime() >= queueTime && pointTime.getTime() <= this.currentTime.getTime());
+};
+
+VectorTileLayer.prototype.colorForPoint = function(point) {
+  if (this.queueSeconds) {
+    if (this.checkIfTail(point)) {
+      if (this.tailColor) {
+        return this.tailColor;
+      }
+      var currentPerf = perfAtPoint(point);
+
+      if (isNaN(currentPerf)) {
+        return this.colorSpectrum[0];
+      }
+      for(var i=0; i<this.vmgPerf.length; i++) {
+        if (currentPerf <= this.vmgPerf[i]) {
+          return this.colorSpectrum[i];
+        }
+      }
+      return this.colorSpectrum[this.colorSpectrum.length - 1];
+    } else {
+      return this.outOfTailColor;
+    }
+  } else {
+    // default color when no tail is displayed
+    return '#FF0033';
+  }
+};
+
+VectorTileLayer.prototype.widthForPoint = function(point) {
+  if (this.queueSeconds) {
+    return (this.checkIfTail(point) ? this.tailWidth : this.outOfTailWidth);
+  }
+  return 3;
+};
+
+VectorTileLayer.prototype.drawSegment = function(context, p1, col1, width1,
+                                                 p2, col2, width2) {
+  if (col1 == undefined && col2 == undefined) {
+    // undefined color = no draw.
+    return;
+  }
+  context.beginPath();
+
+  if (col1 == col2 || width1 != width2) {
+    // If the width changed, it means we transitioned from tail to out-of-tail
+    // or vice-versa. No need to interpolate the color.
+    context.strokeStyle = col2;
+  } else {
+    var grd = context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+    grd.addColorStop(0, col1);
+    grd.addColorStop(1, col2);
+    context.strokeStyle = grd;
+  }
+  context.lineWidth = width2;
+
+  context.moveTo(p1.x, p1.y);
+  context.lineTo(p2.x, p2.y);
+  context.stroke();
+}
+
+VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
     return;
   }
 
   // Draw.
-  context.beginPath();
-  var first = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
-                                              points[0].pos[1]);
-  context.moveTo(first.x, first.y);
+  var prevPos = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
+                                                points[0].pos[1]);
+  var prevColor = this.colorForPoint(points[0]);
+  var prevWidth = this.widthForPoint(points[0]);
+
   for (var i = 1; i < points.length; ++i) {
-    var point = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
-                                                points[i].pos[1]);
-    context.lineTo(point.x, point.y);
+    var currentColor = this.colorForPoint(points[i]);
+    var currentWidth = this.widthForPoint(points[i]);
+    var currentPos = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
+                                                     points[i].pos[1]);
+
+    this.drawSegment(context, prevPos, prevColor, prevWidth,
+                     currentPos, currentColor, currentWidth);
+
+    var prevPos = currentPos;
+    var prevColor = currentColor;
+    var prevWidth = currentWidth;
   }
-  context.stroke();
   /*
   console.log('Curve ' + curveId + ' span: ' + points[0].time + ' to '
               + points[points.length - 1].time);
