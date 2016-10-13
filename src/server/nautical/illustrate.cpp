@@ -34,10 +34,16 @@ NavDataset loadNavs(const std::string &path) {
 }
 
 void makeIllustrations(const Setup &setup) {
-    GpsFilterSettings gpsFilterSettings;
-    NavDataset raw = loadNavs(setup.path);
+    BoatLogProcessor proc;
+
+    NavDataset raw = loadNavs(setup.path)
+        .fitBounds();
+
+    raw = raw.slice(earliest(setup.from(), raw.lowerBound()),
+                    latest(setup.to(), raw.upperBound()));
+
     auto resampled = downSampleGpsTo1Hz(raw);
-    resampled = filterNavs(resampled, gpsFilterSettings);
+    resampled = filterNavs(resampled, proc._gpsFilterSettings);
 
     /*std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
 
