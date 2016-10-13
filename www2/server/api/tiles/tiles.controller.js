@@ -20,16 +20,30 @@ var makeQuery = function(boatId, s, x, y, startsAfter, endsBefore) {
   return search;
 };
 
-exports.retrieveRaw = function(req, res, next) {
-  var query = makeQuery(req.params.boat,
-                        req.params.scale,
-                        req.params.x,
-                        req.params.y,
-                        req.params.startsAfter,
-                        req.params.endsBefore);
-
-  console.log('get tile: ' + query.key);
+function fetchTiles(boatId, scale, x, y, startsAfter, endsBefore, callback) {
+  var query = makeQuery(boatId,
+                        scale,
+                        x,
+                        y,
+                        startsAfter,
+                        endsBefore);
   Tiles.find(query, function(err, tiles) {
+    if (err) {
+      return callback(err, null);
+    }
+    return callback(null, tiles);
+  });
+}
+module.exports.fetchTiles = fetchTiles;
+
+exports.retrieveRaw = function(req, res, next) {
+  fetchTiles(req.params.boat,
+             req.params.scale,
+             req.params.x,
+             req.params.y,
+             req.params.startsAfter,
+             req.params.endsBefore,
+             function(err, tiles) {
     if (err) {
       return next(err);
     }
@@ -145,22 +159,3 @@ module.exports.boatInfoAtTime = function(boat, time, callback) {
      callback(undefined, closest);
   });
 };
-
-module.exports.infoAtTime = function(req, res, next) {
-
-  module.exports.boatInfoAtTime(
-      req.params.boat,
-      new Date(req.params.time + 'Z'),
-      function(err, result) {
-        if (err) {
-          handleError(res, err);
-        }
-
-        if (closest == undefined) {
-          res.status(404).send();
-        }
-
-        return res.send(JSON.stringify(result));
-      });
-};
-
