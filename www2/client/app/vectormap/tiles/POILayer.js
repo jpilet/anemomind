@@ -228,19 +228,36 @@ POILayer.prototype.renderPoint = function(canvas, pinchZoom, geojson, context) {
 
   }
 
-  if (!geojson.properties.hideIcon && geojson.properties.icon && this.icons[geojson.properties.icon]) {
-    var icon = this.icons[geojson.properties.icon];
-    var width = (icon.width ? icon.width * this.renderer.pixelRatio : radius * 2);
-    var height = (icon.height ? icon.height * this.renderer.pixelRatio : width);
-    var ratioX = icon.ratioX || .5;
-    var ratioY = icon.ratioY || .5;
-    context.drawImage(icon.icon,
-                      p.x - width * ratioX,
-                      p.y - height * ratioY,
-                      width, height);
+  var icon = this.placeIcon(geojson, p);
+  if (icon) {
+    context.drawImage(
+        icon.icon.icon, icon.left, icon.top, icon.width, icon.height);
+  }
+};
+
+POILayer.prototype.placeIcon = function(feature, pos) {
+  if (feature.properties.hideIcon || !feature.properties.icon) {
+    return undefined;
+  }
+  var icon = this.icons[feature.properties.icon];
+  if (!icon) {
+    return undefined;
   }
 
+  var radius = this.featureRadius();
+  var width = (icon.width ? icon.width * this.renderer.pixelRatio : radius * 2);
+  var height = (icon.height ? icon.height * this.renderer.pixelRatio : width);
+  var ratioX = icon.ratioX || .5;
+  var ratioY = icon.ratioY || .5;
+  return {
+    left: pos.x - width * ratioX,
+    top: pos.y - height * ratioY,
+    width: width,
+    height: height,
+    icon: icon
+  };
 };
+
 
 var geojsonToView = function(pinchZoom, point) {
   return pinchZoom.viewerPosFromWorldPos(Utils.latLonToWorld(point));
@@ -286,8 +303,7 @@ POILayer.prototype.renderLineString =
 
 
 POILayer.prototype.handleClic = function(pos) {
-  var bestDist =
-    this.renderer.pinchZoom.worldDistanceFromViewerDistance(this.featureRadius());
+  var bestDist = this.featureRadius();
   var bestFeature = undefined;
 
   var t = this;
@@ -297,7 +313,12 @@ POILayer.prototype.handleClic = function(pos) {
       return;
     }
     var featureCoord = geojsonGetCoordinates(feature);
-    var d = Utils.distance(featureCoord, pos.startWorldPos);
+    var coordViewer = t.renderer.pinchZoom.viewerPosFromWorldPos(featureCoord);
+    var icon = t.placeIcon(feature, coordViewer);
+    if (icon) {
+      coordViewer = { x: icon.left + icon.width / 2, y: icon.top + icon.height /2 };
+    }
+    var d = Utils.distance(coordViewer, pos.startViewerPos);
     if (bestDist == undefined || d < bestDist) {
       bestDist = d;
       bestFeature = feature;
