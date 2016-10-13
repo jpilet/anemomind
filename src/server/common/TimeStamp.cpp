@@ -138,6 +138,7 @@ TimeStamp TimeStamp::parse(const std::string &x0) {
   // parse fractions of seconds.
   auto x = removeFractionalParts(x0);
 
+  TRY_PARSE_TIME("%D", x);
   TRY_PARSE_TIME("%D %T", x);
   TRY_PARSE_TIME("%m/%d/%Y %r", x);
   LOG(WARNING) << "Failed to parse time: " << x0;
