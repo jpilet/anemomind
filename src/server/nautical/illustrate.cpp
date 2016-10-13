@@ -83,13 +83,9 @@ bool makeIllustrations(const Setup &setup) {
   slice that produce. This saves us a lot of memory. If we decide to refactor
   this code some time, we should think carefully how we want to do the merging.
      */
-    /*simulated.mergeAll();
+    simulated.mergeAll();
 
-    if (_saveSimulated.size() > 0) {
-      saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
-    }
-
-    outputTargetSpeedTable(_debug,
+    /*outputTargetSpeedTable(_debug,
                            fulltree,
                            _grammar.grammar.nodeInfo(),
                            simulated,
