@@ -27,6 +27,20 @@ BBox3d makeBox123() {
   return box;
 }
 
+Eigen::Vector3d getLower(const BBox3d &x) {
+  return Eigen::Vector3d(
+      x.getSpan(0).minv(),
+      x.getSpan(1).minv(),
+      x.getSpan(2).minv());
+}
+
+Eigen::Vector3d getUpper(const BBox3d &x) {
+  return Eigen::Vector3d(
+      x.getSpan(0).maxv(),
+      x.getSpan(1).maxv(),
+      x.getSpan(2).maxv());
+}
+
 TEST(SvgPlotTest, Geometry) {
   EXPECT_TRUE(isEmpty(makeEmptyBBox()));
   auto box = makeBox123();
@@ -42,7 +56,10 @@ TEST(SvgPlotTest, Geometry) {
   pose(2, 3) = -1.0;
 
   auto projected = projectBBox(pose, box);
-
+  EXPECT_NEAR((getLower(projected) - Eigen::Vector3d(-1, -2 , -3)).norm(),
+      0.0, 1.0e-6);
+  EXPECT_NEAR((getUpper(projected) - Eigen::Vector3d(0, 0, 0)).norm(),
+      0.0, 1.0e-6);
 
   //Eigen::Matrix<double, 2, 4> computeTotalProjection(
   //const BBox3d &a, const Settings2d &settings);
