@@ -33,9 +33,24 @@ var app = angular.module('www2App')
             //
             // ensure that sessions is not empty
             scope.sessions=scope.sessions||[];
+
+            scope.globalMaxSpeed = undefined;
+            scope.globalMaxSpeedTime = undefined;
+            scope.globalMaxSpeedSession = undefined;
+
             scope.sessions.forEach(function(session) {
               session.hasPhoto=scope.hasSocialActivity(session,'photos');
               session.hasComment=scope.hasSocialActivity(session,'comments');
+
+              var maxSpeed = session.maxSpeedOverGround;
+              if (!isNaN(maxSpeed) && maxSpeed > 1.0) {
+                if (!scope.globalMaxSpeed
+                    || scope.globalMaxSpeed < session.maxSpeedOverGround) {
+                  scope.globalMaxSpeed = session.maxSpeedOverGround;
+                  scope.globalMaxSpeedTime = session.maxSpeedOverGroundTime;
+                  scope.globalMaxSpeedSession = session;
+                }
+              }
             })
           });
 
@@ -112,9 +127,13 @@ var app = angular.module('www2App')
         // compute avg in current sessions for speed
         // TODO this could be a directive 
         scope.sessionMaxBoatSpeed=function (sessions) {
-          return Math.max.apply(Math,sessions.map(function(session){
+          var maxSpeed = Math.max.apply(Math,sessions.map(function(session){
             return session.maxSpeedOverGround;
-          })).toFixed(2);
+          }));
+          if (isNaN(maxSpeed) || maxSpeed < 1) {
+            return "N/A";
+          }
+          return maxSpeed.toFixed(1);
         };
 
 
@@ -209,6 +228,10 @@ app.directive('boatMainImage', ['$parse', function($parse) {
         }
         element.css(style);
       });
+
+      scope.timeToInt = function(time) {
+        return new Date(time).getTime();
+      };
     }
   }
 }]);
