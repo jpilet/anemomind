@@ -71,7 +71,7 @@ private:
 
 struct Settings2d {
   static constexpr double masterMargin = 30;
-  double xMargin = masterMargin*1.61803398875;
+  double xMargin = masterMargin*1.61803398875; // Golden ratio :-)
   double yMargin = masterMargin;
   double width = 640;
   double height = 480;
