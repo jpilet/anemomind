@@ -25,10 +25,9 @@ bool isEmpty(const BBox3d &box) {
   double diag = 0.0;
   for (int i = 0; i < 3; i++) {
     double w = box.getSpan(i).width();
-    std::cout << "  w = " << w << std::endl;
     diag += sqr(w);
   }
-  return sqrt(diag + 1.0e-30) < 1.0e-9;
+  return diag < 1.0e-12;
 }
 
 void dispBBox(const BBox3d &a) {
@@ -50,11 +49,8 @@ BBox3d computeBBox(
   BBox3d bbox;
   for (auto obj: plottables) {
     obj->extend(&bbox);
-    std::cout << "Extended it\n";
-    dispBBox(bbox);
   }
   if (isEmpty(bbox)) {
-    std::cout << "It is empty!" << std::endl;
     bbox = makeDefaultBBox();
   }
   return bbox;
@@ -99,9 +95,6 @@ Eigen::Matrix<double, 2, 4> computeTotalProjection(
 
 
   auto proj = projectBBox(pose, a);
-
-  std::cout << "Pose = \n" << pose << std::endl;
-  dispBBox(a);
 
   LineKM rawXFit(proj.getSpan(0).minv(), proj.getSpan(0).maxv(),
       settings.xMargin, settings.width - settings.xMargin);
@@ -181,7 +174,6 @@ Plottable::Ptr LineStrip::make2d(
 
 void LineStrip::extend(BBox3d *dst) const {
   for (auto pt: _pts) {
-    std::cout << "Extend by " << pt << std::endl;
     dst->extend(pt.data());
   }
 }
@@ -215,9 +207,6 @@ void LineStrip::render2d(const RenderingContext &dst) const {
       HtmlNode::Ptr dst,
       const Settings2d &settings) {
   auto bbox = computeBBox(plottables, settings);
-
-  std::cout << "THE BOUNDING BOX:\n";
-  dispBBox(bbox);
 
   Eigen::Matrix<double, 2, 4> proj
     = computeTotalProjection(bbox, settings);
