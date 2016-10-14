@@ -405,18 +405,3 @@ cxx_test(common_MultiMergeTest
          MultiMergeTest.cpp
          gtest_main
         )
-
-add_library(common_HtmlGen
-  HtmlGen.h
-  HtmlGen.cpp
-  )
-
-target_link_libraries(common_HtmlGen
-  common_logging
-  )
-
-cxx_test(common_HtmlGenTest
-  HtmlGenTest.cpp
-  gtest_main
-  common_HtmlGen
-  )

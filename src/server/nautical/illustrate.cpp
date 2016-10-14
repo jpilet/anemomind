@@ -15,8 +15,6 @@
 #include <server/common/PathBuilder.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <device/anemobox/simulator/SimulateBox.h>
-#include <server/common/HtmlGen.h>
-#include <server/plot/SvgPlot.h>
 
 using namespace sail;
 
@@ -42,37 +40,10 @@ NavDataset loadNavs(const std::string &path) {
   return loader.makeNavDataset();
 }
 
-SvgPlot::Plottable::Ptr makeGpsPlot(const NavDataset &ds) {
-  auto positions = ds.samples<GPS_POS>();
-}
 
-void makeIllustrationsForSession(
-    const NavDataset &ds, HtmlNode::Ptr dst) {
-  HtmlTag::tagWithData(dst, "h2", "Session");
-  HtmlTag::tagWithData(dst, "p", stringFormat("Session of length %s",
-      ds.duration().str().c_str()));
-
-  using namespace SvgPlot;
-
-  std::vector<Plottable::Ptr> objs;
-  objs.push_back(makeGpsPlot(ds));
-
-  Settings2d settings;
-  render2d(objs, dst, settings);
-}
-
-void makeAllIllustrations(const Setup &setup,
+void makeAllIllustrations(
+    const Setup &setup,
     const Array<NavDataset> &sessions) {
-  auto root = HtmlPage::make(setup.prefix, setup.name);
-  auto page = HtmlTag::initializePage(root, "Sessions");
-  HtmlTag::tagWithData(page, "h2", "Sessions");
-  auto ol = HtmlTag::make(page, "ol");
-  for (int i = 0; i < sessions.size(); i++) {
-    auto li = HtmlTag::make(ol, "li");
-    std::string title = stringFormat("Session %d", i);
-    auto sub = HtmlTag::linkToSubPage(li, title, true);
-    makeIllustrationsForSession(sessions[i], sub);
-  }
 }
 
 bool makeIllustrations(const Setup &setup) {
