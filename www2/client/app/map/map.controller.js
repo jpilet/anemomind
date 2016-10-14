@@ -82,6 +82,10 @@ angular.module('www2App')
           scale: parseFloat(entries[2])
         };
       }
+
+      if($location.search().queue) {
+        $scope.tailLength = $location.search().queue;
+      }
     }
 
     parseParams();
@@ -160,6 +164,15 @@ angular.module('www2App')
           animationTimer = $interval(updatePosition, 100);
         } else {
           $interval.cancel(animationTimer);
+        }
+      }
+    });
+
+    $scope.$watch('tailLength', function(newVal, oldVal) {
+      if (newVal != oldVal) {
+        if (newVal) {
+          $location.search('queue', newVal);
+          updatePosition();
         }
       }
     });
