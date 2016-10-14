@@ -46,11 +46,11 @@ private:
 // then during the life-time of this object, it will be
 // y = x + B
 // In other words, the user space origin will map to the same point as
-// before, but the local scale will be different.
-//
+// before, but the local scale will be one.
 //
 // This is useful for drawing things such as small marker, that should be
-// invariant to most transformations except translation.
+// invariant to most transformations except translation. Or maybe we want
+// the boat drawing to be invariant to zoom.
 class WithLocalDeviceScale {
 public:
   enum Mode {Determinant, Identity};
