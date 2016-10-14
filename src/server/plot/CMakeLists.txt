@@ -29,3 +29,15 @@ add_library(plot_CairoUtils
 target_link_libraries(plot_CairoUtils
   ${CAIRO_LIBRARIES}
   )
+  
+add_library(plot_PlotUtils
+  PlotUtils.h
+  PlotUtils.cpp
+  )
+
+cxx_test(plot_PlotUtilsTest
+  PlotUtilsTest.cpp
+  gtest_main
+  plot_PlotUtils
+  common_Env
+  )
