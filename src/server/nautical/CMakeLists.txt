@@ -142,6 +142,7 @@ target_link_libraries(nautical_illustrate
   common_Env
   common_DOMUtils
   plot_CairoUtils
+  plot_PlotUtils
   )
 
 add_executable(nautical_processBoatLogs

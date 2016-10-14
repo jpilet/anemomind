@@ -10,11 +10,29 @@
 
 #include <memory>
 #include <cairo/cairo.h>
+#include <Eigen/Dense>
 
 namespace sail {
 
 std::shared_ptr<cairo_surface_t> sharedPtrWrap(cairo_surface_t *x);
 std::shared_ptr<cairo_t> sharedPtrWrap(cairo_t *x);
+
+template <int rows, int cols>
+cairo_matrix_t toCairo(
+    const Eigen::Matrix<double, rows, cols> &mat);
+
+class WithLocalCairoCoordinates {
+public:
+  WithLocalCairoCoordinates(cairo_t *cr);
+  ~WithLocalCairoCoordinates();
+private:
+  WithLocalCairoCoordinates(
+      const WithLocalCairoCoordinates &other) = delete;
+  WithLocalCairoCoordinates &operator=(
+      const WithLocalCairoCoordinates &other) = delete;
+  cairo_t *_cr;
+  cairo_matrix_t _backup;
+};
 
 }
 
