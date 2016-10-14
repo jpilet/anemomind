@@ -64,13 +64,13 @@
                     </thead> 
                     <tbody> 
                         <tr ng-repeat="row in challengeList | orderBy:propertyName:reverse"> 
-                            <th data-value="1" scope="row">{{row.rank}}</th> 
-                            <td data-value="Larry Smith"><a href="/challenge/details">{{row.name}}</a></td> 
-                            <td data-value="Irene"><a href="#">{{row.boat}}</a></td> 
-                            <td data-value="Sailboat">{{row.type}}</td>
-                            <td data-value="4.2 kn">{{row.speed}} {{row.speedUnit}}</td>
+                            <th>{{row.rank}}</th> 
+                            <td><a href="/challenge/details">{{row.name}}</a></td> 
+                            <td><a href="#">{{row.boat}}</a></td> 
+                            <td>{{row.type}}</td>
+                            <td>{{row.speed}} {{row.speedUnit}}</td>
                             <td>{{[row.startTime, row.endTime] | timeSpan}}</td>
-                            <td data-value="2016/08/20/00/00/00">{{row.startTime | date: 'd.M.yyyy H:mm'}}</td>
+                            <td>{{row.startTime | date: 'd.M.yyyy H:mm'}}</td>
                             <td class="text-center"><a href="#"><img src="assets/images/info.png"></a></td>
                             <td class="text-center"><a href="#"><img src="assets/images/track.png"></a></td>
                             <td class="text-center"><a href="#"><img src="assets/images/comment.png"></a></td>
@@ -96,6 +96,6 @@
 
 <footer class="footer">
   <div class="container">
-      <p>&copy; 2014 <a href="http://anemomind.com">Anemomind</a></p>
+      <p><a href="http://anemomind.com">Anemomind</a></p>
   </div>
 </footer>

@@ -2,7 +2,7 @@
 
 <div class="container challenges">
 <div class="row">
-    <div class="col-md-4" ng-repeat="challenge in challenges">
+    <div class="col-md-4" ng-repeat="challenge in challenges" ng-show="isAdmin() || isLoggedIn()">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">
@@ -40,6 +40,6 @@
 
 <footer class="footer">
   <div class="container">
-      <p>&copy; 2014 <a href="http://anemomind.com">Anemomind</a></p>
+      <p><a href="http://anemomind.com">Anemomind</a></p>
   </div>
 </footer>

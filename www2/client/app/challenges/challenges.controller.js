@@ -1,7 +1,10 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('ChallengesCtrl', function ($scope, $http, socket) {
+  .controller('ChallengesCtrl', function ($scope, $http, socket, Auth) {
+      $scope.isAdmin = Auth.isAdmin;
+      $scope.isLoggedIn = Auth.isLoggedIn();
+
       $scope.challenges = [
         {
           'name': 'Fastest Distance',
