@@ -48,8 +48,8 @@ private:
   cairo_t *_cr;
 };
 
-void setCairoColor(cairo_t *cr, const PlotUtils::HSV &hsv);
-void setCairoColor(cairo_t *cr, const PlotUtils::RGB &rgb);
+void setCairoSourceColor(cairo_t *cr, const PlotUtils::HSV &hsv);
+void setCairoSourceColor(cairo_t *cr, const PlotUtils::RGB &rgb);
 
 void drawBoat(cairo_t *cr, double boatLength);
 

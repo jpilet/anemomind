@@ -84,9 +84,34 @@ void renderBoatData(
 
 }
 
+namespace {
+  auto lengthUnit = 1.0_m;
+}
+
+
+void renderBoat(cairo_t *cr,
+    const GeographicReference &ref,
+    TimeStamp time,
+  const NavDataset &ds) {
+  auto pos = ds.samples<GPS_POS>().nearest(time);
+  if (!pos.defined()) {
+    std::cout << "Missing pos";
+    return;
+  }
+
+  auto localPos = ref.map(pos.get().value);
+
+  cairo_translate(cr,
+      localPos[0]/lengthUnit,
+      localPos[1]/lengthUnit);
+
+
+  drawBoat(cr, 60);
+}
 
 void renderGpsTrajectoryToSvg(
     const TimedSampleRange<GeographicPosition<double>> &positions,
+    NavDataset ds,
     const std::string &filename) {
   auto middle = positions[positions.size()/2];
 
@@ -104,8 +129,6 @@ void renderGpsTrajectoryToSvg(
   auto cr = sharedPtrWrap(cairo_create(surface.get()));
 
   auto p2 = positionsToPlane(positions, ref);
-
-  auto lengthUnit = 1.0_m;
 
   BBox3d bbox;
   for (auto p: p2) {
@@ -131,10 +154,11 @@ void renderGpsTrajectoryToSvg(
   }
   cairo_stroke(cr.get());
 
+  TimeStamp at = middle.time;
   {
-    WithLocalCairoContext(cr.get());
+    WithLocalCairoContext with(cr.get());
     cairo_transform(cr.get(), &mat);
-    drawBoat(cr.get(), 300);
+    renderBoat(cr.get(), ref, middle.time, ds);
   }
 }
 
@@ -147,7 +171,7 @@ void makeSessionIllustration(
     DOM::addTextNode(p, "No GPS data");
   } else {
     auto p = DOM::makeGeneratedImageNode(page, ".svg");
-    renderGpsTrajectoryToSvg(positions, p.toString());
+    renderGpsTrajectoryToSvg(positions, ds, p.toString());
   }
 }
 

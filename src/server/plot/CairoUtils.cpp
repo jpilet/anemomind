@@ -37,7 +37,7 @@ WithLocalCairoContext::~WithLocalCairoContext() {
   cairo_restore(_cr);
 }
 
-void setCairoColor(cairo_t *cr, const PlotUtils::RGB &rgb) {
+void setCairoSourceColor(cairo_t *cr, const PlotUtils::RGB &rgb) {
   cairo_set_source_rgb(cr, rgb.red, rgb.green, rgb.blue);
 }
 
@@ -61,8 +61,8 @@ void drawBoat(cairo_t *cr, double boatLength) {
   cairo_paint(cr);
 }
 
-void setCairoColor(cairo_t *cr, const PlotUtils::HSV &hsv) {
-  setCairoColor(cr, PlotUtils::hsv2rgb(hsv));
+void setCairoSourceColor(cairo_t *cr, const PlotUtils::HSV &hsv) {
+  setCairoSourceColor(cr, PlotUtils::hsv2rgb(hsv));
 }
 
 template <int rows, int cols>
