@@ -39,3 +39,10 @@ target_link_libraries(plot_GnuPlotModel
   plot_Plot
   plot_gnuplot
   )
+
+add_executable(plot_cairoDemo
+  cairoDemo.cpp
+  )
+target_link_libraries(plot_cairoDemo
+                      ${CAIRO_LIBRARIES})
+
