@@ -406,3 +406,7 @@ cxx_test(common_MultiMergeTest
          gtest_main
         )
 
+add_library(common_XMLUtils
+  XMLUtils.h
+  XMLUtils.cpp
+  )
