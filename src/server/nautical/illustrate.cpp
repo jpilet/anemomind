@@ -16,6 +16,8 @@
 #include <server/nautical/calib/Calibrator.h>
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <server/common/DOMUtils.h>
+#include <server/plot/CairoUtils.h>
+#include <cairo/cairo-svg.h>
 
 using namespace sail;
 
@@ -45,6 +47,10 @@ void renderGpsTrajectoryToSvg(
     const TimedSampleRange<GeographicPosition<double>> &positions,
     const std::string &filename) {
   auto middle = positions[positions.size()/2];
+  auto surface = sharedPtrWrap(
+      cairo_svg_surface_create(
+          filename.c_str(), 1024.0, 768.0));
+
 
 }
 
