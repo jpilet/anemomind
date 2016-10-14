@@ -28,6 +28,8 @@ void addTextNode(Node node, const std::string &text);
 
 Node initializeHtmlPage(const std::string &title);
 
+void renderPage(const std::string &filename, const Node &node);
+
 }
 } /* namespace sail */
 

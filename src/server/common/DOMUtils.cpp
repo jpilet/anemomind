@@ -7,6 +7,9 @@
 
 #include <server/common/DOMUtils.h>
 #include <Poco/DOM/Text.h>
+#include <Poco/DOM/DOMWriter.h>
+#include <Poco/XML/XMLWriter.h>
+#include <fstream>
 
 namespace sail {
 namespace DOM {
@@ -42,6 +45,13 @@ Node initializeHtmlPage(const std::string &titleString) {
   addTextNode(title, titleString);
   auto body = makeSubNode(page, "body");
   return body;
+}
+
+void renderPage(const std::string &filename, const Node &node) {
+  std::ofstream file(filename);
+  DOMWriter writer;
+  writer.setNewLine("\n");
+  writer.writeNode(file, node.document);
 }
 
 
