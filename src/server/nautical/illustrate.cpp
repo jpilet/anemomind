@@ -41,12 +41,39 @@ NavDataset loadNavs(const std::string &path) {
   return loader.makeNavDataset();
 }
 
+void renderGpsTrajectoryToSvg(
+    const TimedSampleRange<GeographicPosition<double>> &positions,
+    const std::string &filename) {
+
+}
+
+void makeSessionIllustration(
+    const NavDataset &ds,
+    DOM::Node page) {
+  auto positions = ds.samples<GPS_POS>();
+  if (positions.empty()) {
+    auto p = DOM::makeSubNode(page, "p");
+    DOM::addTextNode(p, "No GPS data");
+  } else {
+    auto middle = positions[positions.size()/2];
+    auto p = DOM::makeGeneratedImageNode(page, ".svg");
+    renderGpsTrajectoryToSvg(positions, p.toString());
+  }
+}
 
 void makeAllIllustrations(
     const Setup &setup,
     const Array<NavDataset> &sessions) {
-  auto node = DOM::makeBasicHtmlPage("Illustrations",
+  auto page = DOM::makeBasicHtmlPage("Illustrations",
       setup.prefix, "illustrations");
+
+  auto ul = DOM::makeSubNode(page, "ul");
+
+  for (int i = 0; i < sessions.size(); i++) {
+    auto li = DOM::makeSubNode(ul, "li");
+    auto subPage = DOM::linkToSubPage(li, stringFormat("Session %d", i));
+    makeSessionIllustration(sessions[i], subPage);
+  }
 }
 
 bool makeIllustrations(const Setup &setup) {
