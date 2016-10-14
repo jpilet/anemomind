@@ -26,8 +26,7 @@ Node makeRootNode(const std::string &name) {
 }
 
 Node makeSubNode(Node node, const std::string &name) {
-  Node dst;
-  dst.document = node.document;
+  Node dst = node;
   dst.element = node.document->createElement(name);
   node.element->appendChild(dst.element);
   return dst;
