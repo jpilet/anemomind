@@ -20,15 +20,6 @@ std::shared_ptr<cairo_t> sharedPtrWrap(cairo_t *x) {
   return std::shared_ptr<cairo_t>(x, &cairo_destroy);
 }
 
-WithLocalCairoCoordinates::WithLocalCairoCoordinates(cairo_t *cr) :
-  _cr(cr) {
-  cairo_get_matrix(_cr, &_backup);
-}
-
-WithLocalCairoCoordinates::~WithLocalCairoCoordinates() {
-  cairo_set_matrix(_cr, &_backup);
-}
-
 WithLocalCairoContext::WithLocalCairoContext(cairo_t *cr) : _cr(cr) {
   cairo_save(cr);
 }

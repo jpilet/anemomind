@@ -25,19 +25,6 @@ template <int rows, int cols>
 cairo_matrix_t toCairo(
     const Eigen::Matrix<double, rows, cols> &mat);
 
-class WithLocalCairoCoordinates {
-public:
-  WithLocalCairoCoordinates(cairo_t *cr);
-  ~WithLocalCairoCoordinates();
-private:
-  WithLocalCairoCoordinates(
-      const WithLocalCairoCoordinates &other) = delete;
-  WithLocalCairoCoordinates &operator=(
-      const WithLocalCairoCoordinates &other) = delete;
-  cairo_t *_cr;
-  cairo_matrix_t _backup;
-};
-
 class WithLocalCairoContext {
 public:
   WithLocalCairoContext(cairo_t *cr);
