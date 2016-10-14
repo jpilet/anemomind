@@ -11,8 +11,12 @@
 #include <memory>
 #include <cairo/cairo.h>
 #include <Eigen/Dense>
+#include <server/plot/PlotUtils.h>
 
 namespace sail {
+
+// Note on line-width, interesting!
+// https://www.cairographics.org/tutorial/#L2linewidth
 
 std::shared_ptr<cairo_surface_t> sharedPtrWrap(cairo_surface_t *x);
 std::shared_ptr<cairo_t> sharedPtrWrap(cairo_t *x);
@@ -33,6 +37,19 @@ private:
   cairo_t *_cr;
   cairo_matrix_t _backup;
 };
+
+class WithLocalCairoContext {
+public:
+  WithLocalCairoContext(cairo_t *cr);
+  ~WithLocalCairoContext();
+private:
+  WithLocalCairoContext(const WithLocalCairoContext &x) = delete;
+  WithLocalCairoContext &operator=(const WithLocalCairoContext &x) = delete;
+  cairo_t *_cr;
+};
+
+void setCairoColor(cairo_t *cr, const PlotUtils::HSV &hsv);
+void setCairoColor(cairo_t *cr, const PlotUtils::RGB &rgb);
 
 }
 

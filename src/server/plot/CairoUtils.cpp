@@ -29,6 +29,22 @@ WithLocalCairoCoordinates::~WithLocalCairoCoordinates() {
   cairo_set_matrix(_cr, &_backup);
 }
 
+WithLocalCairoContext::WithLocalCairoContext(cairo_t *cr) : _cr(cr) {
+  cairo_save(cr);
+}
+
+WithLocalCairoContext::~WithLocalCairoContext() {
+  cairo_restore(_cr);
+}
+
+void setCairoColor(cairo_t *cr, const PlotUtils::RGB &rgb) {
+  cairo_set_source_rgb(cr, rgb.red, rgb.green, rgb.blue);
+}
+
+void setCairoColor(cairo_t *cr, const PlotUtils::HSV &hsv) {
+  setCairoColor(cr, PlotUtils::hsv2rgb(hsv));
+}
+
 template <int rows, int cols>
 cairo_matrix_t toCairo(const Eigen::Matrix<double, rows, cols> &mat) {
   static_assert(2 <= rows, "Too few rows");

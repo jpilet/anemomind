@@ -44,6 +44,47 @@ NavDataset loadNavs(const std::string &path) {
   return loader.makeNavDataset();
 }
 
+Array<GeographicReference::ProjectedPosition> positionsToPlane(
+    const TimedSampleRange<GeographicPosition<double>> &positions,
+    const GeographicReference &ref) {
+  int n = positions.size();
+  Array<GeographicReference::ProjectedPosition> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = ref.map(positions[i].value);
+  }
+  return dst;
+}
+
+
+
+struct BoatRenderSettings {
+  PlotUtils::RGB goodWind = PlotUtils::hsv2rgb(PlotUtils::HSV::fromHue(120.0_deg));
+  PlotUtils::RGB badWind = PlotUtils::hsv2rgb(PlotUtils::HSV::fromHue(0.0_deg));
+  PlotUtils::RGB boat = PlotUtils::hsv2rgb(PlotUtils::HSV::fromHue(215.0_deg));
+};
+
+struct RelWind {
+  Angle<double> dirWrtBoat;
+  Velocity<double> speed;
+};
+
+struct BoatData {
+  GeographicReference::ProjectedPosition position;
+  Angle<double> heading;
+
+  //Optional<Angle<double>> badAwa, goodAwa;
+  //Optional<Angle<double>> badTwdir, goodTwdir;
+};
+
+
+void renderBoatData(
+    cairo_t *cr,
+    const BoatData &boat,
+    const BoatRenderSettings &settings) {
+
+}
+
+
 void renderGpsTrajectoryToSvg(
     const TimedSampleRange<GeographicPosition<double>> &positions,
     const std::string &filename) {
@@ -52,8 +93,8 @@ void renderGpsTrajectoryToSvg(
   GeographicReference ref(middle.value);
 
   PlotUtils::Settings2d settings;
-  settings.width = 1024;
-  settings.height = 768;
+  settings.width = 800;
+  settings.height = 600;
 
   auto surface = sharedPtrWrap(
       cairo_svg_surface_create(
@@ -62,10 +103,35 @@ void renderGpsTrajectoryToSvg(
           settings.height));
   auto cr = sharedPtrWrap(cairo_create(surface.get()));
 
-  WithLocalCairoCoordinates with(cr.get());
-  for (auto pos: positions) {
+  auto p2 = positionsToPlane(positions, ref);
 
+  auto lengthUnit = 1.0_m;
+
+  BBox3d bbox;
+  for (auto p: p2) {
+    double xyz[3] = {p[0]/lengthUnit, p[1]/lengthUnit, 0.0};
+    bbox.extend(xyz);
   }
+
+  cairo_save(cr.get());
+  {
+    WithLocalCairoCoordinates with(cr.get());
+    auto mat = toCairo(
+        PlotUtils::computeTotalProjection(
+            bbox, settings));
+    cairo_transform(cr.get(), &mat);
+    {
+      auto p = p2[0];
+      cairo_move_to(cr.get(), p[0]/lengthUnit, p[1]/lengthUnit);
+    }
+    for (int i = 1; i < p2.size(); i++) {
+      auto p = p2[i];
+      cairo_line_to(cr.get(), p[0]/lengthUnit, p[1]/lengthUnit);
+    }
+  }
+  cairo_restore(cr.get()); // So that line width is not affected by the size
+  cairo_stroke(cr.get());
+
 
 }
 
