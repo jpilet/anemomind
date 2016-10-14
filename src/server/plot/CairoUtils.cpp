@@ -41,6 +41,22 @@ void setCairoColor(cairo_t *cr, const PlotUtils::RGB &rgb) {
   cairo_set_source_rgb(cr, rgb.red, rgb.green, rgb.blue);
 }
 
+void drawBoat(cairo_t *cr, double boatLength) {
+  WithLocalCairoContext context(cr);
+  cairo_reset_clip(cr);
+  double cutoff = 0.5;
+  double h = boatLength/(1.0 + cutoff);
+  double k = 0.2*h;
+  double r = sqrt(h*h + k*k);
+  cairo_arc(cr, -k, 0.0, r, 0.0, 2.0*M_PI);
+  cairo_clip(cr);
+  cairo_arc(cr, k, 0.0, r, 0.0, 2.0*M_PI);
+  cairo_clip(cr);
+  cairo_rectangle(cr, -2.0*r, -cutoff, 4.0*r, 2*h);
+  cairo_clip(cr);
+  cairo_paint(cr);
+}
+
 void setCairoColor(cairo_t *cr, const PlotUtils::HSV &hsv) {
   setCairoColor(cr, PlotUtils::hsv2rgb(hsv));
 }

@@ -113,9 +113,8 @@ void renderGpsTrajectoryToSvg(
     bbox.extend(xyz);
   }
 
-  cairo_save(cr.get());
   {
-    WithLocalCairoCoordinates with(cr.get());
+    WithLocalCairoContext with(cr.get());
     auto mat = toCairo(
         PlotUtils::computeTotalProjection(
             bbox, settings));
@@ -129,7 +128,6 @@ void renderGpsTrajectoryToSvg(
       cairo_line_to(cr.get(), p[0]/lengthUnit, p[1]/lengthUnit);
     }
   }
-  cairo_restore(cr.get()); // So that line width is not affected by the size
   cairo_stroke(cr.get());
 
 
