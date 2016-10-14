@@ -14,3 +14,9 @@ add_executable(examples_GnuplotExample
 target_link_libraries(examples_GnuplotExample
   common_LineKM
   plot_gnuplot) 
+
+add_executable(plot_cairoDemo
+  cairoDemo.cpp
+  )
+target_link_libraries(plot_cairoDemo
+                      ${CAIRO_LIBRARIES})

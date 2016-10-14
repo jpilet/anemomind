@@ -405,3 +405,10 @@ cxx_test(common_MultiMergeTest
          MultiMergeTest.cpp
          gtest_main
         )
+
+add_library(common_DOMUtils
+  DOMUtils.h
+  DOMUtils.cpp
+  )
+
+target_depends_on_poco_foundation(common_DOMUtils)
