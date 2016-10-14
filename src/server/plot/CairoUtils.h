@@ -19,6 +19,7 @@
   ClassName &operator=(const ClassName &) = delete;
 
 namespace sail {
+namespace Cairo {
 
 // Note on line-width, interesting!
 // https://www.cairographics.org/tutorial/#L2linewidth
@@ -40,31 +41,52 @@ private:
   cairo_t *_cr;
 };
 
-// This hack only works as expected
-// if the transformation is orthogonal
-class WithDeviceLineWidth {
+// If the current transform from user (x) to device (y) coordinates is
+// y = Ax + B,
+// then during the life-time of this object, it will be
+// y = x + B
+// In other words, the user space origin will map to the same point as
+// before, but the local scale will be different.
+//
+//
+// This is useful for drawing things such as small marker, that should be
+// invariant to most transformations except translation.
+class WithLocalDeviceScale {
 public:
-  WithDeviceLineWidth(cairo_t *cr);
-  ~WithDeviceLineWidth();
+  enum Mode {Determinant, Identity};
+
+  WithLocalDeviceScale(cairo_t *cr, Mode mode = Identity);
+  ~WithLocalDeviceScale();
 private:
-  MAKE_UNMOVABLE(WithDeviceLineWidth);
+  MAKE_UNMOVABLE(WithLocalDeviceScale);
   cairo_t *_cr;
-  double _lw;
+  cairo_matrix_t _backup;
 };
 
+// Set the color of the cairo source
 void setCairoSourceColor(cairo_t *cr, const PlotUtils::HSV &hsv);
 void setCairoSourceColor(cairo_t *cr, const PlotUtils::RGB &rgb);
 
+// Draws boat
 void drawBoat(cairo_t *cr, double boatLength);
 
+// Rotates counter-clockwise
 void rotateMathematically(cairo_t *cr, Angle<double> angle);
+
+// Rotates clockwise
 void rotateGeographically(cairo_t *cr, Angle<double> angle);
 
+// Stroke with the visually same linewidth as
+// in device coordinates
+void deviceStroke(cairo_t *cr);
+
+// Draw a single arrow
 bool drawArrow(cairo_t *cr,
     const Eigen::Vector2d &from,
     const Eigen::Vector2d &to,
     double pointSize);
 
+// Draw a couple of randomly translated arrows to visualize a flow
 bool drawLocalFlow(
     cairo_t *cr,
     Eigen::Vector2d flowVector,
@@ -72,6 +94,7 @@ bool drawLocalFlow(
     double pointSize,
     std::default_random_engine *rng);
 
+}
 }
 
 #endif /* SERVER_PLOT_CAIROUTILS_H_ */

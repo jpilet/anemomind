@@ -9,8 +9,7 @@
 #include <Eigen/Dense>
 
 namespace sail {
-
-
+namespace Cairo {
 
 std::shared_ptr<cairo_surface_t> sharedPtrWrap(cairo_surface_t *x) {
   return std::shared_ptr<cairo_surface_t>(x, &cairo_surface_destroy);
@@ -28,17 +27,27 @@ WithLocalCairoContext::~WithLocalCairoContext() {
   cairo_restore(_cr);
 }
 
-WithDeviceLineWidth::WithDeviceLineWidth(cairo_t *cr) : _cr(cr) {
-  _lw = cairo_get_line_width(cr);
-  double dx = _lw;
-  double dy = _lw;
-  cairo_device_to_user_distance(cr, &dx, &dy);
-  //cairo_user_to_device_distance(cr, &dx, &dy);
-  cairo_set_line_width(cr, sqrt(dx*dx + dy*dy));
+WithLocalDeviceScale::WithLocalDeviceScale(
+    cairo_t *cr, Mode mode) : _cr(cr) {
+  cairo_get_matrix(cr, &_backup);
+  auto tmp = _backup;
+  if (mode == Mode::Identity) {
+    tmp.xx = 1.0;
+    tmp.yy = 1.0;
+    tmp.xy = 0.0;
+    tmp.yx = 0.0;
+  } else {
+    auto det = tmp.xx*tmp.yy - tmp.xy*tmp.yx;
+    double s = 1.0/sqrt(1.0e-9 + std::abs(det));
+    tmp.xx *= s;
+    tmp.xy *= s;
+    tmp.yx *= s;
+    tmp.yy *= s;
+  }
+  cairo_set_matrix(cr, &tmp);
 }
-
-WithDeviceLineWidth::~WithDeviceLineWidth() {
-  cairo_set_line_width(_cr, _lw);
+WithLocalDeviceScale::~WithLocalDeviceScale() {
+  cairo_set_matrix(_cr, &_backup);
 }
 
 
@@ -78,6 +87,11 @@ void rotateGeographically(cairo_t *cr, Angle<double> angle) {
   rotateMathematically(cr, -angle);
 }
 
+void deviceStroke(cairo_t *cr) {
+  WithLocalDeviceScale context(cr, WithLocalDeviceScale::Identity);
+  cairo_stroke(cr);
+}
+
 bool drawArrow(cairo_t *cr,
     const Eigen::Vector2d &from,
     const Eigen::Vector2d &to,
@@ -96,12 +110,14 @@ bool drawArrow(cairo_t *cr,
 
   cairo_move_to(cr, from(0), from(1));
   cairo_line_to(cr, to(0), to(1));
-  cairo_stroke(cr);
+
+  // Todo: Let the user choose whether device- or user space line width?
+  deviceStroke(cr);
 
   cairo_move_to(cr, pt0(0), pt0(1));
   cairo_line_to(cr, to(0), to(1));
   cairo_line_to(cr, pt1(0), pt1(1));
-  cairo_stroke(cr);
+  deviceStroke(cr);
 
   return true;
 }
@@ -140,5 +156,5 @@ cairo_matrix_t toCairo(const Eigen::Matrix<double, rows, cols> &mat) {
 template cairo_matrix_t toCairo<2, 3>(const Eigen::Matrix<double, 2, 3> &mat);
 template cairo_matrix_t toCairo<2, 4>(const Eigen::Matrix<double, 2, 4> &mat);
 
-
+}
 } /* namespace sail */

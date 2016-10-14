@@ -21,6 +21,7 @@
 #include <cairo/cairo-svg.h>
 
 using namespace sail;
+using namespace sail::Cairo;
 
 std::default_random_engine rng;
 
@@ -136,7 +137,6 @@ void renderBoat(cairo_t *cr,
     auto coef = (4.0_m/1.0_kn)/lengthUnit;
 
     Eigen::Vector2d flow(double(motion[0]*coef), double(motion[1]*coef));
-    WithDeviceLineWidth wd(cr);
     drawLocalFlow(cr, flow, 30.0, 9, 0.2*flow.norm(), &rng);
   }
 }
