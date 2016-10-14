@@ -348,7 +348,7 @@ height:100%;
     margin-top: -1px;
   }
 }
-@media only screen and (max-width: 396px) {
+@media only screen and (max-width: 404px) {
   .mainControl .control-btns, 
   .mainControl .control-btns button, 
   .mainControl .tail-inputs i, 
