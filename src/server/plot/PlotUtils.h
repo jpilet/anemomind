@@ -30,11 +30,25 @@ struct Settings2d {
 };
 
 bool isEmpty(const BBox3d &box);
+
+// If the bbox is too small, get the default one.
 BBox3d ensureGoodBBox(
     const BBox3d &bbox,
     const Settings2d &settings);
+
+// Assuming that we enumerate the eight corners of a
+// bounding box, this function will return one of
+// those corners as homogeneous coordinates.
 Eigen::Vector4d getCorner(const BBox3d &box, int cornerIndex0);
+
+// Compute the bounding box of applying a transformation
+// to all the corners of a bounding box.
 BBox3d projectBBox(const Eigen::Matrix4d &pose, const BBox3d &box);
+
+// Given a bounding box of the objects we want to draw
+// this function computes a projection matrix, that
+// when applied to the objects, will neatly fit the objects
+// into the device space.
 Eigen::Matrix<double, 2, 4> computeTotalProjection(
     const BBox3d &a, const Settings2d &settings);
 

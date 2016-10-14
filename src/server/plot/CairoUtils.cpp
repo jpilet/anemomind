@@ -31,14 +31,14 @@ WithLocalDeviceScale::WithLocalDeviceScale(
     cairo_t *cr, Mode mode) : _cr(cr) {
   cairo_get_matrix(cr, &_backup);
   auto tmp = _backup;
-  if (mode == Mode::Identity) {
+  auto absDet = std::abs(tmp.xx*tmp.yy - tmp.xy*tmp.yx);
+  if (mode == Mode::Identity || absDet < 1.0e-12) {
     tmp.xx = 1.0;
     tmp.yy = 1.0;
     tmp.xy = 0.0;
     tmp.yx = 0.0;
   } else {
-    auto det = tmp.xx*tmp.yy - tmp.xy*tmp.yx;
-    double s = 1.0/sqrt(1.0e-9 + std::abs(det));
+    double s = 1.0/sqrt(absDet);
     tmp.xx *= s;
     tmp.xy *= s;
     tmp.yx *= s;

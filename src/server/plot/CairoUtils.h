@@ -70,10 +70,11 @@ void setSourceColor(cairo_t *cr, const PlotUtils::RGB &rgb);
 // Draws boat
 void drawBoat(cairo_t *cr, double boatLength);
 
-// Rotates counter-clockwise
+// Rotates counter-clockwise, in the "positive" direction
 void rotateMathematically(cairo_t *cr, Angle<double> angle);
 
-// Rotates clockwise
+// Rotates clockwise, like like angles are applied when
+// giving the heading of a boat on the map.
 void rotateGeographically(cairo_t *cr, Angle<double> angle);
 
 // Stroke with the visually same linewidth as
