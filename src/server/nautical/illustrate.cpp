@@ -44,6 +44,7 @@ NavDataset loadNavs(const std::string &path) {
 void renderGpsTrajectoryToSvg(
     const TimedSampleRange<GeographicPosition<double>> &positions,
     const std::string &filename) {
+  auto middle = positions[positions.size()/2];
 
 }
 
@@ -55,7 +56,6 @@ void makeSessionIllustration(
     auto p = DOM::makeSubNode(page, "p");
     DOM::addTextNode(p, "No GPS data");
   } else {
-    auto middle = positions[positions.size()/2];
     auto p = DOM::makeGeneratedImageNode(page, ".svg");
     renderGpsTrajectoryToSvg(positions, p.toString());
   }
