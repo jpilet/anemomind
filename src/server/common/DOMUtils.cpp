@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include "XMLUtils.h"
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 
