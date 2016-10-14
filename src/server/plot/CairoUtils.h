@@ -32,12 +32,12 @@ template <int rows, int cols>
 cairo_matrix_t toCairo(
     const Eigen::Matrix<double, rows, cols> &mat);
 
-class WithLocalCairoContext {
+class WithLocalContext {
 public:
-  WithLocalCairoContext(cairo_t *cr);
-  ~WithLocalCairoContext();
+  WithLocalContext(cairo_t *cr);
+  ~WithLocalContext();
 private:
-  MAKE_UNMOVABLE(WithLocalCairoContext);
+  MAKE_UNMOVABLE(WithLocalContext);
   cairo_t *_cr;
 };
 
@@ -64,8 +64,8 @@ private:
 };
 
 // Set the color of the cairo source
-void setCairoSourceColor(cairo_t *cr, const PlotUtils::HSV &hsv);
-void setCairoSourceColor(cairo_t *cr, const PlotUtils::RGB &rgb);
+void setSourceColor(cairo_t *cr, const PlotUtils::HSV &hsv);
+void setSourceColor(cairo_t *cr, const PlotUtils::RGB &rgb);
 
 // Draws boat
 void drawBoat(cairo_t *cr, double boatLength);

@@ -19,11 +19,11 @@ std::shared_ptr<cairo_t> sharedPtrWrap(cairo_t *x) {
   return std::shared_ptr<cairo_t>(x, &cairo_destroy);
 }
 
-WithLocalCairoContext::WithLocalCairoContext(cairo_t *cr) : _cr(cr) {
+WithLocalContext::WithLocalContext(cairo_t *cr) : _cr(cr) {
   cairo_save(cr);
 }
 
-WithLocalCairoContext::~WithLocalCairoContext() {
+WithLocalContext::~WithLocalContext() {
   cairo_restore(_cr);
 }
 
@@ -51,7 +51,7 @@ WithLocalDeviceScale::~WithLocalDeviceScale() {
 }
 
 
-void setCairoSourceColor(cairo_t *cr, const PlotUtils::RGB &rgb) {
+void setSourceColor(cairo_t *cr, const PlotUtils::RGB &rgb) {
   cairo_set_source_rgb(cr, rgb.red, rgb.green, rgb.blue);
 }
 
@@ -59,7 +59,7 @@ void drawBoat(cairo_t *cr, double boatLength) {
   double cutoff = 0.5;
   double widthFactor = 1.5;
 
-  WithLocalCairoContext context(cr);
+  WithLocalContext context(cr);
   cairo_reset_clip(cr);
 
   double h = boatLength/(1.0 + cutoff);
@@ -75,8 +75,8 @@ void drawBoat(cairo_t *cr, double boatLength) {
   cairo_paint(cr);
 }
 
-void setCairoSourceColor(cairo_t *cr, const PlotUtils::HSV &hsv) {
-  setCairoSourceColor(cr, PlotUtils::hsv2rgb(hsv));
+void setSourceColor(cairo_t *cr, const PlotUtils::HSV &hsv) {
+  setSourceColor(cr, PlotUtils::hsv2rgb(hsv));
 }
 
 void rotateMathematically(cairo_t *cr, Angle<double> angle) {

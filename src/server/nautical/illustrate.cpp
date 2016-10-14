@@ -116,9 +116,9 @@ void renderBoat(cairo_t *cr,
       localPos[0]/lengthUnit,
       localPos[1]/lengthUnit);
   {
-    WithLocalCairoContext context(cr);
+    WithLocalContext context(cr);
     rotateGeographically(cr, hdg.get().value);
-    setCairoSourceColor(cr, rs.boat);
+    setSourceColor(cr, rs.boat);
     drawBoat(cr, 60);
   }{
     auto twdir = ds.samples<TWDIR>().nearest(time);
@@ -173,7 +173,7 @@ void renderGpsTrajectoryToSvg(
           bbox, settings));
 
   {
-    WithLocalCairoContext with(cr.get());
+    WithLocalContext with(cr.get());
     cairo_transform(cr.get(), &mat);
     {
       auto p = p2[0];
@@ -188,7 +188,7 @@ void renderGpsTrajectoryToSvg(
 
   TimeStamp at = middle.time;
   {
-    WithLocalCairoContext with(cr.get());
+    WithLocalContext with(cr.get());
     cairo_transform(cr.get(), &mat);
     renderBoat(cr.get(), ref, middle.time, ds);
   }
