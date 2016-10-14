@@ -66,7 +66,7 @@ angular.module('www2App')
           var images = [{'url': '',}]; 
 
           var oldTemplate = Lightbox.templateUrl;
-          
+
           Lightbox.templateUrl = 'app/map/sharePopup.html';
           Lightbox.openModal(images,0);
 

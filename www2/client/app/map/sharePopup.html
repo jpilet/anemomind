@@ -1,4 +1,4 @@
-<div class="modal-body">
+<div class="modal-body" ng-controller="MapCtrl">
 <button class="close" aria-hidden="true" ng-click="$dismiss()">×</button>
   <!-- caption -->
   <div class="custom-modal-container">
@@ -37,7 +37,7 @@
         </ul>
     </div>
     <div class="share-box">
-        <textarea></textarea>
+        <textarea>{{shareText}}</textarea>
         <button type="button" class="btn btn-default">
             Share
             <i class="fa fa-share-alt" aria-hidden="true"></i>

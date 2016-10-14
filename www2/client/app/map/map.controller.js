@@ -92,6 +92,10 @@ angular.module('www2App')
     .success(function(data, status, headers, config) {
       $scope.boat = data;
 
+      var aveSpeedText = '32 Kts';
+      var windBlowedText = '22 Kts';
+      var performanceText = '91%';
+      $scope.shareText = '"'+$scope.boat.name+'" and her team made a great performance with an average speed of '+aveSpeedText+'. The wind blowed at '+windBlowedText+'. Anemomind calculated a global performance of '+performanceText+'.';
     });
 
     $scope.eventList = [];
