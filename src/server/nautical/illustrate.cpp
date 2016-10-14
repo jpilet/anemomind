@@ -113,11 +113,12 @@ void renderGpsTrajectoryToSvg(
     bbox.extend(xyz);
   }
 
+  auto mat = toCairo(
+      PlotUtils::computeTotalProjection(
+          bbox, settings));
+
   {
     WithLocalCairoContext with(cr.get());
-    auto mat = toCairo(
-        PlotUtils::computeTotalProjection(
-            bbox, settings));
     cairo_transform(cr.get(), &mat);
     {
       auto p = p2[0];
@@ -130,7 +131,11 @@ void renderGpsTrajectoryToSvg(
   }
   cairo_stroke(cr.get());
 
-
+  {
+    WithLocalCairoContext(cr.get());
+    cairo_transform(cr.get(), &mat);
+    drawBoat(cr.get(), 300);
+  }
 }
 
 void makeSessionIllustration(
