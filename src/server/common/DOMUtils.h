@@ -22,7 +22,7 @@ struct Node {
   Poco::XML::AutoPtr<Poco::XML::Element> element;
 };
 
-Node makeRootNode();
+Node makeRootNode(const std::string &name);
 Node makeSubNode(Node node, const std::string &name);
 void addTextNode(Node node, const std::string &text);
 
