@@ -22,6 +22,8 @@
 
 using namespace sail;
 
+std::default_random_engine rng;
+
 struct Setup {
   std::string path;
   std::string fromStr, toStr;
@@ -93,9 +95,17 @@ void renderBoat(cairo_t *cr,
     const GeographicReference &ref,
     TimeStamp time,
   const NavDataset &ds) {
+  BoatRenderSettings rs;
+
   auto pos = ds.samples<GPS_POS>().nearest(time);
   if (!pos.defined()) {
     std::cout << "Missing pos";
+    return;
+  }
+
+  auto hdg = ds.samples<MAG_HEADING>().nearest(time);
+  if (!hdg.defined()) {
+    std::cout << "Missing heading";
     return;
   }
 
@@ -104,9 +114,31 @@ void renderBoat(cairo_t *cr,
   cairo_translate(cr,
       localPos[0]/lengthUnit,
       localPos[1]/lengthUnit);
+  {
+    WithLocalCairoContext context(cr);
+    rotateGeographically(cr, hdg.get().value);
+    setCairoSourceColor(cr, rs.boat);
+    drawBoat(cr, 60);
+  }{
+    auto twdir = ds.samples<TWDIR>().nearest(time);
+    if (!twdir.defined()) {
+      std::cout << "Missing twdir" << std::endl;
+      return;
+    }
+    auto tws = ds.samples<TWS>().nearest(time);
+    if (!tws.defined()) {
+      std::cout << "Missing tws" << std::endl;
+      return;
+    }
+    auto motion = HorizontalMotion<double>::polar(tws.get().value,
+        twdir.get().value + hdg.get().value + Angle<double>::degrees(180.0));
 
+    auto coef = (4.0_m/1.0_kn)/lengthUnit;
 
-  drawBoat(cr, 60);
+    Eigen::Vector2d flow(double(motion[0]*coef), double(motion[1]*coef));
+    WithDeviceLineWidth wd(cr);
+    drawLocalFlow(cr, flow, 30.0, 9, 0.2*flow.norm(), &rng);
+  }
 }
 
 void renderGpsTrajectoryToSvg(

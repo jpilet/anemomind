@@ -28,6 +28,20 @@ WithLocalCairoContext::~WithLocalCairoContext() {
   cairo_restore(_cr);
 }
 
+WithDeviceLineWidth::WithDeviceLineWidth(cairo_t *cr) : _cr(cr) {
+  _lw = cairo_get_line_width(cr);
+  double dx = _lw;
+  double dy = _lw;
+  cairo_device_to_user_distance(cr, &dx, &dy);
+  //cairo_user_to_device_distance(cr, &dx, &dy);
+  cairo_set_line_width(cr, sqrt(dx*dx + dy*dy));
+}
+
+WithDeviceLineWidth::~WithDeviceLineWidth() {
+  cairo_set_line_width(_cr, _lw);
+}
+
+
 void setCairoSourceColor(cairo_t *cr, const PlotUtils::RGB &rgb) {
   cairo_set_source_rgb(cr, rgb.red, rgb.green, rgb.blue);
 }
@@ -54,6 +68,59 @@ void drawBoat(cairo_t *cr, double boatLength) {
 
 void setCairoSourceColor(cairo_t *cr, const PlotUtils::HSV &hsv) {
   setCairoSourceColor(cr, PlotUtils::hsv2rgb(hsv));
+}
+
+void rotateMathematically(cairo_t *cr, Angle<double> angle) {
+  cairo_rotate(cr, angle.radians());
+}
+
+void rotateGeographically(cairo_t *cr, Angle<double> angle) {
+  rotateMathematically(cr, -angle);
+}
+
+bool drawArrow(cairo_t *cr,
+    const Eigen::Vector2d &from,
+    const Eigen::Vector2d &to,
+    double pointSize) {
+  auto dir = (to - from);
+  auto len = dir.norm();
+  if (len < 1.0e-6) {
+    return false;
+  }
+  Eigen::Vector2d xAxis = (1.0/len)*dir;
+  Eigen::Vector2d yAxis(xAxis(1), -xAxis(0));
+  Eigen::Vector2d yStep = yAxis*pointSize;
+  Eigen::Vector2d base = to - xAxis*pointSize;
+  Eigen::Vector2d pt0 = base - yStep;
+  Eigen::Vector2d pt1 = base + yStep;
+
+  cairo_move_to(cr, from(0), from(1));
+  cairo_line_to(cr, to(0), to(1));
+  cairo_stroke(cr);
+
+  cairo_move_to(cr, pt0(0), pt0(1));
+  cairo_line_to(cr, to(0), to(1));
+  cairo_line_to(cr, pt1(0), pt1(1));
+  cairo_stroke(cr);
+
+  return true;
+}
+
+bool drawLocalFlow(
+    cairo_t *cr,
+    Eigen::Vector2d flowVector,
+    double localStddev, int n,
+    double pointSize,
+    std::default_random_engine *rng) {
+  std::normal_distribution<double> distrib(0.0, localStddev);
+  Eigen::Vector2d half = 0.5*flowVector;
+  for (int i = 0; i < n; i++) {
+    Eigen::Vector2d at(distrib(*rng), distrib(*rng));
+    if (!drawArrow(cr, at - half, at + half, pointSize)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 template <int rows, int cols>
