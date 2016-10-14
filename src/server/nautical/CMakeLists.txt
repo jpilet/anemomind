@@ -140,6 +140,7 @@ target_link_libraries(nautical_illustrate
   common_TimeStamp
   nautical_BoatLogProcessor
   common_Env
+  common_DOMUtils
   )
 
 add_executable(nautical_processBoatLogs

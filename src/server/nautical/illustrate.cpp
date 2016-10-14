@@ -15,6 +15,7 @@
 #include <server/common/PathBuilder.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <device/anemobox/simulator/SimulateBox.h>
+#include <server/common/DOMUtils.h>
 
 using namespace sail;
 
@@ -44,6 +45,8 @@ NavDataset loadNavs(const std::string &path) {
 void makeAllIllustrations(
     const Setup &setup,
     const Array<NavDataset> &sessions) {
+  auto node = DOM::makeBasicHtmlPage("Illustrations",
+      setup.prefix, "illustrations");
 }
 
 bool makeIllustrations(const Setup &setup) {
