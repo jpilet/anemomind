@@ -128,6 +128,7 @@ height:100%;
   background-color: #f8f8f8;
   width: auto;
   min-height: 84px;
+  font-family: 'Raleway', sans-serif;
 }
 .mainControl .section {
   border-top: 1px solid #d6d6d6;
@@ -246,9 +247,9 @@ height:100%;
 }
 .mainControl .tail-inputs i.with-circle {
   border-radius: 50%;
-  width: 21px;
+  width: 23px;
   height: 21px;
-  padding-left: 3px;
+  padding-left: 5px;
   padding-top: 3px;
   margin-top: 1px;
   color: #ffffff;
@@ -385,6 +386,19 @@ height:100%;
   }
   .mainControl .tail-inputs .wide {
     width: 44px;
+  }
+}
+@media only screen and (max-width: 340px) {
+  .mainControl .tail-inputs .group.perf-vmg i {
+    width: 23px;
+  }
+  .mainControl .tail-inputs .group.tail i {
+    padding-left: 7px;
+  }
+}
+@media only screen and (max-width: 325px) {
+  .mainControl .tail-inputs .group.perf-vmg i {
+    width: 27px;
   }
 }
 
@@ -526,6 +540,9 @@ perfplot {
   -webkit-flex-direction: row;
       -ms-flex-direction: row;
           flex-direction: row;
+}
+.responsiveNavButtons i {
+  color: #ed1a28;
 }
 .flexOne {
   -webkit-flex: 1;
