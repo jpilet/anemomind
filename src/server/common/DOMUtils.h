@@ -10,15 +10,23 @@
 
 #include <Poco/DOM/Element.h>
 #include <Poco/DOM/Document.h>
+#include <Poco/DOM/AutoPtr.h>
 
 namespace sail {
 namespace DOM {
 
+// https://pocoproject.org/slides/170-XML.pdf
+
 struct Node {
-  Poco::XML::Document document;
-  Poco::XML::Element element;
+  Poco::XML::AutoPtr<Poco::XML::Document> document;
+  Poco::XML::AutoPtr<Poco::XML::Element> element;
 };
 
+Node makeRootNode();
+Node makeSubNode(Node node, const std::string &name);
+void addTextNode(Node node, const std::string &text);
+
+Node initializeHtmlPage(const std::string &title);
 
 }
 } /* namespace sail */
