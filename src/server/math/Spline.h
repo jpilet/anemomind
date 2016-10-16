@@ -59,14 +59,9 @@ struct SplineBasis {
     SplineBasis<T, PieceCount+1> dst;
     auto leftMost = pieces[0].primitive();
     for (int i = 0; i < PieceCount+1; i++) {
-      std::cout << "Integrating piece across " << boundary(i) << std::endl;
       auto split = Polynomial<T, 1>(boundary(i));
       auto leftPolyPrimitive = get(i-1).primitive();
       auto rightPolyPrimitive = get(i).primitive();
-
-      std::cout << "   Left primitive " << leftPolyPrimitive << std::endl;
-      std::cout << "   Right primitive " << rightPolyPrimitive << std::endl;
-
       auto leftItg = eval(leftPolyPrimitive, split)
                   - eval(leftPolyPrimitive, left);
       auto rightItg =  eval(rightPolyPrimitive, right)
