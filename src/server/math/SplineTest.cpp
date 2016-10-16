@@ -27,6 +27,8 @@ TEST(SplineBasisTest, TestIt) {
 
   auto s2 = s1.next();
   EXPECT_NEAR(s2(0.0), 1.0, 1.0e-6);
+  EXPECT_NEAR(s2(-1.0), 0.0, 1.0e-6);
+  EXPECT_NEAR(s2(1.0), 0.0, 1.0e-6);
 }
 
 
