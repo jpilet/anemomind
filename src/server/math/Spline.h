@@ -123,15 +123,17 @@ Polynomial<T, CoefCount> operator*(T a, const Polynomial<T, CoefCount> &b) {
 template <typename Ewise, typename T, int M, int N>
 struct EwisePoly {
   static const int K = cmax(M, N);
-  Polynomial<T, K> apply(
+  static Polynomial<T, K> apply(
       const Polynomial<T, M> &a, const Polynomial<T, N> &b) {
-    return EwisePoly<Ewise, T, K, K>::apply(a.resize(K), b.resize(K));
+    return EwisePoly<Ewise, T, K, K>::apply(
+        a.template resize<K>(),
+        b.template resize<K>());
   }
 };
 
 template <typename Ewise, typename T, int M>
 struct EwisePoly<Ewise, T, M, M> {
-  Polynomial<T, M> apply(
+  static Polynomial<T, M> apply(
       const Polynomial<T, M> &a,
       const Polynomial<T, M> &b) {
     Polynomial<T, M> c;
