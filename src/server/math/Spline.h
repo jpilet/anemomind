@@ -61,7 +61,7 @@ public:
 
   template <int M>
   Polynomial<T, M + CoefCount - 1> operator*(const Polynomial<T, M> &r) const {
-    auto dst = Polynomial<T, M + CoefCount>::zero();
+    auto dst = Polynomial<T, M + CoefCount - 1>::zero();
     for (int i = 0; i < CoefCount; i++) {
       for (int j = 0; j < M; j++) {
         dst[i + j] += _coefs[i]*r[j];
@@ -173,14 +173,14 @@ Polynomial<T, cmax(M, N)> operator-(
   return EwisePoly<CoefSub, T, M, N>::apply(a, b);
 }
 
-/*template <typename T, int M, int N>
+template <typename T, int M, int N>
 Polynomial<T, M*N> eval(const Polynomial<T, M> &a,
-    const Polynomial<T, N> &b) const {
+    const Polynomial<T, N> &b) {
   auto result = Polynomial<T, M*N>::zero();
-  for (int i = 0; i < M; i++) {
-    result +=
+  for (int i_ = 0; i_ < M; i_++) {
+    int i = M - 1 - i_;
   }
-}*/
+}
 
 
 } /* namespace sail */
