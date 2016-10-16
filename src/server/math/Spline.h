@@ -35,16 +35,16 @@ struct SplineBasis {
     return PieceCount;
   }
 
-  static T leftOffset() {
+  static T leftmost() {
     return -0.5*support();
   }
 
   static T boundary(int index) {
-    return leftOffset() + T(index);
+    return leftmost() + T(index);
   }
 
   static int pieceIndex(T x) {
-    auto diff = x - leftOffset();
+    auto diff = x - leftmost();
     return int(std::floor(diff));
   }
 
