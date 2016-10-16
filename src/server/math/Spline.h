@@ -42,6 +42,9 @@ public:
       _coefs[i] = c;
       i++;
     }
+    for (; i < CoefCount; i++) {
+      _coefs[i] = 0.0;
+    }
     assert(i == CoefCount);
   }
 
