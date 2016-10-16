@@ -21,6 +21,8 @@ angular.module('www2App')
           if(el.attr('mode') == 'hide-parent') {
             parent.toggleClass(parent.attr('toggle-classes'));
           }
+
+          setTimeout(function() { scope.$apply(); }, 10);
         });
       }
     };
@@ -29,8 +31,7 @@ angular.module('www2App')
     return {
       restrict: 'C',
       link: function (scope, element, attrs) {
-        element.on('click', function() {
-          var el = angular.element(this);
+        var adjustHeight = function(el) {
           var parent = el.parent();
           var container = parent.find('.collapsible');
           $timeout(function() {
@@ -52,6 +53,12 @@ angular.module('www2App')
               container.attr('style','');
             }
           }, 100);
+        }
+        element.on('click', function() {
+          adjustHeight(angular.element(this));
+        });
+        angular.element(window).on('resize', function() {
+          adjustHeight(angular.element('label.height-check'));
         });
       }
     };

@@ -317,6 +317,7 @@ height:100%;
 }
 .mainControl .details {
   padding: 5px 10px;
+  overflow-y: hidden;
 }
 .mainControl .details label {
   padding: 5px 0;
