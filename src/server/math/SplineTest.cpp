@@ -19,6 +19,7 @@ TEST(SplineTest, PolyTest) {
   EXPECT_FALSE(P1{8} == P1{7});
 
   EXPECT_EQ((P1{4}.primitive()), (P2{0, 4}));
+  EXPECT_EQ((P2{0, 4}.primitive()), (P3{0, 0, 2}));
 }
 
 
