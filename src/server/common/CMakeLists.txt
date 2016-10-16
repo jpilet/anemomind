@@ -422,3 +422,15 @@ cxx_test(common_MultiMergeTest
          MultiMergeTest.cpp
          gtest_main
         )
+
+add_library(common_DOMUtils
+  DOMUtils.h
+  DOMUtils.cpp
+  )
+
+target_depends_on_poco_foundation(common_DOMUtils)
+target_depends_on_poco_xml(common_DOMUtils)
+
+target_link_libraries(common_DOMUtils
+  common_PathBuilder
+  )
