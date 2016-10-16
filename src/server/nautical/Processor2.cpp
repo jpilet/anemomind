@@ -22,6 +22,7 @@
 #include <server/common/logging.h>
 #include <server/common/Functional.h>
 #include <unordered_map>
+#include <server/nautical/calib/Reconstructor.h>
 
 namespace sail {
 namespace Processor2 {

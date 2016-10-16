@@ -353,7 +353,7 @@ target_link_libraries(nautical_Processor2
   segment_SessionCut
   common_Span
   filters_SmoothGpsFilter
-  calib_BoatStateReconstructor
+  calib_Reconstructor
   )
 
 cxx_test(nautical_Processor2Test

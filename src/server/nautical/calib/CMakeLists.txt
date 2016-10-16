@@ -116,3 +116,10 @@ cxx_test(calib_SensorSetTest
   )
 
 target_depends_on_ceres(calib_SensorSetTest)
+
+add_library(calib_Reconstructor
+  Reconstructor.h
+  Reconstructor.cpp
+  )
+
+target_link_libraries(calib_Reconstructor)
