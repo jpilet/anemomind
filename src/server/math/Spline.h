@@ -8,7 +8,9 @@
 #ifndef SERVER_MATH_SPLINE_H_
 #define SERVER_MATH_SPLINE_H_
 
+#include <iostream>
 #include <server/math/Polynomial.h>
+#include <cmath>
 
 namespace sail {
 
@@ -33,8 +35,22 @@ struct SplineBasis {
     return PieceCount;
   }
 
+  static T leftOffset() {
+    return -0.5*support();
+  }
+
   static T boundary(int index) {
-    return -0.5*support() + T(index);
+    return leftOffset() + T(index);
+  }
+
+  static int pieceIndex(T x) {
+    auto diff = x - leftOffset();
+    std::cout << "diff = " << diff << std::endl;
+    return int(std::floor(diff));
+  }
+
+  T eval(T x) {
+    return get(pieceIndex(x)).eval(x);
   }
 
   SplineBasis<T, PieceCount+1> next() {

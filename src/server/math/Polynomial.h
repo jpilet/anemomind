@@ -123,6 +123,15 @@ public:
     }
     return true;
   }
+
+  T eval(T x) const {
+    T result = T(0.0);
+    for (int i_ = 0; i_ < CoefCount; i_++) {
+      int i = CoefCount-1 - i_;
+      result = result*x + _coefs[i];
+    }
+    return result;
+  }
 private:
   T _coefs[CoefCount];
 };
