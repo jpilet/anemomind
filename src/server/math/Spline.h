@@ -134,14 +134,14 @@ struct EwisePoly<Ewise, T, M, M> {
 
 struct CoefAdd {
   template <typename T>
-  struct T apply(int i, T a, T b) {
+  static T apply(int i, T a, T b) {
     return a + b;
   }
 };
 
 struct CoefSub {
   template <typename T>
-  struct T apply(int i, T a, T b) {
+  static T apply(int i, T a, T b) {
     return a - b;
   }
 };

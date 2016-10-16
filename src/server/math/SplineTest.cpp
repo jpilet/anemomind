@@ -6,6 +6,7 @@
  */
 
 #include <server/math/Spline.h>
+#include <gtest/gtest.h>
 
 TEST(SplineTest, PolyTest) {
 

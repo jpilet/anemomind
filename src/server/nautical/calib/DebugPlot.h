@@ -17,7 +17,6 @@
 #include <sstream>
 #include <server/common/LineKM.h>
 #include <server/common/Span.h>
-#include <server/common/HtmlLog.h>
 #include <server/common/TimedValue.h>
 
 namespace sail {
