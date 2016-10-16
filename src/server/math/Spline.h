@@ -45,11 +45,10 @@ struct SplineBasis {
 
   static int pieceIndex(T x) {
     auto diff = x - leftOffset();
-    std::cout << "diff = " << diff << std::endl;
     return int(std::floor(diff));
   }
 
-  T eval(T x) {
+  T operator()(T x) const {
     return get(pieceIndex(x)).eval(x);
   }
 
@@ -60,6 +59,7 @@ struct SplineBasis {
     SplineBasis<T, PieceCount+1> dst;
     auto leftMost = pieces[0].primitive();
     for (int i = 0; i < PieceCount+1; i++) {
+      std::cout << "Integrating piece across " << boundary(i) << std::endl;
       auto split = Polynomial<T, 1>(boundary(i));
       auto leftPolyPrimitive = get(i).primitive();
       auto rightPolyPrimitive = get(i+1).primitive();

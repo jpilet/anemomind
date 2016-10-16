@@ -20,10 +20,13 @@ TEST(SplineBasisTest, TestIt) {
   EXPECT_EQ(s1.pieceIndex(-0.4), 0);
   EXPECT_EQ(s1.pieceIndex(0.6), 1);
 
-  /*EXPECT_EQ(s1.eval(-0.6), 0.0);
-  EXPECT_EQ(s1.eval(-0.4), 1.0);
-  EXPECT_EQ(s1.eval(0.4), 1.0);
-  EXPECT_EQ(s1.eval(0.6), 0.0);*/
+  EXPECT_EQ(s1(-0.6), 0.0);
+  EXPECT_EQ(s1(-0.4), 1.0);
+  EXPECT_EQ(s1(0.4), 1.0);
+  EXPECT_EQ(s1(0.6), 0.0);
+
+  auto s2 = s1.next();
+  EXPECT_NEAR(s2(0.0), 1.0, 1.0e-6);
 }
 
 
