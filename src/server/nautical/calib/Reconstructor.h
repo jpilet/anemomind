@@ -15,6 +15,7 @@
 #include <string>
 #include <device/anemobox/Channels.h>
 #include <server/common/TimedValue.h>
+#include <server/nautical/calib/BoatParameters.h>
 
 namespace sail {
 
@@ -54,6 +55,17 @@ FOREACH_CHANNEL(MAKE_DATA_MAP)
 #undef MAKE_DATA_MAP
 };
 
+struct ReconstructionSettings {};
+
+struct ReconstructedChunk {
+  TimeStampToIndexMapper mapper;
+  Array<BoatState<double>> states;
+};
+
+struct ReconstructionResults {
+  BoatParameters<double> parameters;
+  Array<ReconstructedChunk> chunks;
+};
 
 }
 

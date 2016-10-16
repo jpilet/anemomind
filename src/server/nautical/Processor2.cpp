@@ -31,15 +31,14 @@ struct CutVisitor {
   Array<CalibDataChunk> &_chunks;
   Array<Span<TimeStamp>> _timeSpans;
   std::function<bool(DataCode, std::string)> _sensorFilter;
-  HtmlNode::Ptr _log;
+  //HtmlNode::Ptr _log;
 
   CutVisitor(Array<CalibDataChunk> *chunks,
       const Array<Span<TimeStamp>> &timeSpans,
       std::function<bool(DataCode, std::string)> sf) :
     _chunks(*chunks),
     _timeSpans(timeSpans),
-    _sensorFilter(sf),
-    _log(log) {}
+    _sensorFilter(sf) {}
 
   template <DataCode Code, typename T>
   void visit(
@@ -57,9 +56,9 @@ struct CutVisitor {
         (*ChannelFieldAccess<Code>::get(_chunks[i]))[sourceName] = cut[i];
       }
     } else {
-      HtmlTag::tagWithData(_log, "p", {{"class", "warning"}},
+      /*HtmlTag::tagWithData(_log, "p", {{"class", "warning"}},
           std::string("Measured values from ") + shortName + ", "
-          + sourceName + " will not be used.");
+          + sourceName + " will not be used.");*/
     }
   }
 };
@@ -120,7 +119,7 @@ Array<BoatState<double> > makeInitialStates(
   return states;
 }
 
-void outputChunkSummary(
+/*void outputChunkSummary(
     const Array<CalibDataChunk> &chunks,
     HtmlNode::Ptr log0) {
   auto table = HtmlTag::make(log0, "table");
@@ -135,15 +134,14 @@ void outputChunkSummary(
     HtmlTag::tagWithData(tr, "td",
         stringFormat("%d", chunks[i].timeMapper.sampleCount));
   }
-}
+}*/
 
 Array<CalibDataChunk> makeCalibChunks(
     const Array<Span<TimeStamp>> &timeSpans,
     const Dispatcher *d,
     const Array<TimedValue<
       GeographicPosition<double>>> &filteredPositions,
-      std::function<bool(DataCode, std::string)> sensorFilter,
-      HtmlTag::Ptr log) {
+      std::function<bool(DataCode, std::string)> sensorFilter) {
 
   auto cutGpsPositions = cutTimedValues(
       filteredPositions.begin(),
@@ -152,11 +150,11 @@ Array<CalibDataChunk> makeCalibChunks(
 
 
   int n = timeSpans.size();
-  HtmlTag::tagWithData(log, "p",
-      stringFormat("Number of time spans: %d", n));
+  /*HtmlTag::tagWithData(log, "p",
+      stringFormat("Number of time spans: %d", n));*/
   Array<CalibDataChunk> chunks(n);
   {
-    CutVisitor v(&chunks, timeSpans, sensorFilter, log);
+    CutVisitor v(&chunks, timeSpans, sensorFilter);
     visitDispatcherChannelsConst(d, &v);
   }{
     for (int i = 0; i < n; i++) {
@@ -172,16 +170,16 @@ Array<CalibDataChunk> makeCalibChunks(
         CHECK(chunks[i].initialStates.size()
             == chunks[i].timeMapper.sampleCount);
       } else {
-        HtmlTag::tagWithData(log, "p",
+        /*HtmlTag::tagWithData(log, "p",
             stringFormat(
                 "Potential problem: Too few states %d for chunk %d",
-                stateCount, i));
+                stateCount, i));*/
       }
     }
   }
-  if (log) {
-    outputChunkSummary(chunks, log);
-  }
+  //if (log) {
+    //outputChunkSummary(chunks, log);
+  //}
   return chunks;
 }
 
@@ -190,32 +188,31 @@ Array<ReconstructionResults> reconstructAllGroups(
     const Array<Span<TimeStamp>> &smallSessions,
     const Array<TimedValue<GeographicPosition<double>>> &positions,
     const Dispatcher *d,
-    const Settings &settings,
-    HtmlNode::Ptr log) {
-  HtmlTag::tagWithData(log, "h2", "Reconstruction of all groups");
+    const Settings &settings) {
+  //HtmlTag::tagWithData(log, "h2", "Reconstruction of all groups");
 
   Array<CalibDataChunk> chunks
-    = makeCalibChunks(smallSessions, d, positions, settings.sensorFilter,
-        log);
+    = makeCalibChunks(smallSessions,
+        d, positions, settings.sensorFilter);
 
   assert(chunks.size() == smallSessions.size());
 
-  HtmlTag::tagWithData(log, "h3", "Reconstruction per group");
+  //HtmlTag::tagWithData(log, "h3", "Reconstruction per group");
   ReconstructionSettings recSettings;
   int n = calibGroups.size();
-  auto ol = HtmlTag::make(log, "ol");
+  //auto ol = HtmlTag::make(log, "ol");
   Array<ReconstructionResults> results(n);
   for (int i = 0; i < n; i++) {
     auto group = calibGroups[i];
     auto title = stringFormat("Reconstruction for group %d of %d",
                 i+1, calibGroups.size());
 
-    auto li = HtmlTag::make(ol, "li");
-    auto subLog = HtmlTag::initializePage(
+    //auto li = HtmlTag::make(ol, "li");
+    /*auto subLog = HtmlTag::initializePage(
         HtmlTag::linkToSubPage(li, title),
-        title);
-    results[i] = reconstruct(chunks.slice(group.minv(), group.maxv()),
-        settings.reconstructionSettings, subLog);
+        title);*/
+    //results[i] = reconstruct(chunks.slice(group.minv(), group.maxv()),
+        //settings.reconstructionSettings);
   }
 
   return results;
@@ -245,7 +242,7 @@ std::set<DataCode> usefulChannels{
   MAG_HEADING, WAT_SPEED,
   ORIENT
 };
-void outputChannelSummary(
+/*void outputChannelSummary(
     const Dispatcher *src,
     HtmlNode::Ptr dst) {
     ChannelSummarizerVisitor visitor;
@@ -301,22 +298,22 @@ void outputChannelSummary(
           {{"class", "success"}},
           "All channels of interest are present");
     }
-}
+}*/
 
 void runDemoOnDataset(
-    NavDataset &dataset,
-    HtmlNode::Ptr dstLogNode) {
+    NavDataset &dataset/*,
+    HtmlNode::Ptr dstLogNode*/) {
   auto startTime = TimeStamp::now();
-  auto logBody = HtmlTag::initializePage(
-      dstLogNode, "V2 Reconstruction results");
-  HtmlTag::tagWithData(logBody, "h1", "Results summary");
+  //auto logBody = HtmlTag::initializePage(
+  //dstLogNode, "V2 Reconstruction results");
+  //HtmlTag::tagWithData(logBody, "h1", "Results summary");
 
-  if (logBody) {
+  /*if (logBody) {
     HtmlTag::tagWithData(logBody, "h2", "Channel summary");
     outputChannelSummary(
         dataset.dispatcher().get(),
         logBody);
-  }
+  }*/
   dataset.mergeAll();
 
   auto d = dataset.dispatcher().get();
@@ -325,14 +322,14 @@ void runDemoOnDataset(
     return c == MAG_HEADING; // || c == AWS || c == AWA;
   };
 
-  HtmlTag::tagWithData(logBody, "p",
-      "First of all, we are going to filter all the GPS data");
+  //HtmlTag::tagWithData(logBody, "p",
+  //"First of all, we are going to filter all the GPS data");
   Array<TimedValue<GeographicPosition<double> > > allFilteredPositions
-    = Processor2::filterAllGpsData(dataset, settings, logBody);
+    = Processor2::filterAllGpsData(dataset, settings);
 
-  HtmlTag::tagWithData(logBody, "p",
-      "Based on the timestamps of the filtered GPS data, "
-      "we will build short sessions of data.");
+  //HtmlTag::tagWithData(logBody, "p",
+      //"Based on the timestamps of the filtered GPS data, "
+      //"we will build short sessions of data.");
   auto filteredTimeStamps = getTimeStamps(
       allFilteredPositions.begin(),
       allFilteredPositions.end());
@@ -340,37 +337,36 @@ void runDemoOnDataset(
   auto smallSessions = Processor2::segmentSubSessions(
       filteredTimeStamps, settings.subSessionCut);
 
-  if (logBody) {
-    HtmlTag::tagWithData(logBody, "h2", "Small sessions");
-    outputTimeSpans(smallSessions, logBody);
-  }
+  //if (logBody) {
+//    HtmlTag::tagWithData(logBody, "h2", "Small sessions");
+//    outputTimeSpans(smallSessions, logBody);
+//  }
 
-  HtmlTag::tagWithData(logBody, "p",
-    "In order to perform calibration, we need to make sure that there is"
-    " enough data for every optimization problem, so we will form groups");
+  //HtmlTag::tagWithData(logBody, "p",
+//    "In order to perform calibration, we need to make sure that there is"
+//    " enough data for every optimization problem, so we will form groups");
   auto calibGroups = computeCalibrationGroups(
       smallSessions, settings.minCalibDur);
 
-  if (logBody) {
-    HtmlTag::tagWithData(logBody, "h2", "Calibration groups");
-    outputGroups(
-        calibGroups,
-        smallSessions, logBody);
-  }
+  //if (logBody) {
+//    HtmlTag::tagWithData(logBody, "h2", "Calibration groups");
+    //outputGroups(
+//        calibGroups,
+//        smallSessions);
+  //}
 
   auto reconstructions
     = reconstructAllGroups(
         calibGroups, smallSessions,
-        allFilteredPositions, d, settings,
-        logBody);
+        allFilteredPositions, d, settings);
 
-  if (logBody) {
-    HtmlTag::tagWithData(logBody, "h2", "Summary");
+  //if (logBody) {
+    //HtmlTag::tagWithData(logBody, "h2", "Summary");
     auto totalDuration = TimeStamp::now() - startTime;
-    HtmlTag::tagWithData(logBody, "p",
-        stringFormat("Processing time: %s",
-            totalDuration.str().c_str()));
-  }
+    //HtmlTag::tagWithData(logBody, "p",
+//        stringFormat("Processing time: %s",
+//            totalDuration.str().c_str()));
+  //}
 }
 
 class TimesVisitor {
@@ -456,28 +452,27 @@ Array<Span<TimeStamp> > segmentSubSessions(
 
 
 Array<TimedValue<GeographicPosition<double> > >
-  filterAllGpsData(const NavDataset &ds, const Settings &settings,
-      HtmlNode::Ptr log) {
-  HtmlTag::tagWithData(log, "h2", "GPS filtering");
-  HtmlTag::tagWithData(log, "h2",
-      "Filtering all the GPS data with some chopping");
+  filterAllGpsData(const NavDataset &ds, const Settings &settings) {
+  //HtmlTag::tagWithData(log, "h2", "GPS filtering");
+  //HtmlTag::tagWithData(log, "h2",
+  //"Filtering all the GPS data with some chopping");
   auto timeStamps = getAllGpsTimeStamps(ds.dispatcher().get());
   auto timeSpans = Processor2::segmentSubSessions(
       timeStamps, settings.mainSessionCut);
-  HtmlTag::tagWithData(log, "p",
-      "The data is filtered with these time spans");
-  outputTimeSpans(timeSpans, log);
+  //HtmlTag::tagWithData(log, "p",
+//      "The data is filtered with these time spans");
+  //outputTimeSpans(timeSpans, log);
 
   GpsFilterSettings gpsSettings;
   gpsSettings.subProblemThreshold = settings.subSessionCut;
 
   {
-    HtmlTag::tagWithData(log, "p",
-        {{"class", "warning"}}, "A slice was cut");
-    timeSpans = timeSpans.slice(3, 4);
+    //HtmlTag::tagWithData(log, "p",
+    //    {{"class", "warning"}}, "A slice was cut");
+    //timeSpans = timeSpans.slice(3, 4);
   }
 
-  HtmlTag::tagWithData(log, "p",
+  /*HtmlTag::tagWithData(log, "p",
       "Here is a brief summary");
   auto table = HtmlTag::make(log, "table");
   if (log) {
@@ -487,7 +482,7 @@ Array<TimedValue<GeographicPosition<double> > >
     HtmlTag::tagWithData(h, "th", "Max speed");
     HtmlTag::tagWithData(h, "th", "Duration");
     HtmlTag::tagWithData(h, "th", "Max distance to median");
-  }
+  }*/
   ArrayBuilder<TimedValue<GeographicPosition<double> > > dst;
   int counter = 0;
   for (auto span: timeSpans) {
@@ -497,7 +492,7 @@ Array<TimedValue<GeographicPosition<double> > >
     for (auto x: positions) {
       dst.add(x);
     }
-    auto row = HtmlTag::make(table, "tr");
+    /*auto row = HtmlTag::make(table, "tr");
     if (row) {
       HtmlTag::tagWithData(row, "td", stringFormat("%d", counter));
       HtmlTag::tagWithData(row, "td", stringFormat(
@@ -521,13 +516,13 @@ Array<TimedValue<GeographicPosition<double> > >
           maxDistanceToMedian.nauticalMiles()));
 
       counter++;
-    }
+    }*/
   }
   return dst.get();
 }
 
 
-void outputTimeSpans(
+/*void outputTimeSpans(
     const Array<Span<TimeStamp> > &timeSpans,
     HtmlNode::Ptr dst) {
   auto table = HtmlTag::make(dst, "table");
@@ -559,9 +554,9 @@ void outputTimeSpans(
       }
     }
   }
-}
+}*/
 
-void outputGroups(
+/*void outputGroups(
       const Array<Spani> &groups,
       const Array<Span<TimeStamp> > sessions,
       HtmlNode::Ptr dst) {
@@ -574,7 +569,7 @@ void outputGroups(
     auto g = groups[i];
     outputTimeSpans(sessions.slice(g.minv(), g.maxv()), dst);
   }
-}
+}*/
 
 namespace {
   Duration<double> dur(const Span<TimeStamp> &span) {

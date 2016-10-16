@@ -12,6 +12,7 @@
 #include <server/common/Span.h>
 #include <server/nautical/segment/SessionCut.h>
 #include <device/anemobox/Dispatcher.h>
+#include <server/nautical/calib/Reconstructor.h>
 
 namespace sail {
 
@@ -33,7 +34,7 @@ struct Settings {
   SessionCut::Settings sessionCutSettings;
   std::string logRoot;
 
-  //ReconstructionSettings reconstructionSettings;
+  ReconstructionSettings reconstructionSettings;
   std::function<bool(DataCode,std::string)> sensorFilter = &allSensors;
 };
 
@@ -64,9 +65,9 @@ Array<TimedValue<GeographicPosition<double> > >
 void outputTimeSpans(
     const Array<Span<TimeStamp> > &timeSpans);
 
-void outputGroups(
-      const Array<Spani> &groups,
-      const Array<Span<TimeStamp> > sessions);
+//void outputGroups(
+//      const Array<Spani> &groups,
+//      const Array<Span<TimeStamp> > sessions);
 
 Array<Spani> groupSessionsByThreshold(
     const Array<Span<TimeStamp> > &timeSpans,
