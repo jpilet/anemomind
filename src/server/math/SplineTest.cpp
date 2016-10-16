@@ -27,6 +27,7 @@ TEST(SplineTest, PolyTest) {
 
   EXPECT_EQ(eval(P1{3}, P1{4}), (P1{3}));
   EXPECT_EQ(eval(P2{3, 9}, P1{7}), (P1{66}));
+  EXPECT_EQ(eval(P3{0, 0, 1}, P2{5, 4}), (P3{25, 40, 16}));
 }
 
 

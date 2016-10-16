@@ -188,10 +188,12 @@ template <typename T, int M, int N>
 Polynomial<T, (M-1)*(N-1) + 1> eval(
     const Polynomial<T, M> &a,
     const Polynomial<T, N> &b) {
-  auto result = Polynomial<T, (M-1)*(N-1) + 1>::zero();
+  const int K = (M-1)*(N-1) + 1;
+  auto result = Polynomial<T, K>::zero();
   for (int i_ = 0; i_ < M; i_++) {
     int i = M - 1 - i_;
-    result = (b*result) + a[i];
+    auto k = (b*result) + a[i];
+    result = k.template resize<K>();
   }
   return result;
 }
