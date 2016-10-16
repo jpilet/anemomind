@@ -8,8 +8,12 @@
 #include <server/math/Spline.h>
 #include <gtest/gtest.h>
 
-TEST(SplineTest, PolyTest) {
+using namespace sail;
 
+TEST(SplineTest, PolyTest) {
+  typedef Polynomial<double, 1> P1;
+  auto p = P1{3} + P1{4};
+  EXPECT_EQ(p, P1{7});
 }
 
 

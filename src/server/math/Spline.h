@@ -25,6 +25,7 @@ template <typename T, int CoefCount>
 class Polynomial {
 public:
   static const int Degree = CoefCount-1;
+  typedef Polynomial<T, CoefCount> ThisType;
 
   Polynomial(const std::initializer_list<T> &coefs) {
     int i = 0;
@@ -101,6 +102,15 @@ public:
     }
     return dst;
   }
+
+  bool operator==(const ThisType &other) const {
+    for (int i = 0; i < CoefCount; i++) {
+      if (!(_coefs[i] == other._coefs[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
 private:
   T _coefs[CoefCount];
 };
@@ -152,6 +162,13 @@ Polynomial<T, cmax(M, N)> operator+(
     const Polynomial<T, M> &a,
     const Polynomial<T, N> &b) {
   return EwisePoly<CoefAdd, T, M, N>::apply(a, b);
+}
+
+template <typename T, int M, int N>
+Polynomial<T, cmax(M, N)> operator-(
+    const Polynomial<T, M> &a,
+    const Polynomial<T, N> &b) {
+  return EwisePoly<CoefSub, T, M, N>::apply(a, b);
 }
 
 /*template <typename T, int M, int N>
