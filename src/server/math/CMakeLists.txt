@@ -186,7 +186,7 @@ cxx_test(math_SplineTest
   math_Spline
   )
   
-cxx_test(math_Polynomial
+cxx_test(math_PolynomialTest
   PolynomialTest.cpp
   gtest_main
   )
