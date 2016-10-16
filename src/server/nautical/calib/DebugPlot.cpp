@@ -5,7 +5,6 @@
  *      Author: jonas
  */
 
-#include <server/nautical/calib/DebugPlot.h>
 #include <server/common/string.h>
 
 namespace sail {
