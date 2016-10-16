@@ -18,7 +18,6 @@
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/BoatState.h>
-#include <server/nautical/calib/BoatStateReconstructor.h>
 #include <server/common/TimedValueCutter.h>
 #include <server/common/logging.h>
 #include <server/common/Functional.h>
@@ -35,8 +34,7 @@ struct CutVisitor {
 
   CutVisitor(Array<CalibDataChunk> *chunks,
       const Array<Span<TimeStamp>> &timeSpans,
-      std::function<bool(DataCode, std::string)> sf,
-      HtmlNode::Ptr log) :
+      std::function<bool(DataCode, std::string)> sf) :
     _chunks(*chunks),
     _timeSpans(timeSpans),
     _sensorFilter(sf),

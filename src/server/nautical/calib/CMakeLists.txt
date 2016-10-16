@@ -116,24 +116,3 @@ cxx_test(calib_SensorSetTest
   )
 
 target_depends_on_ceres(calib_SensorSetTest)
-
-add_library(calib_BoatStateReconstructor
-  BoatStateReconstructor.h
-  BoatStateReconstructor.cpp
-  )
-
-target_link_libraries(calib_BoatStateReconstructor
-  common_TimeStamp
-  common_Span
-  anemobox_Channels
-  common_logging
-  calib_Fitness
-  common_MeanAndVar
-  )
-target_depends_on_ceres(calib_BoatStateReconstructor)
-
-cxx_test(calib_BoatStateReconstructorTest
-  BoatStateReconstructorTest.cpp
-  gtest_main
-  calib_BoatStateReconstructor
-  )
