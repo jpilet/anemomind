@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <initializer_list>
+#include <iostream>
 
 namespace sail {
 
@@ -210,6 +211,14 @@ Polynomial<T, (M-1)*(N-1) + 1> eval(
   return result;
 }
 
+template <typename T, int N>
+std::ostream &operator<<(std::ostream &s,
+    const Polynomial<T, N> &p) {
+  for (int i = 0; i < N; i++) {
+    s << "+ " << p[i] << "*x^" << i;
+  }
+  return s;
+}
 
 }
 #endif /* SERVER_MATH_POLYNOMIAL_H_ */
