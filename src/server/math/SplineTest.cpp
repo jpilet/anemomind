@@ -24,6 +24,8 @@ TEST(SplineTest, PolyTest) {
   EXPECT_EQ((P2{0, 4}.primitive()), (P3{0, 0, 2}));
 
   EXPECT_EQ((P2{3, 4}*P2{4, 5}), (P3{12, 31, 20}));
+
+  EXPECT_EQ(eval(P1{3}, P1{4}), (P1{3}));
 }
 
 
