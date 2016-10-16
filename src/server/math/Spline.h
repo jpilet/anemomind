@@ -27,7 +27,16 @@ public:
   static const int Degree = CoefCount-1;
   typedef Polynomial<T, CoefCount> ThisType;
 
+  Polynomial(T x) {
+    static_assert(1 <= CoefCount, "Too few coefficients");
+    _coefs[0] = x;
+    for (int i = 1; i < CoefCount; i++) {
+      _coefs[i] = 0.0;
+    }
+  }
+
   Polynomial(const std::initializer_list<T> &coefs) {
+    assert(coefs.size() <= CoefCount);
     int i = 0;
     for (auto c: coefs) {
       _coefs[i] = c;
@@ -173,13 +182,18 @@ Polynomial<T, cmax(M, N)> operator-(
   return EwisePoly<CoefSub, T, M, N>::apply(a, b);
 }
 
+// Given two polynomials, P(x) and Q(x), compute the polynomial
+// R(x) = P(Q(x)).
 template <typename T, int M, int N>
-Polynomial<T, M*N> eval(const Polynomial<T, M> &a,
+Polynomial<T, (M-1)*(N-1) + 1> eval(
+    const Polynomial<T, M> &a,
     const Polynomial<T, N> &b) {
-  auto result = Polynomial<T, M*N>::zero();
+  auto result = Polynomial<T, (M-1)*(N-1) + 1>::zero();
   for (int i_ = 0; i_ < M; i_++) {
     int i = M - 1 - i_;
+    result = (b*result) + a[i];
   }
+  return result;
 }
 
 
