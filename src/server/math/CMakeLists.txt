@@ -185,6 +185,11 @@ cxx_test(math_SplineTest
   gtest_main
   math_Spline
   )
+  
+cxx_test(math_Polynomial
+  PolynomialTest.cpp
+  gtest_main
+  )
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
