@@ -10,8 +10,8 @@
 #include <ceres/ceres.h>
 #include <random>
 #include <server/common/string.h>
-#include <server/nautical/calib/DebugPlot.h>
 #include <server/common/MeanAndVar.h>
+#include <server/common/Array.h>
 
 namespace sail {
 
@@ -58,8 +58,7 @@ template <typename T>
 ValueAccumulator<T> makeValueAccumulator(
     const BoatParameterLayout::IndexAndOffsetMap &sensorIndices,
   const TimeStampToIndexMapper &mapper,
-  const std::map<std::string, Array<TimedValue<T> > > &srcData,
-  HtmlNode::Ptr log) {
+  const std::map<std::string, Array<TimedValue<T> > > &srcData) {
   typedef ValueAccumulator<T> DstType;
   DstType dst;
   int sampleCounter = 0;
@@ -82,8 +81,8 @@ ValueAccumulator<T> makeValueAccumulator(
         }
       });
     } else {
-      HtmlTag::tagWithData(log, "p", {{"class", "warning"}},
-          "Skipping sensor " + kv.first);
+      //HtmlTag::tagWithData(log, "p", {{"class", "warning"}},
+          //"Skipping sensor " + kv.first);
     }
   }
   assert(dst.values.size() == sampleCounter);
@@ -104,12 +103,10 @@ ValueAccumulator<T> makeValueAccumulator(
 // Forced instantiations for unit tests.
 template ValueAccumulator<Angle<double>> makeValueAccumulator<Angle<double>>(
     const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
-  const std::map<std::string, Array<TimedValue<Angle<double>> > > &srcData,
-  HtmlNode::Ptr log);
+  const std::map<std::string, Array<TimedValue<Angle<double>> > > &srcData);
 template ValueAccumulator<Velocity<double>> makeValueAccumulator<Velocity<double>>(
     const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
-  const std::map<std::string, Array<TimedValue<Velocity<double>> > > &srcData,
-  HtmlNode::Ptr log);
+  const std::map<std::string, Array<TimedValue<Velocity<double>> > > &srcData);
 
 template <typename T>
 void evaluateMotionReg(
@@ -194,8 +191,7 @@ struct ChunkAccumulator {
   ChunkAccumulator() {}
   ChunkAccumulator(
       const BoatParameterLayout &layout,
-      const CalibDataChunk &chunk,
-      HtmlNode::Ptr log);
+      const CalibDataChunk &chunk);
 
   bool hasData(int i) const {
 #define TEST_FOR_INDEX(HANDLE) \
@@ -208,12 +204,11 @@ struct ChunkAccumulator {
 
 ChunkAccumulator::ChunkAccumulator(
     const BoatParameterLayout &layout,
-    const CalibDataChunk &chunk,
-    HtmlNode::Ptr log) :
+    const CalibDataChunk &chunk) :
         mapper(chunk.timeMapper),
         initialStates(chunk.initialStates) {
 #define INIT_ACC(HANDLE) \
-  HANDLE = makeValueAccumulator(layout.HANDLE.sensors, chunk.timeMapper, chunk.HANDLE, log);
+  HANDLE = makeValueAccumulator(layout.HANDLE.sensors, chunk.timeMapper, chunk.HANDLE);
   FOREACH_MEASURE_TO_CONSIDER(INIT_ACC)
 #undef DECLARE_VALUE_ACC
 }
@@ -221,7 +216,7 @@ ChunkAccumulator::ChunkAccumulator(
 
 namespace {
 
-  void outputSensorOffsetData(DataCode code,
+  /*void outputSensorOffsetData(DataCode code,
       BoatParameterLayout::PerType data,
       HtmlNode::Ptr dst0) {
     if (!data.sensors.empty()) {
@@ -260,9 +255,9 @@ namespace {
         }
       }
     }
-  }
+  }*/
 
-  void outputParamLayout(const BoatParameterLayout &src,
+  /*void outputParamLayout(const BoatParameterLayout &src,
       HtmlNode::Ptr dst) {
     {
       auto table = HtmlTag::make(dst, "table");
@@ -288,7 +283,7 @@ namespace {
     }
     HtmlTag::tagWithData(dst, "p",
         stringFormat("Total parameter count: %d", src.paramCount));
-  }
+  }*/
 }
 
 void addParameterBlock(ceres::Problem *dst,
@@ -296,7 +291,7 @@ void addParameterBlock(ceres::Problem *dst,
   dst->AddParameterBlock(X.ptr(), X.size());
 }
 
-void outputParameterCountOverview(
+/*void outputParameterCountOverview(
     const Array<double> &calibrationParameters,
     const Array<Array<double>> &stateVariables,
     HtmlNode::Ptr dst) {
@@ -323,10 +318,10 @@ void outputParameterCountOverview(
     HtmlTag::tagWithData(row, "td", "TOTAL");
     HtmlTag::tagWithData(row, "td", stringFormat("%d", total));
   }
-}
+}*/
 
 
-void makeCostTableHeaders(HtmlNode::Ptr table) {
+/*void makeCostTableHeaders(HtmlNode::Ptr table) {
   if (table) {
     auto row = HtmlTag::make(table, "tr");
     HtmlTag::tagWithData(row, "th", "Chunk index");
@@ -334,9 +329,9 @@ void makeCostTableHeaders(HtmlNode::Ptr table) {
     HtmlTag::tagWithData(row, "th", "Regularization cost count");
     HtmlTag::tagWithData(row, "th", "Data cost count");
   }
-}
+}*/
 
-template <typename T>
+/*template <typename T>
 void attribAndValue(const std::string &attrib,
     const T &value, HtmlNode::Ptr dst) {
   auto row = HtmlTag::make(dst, "tr");
@@ -345,9 +340,9 @@ void attribAndValue(const std::string &attrib,
     auto e = HtmlTag::make(row, "td");
     e->stream() << value;
   }
-}
+}*/
 
-void outputSummary(
+/*void outputSummary(
     const ceres::Solver::Summary &summary,
     HtmlNode::Ptr dst) {
   if (dst) {
@@ -371,10 +366,10 @@ void outputSummary(
     }
 
   }
-}
+}*/
 
 namespace {
-  void dispSetting(const char *label,
+  /*void dispSetting(const char *label,
       bool value, std::set<bool> warnOn, HtmlNode::Ptr dst) {
     auto row = HtmlTag::make(dst, "tr");
     HtmlTag::tagWithData(row, "td", label);
@@ -382,10 +377,10 @@ namespace {
         {{"class", warnOn.count(value) == 1? "warning" : "none"}},
         value? "TRUE" : "FALSE");
 
-  }
+  }*/
 
 
-  template <typename Settings>
+  /*template <typename Settings>
   void dispSettings(HtmlNode::Ptr dst) {
     HtmlTag::tagWithData(dst, "h2", "Static optimizer settings");
     auto table = HtmlTag::make(dst, "table");
@@ -402,10 +397,10 @@ namespace {
     DISP_SETTING(withHeel, {});
     DISP_SETTING(withPitch, {});
 #undef DISP_SETTING
-    }
+    }*/
 }
 
-template <typename Settings>
+/*template <typename Settings>
 void analyzeReconstructedStates(
     const Array<Array<ReconstructedBoatState<double, Settings>>> &states,
     HtmlNode::Ptr dst) {
@@ -422,7 +417,7 @@ void analyzeReconstructedStates(
   HtmlTag::tagWithData(dst, "p",
       stringFormat("Mag heading stddev norm: %.3g knots",
           sqrt(magHdgStats.variance())));
-}
+}*/
 
 template <typename BoatStateSettings>
 class BoatStateReconstructor {
@@ -440,25 +435,25 @@ public:
   BoatStateReconstructor(
       const Array<CalibDataChunk> &chunks,
       const BoatParameters<double> &initialParameters,
-      const ReconstructionSettings &settings,
-      const HtmlNode::Ptr &logNode) :
-        _log(logNode),
+      const ReconstructionSettings &settings/*,
+      const HtmlNode::Ptr &logNode*/) :
+        //_log(logNode),
         _initialParameters(initialParameters),
         _layout(initialParameters) {
-    dispSettings<BoatStateSettings>(logNode);
+    //dispSettings<BoatStateSettings>(logNode);
     int n = chunks.size();
     _chunks = Array<ChunkAccumulator>(n);
-    HtmlTag::tagWithData(logNode, "p", "Building a ChunkAccumulator...");
+    //HtmlTag::tagWithData(logNode, "p", "Building a ChunkAccumulator...");
     for (int i = 0; i < n; i++) {
       const auto &chunk = chunks[i];
       _chunks[i] = ChunkAccumulator(
-          _layout, chunk, logNode);
+          _layout, chunk);
     }
 
-    if (logNode) {
-      HtmlTag::tagWithData(logNode, "h2", "Parameter layout");
-      outputParamLayout(_layout, logNode);
-    }
+    //if (logNode) {
+      //HtmlTag::tagWithData(logNode, "h2", "Parameter layout");
+      //outputParamLayout(_layout, logNode);
+    //}
   }
 
   ReconstructionResults reconstruct() const {
@@ -473,25 +468,25 @@ public:
     Array<Array<double>> stateParameters = initializeStateParameters();
     assert(stateParameters.size() == _chunks.size());
 
-    if (_log) {
+    /*if (_log) {
       HtmlTag::tagWithData(_log, "h2", "Parameter blocks to optimize");
       outputParameterCountOverview(
           calibrationParameters, stateParameters, _log);
-    }
+    }*/
 
     // Build the costs.
-    HtmlTag::tagWithData(_log, "h2", "Costs");
+    //HtmlTag::tagWithData(_log, "h2", "Costs");
     {
-      auto table = HtmlTag::make(_log, "table");
-      makeCostTableHeaders(table);
+      //auto table = HtmlTag::make(_log, "table");
+      //makeCostTableHeaders(table);
       for (int i = 0; i < _chunks.size(); i++) {
-        auto row = HtmlTag::make(table, "tr");
-        HtmlTag::tagWithData(row, "td", stringFormat("%d", i));
+        //auto row = HtmlTag::make(table, "tr");
+        //HtmlTag::tagWithData(row, "td", stringFormat("%d", i));
         addCostsForChunk(
             &globalScale,
             calibrationParameters,
             stateParameters[i],
-            _chunks[i], &problem, row);
+            _chunks[i], &problem);
       }
     }
 
@@ -503,7 +498,7 @@ public:
 
     ceres::Solve(options, &problem, &summary);
 
-    outputSummary(summary, _log);
+    //outputSummary(summary, _log);
 
     ReconstructionResults results;
     results.parameters = _initialParameters;

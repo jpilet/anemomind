@@ -125,11 +125,9 @@ add_library(calib_BoatStateReconstructor
 target_link_libraries(calib_BoatStateReconstructor
   common_TimeStamp
   common_Span
-  common_HtmlLog
   anemobox_Channels
   common_logging
   calib_Fitness
-  calib_DebugPlot
   common_MeanAndVar
   )
 target_depends_on_ceres(calib_BoatStateReconstructor)
@@ -138,16 +136,4 @@ cxx_test(calib_BoatStateReconstructorTest
   BoatStateReconstructorTest.cpp
   gtest_main
   calib_BoatStateReconstructor
-  )
-
-add_library(calib_DebugPlot
-  DebugPlot.h
-  DebugPlot.cpp
-  )
-
-target_link_libraries(calib_DebugPlot
-  common_HtmlLog
-  common_TimeStamp
-  common_logging
-  common_Span
   )

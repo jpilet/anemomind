@@ -16,7 +16,6 @@
 #include <server/common/TimedValue.h>
 #include <server/nautical/calib/BoatParameters.h>
 #include <server/common/Array.h>
-#include <server/common/HtmlLog.h>
 
 namespace sail {
 
@@ -163,13 +162,11 @@ FOREACH_CHANNEL(DECLARE_PER_TYPE)
 template <typename T>
 ValueAccumulator<T> makeValueAccumulator(
   const BoatParameterLayout::IndexAndOffsetMap &layout, const TimeStampToIndexMapper &mapper,
-  const std::map<std::string, Array<TimedValue<T> > > &srcData,
-  HtmlNode::Ptr log);
+  const std::map<std::string, Array<TimedValue<T> > > &srcData);
 
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
-    const ReconstructionSettings &settings,
-    HtmlNode::Ptr logNode = HtmlNode::Ptr());
+    const ReconstructionSettings &settings);
 
 
 }
