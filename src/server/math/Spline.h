@@ -16,11 +16,15 @@ namespace sail {
 
 template <typename T, int PieceCount>
 struct SplineBasis {
+  static const int pieceCount = PieceCount;
+  typedef SplineBasis<T, cmax(1, PieceCount-1)> Previous;
   typedef Polynomial<T, PieceCount> Piece;
 
   SplineBasis() {
-    for (int i = 0; i < PieceCount; i++) {
-      pieces[i] = Piece::zero();
+    if (pieceCount == 1) {
+      pieces[0] = Piece(1.0);
+    } else {
+      Previous().initializeNext(this);
     }
   }
 
@@ -55,7 +59,6 @@ struct SplineBasis {
   void initializeNext(SplineBasis<T, PieceCount+1> *dst) const {
     auto left = Polynomial<T, 2>{-0.5, 1.0};
     auto right = Polynomial<T, 2>{0.5, 1.0};
-    auto leftMost = pieces[0].primitive();
     for (int i = 0; i < PieceCount+1; i++) {
       auto split = Polynomial<T, 1>(boundary(i));
       auto leftPolyPrimitive = get(i-1).primitive();
@@ -65,7 +68,6 @@ struct SplineBasis {
       auto rightItg =  eval(rightPolyPrimitive, right)
            - eval(rightPolyPrimitive, split);
       dst->pieces[i] = leftItg + rightItg;
-
     }
   }
 
@@ -74,6 +76,8 @@ struct SplineBasis {
     initializeNext(&dst);
     return dst;
   }
+private:
+  void initializeNext(SplineBasis<T, PieceCount> *dst) const {}
 };
 
 } /* namespace sail */
