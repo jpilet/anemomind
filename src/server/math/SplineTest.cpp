@@ -12,7 +12,6 @@ using namespace sail;
 
 TEST(SplineBasisTest, TestIt) {
   SplineBasis<double, 1> s1;
-  s1.pieces[0] = Polynomial<double, 1>(1.0);
   EXPECT_EQ(s1.boundary(0), -0.5);
   EXPECT_EQ(s1.boundary(1), 0.5);
 
@@ -25,7 +24,7 @@ TEST(SplineBasisTest, TestIt) {
   EXPECT_EQ(s1(0.4), 1.0);
   EXPECT_EQ(s1(0.6), 0.0);
 
-  auto s2 = s1.next();
+  SplineBasis<double, 2> s2;
   EXPECT_NEAR(s2(-30.0), 0.0, 1.0e-6);
   EXPECT_NEAR(s2(-1.0), 0.0, 1.0e-6);
   EXPECT_NEAR(s2(-0.5), 0.5, 1.0e-6);
