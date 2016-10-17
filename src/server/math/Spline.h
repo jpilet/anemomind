@@ -17,24 +17,20 @@ namespace sail {
 template <typename T, int PieceCount>
 struct SplineBasis {
   static const int pieceCount = PieceCount;
-  typedef SplineBasis<T, cmax(1, PieceCount-1)> PreviousType;
   typedef SplineBasis<T, PieceCount> ThisType;
-
   typedef Polynomial<T, PieceCount> Piece;
 
   SplineBasis() {
     if (pieceCount == 1) {
-      pieces[0] = Piece(1.0);
+      _pieces[0] = Piece(1.0);
     } else {
-      initializeFrom(PreviousType());
+      initializeFrom(SplineBasis<T, cmax(1, PieceCount-1)>());
     }
   }
 
-  Piece pieces[PieceCount];
-
   Piece get(int i) const {
     return 0 <= i && i < PieceCount?
-        pieces[i] : Piece::zero();
+        _pieces[i] : Piece::zero();
   }
 
   static T support() {
@@ -58,6 +54,8 @@ struct SplineBasis {
     return get(pieceIndex(x)).eval(x);
   }
 
+private:
+  Piece _pieces[PieceCount];
   void initializeFrom(const SplineBasis<T, PieceCount-1> &x) {
     auto left = Polynomial<T, 2>{-0.5, 1.0};
     auto right = Polynomial<T, 2>{0.5, 1.0};
@@ -69,33 +67,10 @@ struct SplineBasis {
                   - eval(leftPolyPrimitive, left);
       auto rightItg =  eval(rightPolyPrimitive, right)
            - eval(rightPolyPrimitive, split);
-      pieces[i] = leftItg + rightItg;
+      _pieces[i] = leftItg + rightItg;
     }
   }
-
-  void initializeNext(SplineBasis<T, PieceCount+1> *dst) const {
-    auto left = Polynomial<T, 2>{-0.5, 1.0};
-    auto right = Polynomial<T, 2>{0.5, 1.0};
-    for (int i = 0; i < PieceCount+1; i++) {
-      auto split = Polynomial<T, 1>(boundary(i));
-      auto leftPolyPrimitive = get(i-1).primitive();
-      auto rightPolyPrimitive = get(i).primitive();
-      auto leftItg = eval(leftPolyPrimitive, split)
-                  - eval(leftPolyPrimitive, left);
-      auto rightItg =  eval(rightPolyPrimitive, right)
-           - eval(rightPolyPrimitive, split);
-      dst->pieces[i] = leftItg + rightItg;
-    }
-  }
-
-  SplineBasis<T, PieceCount+1> next() const {
-    SplineBasis<T, PieceCount+1> dst;
-    initializeNext(&dst);
-    return dst;
-  }
-private:
   void initializeFrom(const ThisType &x) {}
-  void initializeNext(SplineBasis<T, PieceCount> *dst) const {}
 };
 
 } /* namespace sail */
