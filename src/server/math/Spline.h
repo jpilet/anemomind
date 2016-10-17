@@ -45,7 +45,7 @@ struct SplineBasis {
     return -rightmost();
   }
 
-  static T boundary(int index) {
+  static T polynomialBoundary(int index) {
     return leftmost() + T(index);
   }
 
@@ -64,7 +64,7 @@ private:
     auto left = Polynomial<T, 2>{-0.5, 1.0};
     auto right = Polynomial<T, 2>{0.5, 1.0};
     for (int i = 0; i < PieceCount; i++) {
-      auto split = Polynomial<T, 1>(x.boundary(i));
+      auto split = Polynomial<T, 1>(x.polynomialBoundary(i));
       auto leftPolyPrimitive = x.get(i-1).primitive();
       auto rightPolyPrimitive = x.get(i).primitive();
       auto leftItg = eval(leftPolyPrimitive, split)
