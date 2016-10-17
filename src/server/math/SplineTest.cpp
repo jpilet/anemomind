@@ -37,6 +37,7 @@ TEST(SplineBasisTest, TestIt) {
   EXPECT_NEAR(s3(0.0), 0.5*1 + 2*((0.5*0.5)/2.0), 1.0e-6);
   EXPECT_NEAR(s3(-0.5), 0.5, 1.0e-6);
   EXPECT_NEAR(s3(0.5), 0.5, 1.0e-6);
+  EXPECT_NEAR(s3(-1.0), 0.5*0.5*0.5, 1.0e-6);
 }
 
 
