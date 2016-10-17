@@ -77,6 +77,9 @@ private:
   void initializeFrom(const ThisType &x) {}
 };
 
+template <typename T>
+using CubicSpline = SplineBasis<T, 4>;
+
 } /* namespace sail */
 
 #endif /* SERVER_MATH_SPLINE_H_ */
