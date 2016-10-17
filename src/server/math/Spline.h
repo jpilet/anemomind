@@ -33,12 +33,16 @@ struct SplineBasis {
         _pieces[i] : Piece::zero();
   }
 
-  static T support() {
+  static T supportWidth() {
     return PieceCount;
   }
 
+  static T rightmost() {
+    return 0.5*supportWidth();
+  }
+
   static T leftmost() {
-    return -0.5*support();
+    return -rightmost();
   }
 
   static T boundary(int index) {
