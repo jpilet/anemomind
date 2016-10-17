@@ -390,7 +390,7 @@ angular.module('www2App')
 
       if (value.height < verticalSizeThreshold) {
         if ($scope.mapActive && $scope.graphActive) {
-          $scope.graphActive = false;
+          //$scope.graphActive = false;
         }
       } else {
         if ($scope.mapActive || $scope.graphActive) {

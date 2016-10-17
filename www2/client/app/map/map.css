@@ -335,6 +335,7 @@ height:100%;
     top: 0;
     left: 0;
     width: 100%;
+    min-height: auto;
   }
 }
 @media only screen and (max-width: 400px) {
@@ -379,7 +380,7 @@ height:100%;
 }
 @media only screen and (max-width: 360px) {
   .mainControl .control-btns .group-btn {
-    margin-top: 5px;
+    margin-top: 0;
   }
   .mainControl .tail-inputs input {
     width: 45px;
@@ -387,6 +388,42 @@ height:100%;
   }
   .mainControl .tail-inputs .wide {
     width: 44px;
+  }
+  .mainControl .heading .boat-name {
+    padding: 1px 4px;
+  }
+  .close-btn {
+    width: 16px;
+    height: 16px;
+  }
+  .close-btn:before, 
+  .close-btn:after {
+    height: 3px;
+  }
+  .mainControl .boat-name label {
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  .mainControl .heading .share-boat {
+    padding: 0px 3px 1px 3px;
+  }
+  .mainControl .share-boat-holder i {
+    font-size: 12px;
+    height: 19px;
+  }
+  .mainControl .share-boat-holder .share-popup {
+    font-size: 10px;
+  }
+  .mainControl .share-boat-holder .share-popup:after {
+    width: 14px;
+    height: 14px;
+    top: 0px;
+  }
+  .mainControl .control-btns {
+    padding: 5px 4px;
+  }
+  .mainControl .control-btns .btn-sm {
+    padding: 3px 7px;
   }
 }
 @media only screen and (max-width: 340px) {
@@ -518,6 +555,11 @@ height:100%;
   top: -22px;
   left: 20px;
 }
+@media only screen and (max-width: 799px) {
+  .graph .extension {
+    display: none;
+  }
+}
 
 perfplot {
   position: absolute;
@@ -536,12 +578,13 @@ perfplot {
 }
 
 .responsiveNavButtons {
-  display: -webkit-flex;
+  /*display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
   -webkit-flex-direction: row;
       -ms-flex-direction: row;
-          flex-direction: row;
+          flex-direction: row;*/
+  display: none;
 }
 .responsiveNavButtons i {
   color: #ed1a28;
@@ -551,7 +594,240 @@ perfplot {
       -ms-flex: 1;
           flex: 1;
 }
+.responsiveNavButtons .button-list {
+  width: 100%;
+  display: flex;
+}
+.responsiveNavButtons .button-list button {
+  width: 20%;
+  margin: 0;
+  border-radius: 0;
+}
+.responsiveNavButtons .button-list button:hover,
+.responsiveNavButtons .button-list button:active {
+  border-color: #fbfbfb;
+  background-color: #fbfbfb;
+  box-shadow: none;
+}
+.responsiveNavButtons .res-container {
+  display: none;
+  background-color: #fbfbfb;
+}
+@media only screen and (max-width: 799px) {
+  .mainControl .info-group .perf-speed,
+  .mainControl .info-group .wind,
+  .mainControl .info-group .details {
+    display: none;
+  }
+  .responsiveNavButtons {
+    display: block;
+  }
+  .responsiveNavButtons .res-container.res-graph {
+    -webkit-flex: 3;
+    -ms-flex: 3;
+    flex: 3;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .res-container.res-graph,
+  .res-container.res-perf,
+  .res-container.res-wind {
+    height: 146px;
+  }
+  .res-container.res-perf .moving-element,
+  .res-container.res-wind .moving-element {
+    display: flex;
+    width: 100%;
+    font-size: 16px;
+    height: 100% !important;
+  }
+  .res-container.res-perf .moving-element > div,
+  .res-container.res-wind .moving-element > div {
+    width: 50%;
+    height: 100%;
+  }
+  .res-container.res-perf .indicator-label, 
+  .res-container.res-perf .indicator-value,
+  .res-container.res-wind .indicator-label, 
+  .res-container.res-wind .indicator-value {
+    font-size: 14pt;
+    color: #ed1a28;
+  }
+  .res-container.res-perf {
+    position: relative;
+  }
+  .res-container.res-perf .moving-element {
+    padding: 4px 18% 0;
+  }
+  .res-container.res-perf .perf .marginCenter,
+  .res-container.res-perf .speed .marginCenter {
+    position: absolute;
+    top: 22px;
+  }
+  .res-container.res-perf .perf .marginCenter {
+    left: 4px;
+  }
+  .res-container.res-perf .speed .marginCenter {
+    right: 4px;
+  }
+  .res-container.res-perf .perf .indicator-description,
+  .res-container.res-perf .speed .indicator-description {
+    position: absolute;
+    top: 2px;
+    font-size: 16px;
+  }
+  .res-container.res-perf .perf .indicator-description {
+    left: 4px;
+  }
+  .res-container.res-perf .speed .indicator-description {
+    right: 4px;
+  }
 
+  .res-container.res-wind .moving-element {
+    padding: 10px 34% 0;
+  }
+  .res-container.res-wind .moving-element .svgcontainer {
+    position: relative;
+  }
+  .res-container.res-wind .moving-element .marginCenter {
+    position: absolute;
+    top: 20px;
+    right: -46px;
+  }
+  .res-container.res-wind .moving-element .indicator-description {
+    position: absolute;
+    right: -144px;
+  }
+
+  .res-container.res-details {
+    display: flex;
+    padding: 5px;
+    overflow-x: scroll;
+    font-size: 14px;
+  }
+  .res-container.res-details div {
+    margin-right: 15px;
+  }
+  .res-container.res-details table td { 
+    white-space: nowrap;
+  }
+}
+@media only screen and (max-width: 700px) {
+  .res-container.res-perf .moving-element {
+    padding: 5px 14% 0;
+  }
+  .res-container.res-wind .moving-element {
+    padding: 5px 30% 0;
+  }
+}
+@media only screen and (max-width: 600px) {
+  .res-container.res-perf .moving-element {
+    padding: 15px 11% 0;
+  }
+  .res-container.res-wind .moving-element {
+    padding: 5px 26% 0;
+  }
+}
+@media only screen and (max-width: 590px) {
+  .res-container.res-perf .moving-element {
+    padding: 4px 10% 0;
+  }
+  .res-container.res-perf .perf .marginCenter {
+    top: 20px;
+  }
+  .res-container.res-perf .indicator-label, 
+  .res-container.res-perf .indicator-value, 
+  .res-container.res-wind .indicator-label, 
+  .res-container.res-wind .indicator-value {
+    font-size: 12pt;
+  }
+  .res-container.res-perf .perf .indicator-description, 
+  .res-container.res-perf .speed .indicator-description {
+    font-size: 13px;
+  }
+}
+@media only screen and (max-width: 565px) {
+  .res-container.res-perf .moving-element {
+    padding: 11px 8% 0;
+  }
+  .res-container.res-wind .moving-element {
+    padding: 5px 24% 0;
+  }
+  .res-container.res-wind .moving-element .marginCenter {
+    top: 16px;
+  }
+  .res-container.res-wind .moving-element .indicator-description {
+    font-size: 12px;
+    right: -116px;
+  }
+}
+@media only screen and (max-width: 500px) {
+  .res-container.res-perf .moving-element {
+    padding: 18px 5% 0;
+  }
+  .res-container.res-wind .moving-element {
+    padding: 5px 21% 0;
+  }
+  .res-container.res-wind .moving-element .marginCenter {
+    top: 16px;
+    right: -24px;
+  }
+  .res-container.res-wind .moving-element .indicator-description {
+    font-size: 12px;
+    right: -96px;
+  }
+}
+@media only screen and (max-width: 460px) {
+  .res-container.res-wind .moving-element .indicator-description {
+    font-size: 10px;
+    right: -76px;
+  }
+}
+@media only screen and (max-width: 430px) {
+  .res-container.res-perf .moving-element {
+    padding: 33px 5% 0;
+  }
+  .res-container.res-wind .moving-element {
+    padding: 18px 22% 0;
+  }
+}
+@media only screen and (max-width: 420px) {
+  .res-container.res-graph,
+  .res-container.res-perf,
+  .res-container.res-wind {
+    height: 128px;
+  }
+  .res-container.res-perf .moving-element {
+    padding: 22px 5% 0;
+  }
+  .res-container.res-wind .moving-element {
+    padding: 8px 22% 0;
+  }
+}
+@media only screen and (max-width: 380px) {
+  .res-container.res-perf .moving-element {
+    padding: 27px 5% 0;
+  }
+  .res-container.res-wind .moving-element {
+    padding: 3px 22% 0 11%;
+  }
+}
+@media only screen and (max-width: 340px) {
+  .res-container.res-perf .moving-element {
+    padding: 37px 5% 0;
+  }
+  .res-container.res-wind .moving-element {
+    padding: 3px 20% 0 6%;
+  }
+  .res-container.res-wind .moving-element .indicator-description {
+    right: -60px;
+  }
+}
 /*==================================================*/
 
 #topwheel {

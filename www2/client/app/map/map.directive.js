@@ -81,4 +81,38 @@ angular.module('www2App')
         });
       }
     };
+  })
+  .directive('btnToggle', function () {
+    return {
+      restrict: 'C',
+      link: function (scope, element, attrs) {
+        angular.element(element).on('click', function() {
+          var el = angular.element(this);
+          var target = angular.element('.res-container.'+el.attr('target'));
+
+          angular.element('.responsiveNavButtons .res-container').not(target).hide();
+          target.toggle();
+
+          setTimeout(function() { scope.$apply(); }, 10);
+        });
+      }
+    };
+  })
+  .directive('movingElement', function ($window) {
+    return {
+      restrict: 'C',
+      link: function (scope, element, attrs) {
+        angular.element($window).on('resize', function() {
+          angular.element(element).each(function(i, e) {
+            var el = angular.element(e);
+            var parent = $window.innerWidth <= 799 ? el.attr('mobile-parent') : el.attr('desktop-parent');
+            parent = angular.element(parent);
+            
+            el.appendTo(parent);
+
+            setTimeout(function() { scope.$apply(); }, 10);
+          });
+        });
+      }
+    };
   });

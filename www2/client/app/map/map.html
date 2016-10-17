@@ -79,7 +79,7 @@
                 Performance & Speed 
                 <i class="fa fa-plus" col-class="fa-plus" uncol-class="fa-minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
               </label>
-              <div class="collapsible group  collapse-area">
+              <div class="collapsible group collapse-area moving-element" desktop-parent=".section.perf-speed" mobile-parent=".res-container.res-perf">
                 <div class="perf">
                   <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
                 </div>
@@ -97,7 +97,7 @@
                 Wind 
                 <i class="fa fa-plus" col-class="fa-plus" uncol-class="fa-minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
               </label>
-              <div class="collapsible group collapse-area">
+              <div class="collapsible group collapse-area moving-element" desktop-parent=".section.wind" mobile-parent=".res-container.res-wind">
                 <div class="top-wheel">
                   <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
                 </div>
@@ -141,7 +141,7 @@
         <div class="vectorMapContainer" vectormap></div>
       </div>
 
-      <div class="graph unhide-area" toggle-classes="hide-area unhide-area" ng-show="graphActive">
+      <div class="graph unhide-area moving-element" desktop-parent=".mapAndGraph" mobile-parent=".res-container.res-graph" toggle-classes="hide-area unhide-area" ng-show="graphActive">
         <div class="expandable extension top-curve" toggle-classes="show hidden" mode="hide-parent">
           <i class="fa fa-angle-double-down" col-class="fa-angle-double-up" uncol-class="fa-angle-double-down" col-state="false" col-target=".graph-holder" col-parent=".graph" aria-hidden="true"></i>
         </div>
@@ -171,18 +171,66 @@
     </sidebar>
   </div>
 
-  <footer class="responsiveNavButtons"
-    ><button type="button" ng-hide="mapActive"
-        class="flexOne btn btn-default btn-sm"
-        ng-click="activateMap()"
-      ><i class="fa fa-map"></i></button
-    ><button type="button" ng-hide="graphActive"
-        class="flexOne btn btn-default btn-sm"
-        ng-click="activateGraph()"
-      ><i class="fa fa-area-chart"></i></button
-    ><button type="button" ng-hide="sideBarActive"
-        class="flexOne btn btn-default btn-sm"
-        ng-click="activateSideBar()"
-      ><i class="fa fa-tachometer"></i></button
-  ></footer>
+  <footer class="responsiveNavButtons">
+    <div class="res-container res-graph">
+    </div>
+    <div class="res-container res-perf">
+    </div>
+    <div class="res-container res-wind">
+    </div>
+    <div class="res-container res-details">
+      <div class="table-holder">
+        <table class="table table-bordered table-condensed">
+          <tr data-ng-hide='vmgPerf == undefined'><td>VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
+          <tr data-ng-hide='deviceVmg == undefined'><td>VMG</td><td>{{ deviceVmg | speed }}</td></tr>
+          <tr data-ng-hide='deviceTargetVmg == undefined'><td>Target VMG</td><td>{{ deviceTargetVmg | speed }}</td></tr>
+        </table>
+      </div>
+      <div class="table-holder">
+        <table class="table table-bordered table-condensed">
+          <tr data-ng-hide='twa == undefined'><td>TWA</td><td>{{ twa | angle:180 }}</td></tr>
+          <tr data-ng-hide='tws == undefined'><td>TWS</td><td>{{ tws | speed }}</td></tr>
+        </table>
+      </div>
+      <div class="table-holder">
+        <table class="table table-bordered table-condensed">
+          <tr data-ng-hide='awa == undefined'><td>AWA</td><td>{{ awa | angle:180 }}</td></tr>
+          <tr data-ng-hide='aws == undefined'><td>AWS</td><td>{{ aws | speed }}</td></tr>
+        </table>
+      </div>
+      <div class="table-holder">
+        <table class="table table-bordered table-condensed">
+          <tr><td>GPS speed</td><td>{{ gpsSpeed | speed }}</td></tr>
+        </table>
+      </div>
+      <div class="table-holder">
+        <table class="table table-bordered table-condensed">
+          <tr data-ng-hide='twdir == undefined'><td>TWDIR</td><td>{{ twdir | angle:360 }}</td></tr>
+          <tr><td>GPS bearing</td><td>{{ gpsBearing | angle:360 }}</td></tr>
+          <tr><td>GPS pos.</td><td>{{ currentPoint.pos | geopos }}</td></tr>
+        </table>
+      </div>
+      <div class="table-holder">
+        <table class="table table-bordered table-condensed">
+          <tr><td>Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
+          <tr><td>Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="res-container res-photos">
+      PHOTOS
+    </div>
+    <div class="button-list">
+      <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-graph"><i class="fa fa-area-chart"></i></button>
+      <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-perf"><i class="fa fa-dashboard"></i></button>
+      <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-wind"><i class="fa fa-flag"></i></button>
+      <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-details"><i class="fa fa-list"></i></button>
+      <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-photos"><i class="fa fa-photo"></i></button>
+    </div>
+    
+
+    <!--<button type="button" ng-hide="graphActive" class="flexOne btn btn-default btn-sm" ng-click="activateGraph()" ><i class="fa fa-area-chart"></i></button>
+    <button type="button" ng-hide="mapActive" class="flexOne btn btn-default btn-sm" ng-click="activateMap()"><i class="fa fa-map"></i></button>
+    <button type="button" ng-hide="sideBarActive" class="flexOne btn btn-default btn-sm" ng-click="activateSideBar()"><i class="fa fa-tachometer"></i></button>-->
+  </footer>
 </div>
