@@ -52,11 +52,9 @@ struct SplineBasis {
     return get(pieceIndex(x)).eval(x);
   }
 
-  SplineBasis<T, PieceCount+1> next() {
+  void initializeNext(SplineBasis<T, PieceCount+1> *dst) const {
     auto left = Polynomial<T, 2>{-0.5, 1.0};
     auto right = Polynomial<T, 2>{0.5, 1.0};
-
-    SplineBasis<T, PieceCount+1> dst;
     auto leftMost = pieces[0].primitive();
     for (int i = 0; i < PieceCount+1; i++) {
       auto split = Polynomial<T, 1>(boundary(i));
@@ -66,9 +64,14 @@ struct SplineBasis {
                   - eval(leftPolyPrimitive, left);
       auto rightItg =  eval(rightPolyPrimitive, right)
            - eval(rightPolyPrimitive, split);
-      dst.pieces[i] = leftItg + rightItg;
+      dst->pieces[i] = leftItg + rightItg;
 
     }
+  }
+
+  SplineBasis<T, PieceCount+1> next() const {
+    SplineBasis<T, PieceCount+1> dst;
+    initializeNext(&dst);
     return dst;
   }
 };
