@@ -28,7 +28,7 @@ struct SplineBasis {
     }
   }
 
-  Piece get(int i) const {
+  Piece getPiece(int i) const {
     return 0 <= i && i < PieceCount?
         _pieces[i] : Piece::zero();
   }
@@ -55,7 +55,7 @@ struct SplineBasis {
   }
 
   T operator()(T x) const {
-    return get(pieceIndex(x)).eval(x);
+    return getPiece(pieceIndex(x)).eval(x);
   }
 
 private:
@@ -65,8 +65,8 @@ private:
     auto right = Polynomial<T, 2>{0.5, 1.0};
     for (int i = 0; i < PieceCount; i++) {
       auto split = Polynomial<T, 1>(x.polynomialBoundary(i));
-      auto leftPolyPrimitive = x.get(i-1).primitive();
-      auto rightPolyPrimitive = x.get(i).primitive();
+      auto leftPolyPrimitive = x.getPiece(i-1).primitive();
+      auto rightPolyPrimitive = x.getPiece(i).primitive();
       auto leftItg = eval(leftPolyPrimitive, split)
                   - eval(leftPolyPrimitive, left);
       auto rightItg =  eval(rightPolyPrimitive, right)
