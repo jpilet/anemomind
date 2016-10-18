@@ -63,6 +63,28 @@ angular.module('www2App')
       }
     };
   })
+  .directive('widthCheck', function ($window) {
+    return {
+      restrict: 'C',
+      link: function (scope, element, attrs) {
+        var win = angular.element($window);
+        var changeWidth = function(element) {
+          angular.element(element).each(function(i, e) {
+            var el = angular.element(e);
+            var target = angular.element(el.attr('target'));
+
+            el.outerWidth(target.outerWidth());
+          });
+        }
+
+        setTimeout(function() { changeWidth(element); }, 100 );
+        
+        win.on('resize', function() {
+          changeWidth(element);
+        });
+      }
+    };
+  })
   .directive('shareLightbox', function (Lightbox) {
     return {
       restrict: 'C',
@@ -93,6 +115,11 @@ angular.module('www2App')
           angular.element('.responsiveNavButtons .res-container').not(target).hide();
           target.toggle();
 
+          if(target.hasClass('res-photos')) {
+            var tabs = target.find('#tabs');
+            target.find('hr').outerWidth(tabs.outerWidth());
+          }
+
           setTimeout(function() { scope.$apply(); }, 10);
         });
       }
@@ -102,7 +129,8 @@ angular.module('www2App')
     return {
       restrict: 'C',
       link: function (scope, element, attrs) {
-        angular.element($window).on('resize', function() {
+        var win = angular.element($window);
+        var moveElements = function(element) {
           angular.element(element).each(function(i, e) {
             var el = angular.element(e);
             var parent = $window.innerWidth <= 799 ? el.attr('mobile-parent') : el.attr('desktop-parent');
@@ -112,6 +140,12 @@ angular.module('www2App')
 
             setTimeout(function() { scope.$apply(); }, 10);
           });
+        }
+
+        setTimeout(function() { moveElements(element); }, 100 );
+        
+        win.on('resize', function() {
+          moveElements(element);
         });
       }
     };

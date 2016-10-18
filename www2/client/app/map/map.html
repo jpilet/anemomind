@@ -157,7 +157,7 @@
       </div>
     </div>
 
-    <sidebar class="sidebar-container unhide-area" toggle-classes="hide-area unhide-area" ng-show="sideBarActive && eventList.length">
+    <sidebar class="sidebar-container unhide-area moving-element" desktop-parent=".mapAndGraphAndSidebar" mobile-parent=".res-container.res-photos" toggle-classes="hide-area unhide-area" ng-show="sideBarActive && eventList.length">
       <div class="expandable extension left-curve" toggle-classes="show hidden" mode="hide-parent">
         <i class="fa fa-angle-double-right" col-class="fa-angle-double-left" uncol-class="fa-angle-double-right" col-state="false" col-target=".semitransp" col-parent=".sidebar-container" aria-hidden="true"></i>
       </div>
@@ -179,46 +179,49 @@
     <div class="res-container res-wind">
     </div>
     <div class="res-container res-details">
-      <div class="table-holder">
-        <table class="table table-bordered table-condensed">
-          <tr data-ng-hide='vmgPerf == undefined'><td class="td-label">VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
-          <tr data-ng-hide='deviceVmg == undefined'><td class="td-label">VMG</td><td>{{ deviceVmg | speed }}</td></tr>
-          <tr data-ng-hide='deviceTargetVmg == undefined'><td class="td-label">Target VMG</td><td>{{ deviceTargetVmg | speed }}</td></tr>
-        </table>
+      <div class="details-holder">
+        <div class="table-holder">
+          <table class="table table-bordered table-condensed">
+            <tr data-ng-hide='vmgPerf == undefined'><td class="td-label">VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
+            <tr data-ng-hide='deviceVmg == undefined'><td class="td-label">VMG</td><td>{{ deviceVmg | speed }}</td></tr>
+            <tr data-ng-hide='deviceTargetVmg == undefined'><td class="td-label">Target VMG</td><td>{{ deviceTargetVmg | speed }}</td></tr>
+          </table>
+        </div>
+        <div class="table-holder">
+          <table class="table table-bordered table-condensed">
+            <tr data-ng-hide='twa == undefined'><td class="td-label">TWA</td><td>{{ twa | angle:180 }}</td></tr>
+            <tr data-ng-hide='tws == undefined'><td class="td-label">TWS</td><td>{{ tws | speed }}</td></tr>
+          </table>
+        </div>
+        <div class="table-holder">
+          <table class="table table-bordered table-condensed">
+            <tr data-ng-hide='awa == undefined'><td class="td-label">AWA</td><td>{{ awa | angle:180 }}</td></tr>
+            <tr data-ng-hide='aws == undefined'><td class="td-label">AWS</td><td>{{ aws | speed }}</td></tr>
+          </table>
+        </div>
+        <div class="table-holder">
+          <table class="table table-bordered table-condensed">
+            <tr><td class="td-label">GPS speed</td><td>{{ gpsSpeed | speed }}</td></tr>
+          </table>
+        </div>
+        <div class="table-holder">
+          <table class="table table-bordered table-condensed">
+            <tr data-ng-hide='twdir == undefined'><td class="td-label">TWDIR</td><td>{{ twdir | angle:360 }}</td></tr>
+            <tr><td class="td-label">GPS bearing</td><td>{{ gpsBearing | angle:360 }}</td></tr>
+            <tr><td class="td-label">GPS pos.</td><td>{{ currentPoint.pos | geopos }}</td></tr>
+          </table>
+        </div>
+        <div class="table-holder">
+          <table class="table table-bordered table-condensed">
+            <tr><td class="td-label">Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
+            <tr><td class="td-label">Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
+          </table>
+        </div>
       </div>
-      <div class="table-holder">
-        <table class="table table-bordered table-condensed">
-          <tr data-ng-hide='twa == undefined'><td class="td-label">TWA</td><td>{{ twa | angle:180 }}</td></tr>
-          <tr data-ng-hide='tws == undefined'><td class="td-label">TWS</td><td>{{ tws | speed }}</td></tr>
-        </table>
-      </div>
-      <div class="table-holder">
-        <table class="table table-bordered table-condensed">
-          <tr data-ng-hide='awa == undefined'><td class="td-label">AWA</td><td>{{ awa | angle:180 }}</td></tr>
-          <tr data-ng-hide='aws == undefined'><td class="td-label">AWS</td><td>{{ aws | speed }}</td></tr>
-        </table>
-      </div>
-      <div class="table-holder">
-        <table class="table table-bordered table-condensed">
-          <tr><td class="td-label">GPS speed</td><td>{{ gpsSpeed | speed }}</td></tr>
-        </table>
-      </div>
-      <div class="table-holder">
-        <table class="table table-bordered table-condensed">
-          <tr data-ng-hide='twdir == undefined'><td class="td-label">TWDIR</td><td>{{ twdir | angle:360 }}</td></tr>
-          <tr><td class="td-label">GPS bearing</td><td>{{ gpsBearing | angle:360 }}</td></tr>
-          <tr><td class="td-label">GPS pos.</td><td>{{ currentPoint.pos | geopos }}</td></tr>
-        </table>
-      </div>
-      <div class="table-holder">
-        <table class="table table-bordered table-condensed">
-          <tr><td class="td-label">Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
-          <tr><td class="td-label">Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
-        </table>
-      </div>
+      
     </div>
     <div class="res-container res-photos">
-      PHOTOS
+      <hr class="width-check" target="#tabs" extension="20"/>
     </div>
     <div class="button-list">
       <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-graph"><i class="fa fa-area-chart"></i></button>

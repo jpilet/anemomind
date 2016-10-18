@@ -376,7 +376,7 @@ angular.module('www2App')
            // If the screen becomes to small for both
            // the side bar and the map/graph container,
            // we hide the side bar.
-           $scope.sideBarActive = false;
+           //$scope.sideBarActive = false;
          }
        } else {
          // If the screen got large enough, show the sidebar,

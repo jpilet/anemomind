@@ -608,6 +608,7 @@ perfplot {
   border-color: #fbfbfb;
   background-color: #fbfbfb;
   box-shadow: none;
+  outline: none;
 }
 .responsiveNavButtons .res-container {
   display: none;
@@ -637,7 +638,9 @@ perfplot {
   .res-container.res-graph,
   .res-container.res-perf,
   .res-container.res-wind,
-  .res-container.res-details {
+  .res-container.res-details,
+  .res-container.res-photos {
+    display: none;
     height: 146px;
   }
   .res-container.res-perf .moving-element,
@@ -705,25 +708,99 @@ perfplot {
     right: -144px;
   }
 
-  .res-container.res-details {
+  .res-container.res-details .details-holder {
     display: flex;
     padding: 5px;
     overflow-x: scroll;
     font-size: 14px;
   }
-  .res-container.res-details div {
+  .res-container.res-details .details-holder div {
     margin-right: 15px;
   }
-  .res-container.res-details table {
+  .res-container.res-details .details-holder table {
     border: none;
   }
-  .res-container.res-details table td { 
+  .res-container.res-details .details-holder table td { 
     white-space: nowrap;
     border: none;
     border-top: 1px solid #ddd;
   }
-  .res-container.res-details table .td-label {
+  .res-container.res-details .details-holder table .td-label {
     font-weight: 600;
+  }
+
+  .res-container.res-photos {
+    position: relative;
+  }
+  .res-container.res-photos hr {
+    position: absolute;
+    top: -14px;
+    left: 0;
+    border-top: 3px solid #c9c9c9;
+  }
+  .res-container.res-photos .sidebar-container {
+    right: initial !important;
+  }
+  .res-container.res-photos .sidebar-container .extension {
+    display: none;
+  }
+  .res-container.res-photos .sidebar-container #tabs {
+    top: initial;
+    right: initial;
+    max-width: 100%;
+    z-index: initial;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    width: 100%;
+    position: relative;
+  }
+  .res-container.res-photos .sidebar-container #eventsContainer,
+  .res-container.res-photos .eventlist {
+    height: 100%;
+  }
+  .res-container.res-photos .sidebar-container .timeline {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .res-container.res-photos .sidebar-container .timeline:before {
+    top: initial;
+    bottom: initial;
+    left: initial;
+    position: initial;
+    width: 0;
+    background: none;
+    margin-left: 0;
+    border: none;
+  }
+  .res-container.res-photos .timeline > li {
+    margin: 0;
+    padding: 0 10px;
+  }
+  .res-container.res-photos .timeline > li .timeline-panel {
+    height: 100%;
+  }
+  .res-container.res-photos .timeline > li .timeline-panel .top {
+    height: 75%;
+  }
+  .res-container.res-photos .timeline > li .timeline-panel .top img {
+    height: 100%;
+  }
+  .res-container.res-photos .timeline > li .timeline-panel .bottom {
+    position: initial;
+  }
+  .res-container.res-photos .timeline > li .timeline-badge,
+  .res-container.res-photos .timeline > li .timeline-badge.to-top {
+    top: -14px;
+    left: 41%;
+    width: 12px;
+    height: 12px;
+  }
+  .res-container.res-photos .timeline > li .timeline-panel .top img,
+  .res-container.res-photos .timeline > li .timeline-panel .bottom {
+    width: 138px;
   }
 }
 @media only screen and (max-width: 700px) {
@@ -809,7 +886,8 @@ perfplot {
   .res-container.res-graph,
   .res-container.res-perf,
   .res-container.res-wind,
-  .res-container.res-details {
+  .res-container.res-details,
+  .res-container.res-photos {
     height: 128px;
   }
   .res-container.res-perf .moving-element {
