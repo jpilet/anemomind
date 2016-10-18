@@ -794,7 +794,7 @@ perfplot {
   .res-container.res-photos .timeline > li .timeline-badge,
   .res-container.res-photos .timeline > li .timeline-badge.to-top {
     top: -14px;
-    left: 41%;
+    left: 46%;
     width: 12px;
     height: 12px;
   }
@@ -890,6 +890,10 @@ perfplot {
   .res-container.res-photos {
     height: 128px;
   }
+  .res-container.res-photos .timeline > li .timeline-panel .top img, 
+  .res-container.res-photos .timeline > li .timeline-panel .bottom {
+    width: 120px;
+}
   .res-container.res-perf .moving-element {
     padding: 22px 5% 0;
   }
