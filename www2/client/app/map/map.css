@@ -127,7 +127,6 @@ height:100%;
   z-index: 11;
   background-color: #f8f8f8;
   width: auto;
-  min-height: 84px;
   font-family: 'Raleway', sans-serif;
 }
 .mainControl .section {
@@ -436,7 +435,7 @@ height:100%;
 }
 @media only screen and (max-width: 325px) {
   .mainControl .tail-inputs .group.perf-vmg i {
-    width: 27px;
+    width: 22px;
   }
 }
 
@@ -709,7 +708,7 @@ perfplot {
   }
 
   .res-container.res-details .details-holder {
-    display: flex;
+    display: -webkit-box;
     padding: 5px;
     overflow-x: scroll;
     font-size: 14px;
@@ -759,7 +758,7 @@ perfplot {
     height: 100%;
   }
   .res-container.res-photos .sidebar-container .timeline {
-    display: flex;
+    display: -webkit-box;
     height: 100%;
     width: 100%;
     margin-bottom: 0;
@@ -778,6 +777,8 @@ perfplot {
   .res-container.res-photos .timeline > li {
     margin: 0;
     padding: 0 10px;
+    width: 138px;
+    height: 100px;
   }
   .res-container.res-photos .timeline > li .timeline-panel {
     height: 100%;
@@ -797,10 +798,6 @@ perfplot {
     left: 46%;
     width: 12px;
     height: 12px;
-  }
-  .res-container.res-photos .timeline > li .timeline-panel .top img,
-  .res-container.res-photos .timeline > li .timeline-panel .bottom {
-    width: 138px;
   }
 }
 @media only screen and (max-width: 700px) {
@@ -890,10 +887,9 @@ perfplot {
   .res-container.res-photos {
     height: 128px;
   }
-  .res-container.res-photos .timeline > li .timeline-panel .top img, 
-  .res-container.res-photos .timeline > li .timeline-panel .bottom {
+  .res-container.res-photos .timeline > li {
     width: 120px;
-}
+  }
   .res-container.res-perf .moving-element {
     padding: 22px 5% 0;
   }
