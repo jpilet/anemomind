@@ -1,0 +1,76 @@
+.challenge-list table.sortable-custom th:after {
+    display: block;
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    font-size: 12px;
+    margin-top: -10px;
+    color: #bfbfc1;
+    content: '';
+}
+
+.challenge-list table.sortable-custom th.arrow:after {
+    border-style: solid;
+    border-width: 5px;
+    font-size: 0;
+    line-height: 0;
+    height: 0;
+    width: 0;
+    margin-top: -2px;
+    border-color: transparent;
+}
+
+.challenge-list table.sortable-custom th.arrow.up:after {
+    border-color: transparent transparent #ccc transparent;
+    margin-top: -7px;
+}
+
+.challenge-list table.sortable-custom th.arrow.down:after {
+    border-color: #ccc transparent transparent transparent;
+    margin-top: -2px;
+}
+
+.challenge-list table.sortable-custom>thead th:not([data-defaultsort=disabled]) {
+    cursor: pointer;
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.challenge-list table.sortable-custom>thead th:hover:not([data-defaultsort=disabled]) {
+    background: #efefef;
+}
+
+.challenge-list form {
+    padding: 10px 8px;
+    margin-bottom: 22px;
+}
+.challenge-list form .form-group label {
+    margin-right: 10px;
+}
+
+
+.challenge-list form select {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    background-image: none;
+    border-radius: 4px;
+}
+.challenge-list table th {
+    cursor: pointer;
+}
+.challenge-list table td .popover-content {
+    padding: 9px;
+}
