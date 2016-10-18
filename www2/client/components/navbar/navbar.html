@@ -27,6 +27,10 @@
             <li><a href="/boats">Add a new boat</a></li>
           </ul>
         </li>
+
+        <li ng-show="isLoggedIn() && showLinks" ng-class="{active: isActive('/challenges') || isActive('/challenge/list') || isActive('/challenge/details')}"><a href="/challenges">Challenges</a></li>
+        <li ng-show="isLoggedIn() && showLinks" ng-class="{active: isActive('/rewards')}"><a href="/rewards">Rewards</a></li>
+        <li ng-show="isLoggedIn() && showLinks" ng-class="{active: isActive('/multiboat')}"><a href="/multiboat">Multi-boat</a></li>
       </ul>
 
       <ul class="nav navbar-nav navbar-right">

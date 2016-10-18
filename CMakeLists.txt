@@ -22,6 +22,9 @@ if (${FULL_BUILD})
   include("cmake/FindMongoDB.cmake")
   include("cmake/FindF2C.cmake")
 
+  find_package(Cairo REQUIRED)
+  include_directories(${CAIRO_INCLUDE_DIRS})
+
   find_package(Eigen3 REQUIRED)
   include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
