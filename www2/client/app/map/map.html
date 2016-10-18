@@ -181,39 +181,39 @@
     <div class="res-container res-details">
       <div class="table-holder">
         <table class="table table-bordered table-condensed">
-          <tr data-ng-hide='vmgPerf == undefined'><td>VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
-          <tr data-ng-hide='deviceVmg == undefined'><td>VMG</td><td>{{ deviceVmg | speed }}</td></tr>
-          <tr data-ng-hide='deviceTargetVmg == undefined'><td>Target VMG</td><td>{{ deviceTargetVmg | speed }}</td></tr>
+          <tr data-ng-hide='vmgPerf == undefined'><td class="td-label">VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
+          <tr data-ng-hide='deviceVmg == undefined'><td class="td-label">VMG</td><td>{{ deviceVmg | speed }}</td></tr>
+          <tr data-ng-hide='deviceTargetVmg == undefined'><td class="td-label">Target VMG</td><td>{{ deviceTargetVmg | speed }}</td></tr>
         </table>
       </div>
       <div class="table-holder">
         <table class="table table-bordered table-condensed">
-          <tr data-ng-hide='twa == undefined'><td>TWA</td><td>{{ twa | angle:180 }}</td></tr>
-          <tr data-ng-hide='tws == undefined'><td>TWS</td><td>{{ tws | speed }}</td></tr>
+          <tr data-ng-hide='twa == undefined'><td class="td-label">TWA</td><td>{{ twa | angle:180 }}</td></tr>
+          <tr data-ng-hide='tws == undefined'><td class="td-label">TWS</td><td>{{ tws | speed }}</td></tr>
         </table>
       </div>
       <div class="table-holder">
         <table class="table table-bordered table-condensed">
-          <tr data-ng-hide='awa == undefined'><td>AWA</td><td>{{ awa | angle:180 }}</td></tr>
-          <tr data-ng-hide='aws == undefined'><td>AWS</td><td>{{ aws | speed }}</td></tr>
+          <tr data-ng-hide='awa == undefined'><td class="td-label">AWA</td><td>{{ awa | angle:180 }}</td></tr>
+          <tr data-ng-hide='aws == undefined'><td class="td-label">AWS</td><td>{{ aws | speed }}</td></tr>
         </table>
       </div>
       <div class="table-holder">
         <table class="table table-bordered table-condensed">
-          <tr><td>GPS speed</td><td>{{ gpsSpeed | speed }}</td></tr>
+          <tr><td class="td-label">GPS speed</td><td>{{ gpsSpeed | speed }}</td></tr>
         </table>
       </div>
       <div class="table-holder">
         <table class="table table-bordered table-condensed">
-          <tr data-ng-hide='twdir == undefined'><td>TWDIR</td><td>{{ twdir | angle:360 }}</td></tr>
-          <tr><td>GPS bearing</td><td>{{ gpsBearing | angle:360 }}</td></tr>
-          <tr><td>GPS pos.</td><td>{{ currentPoint.pos | geopos }}</td></tr>
+          <tr data-ng-hide='twdir == undefined'><td class="td-label">TWDIR</td><td>{{ twdir | angle:360 }}</td></tr>
+          <tr><td class="td-label">GPS bearing</td><td>{{ gpsBearing | angle:360 }}</td></tr>
+          <tr><td class="td-label">GPS pos.</td><td>{{ currentPoint.pos | geopos }}</td></tr>
         </table>
       </div>
       <div class="table-holder">
         <table class="table table-bordered table-condensed">
-          <tr><td>Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
-          <tr><td>Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
+          <tr><td class="td-label">Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
+          <tr><td class="td-label">Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
         </table>
       </div>
     </div>

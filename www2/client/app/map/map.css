@@ -636,7 +636,8 @@ perfplot {
   }
   .res-container.res-graph,
   .res-container.res-perf,
-  .res-container.res-wind {
+  .res-container.res-wind,
+  .res-container.res-details {
     height: 146px;
   }
   .res-container.res-perf .moving-element,
@@ -713,8 +714,16 @@ perfplot {
   .res-container.res-details div {
     margin-right: 15px;
   }
+  .res-container.res-details table {
+    border: none;
+  }
   .res-container.res-details table td { 
     white-space: nowrap;
+    border: none;
+    border-top: 1px solid #ddd;
+  }
+  .res-container.res-details table .td-label {
+    font-weight: 600;
   }
 }
 @media only screen and (max-width: 700px) {
@@ -799,7 +808,8 @@ perfplot {
 @media only screen and (max-width: 420px) {
   .res-container.res-graph,
   .res-container.res-perf,
-  .res-container.res-wind {
+  .res-container.res-wind,
+  .res-container.res-details {
     height: 128px;
   }
   .res-container.res-perf .moving-element {
