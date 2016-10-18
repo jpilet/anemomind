@@ -41,15 +41,16 @@ function VectorTileLayer(params, renderer) {
 
   var t = this;
   var loadIcon = function(url, name, w, h) {
-    renderer.loadImage('/assets/images/' + url, function(image) {
+    renderer.loadImage(url, function(image) {
       t[name] = image;
       if (w) { image.width = w; }
       if (h) { image.height = h; }
     });
   };
-  loadIcon('boat.svg', 'boatIcon');
-  loadIcon('truewind.svg', 'trueWindIcon', 14, 28);
-  loadIcon('appwind.svg', 'appWindIcon', 14, 28);
+  // URL have to be absolute because imgmin will change the name
+  loadIcon('/assets/images/boat.svg', 'boatIcon');
+  loadIcon('/assets/images/truewind.svg', 'trueWindIcon', 14, 28);
+  loadIcon('/assets/images/appwind.svg', 'appWindIcon', 14, 28);
 
   this.tiles = {};
   this.numLoading = 0;
@@ -500,7 +501,7 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   context.save();
   context.rotate(p.gpsBearing * toRadians);
 
-  if (this.boatIcon.complete) {
+  if (this.boatIcon && this.boatIcon.complete) {
     var r = circleRadius * 1.1;
     var n = 32;
     context.beginPath();
