@@ -608,6 +608,9 @@ perfplot {
   margin: 0;
   border-radius: 0;
 }
+.responsiveNavButtons .button-list.only-four button {
+  width: 25%;
+}
 .responsiveNavButtons .button-list button:hover,
 .responsiveNavButtons .button-list button:active {
   border-color: #fbfbfb;

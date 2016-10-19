@@ -223,12 +223,12 @@
     <div class="res-container res-photos">
       <hr class="width-check" target="#tabs" extension="20"/>
     </div>
-    <div class="button-list">
+    <div class="button-list" ng-class="{'only-four': !eventList.length}">
       <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-graph"><i class="fa fa-area-chart"></i></button>
       <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-perf"><i class="fa fa-dashboard"></i></button>
       <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-wind"><i class="fa fa-flag"></i></button>
       <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-details"><i class="fa fa-list"></i></button>
-      <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-photos"><i class="fa fa-photo"></i></button>
+      <button type="button" class="btn btn-default btn-sm btn-toggle" target="res-photos" ng-show="eventList.length"><i class="fa fa-photo"></i></button>
     </div>
     
 
