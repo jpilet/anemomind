@@ -27,6 +27,20 @@ angular.module('www2App')
       }
     };
   })
+  .directive('tickTail', function () {
+    return {
+      restrict: 'C',
+      scope: {
+        toggleTail: '=',
+      },
+      link: function (scope, element, attrs) {
+        angular.element(element).on('click', function() {
+          scope.toggleTail = !scope.toggleTail;
+          setTimeout(function() { scope.$apply(); }, 10);
+        });
+      }
+    };
+  })
   .directive('heightCheck', function ($timeout) {
     return {
       restrict: 'C',

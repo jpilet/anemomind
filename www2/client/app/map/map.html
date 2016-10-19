@@ -64,9 +64,10 @@
                 <input type="text" class="thin" name="perf-vmg">
               </div>
               <div class="group tail">
-                <i class="fa fa-tencent-weibo with-circle" aria-hidden="true"></i>
-                <label>Tail</label>
-                <input type="text" class="thin" name="tail">
+                <button class="btn btn-default btn-sm tick-tail" ng-class="{'is-on' : toggleTail}" toggle-tail="toggleTail">
+                  <i class="fa fa-tencent-weibo with-circle" aria-hidden="true"></i>
+                  Tail
+                </button>
               </div>
               <div class="group tail-length">
                 <i class="fa fa-level-up" aria-hidden="true"></i>

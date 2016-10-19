@@ -22,6 +22,7 @@ angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
 
+    $scope.toggleTail = $location.search().queue ? true : false;
     $scope.boat = { _id: $stateParams.boatId, name: 'loading' };
 
     var setLocationTimeout;
@@ -165,6 +166,20 @@ angular.module('www2App')
         } else {
           $interval.cancel(animationTimer);
         }
+      }
+    });
+
+    $scope.$watch('toggleTail', function(newVal, oldVal) {
+      if (newVal != oldVal) {
+        if (newVal) {
+          //default tail length
+          $scope.tailLength = 300;
+        }
+        else if(newVal === false) {
+          $scope.tailLength = null;
+          $location.search('queue', null);
+        }
+        updatePosition();
       }
     });
 

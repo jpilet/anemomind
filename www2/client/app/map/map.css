@@ -233,6 +233,31 @@ height:100%;
   display: flex;
   margin-right: 15px;
 }
+.mainControl .tail-inputs .group.tail button,
+.mainControl .tail-inputs .group.tail button i {
+  color: #ed1a28;
+}
+.mainControl .tail-inputs .group.tail button.is-on,
+.mainControl .tail-inputs .group.tail button.is-on i {
+  color: #fff;
+}
+.mainControl .tail-inputs .group.tail button {
+  padding: 3px 10px 3px 5px;
+}
+.mainControl .tail-inputs .group.tail button.is-on {
+  background-color: #ed1a28;
+}
+.mainControl .tail-inputs .group.tail i {
+  background-color: transparent;
+  padding: 0;
+  height: auto;
+  font-weight: bold;
+  width: auto;
+  margin-left: 0;
+  margin-top: -7px;
+}
+
+
 .mainControl .tail-inputs .group.tail-length {
   position: relative;
   margin-right: 0;
@@ -358,7 +383,8 @@ height:100%;
   .mainControl .control-btns, 
   .mainControl .control-btns button, 
   .mainControl .tail-inputs i, 
-  .mainControl .tail-inputs label {
+  .mainControl .tail-inputs label,
+  .mainControl .tail-inputs .group.tail button {
     font-size: 10px;
   }
   .mainControl .tail-inputs i.with-circle {
@@ -391,7 +417,7 @@ height:100%;
     font-size: 10px;
   }
   .mainControl .tail-inputs .wide {
-    width: 44px;
+    width: 56px;
   }
   .mainControl .heading .boat-name {
     padding: 1px 4px;
