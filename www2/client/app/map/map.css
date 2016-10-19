@@ -220,9 +220,14 @@ height:100%;
   display: flex;
   padding: 5px 10px;
 }
+.mainControl .info-group {
+  border-bottom: 1px solid #aaaaaa;
+}
 .mainControl .info-group .extension {
   right: 4%;
-  bottom: -20px;
+  border: 1px solid #aaaaaa;
+  bottom: -23px;
+  border-top: none;
 }
 .mainControl .tail-inputs .group {
   display: flex;
@@ -584,6 +589,7 @@ perfplot {
       -ms-flex-direction: row;
           flex-direction: row;*/
   display: none;
+  border-top: 1px solid #aaaaaa;
 }
 .responsiveNavButtons i {
   color: #ed1a28;
