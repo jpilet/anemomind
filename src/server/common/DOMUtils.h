@@ -27,7 +27,7 @@ public:
 
   PageWriter(
       const std::string &basePath,
-      const std::string &localFilename,
+      const std::string &name,
       const Poco::XML::AutoPtr<Poco::XML::Document> &doc);
   std::string localFilename() const {return _name + ".html";}
   std::string fullFilename() const;

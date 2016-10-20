@@ -21,6 +21,11 @@ add_executable(plot_cairoDemo
 target_link_libraries(plot_cairoDemo
                       ${CAIRO_LIBRARIES})
 
+
+target_link_libraries(plot_cairoDemo
+                      ${CAIRO_LIBRARIES})
+
+
 add_library(plot_CairoUtils
   CairoUtils.h
   CairoUtils.cpp

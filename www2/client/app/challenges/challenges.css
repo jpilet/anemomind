@@ -1,0 +1,17 @@
+.challenges .panel-heading h3 {
+    padding: 0;
+}
+.challenges .panel-heading a {
+    text-decoration: none;
+}
+.challenges .panel-body {
+    text-align: center;
+}
+.challenges .panel-body img {
+    width: 140px;
+    display: inline-block;
+    margin: 30px 0 40px;
+}
+.challenges .panel-body .description {
+    text-align: left;
+}
