@@ -49,6 +49,27 @@ namespace {
       addToCode(&countPerCode, Code, n);
     }
   };
+
+  std::set<DataCode> getAllSources() {
+    std::set<DataCode> dst;
+#define ADD_DATA_CODE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+        dst.insert(HANDLE);
+    FOREACH_CHANNEL(ADD_DATA_CODE)
+#undef ADD_DATA_CODE;
+    return dst;
+  }
+
+  std::set<DataCode> listMissingCodes(
+      const std::set<DataCode> &src) {
+    auto all = getAllSources();
+    std::set<DataCode> dst;
+    for (auto x: all) {
+      if (src.count(x) == 0) {
+        dst.insert(x);
+      }
+    }
+    return dst;
+  }
 }
 
 // Make a table to inspect a dispatcher
@@ -64,7 +85,7 @@ void renderDispatcherTableOverview(
   auto table = DOM::makeSubNode(parent, "table");
   {
     auto header = DOM::makeSubNode(table, "tr");
-    DOM::addSubTextNode(header, "th", "Sources");
+    DOM::makeSubNode(header, "th");
     for (auto kv: codeMap) {
       DOM::addSubTextNode(header, "th",
           wordIdentifierForCode(kv.second));
@@ -85,7 +106,7 @@ void renderDispatcherTableOverview(
         stringFormat("%d", d->sourcePriority(kvSrc.second)));
   }{
     auto row = DOM::makeSubNode(table, "tr");
-    DOM::makeSubNode(row, "td");
+    DOM::addSubTextNode(row, "th", "Total");
     for (auto kvCode: codeMap) {
       DOM::addSubTextNode(row, "td",
           stringFormat("%d",
@@ -94,7 +115,15 @@ void renderDispatcherTableOverview(
     DOM::makeSubNode(row, "td");
   }
 
-
+  auto missing = listMissingCodes(visitor.codes);
+  if (!missing.empty()) {
+    std::stringstream ss;
+    ss << "Missing: ";
+    for (auto x: missing) {
+      ss << wordIdentifierForCode(x) << " ";
+    }
+    DOM::addSubTextNode(parent, "p", ss.str());
+  }
 }
 
 
