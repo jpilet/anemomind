@@ -15,7 +15,7 @@ int main(int argc, const char **argv) {
     std::cerr << "Usage: src-path-1 ... src-path-N output-filename\n";
   } else {
     auto dst = DOM::makeBasicHtmlPage("Dispatcher overview");
-    auto ul = DOM::makeSubNode(dst, "ul");
+    auto ul = DOM::makeSubNode(&dst, "ul");
     LogLoader loader;
     for (int i = 1; i < argc-1; i++) {
       std::string p = argv[i];
