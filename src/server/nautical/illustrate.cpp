@@ -27,8 +27,7 @@ using namespace sail::Cairo;
 std::default_random_engine rng;
 
 struct Setup {
-  std::string path;
-  std::string fromStr, toStr;
+  std::string path, fromStr, toStr;
   std::string prefix = PathBuilder::makeDirectory(
       Env::BINARY_DIR).get().toString();
   std::string name = "illustrate";
