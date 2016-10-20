@@ -10,7 +10,33 @@
 
 namespace sail {
 
+void channelSummaryToHtml(const ChannelSummary &info,
+      DOM::Node *dst) {
+    auto table = DOM::makeSubNode(dst, "table");
+    {
+      auto row = DOM::makeSubNode(&table, "tr");
+      DOM::addSubTextNode(&row, "td", "Count");
+      DOM::addSubTextNode(&row, "td",
+          stringFormat("%d", info.count));
+    }{
+      auto row = DOM::makeSubNode(&table, "tr");
+      DOM::addSubTextNode(&row, "td", "From");
+      DOM::addSubTextNode(&row, "td", info.from.toString());
+    }{
+      auto row = DOM::makeSubNode(&table, "tr");
+      DOM::addSubTextNode(&row, "td", "To");
+      DOM::addSubTextNode(&row, "td", info.to.toString());
+    }
+  }
+
+void renderChannelSummaryCountToHtml(
+    const ChannelSummary &info, DOM::Node *dst) {
+  DOM::addTextNode(dst, stringFormat("%d", info.count));
+}
+
 namespace {
+
+
 
   template <typename T>
   std::map<int, T> enumerateItems(const std::set<T> &src) {
@@ -22,21 +48,21 @@ namespace {
     return dst;
   }
 
-  void addToCode(std::map<DataCode, int> *dst,
-      DataCode code, int n) {
+  void addToCode(std::map<DataCode, ChannelSummary> *dst,
+      DataCode code, const ChannelSummary &x) {
     if (dst->count(code) == 0) {
-      dst->insert({code, n});
+      dst->insert({code, x});
     } else {
       auto f = dst->find(code);
-      f->second += n;
+      f->second.extend(x);
     }
   }
 
   struct ListSourcesVisitor {
-    std::map<std::pair<DataCode, std::string>, int> data;
+    std::map<std::pair<DataCode, std::string>, ChannelSummary> data;
     std::set<DataCode> codes;
     std::set<std::string> sources;
-    std::map<DataCode, int> countPerCode;
+    std::map<DataCode, ChannelSummary> countPerCode;
 
     template <DataCode Code, typename T>
     void visit(const char *shortName, const std::string &sourceName,
@@ -45,8 +71,16 @@ namespace {
       sources.insert(sourceName);
       codes.insert(Code);
       int n = coll.size();
-      data.insert({{Code, sourceName}, int(n)});
-      addToCode(&countPerCode, Code, n);
+      const auto &v = coll.samples();
+
+      ChannelSummary info;
+      info.count = n;
+      if (!v.empty()) {
+        info.from = v.front().time;
+        info.to = v.back().time;
+      }
+      data.insert({{Code, sourceName}, info});
+      addToCode(&countPerCode, Code, info);
     }
   };
 
@@ -74,7 +108,9 @@ namespace {
 
 // Make a table to inspect a dispatcher
 void renderDispatcherTableOverview(
-    const Dispatcher *d, const DOM::Node &parent) {
+    const Dispatcher *d, DOM::Node *parent,
+    std::function<void(ChannelSummary, DOM::Node*)>
+            channelInfoRenderer) {
 
   if (d == nullptr) {
     DOM::addSubTextNode(parent, "p", "Dispatcher is null");
@@ -89,35 +125,35 @@ void renderDispatcherTableOverview(
 
   auto table = DOM::makeSubNode(parent, "table");
   {
-    auto header = DOM::makeSubNode(table, "tr");
-    DOM::makeSubNode(header, "th");
+    auto header = DOM::makeSubNode(&table, "tr");
+    DOM::makeSubNode(&header, "th");
     for (auto kv: codeMap) {
-      DOM::addSubTextNode(header, "th",
+      DOM::addSubTextNode(&header, "th",
           wordIdentifierForCode(kv.second));
     }
-    DOM::addSubTextNode(header, "th", "Priority");
+    DOM::addSubTextNode(&header, "th", "Priority");
   }
   for (auto kvSrc: srcMap) {
-    auto row = DOM::makeSubNode(table, "tr");
-    DOM::addSubTextNode(row, "th", kvSrc.second);
+    auto row = DOM::makeSubNode(&table, "tr");
+    DOM::addSubTextNode(&row, "th", kvSrc.second);
     for (auto kvCode: codeMap) {
-      auto td = DOM::makeSubNode(row, "td");
+      auto td = DOM::makeSubNode(&row, "td");
       auto f = visitor.data.find({kvCode.second, kvSrc.second});
       if (f != visitor.data.end()) {
-        DOM::addTextNode(td, stringFormat("%d", f->second));
+        channelInfoRenderer(f->second, &td);
       }
     }
-    DOM::addSubTextNode(row, "td",
+    DOM::addSubTextNode(&row, "td",
         stringFormat("%d", d->sourcePriority(kvSrc.second)));
   }{
-    auto row = DOM::makeSubNode(table, "tr");
-    DOM::addSubTextNode(row, "th", "Total");
+    auto row = DOM::makeSubNode(&table, "tr");
+    DOM::addSubTextNode(&row, "th", "Total");
     for (auto kvCode: codeMap) {
-      DOM::addSubTextNode(row, "td",
-          stringFormat("%d",
-              visitor.countPerCode.find(kvCode.second)->second));
+      auto td = DOM::makeSubNode(&row, "td");
+      channelInfoRenderer(
+          visitor.countPerCode.find(kvCode.second)->second, &td);
     }
-    DOM::makeSubNode(row, "td");
+    DOM::makeSubNode(&row, "td");
   }
 
   auto missing = listMissingCodes(visitor.codes);

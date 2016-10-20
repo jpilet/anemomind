@@ -56,15 +56,20 @@ struct Node {
 };
 
 Node makeRootNode(const std::string &name);
-Node makeSubNode(Node node, const std::string &name);
-void addTextNode(Node node, const std::string &text);
-void addSubTextNode(Node node,
+Node makeSubNode(Node *parent, const std::string &name);
+void addTextNode(Node *parent, const std::string &text);
+void addSubTextNode(Node *node,
     const std::string &name,
     const std::string &data);
 
 Node makeBasicHtmlPage(const std::string &title,
     const std::string &basePath,
     const std::string &name);
+Node makeBasicHtmlPage(const std::string &titleString);
+
+void writeHtmlFile(
+    const std::string &filename,
+    Poco::XML::AutoPtr<Poco::XML::Document> document);
 
 Node linkToSubPage(Node parent, const std::string title);
 Poco::Path makeGeneratedImageNode(
