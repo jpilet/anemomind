@@ -53,12 +53,13 @@ module.exports = function(app) {
 	      boatId=req.params.boatId,
 	      curve=req.query.c, 
 	      start=curveStartTimeStr(curve),
-	      end=curveEndTimeStr(curve);
+	      end=curveEndTimeStr(curve),
+	      width=1024, height=536;
 
 	  //
 	  // build image url that keep ideal FB ratio 1.91:1 (600x315, 800x418, 1024x536)
 	  var ogImg=[
-	    "/api/map",boatId,l,start,end,"1024-536.png"
+	    "/api/map",boatId,l,start,end,width+"-"+height+".png"
 	  ].join('/');
 
 	  //
@@ -80,8 +81,8 @@ module.exports = function(app) {
 		    title:'New session for '+boat.name,
 		    description:"From "+new Date(start).toDateString(),
 		    img:hostname+ogImg,
-		    w:1024,
-		    h:536
+		    w:width,
+		    h:height
 		  }
 		  res.send(req.app.locals.template(index,model));	
 	  });
