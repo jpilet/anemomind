@@ -215,12 +215,13 @@ void makeSessionIllustration(
     const NavDataset &ds,
     DOM::Node page,
     const std::vector<TimeStamp> &times) {
-  renderDispatcherTableOverview(ds.dispatcher().get(), page);
+  renderDispatcherTableOverview(
+      ds.dispatcher().get(), &page);
 
   auto positions = ds.samples<GPS_POS>();
   if (positions.empty()) {
-    auto p = DOM::makeSubNode(page, "p");
-    DOM::addTextNode(p, "No GPS data");
+    auto p = DOM::makeSubNode(&page, "p");
+    DOM::addTextNode(&p, "No GPS data");
   } else {
     auto p = DOM::makeGeneratedImageNode(page, ".svg");
     renderGpsTrajectoryToSvg(positions, ds, p.toString(),
@@ -248,12 +249,12 @@ void makeAllIllustrations(
   Array<std::vector<TimeStamp>> selPerSession(sessions.size());
 
   if (!setup.selected.empty()) {
-    auto p = DOM::makeSubNode(page, "p");
-    DOM::addTextNode(p, "You want to look closer at ");
-    auto ul = DOM::makeSubNode(page, "ul");
+    auto p = DOM::makeSubNode(&page, "p");
+    DOM::addTextNode(&p, "You want to look closer at ");
+    auto ul = DOM::makeSubNode(&page, "ul");
     for (auto t: setup.selected) {
       int index = findSessionWithTimeStamp(sessions, t);
-      DOM::addSubTextNode(ul, "li", t.toString()
+      DOM::addSubTextNode(&ul, "li", t.toString()
           + stringFormat(" belonging to session %d",
               1+index));
 
@@ -263,30 +264,30 @@ void makeAllIllustrations(
     }
   }
 
-  auto table = DOM::makeSubNode(page, "table");
+  auto table = DOM::makeSubNode(&page, "table");
   {
-    auto row = DOM::makeSubNode(table, "tr");
-    DOM::addSubTextNode(row, "th", "Index");
-    DOM::addSubTextNode(row, "th", "From");
-    DOM::addSubTextNode(row, "th", "To");
-    DOM::addSubTextNode(row, "th", "Selected count");
+    auto row = DOM::makeSubNode(&table, "tr");
+    DOM::addSubTextNode(&row, "th", "Index");
+    DOM::addSubTextNode(&row, "th", "From");
+    DOM::addSubTextNode(&row, "th", "To");
+    DOM::addSubTextNode(&row, "th", "Selected count");
   }
 
   for (int i = 0; i < sessions.size(); i++) {
     const auto &sel = selPerSession[i];
     auto session = sessions[i];
-    auto row = DOM::makeSubNode(table, "tr");
+    auto row = DOM::makeSubNode(&table, "tr");
     auto title = stringFormat("Session %d", i);
     {
-      auto td = makeSubNode(row, "td");
+      auto td = makeSubNode(&row, "td");
       auto subPage = DOM::linkToSubPage(td, title);
       makeSessionIllustration(session, subPage, sel);
     }
-    DOM::addSubTextNode(row, "td",
+    DOM::addSubTextNode(&row, "td",
         session.lowerBound().toString());
-    DOM::addSubTextNode(row, "td",
+    DOM::addSubTextNode(&row, "td",
         session.upperBound().toString());
-    DOM::addSubTextNode(row, "td",
+    DOM::addSubTextNode(&row, "td",
         stringFormat("%d", sel.size()));
   }
 }
@@ -362,7 +363,7 @@ bool makeIllustrations(const Setup &setup) {
   auto page = DOM::makeBasicHtmlPage("Illustrations",
       setup.prefix, "illustrations");
   sail::renderDispatcherTableOverview(
-      raw.dispatcher().get(), page);
+      raw.dispatcher().get(), &page);
   makeAllIllustrations(page, setup, sessions);
 
   LOG(INFO) << "Processing time for " << proc._boatid << ": "
