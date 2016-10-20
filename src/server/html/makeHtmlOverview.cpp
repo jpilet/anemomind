@@ -13,6 +13,7 @@ using namespace sail;
 int main(int argc, const char **argv) {
   if (argc < 3) {
     std::cerr << "Usage: src-path-1 ... src-path-N output-filename\n";
+    return 1;
   } else {
     auto dst = DOM::makeBasicHtmlPage("Dispatcher overview");
     auto ul = DOM::makeSubNode(&dst, "ul");
