@@ -32,8 +32,8 @@ class LogLoader {
   bool loadFile(const std::string &filename);
 
   // Load a file, or all logfiles in a directory and its subdirectories.
-  void load(const std::string &name);
-  void load(const Poco::Path &name);
+  bool load(const std::string &name);
+  bool load(const Poco::Path &name);
 
   // Conveniency functions when there is just one thing
   // to load.
@@ -48,7 +48,7 @@ class LogLoader {
 
 
   void loadNmea0183(std::istream *s);
-  void load(const LogFile &data);
+  bool load(const LogFile &data);
 
  private:
   LogAccumulator _acc;
