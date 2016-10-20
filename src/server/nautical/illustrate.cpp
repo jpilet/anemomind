@@ -19,6 +19,7 @@
 #include <server/plot/CairoUtils.h>
 #include <server/plot/PlotUtils.h>
 #include <cairo/cairo-svg.h>
+#include <server/html/HtmlDispatcher.h>
 
 using namespace sail;
 using namespace sail::Cairo;
@@ -233,10 +234,9 @@ int findSessionWithTimeStamp(
 }
 
 void makeAllIllustrations(
+    DOM::Node page,
     const Setup &setup,
     const Array<NavDataset> &sessions) {
-  auto page = DOM::makeBasicHtmlPage("Illustrations",
-      setup.prefix, "illustrations");
 
   Array<std::vector<TimeStamp>> selPerSession(sessions.size());
 
@@ -352,7 +352,11 @@ bool makeIllustrations(const Setup &setup) {
   Array<NavDataset> sessions =
     extractAll("Sailing", simulated, proc._grammar.grammar, fulltree);
 
-  makeAllIllustrations(setup, sessions);
+  auto page = DOM::makeBasicHtmlPage("Illustrations",
+      setup.prefix, "illustrations");
+  sail::renderDispatcherTableOverview(
+      raw.dispatcher().get(), page);
+  makeAllIllustrations(page, setup, sessions);
 
   LOG(INFO) << "Processing time for " << proc._boatid << ": "
     << (TimeStamp::now() - start).seconds() << " seconds.";

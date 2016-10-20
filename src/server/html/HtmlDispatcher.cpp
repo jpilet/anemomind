@@ -12,16 +12,31 @@ namespace sail {
 
 namespace {
 
-  struct SampleCount {
-    DataCode code;
-    std::string src;
-    int n;
-  };
+  template <typename T>
+  std::map<int, T> enumerateItems(const std::set<T> &src) {
+    std::map<int, T> dst;
+    int counter = 0;
+    for (auto x: src) {
+      dst[counter++] = x;
+    }
+    return dst;
+  }
+
+  void addToCode(std::map<DataCode, int> *dst,
+      DataCode code, int n) {
+    if (dst->count(code) == 0) {
+      dst->insert({code, n});
+    } else {
+      auto f = dst->find(code);
+      f->second += n;
+    }
+  }
 
   struct ListSourcesVisitor {
-    std::vector<SampleCount> data;
+    std::map<std::pair<DataCode, std::string>, int> data;
     std::set<DataCode> codes;
     std::set<std::string> sources;
+    std::map<DataCode, int> countPerCode;
 
     template <DataCode Code, typename T>
     void visit(const char *shortName, const std::string &sourceName,
@@ -29,31 +44,55 @@ namespace {
       const TimedSampleCollection<T> &coll) {
       sources.insert(sourceName);
       codes.insert(Code);
-      data.push_back(SampleCount{
-        Code, sourceName, int(coll.size())
-      });
+      int n = coll.size();
+      data.insert({{Code, sourceName}, int(n)});
+      addToCode(&countPerCode, Code, n);
     }
   };
-
-
-  std::map<int, std::string> enumerateSources(
-      const std::set<std::string> &sources) {
-    std::map<int, std::string> dst;
-    int counter = 0;
-    for (auto s: sources) {
-      dst[counter++] = s;
-    }
-    return dst;
-  }
 }
 
 // Make a table to inspect a dispatcher
 void renderDispatcherTableOverview(
     const Dispatcher *d, const DOM::Node &parent) {
-  auto table = DOM::makeSubNode(parent, "table");
 
   ListSourcesVisitor visitor;
   visitDispatcherChannelsConst(d, &visitor);
+
+  auto srcMap = enumerateItems<std::string>(visitor.sources);
+  auto codeMap = enumerateItems<DataCode>(visitor.codes);
+
+  auto table = DOM::makeSubNode(parent, "table");
+  {
+    auto header = DOM::makeSubNode(table, "tr");
+    DOM::addSubTextNode(header, "th", "Sources");
+    for (auto kv: codeMap) {
+      DOM::addSubTextNode(header, "th",
+          wordIdentifierForCode(kv.second));
+    }
+    DOM::addSubTextNode(header, "th", "Priority");
+  }
+  for (auto kvSrc: srcMap) {
+    auto row = DOM::makeSubNode(table, "tr");
+    DOM::addSubTextNode(row, "th", kvSrc.second);
+    for (auto kvCode: codeMap) {
+      auto td = DOM::makeSubNode(row, "td");
+      auto f = visitor.data.find({kvCode.second, kvSrc.second});
+      if (f != visitor.data.end()) {
+        DOM::addTextNode(td, stringFormat("%d", f->second));
+      }
+    }
+    DOM::addSubTextNode(row, "td",
+        stringFormat("%d", d->sourcePriority(kvSrc.second)));
+  }{
+    auto row = DOM::makeSubNode(table, "tr");
+    DOM::makeSubNode(row, "td");
+    for (auto kvCode: codeMap) {
+      DOM::addSubTextNode(row, "td",
+          stringFormat("%d",
+              visitor.countPerCode.find(kvCode.second)->second));
+    }
+    DOM::makeSubNode(row, "td");
+  }
 
 
 }

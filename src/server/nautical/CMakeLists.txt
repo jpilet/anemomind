@@ -143,6 +143,7 @@ target_link_libraries(nautical_illustrate
   common_DOMUtils
   plot_CairoUtils
   plot_PlotUtils
+  html_HtmlDispatcher
   )
 
 add_executable(nautical_processBoatLogs
