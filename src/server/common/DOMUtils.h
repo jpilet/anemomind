@@ -67,6 +67,37 @@ Node linkToSubPage(Node parent, const std::string title);
 Poco::Path makeGeneratedImageNode(
     Node node, const std::string &filenameSuffix);
 
+// Just a helper class for generating basic tables,
+// without fancy features such as cells spanning multiple
+// rows or columns.
+class BasicTable {
+public:
+
+  // This function is used to populate a parent node.
+  // By providing the parent node (that will be of type <tr>...</tr>),
+  // the function can decide whether the cell should be a
+
+  typedef std::function<
+      void(Node parent, int i, int j)> CellFunction;
+
+  BasicTable(
+      int rows, int cols,
+      CellFunction cellFunction);
+  BasicTable vcat(const BasicTable &other) const;
+  BasicTable hcat(const BasicTable &other) const;
+
+  void attachTo(Node parent) const;
+
+  int rows() const {return _rows;}
+  int cols() const {return _cols;}
+  CellFunction cellFunction() const {
+    return _cellFunction;
+  }
+private:
+  int _rows, _cols;
+  CellFunction _cellFunction;
+};
+
 }
 } /* namespace sail */
 

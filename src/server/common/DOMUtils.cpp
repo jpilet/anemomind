@@ -13,6 +13,7 @@
 #include <server/common/PathBuilder.h>
 #include <sstream>
 #include <iostream>
+#include <server/common/logging.h>
 
 namespace sail {
 namespace DOM {
@@ -118,6 +119,45 @@ Poco::Path makeGeneratedImageNode(Node node,
       Poco::XML::toXMLString(p.getFileName()));
   return p;
 }
+
+BasicTable::BasicTable(int rows, int cols,
+    CellFunction cellFunction) :
+      _rows(rows), _cols(cols), _cellFunction(cellFunction) {}
+
+BasicTable BasicTable::vcat(const BasicTable &other) const {
+  CHECK(_cols == other._cols);
+  return BasicTable(_rows + other._rows, _cols,
+      [=](Node parent, int i, int j) {
+    if (i < _rows) {
+      _cellFunction(parent, i, j);
+    } else {
+      other._cellFunction(parent, i - _rows, j);
+    }
+  });
+}
+
+BasicTable BasicTable::hcat(const BasicTable &other) const {
+  CHECK(_rows == other._rows);
+  return BasicTable(_rows, _cols + other._cols,
+      [=](Node parent, int i, int j) {
+    if (j < _cols) {
+      _cellFunction(parent, i, j);
+    } else {
+      other._cellFunction(parent, i, j - _cols);
+    }
+  });
+}
+
+void BasicTable::attachTo(Node parent) const {
+  auto table = makeSubNode(parent, "table");
+  for (int i = 0; i < _rows; i++) {
+    auto tr = makeSubNode(table, "tr");
+    for (int j = 0; j < _cols; j++) {
+      _cellFunction(tr, i, j);
+    }
+  }
+}
+
 
 
 }
