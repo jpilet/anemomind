@@ -139,13 +139,14 @@ void renderBoat(
       std::cout << "Missing tws" << std::endl;
       return;
     }
-    auto motion = HorizontalMotion<double>::polar(tws.get().value,
-        twdir.get().value + hdg.get().value + Angle<double>::degrees(180.0));
+    auto motion = HorizontalMotion<double>::polar(
+        tws.get().value,
+        twdir.get().value + Angle<double>::degrees(180.0));
 
     auto coef = (4.0_m/1.0_kn)/lengthUnit;
 
     Eigen::Vector2d flow(double(motion[0]*coef), double(motion[1]*coef));
-    drawLocalFlow(cr, flow, 30.0, 9, 0.2*flow.norm(), &rng);
+    drawLocalFlow(cr, flow, 60.0, 9, 0.2*flow.norm(), &rng);
   }
 }
 
