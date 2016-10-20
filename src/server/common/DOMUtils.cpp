@@ -13,6 +13,7 @@
 #include <server/common/PathBuilder.h>
 #include <sstream>
 #include <iostream>
+#include <server/common/logging.h>
 
 namespace sail {
 namespace DOM {
@@ -74,6 +75,11 @@ Node makeSubNode(Node node, const std::string &name) {
   return dst;
 }
 
+void addSubTextNode(Node node, const std::string &name,
+    const std::string &data) {
+  addTextNode(makeSubNode(node, name), data);
+}
+
 void addTextNode(Node node, const std::string &text) {
   auto x = node.document->createTextNode(text);
   node.element->appendChild(x);
@@ -83,6 +89,7 @@ Node makeBasicHtmlPage(const std::string &titleString) {
   auto page = makeRootNode("html");
   auto head = makeSubNode(page, "head");
   auto title = makeSubNode(head, "title");
+  addSubTextNode(head, "style", "td, th {border: 1px solid black;} svg {margin: 30px; border: 1px solid black;} .warning {color: orange} .error {color: red} .success {color: green}");
   addTextNode(title, titleString);
   auto body = makeSubNode(page, "body");
   return body;
@@ -118,7 +125,6 @@ Poco::Path makeGeneratedImageNode(Node node,
       Poco::XML::toXMLString(p.getFileName()));
   return p;
 }
-
 
 }
 }

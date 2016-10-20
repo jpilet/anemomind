@@ -12,7 +12,7 @@
 #include <Poco/DOM/Document.h>
 #include <Poco/DOM/AutoPtr.h>
 #include <Poco/Path.h>
-
+#include <server/common/Array.h>
 #include <memory>
 
 namespace sail {
@@ -58,6 +58,9 @@ struct Node {
 Node makeRootNode(const std::string &name);
 Node makeSubNode(Node node, const std::string &name);
 void addTextNode(Node node, const std::string &text);
+void addSubTextNode(Node node,
+    const std::string &name,
+    const std::string &data);
 
 Node makeBasicHtmlPage(const std::string &title,
     const std::string &basePath,
