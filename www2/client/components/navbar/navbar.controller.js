@@ -2,6 +2,7 @@
 
 angular.module('www2App')
   .controller('NavbarCtrl', function ($scope, $location, Auth, $http, socket, boatList) {
+    $scope.showLinks = false;
     $scope.menu = [{
       'title': 'Home',
       'link': '/'
@@ -27,4 +28,8 @@ angular.module('www2App')
     $scope.isActive = function(route) {
       return route === $location.path();
     };
+
+    if ($location.search().showLinks) {
+      $scope.showLinks = true;
+    }
   });
