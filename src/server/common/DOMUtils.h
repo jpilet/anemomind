@@ -13,6 +13,8 @@
 #include <Poco/DOM/AutoPtr.h>
 #include <Poco/Path.h>
 
+#include <memory>
+
 namespace sail {
 namespace DOM {
 
