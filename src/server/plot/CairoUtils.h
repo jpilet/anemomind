@@ -52,7 +52,7 @@ class WithLocalDeviceScale {
 public:
   enum Mode {Determinant, Identity};
 
-  WithLocalDeviceScale(cairo_t *cr, Mode mode = Identity);
+  WithLocalDeviceScale(cairo_t *cr, Mode mode);
   ~WithLocalDeviceScale();
 private:
   MAKE_UNMOVABLE(WithLocalDeviceScale);

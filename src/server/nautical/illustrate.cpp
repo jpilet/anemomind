@@ -123,13 +123,12 @@ void renderBoat(
   WithLocalDeviceScale withDevScale(cr,
       WithLocalDeviceScale::Determinant);
 
-
   {
     WithLocalContext context(cr);
     rotateGeographically(cr, hdg.get().value);
     setSourceColor(cr, rs.boat);
     drawBoat(cr, 60);
-  }/*{
+  }{
     auto twdir = ds.samples<TWDIR>().nearest(time);
     if (!twdir.defined()) {
       std::cout << "Missing twdir" << std::endl;
@@ -147,7 +146,7 @@ void renderBoat(
 
     Eigen::Vector2d flow(double(motion[0]*coef), double(motion[1]*coef));
     drawLocalFlow(cr, flow, 30.0, 9, 0.2*flow.norm(), &rng);
-  }*/
+  }
 }
 
 void renderGpsTrajectoryToSvg(
