@@ -62,10 +62,16 @@ Array<GeographicReference::ProjectedPosition> positionsToPlane(
 
 
 
+
+struct WindToRender {
+  std::function<HorizontalMotion<double>(
+      NavDataset, TimeStamp)> getWind;
+  Angle<double> hue;
+};
+
 struct BoatRenderSettings {
-  PlotUtils::RGB goodWind = PlotUtils::hsv2rgb(PlotUtils::HSV::fromHue(120.0_deg));
-  PlotUtils::RGB badWind = PlotUtils::hsv2rgb(PlotUtils::HSV::fromHue(0.0_deg));
-  PlotUtils::RGB boat = PlotUtils::hsv2rgb(PlotUtils::HSV::fromHue(215.0_deg));
+  PlotUtils::RGB boat = PlotUtils::hsv2rgb(
+      PlotUtils::HSV::fromHue(215.0_deg));
 };
 
 struct RelWind {
