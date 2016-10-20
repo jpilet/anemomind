@@ -27,7 +27,7 @@ std::default_random_engine rng;
 
 struct Setup {
   std::string path;
-  std::string fromStr, toStr, selectStr;
+  std::string fromStr, toStr;
   std::string prefix = PathBuilder::makeDirectory(
       Env::BINARY_DIR).get().toString();
   std::string name = "illustrate";
@@ -40,15 +40,7 @@ struct Setup {
     return TimeStamp::parse(toStr);
   }
 
-  TimeStamp selected() const {
-    std::cout << "from = " << from().toString() << std::endl;
-    std::cout << "to = " << to().toString() << std::endl;
-    std::cout << "Got select str: " << selectStr << std::endl;
-    auto t = TimeStamp::parse(selectStr);
-    std::cout << "parsed this: " << t.toString() << std::endl;
-    CHECK(false);
-    return t;
-  }
+  Array<TimeStamp> selected;
 };
 
 NavDataset loadNavs(const std::string &path) {
@@ -102,11 +94,15 @@ namespace {
 }
 
 
-void renderBoat(cairo_t *cr,
+void renderBoat(
+    BoatRenderSettings rs,
+    cairo_t *cr,
     const GeographicReference &ref,
     TimeStamp time,
   const NavDataset &ds) {
-  BoatRenderSettings rs;
+
+  //WithLocalContext withContext(cr);
+  //WithLocalDeviceScale withDevScale(cr);
 
   auto pos = ds.samples<GPS_POS>().nearest(time);
   if (!pos.defined()) {
@@ -154,7 +150,8 @@ void renderBoat(cairo_t *cr,
 void renderGpsTrajectoryToSvg(
     const TimedSampleRange<GeographicPosition<double>> &positions,
     NavDataset ds,
-    const std::string &filename) {
+    const std::string &filename,
+    const std::vector<TimeStamp> &times) {
   auto middle = positions[positions.size()/2];
 
   GeographicReference ref(middle.value);
@@ -196,25 +193,40 @@ void renderGpsTrajectoryToSvg(
   }
   cairo_stroke(cr.get());
 
-  /*TimeStamp at = middle.time;
-  {
+
+  BoatRenderSettings rs;
+  for (auto t: times) {
     WithLocalContext with(cr.get());
     cairo_transform(cr.get(), &mat);
-    renderBoat(cr.get(), ref, middle.time, ds);
-  }*/
+    renderBoat(rs, cr.get(), ref, t, ds);
+  }
 }
 
 void makeSessionIllustration(
     const NavDataset &ds,
-    DOM::Node page) {
+    DOM::Node page,
+    const std::vector<TimeStamp> &times) {
   auto positions = ds.samples<GPS_POS>();
   if (positions.empty()) {
     auto p = DOM::makeSubNode(page, "p");
     DOM::addTextNode(p, "No GPS data");
   } else {
     auto p = DOM::makeGeneratedImageNode(page, ".svg");
-    renderGpsTrajectoryToSvg(positions, ds, p.toString());
+    renderGpsTrajectoryToSvg(positions, ds, p.toString(),
+        times);
   }
+}
+
+int findSessionWithTimeStamp(
+    const Array<NavDataset> &sessions,
+    TimeStamp t) {
+  for (int i = 0; i < sessions.size(); i++) {
+    auto s = sessions[i];
+    if (s.lowerBound() <= t && t < s.upperBound()) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 void makeAllIllustrations(
@@ -223,11 +235,22 @@ void makeAllIllustrations(
   auto page = DOM::makeBasicHtmlPage("Illustrations",
       setup.prefix, "illustrations");
 
-  auto sel = setup.selected();
-  if (sel.defined()) {
+  Array<std::vector<TimeStamp>> selPerSession(sessions.size());
+
+  if (!setup.selected.empty()) {
     auto p = DOM::makeSubNode(page, "p");
-    DOM::addTextNode(p,
-        "You want to look closer at " + sel.toString());
+    DOM::addTextNode(p, "You want to look closer at ");
+    auto ul = DOM::makeSubNode(page, "ul");
+    for (auto t: setup.selected) {
+      int index = findSessionWithTimeStamp(sessions, t);
+      DOM::addSubTextNode(ul, "li", t.toString()
+          + stringFormat(" belonging to session %d",
+              1+index));
+
+      if (index != -1) {
+        selPerSession[index].push_back(t);
+      }
+    }
   }
 
   auto table = DOM::makeSubNode(page, "table");
@@ -236,21 +259,25 @@ void makeAllIllustrations(
     DOM::addSubTextNode(row, "th", "Index");
     DOM::addSubTextNode(row, "th", "From");
     DOM::addSubTextNode(row, "th", "To");
+    DOM::addSubTextNode(row, "th", "Selected count");
   }
 
   for (int i = 0; i < sessions.size(); i++) {
+    const auto &sel = selPerSession[i];
     auto session = sessions[i];
     auto row = DOM::makeSubNode(table, "tr");
     auto title = stringFormat("Session %d", i);
     {
       auto td = makeSubNode(row, "td");
       auto subPage = DOM::linkToSubPage(td, title);
-      makeSessionIllustration(session, subPage);
+      makeSessionIllustration(session, subPage, sel);
     }
     DOM::addSubTextNode(row, "td",
         session.lowerBound().toString());
     DOM::addSubTextNode(row, "td",
         session.upperBound().toString());
+    DOM::addSubTextNode(row, "td",
+        stringFormat("%d", sel.size()));
   }
 }
 
@@ -329,6 +356,26 @@ bool makeIllustrations(const Setup &setup) {
   return true;
 }
 
+namespace {
+  Array<TimeStamp> getSelectedTimeStamps(
+      ArgMap *amap) {
+    auto opts = amap->optionArgs("--select");
+    ArrayBuilder<TimeStamp> dst;
+    for (auto opt: opts) {
+      auto s = opt->value();
+      TimeStamp t = TimeStamp::parse(s);
+      if (!t.defined()) {
+        LOG(FATAL) << "Failed to parse time " << s;
+      } else {
+        dst.add(t);
+      }
+    }
+    return dst.get();
+  }
+
+}
+
+
 int main(int argc, const char **argv) {
 
   Setup setup;
@@ -339,14 +386,16 @@ int main(int argc, const char **argv) {
   amap.registerOption("--from", "From date YYYY-MM-DD").store(&(setup.toStr));
   amap.registerOption("--to", "To date YYYY-MM-DD").store(&(setup.fromStr));
   amap.registerOption("--select",
-      "Select session, date on from YYYY-MM-DD")
-          .store(&(setup.selectStr));
+      "Select session, date on from YYYY-MM-DD");
+
+
 
   auto status = amap.parse(argc, argv);
   switch (status) {
   case ArgMap::Done:
     return 0;
   case ArgMap::Continue:
+    setup.selected = getSelectedTimeStamps(&amap);
     return makeIllustrations(setup)? 0 : -2;
   case ArgMap::Error:
     return -1;
