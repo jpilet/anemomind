@@ -13,10 +13,7 @@
 #include <Eigen/Dense>
 #include <server/plot/PlotUtils.h>
 #include <random>
-
-#define MAKE_UNMOVABLE(ClassName) \
-  ClassName(const ClassName &) = delete; \
-  ClassName &operator=(const ClassName &) = delete;
+#include <server/common/Unmovable.h>
 
 namespace sail {
 namespace Cairo {
