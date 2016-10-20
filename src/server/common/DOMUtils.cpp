@@ -47,12 +47,19 @@ PageWriter::Ptr PageWriter::makeSubPageWriter(AutoPtr<Document> doc) {
   return std::make_shared<PageWriter>(_basePath, generateName(), doc);
 }
 
-PageWriter::~PageWriter() {
-  std::ofstream file(fullFilename());
+void writeHtmlFile(
+    const std::string &filename,
+    Poco::XML::AutoPtr<Poco::XML::Document> document) {
+  std::ofstream file(filename);
   file << "<!DOCTYPE html>\n";
   DOMWriter writer;
   writer.setNewLine("\n");
-  writer.writeNode(file, _document);
+  writer.writeNode(file, document);
+}
+
+
+PageWriter::~PageWriter() {
+  writeHtmlFile(fullFilename(), _document);
 }
 
 Poco::Path PageWriter::generatePath(const std::string &suffix) {

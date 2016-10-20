@@ -13,9 +13,27 @@
 
 namespace sail {
 
+struct ChannelSummary {
+  int count = 0;
+  TimeStamp from, to;
+
+  void extend(const ChannelSummary &other) {
+    count += other.count;
+    from = sail::earliest(from, other.from);
+    to = sail::latest(to, other.to);
+  }
+};
+
+void channelSummaryToHtml(
+    const ChannelSummary &info, DOM::Node dst);
+void renderChannelSummaryCountToHtml(
+    const ChannelSummary &info, DOM::Node dst);
+
 // Make a table to inspect a dispatcher
 void renderDispatcherTableOverview(
-    const Dispatcher *d, const DOM::Node &parent);
+    const Dispatcher *d, const DOM::Node &parent,
+    std::function<void(ChannelSummary, DOM::Node)>
+            channelSummaryRenderer = &renderChannelSummaryCountToHtml);
 
 }
 
