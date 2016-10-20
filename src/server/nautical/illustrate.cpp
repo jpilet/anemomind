@@ -210,6 +210,8 @@ void makeSessionIllustration(
     const NavDataset &ds,
     DOM::Node page,
     const std::vector<TimeStamp> &times) {
+  renderDispatcherTableOverview(ds.dispatcher().get(), page);
+
   auto positions = ds.samples<GPS_POS>();
   if (positions.empty()) {
     auto p = DOM::makeSubNode(page, "p");

@@ -76,6 +76,11 @@ namespace {
 void renderDispatcherTableOverview(
     const Dispatcher *d, const DOM::Node &parent) {
 
+  if (d == nullptr) {
+    DOM::addSubTextNode(parent, "p", "Dispatcher is null");
+    return;
+  }
+
   ListSourcesVisitor visitor;
   visitDispatcherChannelsConst(d, &visitor);
 
