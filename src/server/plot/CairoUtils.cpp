@@ -111,13 +111,14 @@ bool drawArrow(cairo_t *cr,
   cairo_move_to(cr, from(0), from(1));
   cairo_line_to(cr, to(0), to(1));
 
-  // Todo: Let the user choose whether device- or user space line width?
-  deviceStroke(cr);
+  // If the arrow is too small to be visible,
+  // consider using WithLocalDeviceScale.
+  cairo_stroke(cr);
 
   cairo_move_to(cr, pt0(0), pt0(1));
   cairo_line_to(cr, to(0), to(1));
   cairo_line_to(cr, pt1(0), pt1(1));
-  deviceStroke(cr);
+  cairo_stroke(cr);
 
   return true;
 }
