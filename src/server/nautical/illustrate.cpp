@@ -27,7 +27,7 @@ std::default_random_engine rng;
 
 struct Setup {
   std::string path;
-  std::string fromStr, toStr;
+  std::string fromStr, toStr, selectStr;
   std::string prefix = PathBuilder::makeDirectory(
       Env::BINARY_DIR).get().toString();
   std::string name = "illustrate";
@@ -38,6 +38,10 @@ struct Setup {
 
   TimeStamp to() const {
     return TimeStamp::parse(toStr);
+  }
+
+  TimeStamp selected() const {
+    return TimeStamp::parse(selectStr);
   }
 };
 
@@ -186,12 +190,12 @@ void renderGpsTrajectoryToSvg(
   }
   cairo_stroke(cr.get());
 
-  TimeStamp at = middle.time;
+  /*TimeStamp at = middle.time;
   {
     WithLocalContext with(cr.get());
     cairo_transform(cr.get(), &mat);
     renderBoat(cr.get(), ref, middle.time, ds);
-  }
+  }*/
 }
 
 void makeSessionIllustration(
@@ -210,15 +214,30 @@ void makeSessionIllustration(
 void makeAllIllustrations(
     const Setup &setup,
     const Array<NavDataset> &sessions) {
+  std::cout << "Make the page" << std::endl;
   auto page = DOM::makeBasicHtmlPage("Illustrations",
       setup.prefix, "illustrations");
+  std::cout << "Done page" << std::endl;
 
+  auto sel = setup.selected();
+  if (sel.defined()) {
+    auto p = DOM::makeSubNode(page, "p");
+    DOM::addTextNode(p,
+        "You want to look closer at " + sel.toString());
+  }
+
+  std::cout << "Make subpage" << std::endl;
   auto ul = DOM::makeSubNode(page, "ul");
+  std::cout << "Done page" << std::endl;
 
   for (int i = 0; i < sessions.size(); i++) {
+    auto session = sessions[i];
     auto li = DOM::makeSubNode(ul, "li");
-    auto subPage = DOM::linkToSubPage(li, stringFormat("Session %d", i));
-    makeSessionIllustration(sessions[i], subPage);
+    auto subPage = DOM::linkToSubPage(li,
+        stringFormat("Session %d from %s to %s", i,
+            session.lowerBound().toString().c_str(),
+            session.upperBound().toString().c_str()));
+    makeSessionIllustration(session, subPage);
   }
 }
 
@@ -306,6 +325,9 @@ int main(int argc, const char **argv) {
       .required();
   amap.registerOption("--from", "From date YYYY-MM-DD").store(&(setup.toStr));
   amap.registerOption("--to", "To date YYYY-MM-DD").store(&(setup.fromStr));
+  amap.registerOption("--select",
+      "Select session, date on from YYYY-MM-DD")
+          .store(&(setup.selectStr));
 
   auto status = amap.parse(argc, argv);
   switch (status) {
