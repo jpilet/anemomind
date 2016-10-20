@@ -41,7 +41,13 @@ struct Setup {
   }
 
   TimeStamp selected() const {
-    return TimeStamp::parse(selectStr);
+    std::cout << "from = " << from().toString() << std::endl;
+    std::cout << "to = " << to().toString() << std::endl;
+    std::cout << "Got select str: " << selectStr << std::endl;
+    auto t = TimeStamp::parse(selectStr);
+    std::cout << "parsed this: " << t.toString() << std::endl;
+    CHECK(false);
+    return t;
   }
 };
 
@@ -214,10 +220,8 @@ void makeSessionIllustration(
 void makeAllIllustrations(
     const Setup &setup,
     const Array<NavDataset> &sessions) {
-  std::cout << "Make the page" << std::endl;
   auto page = DOM::makeBasicHtmlPage("Illustrations",
       setup.prefix, "illustrations");
-  std::cout << "Done page" << std::endl;
 
   auto sel = setup.selected();
   if (sel.defined()) {
@@ -226,18 +230,27 @@ void makeAllIllustrations(
         "You want to look closer at " + sel.toString());
   }
 
-  std::cout << "Make subpage" << std::endl;
-  auto ul = DOM::makeSubNode(page, "ul");
-  std::cout << "Done page" << std::endl;
+  auto table = DOM::makeSubNode(page, "table");
+  {
+    auto row = DOM::makeSubNode(table, "tr");
+    DOM::addSubTextNode(row, "th", "Index");
+    DOM::addSubTextNode(row, "th", "From");
+    DOM::addSubTextNode(row, "th", "To");
+  }
 
   for (int i = 0; i < sessions.size(); i++) {
     auto session = sessions[i];
-    auto li = DOM::makeSubNode(ul, "li");
-    auto subPage = DOM::linkToSubPage(li,
-        stringFormat("Session %d from %s to %s", i,
-            session.lowerBound().toString().c_str(),
-            session.upperBound().toString().c_str()));
-    makeSessionIllustration(session, subPage);
+    auto row = DOM::makeSubNode(table, "tr");
+    auto title = stringFormat("Session %d", i);
+    {
+      auto td = makeSubNode(row, "td");
+      auto subPage = DOM::linkToSubPage(td, title);
+      makeSessionIllustration(session, subPage);
+    }
+    DOM::addSubTextNode(row, "td",
+        session.lowerBound().toString());
+    DOM::addSubTextNode(row, "td",
+        session.upperBound().toString());
   }
 }
 

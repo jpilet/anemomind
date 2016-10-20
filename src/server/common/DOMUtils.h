@@ -12,7 +12,7 @@
 #include <Poco/DOM/Document.h>
 #include <Poco/DOM/AutoPtr.h>
 #include <Poco/Path.h>
-
+#include <server/common/Array.h>
 #include <memory>
 
 namespace sail {
@@ -58,6 +58,9 @@ struct Node {
 Node makeRootNode(const std::string &name);
 Node makeSubNode(Node node, const std::string &name);
 void addTextNode(Node node, const std::string &text);
+void addSubTextNode(Node node,
+    const std::string &name,
+    const std::string &data);
 
 Node makeBasicHtmlPage(const std::string &title,
     const std::string &basePath,
@@ -83,6 +86,10 @@ public:
   BasicTable(
       int rows, int cols,
       CellFunction cellFunction);
+
+  BasicTable(int rows, int cols,
+      bool isHeader, std::function<std::string(int, int)> f);
+
   BasicTable vcat(const BasicTable &other) const;
   BasicTable hcat(const BasicTable &other) const;
 
@@ -93,6 +100,11 @@ public:
   CellFunction cellFunction() const {
     return _cellFunction;
   }
+
+  static BasicTable row(bool isHeader,
+      const Array<std::string> &iterms);
+  static BasicTable col(bool isHeader,
+      const Array<std::string> &items);
 private:
   int _rows, _cols;
   CellFunction _cellFunction;

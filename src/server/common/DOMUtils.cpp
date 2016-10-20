@@ -75,6 +75,11 @@ Node makeSubNode(Node node, const std::string &name) {
   return dst;
 }
 
+void addSubTextNode(Node node, const std::string &name,
+    const std::string &data) {
+  addTextNode(makeSubNode(node, name), data);
+}
+
 void addTextNode(Node node, const std::string &text) {
   auto x = node.document->createTextNode(text);
   node.element->appendChild(x);
@@ -124,6 +129,23 @@ BasicTable::BasicTable(int rows, int cols,
     CellFunction cellFunction) :
       _rows(rows), _cols(cols), _cellFunction(cellFunction) {}
 
+namespace {
+  std::function<void(Node,int,int)> convertToCellFunction(
+      bool isHeader,
+      std::function<std::string(int,int)> f) {
+    return [=](Node parent, int i, int j) {
+      auto dst = makeSubNode(parent, isHeader? "th" : "td");
+      addTextNode(dst, f(i, j));
+    };
+  }
+
+}
+
+BasicTable::BasicTable(int rows, int cols,
+    bool isHeader, std::function<std::string(int, int)> f) :
+        _rows(rows), _cols(cols),
+        _cellFunction(convertToCellFunction(isHeader, f)) {}
+
 BasicTable BasicTable::vcat(const BasicTable &other) const {
   CHECK(_cols == other._cols);
   return BasicTable(_rows + other._rows, _cols,
@@ -156,6 +178,20 @@ void BasicTable::attachTo(Node parent) const {
       _cellFunction(tr, i, j);
     }
   }
+}
+
+BasicTable BasicTable::row(bool isHeader,
+    const Array<std::string> &items) {
+  return BasicTable(1, items.size(), isHeader, [=](int, int j) {
+    return items[j];
+  });
+}
+
+BasicTable BasicTable::col(bool isHeader,
+    const Array<std::string> &items) {
+  return BasicTable(items.size(), 1, isHeader, [=](int i, int) {
+    return items[i];
+  });
 }
 
 
