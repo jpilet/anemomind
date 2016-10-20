@@ -40,6 +40,9 @@ angular.module('www2App')
         if ($location.search().queue) {
           search += '&queue=' + $location.search().queue;
         }
+        if ($location.search().showLinks) {
+          search += '&showLinks=' + $location.search().showLinks;
+        }
         if ($location.search().tailColor) {
           search += '&tailColor=' + $location.search().tailColor;
         }
