@@ -76,8 +76,8 @@ bool parseDouble(const char* str, double *result) {
   return endptr != str;
 }
 
-DWord parseInt(char *s, int *n) {
-  DWord r=0;
+int parseInt(char *s, int *n) {
+  int r=0;
   int i=0;
   if (n) *n=0;
   if (!s) return 0;
@@ -89,10 +89,10 @@ DWord parseInt(char *s, int *n) {
   return r;
 }
 
-DWord parseSpeed(char *speed, char *unit) {
+int parseSpeed(char *speed, char *unit) {
   int i,j;
-  DWord frac;
-  DWord r = parseInt(speed,&i) << 8;
+  int frac;
+  int r = parseInt(speed,&i) << 8;
   if (speed[i]=='.') {
     i++;
     frac = parseInt(speed+i, &j);
@@ -104,6 +104,11 @@ DWord parseSpeed(char *speed, char *unit) {
   }
   //assert(unit[0] == 'N');
   return r;
+}
+
+// speed is a 24:8 fixed point
+bool isSpeedRealistic(int s) {
+  return (s < (100 << 8)) && (s >= 0);
 }
 
 }  // namespace
@@ -360,7 +365,12 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
 NmeaParser::NmeaSentence NmeaParser::processMWV() {
   if (argc_<=5 || argv_[5][0] != 'A') return NMEA_NONE;
 
-  DWord s = parseSpeed(argv_[3], argv_[4]);
+  int s = parseSpeed(argv_[3], argv_[4]);
+
+  if (!isSpeedRealistic(s)) {
+    // sometimes NKE system sends very irrealistic wind
+    return NMEA_NONE;
+  }
 
   if (argv_[2][0] == 'R') {
     aws_ = s;
@@ -391,13 +401,19 @@ $--VWR,x.x,a,x.x,N,x.x,M,x.x,K*hh
 */
 NmeaParser::NmeaSentence NmeaParser::processVWR() {
   if (argc_<8) return NMEA_NONE;
+  int s = parseSpeed(argv_[3], argv_[4]);
+
+  if (!isSpeedRealistic(s)) {
+    // sometimes NKE system sends very irrealistic wind
+    return NMEA_NONE;
+  }
+
   awa_ = parseInt(argv_[1], 0);
 
   if (argv_[2][0] == 'L') {
     awa_ = - awa_;
   }
 
-  DWord s = parseSpeed(argv_[3], argv_[4]);
   aws_ = s;
 
   return NMEA_AW;
@@ -433,6 +449,11 @@ NmeaParser::NmeaSentence NmeaParser::processVWT() {
   }
 
   tws_ = parseSpeed(argv_[3], argv_[4]);
+
+  if (!isSpeedRealistic(tws_)) {
+    // sometimes NKE system sends very irrealistic wind
+    return NMEA_NONE;
+  }
 
   return NMEA_TW;
 }
