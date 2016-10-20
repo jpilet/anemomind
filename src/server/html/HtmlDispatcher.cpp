@@ -10,27 +10,28 @@
 
 namespace sail {
 
-void channelSummaryToHtml(const ChannelSummary &info, DOM::Node dst) {
-    auto table = DOM::makeSubNode(dst, "table");
+void channelSummaryToHtml(const ChannelSummary &info,
+      DOM::Node *dst) {
+    auto table = DOM::makeSubNode(*dst, "table");
     {
       auto row = DOM::makeSubNode(table, "tr");
-      DOM::addSubTextNode(row, "td", "Count");
-      DOM::addSubTextNode(row, "td",
+      DOM::addSubTextNode(&row, "td", "Count");
+      DOM::addSubTextNode(&row, "td",
           stringFormat("%d", info.count));
     }{
       auto row = DOM::makeSubNode(table, "tr");
-      DOM::addSubTextNode(row, "td", "From");
-      DOM::addSubTextNode(row, "td", info.from.toString());
+      DOM::addSubTextNode(&row, "td", "From");
+      DOM::addSubTextNode(&row, "td", info.from.toString());
     }{
       auto row = DOM::makeSubNode(table, "tr");
-      DOM::addSubTextNode(row, "td", "To");
-      DOM::addSubTextNode(row, "td", info.to.toString());
+      DOM::addSubTextNode(&row, "td", "To");
+      DOM::addSubTextNode(&row, "td", info.to.toString());
     }
   }
 
 void renderChannelSummaryCountToHtml(
-    const ChannelSummary &info, DOM::Node dst) {
-  DOM::addTextNode(dst, stringFormat("%d", info.count));
+    const ChannelSummary &info, DOM::Node *dst) {
+  DOM::addTextNode(*dst, stringFormat("%d", info.count));
 }
 
 namespace {
@@ -107,8 +108,8 @@ namespace {
 
 // Make a table to inspect a dispatcher
 void renderDispatcherTableOverview(
-    const Dispatcher *d, const DOM::Node &parent,
-    std::function<void(ChannelSummary, DOM::Node)>
+    const Dispatcher *d, DOM::Node *parent,
+    std::function<void(ChannelSummary, DOM::Node*)>
             channelInfoRenderer) {
 
   if (d == nullptr) {
@@ -122,35 +123,35 @@ void renderDispatcherTableOverview(
   auto srcMap = enumerateItems<std::string>(visitor.sources);
   auto codeMap = enumerateItems<DataCode>(visitor.codes);
 
-  auto table = DOM::makeSubNode(parent, "table");
+  auto table = DOM::makeSubNode(*parent, "table");
   {
     auto header = DOM::makeSubNode(table, "tr");
     DOM::makeSubNode(header, "th");
     for (auto kv: codeMap) {
-      DOM::addSubTextNode(header, "th",
+      DOM::addSubTextNode(&header, "th",
           wordIdentifierForCode(kv.second));
     }
-    DOM::addSubTextNode(header, "th", "Priority");
+    DOM::addSubTextNode(&header, "th", "Priority");
   }
   for (auto kvSrc: srcMap) {
     auto row = DOM::makeSubNode(table, "tr");
-    DOM::addSubTextNode(row, "th", kvSrc.second);
+    DOM::addSubTextNode(&row, "th", kvSrc.second);
     for (auto kvCode: codeMap) {
       auto td = DOM::makeSubNode(row, "td");
       auto f = visitor.data.find({kvCode.second, kvSrc.second});
       if (f != visitor.data.end()) {
-        channelInfoRenderer(f->second, td);
+        channelInfoRenderer(f->second, &td);
       }
     }
-    DOM::addSubTextNode(row, "td",
+    DOM::addSubTextNode(&row, "td",
         stringFormat("%d", d->sourcePriority(kvSrc.second)));
   }{
     auto row = DOM::makeSubNode(table, "tr");
-    DOM::addSubTextNode(row, "th", "Total");
+    DOM::addSubTextNode(&row, "th", "Total");
     for (auto kvCode: codeMap) {
       auto td = DOM::makeSubNode(row, "td");
       channelInfoRenderer(
-          visitor.countPerCode.find(kvCode.second)->second, td);
+          visitor.countPerCode.find(kvCode.second)->second, &td);
     }
     DOM::makeSubNode(row, "td");
   }

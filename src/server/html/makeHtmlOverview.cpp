@@ -19,12 +19,12 @@ int main(int argc, const char **argv) {
     LogLoader loader;
     for (int i = 1; i < argc-1; i++) {
       std::string p = argv[i];
-      DOM::addSubTextNode(ul, "li", p);
+      DOM::addSubTextNode(&ul, "li", p);
       loader.load(p);
     }
     auto ds = loader.makeNavDataset();
     renderDispatcherTableOverview(
-        ds.dispatcher().get(), dst);
+        ds.dispatcher().get(), &dst);
     DOM::writeHtmlFile(argv[argc-1], dst.document);
   }
   return 0;

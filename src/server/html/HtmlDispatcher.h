@@ -25,14 +25,14 @@ struct ChannelSummary {
 };
 
 void channelSummaryToHtml(
-    const ChannelSummary &info, DOM::Node dst);
+    const ChannelSummary &info, DOM::Node *dst);
 void renderChannelSummaryCountToHtml(
-    const ChannelSummary &info, DOM::Node dst);
+    const ChannelSummary &info, DOM::Node *dst);
 
 // Make a table to inspect a dispatcher
 void renderDispatcherTableOverview(
-    const Dispatcher *d, const DOM::Node &parent,
-    std::function<void(ChannelSummary, DOM::Node)>
+    const Dispatcher *d, DOM::Node *parent,
+    std::function<void(ChannelSummary, DOM::Node *)>
             channelSummaryRenderer = &renderChannelSummaryCountToHtml);
 
 }

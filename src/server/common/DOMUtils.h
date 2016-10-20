@@ -58,7 +58,7 @@ struct Node {
 Node makeRootNode(const std::string &name);
 Node makeSubNode(Node node, const std::string &name);
 void addTextNode(Node node, const std::string &text);
-void addSubTextNode(Node node,
+void addSubTextNode(Node *node,
     const std::string &name,
     const std::string &data);
 
