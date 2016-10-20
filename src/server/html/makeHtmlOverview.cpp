@@ -20,7 +20,9 @@ int main(int argc, const char **argv) {
     for (int i = 1; i < argc-1; i++) {
       std::string p = argv[i];
       DOM::addSubTextNode(&ul, "li", p);
-      loader.load(p);
+      if (!loader.load(p)) {
+        return -1;
+      }
     }
     auto ds = loader.makeNavDataset();
     renderDispatcherTableOverview(

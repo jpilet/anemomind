@@ -44,29 +44,41 @@ void LogLoader::loadNmea0183(std::istream *s) {
       Nmea0183Loader::getDefaultSourceName());
 }
 
-void LogLoader::load(const std::string &name) {
-  load(Poco::Path(name));
+bool LogLoader::load(const std::string &name) {
+  return load(Poco::Path(name));
 }
 
-void LogLoader::load(const LogFile &data) {
+bool LogLoader::load(const LogFile &data) {
   ProtobufLogLoader::load(data, &_acc);
+  return true;
 }
 
-void LogLoader::load(const Poco::Path &name) {
+bool LogLoader::load(const Poco::Path &name) {
   FileTraverseSettings settings;
   settings.visitDirectories = false;
   settings.visitFiles = true;
+  int failCount = 0;
   traverseDirectory(
       name,
       [&](const Poco::Path &path) {
     std::string ext = toLower(path.getExtension());
     if (ext == "txt" || ext == "csv" || ext == "log") {
-      loadFile(path.toString());
+      if (!loadFile(path.toString())) {
+        if (failCount < 12) { // So that we don't flood the log file if there are many files.
+          LOG(ERROR) << "Failed to load log file " << path.toString();
+        }
+        failCount++;
+      }
     } else {
       // Silently ignore files with unknown extensions while scanning
       // the directory
     }
   }, settings);
+  if (0 < failCount) {
+    LOG(ERROR) << "Failed to load " << failCount << " files when visiting " << name.toString();
+  }
+
+  return 0 == failCount;
 }
 
 NavDataset LogLoader::loadNavDataset(const std::string &name) {
