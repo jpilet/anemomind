@@ -40,6 +40,9 @@ TEST(CmdArgTest, EntryTest) {
   std::string d = "";
 
   Entry e({"--wave", "-w"}, {
+
+    // Put the form with more arguments before the
+    // version with fewer, if there is ambiguity.
     inputForm([&](double amp, double phase) {
       b = amp;
       c = phase;
@@ -47,11 +50,13 @@ TEST(CmdArgTest, EntryTest) {
     }, Arg<double>("amplitude"),
        Arg<double>("phase")).describe(
            "Wave with specified amplitude and phase"),
+
      inputForm([&](double amp) {
        a = amp;
        return true;
      }, Arg<double>("amplitude"))
        .describe("Wave with specified amplitude and 0 phase"),
+
     inputForm([&](std::string f) {
       d = f;
       return true;
