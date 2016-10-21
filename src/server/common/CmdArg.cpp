@@ -134,16 +134,43 @@ Entry::Entry(
     const Array<std::string> &commands,
     const Array<InputForm> &forms) :
         _commands(commands),
-        _forms(forms) {}
+        _forms(forms),
+        _callCount(0),
+        _minCount(0),
+        _maxCount(std::numeric_limits<int>::max()) {}
 
 Entry &Entry::describe(const std::string &d) {
   _description = d;
   return *this;
 }
 
+Entry &Entry::setMinCount(int i) {
+  _minCount = i;
+  _maxCount = std::max(_maxCount, _minCount);
+  return *this;
+}
+
+Entry &Entry::setMaxCount(int i) {
+  _maxCount = i;
+  _minCount = std::min(_maxCount, i);
+  return *this;
+}
+
+Entry &Entry::required() {
+  setMinCount(1);
+  return *this;
+}
+
+
 bool Entry::parse(
     std::vector<Result> *failureReasons,
     Array<std::string> *remainingArgsInOut) {
+  /*_callCount++;
+  if (_maxCount < _callCount) {
+    failureReasons->push_back(Result::failure("Provided too many times"));
+    return false;
+  }*/
+
   for (auto f: _forms) {
     auto result = f.parse(*remainingArgsInOut);
     if (result.succeeded()) {

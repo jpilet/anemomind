@@ -156,6 +156,19 @@ TEST(CmdArgTest, BasicTesting) {
       called = true;
     });
     EXPECT_TRUE(called);
+  }{
+    bool called = false;
+    withTestSetup([&](TestSetup *s, Parser *cmd) {
+
+      const int argc = 7;
+      const char *argv[argc] = {
+          "prg-name", "--wave", "9", "7",
+          "--sampling", "6", "asdfasdfasdf"};
+
+      EXPECT_EQ(Parser::Error, cmd->parse(argc, argv));
+      called = true;
+    });
+    EXPECT_TRUE(called);
   }
 }
 

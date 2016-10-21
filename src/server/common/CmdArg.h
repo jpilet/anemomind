@@ -73,6 +73,9 @@ public:
       const Array<std::string> &commands,
       const Array<InputForm> &forms);
   Entry &describe(const std::string &d);
+  Entry &setMinCount(int i);
+  Entry &setMaxCount(int i);
+  Entry &required();
 
   bool parse(
       std::vector<Result> *failureReasons,
@@ -82,6 +85,8 @@ public:
 
   typedef std::shared_ptr<Entry> Ptr;
 private:
+  int _callCount;
+  int _minCount, _maxCount;
   std::string _description;
   Array<std::string> _commands;
   Array<InputForm> _forms;
