@@ -105,7 +105,7 @@ private:
   std::map<std::string, Entry*> _map;
 
   Entry *addEntry(const Entry &e);
-  void addAndRegisterEntry(const Entry &e);
+  Entry &addAndRegisterEntry(const Entry &e);
   void displayHelpMessage() const;
   void initialize();
 };

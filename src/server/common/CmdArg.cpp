@@ -166,6 +166,7 @@ Entry &CmdArg::bind(
     const Array<std::string> &commands,
     const Array<InputForm> &inputForms) {
   CHECK(!_initialized);
+  return addAndRegisterEntry(Entry(commands, inputForms));
 }
 
 Entry *CmdArg::addEntry(const Entry &e0) {
@@ -173,11 +174,13 @@ Entry *CmdArg::addEntry(const Entry &e0) {
   return &(_entries.back());
 }
 
-void CmdArg::addAndRegisterEntry(const Entry &e0) {
+Entry &CmdArg::addAndRegisterEntry(const Entry &e0) {
   auto e = addEntry(e0);
   for (auto cmd: e0.commands()) {
-
+    CHECK(_map.count(cmd) == 0);
+    _map[cmd] = e;
   }
+  return *e;
 }
 
 void CmdArg::displayHelpMessage() const {
@@ -194,7 +197,7 @@ void CmdArg::initialize() {
   auto e = addEntry(Entry(
       hcmds, {
           frm
-      }));
+      }).describe("Display help message"));
   for (auto h: hcmds) {
     _map[h] = e;
   }
