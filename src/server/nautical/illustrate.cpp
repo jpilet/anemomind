@@ -20,6 +20,7 @@
 #include <server/plot/PlotUtils.h>
 #include <cairo/cairo-svg.h>
 #include <server/html/HtmlDispatcher.h>
+#include <server/common/LineKM.h>
 
 using namespace sail;
 using namespace sail::Cairo;
@@ -34,7 +35,15 @@ struct Setup {
   std::string name = "illustrate";
 
   std::vector<TimeStamp> selected;
+
+  PlotUtils::RGB boatColor(int index) const;
 };
+
+PlotUtils::RGB Setup::boatColor(int index) const {
+  LineKM hueMap(0.0, selected.size(), 0.0, 360.0);
+  return PlotUtils::hsv2rgb(
+      PlotUtils::HSV::fromHue(hueMap(index)*1.0_deg));
+}
 
 NavDataset loadNavs(const std::string &path) {
   LogLoader loader;
@@ -101,6 +110,7 @@ void renderBoat(
   const NavDataset &ds) {
 
   WithLocalContext withContext(cr);
+  setSourceColor(cr, rs.boat);
 
   auto pos = ds.samples<GPS_POS>().nearest(time);
   if (!pos.defined()) {
@@ -125,7 +135,6 @@ void renderBoat(
   {
     WithLocalContext context(cr);
     rotateGeographically(cr, hdg.get().value);
-    setSourceColor(cr, rs.boat);
     drawBoat(cr, 60);
   }{
     auto twdir = ds.samples<TWDIR>().nearest(time);
@@ -150,6 +159,7 @@ void renderBoat(
 }
 
 void renderGpsTrajectoryToSvg(
+    const Setup &setup,
     const TimedSampleRange<GeographicPosition<double>> &positions,
     NavDataset ds,
     const std::string &filename,
@@ -196,8 +206,10 @@ void renderGpsTrajectoryToSvg(
   cairo_stroke(cr.get());
 
 
-  BoatRenderSettings rs;
-  for (auto t: times) {
+  for (int i = 0; i < times.size(); i++) {
+    BoatRenderSettings rs;
+    rs.boat = setup.boatColor(i);
+    auto t = times[i];
     WithLocalContext with(cr.get());
     cairo_transform(cr.get(), &mat);
     renderBoat(rs, cr.get(), ref, t, ds);
@@ -205,6 +217,7 @@ void renderGpsTrajectoryToSvg(
 }
 
 void makeSessionIllustration(
+    const Setup &setup,
     const NavDataset &ds,
     DOM::Node page,
     const std::vector<TimeStamp> &times) {
@@ -217,7 +230,9 @@ void makeSessionIllustration(
     DOM::addTextNode(&p, "No GPS data");
   } else {
     auto p = DOM::makeGeneratedImageNode(page, ".svg");
-    renderGpsTrajectoryToSvg(positions, ds, p.toString(),
+    renderGpsTrajectoryToSvg(
+        setup,
+        positions, ds, p.toString(),
         times);
   }
 }
@@ -274,7 +289,8 @@ void makeAllIllustrations(
     {
       auto td = makeSubNode(&row, "td");
       auto subPage = DOM::linkToSubPage(td, title);
-      makeSessionIllustration(session, subPage, sel);
+      makeSessionIllustration(
+          setup, session, subPage, sel);
     }
     DOM::addSubTextNode(&row, "td",
         session.lowerBound().toString());
