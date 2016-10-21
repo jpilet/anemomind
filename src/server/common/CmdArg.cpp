@@ -76,6 +76,9 @@ struct ParseArgument<bool> {
       return false;
     }
 
+    throw FailedToParseArgument(
+        "'"+input+"' cannot be interpreted as a boolean.");
+
     return false;
   }
 };
