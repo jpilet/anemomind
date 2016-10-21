@@ -36,6 +36,8 @@ struct Setup {
 
   std::vector<TimeStamp> selected;
 
+  Duration<double> margin;
+
   PlotUtils::RGB boatColor(int index) const;
 };
 
@@ -400,12 +402,35 @@ namespace {
 }
 
 
+
 int main(int argc, const char **argv) {
+
+  std::map<std::string, Duration<double>>
+    timeUnits{
+      {"s", 1.0_s},
+      {"min", 1.0_minutes},
+    };
+
 
   Setup setup;
   using namespace CmdArg;
 
   Parser parser("Illustrations");
+
+  parser.bind({"--margin"}, {
+
+      inputForm([&](double t, std::string u) {
+        if (timeUnits.count(u) == 0) {
+          return false;
+        }
+        setup.margin = t*timeUnits[u];
+        return true;
+      }, Arg<double>("value"),
+         Arg<std::string>("unit").describe("'s' or 'min'"))
+         .describe("Value and unit")
+
+  }).describe("Time margin around selected points");
+
   parser.bind({"--path"}, {
       inputForm([&](const std::string &p) {
         setup.path = p;
