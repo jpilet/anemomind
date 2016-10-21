@@ -115,7 +115,6 @@ std::string Arg<T>::description() const {
 
 template <typename T>
 ArgSpec Arg<T>::spec() const {
-  //return ArgSpec{"[" + _name + " : " + ParseArgument<T>::type() + "]"};
   ArgSpec s;
   s.name = _name;
   s.type = ParseArgument<T>::type();
