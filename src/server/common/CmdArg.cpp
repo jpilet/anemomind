@@ -12,6 +12,7 @@ namespace sail {
 template <typename T>
 Arg<T> &Arg<T>::describe(const std::string &d) {
   _desc = d;
+  return *this;
 }
 
 template class Arg<int>;

@@ -75,16 +75,20 @@ struct ParseArgument<bool> {
 class InputForm {
 public:
 
+  // Result of applying the handler to this input form
   class Result {
   public:
-    Result(bool success) :
-      _success(success), _error(success? "" : "Unspecified") {};
-
+    Result(bool success, const std::string &e = "Unspecified") :
+      _success(success), _error(e) {};
     static Result success() {return Result(true);}
+    static Result failure(const std::string &e) {
+      return Result(false, e);
+    }
   private:
     bool _success;
     std::string _error;
   };
+
   InputForm(const std::function<Result(Array<std::string>)>
     &handler) {}
   typedef std::shared_ptr<InputForm> Ptr;
@@ -100,8 +104,6 @@ public:
   Arg(const std::string &name) : _name(name) {}
   T get() const {return _value;}
   ThisType &describe(const std::string &d);
-  bool canParse(const std::string &s) const;
-  T parse(const std::string &s) const;
 
   T parseAndProceed(std::string *s) const {return T();}
 private:
@@ -143,6 +145,9 @@ InputForm::Ptr inputForm(
     Function f, Arg ... arg) {
   return std::make_shared<InputForm>(
       [=](const Array<std::string> &args) -> InputForm::Result {
+    if (args.size() < sizeof...(Arg)) {
+      return InputForm::Result::failure("Too few arguments provided");
+    }
     std::string *s = args.ptr();
     try {
       return f(arg.parseAndProceed(s)...);
