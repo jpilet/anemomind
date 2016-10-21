@@ -10,10 +10,11 @@
 
 using namespace sail;
 
+
 TEST(CmdArgTest, InputFormTest) {
   auto form = inputForm(
       [&](double amp, double phase) {
-    return CmdArg::Result();
+    return InputForm::Result::success();
   },
   Arg<double>("amp").describe("The amplitude, in meters"),
   Arg<double>("phase").describe("The phase, in radians"));

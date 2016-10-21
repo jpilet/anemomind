@@ -72,11 +72,23 @@ struct ParseArgument<bool> {
 
 
 
-class AbstractInputForm {
+class InputForm {
 public:
-  typedef std::shared_ptr<AbstractInputForm> Ptr;
-  virtual int argCount() const = 0;
-  virtual ~AbstractInputForm() {}
+
+  class Result {
+  public:
+    Result(bool success) :
+      _success(success), _error(success? "" : "Unspecified") {};
+
+    static Result success() {return Result(true);}
+  private:
+    bool _success;
+    std::string _error;
+  };
+  InputForm(const std::function<Result(Array<std::string>)>
+    &handler) {}
+  typedef std::shared_ptr<InputForm> Ptr;
+  int argCount() const;
 };
 
 template <typename T>
@@ -90,27 +102,11 @@ public:
   ThisType &describe(const std::string &d);
   bool canParse(const std::string &s) const;
   T parse(const std::string &s) const;
+
+  T parseAndProceed(std::string *s) const {return T();}
 private:
   std::string _name, _desc;
   T _value;
-};
-
-template <typename Function, typename... Arg>
-class InputForm : public AbstractInputForm {
-public:
-  InputForm(
-      Function &handler,
-      Arg... args) :
-        _handler(handler),
-        _args(args...) {}
-
-  bool matches(
-      const Array<std::string> &remainingArgs) const {
-    return true;
-  }
-private:
-  Function _handler;
-  Arg ... _args;
 };
 
 
@@ -118,12 +114,10 @@ class CmdArg {
 public:
   CmdArg(const std::string &desc);
 
-  class Result {};
-
   struct Entry {
     std::string description;
     Array<std::string> commands;
-    Array<AbstractInputForm::Ptr> forms;
+    Array<InputForm::Ptr> forms;
 
     std::shared_ptr<Entry> Ptr;
 
@@ -136,7 +130,7 @@ public:
 
   Entry &bind(
       const Array<std::string> &commands,
-      const Array<AbstractInputForm::Ptr> &inputForms);
+      const Array<InputForm::Ptr> &inputForms);
 private:
   std::string _desc;
   std::vector<Entry> _entries;
@@ -145,9 +139,17 @@ private:
 
 
 template <typename Function, typename... Arg>
-AbstractInputForm::Ptr inputForm(
+InputForm::Ptr inputForm(
     Function f, Arg ... arg) {
-  return AbstractInputForm::Ptr(new InputForm<Function, Arg...>(f, arg...));
+  return std::make_shared<InputForm>(
+      [=](const Array<std::string> &args) -> InputForm::Result {
+    std::string *s = args.ptr();
+    try {
+      return f(arg.parseAndProceed(s)...);
+    } catch (const std::exception &e) {
+      return InputForm::Result(false);
+    }
+  });
 }
 
 
