@@ -200,11 +200,26 @@ void CmdArg::initialize() {
   }
 }
 
+namespace {
+  Array<std::string> wrapArgs(int argc, const char **argv) {
+    Array<std::string> dst(argc-1);
+    for (int i = 1; i < argc; i++) {
+      dst[i-1] = argv[i];
+    }
+    return dst;
+  }
+}
+
+
 CmdArg::Status CmdArg::parse(int argc, const char **argv) {
   CHECK(!_initialized);
   initialize();
   CHECK(_initialized);
+  auto args = wrapArgs(argc, argv);
+  while (true) {
 
+  }
+  return CmdArg::Status::Continue;
 }
 
 
