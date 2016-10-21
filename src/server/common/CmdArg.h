@@ -86,7 +86,7 @@ public:
   typedef std::shared_ptr<Entry> Ptr;
 private:
   int _callCount;
-  //int _minCount;
+  int _minCount;
   std::string _description;
   Array<std::string> _commands;
   Array<InputForm> _forms;
