@@ -99,42 +99,6 @@ struct TestSetup {
   std::string unit;
 };
 
-/*void withTestSetup(std::function<void(TestSetup*,Parser*)> handler) {
-  TestSetup setup;
-
-  Parser cmd("This is the message shown at the top");
-
-  cmd.bind({"--wave", "-w"}, {
-
-      inputForm([&](double amp, double phase) {
-        setup.a = amp;
-        setup.b = phase;
-        return true;
-      }, Arg<double>("amp"), Arg<double>("phase")
-        .describe("in radians"))
-       .describe("Specify a wave by amp and phase")
-
-  }).describe("Specify a wave");
-
-  cmd.bind({"--sampling"}, {
-
-      inputForm([&](double v, std::string u) {
-        if (u != "hz" && u != "s") {
-          return Result::failure("Illegal sampling unit: " + u);
-        }
-        setup.value = v;
-        setup.unit = u;
-        return Result::success();
-
-      }, Arg<double>("value"),
-         Arg<std::string>("unit")
-           .describe("Frequency in hz or period time in s"))
-      .describe("A value and a unit")
-
-  }).describe("Specify the sampling");
-
-  handler(&setup, &cmd);
-}*/
 
 TEST(CmdArgTest, BasicTesting1) {
   TestSetup setup;
@@ -184,7 +148,45 @@ TEST(CmdArgTest, BasicTesting1) {
   EXPECT_EQ(0, cmd.freeArgs().size());
 }
 
-/*TEST(CmdArgTest, BasicTesting) {
+void withTestSetup(std::function<void(TestSetup*,Parser*)> handler) {
+  TestSetup setup;
+
+  Parser cmd("This is the message shown at the top");
+
+  cmd.bind({"--wave", "-w"}, {
+
+      inputForm([&](double amp, double phase) {
+        setup.a = amp;
+        setup.b = phase;
+        return true;
+      }, Arg<double>("amp"), Arg<double>("phase")
+        .describe("in radians"))
+       .describe("Specify a wave by amp and phase")
+
+  }).describe("Specify a wave");
+
+  cmd.bind({"--sampling"}, {
+
+      inputForm([&](double v, std::string u) {
+        if (u != "hz" && u != "s") {
+          return Result::failure("Illegal sampling unit: " + u);
+        }
+        setup.value = v;
+        setup.unit = u;
+        return Result::success();
+
+      }, Arg<double>("value"),
+         Arg<std::string>("unit")
+           .describe("Frequency in hz or period time in s"))
+      .describe("A value and a unit")
+
+  }).describe("Specify the sampling");
+
+  handler(&setup, &cmd);
+}
+
+
+TEST(CmdArgTest, BasicTesting) {
   {
     bool called = false;
     withTestSetup([&](TestSetup *s, Parser *cmd) {
@@ -205,7 +207,7 @@ TEST(CmdArgTest, BasicTesting1) {
       called = true;
     });
     EXPECT_TRUE(called);
-  }{
+  }/*{
     bool called = false;
     withTestSetup([&](TestSetup *s, Parser *cmd) {
 
@@ -231,6 +233,6 @@ TEST(CmdArgTest, BasicTesting1) {
       called = true;
     });
     EXPECT_TRUE(called);
-  }
-}*/
+  }*/
+}
 
