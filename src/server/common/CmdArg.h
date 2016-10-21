@@ -95,12 +95,12 @@ private:
   T _value;
 };
 
-template <typename Function, typename... T>
+template <typename Function, typename... Arg>
 class InputForm : public AbstractInputForm {
 public:
   InputForm(
-      const std::function<bool(T...)> &handler,
-      Arg<T>... args) :
+      Function &handler,
+      Arg... args) :
         _handler(handler),
         _args(args...) {}
 
@@ -110,7 +110,7 @@ public:
   }
 private:
   Function _handler;
-  Arg<T...> _args;
+  Arg ... _args;
 };
 
 
