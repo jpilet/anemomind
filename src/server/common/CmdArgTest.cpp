@@ -150,8 +150,8 @@ TEST(CmdArgTest, BasicTesting) {
 
       EXPECT_EQ(s->a, 9.0);
       EXPECT_EQ(s->b, 7.0);
-      //EXPECT_EQ(s->value, 6.0);
-      //EXPECT_EQ(s->unit, "hz");
+      EXPECT_EQ(s->value, 6.0);
+      EXPECT_EQ(s->unit, "hz");
 
       called = true;
     });
