@@ -207,7 +207,7 @@ void Entry::outputHelp(int depth, std::ostream *dst) const {
   }
   *dst << ":\n";
   indent(depth, dst);
-  *dst << "  " << _description << "\n";
+  *dst << "  " << _description << "\n\n";
   for (auto frm: _forms) {
     frm.outputHelp(depth + 2, dst);
   }
