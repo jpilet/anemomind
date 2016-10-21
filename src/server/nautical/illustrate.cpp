@@ -218,11 +218,25 @@ void renderGpsTrajectoryToSvg(
   }
 }
 
+NavDataset cropDataset(const NavDataset &ds,
+    const std::vector<TimeStamp> &times,
+    Duration<double> marg) {
+  TimeStamp lower, upper;
+  for (auto t: times) {
+    lower = earliest(lower, t);
+    upper = latest(upper, t);
+  }
+  return ds.slice(lower - marg, upper + marg);
+}
+
 void makeSessionIllustration(
     const Setup &setup,
-    const NavDataset &ds,
+    const NavDataset &ds0,
     DOM::Node page,
     const std::vector<TimeStamp> &times) {
+
+  auto ds = times.empty()? ds0 : cropDataset(ds0, times, setup.margin);
+
   renderDispatcherTableOverview(
       ds.dispatcher().get(), &page);
 

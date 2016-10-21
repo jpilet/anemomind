@@ -100,27 +100,60 @@ struct TestSetup {
 };
 
 
-TEST(CmdArgTest, BasicTesting1) {
+TEST(CmdArgTest, CompleteExample) {
   TestSetup setup;
 
-  Parser cmd("This is the message shown at the top");
 
+  // Here we configure the parser.
+  Parser cmd("CompleteExample: This is the message shown at the top");
+
+  // 'bind' is used to add an option.
   cmd.bind({"--wave", "-w"}, {
 
-      inputForm([&](double amp, double phase) {
+      // Just like functions in C++ can be overloaded for
+      // different arguments, so can InputForm's here. Here we
+      // have two such InputForm's. The forms are visited
+      // in the order listed, and the first form that is
+      // compatible with the input arguments will be the one used.
+
+      // The inputForm variadic template function takes
+      // as first argument a functor, followed by a variadic
+      // number of Arg<...> objects that specify the arguments
+      // that the functor accepts.
+
+      /*1st form*/ inputForm([&](double amp, double phase) {
         setup.a = amp;
         setup.b = phase;
-        return true;
-      }, Arg<double>("amp"), Arg<double>("phase")
-        .describe("in radians"))
-       .describe("Specify a wave by amp and phase")
 
-  }).describe("Specify a wave");
+        // We must return something from which a Result
+        // object can be constructed. Returning true
+        // means success.
+        return true;
+      }, Arg<double>("amp"),   // Relates to 'double amp' in the functor above
+         Arg<double>("phase")  // Relates to 'double phase' in the functor above
+        .describe("in radians")) // (1/3) Individual arguments can be described
+       .describe("Specify a wave by amp and phase"), // (2/3) Input forms can be described
+
+       /*2nd form*/inputForm([&](double amp) {
+         setup.a = amp;
+         setup.b = 0.0;
+         return true;
+       }, Arg<double>("amp"))
+       .describe("Specify a wave with default phase 0")
+
+  }).describe("Specify a wave"); // (3/3) Options can be described
+  // As you may see, there are three different things that can
+  // be described: Invidivual arguments, input forms, and
+  // entire options. The provided descriptions are used
+  // to generate documentation.
 
   cmd.bind({"--sampling"}, {
 
       inputForm([&](double v, std::string u) {
         if (u != "hz" && u != "s") {
+          // We can return a failure from inside a functor.
+          // This will show up as a message in the output
+          // and parsing will be interupted.
           return Result::failure("Illegal sampling unit: " + u);
         }
         setup.value = v;
@@ -134,13 +167,17 @@ TEST(CmdArgTest, BasicTesting1) {
 
   }).describe("Specify the sampling");
 
+  // Make some fake input.
   const int argc = 7;
   const char *argv[argc] = {
       "prg-name", "--wave", "9", "7",
       "--sampling", "6", "hz"};
 
+  // Here we run the parser
   EXPECT_EQ(Parser::Continue, cmd.parse(argc, argv));
 
+  // Parser::Continue means that the parser didn't encounter
+  // any problems, and we can move on.
   EXPECT_EQ(setup.a, 9.0);
   EXPECT_EQ(setup.b, 7.0);
   EXPECT_EQ(setup.value, 6.0);
