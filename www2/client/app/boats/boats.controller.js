@@ -11,21 +11,18 @@ angular.module('www2App')
     
     $log.log('-- boat.ctrl.0');
 
+    // TODO: only load the boat we want, not all boats.
     boatList.boats().then(function(boats) {
       $scope.boats = boats;
 
       $log.log('-- boat.ctrl.1',boats.length);
 
-      //
       // display selected boat
       $scope.boatId=$stateParams.boatId;
       if(!$scope.boatId){
-        //
-        // display default boat
-        $scope.boatId=boatList.getDefaultBoat()._id;        
+        // display default boat (if any)
+        $scope.boatId=(boatList.getDefaultBoat() || {})._id;        
       }
-
-
     });
 
 
