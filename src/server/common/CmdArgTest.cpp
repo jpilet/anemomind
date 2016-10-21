@@ -228,8 +228,9 @@ TEST(CmdArgTest, BasicTesting) {
       const char *argv[argc] = {
           "prg-name", "--wave", "9", "7", "this-arg-is-free",
           "--sampling", "6", "hz"};
-
       EXPECT_EQ(Parser::Continue, cmd->parse(argc, argv));
+      EXPECT_EQ(1, cmd->freeArgs().size());
+      EXPECT_EQ("this-arg-is-free", cmd->freeArgs()[0]);
       called = true;
     });
     EXPECT_TRUE(called);
