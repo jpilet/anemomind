@@ -14,64 +14,6 @@
 
 namespace sail {
 
-
-class FailedToParseArgument : public std::exception {};
-template <typename T>
-struct ParseArgument {
-  static const char *type() {return "unknown type";}
-
-  static T apply(const std::string &input) {
-    throw FailedToParseArgument();
-    return T();
-  }
-};
-
-// TODO: Do something nice that will
-// work with any integer, not just 'int'
-template <>
-struct ParseArgument<int> {
-  static const char *type() {return "int";}
-
-  static int apply(const std::string &input) {
-    return std::stoi(input);
-  }
-};
-
-template <>
-struct ParseArgument<double> {
-  static const char *type() {return "double";}
-
-  static double apply(const std::string &input) {
-    return std::stod(input);
-  }
-};
-
-template <>
-struct ParseArgument<std::string> {
-  static const char *type() {return "string";}
-
-  static std::string apply(const std::string &input) {
-    return input;
-  }
-};
-
-template <>
-struct ParseArgument<bool> {
-  static bool apply(const std::string &input) {
-    if (input == "true" || input == "on" || input == "1"
-        || input == "enabled" || input == "enable") {
-      return true;
-    } else if (input == "false" || input == "off" || input == "0"
-        || input == "disabled" || input == "disable") {
-      return false;
-    }
-
-    return false;
-  }
-};
-
-
-
 class InputForm {
 public:
 
@@ -93,6 +35,7 @@ public:
     &handler) {}
   typedef std::shared_ptr<InputForm> Ptr;
   int argCount() const;
+private:
 };
 
 template <typename T>
