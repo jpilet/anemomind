@@ -5,8 +5,8 @@
  *      Author: jonas
  */
 
-#include <server/common/CmdArg.h>
 #include <gtest/gtest.h>
+#include "CmdArg.h"
 
 using namespace sail;
 
@@ -72,18 +72,18 @@ TEST(CmdArgTest, EntryTest) {
   });
 
   {
-    std::vector<CmdArgResult> reasons;
+    std::vector<Result> reasons;
     Array<std::string> args{"kattskit"};
     EXPECT_TRUE(e.parse(&reasons, &args));
     EXPECT_EQ(d, "kattskit");
     EXPECT_EQ(reasons.size(), 2);
   }{
-    std::vector<CmdArgResult> reasons;
+    std::vector<Result> reasons;
     Array<std::string> args;
     EXPECT_FALSE(e.parse(&reasons, &args));
     EXPECT_EQ(reasons.size(), 3);
   }{
-    std::vector<CmdArgResult> reasons;
+    std::vector<Result> reasons;
     Array<std::string> args{"9"};
     EXPECT_TRUE(e.parse(&reasons, &args));
     EXPECT_EQ(reasons.size(), 1);
@@ -98,10 +98,10 @@ struct TestSetup {
   std::string unit;
 };
 
-void withTestSetup(std::function<void(TestSetup,CmdArg*)> handler) {
+void withTestSetup(std::function<void(TestSetup,Parser*)> handler) {
   TestSetup setup;
 
-  CmdArg cmd("This is the message shown at the top");
+  Parser cmd("This is the message shown at the top");
 
   cmd.bind({"--wave", "-w"}, {
 
@@ -119,11 +119,11 @@ void withTestSetup(std::function<void(TestSetup,CmdArg*)> handler) {
 
       inputForm([&](double v, std::string u) {
         if (u != "hz" && u != "s") {
-          return CmdArgResult::failure("Illegal sampling unit: " + u);
+          return Result::failure("Illegal sampling unit: " + u);
         }
         setup.value = v;
         setup.unit = u;
-        return CmdArgResult::success();
+        return Result::success();
 
       }, Arg<double>("value"),
          Arg<std::string>("unit")
@@ -138,14 +138,14 @@ void withTestSetup(std::function<void(TestSetup,CmdArg*)> handler) {
 TEST(CmdArgTest, BasicTesting) {
   {
     bool called = false;
-    withTestSetup([&](const TestSetup &s, CmdArg *cmd) {
+    withTestSetup([&](const TestSetup &s, Parser *cmd) {
 
       const int argc = 7;
       const char *argv[argc] = {
           "prg-name", "--wave", "9", "7",
           "--sampling", "7", "hz"};
 
-      EXPECT_EQ(CmdArg::Continue, cmd->parse(argc, argv));
+      EXPECT_EQ(Parser::Continue, cmd->parse(argc, argv));
 
       called = true;
     });

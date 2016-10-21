@@ -5,9 +5,9 @@
  *      Author: jonas
  */
 
-#include <server/common/CmdArg.h>
 #include <server/common/logging.h>
 #include <iostream>
+#include <server/common/CmdArg.h>
 
 namespace sail {
 
@@ -120,7 +120,7 @@ template class Arg<bool>;
 template class Arg<char>;
 
 
-CmdArgResult InputForm::parse(
+Result InputForm::parse(
     const Array<std::string> &remainingArgs) const {
   return _handler(remainingArgs);
 }
@@ -142,7 +142,7 @@ Entry &Entry::describe(const std::string &d) {
 }
 
 bool Entry::parse(
-    std::vector<CmdArgResult> *failureReasons,
+    std::vector<Result> *failureReasons,
     Array<std::string> *remainingArgsInOut) {
   for (auto f: _forms) {
     auto result = f.parse(*remainingArgsInOut);
@@ -162,7 +162,7 @@ const Array<std::string> &Entry::commands() const {
   return _commands;
 }
 
-Entry &CmdArg::bind(
+Entry &Parser::bind(
     const Array<std::string> &commands,
     const Array<InputForm> &inputForms) {
   CHECK(!_initialized);
@@ -170,12 +170,12 @@ Entry &CmdArg::bind(
       commands, inputForms));
 }
 
-Entry::Ptr CmdArg::addEntry(const Entry::Ptr &e0) {
+Entry::Ptr Parser::addEntry(const Entry::Ptr &e0) {
   _entries.push_back(e0);
   return e0;
 }
 
-Entry &CmdArg::addAndRegisterEntry(const Entry::Ptr &e0) {
+Entry &Parser::addAndRegisterEntry(const Entry::Ptr &e0) {
   auto e = addEntry(e0);
   for (auto cmd: e0->commands()) {
     CHECK(_map.count(cmd) == 0);
@@ -184,11 +184,11 @@ Entry &CmdArg::addAndRegisterEntry(const Entry::Ptr &e0) {
   return *e;
 }
 
-void CmdArg::displayHelpMessage() const {
+void Parser::displayHelpMessage() const {
   std::cout << _description << "\n\n";
 }
 
-void CmdArg::initialize() {
+void Parser::initialize() {
   CHECK(!_initialized);
   auto frm = inputForm([this]() {
               displayHelpMessage();
@@ -218,14 +218,14 @@ namespace {
 }
 
 
-CmdArg::Status CmdArg::parse(int argc, const char **argv) {
+Parser::Status Parser::parse(int argc, const char **argv) {
   CHECK(!_initialized);
   initialize();
   CHECK(_initialized);
   auto args = wrapArgs(argc, argv);
   while (!args.empty()) {
     if (_helpDisplayed) {
-      return CmdArg::Status::Done;
+      return Parser::Status::Done;
     }
 
     auto first = args[0];
@@ -234,22 +234,22 @@ CmdArg::Status CmdArg::parse(int argc, const char **argv) {
     if (f == _map.end()) {
       _freeArgs.push_back(first);
     } else {
-      std::vector<CmdArgResult> reasons;
+      std::vector<Result> reasons;
       if (!f->second->parse(&reasons, &args)) {
         std::cout << "Failed to parse command "
             << first << " because\n";
         for (auto r: reasons) {
           std::cout << "  * " << r.toString() << std::endl;
         }
-        return CmdArg::Status::Error;
+        return Parser::Status::Error;
       }
     }
   }
-  return CmdArg::Status::Continue;
+  return Parser::Status::Continue;
 }
 
 
-CmdArg::CmdArg(const std::string &desc) :
+Parser::Parser(const std::string &desc) :
     _description(desc),
     _initialized(false),
     _helpDisplayed(false) {

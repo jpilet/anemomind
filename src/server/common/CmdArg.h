@@ -16,13 +16,13 @@
 namespace sail {
 
 // Result of applying the handler to this input form
-class CmdArgResult {
+class Result {
 public:
-  CmdArgResult(bool success, const std::string &e = "Unspecified") :
+  Result(bool success, const std::string &e = "Unspecified") :
     _success(success), _error(e) {};
-  static CmdArgResult success() {return CmdArgResult(true);}
-  static CmdArgResult failure(const std::string &e) {
-    return CmdArgResult(false, e);
+  static Result success() {return Result(true);}
+  static Result failure(const std::string &e) {
+    return Result(false, e);
   }
 
   bool succeeded() const {return _success;}
@@ -38,9 +38,9 @@ class InputForm {
 public:
   InputForm() {}
 
-  typedef std::function<CmdArgResult(Array<std::string>)> Handler;
+  typedef std::function<Result(Array<std::string>)> Handler;
   InputForm(const Handler &handler) : _handler(handler) {}
-  CmdArgResult parse(const Array<std::string> &remainingArgs) const;
+  Result parse(const Array<std::string> &remainingArgs) const;
   InputForm &describe(const std::string &d);
   int argCount () const {return _argSpecs.size();}
 private:
@@ -75,7 +75,7 @@ public:
   Entry &describe(const std::string &d);
 
   bool parse(
-      std::vector<CmdArgResult> *failureReasons,
+      std::vector<Result> *failureReasons,
       Array<std::string> *remaingArgsInOut);
 
   const Array<std::string> &commands() const;
@@ -87,9 +87,9 @@ private:
   Array<InputForm> _forms;
 };
 
-class CmdArg {
+class Parser {
 public:
-  CmdArg(const std::string &desc);
+  Parser(const std::string &desc);
 
   enum Status {
     Done,
@@ -103,7 +103,7 @@ public:
 
   Status parse(int argc, const char **argv);
 private:
-  MAKE_UNMOVABLE(CmdArg);
+  MAKE_UNMOVABLE(Parser);
   std::vector<std::string> _freeArgs;
   bool _initialized, _helpDisplayed;
   std::string _description;
@@ -121,16 +121,16 @@ template <typename Function, typename... Arg>
 InputForm inputForm(
     Function f, Arg ... arg) {
   return InputForm(
-      [=](const Array<std::string> &args) -> CmdArgResult {
+      [=](const Array<std::string> &args) -> Result {
     if (args.size() < sizeof...(Arg)) {
-      return CmdArgResult::failure("Too few arguments provided");
+      return Result::failure("Too few arguments provided");
     }
     std::string *s0 = args.ptr();
     auto s = &s0;
     try {
-      return CmdArgResult(f(arg.parseAndProceed(s)...));
+      return Result(f(arg.parseAndProceed(s)...));
     } catch (const std::exception &e) {
-      return CmdArgResult::failure(e.what());
+      return Result::failure(e.what());
     }
   });
 }
