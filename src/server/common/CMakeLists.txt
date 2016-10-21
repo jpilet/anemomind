@@ -422,3 +422,9 @@ add_library(common_CmdArg
   CmdArg.h
   CmdArg.cpp
   )
+
+cxx_test(common_CmdArgTest
+  CmdArgTest.cpp
+  gtest_main
+  common_CmdArg
+  )

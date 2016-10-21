@@ -6,7 +6,12 @@
  */
 
 #include <server/common/CmdArg.h>
+#include <gtest/gtest.h>
 
+using namespace sail;
 
+TEST(CmdArgTest, BasicUsage) {
+  CmdArg cmd("This is the message shown at the top");
+}
 
 

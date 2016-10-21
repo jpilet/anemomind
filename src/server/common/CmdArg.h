@@ -10,6 +10,7 @@
 
 #include <server/common/Array.h>
 #include <string>
+#include <map>
 
 namespace sail {
 
@@ -116,7 +117,7 @@ AbstractInputForm::Ptr inputForm(
 
 class CmdArg {
 public:
-  CmdArg();
+  CmdArg(const std::string &desc);
 
   struct Entry {
     std::string description;
@@ -136,7 +137,9 @@ public:
       const Array<std::string> &commands,
       const Array<AbstractInputForm::Ptr> &inputForms);
 private:
+  std::string _desc;
   std::vector<Entry> _entries;
+  std::map<std::string, Entry*> _map;
 };
 
 

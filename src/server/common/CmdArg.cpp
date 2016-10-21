@@ -9,5 +9,7 @@
 
 namespace sail {
 
+CmdArg::CmdArg(const std::string &desc) : _desc(desc) {}
+
 }
 
