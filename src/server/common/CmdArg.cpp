@@ -139,6 +139,32 @@ InputForm &InputForm::describe(const std::string &d) {
   return *this;
 }
 
+void indent(int depth, std::ostream *dst) {
+  for (int i = 0; i < depth; i++) {
+    *dst << "  ";
+  }
+}
+
+
+void InputForm::outputHelp(int depth, std::ostream *dst) const {
+  indent(depth, dst);
+  *dst << "Format: " << _desc << "\n";
+  if (_argSpecs.empty()) {
+    indent(depth, dst);
+    *dst << "  (no arguments)\n";
+  } else {
+    for (auto spec: _argSpecs) {
+      indent(depth, dst);
+      *dst << "  * [" << spec.name << " : " << spec.type << "]";
+      if (!spec.desc.empty()) {
+        *dst << ": " << spec.desc;
+      }
+      *dst << "\n";
+    }
+    *dst << "\n";
+  }
+}
+
 Entry::Entry(
     const Array<std::string> &commands,
     const Array<InputForm> &forms) :
@@ -173,6 +199,20 @@ const Array<std::string> &Entry::commands() const {
   return _commands;
 }
 
+void Entry::outputHelp(int depth, std::ostream *dst) const {
+  indent(depth, dst);
+  for (auto x: _commands) {
+    *dst << x << " ";
+  }
+  *dst << ":\n";
+  indent(depth, dst);
+  *dst << "  " << _description << "\n";
+  for (auto frm: _forms) {
+    frm.outputHelp(depth + 2, dst);
+  }
+  *dst << "\n";
+}
+
 Entry &Parser::bind(
     const Array<std::string> &commands,
     const Array<InputForm> &inputForms) {
@@ -197,6 +237,11 @@ Entry &Parser::addAndRegisterEntry(const Entry::Ptr &e0) {
 
 void Parser::displayHelpMessage() {
   std::cout << _description << "\n\n";
+
+  for (auto e: _entries) {
+    e->outputHelp(1, &std::cout);
+  }
+
   _helpDisplayed = true;
 }
 

@@ -51,6 +51,7 @@ public:
   Result parse(const Array<std::string> &remainingArgs) const;
   InputForm &describe(const std::string &d);
   int argCount () const {return _argSpecs.size();}
+  void outputHelp(int depth, std::ostream *dst) const;
 private:
   Array<ArgSpec> _argSpecs;
   Handler _handler;
@@ -91,6 +92,8 @@ public:
   const Array<std::string> &commands() const;
 
   typedef std::shared_ptr<Entry> Ptr;
+
+  void outputHelp(int depth, std::ostream *dst) const;
 private:
   int _callCount;
   std::string _description;
