@@ -33,6 +33,39 @@ TEST(CmdArgTest, InputFormTest) {
   EXPECT_NEAR(b, 4.0, 1.0e-5);
 }
 
+TEST(CmdArgTest, EntryTest) {
+  double a = 0.0;
+  double b = 0.0;
+  double c = 0.0;
+  std::string d = "";
+
+  Entry e({"--wave", "-w"}, {
+    inputForm([&](double amp) {
+      a = amp;
+      return true;
+    }, Arg<double>("amplitude"))
+      .describe("Wave with specified amplitude and 0 phase"),
+    inputForm([&](double amp, double phase) {
+      b = amp;
+      c = phase;
+      return true;
+    }, Arg<double>("amplitude"),
+       Arg<double>("phase")).describe(
+           "Wave with specified amplitude and phase"),
+    inputForm([&](std::string f) {
+      d = f;
+      return true;
+    }, Arg<std::string>("whatever").describe("Put any expr here"))
+      .describe("Freeform wave spec")
+  });
+
+  {
+    std::vector<InputForm::Result> reasons;
+    Array<std::string> args{"kattskit"};
+    EXPECT_TRUE(e.parse(&reasons, &args));
+  }
+}
+
 TEST(CmdArgTest, BasicUsage) {
   CmdArg cmd("This is the message shown at the top");
 }
