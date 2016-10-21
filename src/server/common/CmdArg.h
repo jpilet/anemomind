@@ -73,9 +73,6 @@ public:
       const Array<std::string> &commands,
       const Array<InputForm> &forms);
   Entry &describe(const std::string &d);
-  Entry &setMinCount(int i);
-  Entry &setMaxCount(int i);
-  Entry &required();
 
   bool parse(
       std::vector<Result> *failureReasons,
@@ -106,6 +103,9 @@ public:
       const Array<InputForm> &inputForms);
 
   Status parse(int argc, const char **argv);
+  const std::vector<std::string> &freeArgs() const {
+    return _freeArgs;
+  }
 private:
   MAKE_UNMOVABLE(Parser);
   std::vector<std::string> _freeArgs;

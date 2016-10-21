@@ -142,24 +142,6 @@ Entry &Entry::describe(const std::string &d) {
   return *this;
 }
 
-/*Entry &Entry::setMinCount(int i) {
-  _minCount = i;
-  _maxCount = std::max(_maxCount, _minCount);
-  return *this;
-}
-
-Entry &Entry::setMaxCount(int i) {
-  _maxCount = i;
-  _minCount = std::min(_maxCount, i);
-  return *this;
-}
-
-Entry &Entry::required() {
-  setMinCount(1);
-  return *this;
-}*/
-
-
 bool Entry::parse(
     std::vector<Result> *failureReasons,
     Array<std::string> *remainingArgsInOut) {
