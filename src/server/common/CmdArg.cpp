@@ -154,8 +154,11 @@ bool Entry::parse(
   for (auto f: _forms) {
     auto result = f.parse(*remainingArgsInOut);
     if (result.succeeded()) {
+      std::cout << "Perform slicing!!!\n";
+      std::cout << "  arg count = " << f.argCount() << std::endl;
       *remainingArgsInOut = remainingArgsInOut->sliceFrom(
           f.argCount());
+      std::cout << "Done slice\n";
       return true;
     } else {
       // TODO: Append metadata (such as which form failed to the result)
@@ -233,7 +236,9 @@ Parser::Status Parser::parse(int argc, const char **argv) {
   auto args = wrapArgs(argc, argv);
   while (!args.empty()) {
     auto first = args[0];
+    std::cout << "Perform slicingsdfasdfasfd\n";
     args = args.sliceFrom(1);
+    std::cout << "Done slice" << std::endl;
     auto f = _map.find(first);
     _helpDisplayed = false;
     if (f == _map.end()) {
