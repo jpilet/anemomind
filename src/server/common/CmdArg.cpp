@@ -191,8 +191,9 @@ Entry &Parser::addAndRegisterEntry(const Entry::Ptr &e0) {
   return *e;
 }
 
-void Parser::displayHelpMessage() const {
+void Parser::displayHelpMessage() {
   std::cout << _description << "\n\n";
+  _helpDisplayed = true;
 }
 
 void Parser::initialize() {
@@ -231,17 +232,12 @@ Parser::Status Parser::parse(int argc, const char **argv) {
   CHECK(_initialized);
   auto args = wrapArgs(argc, argv);
   while (!args.empty()) {
-    if (_helpDisplayed) {
-      return Parser::Status::Done;
-    }
     auto first = args[0];
-    std::cout << "Parsing " << first << std::endl;
     args = args.sliceFrom(1);
     auto f = _map.find(first);
+    _helpDisplayed = false;
     if (f == _map.end()) {
-      std::cout << "Push back the first" << std::endl;
       _freeArgs.push_back(first);
-      std::cout << "Pushed it" << std::endl;
     } else {
       std::vector<Result> reasons;
       if (!f->second->parse(&reasons, &args)) {
@@ -252,6 +248,9 @@ Parser::Status Parser::parse(int argc, const char **argv) {
         }
         return Parser::Status::Error;
       }
+    }
+    if (_helpDisplayed) {
+      return Parser::Status::Done;
     }
   }
   return Parser::Status::Continue;

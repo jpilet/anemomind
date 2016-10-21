@@ -234,6 +234,19 @@ TEST(CmdArgTest, BasicTesting) {
       called = true;
     });
     EXPECT_TRUE(called);
+  }{
+    bool called = false;
+    withTestSetup([&](TestSetup *s, Parser *cmd) {
+
+      const int argc = 2;
+      const char *argv[argc] = {
+          "prg-name", "--help"
+      };
+      EXPECT_EQ(Parser::Done, cmd->parse(argc, argv));
+      EXPECT_EQ(0, cmd->freeArgs().size());
+      called = true;
+    });
+    EXPECT_TRUE(called);
   }
 }
 

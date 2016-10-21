@@ -121,7 +121,7 @@ private:
 
   Entry::Ptr addEntry(const Entry::Ptr &e);
   Entry &addAndRegisterEntry(const Entry::Ptr &e);
-  void displayHelpMessage() const;
+  void displayHelpMessage();
   void initialize();
 };
 
