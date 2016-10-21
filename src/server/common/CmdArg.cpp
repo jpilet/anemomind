@@ -98,6 +98,13 @@ Arg<T> &Arg<T>::describe(const std::string &d) {
   return *this;
 }
 
+template <typename T>
+T Arg<T>::parseAndProceed(std::string **s) const {
+  auto v = **s;
+  (*s)++;
+  return ParseArgument<T>::apply(v);
+}
+
 template class Arg<int>;
 template class Arg<double>;
 template class Arg<std::string>;

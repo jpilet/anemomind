@@ -45,13 +45,11 @@ public:
   typedef T type;
 
   Arg(const std::string &name) : _name(name) {}
-  T get() const {return _value;}
   ThisType &describe(const std::string &d);
 
-  T parseAndProceed(std::string *s) const {return T();}
+  T parseAndProceed(std::string **s) const;
 private:
   std::string _name, _desc;
-  T _value;
 };
 
 
@@ -91,7 +89,8 @@ InputForm::Ptr inputForm(
     if (args.size() < sizeof...(Arg)) {
       return InputForm::Result::failure("Too few arguments provided");
     }
-    std::string *s = args.ptr();
+    std::string *s0 = args.ptr();
+    auto s = &s0;
     try {
       return f(arg.parseAndProceed(s)...);
     } catch (const std::exception &e) {
