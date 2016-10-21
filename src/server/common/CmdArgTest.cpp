@@ -148,6 +148,8 @@ TEST(CmdArgTest, BasicTesting1) {
   EXPECT_EQ(0, cmd.freeArgs().size());
 }
 
+
+
 void withTestSetup(std::function<void(TestSetup*,Parser*)> handler) {
   TestSetup setup;
 
@@ -161,7 +163,15 @@ void withTestSetup(std::function<void(TestSetup*,Parser*)> handler) {
         return true;
       }, Arg<double>("amp"), Arg<double>("phase")
         .describe("in radians"))
-       .describe("Specify a wave by amp and phase")
+       .describe("Specify a wave by amp and phase"),
+
+
+      inputForm([&](double amp) {
+        setup.a = amp;
+        setup.b = 0.0;
+        return true;
+      }, Arg<double>("amp"))
+      .describe("Specify a wave with default phase 0")
 
   }).describe("Specify a wave");
 
