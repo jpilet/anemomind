@@ -314,7 +314,7 @@ Parser::Status Parser::parse(int argc, const char **argv) {
       std::vector<Result> reasons;
       if (!f->second->parse(&reasons, &args)) {
         std::cout << "Failed to parse command "
-            << first << " because\n";
+            << first << " because of one of these reasons:\n";
         for (auto r: reasons) {
           std::cout << "  * " << r.toString() << std::endl;
         }
