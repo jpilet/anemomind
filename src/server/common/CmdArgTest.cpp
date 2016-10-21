@@ -207,7 +207,7 @@ TEST(CmdArgTest, BasicTesting) {
       called = true;
     });
     EXPECT_TRUE(called);
-  }/*{
+  }{
     bool called = false;
     withTestSetup([&](TestSetup *s, Parser *cmd) {
 
@@ -220,7 +220,7 @@ TEST(CmdArgTest, BasicTesting) {
       called = true;
     });
     EXPECT_TRUE(called);
-  }{
+  }/*{
     bool called = false;
     withTestSetup([&](TestSetup *s, Parser *cmd) {
 
