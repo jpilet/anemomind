@@ -79,45 +79,46 @@ public:
   virtual ~AbstractInputForm() {}
 };
 
-template <typename... T>
+template <typename T>
+class Arg {
+public:
+  typedef Arg<T> ThisType;
+  typedef T type;
+
+  Arg(const std::string &name) : _name(name) {}
+  T get() const {return _value;}
+  ThisType &describe(const std::string &d);
+  bool canParse(const std::string &s) const;
+  T parse(const std::string &s) const;
+private:
+  std::string _name, _desc;
+  T _value;
+};
+
+template <typename Function, typename... T>
 class InputForm : public AbstractInputForm {
 public:
   InputForm(
-      const Array<std::string> &argNames,
-      const std::function<bool(T...)> &handler) :
-        _argNames(argNames), _handler(handler) {}
+      const std::function<bool(T...)> &handler,
+      Arg<T>... args) :
+        _handler(handler),
+        _args(args...) {}
+
+  bool matches(
+      const Array<std::string> &remainingArgs) const {
+    return true;
+  }
 private:
-  Array<std::string> _argNames;
-  std::function<bool(T...)> _handler;
+  Function _handler;
+  Arg<T...> _args;
 };
 
-
-template <typename... T>
-AbstractInputForm::Ptr inputForm(
-    const Array<std::string> &argNames,
-        std::function<bool(T...)> f) {
-  return AbstractInputForm::Ptr(
-      new InputForm<T...>(argNames,
-          [=](T ... args) -> bool {
-            return f(args...);
-          }));
-}
-
-template <typename... T>
-AbstractInputForm::Ptr inputForm(
-    const Array<std::string> &argNames,
-        std::function<void(T...)> f) {
-  return AbstractInputForm::Ptr(
-      new InputForm<T...>(argNames,
-          [=](T ... args) -> bool {
-            f(args...);
-            return true;
-          }));
-}
 
 class CmdArg {
 public:
   CmdArg(const std::string &desc);
+
+  class Result {};
 
   struct Entry {
     std::string description;
@@ -141,6 +142,13 @@ private:
   std::vector<Entry> _entries;
   std::map<std::string, Entry*> _map;
 };
+
+
+template <typename Function, typename... Arg>
+AbstractInputForm::Ptr inputForm(
+    Function f, Arg ... arg) {
+  return AbstractInputForm::Ptr(new InputForm<Function, Arg...>(f, arg...));
+}
 
 
 }
