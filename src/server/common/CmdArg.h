@@ -34,13 +34,17 @@ private:
   std::string _error;
 };
 
+struct ArgSpec {
+  std::string s;
+};
+
 class InputForm {
 public:
   InputForm() {}
 
   typedef std::function<Result(Array<std::string>)> Handler;
   InputForm(
-      const Array<std::string> &specs,
+      const Array<ArgSpec> &specs,
       const Handler &handler) :
         _argSpecs(specs),
         _handler(handler) {}
@@ -48,10 +52,11 @@ public:
   InputForm &describe(const std::string &d);
   int argCount () const {return _argSpecs.size();}
 private:
-  Array<std::string> _argSpecs;
+  Array<ArgSpec> _argSpecs;
   Handler _handler;
   std::string _desc;
 };
+
 
 template <typename T>
 class Arg {
@@ -65,7 +70,7 @@ public:
   T parseAndProceed(std::string **s) const;
 
   std::string description() const;
-  std::string spec() const;
+  ArgSpec spec() const;
 private:
   std::string _name, _desc;
 };
@@ -130,7 +135,7 @@ template <typename Function, typename... Arg>
 InputForm inputForm(
     Function f, Arg ... arg) {
   return InputForm(
-      Array<std::string>{arg.spec()...},
+      Array<ArgSpec>{arg.spec()...},
       [=](const Array<std::string> &args) -> Result {
     if (args.size() < sizeof...(Arg)) {
       return Result::failure("Too few arguments provided");
