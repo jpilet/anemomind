@@ -170,8 +170,7 @@ Entry::Entry(
     const Array<std::string> &commands,
     const Array<InputForm> &forms) :
         _commands(commands),
-        _forms(forms),
-        _callCount(0) {}
+        _forms(forms) {}
 
 Entry &Entry::describe(const std::string &d) {
   _description = d;
