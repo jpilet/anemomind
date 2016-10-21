@@ -27,6 +27,8 @@ TEST(CmdArgTest, InputFormTest) {
   EXPECT_TRUE(bool(form.parse({"3", "4"})));
   EXPECT_NEAR(a, 3.0, 1.0e-5);
   EXPECT_NEAR(b, 4.0, 1.0e-5);
+
+  EXPECT_FALSE(bool(form.parse({"a", "b"})));
 }
 
 TEST(CmdArgTest, BasicUsage) {
