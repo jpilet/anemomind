@@ -119,6 +119,7 @@ ArgSpec Arg<T>::spec() const {
   ArgSpec s;
   s.name = _name;
   s.type = ParseArgument<T>::type();
+  s.desc = _desc;
   return s;
 }
 

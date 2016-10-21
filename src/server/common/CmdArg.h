@@ -35,7 +35,7 @@ private:
 };
 
 struct ArgSpec {
-  std::string name, type;
+  std::string name, type, desc;
 };
 
 class InputForm {
