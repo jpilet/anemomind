@@ -6,6 +6,8 @@
  */
 
 #include <server/common/CmdArg.h>
+#include <server/common/logging.h>
+#include <iostream>
 
 namespace sail {
 
@@ -128,7 +130,96 @@ InputForm &InputForm::describe(const std::string &d) {
   return *this;
 }
 
-CmdArg::CmdArg(const std::string &desc) : _desc(desc) {}
+Entry::Entry(
+    const Array<std::string> &commands,
+    const Array<InputForm> &forms) :
+        _commands(commands),
+        _forms(forms) {}
+
+Entry &Entry::describe(const std::string &d) {
+  _description = d;
+  return *this;
+}
+
+bool Entry::parse(
+    std::vector<InputForm::Result> *failureReasons,
+    Array<std::string> *remainingArgsInOut) {
+  for (auto f: _forms) {
+    auto result = f.parse(*remainingArgsInOut);
+    if (result.succeeded()) {
+      *remainingArgsInOut = remainingArgsInOut->sliceFrom(
+          f.argCount());
+      return true;
+    } else {
+      // TODO: Append metadata (such as which form failed to the result)
+      failureReasons->push_back(result);
+    }
+  }
+  return false;
+}
+
+const Array<std::string> &Entry::commands() const {
+  return _commands;
+}
+
+Entry &CmdArg::bind(
+    const Array<std::string> &commands,
+    const Array<InputForm> &inputForms) {
+  CHECK(!_initialized);
+}
+
+Entry *CmdArg::addEntry(const Entry &e0) {
+  _entries.push_back(e0);
+  return &(_entries.back());
+}
+
+void CmdArg::addAndRegisterEntry(const Entry &e0) {
+  auto e = addEntry(e0);
+  for (auto cmd: e0.commands()) {
+
+  }
+}
+
+void CmdArg::displayHelpMessage() const {
+  std::cout << _description << "\n\n";
+}
+
+void CmdArg::initialize() {
+  CHECK(!_initialized);
+  auto frm = inputForm([this]() {
+              displayHelpMessage();
+              return true;
+            });
+  auto hcmds = Array<std::string>{"-h", "--help"};
+  auto e = addEntry(Entry(
+      hcmds, {
+          frm
+      }));
+  for (auto h: hcmds) {
+    _map[h] = e;
+  }
+}
+
+CmdArg::Status CmdArg::parse(int argc, const char **argv) {
+  CHECK(!_initialized);
+  initialize();
+  CHECK(_initialized);
 
 }
 
+
+CmdArg::CmdArg(const std::string &desc) :
+    _description(desc),
+    _initialized(false) {
+  // Add place holders
+  _map["-h"] = nullptr;
+  _map["--help"] = nullptr;
+}
+
+
+
+
+
+
+
+}

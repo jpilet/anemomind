@@ -16,6 +16,8 @@ namespace sail {
 
 class InputForm {
 public:
+  InputForm() {}
+
   // Result of applying the handler to this input form
   class Result {
   public:
@@ -38,6 +40,7 @@ public:
   InputForm(const Handler &handler) : _handler(handler) {}
   Result parse(const Array<std::string> &remainingArgs) const;
   InputForm &describe(const std::string &d);
+  int argCount () const {return _argSpecs.size();}
 private:
   Array<std::string> _argSpecs;
   Handler _handler;
@@ -61,9 +64,19 @@ private:
 };
 
 
+// Rename to InputFormGroup
 class Entry {
 public:
+  Entry(
+      const Array<std::string> &commands,
+      const Array<InputForm> &forms);
   Entry &describe(const std::string &d);
+
+  bool parse(
+      std::vector<InputForm::Result> *failureReasons,
+      Array<std::string> *remaingArgsInOut);
+
+  const Array<std::string> &commands() const;
 private:
   std::string _description;
   Array<std::string> _commands;
@@ -74,13 +87,27 @@ class CmdArg {
 public:
   CmdArg(const std::string &desc);
 
+  enum Status {
+    Done,
+    Continue,
+    Error
+  };
+
   Entry &bind(
       const Array<std::string> &commands,
       const Array<InputForm> &inputForms);
+
+  Status parse(int argc, const char **argv);
 private:
-  std::string _desc;
+  bool _initialized;
+  std::string _description;
   std::vector<Entry> _entries;
   std::map<std::string, Entry*> _map;
+
+  Entry *addEntry(const Entry &e);
+  void addAndRegisterEntry(const Entry &e);
+  void displayHelpMessage() const;
+  void initialize();
 };
 
 
@@ -97,7 +124,7 @@ InputForm inputForm(
     try {
       return InputForm::Result(f(arg.parseAndProceed(s)...));
     } catch (const std::exception &e) {
-      return InputForm::Result(false);
+      return InputForm::Result::failure(e.what());
     }
   });
 }
