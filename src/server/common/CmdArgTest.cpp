@@ -63,6 +63,8 @@ TEST(CmdArgTest, EntryTest) {
     std::vector<InputForm::Result> reasons;
     Array<std::string> args{"kattskit"};
     EXPECT_TRUE(e.parse(&reasons, &args));
+    EXPECT_EQ(d, "kattskit");
+    EXPECT_EQ(reasons.size(), 2);
   }
 }
 
