@@ -181,6 +181,11 @@ bool Entry::parse(
     std::vector<Result> *failureReasons,
     Array<std::string> *remainingArgsInOut) {
 
+  _callCount++;
+  if (_maxCount < _callCount) {
+    return Result::failure("Called too many times");
+  }
+
   for (auto f: _forms) {
     auto result = f.parse(*remainingArgsInOut);
     if (result.succeeded()) {
