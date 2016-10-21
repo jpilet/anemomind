@@ -154,7 +154,6 @@ bool Entry::parse(
   for (auto f: _forms) {
     auto result = f.parse(*remainingArgsInOut);
     if (result.succeeded()) {
-      std::cout << "Slice it from " << f.argCount() << std::endl;
       *remainingArgsInOut = remainingArgsInOut->sliceFrom(
           f.argCount());
       return true;
@@ -240,11 +239,11 @@ Parser::Status Parser::parse(int argc, const char **argv) {
     args = args.sliceFrom(1);
     auto f = _map.find(first);
     if (f == _map.end()) {
-      std::cout << "Push back " << first << std::endl;
+      std::cout << "Push back the first" << std::endl;
       _freeArgs.push_back(first);
+      std::cout << "Pushed it" << std::endl;
     } else {
       std::vector<Result> reasons;
-      std::cout << "Initially, args is " << args.size() << std::endl;
       if (!f->second->parse(&reasons, &args)) {
         std::cout << "Failed to parse command "
             << first << " because\n";
@@ -253,7 +252,6 @@ Parser::Status Parser::parse(int argc, const char **argv) {
         }
         return Parser::Status::Error;
       }
-      std::cout << "Args is now " << args.size() << std::endl;
     }
   }
   return Parser::Status::Continue;
