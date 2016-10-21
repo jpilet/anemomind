@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include <server/common/ArgMap.h>
+#include <server/common/CmdArg.h>
 #include <server/common/TimeStamp.h>
 #include <server/nautical/DownsampleGps.h>
 #include <server/nautical/logimport/LogLoader.h>
@@ -27,20 +27,13 @@ using namespace sail::Cairo;
 std::default_random_engine rng;
 
 struct Setup {
-  std::string path, fromStr, toStr;
+  std::string path;
+  TimeStamp from, to;
   std::string prefix = PathBuilder::makeDirectory(
       Env::BINARY_DIR).get().toString();
   std::string name = "illustrate";
 
-  TimeStamp from() const {
-    return TimeStamp::parse(fromStr);
-  }
-
-  TimeStamp to() const {
-    return TimeStamp::parse(toStr);
-  }
-
-  Array<TimeStamp> selected;
+  std::vector<TimeStamp> selected;
 };
 
 NavDataset loadNavs(const std::string &path) {
@@ -299,8 +292,8 @@ bool makeIllustrations(const Setup &setup) {
   NavDataset raw = loadNavs(setup.path)
       .fitBounds();
 
-  raw = raw.slice(earliest(setup.from(), raw.lowerBound()),
-                    latest(setup.to(), raw.upperBound()));
+  raw = raw.slice(earliest(setup.from, raw.lowerBound()),
+                    latest(setup.to, raw.upperBound()));
 
   auto resampled = downSampleGpsTo1Hz(raw);
   resampled = filterNavs(resampled, proc._gpsFilterSettings);
@@ -394,23 +387,55 @@ namespace {
 int main(int argc, const char **argv) {
 
   Setup setup;
-  ArgMap amap;
-  amap.registerOption("--path", "Path to dataset")
-      .store(&(setup.path))
-      .required();
-  amap.registerOption("--from", "From date YYYY-MM-DD").store(&(setup.toStr));
-  amap.registerOption("--to", "To date YYYY-MM-DD").store(&(setup.fromStr));
-  amap.registerOption("--select",
-      "Select session, date on from YYYY-MM-DD");
+  using namespace CmdArg;
+
+  Parser parser("Illustrations");
+  parser.bind({"--path"}, {
+      inputForm([&](const std::string &p) {
+        setup.path = p;
+        return true;
+      }, Arg<std::string>("path"))
+  }).describe("Path to dataset");
+
+  parser.bind({"--from"}, {
+      inputForm([&](const std::string &p) {
+        auto t = TimeStamp::parse(p);
+        if (!t.defined()) {
+          return Result::failure("Failed to parse date " + p);
+        }
+        setup.from = t;
+        return Result::success();
+      }, Arg<std::string>("date").describe("YYYY-MM-DD"))
+  }).describe("From where we should cut");
 
 
+  parser.bind({"--to"}, {
+      inputForm([&](const std::string &p) {
+        auto t = TimeStamp::parse(p);
+        if (!t.defined()) {
+          return Result::failure("Failed to parse date " + p);
+        }
+        setup.to = t;
+        return Result::success();
+      }, Arg<std::string>("date").describe("YYYY-MM-DD"))
+  }).describe("To where we should cut");
 
-  auto status = amap.parse(argc, argv);
+  parser.bind({"--select"}, {
+      inputForm([&](const std::string &s) {
+        auto t = TimeStamp::parse(s);
+        if (!t.defined()) {
+          return Result::failure("Failed to parse date " + s);
+        }
+        setup.selected.push_back(t);
+        return Result::success();
+      }, Arg<std::string>("date").describe("YYYY-MM-DD"))
+  }).describe("Add a selected date");
+
+  auto status = parser.parse(argc, argv);
   switch (status) {
   case ArgMap::Done:
     return 0;
   case ArgMap::Continue:
-    setup.selected = getSelectedTimeStamps(&amap);
     return makeIllustrations(setup)? 0 : -2;
   case ArgMap::Error:
     return -1;
