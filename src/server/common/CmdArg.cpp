@@ -229,11 +229,12 @@ Parser::Status Parser::parse(int argc, const char **argv) {
     if (_helpDisplayed) {
       return Parser::Status::Done;
     }
-
     auto first = args[0];
+    std::cout << "Parsing " << first << std::endl;
     args = args.sliceFrom(1);
     auto f = _map.find(first);
     if (f == _map.end()) {
+      std::cout << "Push back " << first << std::endl;
       _freeArgs.push_back(first);
     } else {
       std::vector<Result> reasons;

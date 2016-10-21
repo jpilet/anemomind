@@ -99,7 +99,7 @@ struct TestSetup {
   std::string unit;
 };
 
-void withTestSetup(std::function<void(TestSetup*,Parser*)> handler) {
+/*void withTestSetup(std::function<void(TestSetup*,Parser*)> handler) {
   TestSetup setup;
 
   Parser cmd("This is the message shown at the top");
@@ -134,9 +134,57 @@ void withTestSetup(std::function<void(TestSetup*,Parser*)> handler) {
   }).describe("Specify the sampling");
 
   handler(&setup, &cmd);
+}*/
+
+TEST(CmdArgTest, BasicTesting1) {
+  TestSetup setup;
+
+  Parser cmd("This is the message shown at the top");
+
+  cmd.bind({"--wave", "-w"}, {
+
+      inputForm([&](double amp, double phase) {
+        setup.a = amp;
+        setup.b = phase;
+        return true;
+      }, Arg<double>("amp"), Arg<double>("phase")
+        .describe("in radians"))
+       .describe("Specify a wave by amp and phase")
+
+  }).describe("Specify a wave");
+
+  cmd.bind({"--sampling"}, {
+
+      inputForm([&](double v, std::string u) {
+        if (u != "hz" && u != "s") {
+          return Result::failure("Illegal sampling unit: " + u);
+        }
+        setup.value = v;
+        setup.unit = u;
+        return Result::success();
+
+      }, Arg<double>("value"),
+         Arg<std::string>("unit")
+           .describe("Frequency in hz or period time in s"))
+      .describe("A value and a unit")
+
+  }).describe("Specify the sampling");
+
+  const int argc = 7;
+  const char *argv[argc] = {
+      "prg-name", "--wave", "9", "7",
+      "--sampling", "6", "hz"};
+
+  EXPECT_EQ(Parser::Continue, cmd.parse(argc, argv));
+
+  EXPECT_EQ(setup.a, 9.0);
+  EXPECT_EQ(setup.b, 7.0);
+  EXPECT_EQ(setup.value, 6.0);
+  EXPECT_EQ(setup.unit, "hz");
+  EXPECT_EQ(0, cmd.freeArgs().size());
 }
 
-TEST(CmdArgTest, BasicTesting) {
+/*TEST(CmdArgTest, BasicTesting) {
   {
     bool called = false;
     withTestSetup([&](TestSetup *s, Parser *cmd) {
@@ -152,6 +200,7 @@ TEST(CmdArgTest, BasicTesting) {
       EXPECT_EQ(s->b, 7.0);
       EXPECT_EQ(s->value, 6.0);
       EXPECT_EQ(s->unit, "hz");
+      EXPECT_EQ(0, cmd->freeArgs().size());
 
       called = true;
     });
@@ -169,6 +218,19 @@ TEST(CmdArgTest, BasicTesting) {
       called = true;
     });
     EXPECT_TRUE(called);
+  }{
+    bool called = false;
+    withTestSetup([&](TestSetup *s, Parser *cmd) {
+
+      const int argc = 8;
+      const char *argv[argc] = {
+          "prg-name", "--wave", "9", "7", "this-arg-is-free"
+          "--sampling", "6", "hz"};
+
+      EXPECT_EQ(Parser::Error, cmd->parse(argc, argv));
+      called = true;
+    });
+    EXPECT_TRUE(called);
   }
-}
+}*/
 
