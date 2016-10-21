@@ -10,7 +10,7 @@
 #include <server/common/logging.h>
 
 using namespace sail;
-
+using namespace sail::CmdArg;
 
 TEST(CmdArgTest, InputFormTest) {
   double a = 0.0;

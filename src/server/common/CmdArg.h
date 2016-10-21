@@ -14,6 +14,7 @@
 #include <server/common/Unmovable.h>
 
 namespace sail {
+namespace CmdArg {
 
 // Result of applying the handler to this input form
 class Result {
@@ -154,7 +155,7 @@ InputForm inputForm(
   });
 }
 
-
+}
 }
 
 

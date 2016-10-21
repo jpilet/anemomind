@@ -10,6 +10,7 @@
 #include <server/common/CmdArg.h>
 
 namespace sail {
+namespace CmdArg {
 
 
 class FailedToParseArgument : public std::exception {
@@ -320,5 +321,5 @@ Parser::Parser(const std::string &desc) :
 
 
 
-
+}
 }
