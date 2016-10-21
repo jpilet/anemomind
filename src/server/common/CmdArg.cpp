@@ -120,7 +120,7 @@ template class Arg<bool>;
 template class Arg<char>;
 
 
-InputForm::Result InputForm::parse(
+CmdArgResult InputForm::parse(
     const Array<std::string> &remainingArgs) const {
   return _handler(remainingArgs);
 }
@@ -142,7 +142,7 @@ Entry &Entry::describe(const std::string &d) {
 }
 
 bool Entry::parse(
-    std::vector<InputForm::Result> *failureReasons,
+    std::vector<CmdArgResult> *failureReasons,
     Array<std::string> *remainingArgsInOut) {
   for (auto f: _forms) {
     auto result = f.parse(*remainingArgsInOut);
@@ -234,7 +234,7 @@ CmdArg::Status CmdArg::parse(int argc, const char **argv) {
     if (f == _map.end()) {
       _freeArgs.push_back(first);
     } else {
-      std::vector<InputForm::Result> reasons;
+      std::vector<CmdArgResult> reasons;
       if (!f->second->parse(&reasons, &args)) {
         std::cout << "Failed to parse command "
             << first << " because\n";

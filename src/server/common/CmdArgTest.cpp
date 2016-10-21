@@ -48,7 +48,7 @@ TEST(CmdArgTest, EntryTest) {
       c = phase;
 
       // ALWAYS return something here from which
-      // an InputForm::Result object can be constructed.
+      // an CmdArgResult object can be constructed.
       return true;
 
     }, // Specify the meaning of each argument:
@@ -72,18 +72,18 @@ TEST(CmdArgTest, EntryTest) {
   });
 
   {
-    std::vector<InputForm::Result> reasons;
+    std::vector<CmdArgResult> reasons;
     Array<std::string> args{"kattskit"};
     EXPECT_TRUE(e.parse(&reasons, &args));
     EXPECT_EQ(d, "kattskit");
     EXPECT_EQ(reasons.size(), 2);
   }{
-    std::vector<InputForm::Result> reasons;
+    std::vector<CmdArgResult> reasons;
     Array<std::string> args;
     EXPECT_FALSE(e.parse(&reasons, &args));
     EXPECT_EQ(reasons.size(), 3);
   }{
-    std::vector<InputForm::Result> reasons;
+    std::vector<CmdArgResult> reasons;
     Array<std::string> args{"9"};
     EXPECT_TRUE(e.parse(&reasons, &args));
     EXPECT_EQ(reasons.size(), 1);
@@ -119,11 +119,11 @@ void withTestSetup(std::function<void(TestSetup,CmdArg*)> handler) {
 
       inputForm([&](double v, std::string u) {
         if (u != "hz" && u != "s") {
-          return InputForm::Result::failure("Illegal sampling unit: " + u);
+          return CmdArgResult::failure("Illegal sampling unit: " + u);
         }
         setup.value = v;
         setup.unit = u;
-        return InputForm::Result::success();
+        return CmdArgResult::success();
 
       }, Arg<double>("value"),
          Arg<std::string>("unit")

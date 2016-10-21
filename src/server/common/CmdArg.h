@@ -15,32 +15,32 @@
 
 namespace sail {
 
+// Result of applying the handler to this input form
+class CmdArgResult {
+public:
+  CmdArgResult(bool success, const std::string &e = "Unspecified") :
+    _success(success), _error(e) {};
+  static CmdArgResult success() {return CmdArgResult(true);}
+  static CmdArgResult failure(const std::string &e) {
+    return CmdArgResult(false, e);
+  }
+
+  bool succeeded() const {return _success;}
+  bool failed() const {return !_success;}
+  operator bool() {return _success;}
+  std::string toString() const {return _error;}
+private:
+  bool _success;
+  std::string _error;
+};
+
 class InputForm {
 public:
   InputForm() {}
 
-  // Result of applying the handler to this input form
-  class Result {
-  public:
-    Result(bool success, const std::string &e = "Unspecified") :
-      _success(success), _error(e) {};
-    static Result success() {return Result(true);}
-    static Result failure(const std::string &e) {
-      return Result(false, e);
-    }
-
-    bool succeeded() const {return _success;}
-    bool failed() const {return !_success;}
-    operator bool() {return _success;}
-    std::string toString() const {return _error;}
-  private:
-    bool _success;
-    std::string _error;
-  };
-
-  typedef std::function<Result(Array<std::string>)> Handler;
+  typedef std::function<CmdArgResult(Array<std::string>)> Handler;
   InputForm(const Handler &handler) : _handler(handler) {}
-  Result parse(const Array<std::string> &remainingArgs) const;
+  CmdArgResult parse(const Array<std::string> &remainingArgs) const;
   InputForm &describe(const std::string &d);
   int argCount () const {return _argSpecs.size();}
 private:
@@ -75,7 +75,7 @@ public:
   Entry &describe(const std::string &d);
 
   bool parse(
-      std::vector<InputForm::Result> *failureReasons,
+      std::vector<CmdArgResult> *failureReasons,
       Array<std::string> *remaingArgsInOut);
 
   const Array<std::string> &commands() const;
@@ -121,16 +121,16 @@ template <typename Function, typename... Arg>
 InputForm inputForm(
     Function f, Arg ... arg) {
   return InputForm(
-      [=](const Array<std::string> &args) -> InputForm::Result {
+      [=](const Array<std::string> &args) -> CmdArgResult {
     if (args.size() < sizeof...(Arg)) {
-      return InputForm::Result::failure("Too few arguments provided");
+      return CmdArgResult::failure("Too few arguments provided");
     }
     std::string *s0 = args.ptr();
     auto s = &s0;
     try {
-      return InputForm::Result(f(arg.parseAndProceed(s)...));
+      return CmdArgResult(f(arg.parseAndProceed(s)...));
     } catch (const std::exception &e) {
-      return InputForm::Result::failure(e.what());
+      return CmdArgResult::failure(e.what());
     }
   });
 }
