@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 #include "CmdArg.h"
+#include <server/common/logging.h>
 
 using namespace sail;
 
@@ -98,7 +99,7 @@ struct TestSetup {
   std::string unit;
 };
 
-void withTestSetup(std::function<void(TestSetup,Parser*)> handler) {
+void withTestSetup(std::function<void(TestSetup*,Parser*)> handler) {
   TestSetup setup;
 
   Parser cmd("This is the message shown at the top");
@@ -132,20 +133,25 @@ void withTestSetup(std::function<void(TestSetup,Parser*)> handler) {
 
   }).describe("Specify the sampling");
 
-  handler(setup, &cmd);
+  handler(&setup, &cmd);
 }
 
 TEST(CmdArgTest, BasicTesting) {
   {
     bool called = false;
-    withTestSetup([&](const TestSetup &s, Parser *cmd) {
+    withTestSetup([&](TestSetup *s, Parser *cmd) {
 
       const int argc = 7;
       const char *argv[argc] = {
           "prg-name", "--wave", "9", "7",
-          "--sampling", "7", "hz"};
+          "--sampling", "6", "hz"};
 
       EXPECT_EQ(Parser::Continue, cmd->parse(argc, argv));
+
+      EXPECT_EQ(s->a, 9.0);
+      EXPECT_EQ(s->b, 7.0);
+      //EXPECT_EQ(s->value, 6.0);
+      //EXPECT_EQ(s->unit, "hz");
 
       called = true;
     });
