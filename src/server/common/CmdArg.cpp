@@ -218,6 +218,24 @@ void Entry::outputHelp(int depth, std::ostream *dst) const {
   *dst << "\n";
 }
 
+Entry &Entry::required() {
+  setMinCount(1);
+  return *this;
+}
+
+Entry &Entry::setMinCount(int n) {
+  _minCount = n;
+  _maxCount = std::max(_minCount, _maxCount);
+  return *this;
+}
+
+Entry &Entry::setMaxCount(int n) {
+  _maxCount = n;
+  _minCount = std::min(_minCount, _maxCount);
+  return *this;
+}
+
+
 Entry &Parser::bind(
     const Array<std::string> &commands,
     const Array<InputForm> &inputForms) {

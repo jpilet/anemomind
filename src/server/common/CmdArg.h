@@ -98,6 +98,10 @@ public:
   typedef std::shared_ptr<Entry> Ptr;
 
   void outputHelp(int depth, std::ostream *dst) const;
+
+  Entry &required();
+  Entry &setMinCount(int n);
+  Entry &setMaxCount(int n);
 private:
   int _callCount = 0;
   int _minCount = 0;
