@@ -81,6 +81,9 @@ private:
 // Rename to InputFormGroup
 class Entry {
 public:
+  static const int DefaultMaxCount =
+      std::numeric_limits<int>::max();
+
   Entry(
       const Array<std::string> &commands,
       const Array<InputForm> &forms);
@@ -95,8 +98,14 @@ public:
   typedef std::shared_ptr<Entry> Ptr;
 
   void outputHelp(int depth, std::ostream *dst) const;
+
+  Entry &required();
+  Entry &setMinCount(int n);
+  Entry &setMaxCount(int n);
 private:
-  int _callCount;
+  int _callCount = 0;
+  int _minCount = 0;
+  int _maxCount = DefaultMaxCount;
   std::string _description;
   Array<std::string> _commands;
   Array<InputForm> _forms;

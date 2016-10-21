@@ -170,8 +170,7 @@ Entry::Entry(
     const Array<std::string> &commands,
     const Array<InputForm> &forms) :
         _commands(commands),
-        _forms(forms),
-        _callCount(0) {}
+        _forms(forms) {}
 
 Entry &Entry::describe(const std::string &d) {
   _description = d;
@@ -181,6 +180,11 @@ Entry &Entry::describe(const std::string &d) {
 bool Entry::parse(
     std::vector<Result> *failureReasons,
     Array<std::string> *remainingArgsInOut) {
+
+  _callCount++;
+  if (_maxCount < _callCount) {
+    return Result::failure("Called too many times");
+  }
 
   for (auto f: _forms) {
     auto result = f.parse(*remainingArgsInOut);
@@ -213,6 +217,24 @@ void Entry::outputHelp(int depth, std::ostream *dst) const {
   }
   *dst << "\n";
 }
+
+Entry &Entry::required() {
+  setMinCount(1);
+  return *this;
+}
+
+Entry &Entry::setMinCount(int n) {
+  _minCount = n;
+  _maxCount = std::max(_minCount, _maxCount);
+  return *this;
+}
+
+Entry &Entry::setMaxCount(int n) {
+  _maxCount = n;
+  _minCount = std::min(_minCount, _maxCount);
+  return *this;
+}
+
 
 Entry &Parser::bind(
     const Array<std::string> &commands,
@@ -292,7 +314,7 @@ Parser::Status Parser::parse(int argc, const char **argv) {
       std::vector<Result> reasons;
       if (!f->second->parse(&reasons, &args)) {
         std::cout << "Failed to parse command "
-            << first << " because\n";
+            << first << " because of one of these reasons:\n";
         for (auto r: reasons) {
           std::cout << "  * " << r.toString() << std::endl;
         }
