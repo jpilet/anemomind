@@ -6,7 +6,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "CmdArg.h"
+#include <server/common/CmdArg.h>
 #include <server/common/logging.h>
 
 using namespace sail;

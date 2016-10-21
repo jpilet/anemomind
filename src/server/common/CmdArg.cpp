@@ -113,6 +113,11 @@ std::string Arg<T>::description() const {
   return _name + " [" + ParseArgument<T>::type() + "]: " + _desc;
 }
 
+template <typename T>
+std::string Arg<T>::spec() const {
+  return "[" + _name + " : " + ParseArgument<T>::type() + "]";
+}
+
 template class Arg<int>;
 template class Arg<double>;
 template class Arg<std::string>;
@@ -149,6 +154,7 @@ bool Entry::parse(
   for (auto f: _forms) {
     auto result = f.parse(*remainingArgsInOut);
     if (result.succeeded()) {
+      std::cout << "Slice it from " << f.argCount() << std::endl;
       *remainingArgsInOut = remainingArgsInOut->sliceFrom(
           f.argCount());
       return true;
@@ -238,6 +244,7 @@ Parser::Status Parser::parse(int argc, const char **argv) {
       _freeArgs.push_back(first);
     } else {
       std::vector<Result> reasons;
+      std::cout << "Initially, args is " << args.size() << std::endl;
       if (!f->second->parse(&reasons, &args)) {
         std::cout << "Failed to parse command "
             << first << " because\n";
@@ -246,6 +253,7 @@ Parser::Status Parser::parse(int argc, const char **argv) {
         }
         return Parser::Status::Error;
       }
+      std::cout << "Args is now " << args.size() << std::endl;
     }
   }
   return Parser::Status::Continue;
