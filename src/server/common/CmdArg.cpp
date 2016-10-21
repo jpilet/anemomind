@@ -166,17 +166,18 @@ Entry &CmdArg::bind(
     const Array<std::string> &commands,
     const Array<InputForm> &inputForms) {
   CHECK(!_initialized);
-  return addAndRegisterEntry(Entry(commands, inputForms));
+  return addAndRegisterEntry(std::make_shared<Entry>(
+      commands, inputForms));
 }
 
-Entry *CmdArg::addEntry(const Entry &e0) {
+Entry::Ptr CmdArg::addEntry(const Entry::Ptr &e0) {
   _entries.push_back(e0);
-  return &(_entries.back());
+  return e0;
 }
 
-Entry &CmdArg::addAndRegisterEntry(const Entry &e0) {
+Entry &CmdArg::addAndRegisterEntry(const Entry::Ptr &e0) {
   auto e = addEntry(e0);
-  for (auto cmd: e0.commands()) {
+  for (auto cmd: e0->commands()) {
     CHECK(_map.count(cmd) == 0);
     _map[cmd] = e;
   }
@@ -194,13 +195,16 @@ void CmdArg::initialize() {
               return true;
             });
   auto hcmds = Array<std::string>{"-h", "--help"};
-  auto e = addEntry(Entry(
-      hcmds, {
-          frm
-      }).describe("Display help message"));
+  Array<InputForm> frms{
+            frm
+        };
+  auto e = addEntry(std::make_shared<Entry>(
+      hcmds, frms));
+  e->describe("Display help message");
   for (auto h: hcmds) {
     _map[h] = e;
   }
+  _initialized = true;
 }
 
 namespace {
@@ -219,8 +223,27 @@ CmdArg::Status CmdArg::parse(int argc, const char **argv) {
   initialize();
   CHECK(_initialized);
   auto args = wrapArgs(argc, argv);
-  while (true) {
+  while (!args.empty()) {
+    if (_helpDisplayed) {
+      return CmdArg::Status::Done;
+    }
 
+    auto first = args[0];
+    args = args.sliceFrom(1);
+    auto f = _map.find(first);
+    if (f == _map.end()) {
+      _freeArgs.push_back(first);
+    } else {
+      std::vector<InputForm::Result> reasons;
+      if (!f->second->parse(&reasons, &args)) {
+        std::cout << "Failed to parse command "
+            << first << " because\n";
+        for (auto r: reasons) {
+          std::cout << "  * " << r.toString() << std::endl;
+        }
+        return CmdArg::Status::Error;
+      }
+    }
   }
   return CmdArg::Status::Continue;
 }
@@ -228,7 +251,8 @@ CmdArg::Status CmdArg::parse(int argc, const char **argv) {
 
 CmdArg::CmdArg(const std::string &desc) :
     _description(desc),
-    _initialized(false) {
+    _initialized(false),
+    _helpDisplayed(false) {
   // Add place holders
   _map["-h"] = nullptr;
   _map["--help"] = nullptr;

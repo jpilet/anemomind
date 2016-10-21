@@ -46,9 +46,16 @@ TEST(CmdArgTest, EntryTest) {
     inputForm([&](double amp, double phase) {
       b = amp;
       c = phase;
+
+      // ALWAYS return something here from which
+      // an InputForm::Result object can be constructed.
       return true;
-    }, Arg<double>("amplitude"),
-       Arg<double>("phase")).describe(
+
+    }, // Specify the meaning of each argument:
+        Arg<double>("amplitude"),
+        Arg<double>("phase").describe("in radians"))
+        // ...and the meaning of the entire form
+          .describe(
            "Wave with specified amplitude and phase"),
 
      inputForm([&](double amp) {
@@ -84,8 +91,65 @@ TEST(CmdArgTest, EntryTest) {
   }
 }
 
-TEST(CmdArgTest, BasicUsage) {
+struct TestSetup {
+  double a = 0.0;
+  double b = 0.0;
+  double value = 0.0;
+  std::string unit;
+};
+
+void withTestSetup(std::function<void(TestSetup,CmdArg*)> handler) {
+  TestSetup setup;
+
   CmdArg cmd("This is the message shown at the top");
+
+  cmd.bind({"--wave", "-w"}, {
+
+      inputForm([&](double amp, double phase) {
+        setup.a = amp;
+        setup.b = phase;
+        return true;
+      }, Arg<double>("amp"), Arg<double>("phase")
+        .describe("in radians"))
+       .describe("Specify a wave by amp and phase")
+
+  }).describe("Specify a wave");
+
+  cmd.bind({"--sampling"}, {
+
+      inputForm([&](double v, std::string u) {
+        if (u != "hz" && u != "s") {
+          return InputForm::Result::failure("Illegal sampling unit: " + u);
+        }
+        setup.value = v;
+        setup.unit = u;
+        return InputForm::Result::success();
+
+      }, Arg<double>("value"),
+         Arg<std::string>("unit")
+           .describe("Frequency in hz or period time in s"))
+      .describe("A value and a unit")
+
+  }).describe("Specify the sampling");
+
+  handler(setup, &cmd);
 }
 
+TEST(CmdArgTest, BasicTesting) {
+  {
+    bool called = false;
+    withTestSetup([&](const TestSetup &s, CmdArg *cmd) {
+
+      const int argc = 7;
+      const char *argv[argc] = {
+          "prg-name", "--wave", "9", "7",
+          "--sampling", "7", "hz"};
+
+      EXPECT_EQ(CmdArg::Continue, cmd->parse(argc, argv));
+
+      called = true;
+    });
+    EXPECT_TRUE(called);
+  }
+}
 

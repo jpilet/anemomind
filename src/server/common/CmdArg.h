@@ -11,6 +11,7 @@
 #include <server/common/Array.h>
 #include <string>
 #include <map>
+#include <server/common/Unmovable.h>
 
 namespace sail {
 
@@ -31,6 +32,7 @@ public:
     bool succeeded() const {return _success;}
     bool failed() const {return !_success;}
     operator bool() {return _success;}
+    std::string toString() const {return _error;}
   private:
     bool _success;
     std::string _error;
@@ -77,6 +79,8 @@ public:
       Array<std::string> *remaingArgsInOut);
 
   const Array<std::string> &commands() const;
+
+  typedef std::shared_ptr<Entry> Ptr;
 private:
   std::string _description;
   Array<std::string> _commands;
@@ -99,13 +103,15 @@ public:
 
   Status parse(int argc, const char **argv);
 private:
-  bool _initialized;
+  MAKE_UNMOVABLE(CmdArg);
+  std::vector<std::string> _freeArgs;
+  bool _initialized, _helpDisplayed;
   std::string _description;
-  std::vector<Entry> _entries;
-  std::map<std::string, Entry*> _map;
+  std::vector<Entry::Ptr> _entries;
+  std::map<std::string, Entry::Ptr> _map;
 
-  Entry *addEntry(const Entry &e);
-  Entry &addAndRegisterEntry(const Entry &e);
+  Entry::Ptr addEntry(const Entry::Ptr &e);
+  Entry &addAndRegisterEntry(const Entry::Ptr &e);
   void displayHelpMessage() const;
   void initialize();
 };
