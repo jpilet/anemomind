@@ -352,6 +352,25 @@ height:100%;
   padding: 5px 0;
   margin-bottom: 10px;
 }
+.mainControl .details .group {
+  border-top: 1px solid #ddd;
+  margin-bottom: 20px;
+  padding-left: 5px;
+}
+.mainControl .details .group > div {
+  width: 100%;
+}
+.mainControl .details .group label {
+  width: 30%;
+  padding: 0;
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+.mainControl .details .group span {
+  width: 70%;
+  display: inline-block;
+}
 .mainControl .indicator-label,
 .mainControl .indicator-value {
   font-size: 15pt;
@@ -606,6 +625,11 @@ perfplot {
   display:inline-block;
   z-index:10;
 }
+.flexOne {
+  -webkit-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+}
 
 .responsiveNavButtons {
   /*display: -webkit-flex;
@@ -617,35 +641,32 @@ perfplot {
   display: none;
   border-top: 1px solid #aaaaaa;
 }
-.responsiveNavButtons i {
-  color: #ed1a28;
-}
-.flexOne {
-  -webkit-flex: 1;
-      -ms-flex: 1;
-          flex: 1;
-}
-.responsiveNavButtons .button-list {
+.responsiveNavButtons .nav-tabs {
+  position: absolute;
+  bottom: 0;
   width: 100%;
-  display: flex;
 }
-.responsiveNavButtons .button-list button {
+.responsiveNavButtons .nav-tabs > li {
   width: 20%;
-  margin: 0;
-  border-radius: 0;
+  text-align: center;
 }
-.responsiveNavButtons .button-list.only-four button {
+.responsiveNavButtons .nav-tabs.only-four > li {
   width: 25%;
 }
-.responsiveNavButtons .button-list button:hover,
-.responsiveNavButtons .button-list button:active {
-  border-color: #fbfbfb;
-  background-color: #fbfbfb;
-  box-shadow: none;
-  outline: none;
+.responsiveNavButtons .nav-tabs > li a {
+  border: none;
+  border-radius: 0;
+}
+.responsiveNavButtons .nav-tabs > li a i {
+  color: #ed1a28;
+}
+.responsiveNavButtons .nav-tabs > li.active a i {
+  color: #fff;
+}
+.responsiveNavButtons .tab-content {
+  margin-bottom: 41px;
 }
 .responsiveNavButtons .res-container {
-  display: none;
   background-color: #fbfbfb;
 }
 @media only screen and (max-width: 799px) {
@@ -669,12 +690,12 @@ perfplot {
     flex-direction: column;
     min-height: 0;
   }
+  .responsiveNavButtons .tab-content,
   .res-container.res-graph,
   .res-container.res-perf,
   .res-container.res-wind,
   .res-container.res-details,
   .res-container.res-photos {
-    display: none;
     height: 146px;
   }
   .res-container.res-perf .moving-element,
@@ -742,25 +763,32 @@ perfplot {
     right: -144px;
   }
 
-  .res-container.res-details .details-holder {
+  .res-container.res-details {
     display: -webkit-box;
     padding: 5px;
     overflow-x: scroll;
     font-size: 14px;
   }
-  .res-container.res-details .details-holder div {
-    margin-right: 15px;
+  .res-container.res-details .collapsible {
+    height: auto;
+    display: flex;
   }
-  .res-container.res-details .details-holder table {
-    border: none;
-  }
-  .res-container.res-details .details-holder table td { 
+  .res-container.res-details .group {
     white-space: nowrap;
-    border: none;
+    min-width: 200px;
+    margin-right: 30px;
+  }
+  .res-container.res-details .group div {
+    width: 100%;
     border-top: 1px solid #ddd;
   }
-  .res-container.res-details .details-holder table .td-label {
-    font-weight: 600;
+  .res-container.res-details .group label {
+    width: 45%;
+    margin: 5px 0;
+  }
+  .res-container.res-details .group span {
+    width: 55%;
+    display: inline-block;
   }
 
   .res-container.res-photos {
@@ -771,6 +799,7 @@ perfplot {
     top: -14px;
     left: 0;
     border-top: 3px solid #c9c9c9;
+    width: 100%;
   }
   .res-container.res-photos .sidebar-container {
     right: initial !important;
@@ -915,6 +944,7 @@ perfplot {
   }
 }
 @media only screen and (max-width: 420px) {
+  .responsiveNavButtons .tab-content,
   .res-container.res-graph,
   .res-container.res-perf,
   .res-container.res-wind,

@@ -168,27 +168,22 @@ angular.module('www2App')
         }
       }
     });
-
+    
     $scope.$watch('toggleTail', function(newVal, oldVal) {
       if (newVal != oldVal) {
-        if (newVal) {
-          //default tail length
-          $scope.tailLength = 300;
-        }
-        else if(newVal === false) {
-          $scope.tailLength = null;
-          $location.search('queue', null);
-        }
+        var queueVal = !newVal ? null : ($scope.tailLength ? $scope.tailLength : 300);
+        $location.search('queue', queueVal);
         updatePosition();
       }
     });
 
     $scope.$watch('tailLength', function(newVal, oldVal) {
       if (newVal != oldVal) {
-        if (newVal) {
-          $location.search('queue', newVal);
-          updatePosition();
-        }
+        var queueVal = !newVal ? null : newVal;
+        $scope.toggleTail = !newVal ? false : true;
+        
+        $location.search('queue', queueVal);
+        updatePosition();
       }
     });
 
@@ -360,6 +355,9 @@ angular.module('www2App')
     var delayedApply = function() {
       setTimeout(function() { $scope.$apply(); }, 10);
     };
+    $scope.refreshGraph = function() {
+      delayedApply();
+    }
     $scope.activateMap = function() {
       $scope.mapActive = true;
       $scope.graphActive = (height() >= verticalSizeThreshold);
