@@ -40,11 +40,6 @@ TEST(CmdArgTest, EntryTest) {
   std::string d = "";
 
   Entry e({"--wave", "-w"}, {
-    inputForm([&](double amp) {
-      a = amp;
-      return true;
-    }, Arg<double>("amplitude"))
-      .describe("Wave with specified amplitude and 0 phase"),
     inputForm([&](double amp, double phase) {
       b = amp;
       c = phase;
@@ -52,6 +47,11 @@ TEST(CmdArgTest, EntryTest) {
     }, Arg<double>("amplitude"),
        Arg<double>("phase")).describe(
            "Wave with specified amplitude and phase"),
+     inputForm([&](double amp) {
+       a = amp;
+       return true;
+     }, Arg<double>("amplitude"))
+       .describe("Wave with specified amplitude and 0 phase"),
     inputForm([&](std::string f) {
       d = f;
       return true;
@@ -70,6 +70,12 @@ TEST(CmdArgTest, EntryTest) {
     Array<std::string> args;
     EXPECT_FALSE(e.parse(&reasons, &args));
     EXPECT_EQ(reasons.size(), 3);
+  }{
+    std::vector<InputForm::Result> reasons;
+    Array<std::string> args{"9"};
+    EXPECT_TRUE(e.parse(&reasons, &args));
+    EXPECT_EQ(reasons.size(), 1);
+    EXPECT_NEAR(a, 9.0, 1.0e-6);
   }
 }
 
