@@ -81,7 +81,8 @@ template <>
 struct ParseArgument<char> {
   static const char *type() {return "char";}
 
-  static char apply(const std::string &input) {
+  static char apply(
+      const std::string &input) {
     if (input.size() == 1) {
       return input[0];
     } else {
@@ -103,6 +104,11 @@ T Arg<T>::parseAndProceed(std::string **s) const {
   auto v = **s;
   (*s)++;
   return ParseArgument<T>::apply(v);
+}
+
+template <typename T>
+std::string Arg<T>::description() const {
+  return _name + " [" + ParseArgument<T>::type() + "]: " + _desc;
 }
 
 template class Arg<int>;

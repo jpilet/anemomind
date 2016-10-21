@@ -26,16 +26,24 @@ public:
     static Result failure(const std::string &e) {
       return Result(false, e);
     }
+
+    bool succeeded() const {return _success;}
+    bool failed() const {return !_success;}
+    operator bool() {return _success;}
   private:
     bool _success;
     std::string _error;
   };
 
-  InputForm(const std::function<Result(Array<std::string>)>
-    &handler) {}
+  typedef std::function<Result(Array<std::string>)> Handler;
+  InputForm(const Handler &handler) : _handler(handler) {}
   typedef std::shared_ptr<InputForm> Ptr;
   int argCount() const;
+
+  Result parse(const Array<std::string> &remainingArgs) const;
 private:
+  Array<std::string> _argSpecs;
+  Handler _handler;
 };
 
 template <typename T>
@@ -48,6 +56,8 @@ public:
   ThisType &describe(const std::string &d);
 
   T parseAndProceed(std::string **s) const;
+
+  std::string description() const;
 private:
   std::string _name, _desc;
 };
@@ -92,7 +102,7 @@ InputForm::Ptr inputForm(
     std::string *s0 = args.ptr();
     auto s = &s0;
     try {
-      return f(arg.parseAndProceed(s)...);
+      return InputForm::Result(f(arg.parseAndProceed(s)...));
     } catch (const std::exception &e) {
       return InputForm::Result(false);
     }
