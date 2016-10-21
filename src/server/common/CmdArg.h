@@ -134,9 +134,7 @@ private:
 template <typename Function, typename... Arg>
 InputForm inputForm(
     Function f, Arg ... arg) {
-  std::cout << "Get the specs...\n";
   auto specs = Array<ArgSpec>{arg.spec()...};
-  std::cout << "Got them." << std::endl;
   return InputForm(
       specs,
       [=](const Array<std::string> &args) -> Result {
