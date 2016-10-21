@@ -16,7 +16,6 @@ namespace sail {
 
 class InputForm {
 public:
-
   // Result of applying the handler to this input form
   class Result {
   public:
@@ -37,13 +36,12 @@ public:
 
   typedef std::function<Result(Array<std::string>)> Handler;
   InputForm(const Handler &handler) : _handler(handler) {}
-  typedef std::shared_ptr<InputForm> Ptr;
-  int argCount() const;
-
   Result parse(const Array<std::string> &remainingArgs) const;
+  InputForm &describe(const std::string &d);
 private:
   Array<std::string> _argSpecs;
   Handler _handler;
+  std::string _desc;
 };
 
 template <typename T>
@@ -63,27 +61,22 @@ private:
 };
 
 
+class Entry {
+public:
+  Entry &describe(const std::string &d);
+private:
+  std::string _description;
+  Array<std::string> _commands;
+  Array<InputForm> _forms;
+};
+
 class CmdArg {
 public:
   CmdArg(const std::string &desc);
 
-  struct Entry {
-    std::string description;
-    Array<std::string> commands;
-    Array<InputForm::Ptr> forms;
-
-    std::shared_ptr<Entry> Ptr;
-
-    // "Builder"-style method
-    Entry &describe(const std::string &d) {
-      description = d;
-      return *this;
-    }
-  };
-
   Entry &bind(
       const Array<std::string> &commands,
-      const Array<InputForm::Ptr> &inputForms);
+      const Array<InputForm> &inputForms);
 private:
   std::string _desc;
   std::vector<Entry> _entries;
@@ -92,9 +85,9 @@ private:
 
 
 template <typename Function, typename... Arg>
-InputForm::Ptr inputForm(
+InputForm inputForm(
     Function f, Arg ... arg) {
-  return std::make_shared<InputForm>(
+  return InputForm(
       [=](const Array<std::string> &args) -> InputForm::Result {
     if (args.size() < sizeof...(Arg)) {
       return InputForm::Result::failure("Too few arguments provided");

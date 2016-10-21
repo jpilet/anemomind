@@ -117,6 +117,17 @@ template class Arg<std::string>;
 template class Arg<bool>;
 template class Arg<char>;
 
+
+InputForm::Result InputForm::parse(
+    const Array<std::string> &remainingArgs) const {
+  return _handler(remainingArgs);
+}
+
+InputForm &InputForm::describe(const std::string &d) {
+  _desc = d;
+  return *this;
+}
+
 CmdArg::CmdArg(const std::string &desc) : _desc(desc) {}
 
 }
