@@ -13,10 +13,7 @@
 #include <Eigen/Dense>
 #include <server/plot/PlotUtils.h>
 #include <random>
-
-#define MAKE_UNMOVABLE(ClassName) \
-  ClassName(const ClassName &) = delete; \
-  ClassName &operator=(const ClassName &) = delete;
+#include <server/common/Unmovable.h>
 
 namespace sail {
 namespace Cairo {
@@ -55,7 +52,7 @@ class WithLocalDeviceScale {
 public:
   enum Mode {Determinant, Identity};
 
-  WithLocalDeviceScale(cairo_t *cr, Mode mode = Identity);
+  WithLocalDeviceScale(cairo_t *cr, Mode mode);
   ~WithLocalDeviceScale();
 private:
   MAKE_UNMOVABLE(WithLocalDeviceScale);

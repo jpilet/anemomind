@@ -4,6 +4,28 @@
 
 namespace sail {
 
+const char* descriptionForCode(DataCode code) {
+  switch (code) {
+#define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+    case HANDLE : return DESCRIPTION;
+
+  FOREACH_CHANNEL(CASE_ENTRY)
+#undef CASE_ENTRY
+  }
+  return nullptr;
+}
+
+const char* wordIdentifierForCode(DataCode code) {
+  switch (code) {
+#define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+    case HANDLE : return SHORTNAME;
+
+  FOREACH_CHANNEL(CASE_ENTRY)
+#undef CASE_ENTRY
+  }
+  return nullptr;
+}
+
 Dispatcher::Dispatcher() {
   // Instanciates a proxy for each channel.
 #define REGISTER_PROXY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
