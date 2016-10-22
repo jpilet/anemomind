@@ -55,13 +55,13 @@ void TimedValueDiagram::addTimes(
     }
     to = t;
 
-    /*{
+    {
       using namespace Cairo;
       WithLocalDeviceScale with(
           _dstContext, WithLocalDeviceScale::Identity);
       cairo_move_to(_dstContext, timeToX(_toTime), _y);
       cairo_show_text(_dstContext, label.c_str());
-    }*/
+    }
   }
 }
 
