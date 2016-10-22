@@ -15,6 +15,7 @@ add_executable(html_makeHtmlOverview
 target_link_libraries(html_makeHtmlOverview
   logimport_LogLoader
   html_HtmlDispatcher
+  html_TimedValueDiagram
   )
 
 add_library(html_TimedValueDiagram

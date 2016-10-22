@@ -126,11 +126,12 @@ Node linkToSubPage(Node parent, const std::string title) {
 
 Poco::Path makeGeneratedImageNode(Node node,
     const std::string &filenameSuffix) {
+  CHECK(node.writer);
   Poco::Path p = node.writer->generatePath(filenameSuffix);
   auto img = DOM::makeSubNode(&node, "img");
-  img.element->setAttribute(
-      Poco::XML::toXMLString("src"),
-      Poco::XML::toXMLString(p.getFileName()));
+    img.element->setAttribute(
+        Poco::XML::toXMLString("src"),
+        Poco::XML::toXMLString(p.getFileName()));
   return p;
 }
 

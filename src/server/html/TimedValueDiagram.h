@@ -22,7 +22,8 @@ public:
   struct Settings {
     Duration<double> margin = 1.0_minutes;
     double timeWidth = 1024;
-    double verticalStep = 1.0;
+    double verticalStep = 30.0;
+    double minWidth = 4;
   };
 
   TimedValueDiagram(
@@ -46,7 +47,15 @@ public:
   void addTimes(
       const std::string &label,
       const Array<TimeStamp> &times);
+
+  cairo_t *context() {
+    return _dstContext;
+  }
 private:
+
+  double timeToX(TimeStamp t) const;
+  void drawLine(TimeStamp a, TimeStamp b) const;
+
   Settings _settings;
   double _y = 0.0;
   cairo_t *_dstContext;

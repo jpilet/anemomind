@@ -88,6 +88,36 @@ int countValues(const Dispatcher *d) {
   return visitor.counter;
 }
 
+struct TimeStampVisitor {
+  typedef std::function<TimeStamp(TimeStamp, TimeStamp)> Function;
+  Function f;
+  TimeStamp time;
+
+  template <DataCode Code, typename T>
+  void visit(const char *shortName, const std::string &sourceName,
+    const std::shared_ptr<DispatchData> &raw,
+    const TimedSampleCollection<T> &coll) {
+    if (!coll.empty()) {
+      time = f(time, f(coll.samples().back().time,
+          coll.samples().front().time));
+    }
+  }
+  TimeStampVisitor(Function fun) : f(fun) {}
+};
+
+TimeStamp earliestTimeStamp(const Dispatcher *d) {
+  TimeStampVisitor v(&earliest);
+  visitDispatcherChannelsConst(d, &v);
+  return v.time;
+}
+
+TimeStamp latestTimeStamp(const Dispatcher *d) {
+  TimeStampVisitor v(&latest);
+  visitDispatcherChannelsConst(d, &v);
+  return v.time;
+}
+
+
 namespace {
 
   template <typename T>

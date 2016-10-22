@@ -85,6 +85,8 @@ void visitDispatcherChannelsConst(const Dispatcher *dispatcher, Mapper *m) {
 
 int countChannels(const Dispatcher *d);
 int countValues(const Dispatcher *d);
+TimeStamp earliestTimeStamp(const Dispatcher *d);
+TimeStamp latestTimeStamp(const Dispatcher *d);
 
 std::ostream &operator<<(std::ostream &s, const Dispatcher &d);
 std::ostream &operator<<(std::ostream &s, const Dispatcher *d);
