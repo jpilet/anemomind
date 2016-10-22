@@ -60,15 +60,22 @@ int main(int argc, const char **argv) {
   auto status = parser.parse(argc, argv);
 
   switch (status) {
-  case Parser::Continue:
+  case Parser::Continue: {
+    auto ds = loader.makeNavDataset();
+    if (ds.isDefaultConstructed()) {
+      LOG(ERROR) << "No data loaded";
+      return 1;
+    }
+
     if (output) {
       settings.debugOutput =
           DOM::makeBasicHtmlPage("process2",
               outputPath, outputName);
     }
     return Processor2::process(
-        settings, loader.makeNavDataset())?
+        settings, ds)?
         0 : 1;
+  }
   case Parser::Done:
     return 0;
   case Parser::Error:

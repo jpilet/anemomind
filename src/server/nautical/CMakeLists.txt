@@ -367,7 +367,7 @@ target_link_libraries(nautical_MaxSpeed
                       common_TimeStamp
                       )
 
-add_library(nautical_process2
+add_executable(nautical_process2
   process2.cpp
   )
 
@@ -377,4 +377,6 @@ target_link_libraries(nautical_process2
   common_Env
   common_CmdArg
   logimport_LogLoader
+  common_DOMUtils
+  html_HtmlDispatcher
   )

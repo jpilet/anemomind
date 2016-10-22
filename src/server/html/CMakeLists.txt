@@ -16,3 +16,13 @@ target_link_libraries(html_makeHtmlOverview
   logimport_LogLoader
   html_HtmlDispatcher
   )
+
+add_library(html_TimedValueDiagram
+  TimedValueDiagram.h
+  TimedValueDiagram.cpp
+  )
+
+target_link_libraries(html_TimedValueDiagram
+  plot_PlotUtils
+  plot_CairoUtils
+  )

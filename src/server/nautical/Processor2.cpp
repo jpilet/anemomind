@@ -23,6 +23,7 @@
 #include <server/common/Functional.h>
 #include <unordered_map>
 #include <server/nautical/calib/Reconstructor.h>
+#include <server/html/HtmlDispatcher.h>
 
 namespace sail {
 namespace Processor2 {
@@ -218,111 +219,30 @@ Array<ReconstructionResults> reconstructAllGroups(
   return results;
 }
 
-struct ChannelSummarizerVisitor {
-  std::set<std::string> sources;
-  std::map<DataCode, int> countPerChannel;
-  std::map<std::pair<DataCode, std::string>, int> counts;
-    template <DataCode Code, typename T>
-  void visit(const char *shortName, const std::string &sourceName,
-    const std::shared_ptr<DispatchData> &raw,
-    const TimedSampleCollection<T> &coll) {
-      sources.insert(sourceName);
-      int n = coll.size();
-      counts.insert({{Code, sourceName}, n});
-      if (countPerChannel.count(Code) == 0) {
-        countPerChannel[Code] = n;
-      } else {
-        countPerChannel[Code] += n;
-      }
-  }
-};
 std::set<DataCode> usefulChannels{
   GPS_SPEED, GPS_BEARING,
   AWA, AWS,
   MAG_HEADING, WAT_SPEED,
   ORIENT
 };
-/*void outputChannelSummary(
-    const Dispatcher *src,
-    HtmlNode::Ptr dst) {
-    ChannelSummarizerVisitor visitor;
-    visitDispatcherChannelsConst(src, &visitor);
 
-    auto codeVector = getAllDataCodes();
-
-    std::vector<std::string> sourceVector(
-        visitor.sources.begin(), visitor.sources.end());
-    renderTable(dst,
-        1 + visitor.sources.size() + 1,
-        1 + codeVector.size(),
-        [](int i, int j) {return i == 0;},
-        [&](HtmlNode::Ptr e, int i, int j) {
-          if (j == 0) {
-            if (i == 0) {
-              e->stream() << "Source";
-            } else if (i-1 < sourceVector.size()) {
-              e->stream() << sourceVector[i-1];
-            } else {
-              e->stream() << "TOTAL";
-            }
-          } else {
-            DataCode code = codeVector[j-1];
-            if (i == 0) {
-              e->stream() << wordIdentifierForCode(code);
-            } else if (i-1 < sourceVector.size()) {
-              auto source = sourceVector[i-1];
-              auto f = visitor.counts.find({code, source});
-              if (f != visitor.counts.end()) {
-                e->stream() << f->second;
-              }
-            } else {
-              auto f = visitor.countPerChannel.find(code);
-              if (f != visitor.countPerChannel.end()) {
-                e->stream() << f->second;
-              }
-            }
-          }
-        });
-    bool allGood = true;
-    for (auto code: usefulChannels) {
-      if (visitor.countPerChannel.count(code) == 0) {
-        allGood = false;
-        HtmlTag::tagWithData(dst, "p",
-            {{"class", "warning"}},
-            stringFormat("Channel of type %s is missing",
-                wordIdentifierForCode(code)));
-      }
-    }
-    if (allGood) {
-      HtmlTag::tagWithData(dst, "p",
-          {{"class", "success"}},
-          "All channels of interest are present");
-    }
-}*/
 
 bool process(
     const Settings &settings,
     NavDataset dataset) {
   auto startTime = TimeStamp::now();
-  //auto logBody = HtmlTag::initializePage(
-  //dstLogNode, "V2 Reconstruction results");
-  //HtmlTag::tagWithData(logBody, "h1", "Results summary");
-
-  /*if (logBody) {
-    HtmlTag::tagWithData(logBody, "h2", "Channel summary");
-    outputChannelSummary(
-        dataset.dispatcher().get(),
-        logBody);
-  }*/
   dataset.mergeAll();
 
   auto d = dataset.dispatcher().get();
 
+  auto dbOutput = settings.debugOutput;
+  renderDispatcherTableOverview(d, &dbOutput);
 
   //HtmlTag::tagWithData(logBody, "p",
   //"First of all, we are going to filter all the GPS data");
-  Array<TimedValue<GeographicPosition<double> > > allFilteredPositions
-    = Processor2::filterAllGpsData(dataset, settings);
+  Array<TimedValue<GeographicPosition<double> > >
+    allFilteredPositions = Processor2::filterAllGpsData(
+        dataset, settings);
 
   //HtmlTag::tagWithData(logBody, "p",
       //"Based on the timestamps of the filtered GPS data, "
