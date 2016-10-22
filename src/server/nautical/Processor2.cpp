@@ -300,9 +300,9 @@ std::set<DataCode> usefulChannels{
     }
 }*/
 
-void runDemoOnDataset(
-    NavDataset &dataset/*,
-    HtmlNode::Ptr dstLogNode*/) {
+bool process(
+    const Settings &settings,
+    NavDataset dataset) {
   auto startTime = TimeStamp::now();
   //auto logBody = HtmlTag::initializePage(
   //dstLogNode, "V2 Reconstruction results");
@@ -317,10 +317,7 @@ void runDemoOnDataset(
   dataset.mergeAll();
 
   auto d = dataset.dispatcher().get();
-  Processor2::Settings settings;
-  settings.sensorFilter = [](DataCode c, std::string) {
-    return c == MAG_HEADING; // || c == AWS || c == AWA;
-  };
+
 
   //HtmlTag::tagWithData(logBody, "p",
   //"First of all, we are going to filter all the GPS data");
@@ -367,6 +364,7 @@ void runDemoOnDataset(
 //        stringFormat("Processing time: %s",
 //            totalDuration.str().c_str()));
   //}
+  return true;
 }
 
 class TimesVisitor {
@@ -391,13 +389,10 @@ class TimesVisitor {
 };
 
 
-Settings::Settings() : debug(true) {
-  logRoot = "/tmp/";
-
+Settings::Settings() {
   subSessionCut = Duration<double>::minutes(3.0);
   mainSessionCut = Duration<double>::hours(1.0);
   minCalibDur = Duration<double>::hours(3.0);
-  calibWindowSize = Duration<double>::minutes(2.0);
 
   sessionCutSettings.cuttingThreshold = Duration<double>::hours(1.0);
   sessionCutSettings.regularization = 1.0;

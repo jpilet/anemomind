@@ -8,6 +8,8 @@
 #include <server/common/CmdArg.h>
 #include <server/common/Env.h>
 #include <server/nautical/Processor2.h>
+#include <server/common/PathBuilder.h>
+#include <server/nautical/logimport/LogLoader.h>
 
 using namespace sail;
 
@@ -16,6 +18,11 @@ int main(int argc, const char **argv) {
 
   Processor2::Settings settings;
 
+
+  bool output = true;
+  std::string outputPath = Env::BINARY_DIR;
+  std::string outputName = "process2";
+
   LogLoader loader;
 
   Parser parser(
@@ -23,6 +30,13 @@ int main(int argc, const char **argv) {
       "  * Calibrates"
       "  * Filters"
       "  * Segments");
+
+  parser.bind({"--output"}, {
+    inputForm([&](bool x) {
+      output = x;
+      return true;
+    }, Arg<bool>("value"))
+  }).describe("Suppress HTML output");
 
   parser.bind({"--path", "-p"}, {
       inputForm([&](const std::string &p) {
@@ -47,7 +61,14 @@ int main(int argc, const char **argv) {
 
   switch (status) {
   case Parser::Continue:
-
+    if (output) {
+      settings.debugOutput =
+          DOM::makeBasicHtmlPage("process2",
+              outputPath, outputName);
+    }
+    return Processor2::process(
+        settings, loader.makeNavDataset())?
+        0 : 1;
   case Parser::Done:
     return 0;
   case Parser::Error:

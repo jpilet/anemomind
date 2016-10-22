@@ -13,6 +13,7 @@
 #include <server/nautical/segment/SessionCut.h>
 #include <device/anemobox/Dispatcher.h>
 #include <server/nautical/calib/Reconstructor.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 
@@ -24,15 +25,12 @@ inline bool allSensors(DataCode, std::string) {return true;}
 struct Settings {
   Settings();
 
-  bool debug;
-
+  sail::DOM::Node debugOutput;
   Duration<double> mainSessionCut;
   Duration<double> subSessionCut;
   Duration<double> minCalibDur;
-  Duration<double> calibWindowSize;
 
   SessionCut::Settings sessionCutSettings;
-  std::string logRoot;
 
   ReconstructionSettings reconstructionSettings;
   std::function<bool(DataCode,std::string)> sensorFilter = &allSensors;
@@ -65,10 +63,6 @@ Array<TimedValue<GeographicPosition<double> > >
 void outputTimeSpans(
     const Array<Span<TimeStamp> > &timeSpans);
 
-//void outputGroups(
-//      const Array<Spani> &groups,
-//      const Array<Span<TimeStamp> > sessions);
-
 Array<Spani> groupSessionsByThreshold(
     const Array<Span<TimeStamp> > &timeSpans,
     const Duration<double> &threshold);
@@ -77,8 +71,9 @@ Array<Spani> computeCalibrationGroups(
     Array<Span<TimeStamp> > timeSpans,
     Duration<double> minCalibDur);
 
-void runDemoOnDataset(
-    NavDataset &dataset);
+bool process(
+    const Settings &settings,
+    NavDataset dataset);
 
 }
 }
