@@ -8,9 +8,23 @@
 #include <server/html/TimedValueDiagram.h>
 #include <server/common/logging.h>
 #include <server/plot/CairoUtils.h>
+#include <server/common/LineKM.h>
 #include <iostream>
 
 namespace sail {
+
+std::map<DataCode, PlotUtils::HSV> makeDataCodeColorMap() {
+  auto codes = getAllDataCodes();
+  LineKM hueMap(0, codes.size(), 0.0, 360.0);
+  int counter = 0;
+  std::map<DataCode, PlotUtils::HSV> dst;
+  for (auto code: codes) {
+    dst[code] = PlotUtils::HSV::fromHue(hueMap(counter)*1.0_deg);
+    counter++;
+  }
+  return dst;
+}
+
 
 TimedValueDiagram::TimedValueDiagram(
     cairo_t *dstContext,
@@ -54,26 +68,26 @@ void TimedValueDiagram::addTimes(
       from = t; // ...and start a new one.
     }
     to = t;
-
-    {
-      using namespace Cairo;
-      WithLocalDeviceScale with(
-          _dstContext, WithLocalDeviceScale::Identity);
-      cairo_move_to(_dstContext, timeToX(_toTime), _y);
-      cairo_show_text(_dstContext, label.c_str());
-    }
+  }
+  drawLine(from, to);
+  std::cout << "But last time: " << times.sliceBut(1).last() << std::endl;
+  std::cout << "Last time " << times.last() << std::endl;
+  {
+    using namespace Cairo;
+    WithLocalDeviceScale with(
+        _dstContext, WithLocalDeviceScale::Identity);
+    cairo_move_to(_dstContext, timeToX(_toTime), _y);
+    cairo_show_text(_dstContext, label.c_str());
   }
 }
 
 void TimedValueDiagram::drawLine(TimeStamp a, TimeStamp b) const {
   using namespace Cairo;
+  std::cout << "Draw line from " << a << " to " << b << std::endl;
   if (a < b) {
-    std::cout << "Line from " << a.toString()
-        << " to " << b.toString() << std::endl;
     double a0 = timeToX(a);
     double b0 = timeToX(b);
     double extra = 0.5*std::max(_settings.minWidth - (b0 - a0), 0.0);
-    std::cout << "Extra = " << extra << std::endl;
     cairo_move_to(_dstContext, a0 - extra, _y);
     cairo_line_to(_dstContext, b0 + extra, _y);
     WithLocalDeviceScale with(_dstContext,

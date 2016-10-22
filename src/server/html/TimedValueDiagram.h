@@ -14,8 +14,12 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/Span.h>
 #include <server/plot/PlotUtils.h>
+#include <map>
+#include <device/anemobox/Channels.h>
 
 namespace sail {
+
+std::map<DataCode, PlotUtils::HSV> makeDataCodeColorMap();
 
 class TimedValueDiagram {
 public:

@@ -19,10 +19,11 @@ struct DiagramVisitor {
   int counter = 0;
   TimedValueDiagram *diagram;
   LineKM hueMap;
+  std::map<DataCode, PlotUtils::HSV> cmap;
 
   DiagramVisitor(TimedValueDiagram *d,
       const LineKM &hm) : diagram(d),
-      hueMap(hm) {}
+      hueMap(hm), cmap(makeDataCodeColorMap()) {}
 
   template <DataCode Code, typename T>
   void visit(
@@ -30,12 +31,14 @@ struct DiagramVisitor {
       const std::string &sourceName,
     const std::shared_ptr<DispatchData> &raw,
     const TimedSampleCollection<T> &coll) {
-    Cairo::setSourceColor(diagram->context(),
-        PlotUtils::HSV::fromHue(hueMap(counter)*1.0_deg));
+    Cairo::setSourceColor(
+        diagram->context(),
+        cmap[Code]);
     const auto &s = coll.samples();
     cairo_set_line_width(diagram->context(), 4);
     diagram->addTimedValues(
-        sourceName, s.begin(), s.end());
+        std::string(wordIdentifierForCode(Code))
+      + " " +  sourceName, s.begin(), s.end());
     counter++;
   }
 };
@@ -51,12 +54,12 @@ void renderTimedValueDiagram(
   LineKM hueMap(0.0, n, 0.0, 360);
 
   TimedValueDiagram::Settings settings;
-  settings.timeWidth = 1024;
+  settings.timeWidth = 800;
 
   std::string imageName = dstFilename + ".svg";
   const char *cc = imageName.c_str();
 
-  double labelMarg = 100;
+  double labelMarg = 400;
 
   auto surface = sharedPtrWrap(
       cairo_svg_surface_create(imageName.c_str(),
@@ -65,9 +68,11 @@ void renderTimedValueDiagram(
 
   std::cout << "From " << fromTime << " to " << toTime << std::endl;
 
-  cairo_set_font_size (cr.get(), 11);
-  cairo_select_font_face (cr.get(), "Georgia",
-      CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+  cairo_set_font_size (cr.get(), 15);
+  cairo_select_font_face (
+      cr.get(), "Ubuntu Mono",
+      CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_NORMAL);
   TimedValueDiagram diagram(cr.get(), fromTime, toTime, settings);
 
   DiagramVisitor v(&diagram, hueMap);
