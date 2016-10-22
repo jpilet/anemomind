@@ -8,20 +8,25 @@
 #ifndef SERVER_HTML_TIMEDVALUEDIAGRAM_H_
 #define SERVER_HTML_TIMEDVALUEDIAGRAM_H_
 
+#include <cairo/cairo.h>
 #include <server/common/TimeStamp.h>
 #include <server/common/Unmovable.h>
+#include <server/common/ArrayBuilder.h>
+#include <server/common/Span.h>
+#include <server/plot/PlotUtils.h>
 
 namespace sail {
 
 class TimedValueDiagram {
 public:
   struct Settings {
-    Duration<double> margin = 1.0_m;
-    double width;
+    Duration<double> margin = 1.0_minutes;
+    double timeWidth = 1024;
+    double verticalStep = 1.0;
   };
 
   TimedValueDiagram(
-      const std::string &outputFilename,
+      cairo_t *dstContext,
       TimeStamp fromTime,
       TimeStamp toTime,
       const Settings &s);
@@ -41,16 +46,12 @@ public:
   void addTimes(
       const std::string &label,
       const Array<TimeStamp> &times);
-
-  ~TimedValueDiagram();
 private:
-  struct TimeBarPlot {
-    PlotUtils::RGB color;
-    Array<Span<TimeStamp>> timeSpans;
-  };
-
+  Settings _settings;
+  double _y = 0.0;
+  cairo_t *_dstContext;
+  TimeStamp _fromTime, _toTime;
   MAKE_UNMOVABLE(TimedValueDiagram);
-  std::vector<TimeBarPlot> _toPlot;
 };
 
 }

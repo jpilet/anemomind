@@ -7,12 +7,23 @@
 
 #include "TimedValueDiagram.h"
 
-TimedValueDiagram::TimedValueDiagram() {
-  // TODO Auto-generated constructor stub
+namespace sail {
+
+TimedValueDiagram::TimedValueDiagram(
+    cairo_t *dstContext,
+    TimeStamp fromTime,
+    TimeStamp toTime,
+    const Settings &s) :
+        _dstContext(dstContext), _settings(s),
+        _fromTime(fromTime), _toTime(toTime) {}
+
+void TimedValueDiagram::addTimes(
+    const std::string &label,
+    const Array<TimeStamp> &times) {
 
 }
 
-TimedValueDiagram::~TimedValueDiagram() {
-  // TODO Auto-generated destructor stub
+
 }
+
 
