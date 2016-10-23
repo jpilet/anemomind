@@ -3,82 +3,59 @@
   <div class="mapAndGraphAndSidebar">
     <div ng-show="mapActive || graphActive" class="mapAndGraph">
       <div class="map" ng-show="mapActive">
+        <i class="anemomind-icon close-btn" onclick="window.location='/'">&nbsp;</i>
         <div class="mainControl">
           <div class="section heading">
             <div class="boat-name">
-              <span class="close-btn black" onclick="window.location='/'"></span>
               <label>{{boat.name}}</label>
             </div>
             <div class="share-boat">
               <div class="share-boat-holder">
-                <i class="fa fa-share-alt share-lightbox" aria-hidden="true"></i> 
-                <span class="share-popup share-lightbox">
-                  Share
-                </span>
+                <i class="anemomind-icon share-lightbox">&nbsp;</i>
               </div>
             </div>
           </div>
           <div class="section control-btns animationControls">
-            <button type="button" class="btn btn-default btn-sm play" ng-hide="isPlaying" ng-click="togglePlayPause()">
-              <i class="fa fa-play" aria-hidden="true"></i> 
-              Play
-            </button>
-            <button type="button" class="btn btn-default btn-sm pause" ng-show="isPlaying" ng-click="togglePlayPause()">
-              <i class="fa fa-pause" aria-hidden="true"></i> 
-              pause
-            </button>
+            <i class="anemomind-icon play" ng-class="{'pause':isPlaying}" ng-click="togglePlayPause()" title="{{isPlaying ? 'Pause' : 'Play'}}">&nbsp;</i>
             <div class="btn-grouped">
-              <button type="button" class="btn btn-default btn-sm slower" ng-click="slower()">
-                <i class="fa fa-minus" aria-hidden="true"></i>   
+              <button type="button" class="btn btn-default btn-sm slower" ng-click="slower()" title="Cut Slower">
+                &nbsp;
               </button>
               <span>{{ replaySpeed }}x</span>
-              <button type="button" class="btn btn-default btn-sm faster" ng-click="faster()">
-                <i class="fa fa-plus" aria-hidden="true"></i>  
+              <button type="button" class="btn btn-default btn-sm faster" ng-click="faster()" title="Faster">
+                &nbsp;  
               </button>
             </div>
-            <button type="button" class="btn btn-default btn-sm cut-before" ng-click="cutBefore()">
-              <i class="fa fa-scissors" aria-hidden="true"></i>
-              <i class="fa fa-step-backward" aria-hidden="true"></i>
-            </button>
-            <button type="button" class="btn btn-default btn-sm cut-after" ng-click="cutAfter()">
-              <i class="fa fa-step-forward" aria-hidden="true"></i>
-              <i class="fa fa-scissors" aria-hidden="true"></i>
-            </button>
-            <button type="button" class="btn btn-default btn-sm split" ng-click="">
-              Split
-            </button>
-            <div class="group-btn">
-              <button type="button" class="btn btn-default btn-sm jump-prev" ng-click="">
-                <i class="fa fa-undo" aria-hidden="true"></i>
-              </button>
-              <button type="button" class="btn btn-default btn-sm jump-next" ng-click="">
-                <i class="fa fa-repeat" aria-hidden="true"></i>
-              </button>
-            </div>
+            <i class="anemomind-icon cut-before" ng-click="cutBefore()" title="Cut Before">&nbsp;</i>
+            <i class="anemomind-icon cut-after" ng-click="cutAfter()" title="Cut After">&nbsp;</i>
+            <i class="anemomind-icon split" ng-click="" title="Split"></i>
+            <i class="anemomind-icon jump-prev" ng-click="" title="Jump Previous">&nbsp;</i>
+            <i class="anemomind-icon jump-next" ng-click="" title="Jump Next">&nbsp;</i>
           </div>
           <div class="info-group collapse-area">
             <div class="section tail-inputs">
               <div class="group perf-vmg">
-                <i class="fa fa-anchor with-circle" aria-hidden="true"></i>
-                <label>VMG</label>
-                <input type="text" class="thin" name="perf-vmg">
+                <i class="anemomind-icon" aria-hidden="true" ng-class="{'is-on' : toggleVMG}" ng-click="toggleVMG = !toggleVMG;"></i>
+                <label>Perf. VMG</label>
               </div>
               <div class="group tail">
-                <button class="btn btn-default btn-sm" ng-class="{'is-on' : toggleTail}" ng-click="toggleTail = !toggleTail;">
-                  <i class="fa fa-tencent-weibo with-circle" aria-hidden="true"></i>
-                  Tail
-                </button>
+                <i class="anemomind-icon" ng-class="{'is-on' : toggleTail}" ng-click="toggleTail = !toggleTail;" aria-hidden="true"></i>
+                <label>Tail</label>                  
               </div>
               <div class="group tail-length">
-                <i class="fa fa-level-up" aria-hidden="true"></i>
+                <!--<i class="fa fa-level-up" aria-hidden="true"></i>
                 <label>Length</label>
-                <input type="text" class="wide" name="tail-length" placeholder="sec" ng-model="tailLength">
+                <input type="text" class="wide" name="tail-length" placeholder="sec" ng-model="tailLength">-->
+                <rzslider
+                  rz-slider-model="tailLength"
+                  rz-slider-options="slider.options">
+                </rzslider>
               </div>
             </div>
             <div class="section perf-speed">
               <label class="expandable collapse-lbl" toggle-classes="collapse-area uncollapse-area">
                 Performance & Speed 
-                <i class="fa fa-plus" col-class="fa-plus" uncol-class="fa-minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+                <i class="anemomind-icon plus" col-class="plus" uncol-class="minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
               </label>
               <div class="collapsible group collapse-area moving-element" desktop-parent=".section.perf-speed" mobile-parent=".res-container.res-perf">
                 <div class="perf">
@@ -96,7 +73,7 @@
             <div class="section wind">
               <label class="expandable collapse-lbl" toggle-classes="collapse-area uncollapse-area">
                 Wind 
-                <i class="fa fa-plus" col-class="fa-plus" uncol-class="fa-minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+                <i class="anemomind-icon plus" col-class="plus" uncol-class="minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
               </label>
               <div class="collapsible group collapse-area moving-element" desktop-parent=".section.wind" mobile-parent=".res-container.res-wind">
                 <div class="top-wheel">
@@ -110,7 +87,7 @@
             <div class="section details">
               <label class="expandable collapse-lbl height-check" toggle-classes="collapse-area uncollapse-area">
                 Details 
-                <i class="fa fa-plus" col-class="fa-plus" uncol-class="fa-minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+                <i class="anemomind-icon plus" col-class="plus" uncol-class="minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
               </label>
               <div class="collapsible instrumentsView collapse-area moving-element" desktop-parent=".section.details" mobile-parent=".res-container.res-details">
                 <div class="group">
@@ -141,7 +118,7 @@
               </div>
             </div>
             <div class="expandable extension bottom-curve" toggle-classes="collapse-area uncollapse-area">
-              <i class="fa fa-angle-double-down" col-class="fa-angle-double-down" uncol-class="fa-angle-double-up" col-state="true" col-target=".info-group" col-parent=".mainControl" aria-hidden="true"></i>
+              <i class="fa fa-caret-down" col-class="fa-caret-down" uncol-class="fa-caret-up" col-state="true" col-target=".info-group" col-parent=".mainControl" aria-hidden="true"></i>
             </div>
           </div>
         </div>
@@ -152,7 +129,7 @@
 
       <div class="graph unhide-area moving-element" desktop-parent=".mapAndGraph" mobile-parent=".res-container.res-graph" toggle-classes="hide-area unhide-area" ng-show="graphActive">
         <div class="expandable extension top-curve" toggle-classes="show hidden" mode="hide-parent">
-          <i class="fa fa-angle-double-down" col-class="fa-angle-double-up" uncol-class="fa-angle-double-down" col-state="false" col-target=".graph-holder" col-parent=".graph" aria-hidden="true"></i>
+          <i class="fa fa-caret-down" col-class="fa-caret-up" uncol-class="fa-caret-down" col-state="false" col-target=".graph-holder" col-parent=".graph" aria-hidden="true"></i>
         </div>
         <div class="graph-holder">
           <select id="dataSourceSelector"
@@ -168,7 +145,7 @@
 
     <sidebar class="sidebar-container unhide-area moving-element" desktop-parent=".mapAndGraphAndSidebar" mobile-parent=".res-container.res-photos" toggle-classes="hide-area unhide-area" ng-show="sideBarActive && eventList.length">
       <div class="expandable extension left-curve" toggle-classes="show hidden" mode="hide-parent">
-        <i class="fa fa-angle-double-right" col-class="fa-angle-double-left" uncol-class="fa-angle-double-right" col-state="false" col-target=".semitransp" col-parent=".sidebar-container" aria-hidden="true"></i>
+        <i class="fa fa-caret-right" col-class="fa-caret-left" uncol-class="fa-caret-right" col-state="false" col-target=".semitransp" col-parent=".sidebar-container" aria-hidden="true"></i>
       </div>
       <div id="tabs" class="semitransp padding5px show">
         <div id="eventsContainer">

@@ -22,8 +22,19 @@ angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
 
+    $scope.toggleVMG = false;
     $scope.toggleTail = $location.search().queue ? true : false;
     $scope.boat = { _id: $stateParams.boatId, name: 'loading' };
+
+    $scope.slider = {
+      options: {
+        floor: 30,
+        ceil: 10800,
+        step: 1,
+        minLimit: 30,
+        maxLimit: 10800,
+      }
+    };
 
     var setLocationTimeout;
     function setLocation() {
@@ -101,6 +112,7 @@ angular.module('www2App')
       var windBlowedText = '22 Kts';
       var performanceText = '91%';
       $scope.shareText = '"'+$scope.boat.name+'" and her team made a great performance with an average speed of '+aveSpeedText+'. The wind blowed at '+windBlowedText+'. Anemomind calculated a global performance of '+performanceText+'.';
+      $scope.shareText += '\n\nAdd text ...'
     });
 
     $scope.eventList = [];
