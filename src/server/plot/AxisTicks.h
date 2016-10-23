@@ -153,7 +153,7 @@ Array<AxisTick<TypeOfTick<TickIterator>>> computeAxisTicks(
   int n = upperIndex - lowerIndex + 1;
   Array<AxisTick<TypeOfTick<TickIterator>>> dst(n);
   for (int i = 0; i < n; i++) {
-    dst[i] = iter.get(lower + i);
+    dst[i] = iter.get(lowerIndex + i);
   }
   return dst;
 }

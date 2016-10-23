@@ -56,6 +56,10 @@ TEST(AxisTicksTest, Compute) {
 
   auto ticks2 = computeAxisTicks<BasicTickIterator>(
       34, 99, iter);
+  for (auto t: ticks2) {
+    std::cout << "  Tick: " << t.tickLabel << std::endl;
+  }
+
   EXPECT_EQ(ticks.size(), ticks2.size());
   EXPECT_NEAR(ticks2.first().position,
       10*ticks.first().position, 1.0e-5);
