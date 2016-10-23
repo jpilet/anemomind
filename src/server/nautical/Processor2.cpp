@@ -403,10 +403,6 @@ Array<Span<TimeStamp> > segmentSubSessions(
 Array<TimedValue<GeographicPosition<double> > >
   filterAllGpsData(const NavDataset &ds, const Settings &settings,
       DOM::Node *log) {
-  //HtmlTag::tagWithData(log, "h2", "GPS filtering");
-  //HtmlTag::tagWithData(log, "h2",
-  //"Filtering all the GPS data with some chopping");
-
   DOM::addSubTextNode(log, "h2", "GPS filtering");
   DOM::addSubTextNode(log, "p",
       "Filtering all the GPS data with some chopping");
