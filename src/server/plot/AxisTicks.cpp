@@ -54,7 +54,6 @@ DateTickIterator DateTickIterator::coarser() const {
 
 double DateTickIterator::computeFracIndex(TimeStamp t) const {
   auto i = timeStampToIndex(t);
-  std::cout << "i = " << i << std::endl;
   return i/tickSpacing();
 }
 
