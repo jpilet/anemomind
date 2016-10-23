@@ -8,6 +8,7 @@
 #include <server/plot/AxisTicks.h>
 #include <server/common/String.h>
 #include <server/common/TimeStamp.h>
+#include <iostream>
 
 namespace sail {
 
@@ -38,7 +39,7 @@ double BasicTickIterator::tickSpacing() const {
 
 int timeStampToIndex(TimeStamp t) {
   auto x = t.makeGMTimeStruct();
-  return (x.tm_year*12 + x.tm_mon) + (x.tm_mday-1)/30.0;
+  return ((x.tm_year + 1900)*12 + x.tm_mon) + (x.tm_mday-1)/30.0;
 }
 
 DateTickIterator::DateTickIterator(int l) : _level(l) {}
@@ -52,7 +53,9 @@ DateTickIterator DateTickIterator::coarser() const {
 }
 
 double DateTickIterator::computeFracIndex(TimeStamp t) const {
-  return timeStampToIndex(t)/tickSpacing();
+  auto i = timeStampToIndex(t);
+  std::cout << "i = " << i << std::endl;
+  return i/tickSpacing();
 }
 
 AxisTick<TimeStamp> DateTickIterator::get(int index) const {

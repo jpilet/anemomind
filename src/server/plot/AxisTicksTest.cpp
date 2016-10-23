@@ -24,6 +24,14 @@ TEST(AxisTicksTest, TestBasicIterator) {
 
 TEST(AxisTicksTest, DateTest) {
   DateTickIterator iter(0);
-  auto x = iter.get(2016*12);
-  EXPECT_EQ(x.tickLabel, "January 2016");
+  {
+    auto x = iter.get(2016*12);
+    EXPECT_EQ(x.tickLabel, "January 2016");
+  }{
+    auto x = iter.get(2016*12 + 1);
+    EXPECT_EQ(x.tickLabel, "February 2016");
+  }
+  auto index = iter.computeFracIndex(
+      TimeStamp::UTC(2014, 1, 1, 0, 0, 0.0));
+  EXPECT_NEAR(index, 2014*12, 1.0e-6);
 }
