@@ -5,7 +5,10 @@
  *      Author: jonas
  */
 
-#include "Reconstructor.h"
+#include <server/nautical/calib/Reconstructor.h>
+#include <server/plot/AxisTicks.h>
+#include <server/plot/PlotUtils.h>
+#include <server/plot/CairoUtils.h>
 
 namespace sail {
 
