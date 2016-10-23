@@ -219,13 +219,47 @@ Array<ReconstructionResults> reconstructAllGroups(
   return results;
 }
 
+void outputTimeSpans(
+    const Array<Span<TimeStamp> > &timeSpans,
+    DOM::Node *dst) {
+  auto table = DOM::makeSubNode(dst, "table");
+  {
+    auto tr = DOM::makeSubNode(&table, "tr");
+    {
+      auto from = DOM::makeSubNode(&tr, "th");
+      DOM::addTextNode(&from, "From time");
+    }{
+      auto to = DOM::makeSubNode(&tr, "th");
+      DOM::addTextNode(&to, "To time");
+    }{
+      auto dur = DOM::makeSubNode(&tr, "th");
+      DOM::addTextNode(&dur, "Duration");
+    }
+  }{
+    for (auto span: timeSpans) {
+      auto tr = DOM::makeSubNode(&table, "tr");
+      {
+        auto td = DOM::makeSubNode(&tr, "td");
+        DOM::addTextNode(&td, span.minv().toString());
+      }{
+        auto td = DOM::makeSubNode(&tr, "td");
+        DOM::addTextNode(&td, span.maxv().toString());
+      }{
+        auto td = DOM::makeSubNode(&tr, "td");
+        auto dur = span.maxv() - span.minv();
+        DOM::addTextNode(&td, dur.str());
+      }
+    }
+  }
+}
+
+
 std::set<DataCode> usefulChannels{
   GPS_SPEED, GPS_BEARING,
   AWA, AWS,
   MAG_HEADING, WAT_SPEED,
   ORIENT
 };
-
 
 bool process(
     const Settings &settings,
@@ -238,15 +272,15 @@ bool process(
   auto dbOutput = settings.debugOutput;
   renderDispatcherTableOverview(d, &dbOutput);
 
-  //HtmlTag::tagWithData(logBody, "p",
-  //"First of all, we are going to filter all the GPS data");
+  DOM::addSubTextNode(&dbOutput, "p",
+      "First of all, we are going to filter all the GPS data");
   Array<TimedValue<GeographicPosition<double> > >
     allFilteredPositions = Processor2::filterAllGpsData(
-        dataset, settings);
+        dataset, settings, &dbOutput);
 
-  //HtmlTag::tagWithData(logBody, "p",
-      //"Based on the timestamps of the filtered GPS data, "
-      //"we will build short sessions of data.");
+  DOM::addSubTextNode(&dbOutput, "p",
+      "Based on the timestamps of the filtered GPS data, "
+      "we will build short sessions of data.");
   auto filteredTimeStamps = getTimeStamps(
       allFilteredPositions.begin(),
       allFilteredPositions.end());
@@ -254,10 +288,10 @@ bool process(
   auto smallSessions = Processor2::segmentSubSessions(
       filteredTimeStamps, settings.subSessionCut);
 
-  //if (logBody) {
-//    HtmlTag::tagWithData(logBody, "h2", "Small sessions");
-//    outputTimeSpans(smallSessions, logBody);
-//  }
+    if (dbOutput) {
+      DOM::addSubTextNode(&dbOutput, "h2", "Small sessions");
+      outputTimeSpans(smallSessions, &dbOutput);
+    }
 
   //HtmlTag::tagWithData(logBody, "p",
 //    "In order to perform calibration, we need to make sure that there is"
@@ -367,37 +401,39 @@ Array<Span<TimeStamp> > segmentSubSessions(
 
 
 Array<TimedValue<GeographicPosition<double> > >
-  filterAllGpsData(const NavDataset &ds, const Settings &settings) {
+  filterAllGpsData(const NavDataset &ds, const Settings &settings,
+      DOM::Node *log) {
   //HtmlTag::tagWithData(log, "h2", "GPS filtering");
   //HtmlTag::tagWithData(log, "h2",
   //"Filtering all the GPS data with some chopping");
+
+  DOM::addSubTextNode(log, "h2", "GPS filtering");
+  DOM::addSubTextNode(log, "p",
+      "Filtering all the GPS data with some chopping");
+
   auto timeStamps = getAllGpsTimeStamps(ds.dispatcher().get());
   auto timeSpans = Processor2::segmentSubSessions(
       timeStamps, settings.mainSessionCut);
-  //HtmlTag::tagWithData(log, "p",
-//      "The data is filtered with these time spans");
-  //outputTimeSpans(timeSpans, log);
+
+  DOM::addSubTextNode(log, "p",
+      "The data is filtered with these time spans");
+  outputTimeSpans(timeSpans, log);
 
   GpsFilterSettings gpsSettings;
   gpsSettings.subProblemThreshold = settings.subSessionCut;
 
-  {
-    //HtmlTag::tagWithData(log, "p",
-    //    {{"class", "warning"}}, "A slice was cut");
-    //timeSpans = timeSpans.slice(3, 4);
-  }
 
-  /*HtmlTag::tagWithData(log, "p",
+  DOM::addSubTextNode(log, "p",
       "Here is a brief summary");
-  auto table = HtmlTag::make(log, "table");
+  auto table = DOM::makeSubNode(log, "table");
   if (log) {
-    auto h = HtmlTag::make(table, "tr");
-    HtmlTag::tagWithData(h, "th", "Index");
-    HtmlTag::tagWithData(h, "th", "Position count");
-    HtmlTag::tagWithData(h, "th", "Max speed");
-    HtmlTag::tagWithData(h, "th", "Duration");
-    HtmlTag::tagWithData(h, "th", "Max distance to median");
-  }*/
+    auto h = DOM::makeSubNode(&table, "tr");
+    DOM::addSubTextNode(&h, "th", "Index");
+    DOM::addSubTextNode(&h, "th", "Position count");
+    DOM::addSubTextNode(&h, "th", "Max speed");
+    DOM::addSubTextNode(&h, "th", "Duration");
+    DOM::addSubTextNode(&h, "th", "Max distance to median");
+  }
   ArrayBuilder<TimedValue<GeographicPosition<double> > > dst;
   int counter = 0;
   for (auto span: timeSpans) {
@@ -407,69 +443,36 @@ Array<TimedValue<GeographicPosition<double> > >
     for (auto x: positions) {
       dst.add(x);
     }
-    /*auto row = HtmlTag::make(table, "tr");
+    auto row = DOM::makeSubNode(&table, "tr");
     if (row) {
-      HtmlTag::tagWithData(row, "td", stringFormat("%d", counter));
-      HtmlTag::tagWithData(row, "td", stringFormat(
+      DOM::addSubTextNode(&row, "td", stringFormat("%d", counter));
+      DOM::addSubTextNode(&row, "td", stringFormat(
           "%d", positions.size()));
       auto motions = results.getGpsMotions(60.0_s);
       auto maxSpeed = 0.0_kn;
       for (auto m: motions) {
         maxSpeed = std::max(maxSpeed, m.value.norm());
       }
-      HtmlTag::tagWithData(row, "td", stringFormat(
+      DOM::addSubTextNode(&row, "td", stringFormat(
           "%.3g knots", maxSpeed.knots()));
       auto dur = span.maxv() - span.minv();
-      HtmlTag::tagWithData(row, "td", dur.str().c_str());
+      DOM::addSubTextNode(&row, "td", dur.str().c_str());
       auto maxDistanceToMedian = 0.0_m;
       for (auto pos: results.filteredLocalPositions) {
         auto p = pos.value;
         maxDistanceToMedian = std::max(maxDistanceToMedian,
             (p[0].meters(), p[1].meters())*1.0_m);
       }
-      HtmlTag::tagWithData(row, "td", stringFormat("%.3g M",
+      DOM::addSubTextNode(&row, "td", stringFormat("%.3g M",
           maxDistanceToMedian.nauticalMiles()));
 
       counter++;
-    }*/
+    }
   }
   return dst.get();
 }
 
 
-/*void outputTimeSpans(
-    const Array<Span<TimeStamp> > &timeSpans,
-    HtmlNode::Ptr dst) {
-  auto table = HtmlTag::make(dst, "table");
-  {
-    auto tr = HtmlTag::make(table, "tr");
-    {
-      auto from = HtmlTag::make(tr, "th");
-      from->stream() << "From time";
-    }{
-      auto to = HtmlTag::make(tr, "th");
-      to->stream() << "To time";
-    }{
-      auto dur = HtmlTag::make(tr, "th");
-      dur->stream() << "Duration";
-    }
-  }{
-    for (auto span: timeSpans) {
-      auto tr = HtmlTag::make(table, "tr");
-      {
-        auto td = HtmlTag::make(tr, "td");
-        td->stream() << span.minv().toString();
-      }{
-        auto td = HtmlTag::make(tr, "td");
-        td->stream() << span.maxv().toString();
-      }{
-        auto td = HtmlTag::make(tr, "td");
-        auto dur = span.maxv() - span.minv();
-        td->stream() << dur.str();
-      }
-    }
-  }
-}*/
 
 /*void outputGroups(
       const Array<Spani> &groups,

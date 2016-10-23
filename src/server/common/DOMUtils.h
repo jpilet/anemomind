@@ -50,6 +50,7 @@ private:
 };
 
 struct Node {
+  operator bool() const {return bool(element) && bool(document);}
   Poco::XML::AutoPtr<Poco::XML::Document> document;
   Poco::XML::AutoPtr<Poco::XML::Element> element;
   PageWriter::Ptr writer;

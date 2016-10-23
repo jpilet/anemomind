@@ -58,10 +58,9 @@ Array<Span<TimeStamp> > segmentSubSessions(
     Duration<double> threshold);
 
 Array<TimedValue<GeographicPosition<double> > >
-  filterAllGpsData(const NavDataset &ds, const Settings &settings);
-
-void outputTimeSpans(
-    const Array<Span<TimeStamp> > &timeSpans);
+  filterAllGpsData(const NavDataset &ds,
+      const Settings &settings,
+      DOM::Node *dst);
 
 Array<Spani> groupSessionsByThreshold(
     const Array<Span<TimeStamp> > &timeSpans,
