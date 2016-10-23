@@ -17,4 +17,6 @@ TEST(AxisTicksTest, TestBasicIterator) {
   EXPECT_EQ(x.tickLabel, "4 meters");
   EXPECT_NEAR(iter.coarser().tickSpacing(), 10.0, 1.0e-6);
   EXPECT_NEAR(iter.finer().tickSpacing(), 0.1, 1.0e-6);
+  auto k = iter.coarser();
+  EXPECT_EQ(k.get(4).tickLabel, "40 meters");
 }
