@@ -59,3 +59,12 @@ cxx_test(plot_AxisTicksTest
   common_string
   common_TimeStamp
   )
+
+add_library(plot_ColorMap
+  ColorMap.h
+  ColorMap.cpp
+  )
+
+target_link_libraries(plot_ColorMap
+  common_TimeStamp
+  )
