@@ -293,18 +293,19 @@ bool process(
       outputTimeSpans(smallSessions, &dbOutput);
     }
 
-  //HtmlTag::tagWithData(logBody, "p",
-//    "In order to perform calibration, we need to make sure that there is"
-//    " enough data for every optimization problem, so we will form groups");
+  DOM::addSubTextNode(&dbOutput, "p",
+    "In order to perform calibration, we need to make sure that there is"
+    " enough data for every optimization problem, so we will form groups");
   auto calibGroups = computeCalibrationGroups(
       smallSessions, settings.minCalibDur);
 
-  //if (logBody) {
-//    HtmlTag::tagWithData(logBody, "h2", "Calibration groups");
-    //outputGroups(
-//        calibGroups,
-//        smallSessions);
-  //}
+  if (dbOutput) {
+    DOM::addSubTextNode(&dbOutput, "h2", "Calibration groups");
+    outputGroups(
+        calibGroups,
+        smallSessions,
+        &dbOutput);
+  }
 
   auto reconstructions
     = reconstructAllGroups(
@@ -470,20 +471,21 @@ Array<TimedValue<GeographicPosition<double> > >
 
 
 
-/*void outputGroups(
+void outputGroups(
       const Array<Spani> &groups,
       const Array<Span<TimeStamp> > sessions,
-      HtmlNode::Ptr dst) {
+      DOM::Node *dst) {
   for (int i = 0; i < groups.size(); i++) {
     {
-      auto h3 = HtmlTag::make(dst, "h3");
-      h3->stream() << "Group " << i+1 <<
+      std::stringstream ss;
+      ss << "Group " << i+1 <<
           " of " << groups.size() << std::endl;
+      DOM::addSubTextNode(dst, "h3", ss.str());
     }
     auto g = groups[i];
     outputTimeSpans(sessions.slice(g.minv(), g.maxv()), dst);
   }
-}*/
+}
 
 namespace {
   Duration<double> dur(const Span<TimeStamp> &span) {
