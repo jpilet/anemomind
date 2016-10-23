@@ -16,6 +16,7 @@
 #include <device/anemobox/Channels.h>
 #include <server/common/TimedValue.h>
 #include <server/nautical/calib/BoatParameters.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 
@@ -44,7 +45,7 @@ public:
 };
 
 // A CalibDataChunk are measurements that are grouped together
-// They are dense without any gaps.
+// They are dense without any big gaps.
 struct CalibDataChunk {
   Array<BoatState<double>> initialStates;
   TimeStampToIndexMapper timeMapper;
@@ -66,6 +67,11 @@ struct ReconstructionResults {
   BoatParameters<double> parameters;
   Array<ReconstructedChunk> chunks;
 };
+
+ReconstructionResults reconstruct(
+    const Array<CalibDataChunk> &chunks,
+    const ReconstructionSettings &settings,
+    DOM::Node *dst);
 
 }
 

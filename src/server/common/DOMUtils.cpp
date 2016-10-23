@@ -114,10 +114,10 @@ Node makeBasicHtmlPage(const std::string &titleString,
 }
 
 
-Node linkToSubPage(Node parent, const std::string title) {
+Node linkToSubPage(Node *parent, const std::string title) {
   auto subPage = makeBasicHtmlPage(title);
-  subPage.writer = parent.writer->makeSubPageWriter(subPage.document);
-  auto a = makeSubNode(&parent, "a");
+  subPage.writer = parent->writer->makeSubPageWriter(subPage.document);
+  auto a = makeSubNode(parent, "a");
   a.element->setAttribute(toXMLString("href"),
       toXMLString(subPage.writer->localFilename()));
   addTextNode(&a, title);

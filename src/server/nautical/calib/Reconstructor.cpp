@@ -9,6 +9,11 @@
 
 namespace sail {
 
-
+ReconstructionResults reconstruct(
+    const Array<CalibDataChunk> &chunks,
+    const ReconstructionSettings &settings,
+    DOM::Node *dst) {
+  return ReconstructionResults();
+}
 
 }

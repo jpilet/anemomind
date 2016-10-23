@@ -57,7 +57,7 @@ struct CutVisitor {
         (*ChannelFieldAccess<Code>::get(_chunks[i]))[sourceName] = cut[i];
       }
     } else {
-      /*HtmlTag::tagWithData(_log, "p", {{"class", "warning"}},
+      /*DOM::addSubTextNode(&_log, "p", {{"class", "warning"}},
           std::string("Measured values from ") + shortName + ", "
           + sourceName + " will not be used.");*/
     }
@@ -123,16 +123,16 @@ Array<BoatState<double> > makeInitialStates(
 /*void outputChunkSummary(
     const Array<CalibDataChunk> &chunks,
     HtmlNode::Ptr log0) {
-  auto table = HtmlTag::make(log0, "table");
+  auto table = DOM::makeSubNode(&log0, "table");
   {
-    auto tr = HtmlTag::make(table, "tr");
-    HtmlTag::tagWithData(tr, "th", "Index");
-    HtmlTag::tagWithData(tr, "th", "Sample count");
+    auto tr = DOM::makeSubNode(&table, "tr");
+    DOM::addSubTextNode(&tr, "th", "Index");
+    DOM::addSubTextNode(&tr, "th", "Sample count");
   }
   for (int i = 0; i < chunks.size(); i++) {
-    auto tr = HtmlTag::make(table, "tr");
-    HtmlTag::tagWithData(tr, "td", stringFormat("%d", i));
-    HtmlTag::tagWithData(tr, "td",
+    auto tr = DOM::makeSubNode(&table, "tr");
+    DOM::addSubTextNode(&tr, "td", stringFormat("%d", i));
+    DOM::addSubTextNode(&tr, "td",
         stringFormat("%d", chunks[i].timeMapper.sampleCount));
   }
 }*/
@@ -151,7 +151,7 @@ Array<CalibDataChunk> makeCalibChunks(
 
 
   int n = timeSpans.size();
-  /*HtmlTag::tagWithData(log, "p",
+  /*DOM::addSubTextNode(&log, "p",
       stringFormat("Number of time spans: %d", n));*/
   Array<CalibDataChunk> chunks(n);
   {
@@ -171,7 +171,7 @@ Array<CalibDataChunk> makeCalibChunks(
         CHECK(chunks[i].initialStates.size()
             == chunks[i].timeMapper.sampleCount);
       } else {
-        /*HtmlTag::tagWithData(log, "p",
+        /*DOM::addSubTextNode(&log, "p",
             stringFormat(
                 "Potential problem: Too few states %d for chunk %d",
                 stateCount, i));*/
@@ -189,8 +189,9 @@ Array<ReconstructionResults> reconstructAllGroups(
     const Array<Span<TimeStamp>> &smallSessions,
     const Array<TimedValue<GeographicPosition<double>>> &positions,
     const Dispatcher *d,
-    const Settings &settings) {
-  //HtmlTag::tagWithData(log, "h2", "Reconstruction of all groups");
+    const Settings &settings,
+    DOM::Node *log) {
+  DOM::addSubTextNode(log, "h2", "Reconstruction of all groups");
 
   Array<CalibDataChunk> chunks
     = makeCalibChunks(smallSessions,
@@ -198,22 +199,21 @@ Array<ReconstructionResults> reconstructAllGroups(
 
   assert(chunks.size() == smallSessions.size());
 
-  //HtmlTag::tagWithData(log, "h3", "Reconstruction per group");
+  DOM::addSubTextNode(log, "h3", "Reconstruction per group");
   ReconstructionSettings recSettings;
   int n = calibGroups.size();
-  //auto ol = HtmlTag::make(log, "ol");
+  auto ol = DOM::makeSubNode(log, "ol");
   Array<ReconstructionResults> results(n);
   for (int i = 0; i < n; i++) {
     auto group = calibGroups[i];
     auto title = stringFormat("Reconstruction for group %d of %d",
                 i+1, calibGroups.size());
 
-    //auto li = HtmlTag::make(ol, "li");
-    /*auto subLog = HtmlTag::initializePage(
-        HtmlTag::linkToSubPage(li, title),
-        title);*/
-    //results[i] = reconstruct(chunks.slice(group.minv(), group.maxv()),
-        //settings.reconstructionSettings);
+    auto li = DOM::makeSubNode(&ol, "li");
+    auto subLog = DOM::linkToSubPage(&li, title);
+    results[i] = reconstruct(
+        chunks.slice(group.minv(), group.maxv()),
+        settings.reconstructionSettings, &subLog);
   }
 
   return results;
@@ -310,12 +310,13 @@ bool process(
   auto reconstructions
     = reconstructAllGroups(
         calibGroups, smallSessions,
-        allFilteredPositions, d, settings);
+        allFilteredPositions, d, settings,
+        &dbOutput);
 
   //if (logBody) {
-    //HtmlTag::tagWithData(logBody, "h2", "Summary");
+    //DOM::addSubTextNode(&logBody, "h2", "Summary");
     auto totalDuration = TimeStamp::now() - startTime;
-    //HtmlTag::tagWithData(logBody, "p",
+    //DOM::addSubTextNode(&logBody, "p",
 //        stringFormat("Processing time: %s",
 //            totalDuration.str().c_str()));
   //}

@@ -72,7 +72,7 @@ void writeHtmlFile(
     const std::string &filename,
     Poco::XML::AutoPtr<Poco::XML::Document> document);
 
-Node linkToSubPage(Node parent, const std::string title);
+Node linkToSubPage(Node *parent, const std::string title);
 Poco::Path makeGeneratedImageNode(
     Node node, const std::string &filenameSuffix);
 
