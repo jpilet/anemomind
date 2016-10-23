@@ -53,4 +53,5 @@ cxx_test(plot_AxisTicksTest
   plot_AxisTicks
   gtest_main
   common_string
+  common_TimeStamp
   )

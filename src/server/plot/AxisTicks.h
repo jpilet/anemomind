@@ -11,6 +11,7 @@
 #include <server/common/Array.h>
 #include <cmath>
 #include <string>
+#include <server/common/TimeStamp.h>
 
 namespace sail {
 
@@ -43,6 +44,24 @@ public:
 private:
   int _exponent;
   std::string _unit;
+};
+
+
+// For dates. Well, we could allow for something more fine-grained,
+// but due to irregular numbers of days in months, and so on,
+// I am not going to take on that challenge now.
+// 1 month, 2 months 3 months 6 months, 1 year, ....
+class DateTickIterator {
+public:
+  typedef TimeStamp type;
+  DateTickIterator(int l = 0);
+  DateTickIterator finer() const;
+  DateTickIterator coarser() const;
+  double computeFracIndex(TimeStamp t) const;
+  AxisTick<TimeStamp> get(int index) const;
+  int tickSpacing() const;
+private:
+  int _level;
 };
 
 template <typename T, typename TickIterator>

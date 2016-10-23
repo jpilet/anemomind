@@ -7,6 +7,7 @@
 
 #include <server/plot/AxisTicks.h>
 #include <server/common/String.h>
+#include <server/common/TimeStamp.h>
 
 namespace sail {
 
@@ -34,6 +35,68 @@ AxisTick<double> BasicTickIterator::get(int index) const {
 double BasicTickIterator::tickSpacing() const {
   return std::pow(10.0, double(_exponent));
 }
+
+int timeStampToIndex(TimeStamp t) {
+  auto x = t.makeGMTimeStruct();
+  return (x.tm_year*12 + x.tm_mon) + (x.tm_mday-1)/30.0;
+}
+
+DateTickIterator::DateTickIterator(int l) : _level(l) {}
+
+DateTickIterator DateTickIterator::finer() const {
+  return DateTickIterator(std::max(0, _level - 1));
+}
+
+DateTickIterator DateTickIterator::coarser() const {
+  return DateTickIterator(_level + 1);
+}
+
+double DateTickIterator::computeFracIndex(TimeStamp t) const {
+  return timeStampToIndex(t)/tickSpacing();
+}
+
+AxisTick<TimeStamp> DateTickIterator::get(int index) const {
+  auto ts = tickSpacing();
+  auto i = index*ts;
+  int year = i/12;
+  int month = i % 12;
+  auto date = TimeStamp::UTC(year, month+1, 1, 0, 0, 0.0);
+  if (12 <= ts) {
+    return AxisTick<TimeStamp>{
+      date, stringFormat("%d", year)
+    };
+  } else {
+    const char *months[] = {
+        "January", "February", "March",
+        "April", "May", "June",
+        "July", "August", "September",
+        "October", "November", "December"
+    };
+    return AxisTick<TimeStamp>{
+      date, stringFormat("%s %d", months[month], year)
+    };
+  }
+}
+
+namespace {
+  std::vector<int> granularitiesInMonths{
+    1, 2, 3, 4, 6, 12, 24, 60, 120
+  };
+}
+
+int DateTickIterator::tickSpacing() const {
+  if (_level < granularitiesInMonths.size()) {
+    return granularitiesInMonths[_level];
+  }
+  int last = granularitiesInMonths.size()-1;
+  int base = granularitiesInMonths[last];
+  for (int i = last; i < _level; i++) {
+    base *= 10;
+  }
+  return base;
+}
+
+
 
 
 
