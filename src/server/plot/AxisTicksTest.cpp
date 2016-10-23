@@ -21,3 +21,9 @@ TEST(AxisTicksTest, TestBasicIterator) {
   EXPECT_EQ(k.get(4).tickLabel, "40 meters");
   EXPECT_NEAR(k.computeFracIndex(33), 3.3, 1.0e-6);
 }
+
+TEST(AxisTicksTest, DateTest) {
+  DateTickIterator iter(0);
+  auto x = iter.get(2016*12);
+  EXPECT_EQ(x.tickLabel, "January 2016");
+}
