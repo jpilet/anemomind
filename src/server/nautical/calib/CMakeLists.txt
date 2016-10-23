@@ -122,4 +122,8 @@ add_library(calib_Reconstructor
   Reconstructor.cpp
   )
 
-target_link_libraries(calib_Reconstructor)
+target_link_libraries(calib_Reconstructor
+  plot_PlotUtils
+  plot_AxisTicks
+  plot_CairoUtils
+  )

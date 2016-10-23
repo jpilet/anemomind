@@ -74,7 +74,7 @@ void writeHtmlFile(
 
 Node linkToSubPage(Node *parent, const std::string title);
 Poco::Path makeGeneratedImageNode(
-    Node node, const std::string &filenameSuffix);
+    Node *node, const std::string &filenameSuffix);
 
 }
 } /* namespace sail */
