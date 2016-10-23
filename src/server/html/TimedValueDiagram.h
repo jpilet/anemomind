@@ -67,7 +67,13 @@ private:
   MAKE_UNMOVABLE(TimedValueDiagram);
 };
 
+
+class Dispatcher;
+void renderTimedValueDiagram(
+    const std::string &imageName,
+    const Dispatcher *d,
+    TimeStamp fromTime,
+    TimeStamp toTime);
+
 }
-
-
 #endif /* SERVER_HTML_TIMEDVALUEDIAGRAM_H_ */

@@ -42,3 +42,15 @@ cxx_test(plot_PlotUtilsTest
   plot_PlotUtils
   common_Env
   )
+
+add_library(plot_AxisTicks
+  AxisTicks.h
+  AxisTicks.cpp
+  )
+
+cxx_test(plot_AxisTicksTest
+  AxisTicksTest.cpp
+  plot_AxisTicks
+  gtest_main
+  common_string
+  )

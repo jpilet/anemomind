@@ -98,7 +98,7 @@ Node makeBasicHtmlPage(const std::string &titleString) {
   auto head = makeSubNode(&page, "head");
   auto title = makeSubNode(&head, "title");
   addSubTextNode(&head, "style",
-      "body {font-family: Ubuntu Mono;} td, th {border: 1px solid black;} svg {margin: 30px; border: 1px solid black;} .warning {color: orange} .error {color: red} .success {color: green}");
+      "body {padding: 2em; font-family: Ubuntu Mono;} td, th {border: 1px solid black;} svg {margin: 30px; border: 1px solid black;} .warning {color: orange} .error {color: red} .success {color: green}");
   addTextNode(&title, titleString);
   auto body = makeSubNode(&page, "body");
   return body;

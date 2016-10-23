@@ -10,6 +10,8 @@
 #include <server/plot/CairoUtils.h>
 #include <server/common/LineKM.h>
 #include <iostream>
+#include <device/anemobox/DispatcherUtils.h>
+#include <cairo/cairo-svg.h>
 
 namespace sail {
 
@@ -100,6 +102,66 @@ double TimedValueDiagram::timeToX(TimeStamp t) const {
   return _settings.timeWidth*((t - _fromTime)/(_toTime - _fromTime));
 }
 
+struct DiagramVisitor {
+  TimedValueDiagram *diagram;
+  LineKM hueMap;
+  std::map<DataCode, PlotUtils::HSV> cmap;
+
+  DiagramVisitor(TimedValueDiagram *d,
+      const LineKM &hm) : diagram(d),
+      hueMap(hm), cmap(makeDataCodeColorMap()) {}
+
+  template <DataCode Code, typename T>
+  void visit(
+      const char *shortName,
+      const std::string &sourceName,
+    const std::shared_ptr<DispatchData> &raw,
+    const TimedSampleCollection<T> &coll) {
+    Cairo::setSourceColor(
+        diagram->context(),
+        cmap[Code]);
+    const auto &s = coll.samples();
+    cairo_set_line_width(diagram->context(), 4);
+    diagram->addTimedValues(
+        "[" + std::string(wordIdentifierForCode(Code)) + "] "
+      +  sourceName, s.begin(), s.end());
+  }
+};
+
+void renderTimedValueDiagram(
+    const std::string &imageName,
+    const Dispatcher *d,
+    TimeStamp fromTime,
+    TimeStamp toTime) {
+  using namespace Cairo;
+
+  int n = countChannels(d);
+  LineKM hueMap(0.0, n, 0.0, 360);
+
+  TimedValueDiagram::Settings settings;
+  settings.timeWidth = 800;
+
+  const char *cc = imageName.c_str();
+
+  double labelMarg = 400;
+
+  auto surface = sharedPtrWrap(
+      cairo_svg_surface_create(imageName.c_str(),
+          settings.timeWidth + labelMarg, (n + 2)*settings.verticalStep));
+  auto cr = sharedPtrWrap(cairo_create(surface.get()));
+
+  std::cout << "From " << fromTime << " to " << toTime << std::endl;
+
+  cairo_set_font_size (cr.get(), 15);
+  cairo_select_font_face (
+      cr.get(), "Ubuntu Mono",
+      CAIRO_FONT_SLANT_NORMAL,
+      CAIRO_FONT_WEIGHT_NORMAL);
+  TimedValueDiagram diagram(cr.get(), fromTime, toTime, settings);
+
+  DiagramVisitor v(&diagram, hueMap);
+  visitDispatcherChannelsConst(d, &v);
+}
 
 }
 
