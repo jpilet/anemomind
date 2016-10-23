@@ -42,5 +42,21 @@ TEST(AxisTicksTest, DateTest) {
     EXPECT_EQ(g.get(index).tickLabel, "January 2014");
     EXPECT_EQ(g.get(index + 1).tickLabel, "March 2014");
   }
+}
 
+TEST(AxisTicksTest, Compute) {
+  BasicTickIterator iter(0, "");
+  auto ticks = computeAxisTicks<BasicTickIterator>(
+      3.4, 9.9, iter);
+
+  std::cout << "Got these ticks: " << std::endl;
+  for (auto t: ticks) {
+    std::cout << "  " << t.tickLabel << std::endl;
+  }
+
+  EXPECT_FALSE(ticks.empty());
+  EXPECT_LT(ticks.first().position, 3.4);
+  EXPECT_NEAR(ticks.first().position, 3.4, 10);
+  EXPECT_LT(9.9, ticks.last().position);
+  EXPECT_NEAR(ticks.last().position, 9.9, 10);
 }

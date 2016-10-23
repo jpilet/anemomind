@@ -48,6 +48,10 @@ add_library(plot_AxisTicks
   AxisTicks.cpp
   )
 
+target_link_libraries(plot_AxisTicks
+  common_logging
+  )
+
 cxx_test(plot_AxisTicksTest
   AxisTicksTest.cpp
   plot_AxisTicks

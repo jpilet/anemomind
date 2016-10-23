@@ -12,6 +12,7 @@
 #include <cmath>
 #include <string>
 #include <server/common/TimeStamp.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -21,8 +22,7 @@ struct AxisTick {
   std::string tickLabel;
 };
 
-// A "tick iterator" for some type T has
-// a "typedef T type;" and four methods:
+// A "tick iterator" for some type T four methods:
 //  finer() that returns a tick iterator
 //    with less space between the ticks
 //  coarser() that returns a tick iterator
@@ -80,17 +80,22 @@ private:
   BasicTickIterator _iter;
 };
 
+template <typename TickIterator>
+using TypeOfTick =
+    decltype(std::declval<TickIterator>().get(0).position);
 
-template <typename T, typename TickIterator>
-double tickIteratorCost(TickIterator iter, T lower, T upper) {
+template <typename TickIterator>
+double tickIteratorCost(TickIterator iter,
+    TypeOfTick<TickIterator> lower,
+    TypeOfTick<TickIterator> upper) {
   double idealTickCount = 4.0;
   double width = std::abs(
       iter.computeFracIndex(lower)
-      - computeFracIndex(upper));
+      - iter.computeFracIndex(upper));
   return std::abs(width - idealTickCount);
 }
 
-template <typename T, typename TickIterator>
+template <typename TickIterator>
 struct EvaluatedTickIterator {
   TickIterator iterator;
   double cost;
@@ -98,18 +103,18 @@ struct EvaluatedTickIterator {
 
   EvaluatedTickIterator(
       TickIterator iter,
-      T lower, T upper, int *counter) : iterator(iter),
-          cost(tickIteratorCost<T, TickIterator>(iter, lower, upper)),
+      TypeOfTick<TickIterator> lower,
+      TypeOfTick<TickIterator> upper,
+      int *counter) : iterator(iter),
+          cost(tickIteratorCost<TickIterator>(iter, lower, upper)),
           iteration((*counter)++) {}
 
-  bool operator<(const EvaluatedTickIterator<T, TickIterator> &other) const {
+  bool operator<(const EvaluatedTickIterator<TickIterator> &other) const {
     return cost < other.cost;
   }
 };
 
 
-template <typename TickIterator>
-using TypeOfTick = typename TickIterator::type;
 
 template <typename TickIterator>
 TickIterator optimizeTickIterator(
@@ -118,14 +123,14 @@ TickIterator optimizeTickIterator(
     TickIterator init) {
   typedef TypeOfTick<TickIterator> T;
   int counter = 0;
-  EvaluatedTickIterator<T, TickIterator> best(
+  EvaluatedTickIterator<TickIterator> best(
       init, lower, upper, &counter);
   while (true) {
     auto next = std::min(
         best, std::min(
-            EvaluatedTickIterator<T, TickIterator>(
+            EvaluatedTickIterator<TickIterator>(
               best.iterator.finer(), lower, upper, &counter),
-            EvaluatedTickIterator<T, TickIterator>(
+            EvaluatedTickIterator<TickIterator>(
               best.iterator.coarser(), lower, upper, &counter)));
     if (next.iteration == best.iteration ||
         next.cost == best.cost) {
@@ -136,21 +141,22 @@ TickIterator optimizeTickIterator(
   }
 }
 
-/*template <typename T, typename TickIterator>
-Array<AxisTick<T> > computeAxisTicks(
-    T lower, T upper, TickIterator init) {
+template <typename TickIterator>
+Array<AxisTick<TypeOfTick<TickIterator>>> computeAxisTicks(
+    TypeOfTick<TickIterator> lower,
+    TypeOfTick<TickIterator> upper,
+    TickIterator init) {
   CHECK(lower < upper);
-  auto iter = optimizeTickIterator(upper - lower, init);
-  auto spacing = iter.tickSpacing();
-  int lowerIndex = int(ceil(lower/spacing));
-  int upperIndex = int(floor(upper/spacing));
+  auto iter = optimizeTickIterator(lower, upper, init);
+  int lowerIndex = int(floor(iter.computeFracIndex(lower)));
+  int upperIndex = int(ceil(iter.computeFracIndex(upper)));
   int n = upperIndex - lowerIndex + 1;
-  Array<AxisTick<T>> dst(n);
+  Array<AxisTick<TypeOfTick<TickIterator>>> dst(n);
   for (int i = 0; i < n; i++) {
-    dst[i] = iter.tick(lower + i);
+    dst[i] = iter.get(lower + i);
   }
   return dst;
-}*/
+}
 
 }
 
