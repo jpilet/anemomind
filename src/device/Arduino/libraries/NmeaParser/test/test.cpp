@@ -312,3 +312,14 @@ TEST(NmeaParserTest, TestRudder) {
            sendSentence("$IIXDR,A,-25.8,D,RUDDER*67", &parser));
 
 }
+
+TEST(NmeaParserTest, InvalidWind) {
+  MockNmeaParser parser;
+
+  // Valid sentence containing invalid wind -> invalid sentence.
+  // these sentences have been recorded on Yquem on 9/26/16 19:34:17
+  EXPECT_EQ(NmeaParser::NMEA_NONE,
+           sendSentence("$IIMWV,20,R,3222.6,N,A*26", &parser));
+  EXPECT_EQ(NmeaParser::NMEA_NONE,
+           sendSentence("$IIVWR,20,R,3222.6,N,1657.7,M,5968.3,K*51", &parser));
+}
