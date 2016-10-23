@@ -55,6 +55,8 @@ public:
   cairo_t *context() {
     return _dstContext;
   }
+
+  ~TimedValueDiagram();
 private:
 
   double timeToX(TimeStamp t) const;

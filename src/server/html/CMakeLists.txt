@@ -27,4 +27,5 @@ target_link_libraries(html_TimedValueDiagram
   plot_PlotUtils
   plot_CairoUtils
   anemobox_Dispatcher
+  plot_AxisTicks
   )

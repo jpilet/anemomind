@@ -12,6 +12,7 @@
 #include <iostream>
 #include <device/anemobox/DispatcherUtils.h>
 #include <cairo/cairo-svg.h>
+#include <server/plot/AxisTicks.h>
 
 namespace sail {
 
@@ -78,8 +79,41 @@ void TimedValueDiagram::addTimes(
     using namespace Cairo;
     WithLocalDeviceScale with(
         _dstContext, WithLocalDeviceScale::Identity);
-    cairo_move_to(_dstContext, timeToX(_toTime), _y);
+    cairo_translate(_dstContext, timeToX(_toTime), _y);
+    //cairo_move_to(_dstContext, timeToX(_toTime), _y);
     cairo_show_text(_dstContext, label.c_str());
+  }
+}
+
+TimedValueDiagram::~TimedValueDiagram() {
+  _y += _settings.verticalStep;
+  Array<AxisTick<TimeStamp>> ticks
+    = computeAxisTicks<DateTickIterator>(
+      _fromTime, _toTime, DateTickIterator());
+
+  Cairo::WithLocalContext wlc(_dstContext);
+
+  cairo_set_source_rgb(_dstContext, 0, 0, 0);
+  cairo_set_line_width(_dstContext, 1);
+
+  for (auto t: ticks) {
+    std::cout << "Tick at " << t.tickLabel << std::endl;
+    auto x = timeToX(t.position);
+    cairo_move_to(_dstContext, x, 0);
+    cairo_line_to(_dstContext, x, _y);
+    {
+      Cairo::WithLocalDeviceScale wls(_dstContext,
+              Cairo::WithLocalDeviceScale::Identity);
+      cairo_stroke(_dstContext);
+    }{
+      Cairo::WithLocalDeviceScale wls(_dstContext,
+              Cairo::WithLocalDeviceScale::Identity);
+      cairo_translate(_dstContext, x, _y);
+      cairo_move_to(_dstContext, 0, 0);
+      cairo_show_text(_dstContext, t.tickLabel.c_str());
+    }
+
+
   }
 }
 
