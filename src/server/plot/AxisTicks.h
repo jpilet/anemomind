@@ -47,7 +47,8 @@ private:
 };
 
 
-// For dates. Well, we could allow for something more fine-grained,
+// For dates. Well, we could allow for
+// something more fine-grained than months,
 // but due to irregular numbers of days in months, and so on,
 // I am not going to take on that challenge now.
 // 1 month, 2 months 3 months 6 months, 1 year, ....
@@ -63,6 +64,22 @@ public:
 private:
   int _level;
 };
+
+template <typename T>
+class PhysicalQuantityIterator {
+public:
+  typedef T type;
+  PhysicalQuantityIterator(int level = 0);
+  PhysicalQuantityIterator<T> finer() const;
+  PhysicalQuantityIterator<T> coarser() const;
+  double computeFracIndex(T x) const;
+  T tickSpacing() const;
+  AxisTick<T> get(int i) const;
+private:
+  PhysicalQuantityIterator(const BasicTickIterator &i);
+  BasicTickIterator _iter;
+};
+
 
 template <typename T, typename TickIterator>
 double tickIteratorCost(TickIterator iter, T lower, T upper) {

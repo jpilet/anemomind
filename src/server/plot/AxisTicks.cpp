@@ -98,6 +98,68 @@ int DateTickIterator::tickSpacing() const {
   return base;
 }
 
+template <typename T>
+struct TickUnit {};
+
+template <>
+struct TickUnit<Velocity<double>> {
+  static Velocity<double> unit() {return 1.0_mps;}
+  static const char *label() {return "m/s";}
+};
+
+template <>
+struct TickUnit<Length<double>> {
+  static Length<double> unit() {return 1.0_m;}
+  static const char *label() {return "m";}
+};
+
+template <>
+struct TickUnit<Duration<double>> {
+  static Duration<double> unit() {return 1.0_s;}
+  static const char *label() {return "s";}
+};
+
+template <typename T>
+PhysicalQuantityIterator<T>::PhysicalQuantityIterator(int level) :
+    _iter(level, TickUnit<T>::label()) {}
+
+template <typename T>
+PhysicalQuantityIterator<T>
+  PhysicalQuantityIterator<T>::finer() const {
+  return PhysicalQuantityIterator<T>(_iter.finer());
+}
+
+template <typename T>
+PhysicalQuantityIterator<T>
+  PhysicalQuantityIterator<T>::coarser() const {
+  return PhysicalQuantityIterator<T>(_iter.coarser());
+}
+
+template <typename T>
+T PhysicalQuantityIterator<T>::tickSpacing() const {
+  return TickUnit<T>::unit()*_iter.tickSpacing();
+}
+
+template <typename T>
+double PhysicalQuantityIterator<T>::computeFracIndex(T x) const {
+  return x/tickSpacing();
+}
+
+
+template <typename T>
+AxisTick<T> PhysicalQuantityIterator<T>::get(int i) const {
+  auto x = _iter.get(i);
+  return AxisTick<T>{x.position*TickUnit<T>::unit(), x.tickLabel};
+}
+
+template <typename T>
+PhysicalQuantityIterator<T>::PhysicalQuantityIterator(
+    const BasicTickIterator &iter) : _iter(iter) {}
+
+template class PhysicalQuantityIterator<Velocity<double>>;
+template class PhysicalQuantityIterator<Length<double>>;
+template class PhysicalQuantityIterator<Duration<double>>;
+
 
 
 
