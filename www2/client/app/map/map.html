@@ -169,6 +169,7 @@
           <i class="fa {{tab.icon}}"></i>
         </uib-tab-heading>
         <div class="res-container {{tab.name}}" ng-class="{'hidden' : !showTabContent}">
+          <hr ng-if="tab.name == 'res-photos'"/>
         </div>
       </uib-tab>
     </uib-tabset>
