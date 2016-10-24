@@ -4,7 +4,7 @@
       
       <article class="timeline-panel">
         <div ng-if="event.photo" class="top">
-          <a ng-click="openLightboxModal($index)">
+          <a ng-click="openLightboxModal(event.photo)">
             <img ng-src="{{ thumbnail(event) }}"></img>
           </a>
         </div>
