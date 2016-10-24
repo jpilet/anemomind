@@ -46,6 +46,9 @@ angular.module('www2App')
       }
     };
 
+    /* url is not used yet.
+    *  I think this will be used if someone will code for the social media sharing?
+    */
     $scope.iconList = [
       {
         name: 'linkedin',
@@ -148,7 +151,7 @@ angular.module('www2App')
       var aveSpeedText = '32 Kts';
       var windBlowedText = '22 Kts';
       var performanceText = '91%';
-      $scope.shareText = '"'+$scope.boat.name+'" and her team made a great performance with an average speed of '+aveSpeedText+'. The wind blowed at '+windBlowedText+'. Anemomind calculated a global performance of '+performanceText+'.';
+      $scope.shareText = $scope.boat.name+' and her team made a great performance with an average speed of '+aveSpeedText+'. The wind blowed at '+windBlowedText+'. Anemomind calculated a global performance of '+performanceText+'.';
       $scope.shareText += '\n\nAdd text ...'
     });
 

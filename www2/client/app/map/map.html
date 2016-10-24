@@ -19,11 +19,11 @@
             <i class="anemomind-icon play" ng-class="{'pause':isPlaying}" ng-click="togglePlayPause()" title="{{isPlaying ? 'Pause' : 'Play'}}">&nbsp;</i>
             <div class="btn-grouped">
               <button type="button" class="btn btn-default btn-sm slower" ng-click="slower()" title="Cut Slower">
-                &nbsp;
+                <i class="anemomind-icon">&nbsp;</i>
               </button>
               <span>{{ replaySpeed }}x</span>
               <button type="button" class="btn btn-default btn-sm faster" ng-click="faster()" title="Faster">
-                &nbsp;  
+                <i class="anemomind-icon">&nbsp;</i>
               </button>
             </div>
             <i class="anemomind-icon cut-before" ng-click="cutBefore()" title="Cut Before">&nbsp;</i>
