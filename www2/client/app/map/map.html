@@ -159,40 +159,16 @@
 
   <footer class="responsiveNavButtons">
     <uib-tabset active="active">
-      <uib-tab index="0" select="refreshGraph()">
+      <uib-tab ng-repeat="tab in tabs" 
+      index="$index" 
+      select="selectTab($index)"
+      testing="{{eventList.length}}"
+      classes="{{!eventList.length ? 'only-four' : ''}}"
+      ng-show="tab.name == 'res-photos' ? (eventList.length > 0 ? true : false) : true">
         <uib-tab-heading>
-          <i class="fa fa-area-chart"></i>
+          <i class="fa {{tab.icon}}"></i>
         </uib-tab-heading>
-        <div class="res-container res-graph">
-        </div>
-      </uib-tab>
-      <uib-tab index="1" select="refreshGraph()">
-        <uib-tab-heading>
-          <i class="fa fa-dashboard"></i>
-        </uib-tab-heading>
-        <div class="res-container res-perf">
-        </div>
-      </uib-tab>
-      <uib-tab index="2" select="refreshGraph()">
-        <uib-tab-heading>
-          <i class="fa fa-flag"></i>
-        </uib-tab-heading>
-        <div class="res-container res-wind">
-        </div>
-      </uib-tab>
-      <uib-tab index="3" select="refreshGraph()">
-        <uib-tab-heading>
-          <i class="fa fa-list"></i>
-        </uib-tab-heading>
-        <div class="res-container res-details">
-        </div>
-      </uib-tab>
-      <uib-tab index="4" select="refreshGraph()" ng-show="eventList.length">
-        <uib-tab-heading>
-          <i class="fa fa-photo"></i>
-        </uib-tab-heading>
-        <div class="res-container res-photos">
-          <hr/>
+        <div class="res-container {{tab.name}}" ng-class="{'hidden' : !showTabContent}">
         </div>
       </uib-tab>
     </uib-tabset>

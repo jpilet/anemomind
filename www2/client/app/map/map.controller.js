@@ -46,9 +46,8 @@ angular.module('www2App')
       }
     };
 
-    /* url is not used yet.
-    *  I think this will be used if someone will code for the social media sharing?
-    */
+    // url is not used yet.
+    // I think this will be used if someone will code for the social media sharing?
     $scope.iconList = [
       {
         name: 'linkedin',
@@ -73,6 +72,29 @@ angular.module('www2App')
       {
         name: 'mail',
         url: '#'
+      }
+    ];
+
+    $scope.tabs = [
+      {
+        name: 'res-graph',
+        icon: 'fa-area-chart'
+      },
+      {
+        name: 'res-perf',
+        icon: 'fa-dashboard'
+      },
+      {
+        name: 'res-wind',
+        icon: 'fa-flag'
+      },
+      {
+        name: 'res-details',
+        icon: 'fa-list'
+      },
+      {
+        name: 'res-photos',
+        icon: 'fa-photo'
       }
     ];
 
@@ -397,6 +419,26 @@ angular.module('www2App')
     var height = function() {
       return mapScreenContainer.height();
     };
+
+
+    // Angular Tabs only toggles by switching from 1 tab to another
+    // This will allow to toggle the current tab by hiding it or not.
+    // Why? For the map to have more viewable space.
+    $scope.currentTab = null;
+    $scope.showTabContent = true;
+    $scope.selectTab = function(selectedIndex) {
+      // If tab is Graph
+      if(selectedIndex == 0)
+        delayedApply();
+
+      if ($scope.currentTab !== selectedIndex) {
+        $scope.currentTab = selectedIndex;
+        $scope.showTabContent = true;
+      } else {
+        $scope.showTabContent = !$scope.showTabContent;
+      }
+    }
+
 
     // Toggling the visibility of components change their size.
     // However, in HTML, there is no way to bind to a div resize event.

@@ -740,7 +740,7 @@ perfplot {
   width: 20%;
   text-align: center;
 }
-.responsiveNavButtons .nav-tabs.only-four > li {
+.responsiveNavButtons .nav-tabs > li.only-four {
   width: 25%;
 }
 .responsiveNavButtons .nav-tabs > li a {
@@ -784,7 +784,6 @@ perfplot {
     flex-direction: column;
     min-height: 0;
   }
-  .responsiveNavButtons .tab-content,
   .res-container.res-graph,
   .res-container.res-perf,
   .res-container.res-wind,
@@ -1051,7 +1050,6 @@ perfplot {
   }
 }
 @media only screen and (max-width: 420px) {
-  .responsiveNavButtons .tab-content,
   .res-container.res-graph,
   .res-container.res-perf,
   .res-container.res-wind,
