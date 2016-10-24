@@ -46,6 +46,33 @@ angular.module('www2App')
       }
     };
 
+    $scope.iconList = [
+      {
+        name: 'linkedin',
+        url: '#'
+      },
+      {
+        name: 'facebook',
+        url: '#'
+      },
+      {
+        name: 'pinterest',
+        url: '#'
+      },
+      {
+        name: 'twitter',
+        url: '#'
+      },
+      {
+        name: 'google',
+        url: '#'
+      },
+      {
+        name: 'mail',
+        url: '#'
+      }
+    ];
+
     var setLocationTimeout;
     function setLocation() {
       setSelectTime();

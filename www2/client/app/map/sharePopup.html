@@ -4,22 +4,7 @@
   <div class="custom-modal-container">
     <div class="icon-list">
         <ul>
-            <li class="linkedin">
-                <i class="anemomind-icon" aria-hidden="true"></i>
-            </li>
-            <li class="facebook">
-                <i class="anemomind-icon" aria-hidden="true"></i>
-            </li>
-            <li class="pinterest">
-                <i class="anemomind-icon" aria-hidden="true"></i>
-            </li>
-            <li class="twitter">
-                <i class="anemomind-icon" aria-hidden="true"></i>
-            </li>
-            <li class="google">
-                <i class="anemomind-icon" aria-hidden="true"></i>
-            </li>
-            <li class="mail">
+            <li ng-repeat="icon in iconList" class="{{icon.name}}">
                 <i class="anemomind-icon" aria-hidden="true"></i>
             </li>
         </ul>
