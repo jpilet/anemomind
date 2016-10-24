@@ -18,16 +18,16 @@
 namespace sail {
 
 template <DataCode code>
-Array<std::string> listSourcesOfType(
+std::set<std::string> listSourcesOfType(
     const Array<CalibDataChunk> &chunks) {
-  ArrayBuilder<std::string> dst;
+  std::set<std::string> dst;
   for (auto chunk: chunks) {
     auto *x = ChannelFieldAccess<code>::get(chunk);
     for (auto kv: *x) {
-      dst.add(kv.first);
+      dst.insert(kv.first);
     }
   }
-  return dst.get();
+  return dst;
 }
 
 Array<TimedValue<Eigen::Vector2d>> headingsToTrajectory(
@@ -133,7 +133,7 @@ void outputMagHeadingPlotToFile(
   }
 }
 
-void outputMagHeadingPlot(
+void outputTrajectoryDuration(
     const Array<TimedValue<Eigen::Vector2d>> &traj,
     DOM::Node *dst) {
   Duration<double> dur = 0.0_s;
@@ -142,6 +142,12 @@ void outputMagHeadingPlot(
   }
   DOM::addSubTextNode(dst, "p", stringFormat(
       "Duration of %s", dur.str().c_str()));
+}
+
+void outputMagHeadingPlot(
+    const Array<TimedValue<Eigen::Vector2d>> &traj,
+    DOM::Node *dst) {
+  outputTrajectoryDuration(traj, dst);
   auto imgFilename = DOM::makeGeneratedImageNode(dst, ".svg");
   outputMagHeadingPlotToFile(imgFilename.toString(), traj);
 }
@@ -169,11 +175,30 @@ void outputTrajectoryPlots(
     ToTrajectory<code> f,
     DOM::Node *dst) {
   auto sources = listSourcesOfType<code>(chunks);
+  {
+    auto ul = DOM::makeSubNode(dst, "ul");
+    for (auto src: sources) {
+      DOM::addSubTextNode(&ul, "li", src);
+    }
+  }
   auto table = DOM::makeSubNode(dst, "table");
   for (auto src: sources) {
     auto row = DOM::makeSubNode(&table, "tr");
     DOM::addSubTextNode(&row, "th", src);
     outputMagHeadingPlotPerChunk<code>(src, chunks, f, &row);
+  }
+}
+
+void outputFilteredPositionsPlots(
+    const Array<CalibDataChunk> &chunks,
+    DOM::Node *dst) {
+  auto table = DOM::makeSubNode(dst, "table");
+  auto row = DOM::makeSubNode(&table, "tr");
+  DOM::addSubTextNode(&row, "th", "Filtered positions");
+  for (auto chunk: chunks) {
+    auto td = DOM::makeSubNode(&row, "td");
+    auto traj = gpsPosToTrajectory(chunk.filteredPositions);
+    outputMagHeadingPlot(traj, &td);
   }
 }
 
@@ -185,9 +210,11 @@ bool precalibrateMagHdg(
   outputTrajectoryPlots<MAG_HEADING>(
       chunks, &headingsToTrajectory, dst);
 
-  DOM::addSubTextNode(dst, "h2", "GPS trajectories");
+  DOM::addSubTextNode(dst, "h2", "Raw GPS trajectories");
   outputTrajectoryPlots<GPS_POS>(
       chunks, &gpsPosToTrajectory, dst);
+  DOM::addSubTextNode(dst, "h2", "Filtered GPS trajectories");
+  outputFilteredPositionsPlots(chunks, dst);
   return true;
 }
 
