@@ -22,7 +22,56 @@ angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
 
+    $scope.toggleVMG = false;
+    $scope.toggleTail = $location.search().queue ? true : false;
+    $scope.sections = {
+      showPerfSpeed: false,
+      showWind: false,
+      showDetails: false
+    };
+    $scope.containers = {
+      showInfoGroup: false,
+      showSidebar: true,
+      showGraph: true
+    };
     $scope.boat = { _id: $stateParams.boatId, name: 'loading' };
+
+    $scope.slider = {
+      options: {
+        floor: 30,
+        ceil: 10800,
+        step: 1,
+        minLimit: 30,
+        maxLimit: 10800,
+      }
+    };
+
+    $scope.iconList = [
+      {
+        name: 'linkedin',
+        url: '#'
+      },
+      {
+        name: 'facebook',
+        url: '#'
+      },
+      {
+        name: 'pinterest',
+        url: '#'
+      },
+      {
+        name: 'twitter',
+        url: '#'
+      },
+      {
+        name: 'google',
+        url: '#'
+      },
+      {
+        name: 'mail',
+        url: '#'
+      }
+    ];
 
     var setLocationTimeout;
     function setLocation() {
@@ -82,6 +131,10 @@ angular.module('www2App')
           scale: parseFloat(entries[2])
         };
       }
+
+      if($location.search().queue) {
+        $scope.tailLength = $location.search().queue;
+      }
     }
 
     parseParams();
@@ -92,6 +145,11 @@ angular.module('www2App')
     .success(function(data, status, headers, config) {
       $scope.boat = data;
 
+      var aveSpeedText = '32 Kts';
+      var windBlowedText = '22 Kts';
+      var performanceText = '91%';
+      $scope.shareText = '"'+$scope.boat.name+'" and her team made a great performance with an average speed of '+aveSpeedText+'. The wind blowed at '+windBlowedText+'. Anemomind calculated a global performance of '+performanceText+'.';
+      $scope.shareText += '\n\nAdd text ...'
     });
 
     $scope.eventList = [];
@@ -157,6 +215,24 @@ angular.module('www2App')
         } else {
           $interval.cancel(animationTimer);
         }
+      }
+    });
+    
+    $scope.$watch('toggleTail', function(newVal, oldVal) {
+      if (newVal != oldVal) {
+        var queueVal = !newVal ? null : ($scope.tailLength ? $scope.tailLength : 300);
+        $location.search('queue', queueVal);
+        updatePosition();
+      }
+    });
+
+    $scope.$watch('tailLength', function(newVal, oldVal) {
+      if (newVal != oldVal) {
+        var queueVal = !newVal ? null : newVal;
+        $scope.toggleTail = !newVal ? false : true;
+        
+        $location.search('queue', queueVal);
+        updatePosition();
       }
     });
 
@@ -328,6 +404,9 @@ angular.module('www2App')
     var delayedApply = function() {
       setTimeout(function() { $scope.$apply(); }, 10);
     };
+    $scope.refreshGraph = function() {
+      delayedApply();
+    }
     $scope.activateMap = function() {
       $scope.mapActive = true;
       $scope.graphActive = (height() >= verticalSizeThreshold);
@@ -359,7 +438,7 @@ angular.module('www2App')
            // If the screen becomes to small for both
            // the side bar and the map/graph container,
            // we hide the side bar.
-           $scope.sideBarActive = false;
+           //$scope.sideBarActive = false;
          }
        } else {
          // If the screen got large enough, show the sidebar,
@@ -373,7 +452,7 @@ angular.module('www2App')
 
       if (value.height < verticalSizeThreshold) {
         if ($scope.mapActive && $scope.graphActive) {
-          $scope.graphActive = false;
+          //$scope.graphActive = false;
         }
       } else {
         if ($scope.mapActive || $scope.graphActive) {

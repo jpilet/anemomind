@@ -1,0 +1,20 @@
+<div class="modal-body" ng-controller="MapCtrl">
+<i class="anemomind-icon cls-btn" ng-click="$dismiss()" aria-hidden="true"></i>
+  <!-- caption -->
+  <div class="custom-modal-container">
+    <div class="icon-list">
+        <ul>
+            <li ng-repeat="icon in iconList" class="{{icon.name}}">
+                <i class="anemomind-icon" aria-hidden="true"></i>
+            </li>
+        </ul>
+    </div>
+    <div class="share-box">
+        <textarea>{{shareText}}</textarea>
+        <button type="button" class="btn btn-default">
+        </button>
+    </div>
+    
+  </div>
+
+</div>
