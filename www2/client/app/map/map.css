@@ -13,7 +13,7 @@ height:100%;
   position: absolute;
   top: 8px;
   left: 9px;
-  z-index: 1;
+  z-index: 12;
   width: 34px;
   height: 34px;
   background-image: url('/assets/images/cross_dark.svg');
@@ -132,7 +132,7 @@ height:100%;
 }
 .mainControl .heading .boat-name {
   padding: 4px 0 4px 7px;
-  width: 40%;
+  width: 60%;
   border-top-left-radius: 10px;
 }
 .mainControl .boat-name label,
@@ -150,7 +150,7 @@ height:100%;
 }
 .mainControl .heading .share-boat {
   padding: 4px 6px 4px 4px;
-  width: 60%;
+  width: 40%;
   border-top-right-radius: 10px;
 }
 .mainControl .share-boat-holder {
@@ -477,6 +477,13 @@ height:100%;
   }
 }
 @media only screen and (max-width: 360px) {
+  .close-btn {
+    width: 24px;
+    height: 24px;
+  }
+  .mainControl .heading .boat-name {
+    padding-left: 35px !important;
+  }
   .mainControl .control-btns .group-btn {
     margin-top: 0;
   }
@@ -489,14 +496,6 @@ height:100%;
   }
   .mainControl .heading .boat-name {
     padding: 1px 4px;
-  }
-  .close-btn {
-    width: 16px;
-    height: 16px;
-  }
-  .close-btn:before, 
-  .close-btn:after {
-    height: 3px;
   }
   .mainControl .boat-name label {
     font-size: 16px;
@@ -760,9 +759,16 @@ perfplot {
   background-color: #fbfbfb;
 }
 @media only screen and (max-width: 799px) {
+  .close-btn {
+    top: 3px;
+    left: 4px;
+  }
   .mainControl,
   .mainControl .heading {
     border-radius: 0;
+  }
+  .mainControl .heading .boat-name {
+    padding-left: 42px;
   }
   .mainControl .info-group .perf-speed,
   .mainControl .info-group .wind,
