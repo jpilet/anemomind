@@ -206,6 +206,13 @@ bool precalibrateMagHdg(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
     DOM::Node *dst) {
+  return true;
+}
+
+ReconstructionResults reconstruct(
+    const Array<CalibDataChunk> &chunks,
+    const ReconstructionSettings &settings,
+    DOM::Node *dst) {
   DOM::addSubTextNode(dst, "h2", "Magnetic headings");
   outputTrajectoryPlots<MAG_HEADING>(
       chunks, &headingsToTrajectory, dst);
@@ -215,13 +222,7 @@ bool precalibrateMagHdg(
       chunks, &gpsPosToTrajectory, dst);
   DOM::addSubTextNode(dst, "h2", "Filtered GPS trajectories");
   outputFilteredPositionsPlots(chunks, dst);
-  return true;
-}
 
-ReconstructionResults reconstruct(
-    const Array<CalibDataChunk> &chunks,
-    const ReconstructionSettings &settings,
-    DOM::Node *dst) {
   auto magHdgPage = DOM::linkToSubPage(
       dst, "Magnetic heading precalibration");
   auto magHdg = precalibrateMagHdg(chunks, settings, &magHdgPage);
