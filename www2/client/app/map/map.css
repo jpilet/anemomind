@@ -80,7 +80,7 @@ height:100%;
 .extension {
   position: absolute;
   background-color: #ed1a28;
-  padding: 0px 12px;
+  padding: 0;
   font-size: 22px;
   line-height: 22px;
   color: #fff;
@@ -105,6 +105,9 @@ height:100%;
 .extension.right-curve {
   border-top-right-radius: 3px;
   border-bottom-right-radius: 3px;
+}
+.extension i {
+  padding: 0px 12px;
 }
 
 .mainControl {
@@ -322,7 +325,7 @@ height:100%;
 .mainControl .section .anemomind-icon.plus {
   background-image: url('/assets/images/round_open.svg');
 }
-.mainControl .section .anemomind-icon.minus {
+.mainControl .section .anemomind-icon.plus.minus {
   background-image: url('/assets/images/round_close.svg');
 }
 .mainControl .perf-speed .group,
@@ -377,10 +380,12 @@ height:100%;
 .mainControl .details > div {
   background-color: rgba(234, 234, 234, 0.67);
   border-radius: 10px;
-  padding: 10px 13px;
 }
 .mainControl .details > div.collapse-area {
   padding: 0;
+}
+.mainControl .details > div.collapse-area.uncollapse-area {
+  padding: 10px 13px;
 }
 .mainControl .details .group > div {
   width: 100%;
@@ -661,7 +666,9 @@ height:100%;
       -ms-flex-positive: .1;
           flex-grow: .1;
 }
-.graph.hide-area {
+.graph.unhide-area.hide-area {
+  flex-basis: initial;
+  flex-grow: 0;
   bottom: 0;
 }
 
@@ -1169,8 +1176,11 @@ perfplot {
 }
 .sidebar-container .extension{
   left: -24px;
-  padding: 6px 8px;
+  padding: 0;
   top: 8px;
+}
+.sidebar-container .extension i {
+  padding: 6px 8px;
 }
 
 #tabs {
@@ -1213,12 +1223,12 @@ perfplot {
 }
 
 
-.uncollapse-area {
-  height: auto;
-}
 .collapse-area {
   height: 0;
   overflow: hidden;
+}
+.collapse-area.uncollapse-area {
+  height: auto;
 }
 
 /* ========= bootstrap overrides ========= */

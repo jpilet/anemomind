@@ -24,6 +24,16 @@ angular.module('www2App')
 
     $scope.toggleVMG = false;
     $scope.toggleTail = $location.search().queue ? true : false;
+    $scope.sections = {
+      showPerfSpeed: false,
+      showWind: false,
+      showDetails: false
+    };
+    $scope.containers = {
+      showInfoGroup: false,
+      showSidebar: true,
+      showGraph: true
+    };
     $scope.boat = { _id: $stateParams.boatId, name: 'loading' };
 
     $scope.slider = {

@@ -32,7 +32,7 @@
             <i class="anemomind-icon jump-prev" ng-click="" title="Jump Previous">&nbsp;</i>
             <i class="anemomind-icon jump-next" ng-click="" title="Jump Next">&nbsp;</i>
           </div>
-          <div class="info-group collapse-area">
+          <div class="info-group collapse-area" ng-class="{'uncollapse-area' : containers.showInfoGroup}">
             <div class="section tail-inputs">
               <div class="group perf-vmg">
                 <i class="anemomind-icon" aria-hidden="true" ng-class="{'is-on' : toggleVMG}" ng-click="toggleVMG = !toggleVMG;"></i>
@@ -53,11 +53,11 @@
               </div>
             </div>
             <div class="section perf-speed">
-              <label class="expandable collapse-lbl" toggle-classes="collapse-area uncollapse-area">
+              <label class="collapse-lbl">
                 Performance & Speed 
-                <i class="anemomind-icon plus" col-class="plus" uncol-class="minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+                <i class="anemomind-icon plus" ng-class="{'minus' : sections.showPerfSpeed}" ng-click="sections.showPerfSpeed = !sections.showPerfSpeed;" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
               </label>
-              <div class="collapsible group collapse-area moving-element" desktop-parent=".section.perf-speed" mobile-parent=".res-container.res-perf">
+              <div class="collapsible group collapse-area moving-element" ng-class="{'uncollapse-area' : sections.showPerfSpeed}" desktop-parent=".section.perf-speed" mobile-parent=".res-container.res-perf">
                 <div class="perf">
                   <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
                 </div>
@@ -71,11 +71,11 @@
               </div>
             </div>
             <div class="section wind">
-              <label class="expandable collapse-lbl" toggle-classes="collapse-area uncollapse-area">
+              <label class="collapse-lbl">
                 Wind 
-                <i class="anemomind-icon plus" col-class="plus" uncol-class="minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+                <i class="anemomind-icon plus" ng-class="{'minus' : sections.showWind}" ng-click="sections.showWind = !sections.showWind;" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
               </label>
-              <div class="collapsible group collapse-area moving-element" desktop-parent=".section.wind" mobile-parent=".res-container.res-wind">
+              <div class="collapsible group collapse-area moving-element" ng-class="{'uncollapse-area' : sections.showWind}" desktop-parent=".section.wind" mobile-parent=".res-container.res-wind">
                 <div class="top-wheel">
                   <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
                 </div>
@@ -85,11 +85,11 @@
               </div>
             </div>
             <div class="section details">
-              <label class="expandable collapse-lbl height-check" toggle-classes="collapse-area uncollapse-area">
+              <label class="collapse-lbl">
                 Details 
-                <i class="anemomind-icon plus" col-class="plus" uncol-class="minus" col-state="true" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+                <i class="anemomind-icon plus" ng-class="{'minus' : sections.showDetails}" ng-click="sections.showDetails = !sections.showDetails;" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
               </label>
-              <div class="collapsible instrumentsView collapse-area moving-element" desktop-parent=".section.details" mobile-parent=".res-container.res-details">
+              <div class="collapsible instrumentsView collapse-area moving-element" ng-class="{'uncollapse-area' : sections.showDetails}" desktop-parent=".section.details" mobile-parent=".res-container.res-details">
                 <div class="group">
                   <div data-ng-hide='vmgPerf == undefined'><label class="td-label">VMG Perf</label><span>{{ vmgPerf }}%</span></div>
                   <div data-ng-hide='deviceVmg == undefined'><label class="td-label">VMG</label><span>{{ deviceVmg | speed }}</span></div>
@@ -117,8 +117,8 @@
                 </div>
               </div>
             </div>
-            <div class="expandable extension bottom-curve" toggle-classes="collapse-area uncollapse-area">
-              <i class="fa fa-caret-down" col-class="fa-caret-down" uncol-class="fa-caret-up" col-state="true" col-target=".info-group" col-parent=".mainControl" aria-hidden="true"></i>
+            <div class="extension bottom-curve">
+              <i class="fa fa-caret-down" ng-class="{'fa-caret-up' : containers.showInfoGroup}" ng-click="containers.showInfoGroup = !containers.showInfoGroup;" col-target=".info-group" col-parent=".mainControl" aria-hidden="true"></i>
             </div>
           </div>
         </div>
@@ -127,11 +127,11 @@
         <div class="vectorMapContainer" vectormap></div>
       </div>
 
-      <div class="graph unhide-area moving-element" desktop-parent=".mapAndGraph" mobile-parent=".res-container.res-graph" toggle-classes="hide-area unhide-area" ng-show="graphActive">
-        <div class="expandable extension top-curve" toggle-classes="show hidden" mode="hide-parent">
-          <i class="fa fa-caret-down" col-class="fa-caret-up" uncol-class="fa-caret-down" col-state="false" col-target=".graph-holder" col-parent=".graph" aria-hidden="true"></i>
+      <div class="graph unhide-area moving-element" ng-class="{'hide-area' : !containers.showGraph}" desktop-parent=".mapAndGraph" mobile-parent=".res-container.res-graph" ng-show="graphActive">
+        <div class="extension top-curve" mode="hide-parent">
+          <i class="fa fa-caret-down" ng-class="{'fa-caret-up' : !containers.showGraph}" ng-click="containers.showGraph = !containers.showGraph;" col-target=".graph-holder" col-parent=".graph" aria-hidden="true"></i>
         </div>
-        <div class="graph-holder">
+        <div class="graph-holder show" ng-class="{'hidden' : !containers.showGraph}">
           <select id="dataSourceSelector"
           ng-model="plotField"
           ng-options="field as label for (field, label) in plotFieldLabels"></select>
@@ -143,11 +143,11 @@
       </div>
     </div>
 
-    <sidebar class="sidebar-container unhide-area moving-element" desktop-parent=".mapAndGraphAndSidebar" mobile-parent=".res-container.res-photos" toggle-classes="hide-area unhide-area" ng-show="sideBarActive && eventList.length">
-      <div class="expandable extension left-curve" toggle-classes="show hidden" mode="hide-parent">
-        <i class="fa fa-caret-right" col-class="fa-caret-left" uncol-class="fa-caret-right" col-state="false" col-target=".semitransp" col-parent=".sidebar-container" aria-hidden="true"></i>
+    <sidebar class="sidebar-container unhide-area moving-element" ng-class="{'unhide-area' : containers.showSidebar}" desktop-parent=".mapAndGraphAndSidebar" mobile-parent=".res-container.res-photos" ng-show="sideBarActive && eventList.length">
+      <div class="extension left-curve" mode="hide-parent">
+        <i class="fa fa-caret-right" ng-class="{'fa-caret-left' : !containers.showSidebar, 'fa-caret-right' : containers.showSidebar}" ng-click="containers.showSidebar = !containers.showSidebar;" col-target=".semitransp" col-parent=".sidebar-container" aria-hidden="true"></i>
       </div>
-      <div id="tabs" class="semitransp padding5px show">
+      <div id="tabs" class="semitransp padding5px show" ng-class="{'hidden' : !containers.showSidebar}">
         <div id="eventsContainer">
           <events boat="boat._id" before="endTime" after="startTime"
             current-time="currentTime" events="eventList">
