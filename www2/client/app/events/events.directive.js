@@ -40,10 +40,10 @@ angular.module('www2App')
                 'url': scope.photoUrl(value, ''),
                 'caption': value.comment
               };
-              images.push(image);
               if (value.photo == photo) {
-                index = key;
+                index = images.length;
               }
+              images.push(image);
             }
           });
 
