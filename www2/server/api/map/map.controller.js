@@ -167,13 +167,10 @@ module.exports.getMapPng = function(req, res, next) {
   var width = parseInt(req.params.width);
   var height = parseInt(req.params.height);
 
-  console.log('** Gen png map');
   generateMapImage(boat, start, end, location, width, height, 'map',
                    function(err, buffer) {
     if (err) {
-      console.log('** Gen png map FAILED');
       // something went wrong. Try again without the map.
-      console.log('** Gen png noMap');
       generateMapImage(boat, start, end, location, width, height, 'noMap',
                        function(err, buffer) {
         if (err || !buffer) {
@@ -182,13 +179,11 @@ module.exports.getMapPng = function(req, res, next) {
           res.status(500).send(err);
           return;
         } else {
-          console.log('** Gen png noMap SUCCEEDED');
           var minutes = 60;
           sendPngWithCache(res, buffer, 30 * minutes);
         }
       });
     } else {
-      console.log('** Gen png map SUCCEEDED');
       // First rendering attempt succeeded
       var day = 24 * 60 * 60;
       sendPngWithCache(res, buffer, 7 * day);
