@@ -47,6 +47,7 @@ public:
 // A CalibDataChunk are measurements that are grouped together
 // They are dense without any big gaps.
 struct CalibDataChunk {
+  Array<TimedValue<GeographicPosition<double>>> filteredPositions;
   Array<BoatState<double>> initialStates;
   TimeStampToIndexMapper timeMapper;
 

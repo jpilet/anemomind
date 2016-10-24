@@ -166,6 +166,7 @@ Array<CalibDataChunk> makeCalibChunks(
             pos.first().time,
             (1.0/stateCount)*(pos.last().time - pos.first().time),
             stateCount);
+        chunks[i].filteredPositions = pos;
         chunks[i].initialStates = makeInitialStates(mapper, pos);
         chunks[i].timeMapper = mapper;
         CHECK(chunks[i].initialStates.size()
