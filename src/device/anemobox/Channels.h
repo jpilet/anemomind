@@ -70,6 +70,9 @@ template<> struct TypeForCode<HANDLE> { typedef TYPE type; };
 FOREACH_CHANNEL(DECL_TYPE)
 #undef DECL_TYPE
 
+template <DataCode code>
+using GetTypeForCode = typename TypeForCode<code>::type;
+
 const char* descriptionForCode(DataCode code);
 const char* wordIdentifierForCode(DataCode code);
 std::vector<DataCode> getAllDataCodes();

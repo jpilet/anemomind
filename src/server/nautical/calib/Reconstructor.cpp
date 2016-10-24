@@ -12,6 +12,8 @@
 #include <server/common/ArrayBuilder.h>
 #include <cairo/cairo-svg.h>
 #include <server/common/string.h>
+#include <server/plot/ColorMap.h>
+#include <server/nautical/GeographicReference.h>
 
 namespace sail {
 
@@ -51,6 +53,28 @@ Array<TimedValue<Eigen::Vector2d>> headingsToTrajectory(
   return dst.get();
 }
 
+Array<TimedValue<Eigen::Vector2d>> gpsPosToTrajectory(
+    const Array<TimedValue<GeographicPosition<double>>> &pos) {
+  if (pos.empty()) {
+    return Array<TimedValue<Eigen::Vector2d>>();
+  }
+  auto middle = pos[pos.size()/2];
+  GeographicReference ref(middle.value);
+  int n = pos.size();
+  Array<TimedValue<Eigen::Vector2d>> dst(n);
+  for (int i = 0; i < n; i++) {
+    auto x = pos[i];
+    auto y = ref.map(x.value);
+    dst[i] = TimedValue<Eigen::Vector2d>(
+        x.time, Eigen::Vector2d(y[0].meters(), y[1].meters()));
+  }
+  return dst;
+}
+
+template <DataCode code>
+using ToTrajectory = std::function<Array<TimedValue<Eigen::Vector2d>>(
+        Array<TimedValue<GetTypeForCode<code>>>)>;
+
 BBox3d computeBBox(const Array<TimedValue<Eigen::Vector2d>> &src) {
   BBox3d dst;
   for (auto x : src) {
@@ -63,7 +87,7 @@ BBox3d computeBBox(const Array<TimedValue<Eigen::Vector2d>> &src) {
 
 void outputMagHeadingPlotToFile(
     const std::string &filename,
-    const Array<TimedValue<Angle<double>>> &headings) {
+    const Array<TimedValue<Eigen::Vector2d>> &traj) {
   using namespace Cairo;
 
 
@@ -76,60 +100,80 @@ void outputMagHeadingPlotToFile(
           settings.width, settings.height));
   auto cr = sharedPtrWrap(cairo_create(surface.get()));
 
-  auto traj = headingsToTrajectory(headings);
   if (!traj.empty()) {
     auto box = computeBBox(traj);
     auto pose = PlotUtils::computeTotalProjection(box, settings);
     auto cm = Cairo::toCairo(pose);
+    auto cmap = makeTimeColorMap(
+        traj.first().time,
+        traj.last().time);
     cairo_set_matrix(cr.get(), &cm);
     auto f = traj.first().value;
     cairo_move_to(cr.get(), f(0), f(1));
-    for (auto pt: traj) {
+    auto last = traj.first();
+    for (int i = 0; i < traj.size(); i++) {
+      auto perform = i % 30 == 0 || i == traj.size()-1;
+      auto pt = traj[i];
       auto x = pt.value;
+      Cairo::setSourceColor(cr.get(), cmap(pt.time));
+      if (perform) {
+        cairo_move_to(cr.get(), last.value(0), last.value(1));
+      }
       cairo_line_to(cr.get(), x(0), x(1));
+      if (perform) {
+        {
+          Cairo::WithLocalDeviceScale wlc(cr.get(),
+              Cairo::WithLocalDeviceScale::Identity);
+          cairo_stroke(cr.get());
+        }
+        cairo_move_to(cr.get(), x(0), x(1));
+      }
+      last = pt;
     }
-    Cairo::WithLocalDeviceScale wlc(cr.get(),
-        Cairo::WithLocalDeviceScale::Identity);
-    cairo_stroke(cr.get());
   }
 }
 
 void outputMagHeadingPlot(
-    const Array<TimedValue<Angle<double>>> &headings,
+    const Array<TimedValue<Eigen::Vector2d>> &traj,
     DOM::Node *dst) {
   Duration<double> dur = 0.0_s;
-  if (!headings.empty()) {
-    dur = headings.last().time - headings.first().time;
+  if (!traj.empty()) {
+    dur = traj.last().time - traj.first().time;
   }
   DOM::addSubTextNode(dst, "p", stringFormat(
       "Duration of %s", dur.str().c_str()));
   auto imgFilename = DOM::makeGeneratedImageNode(dst, ".svg");
-  outputMagHeadingPlotToFile(imgFilename.toString(),
-      headings);
+  outputMagHeadingPlotToFile(imgFilename.toString(), traj);
 }
 
+template <DataCode code>
 void outputMagHeadingPlotPerChunk(
     const std::string &src,
     const Array<CalibDataChunk> &chunks,
+    ToTrajectory<code> toTraj,
     DOM::Node *tr) {
   for (auto chunk: chunks) {
     auto td = DOM::makeSubNode(tr, "td");
-    auto f = chunk.MAG_HEADING.find(src);
-    if (f != chunk.MAG_HEADING.end()) {
-      outputMagHeadingPlot(f->second, &td);
+    const auto *m = ChannelFieldAccess<code>::get(chunk);
+    auto f = m->find(src);
+    if (f != m->end()) {
+      outputMagHeadingPlot(
+          toTraj(f->second), &td);
     }
   }
 }
 
-void outputMagHeadingPlots(
-    const Array<std::string> &sources,
+template <DataCode code>
+void outputTrajectoryPlots(
     const Array<CalibDataChunk> &chunks,
+    ToTrajectory<code> f,
     DOM::Node *dst) {
+  auto sources = listSourcesOfType<code>(chunks);
   auto table = DOM::makeSubNode(dst, "table");
   for (auto src: sources) {
     auto row = DOM::makeSubNode(&table, "tr");
     DOM::addSubTextNode(&row, "th", src);
-    outputMagHeadingPlotPerChunk(src, chunks, &row);
+    outputMagHeadingPlotPerChunk<code>(src, chunks, f, &row);
   }
 }
 
@@ -137,9 +181,13 @@ bool precalibrateMagHdg(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
     DOM::Node *dst) {
-  auto sources = listSourcesOfType<MAG_HEADING>(chunks);
-  outputMagHeadingPlots(sources, chunks, dst);
+  DOM::addSubTextNode(dst, "h2", "Magnetic headings");
+  outputTrajectoryPlots<MAG_HEADING>(
+      chunks, &headingsToTrajectory, dst);
 
+  DOM::addSubTextNode(dst, "h2", "GPS trajectories");
+  outputTrajectoryPlots<GPS_POS>(
+      chunks, &gpsPosToTrajectory, dst);
   return true;
 }
 
