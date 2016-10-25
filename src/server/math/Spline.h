@@ -77,8 +77,34 @@ private:
   void initializeFrom(const ThisType &x) {}
 };
 
-template <typename T>
-using CubicSpline = SplineBasisFunction<T, 4>;
+template <typename T, int Degree>
+class SplineBasis {
+public:
+  static const int coefsPerInterval = cmax(1, 2*Degree);
+
+  struct Weights {
+    int inds[2*Degree + 1];
+  };
+
+  SplineBasis(int intervalCount) : _intervalCount(intervalCount) {}
+  double leftMost() const {return 0.0;}
+  double rightMost() const {return _intervalCount;}
+
+  int leftMostCoefIndex() const {
+    return int(ceil(-0.5 - Degree));
+  }
+
+  int rightMostCoefIndex() const {
+    return int(floor(rightMost() + 0.5 + Degree));
+  }
+
+  int coefCount() const {
+    return 1 + rightMostCoefIndex() - leftMostCoefIndex();
+  }
+private:
+  int _intervalCount;
+  SplineBasisFunction<T, Degree+1> _basis;
+};
 
 } /* namespace sail */
 

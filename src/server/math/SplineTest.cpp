@@ -40,4 +40,11 @@ TEST(SplineBasisFunctionTest, TestIt) {
   EXPECT_NEAR(s3(-1.0), 0.5*0.5*0.5, 1.0e-6);
 }
 
-
+TEST(SplineBasisTest, TestBasis) {
+  {
+    auto x = SplineBasis<double, 0>(1);
+    EXPECT_EQ(0, x.leftMostCoefIndex());
+    EXPECT_EQ(1, x.rightMostCoefIndex());
+    EXPECT_EQ(2, x.coefCount());
+  }
+}
