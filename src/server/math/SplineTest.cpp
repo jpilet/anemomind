@@ -51,5 +51,10 @@ TEST(SplineBasisTest, TestBasis) {
     EXPECT_EQ(0, x.leftMostCoefIndex());
     EXPECT_EQ(2, x.rightMostCoefIndex());
     EXPECT_EQ(3, x.coefCount());
+  }{
+    auto x = SplineBasis<double, 1>(1);
+    EXPECT_EQ(0, x.leftMostCoefIndex());
+    EXPECT_EQ(1, x.rightMostCoefIndex());
+    EXPECT_EQ(3, x.coefCount());
   }
 }
