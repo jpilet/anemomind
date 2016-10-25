@@ -60,16 +60,24 @@ TEST(SplineBasisTest, TestBasis) {
     EXPECT_EQ(2, x.coefCount());
     EXPECT_NEAR(0.5, x.basisLocation(1), 1.0e-6);
 
-    auto k = x.build(0.0);
-    EXPECT_EQ(k.inds[0], 0);
-    EXPECT_EQ(k.inds[1], 1);
-    EXPECT_EQ(k.weights[0], 0.5);
-    EXPECT_EQ(k.weights[1], 0.5);
-
-    auto l = x.build(0.500001);
-    EXPECT_EQ(l.inds[0], 0);
-    EXPECT_EQ(l.inds[1], 1);
-    EXPECT_NEAR(l.weights[0], 0.0, 1.0e-4);
-    EXPECT_NEAR(l.weights[1], 1.0, 1.0e-4);
+    {
+      auto k = x.build(0.0);
+      EXPECT_EQ(k.inds[0], 0);
+      EXPECT_EQ(k.inds[1], 1);
+      EXPECT_EQ(k.weights[0], 0.5);
+      EXPECT_EQ(k.weights[1], 0.5);
+    }{
+      auto l = x.build(0.500001);
+      EXPECT_EQ(l.inds[0], 0);
+      EXPECT_EQ(l.inds[1], 1);
+      EXPECT_NEAR(l.weights[0], 0.0, 1.0e-4);
+      EXPECT_NEAR(l.weights[1], 1.0, 1.0e-4);
+    }{
+      auto l = x.build(40.0);
+      EXPECT_EQ(l.inds[0], 0);
+      EXPECT_EQ(l.inds[1], 1);
+      EXPECT_EQ(l.weights[0], 0.0);
+      EXPECT_EQ(l.weights[1], 0.0);
+    }
   }
 }
