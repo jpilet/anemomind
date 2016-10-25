@@ -15,16 +15,16 @@
 namespace sail {
 
 template <typename T, int PieceCount>
-struct SplineBasis {
+struct SplineBasisFunction {
   static const int pieceCount = PieceCount;
-  typedef SplineBasis<T, PieceCount> ThisType;
+  typedef SplineBasisFunction<T, PieceCount> ThisType;
   typedef Polynomial<T, PieceCount> Piece;
 
-  SplineBasis() {
+  SplineBasisFunction() {
     if (pieceCount == 1) {
       _pieces[0] = Piece(1.0);
     } else {
-      initializeFrom(SplineBasis<T, cmax(1, PieceCount-1)>());
+      initializeFrom(SplineBasisFunction<T, cmax(1, PieceCount-1)>());
     }
   }
 
@@ -60,7 +60,7 @@ struct SplineBasis {
 
 private:
   Piece _pieces[PieceCount];
-  void initializeFrom(const SplineBasis<T, PieceCount-1> &x) {
+  void initializeFrom(const SplineBasisFunction<T, PieceCount-1> &x) {
     auto left = Polynomial<T, 2>{-0.5, 1.0};
     auto right = Polynomial<T, 2>{0.5, 1.0};
     for (int i = 0; i < PieceCount; i++) {
@@ -78,7 +78,7 @@ private:
 };
 
 template <typename T>
-using CubicSpline = SplineBasis<T, 4>;
+using CubicSpline = SplineBasisFunction<T, 4>;
 
 } /* namespace sail */
 
