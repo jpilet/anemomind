@@ -116,7 +116,7 @@ height:100%;
   left: 5%;
   z-index: 11;
   background-color: rgba(248,248,248,0.90);
-  width: auto;
+  width: 363px;
   font-family: 'Muli', "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   border-radius: 10px;
 }
@@ -424,24 +424,28 @@ height:100%;
 .mainControl .indicator-description {
   display: none;
 }
-@media only screen and (max-width: 800px) {
+@media only screen and (max-width: 799px) {
   .mainControl {
     top: 0;
     left: 0;
     width: 100%;
     min-height: auto;
   }
-}
-@media only screen and (max-width: 400px) {
+  .close-btn {
+    top: 3px;
+    left: 4px;
+  }
+  .mainControl,
+  .mainControl .heading {
+    border-radius: 0;
+  }
   .mainControl .heading .boat-name {
-    padding: 4px;
+    padding-left: 42px;
   }
-  .mainControl .heading .share-boat {
-    padding: 5px;
-  }
-  .close-btn:before, 
-  .close-btn:after {
-    margin-top: -1px;
+  .mainControl .info-group .perf-speed,
+  .mainControl .info-group .wind,
+  .mainControl .info-group .details {
+    display: none;
   }
 }
 @media only screen and (max-width: 404px) {
@@ -474,6 +478,18 @@ height:100%;
   }
   .mainControl .group.tail-length .rzslider {
     width: 175px;
+  }
+}
+@media only screen and (max-width: 400px) {
+  .mainControl .heading .boat-name {
+    padding: 4px;
+  }
+  .mainControl .heading .share-boat {
+    padding: 5px;
+  }
+  .close-btn:before, 
+  .close-btn:after {
+    margin-top: -1px;
   }
 }
 @media only screen and (max-width: 360px) {
@@ -526,6 +542,33 @@ height:100%;
   }
   .mainControl .group.tail-length .rzslider {
     width: 173px;
+  }
+}
+@media only screen and (max-width: 345px) {
+  .mainControl .control-btns .play, 
+  .mainControl .control-btns .cut-before, 
+  .mainControl .control-btns .cut-after, 
+  .mainControl .control-btns .split, 
+  .mainControl .control-btns .jump-prev, 
+  .mainControl .control-btns .jump-next {
+    width: 26px;
+    height: 25px;
+  }
+  .mainControl .control-btns .split {
+    width: 54px;
+  }
+  .mainControl .control-btns .btn-grouped button {
+    height: 25px;
+  }
+  .mainControl .control-btns .btn-grouped button i {
+    width: 14px;
+    height: 14px;
+  }
+  .mainControl .control-btns .btn-grouped button.slower i {
+    height: 5px;
+  }
+  .mainControl .group.tail-length .rzslider {
+    width: 148px;
   }
 }
 @media only screen and (max-width: 340px) {
@@ -639,11 +682,41 @@ height:100%;
   background: url('/assets/images/share_send.svg') no-repeat;
   background-size: contain;
 }
+/* Responsive Styles - Lightbox Modal */
+@media only screen and (max-width: 767px) {
+  .modal-body[ng-controller="MapCtrl"] .cls-btn {
+    top: -8px;
+    left: -8px;
+  }
+}
+@media only screen and (max-width: 550px) {
+  .modal-body[ng-controller="MapCtrl"] {
+    padding: 20px 30px;
+  }
+}
 @media only screen and (max-width: 472px) {
   .custom-modal-container .icon-list ul li {
     margin: 0;
   }
 }
+@media only screen and (max-width: 401px) {
+  .modal-body[ng-controller="MapCtrl"] {
+    padding: 20px 15px;
+  }
+}
+@media only screen and (max-width: 371px) {
+  .custom-modal-container .icon-list li i {
+    width: 33px;
+    height: 33px;
+  }
+}
+@media only screen and (max-width: 331px) {
+  .custom-modal-container .icon-list li i {
+    width: 30px;
+    height: 30px;
+  }
+}
+
   
 .titleBox {
   position: absolute;
@@ -721,12 +794,6 @@ perfplot {
 }
 
 .responsiveNavButtons {
-  /*display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-      -ms-flex-direction: row;
-          flex-direction: row;*/
   display: none;
   border-top: 1px solid #aaaaaa;
 }
@@ -758,23 +825,9 @@ perfplot {
 .responsiveNavButtons .res-container {
   background-color: #fbfbfb;
 }
+
+/* Responsive Styles - Footer icons */
 @media only screen and (max-width: 799px) {
-  .close-btn {
-    top: 3px;
-    left: 4px;
-  }
-  .mainControl,
-  .mainControl .heading {
-    border-radius: 0;
-  }
-  .mainControl .heading .boat-name {
-    padding-left: 42px;
-  }
-  .mainControl .info-group .perf-speed,
-  .mainControl .info-group .wind,
-  .mainControl .info-group .details {
-    display: none;
-  }
   .responsiveNavButtons {
     display: block;
   }
@@ -965,12 +1018,6 @@ perfplot {
     height: 12px;
   }
 }
-@media only screen and (max-width: 767px) {
-  .modal-body[ng-controller="MapCtrl"] .cls-btn {
-    top: -8px;
-    left: -8px;
-  }
-}
 @media only screen and (max-width: 700px) {
   .res-container.res-perf .moving-element {
     padding: 5px 14% 0;
@@ -1018,11 +1065,6 @@ perfplot {
   .res-container.res-wind .moving-element .indicator-description {
     font-size: 12px;
     right: -116px;
-  }
-}
-@media only screen and (max-width: 550px) {
-  .modal-body[ng-controller="MapCtrl"] {
-    padding: 20px 30px;
   }
 }
 @media only screen and (max-width: 500px) {
@@ -1073,50 +1115,12 @@ perfplot {
     padding: 8px 22% 0;
   }
 }
-@media only screen and (max-width: 401px) {
-  .modal-body[ng-controller="MapCtrl"] {
-    padding: 20px 15px;
-  }
-}
 @media only screen and (max-width: 380px) {
   .res-container.res-perf .moving-element {
     padding: 27px 5% 0;
   }
   .res-container.res-wind .moving-element {
     padding: 3px 22% 0 11%;
-  }
-}
-@media only screen and (max-width: 371px) {
-  .custom-modal-container .icon-list li i {
-    width: 33px;
-    height: 33px;
-  }
-}
-@media only screen and (max-width: 345px) {
-  .mainControl .control-btns .play, 
-  .mainControl .control-btns .cut-before, 
-  .mainControl .control-btns .cut-after, 
-  .mainControl .control-btns .split, 
-  .mainControl .control-btns .jump-prev, 
-  .mainControl .control-btns .jump-next {
-    width: 26px;
-    height: 25px;
-  }
-  .mainControl .control-btns .split {
-    width: 54px;
-  }
-  .mainControl .control-btns .btn-grouped button {
-    height: 25px;
-  }
-  .mainControl .control-btns .btn-grouped button i {
-    width: 14px;
-    height: 14px;
-  }
-  .mainControl .control-btns .btn-grouped button.slower i {
-    height: 5px;
-  }
-  .mainControl .group.tail-length .rzslider {
-    width: 148px;
   }
 }
 @media only screen and (max-width: 340px) {
@@ -1130,12 +1134,7 @@ perfplot {
     right: -60px;
   }
 }
-@media only screen and (max-width: 331px) {
-  .custom-modal-container .icon-list li i {
-    width: 30px;
-    height: 30px;
-  }
-}
+
 
 /*==================================================*/
 
@@ -1279,6 +1278,7 @@ perfplot {
 }
 .collapse-area.uncollapse-area {
   height: auto;
+  overflow: initial;
 }
 
 /* ========= bootstrap overrides ========= */
