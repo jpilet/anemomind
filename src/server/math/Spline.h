@@ -11,6 +11,7 @@
 #include <iostream>
 #include <server/math/Polynomial.h>
 #include <cmath>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -81,25 +82,27 @@ template <typename T, int Degree>
 class SplineBasis {
 public:
   static const int coefsPerInterval = cmax(1, 2*Degree);
+  static const int coefsPerPoint = Degree + 1;
+  static constexpr double basisOffset = -0.5*Degree;
 
   struct Weights {
     int inds[2*Degree + 1];
   };
 
   SplineBasis(int intervalCount) : _intervalCount(intervalCount) {}
-  double leftMost() const {return 0.0;}
-  double rightMost() const {return _intervalCount;}
 
-  int leftMostCoefIndex() const {
-    return int(ceil(-0.5 - Degree));
-  }
-
-  int rightMostCoefIndex() const {
-    return int(floor(rightMost() + 0.5 + Degree));
+  // The interval that the data we are interpolating is spanning
+  double lowerDataBound() const {return -0.5;}
+  double upperDataBound() const {
+    return lowerDataBound() + _intervalCount;
   }
 
   int coefCount() const {
-    return 1 + rightMostCoefIndex() - leftMostCoefIndex();
+    return _intervalCount + Degree;
+  }
+
+  double basisLocation(int coefIndex) const {
+    return basisOffset + coefIndex;
   }
 private:
   int _intervalCount;

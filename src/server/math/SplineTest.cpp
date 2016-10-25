@@ -43,18 +43,21 @@ TEST(SplineBasisFunctionTest, TestIt) {
 TEST(SplineBasisTest, TestBasis) {
   {
     auto x = SplineBasis<double, 0>(1);
-    EXPECT_EQ(0, x.leftMostCoefIndex());
-    EXPECT_EQ(1, x.rightMostCoefIndex());
-    EXPECT_EQ(2, x.coefCount());
+    EXPECT_EQ(-0.5, x.lowerDataBound());
+    EXPECT_EQ(0.5, x.upperDataBound());
+    EXPECT_EQ(1, x.coefCount());
+    EXPECT_NEAR(0.0, x.basisLocation(0), 1.0e-6);
   }{
     auto x = SplineBasis<double, 0>(2);
-    EXPECT_EQ(0, x.leftMostCoefIndex());
-    EXPECT_EQ(2, x.rightMostCoefIndex());
-    EXPECT_EQ(3, x.coefCount());
+    EXPECT_EQ(-0.5, x.lowerDataBound());
+    EXPECT_EQ(1.5, x.upperDataBound());
+    EXPECT_EQ(2, x.coefCount());
+    EXPECT_NEAR(1.0, x.basisLocation(1), 1.0e-6);
   }{
     auto x = SplineBasis<double, 1>(1);
-    EXPECT_EQ(0, x.leftMostCoefIndex());
-    EXPECT_EQ(1, x.rightMostCoefIndex());
-    EXPECT_EQ(3, x.coefCount());
+    EXPECT_EQ(-0.5, x.lowerDataBound());
+    EXPECT_EQ(0.5, x.upperDataBound());
+    EXPECT_EQ(2, x.coefCount());
+    EXPECT_NEAR(0.5, x.basisLocation(1), 1.0e-6);
   }
 }
