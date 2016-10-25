@@ -481,9 +481,6 @@ height:100%;
   }
 }
 @media only screen and (max-width: 400px) {
-  .mainControl .heading .boat-name {
-    padding: 4px;
-  }
   .mainControl .heading .share-boat {
     padding: 5px;
   }
