@@ -379,7 +379,13 @@ angular.module('www2App')
 
     $scope.replaySpeed = 8;
     $scope.slower = function() { $scope.replaySpeed /= 2; }
-    $scope.faster = function() { $scope.replaySpeed *= 2; }
+    $scope.faster = function() {
+      var speed = $scope.replaySpeed * 2;  
+      if(speed > 512)
+        return false;
+
+      $scope.replaySpeed = speed;
+    }
     $scope.cutBefore = function() {
       if ($scope.selectedCurve && $scope.currentTime) {
         $scope.selectedCurve = makeCurveId(
