@@ -479,11 +479,17 @@ angular.module('www2App')
        return { width: width(), height: height() };
     }, function(value) {
        if (value.width < horizontalThreshold) {
-         if ($scope.mapActive && $scope.sideBarActive) {
-           // If the screen becomes to small for both
-           // the side bar and the map/graph container,
-           // we hide the side bar.
-           //$scope.sideBarActive = false;
+         if (!$scope.containers.showGraph) {
+           // If in desktop, the Graph is hidden
+           // then when switching to mobile,
+           // the Graph should be visible at start
+           $scope.containers.showGraph = true;
+         }
+         if (!$scope.showTabContent) {
+           // If in mobile, the Tab contents are hidden
+           // then switch to desktop,
+           // then switch again to mobile, it should be visible
+           $scope.showTabContent = true;
          }
        } else {
          // If the screen got large enough, show the sidebar,
