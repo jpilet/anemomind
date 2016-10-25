@@ -112,8 +112,8 @@ height:100%;
 
 .mainControl {
   position: absolute;
-  top: 9%;
-  left: 5%;
+  top: 20px;
+  left: 60px;
   z-index: 11;
   background-color: rgba(248,248,248,0.90);
   width: 363px;

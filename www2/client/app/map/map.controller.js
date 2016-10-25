@@ -247,7 +247,8 @@ angular.module('www2App')
       if (newVal != oldVal) {
         var queueVal = !newVal ? null : ($scope.tailLength ? $scope.tailLength : 300);
         $location.search('queue', queueVal);
-        updatePosition();
+        
+        refreshMap();
       }
     });
 
@@ -257,7 +258,8 @@ angular.module('www2App')
         $scope.toggleTail = !newVal ? false : true;
         
         $location.search('queue', queueVal);
-        updatePosition();
+
+        refreshMap();
       }
     });
 
@@ -293,6 +295,11 @@ angular.module('www2App')
       }
       lastPositionUpdate = now;
     }
+
+    // Refreshes the map by triggering the $watch of currentTime
+    var refreshMap = function() {
+      $scope.currentTime = new Date($scope.currentTime.getTime());
+    };
 
     $scope.$watch('mapLocation', setLocation);
     $scope.$watch('selectedCurve', setLocation);
