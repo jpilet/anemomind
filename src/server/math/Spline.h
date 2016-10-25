@@ -81,12 +81,12 @@ private:
 template <typename T, int Degree>
 class SplineBasis {
 public:
-  static const int coefsPerInterval = cmax(1, 2*Degree);
-  static const int coefsPerPoint = Degree + 1;
+  static constexpr int coefsPerPoint = Degree + 1;
   static constexpr double basisOffset = -0.5*Degree;
 
   struct Weights {
-    int inds[2*Degree + 1];
+    int inds[coefsPerPoint];
+    T weights[coefsPerPoint];
   };
 
   SplineBasis(int intervalCount) : _intervalCount(intervalCount) {}
@@ -101,8 +101,25 @@ public:
     return _intervalCount + Degree;
   }
 
-  double basisLocation(int coefIndex) const {
-    return basisOffset + coefIndex;
+  double basisLocation(int basisIndex) const {
+    return basisOffset + basisIndex;
+  }
+
+  T evaluateBasis(int basisIndex, T loc) const {
+    return _basis(loc - basisLocation(basisIndex));
+  }
+
+  Weights build(T x) const {
+    int interval = std::min(
+        std::max(0, int(floor(x + 0.5))),
+          _intervalCount - 1);
+    Weights dst;
+    for (int i = 0; i < coefsPerPoint; i++) {
+      int index = i + interval;
+      dst.inds[i] = index;
+      dst.weights[i] = evaluateBasis(index, x);
+    }
+    return dst;
   }
 private:
   int _intervalCount;
