@@ -40,21 +40,21 @@ TEST(SplineBasisFunctionTest, TestIt) {
   EXPECT_NEAR(s3(-1.0), 0.5*0.5*0.5, 1.0e-6);
 }
 
-TEST(SplineBasisTest, TestBasis) {
+TEST(RawSplineBasisTest, TestBasis) {
   {
-    auto x = SplineBasis<double, 0>(1);
+    auto x = RawSplineBasis<double, 0>(1);
     EXPECT_EQ(-0.5, x.lowerDataBound());
     EXPECT_EQ(0.5, x.upperDataBound());
     EXPECT_EQ(1, x.coefCount());
     EXPECT_NEAR(0.0, x.basisLocation(0), 1.0e-6);
   }{
-    auto x = SplineBasis<double, 0>(2);
+    auto x = RawSplineBasis<double, 0>(2);
     EXPECT_EQ(-0.5, x.lowerDataBound());
     EXPECT_EQ(1.5, x.upperDataBound());
     EXPECT_EQ(2, x.coefCount());
     EXPECT_NEAR(1.0, x.basisLocation(1), 1.0e-6);
   }{
-    auto x = SplineBasis<double, 1>(1);
+    auto x = RawSplineBasis<double, 1>(1);
     EXPECT_EQ(-0.5, x.lowerDataBound());
     EXPECT_EQ(0.5, x.upperDataBound());
     EXPECT_EQ(2, x.coefCount());

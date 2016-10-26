@@ -79,7 +79,7 @@ private:
 };
 
 template <typename T, int Degree>
-class SplineBasis {
+class RawSplineBasis {
 public:
   static constexpr int coefsPerPoint = Degree + 1;
   static constexpr double basisOffset = -0.5*Degree;
@@ -89,7 +89,7 @@ public:
     T weights[coefsPerPoint];
   };
 
-  SplineBasis(int intervalCount) : _intervalCount(intervalCount) {}
+  RawSplineBasis(int intervalCount) : _intervalCount(intervalCount) {}
 
   // The interval that the data we are interpolating is spanning
   double lowerDataBound() const {return -0.5;}
