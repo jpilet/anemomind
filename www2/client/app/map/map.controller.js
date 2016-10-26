@@ -22,7 +22,8 @@ angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
 
-    $scope.toggleVMG = false;
+    var defaultColor = '#FF0033';
+    $scope.toggleVMG = $location.search().queue && !$location.search().tailColor ? true : false;
     $scope.toggleTail = $location.search().queue ? true : false;
     $scope.sections = {
       showPerfSpeed: false,
@@ -242,12 +243,26 @@ angular.module('www2App')
         }
       }
     });
+
+    $scope.$watch('toggleVMG', function(newVal, oldVal) {
+      if (newVal != oldVal) {        
+        if(newVal)
+          $location.search('tailColor',null);
+        else
+          $location.search('tailColor',defaultColor);
+
+        refreshMap();
+      }
+    });
     
     $scope.$watch('toggleTail', function(newVal, oldVal) {
       if (newVal != oldVal) {
         var queueVal = !newVal ? null : ($scope.tailLength ? $scope.tailLength : 300);
         $location.search('queue', queueVal);
-        
+                
+        if(queueVal && !$scope.toggleVMG)
+          $location.search('tailColor',defaultColor);
+
         refreshMap();
       }
     });
@@ -258,6 +273,9 @@ angular.module('www2App')
         $scope.toggleTail = !newVal ? false : true;
         
         $location.search('queue', queueVal);
+
+        if(queueVal && !$scope.toggleVMG)
+          $location.search('tailColor',defaultColor);
 
         refreshMap();
       }
@@ -298,7 +316,8 @@ angular.module('www2App')
 
     // Refreshes the map by triggering the $watch of currentTime
     var refreshMap = function() {
-      $scope.currentTime = new Date($scope.currentTime.getTime());
+      if($scope.currentTime)
+        $scope.currentTime = new Date($scope.currentTime.getTime());
     };
 
     $scope.$watch('mapLocation', setLocation);
