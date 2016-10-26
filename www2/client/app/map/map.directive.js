@@ -10,10 +10,11 @@ angular.module('www2App')
         var icon = el.find('label i');
         var offset = 35; // We should also make the arrow button visible
 
-        // Checks if the container is outside the view-port
-        var isInsideViewPort = function(elem) {
-          var docViewTop = $(window).scrollTop();
-          var docViewBottom = docViewTop + $(window).height();
+        // Checks if the container is inside the map
+        var isInsideTheMap = function(elem) {
+          var view = angular.element('.vectorMapContainer');
+          var docViewTop = view.scrollTop();
+          var docViewBottom = docViewTop + view.height();
 
           var elemTop = $(elem).offset().top;
           var elemBottom = elemTop + $(elem).outerHeight(true);
@@ -23,12 +24,12 @@ angular.module('www2App')
 
         var adjustHeight = function() {
           var infoHeight = el.outerHeight(true);
-          var windowHeight = angular.element($window).outerHeight();
+          var windowHeight = angular.element('.vectorMapContainer').outerHeight();
           var bottomPos = el.offset().top + infoHeight;
 
           el.css('height','auto').removeClass('scrollable');
 
-          if(!isInsideViewPort(el.parents('.mainControl'))) {
+          if(!isInsideTheMap(el.parents('.mainControl'))) {
             el.outerHeight((infoHeight - (bottomPos - windowHeight)) - offset).addClass('scrollable');
           }
         };
@@ -37,6 +38,9 @@ angular.module('www2App')
         // has some delays when capturing the values of an element
         icon.on('click', function() {
           adjustHeight();          
+        });
+        angular.element('.graph .extension').on('click', function() {
+          adjustHeight();
         });
         win.on('resize', function() {
           adjustHeight();
