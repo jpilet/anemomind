@@ -440,16 +440,13 @@ angular.module('www2App')
     $scope.currentTab = null;
     $scope.showTabContent = true;
     $scope.selectTab = function(selectedIndex) {
-      // If tab is Graph
-      if(selectedIndex == 0)
-        delayedApply();
-
       if ($scope.currentTab !== selectedIndex) {
         $scope.currentTab = selectedIndex;
         $scope.showTabContent = true;
       } else {
         $scope.showTabContent = !$scope.showTabContent;
       }
+      delayedApply();
     }
 
 

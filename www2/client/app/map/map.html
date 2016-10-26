@@ -52,71 +52,74 @@
                 </rzslider>
               </div>
             </div>
-            <div class="section perf-speed">
-              <label class="collapse-lbl">
-                Performance & Speed 
-                <i class="anemomind-icon plus" ng-class="{'minus' : sections.showPerfSpeed}" ng-click="sections.showPerfSpeed = !sections.showPerfSpeed;" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
-              </label>
-              <div class="collapsible group collapse-area moving-element" ng-class="{'uncollapse-area' : sections.showPerfSpeed}" desktop-parent=".section.perf-speed" mobile-parent=".res-container.res-perf">
-                <div class="perf">
-                  <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
+            <div class="infos check-height">
+              <div class="section perf-speed">
+                <label class="collapse-lbl">
+                  Performance & Speed 
+                  <i class="anemomind-icon plus" ng-class="{'minus' : sections.showPerfSpeed}" ng-click="sections.showPerfSpeed = !sections.showPerfSpeed;" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+                </label>
+                <div class="collapsible group collapse-area moving-element" ng-class="{'uncollapse-area' : sections.showPerfSpeed}" desktop-parent=".section.perf-speed" mobile-parent=".res-container.res-perf">
+                  <div class="perf">
+                    <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
+                  </div>
+                  <div class="speed">
+                    <gauge-indicator
+                    id="gaugeperf"
+                    label="gpsSpeed | speed"
+                    value="gpsSpeed"
+                    description="'Speed over ground'" min="0" max="12" ></gauge-indicator>
+                  </div>
                 </div>
-                <div class="speed">
-                  <gauge-indicator
-                  id="gaugeperf"
-                  label="gpsSpeed | speed"
-                  value="gpsSpeed"
-                  description="'Speed over ground'" min="0" max="12" ></gauge-indicator>
+              </div>
+              <div class="section wind">
+                <label class="collapse-lbl">
+                  Wind 
+                  <i class="anemomind-icon plus" ng-class="{'minus' : sections.showWind}" ng-click="sections.showWind = !sections.showWind;" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+                </label>
+                <div class="collapsible group collapse-area moving-element" ng-class="{'uncollapse-area' : sections.showWind}" desktop-parent=".section.wind" mobile-parent=".res-container.res-wind">
+                  <div class="top-wheel">
+                    <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
+                  </div>
+                  <div class="small-wheel">
+                    <wheel-small-indicator id="smallwheelcog" label="'&deg;'" arrow="twdir | angle:360" boat="gpsBearing" north="0" description="'True Wind Direction'"></wheel-small-indicator>
+                  </div>
+                </div>
+              </div>
+              <div class="section details">
+                <label class="collapse-lbl">
+                  Details 
+                  <i class="anemomind-icon plus" ng-class="{'minus' : sections.showDetails}" ng-click="sections.showDetails = !sections.showDetails;" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
+                </label>
+                <div class="collapsible instrumentsView collapse-area moving-element" ng-class="{'uncollapse-area' : sections.showDetails}" desktop-parent=".section.details" mobile-parent=".res-container.res-details">
+                  <div class="group">
+                    <div data-ng-hide='vmgPerf == undefined'><label class="td-label">VMG Perf</label><span>{{ vmgPerf }}%</span></div>
+                    <div data-ng-hide='deviceVmg == undefined'><label class="td-label">VMG</label><span>{{ deviceVmg | speed }}</span></div>
+                    <div data-ng-hide='deviceTargetVmg == undefined'><label class="td-label">Target VMG</label><span>{{ deviceTargetVmg | speed }}</span></div>
+                  </div>
+                  <div class="group">
+                    <div data-ng-hide='twa == undefined'><label class="td-label">TWA</label><span>{{ twa | angle:180 }}</span></div>
+                    <div data-ng-hide='tws == undefined'><label class="td-label">TWS</label><span>{{ tws | speed }}</span></div>
+                  </div>
+                  <div class="group">
+                    <div data-ng-hide='awa == undefined'><label class="td-label">AWA</label><span>{{ awa | angle:180 }}</span></div>
+                    <div data-ng-hide='aws == undefined'><label class="td-label">AWS</label><span>{{ aws | speed }}</span></div>
+                  </div>
+                  <div class="group">
+                    <div><label class="td-label">GPS speed</label><span>{{ gpsSpeed | speed }}</span></div>
+                  </div>
+                  <div class="group">
+                    <div data-ng-hide='twdir == undefined'><label class="td-label">TWDIR</label><span>{{ twdir | angle:360 }}</span></div>
+                    <div><label class="td-label">GPS bearing</label><span>{{ gpsBearing | angle:360 }}</span></div>
+                    <div><label class="td-label">GPS pos.</label><span>{{ currentPoint.pos | geopos }}</span></div>
+                  </div>
+                  <div class="group">
+                    <div><label class="td-label">Date</label><span>{{ currentTime | date: 'shortDate' }}</span></div>
+                    <div><label class="td-label">Time</label><span>{{ currentTime | date: 'HH:mm:ss' }}</span></div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="section wind">
-              <label class="collapse-lbl">
-                Wind 
-                <i class="anemomind-icon plus" ng-class="{'minus' : sections.showWind}" ng-click="sections.showWind = !sections.showWind;" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
-              </label>
-              <div class="collapsible group collapse-area moving-element" ng-class="{'uncollapse-area' : sections.showWind}" desktop-parent=".section.wind" mobile-parent=".res-container.res-wind">
-                <div class="top-wheel">
-                  <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
-                </div>
-                <div class="small-wheel">
-                  <wheel-small-indicator id="smallwheelcog" label="'&deg;'" arrow="twdir | angle:360" boat="gpsBearing" north="0" description="'True Wind Direction'"></wheel-small-indicator>
-                </div>
-              </div>
-            </div>
-            <div class="section details">
-              <label class="collapse-lbl">
-                Details 
-                <i class="anemomind-icon plus" ng-class="{'minus' : sections.showDetails}" ng-click="sections.showDetails = !sections.showDetails;" col-target=".collapsible" col-parent=".section" aria-hidden="true"></i>
-              </label>
-              <div class="collapsible instrumentsView collapse-area moving-element" ng-class="{'uncollapse-area' : sections.showDetails}" desktop-parent=".section.details" mobile-parent=".res-container.res-details">
-                <div class="group">
-                  <div data-ng-hide='vmgPerf == undefined'><label class="td-label">VMG Perf</label><span>{{ vmgPerf }}%</span></div>
-                  <div data-ng-hide='deviceVmg == undefined'><label class="td-label">VMG</label><span>{{ deviceVmg | speed }}</span></div>
-                  <div data-ng-hide='deviceTargetVmg == undefined'><label class="td-label">Target VMG</label><span>{{ deviceTargetVmg | speed }}</span></div>
-                </div>
-                <div class="group">
-                  <div data-ng-hide='twa == undefined'><label class="td-label">TWA</label><span>{{ twa | angle:180 }}</span></div>
-                  <div data-ng-hide='tws == undefined'><label class="td-label">TWS</label><span>{{ tws | speed }}</span></div>
-                </div>
-                <div class="group">
-                  <div data-ng-hide='awa == undefined'><label class="td-label">AWA</label><span>{{ awa | angle:180 }}</span></div>
-                  <div data-ng-hide='aws == undefined'><label class="td-label">AWS</label><span>{{ aws | speed }}</span></div>
-                </div>
-                <div class="group">
-                  <div><label class="td-label">GPS speed</label><span>{{ gpsSpeed | speed }}</span></div>
-                </div>
-                <div class="group">
-                  <div data-ng-hide='twdir == undefined'><label class="td-label">TWDIR</label><span>{{ twdir | angle:360 }}</span></div>
-                  <div><label class="td-label">GPS bearing</label><span>{{ gpsBearing | angle:360 }}</span></div>
-                  <div><label class="td-label">GPS pos.</label><span>{{ currentPoint.pos | geopos }}</span></div>
-                </div>
-                <div class="group">
-                  <div><label class="td-label">Date</label><span>{{ currentTime | date: 'shortDate' }}</span></div>
-                  <div><label class="td-label">Time</label><span>{{ currentTime | date: 'HH:mm:ss' }}</span></div>
-                </div>
-              </div>
-            </div>
+            
             <div class="extension bottom-curve">
               <i class="fa fa-caret-down" ng-class="{'fa-caret-up' : containers.showInfoGroup}" ng-click="containers.showInfoGroup = !containers.showInfoGroup;" col-target=".info-group" col-parent=".mainControl" aria-hidden="true"></i>
             </div>

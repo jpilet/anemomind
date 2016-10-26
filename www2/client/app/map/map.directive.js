@@ -1,6 +1,49 @@
 'use strict';
 
 angular.module('www2App')
+  .directive('checkHeight', function ($window, Lightbox) {
+    return {
+      restrict: 'C',
+      link: function (scope, element, attrs) {
+        var win = angular.element($window);
+        var el = angular.element(element);
+        var icon = el.find('label i');
+        var offset = 35; // We should also make the arrow button visible
+
+        // Checks if the container is outside the view-port
+        var isInsideViewPort = function(elem) {
+          var docViewTop = $(window).scrollTop();
+          var docViewBottom = docViewTop + $(window).height();
+
+          var elemTop = $(elem).offset().top;
+          var elemBottom = elemTop + $(elem).outerHeight(true);
+
+          return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+        };
+
+        var adjustHeight = function() {
+          var infoHeight = el.outerHeight(true);
+          var windowHeight = angular.element($window).outerHeight();
+          var bottomPos = el.offset().top + infoHeight;
+
+          el.css('height','auto').removeClass('scrollable');
+
+          if(!isInsideViewPort(el.parents('.mainControl'))) {
+            el.outerHeight((infoHeight - (bottomPos - windowHeight)) - offset).addClass('scrollable');
+          }
+        };
+
+        // I used specific triggers because $watch
+        // has some delays when capturing the values of an element
+        icon.on('click', function() {
+          adjustHeight();          
+        });
+        win.on('resize', function() {
+          adjustHeight();
+        });
+      }
+    };
+  })
   .directive('shareLightbox', function (Lightbox) {
     return {
       restrict: 'C',
