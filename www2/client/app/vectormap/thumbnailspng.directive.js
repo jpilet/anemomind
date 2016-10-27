@@ -32,9 +32,17 @@ angular.module('www2App')
           scope.end = curveEndTimeStr(scope.selectedCurve);            
           scope.access_token=Auth.getToken();
 
+          scope.width=300;
+          scope.height=160;
+
+          if (window.devicePixelRatio > 1) {
+            scope.width *= 2;
+            scope.height *= 2;
+          }
+
           // create PNG
           // /api/map/$boatId/$x,$y,$scale/$start/$end/$w-$h.png
-          var path=$interpolate("/api/map/{{boatId}}/{{mapLocation.x}},{{mapLocation.y}},{{mapLocation.scale}}/{{start}}/{{end}}/300-160.png?access_token={{access_token}}")(scope);
+          var path=$interpolate("/api/map/{{boatId}}/{{mapLocation.x}},{{mapLocation.y}},{{mapLocation.scale}}/{{start}}/{{end}}/{{width}}-{{height}}.png?access_token={{access_token}}")(scope);
 
           //
           //

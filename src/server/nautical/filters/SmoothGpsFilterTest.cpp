@@ -12,8 +12,6 @@
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/WGS84.h>
-#include <server/plot/GnuPlotModel.h>
-#include <server/nautical/Visualize.h>
 
 
 using namespace sail;
@@ -142,21 +140,6 @@ TEST(SmoothGpsFilterTest, TestIt) {
   EXPECT_FALSE(filtered0.filteredLocalPositions.empty());
 
   auto filteredPositions = filtered0.getGlobalPositions();
-
-
-
-  bool visualize = false;
-  if (visualize) {
-    GnuPlotModel model(2);
-
-    makeTrajectoryPlot(filtered0.geoRef,
-        TimedSampleCollection<GeographicPosition<double>>(filteredPositions))->render(&model);
-
-    makeTrajectoryPlot(filtered0.geoRef,
-            originalPositions)->render(&model);
-
-    model.show();
-  }
 
 
   int filteredCounter = 0;

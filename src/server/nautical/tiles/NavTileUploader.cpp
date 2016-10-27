@@ -158,8 +158,8 @@ BSONObj locationForSession(const Array<Nav>& navs) {
   location.append("x", posToTileX(0, center));
   location.append("y", posToTileY(0, center));
   location.append("scale", 2 * std::max(
-          posToTileX(0, maxPos) - posToTileX(0, minPos),
-          posToTileY(0, maxPos) - posToTileY(0, minPos)));
+          fabs(posToTileX(0, maxPos) - posToTileX(0, minPos)),
+          fabs(posToTileY(0, maxPos) - posToTileY(0, minPos))));
   return location.obj();
 }
 
