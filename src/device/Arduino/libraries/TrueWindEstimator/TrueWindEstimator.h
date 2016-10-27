@@ -54,48 +54,66 @@ class TrueWindEstimator {
 
 };
 
+
+template <typename T>
+struct WindValues {
+  HorizontalMotion<T> trueWind;
+};
+
+template <typename T, typename InstrumentAbstraction>
+WindValues<T> computeWindValues(
+    const T* params, const InstrumentAbstraction& measures) {
+  typedef typename InstrumentAbstraction::type WorkType;
+
+  auto awa = measures.awa().normalizedAt0();
+  WorkType awad = awa.degrees();
+
+  bool upwind = (awad > WorkType(-90)) && (awad < WorkType(90));
+  bool starboard = awad > WorkType(0);
+  auto aws = measures.aws();
+
+  // Due to a bug in NKE stuff and to an overflow in NmeaParser,
+  // we sometime have negative values for aws that should be considered as 0.
+  T awsk(std::max(0.0, double(aws.knots())));
+
+  T awa_offset(params[TrueWindEstimator::PARAM_AWA_OFFSET]);
+  T aws_bias(1.0);
+  T aws_offset(0);
+
+  T sideFactor(starboard ? 1 : -1);
+  if (upwind) {
+    awa_offset += sideFactor * ((awsk * awsk) * params[TrueWindEstimator::PARAM_UPWIND0]);
+  } else {
+    aws_offset = params[TrueWindEstimator::PARAM_DOWNWIND0];
+    aws_bias += params[TrueWindEstimator::PARAM_DOWNWIND1] * awsk;
+    awa_offset += sideFactor * ((awsk * awsk) * params[TrueWindEstimator::PARAM_DOWNWIND2]
+                                +params[TrueWindEstimator::PARAM_DOWNWIND3]);
+  }
+
+  HorizontalMotion<T> boatMotion = measures.gpsMotion().template cast<T>();
+
+  // We assume no drift and no current.
+  HorizontalMotion<T> appWindMotion = HorizontalMotion<T>::polar(
+      // For some reason yet to be investigated, the following line
+      // produces a larger code than the line after.
+      // Velocity<T>::knots(aws_offset) + static_cast<Velocity<T> >(measures.aws()).scaled(aws_bias),
+      Velocity<T>::knots(aws_offset + awsk * aws_bias),
+      static_cast<Angle<T> >(measures.gpsBearing() + awa + Angle<WorkType>::degrees(180))
+          + Angle<T>::degrees(awa_offset));
+
+  // True wind - boat motion = apparent wind.
+  WindValues<T> dst;
+  dst.trueWind = appWindMotion + boatMotion;
+  return dst;
+}
+
+
 template <class T, class InstrumentAbstraction>
 HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
-        const T* params, const InstrumentAbstraction& measures) {
+    const T* params, const InstrumentAbstraction& measures) {
     typedef typename InstrumentAbstraction::type WorkType;
-    auto awa = measures.awa().normalizedAt0();
-    WorkType awad = awa.degrees();
-
-    bool upwind = (awad > WorkType(-90)) && (awad < WorkType(90));
-    bool starboard = awad > WorkType(0);
-    auto aws = measures.aws();
-
-    // Due to a bug in NKE stuff and to an overflow in NmeaParser,
-    // we sometime have negative values for aws that should be considered as 0.
-    T awsk(std::max(0.0, double(aws.knots()))); 
-
-    T awa_offset(params[PARAM_AWA_OFFSET]);
-    T aws_bias(1.0);
-    T aws_offset(0);
-
-    T sideFactor(starboard ? 1 : -1);
-    if (upwind) {
-      awa_offset += sideFactor * ((awsk * awsk) * params[PARAM_UPWIND0]);
-    } else {
-      aws_offset = params[PARAM_DOWNWIND0];
-      aws_bias += params[PARAM_DOWNWIND1] * awsk;
-      awa_offset += sideFactor * ((awsk * awsk) * params[PARAM_DOWNWIND2]
-                                  +params[PARAM_DOWNWIND3]);
-    }
-
-    HorizontalMotion<T> boatMotion = measures.gpsMotion().template cast<T>();
-
-    // We assume no drift and no current.
-    HorizontalMotion<T> appWindMotion = HorizontalMotion<T>::polar(
-        // For some reason yet to be investigated, the following line
-        // produces a larger code than the line after.
-        // Velocity<T>::knots(aws_offset) + static_cast<Velocity<T> >(measures.aws()).scaled(aws_bias),
-        Velocity<T>::knots(aws_offset + awsk * aws_bias),
-        static_cast<Angle<T> >(measures.gpsBearing() + awa + Angle<WorkType>::degrees(180))
-            + Angle<T>::degrees(awa_offset));
-
-    // True wind - boat motion = apparent wind.
-    return appWindMotion + boatMotion;
+  auto values = computeWindValues(params, measures);
+  return values.trueWind;
 }
 
 template<class T>
