@@ -126,6 +126,21 @@ private:
   SplineBasisFunction<T, Degree+1> _basis;
 };
 
+template <typename T, int Degree>
+class SmoothEndpointSplineBasis {
+public:
+  static const int excessiveCountPerEndpoint = cmax(0, Degree - 1);
+
+  SmoothEndpointSplineBasis(int intervalCount) :
+    _basis(intervalCount) {}
+
+  int coefCount() const {
+    return _basis.coefCount() - 2*excessiveCountPerEndpoint;
+  }
+private:
+  RawSplineBasis<T, Degree> _basis;
+};
+
 } /* namespace sail */
 
 #endif /* SERVER_MATH_SPLINE_H_ */

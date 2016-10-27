@@ -81,3 +81,15 @@ TEST(RawSplineBasisTest, TestBasis) {
     }
   }
 }
+
+TEST(SmoothEndpointSplineTest, TestIt) {
+  EXPECT_EQ((RawSplineBasis<double, 0>(1).coefCount()), 1);
+  EXPECT_EQ((SmoothEndpointSplineBasis<double, 0>(1).coefCount()), 1);
+  //EXPECT_EQ((SmoothEndpointSplineBasis<double, 3>(1).coefCount()), 2);
+  static_assert(
+      SmoothEndpointSplineBasis<double, 3>
+    ::excessiveCountPerEndpoint == 2, "Not what we expected");
+  EXPECT_EQ((RawSplineBasis<double, 1>(1).coefCount()), 2);
+  EXPECT_EQ((RawSplineBasis<double, 2>(1).coefCount()), 4);
+  //EXPECT_EQ((RawSplineBasis<double, 3>(1).coefCount()), 6);
+}
