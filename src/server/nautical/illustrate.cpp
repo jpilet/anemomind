@@ -65,27 +65,78 @@ Array<GeographicReference::ProjectedPosition> positionsToPlane(
 }
 
 
-
+typedef std::function<Optional<HorizontalMotion<double>>(TimeStamp)> WindFunction;
 
 struct WindToRender {
-  std::function<HorizontalMotion<double>(
-      NavDataset, TimeStamp)> getWind;
-  Angle<double> hue;
+  PlotUtils::RGB windColor;
+  WindFunction wind;
 };
 
-struct BoatRenderSettings {
-  PlotUtils::RGB boat = PlotUtils::hsv2rgb(
+Optional<HorizontalMotion<double>> getTrueWindByTwdir(
+    TimeStamp time,
+    const NavDataset &ds) {
+  auto twdir = ds.samples<TWDIR>().nearest(time);
+  if (!twdir.defined()) {
+    return Optional<HorizontalMotion<double>>();
+  }
+  auto tws = ds.samples<TWS>().nearest(time);
+  if (!tws.defined()) {
+    return Optional<HorizontalMotion<double>>();
+  }
+  return HorizontalMotion<double>::polar(
+      tws.get().value,
+      twdir.get().value + Angle<double>::degrees(180.0));
+}
+
+Optional<HorizontalMotion<double>> getTrueWindFromRaw(
+    TimeStamp time,
+    const Dispatcher *raw) {
+  auto awa = raw->get<AWA>()->dispatcher()->values().nearest(time);
+  auto aws = raw->get<AWS>()->dispatcher()->values().nearest(time);
+  auto magHdg = raw->get<MAG_HEADING>()->dispatcher()->values().nearest(time);
+  auto gpsSpeed = raw->get<GPS_SPEED>()->dispatcher()->values().nearest(time);
+  auto gpsBearing = raw->get<GPS_BEARING>()->dispatcher()->values().nearest(time);
+
+  if (awa.defined() && aws.defined() && magHdg.defined()
+      && gpsSpeed.defined() && gpsBearing.defined()) {
+    auto gpsMotion = HorizontalMotion<double>::polar(
+        gpsSpeed.get(), gpsBearing.get());
+    auto aw = HorizontalMotion<double>::polar(
+        aws.get(),
+        180.0_deg + awa.get() + magHdg.get());
+
+    return HorizontalMotion<double>(gpsMotion + aw);
+  }
+  return Optional<HorizontalMotion<double>>();
+}
+
+WindToRender makeCalibratedTrueWind(const NavDataset &d) {
+  using namespace PlotUtils;
+  return WindToRender{
+    hsv2rgb(HSV::fromHue(120.0_deg)),
+        [=](TimeStamp t) {return getTrueWindByTwdir(t, d);}
+  };
+}
+
+WindToRender makeRawTrueWind(const Dispatcher *d) {
+  using namespace PlotUtils;
+  return WindToRender{
+    hsv2rgb(HSV::fromHue(30.0_deg)), // Orange
+    [=](TimeStamp t) {return getTrueWindFromRaw(t, d);}
+  };
+}
+
+struct BoatToRender {
+  GeographicReference::ProjectedPosition position;
+  Angle<double> heading;
+
+  PlotUtils::RGB boatColor = PlotUtils::hsv2rgb(
       PlotUtils::HSV::fromHue(215.0_deg));
-};
 
-struct RelWind {
-  Angle<double> dirWrtBoat;
-  Velocity<double> speed;
+  std::vector<WindToRender> winds;
 };
 
 struct BoatData {
-  GeographicReference::ProjectedPosition position;
-  Angle<double> heading;
 
   //Optional<Angle<double>> badAwa, goodAwa;
   //Optional<Angle<double>> badTwdir, goodTwdir;
@@ -95,7 +146,7 @@ struct BoatData {
 void renderBoatData(
     cairo_t *cr,
     const BoatData &boat,
-    const BoatRenderSettings &settings) {
+    const BoatToRender &settings) {
 
 }
 
@@ -103,16 +154,15 @@ namespace {
   auto lengthUnit = 1.0_m;
 }
 
-
 void renderBoat(
-    BoatRenderSettings rs,
+    BoatToRender rs,
     cairo_t *cr,
     const GeographicReference &ref,
     TimeStamp time,
   const NavDataset &ds) {
 
   WithLocalContext withContext(cr);
-  setSourceColor(cr, rs.boat);
+  setSourceColor(cr, rs.boatColor);
 
   auto pos = ds.samples<GPS_POS>().nearest(time);
   if (!pos.defined()) {
@@ -138,25 +188,22 @@ void renderBoat(
     WithLocalContext context(cr);
     rotateGeographically(cr, hdg.get().value);
     drawBoat(cr, 60);
-  }{
-    auto twdir = ds.samples<TWDIR>().nearest(time);
-    if (!twdir.defined()) {
-      std::cout << "Missing twdir" << std::endl;
-      return;
-    }
-    auto tws = ds.samples<TWS>().nearest(time);
-    if (!tws.defined()) {
-      std::cout << "Missing tws" << std::endl;
-      return;
-    }
-    auto motion = HorizontalMotion<double>::polar(
-        tws.get().value,
-        twdir.get().value + Angle<double>::degrees(180.0));
+  }
 
-    auto coef = (4.0_m/1.0_kn)/lengthUnit;
 
-    Eigen::Vector2d flow(double(motion[0]*coef), double(motion[1]*coef));
-    drawLocalFlow(cr, flow, 60.0, 9, 0.2*flow.norm(), &rng);
+  for (auto wind: rs.winds) {
+    WithLocalContext withContext(cr);
+    setSourceColor(cr, wind.windColor);
+    auto motion0 = wind.wind(time);
+    if (motion0.defined()) {
+      auto motion = motion0.get();
+      auto coef = (4.0_m/1.0_kn)/lengthUnit;
+
+      Eigen::Vector2d flow(
+          double(motion[0]*coef),
+          double(motion[1]*coef));
+      drawLocalFlow(cr, flow, 60.0, 9, 0.2*flow.norm(), &rng);
+    }
   }
 }
 
@@ -165,7 +212,9 @@ void renderGpsTrajectoryToSvg(
     const TimedSampleRange<GeographicPosition<double>> &positions,
     NavDataset ds,
     const std::string &filename,
-    const std::vector<TimeStamp> &times) {
+    const std::vector<TimeStamp> &times,
+    const WindToRender &rawTrueWind,
+    const WindToRender &calibratedTrueWind) {
   auto middle = positions[positions.size()/2];
 
   GeographicReference ref(middle.value);
@@ -189,9 +238,9 @@ void renderGpsTrajectoryToSvg(
     bbox.extend(xyz);
   }
 
-  auto mat = toCairo(
-      PlotUtils::computeTotalProjection(
-          bbox, settings));
+  Eigen::Matrix<double, 2, 4> proj =
+      PlotUtils::computeTotalProjection(bbox, settings);
+  auto mat = sail::Cairo::toCairo(proj);
 
   {
     WithLocalContext with(cr.get());
@@ -209,8 +258,10 @@ void renderGpsTrajectoryToSvg(
 
 
   for (int i = 0; i < times.size(); i++) {
-    BoatRenderSettings rs;
-    rs.boat = setup.boatColor(i);
+    BoatToRender rs;
+    rs.boatColor = setup.boatColor(i);
+    rs.winds.push_back(rawTrueWind);
+    rs.winds.push_back(calibratedTrueWind);
     auto t = times[i];
     WithLocalContext with(cr.get());
     cairo_transform(cr.get(), &mat);
@@ -233,7 +284,9 @@ void makeSessionIllustration(
     const Setup &setup,
     const NavDataset &ds0,
     DOM::Node page,
-    const std::vector<TimeStamp> &times) {
+    const std::vector<TimeStamp> &times,
+    const WindToRender &rawTrueWind,
+    const WindToRender &calibratedTrueWind) {
 
   auto ds = times.empty()? ds0 : cropDataset(ds0, times, setup.margin);
 
@@ -249,7 +302,7 @@ void makeSessionIllustration(
     renderGpsTrajectoryToSvg(
         setup,
         positions, ds, p.toString(),
-        times);
+        times, rawTrueWind, calibratedTrueWind);
   }
 }
 
@@ -268,7 +321,9 @@ int findSessionWithTimeStamp(
 void makeAllIllustrations(
     DOM::Node page,
     const Setup &setup,
-    const Array<NavDataset> &sessions) {
+    const Array<NavDataset> &sessions,
+    const WindToRender &rawTrueWind,
+    const WindToRender &calibratedTrueWind) {
 
   Array<std::vector<TimeStamp>> selPerSession(sessions.size());
 
@@ -306,7 +361,8 @@ void makeAllIllustrations(
       auto td = makeSubNode(&row, "td");
       auto subPage = DOM::linkToSubPage(td, title);
       makeSessionIllustration(
-          setup, session, subPage, sel);
+          setup, session, subPage, sel,
+          rawTrueWind, calibratedTrueWind);
     }
     DOM::addSubTextNode(&row, "td",
         session.lowerBound().toString());
@@ -323,6 +379,8 @@ bool makeIllustrations(const Setup &setup) {
 
   NavDataset raw = loadNavs(setup.path)
       .fitBounds();
+
+  auto rawTrueWind = makeRawTrueWind(raw.dispatcher().get());
 
   raw = raw.slice(earliest(setup.from, raw.lowerBound()),
                     latest(setup.to, raw.upperBound()));
@@ -378,6 +436,8 @@ bool makeIllustrations(const Setup &setup) {
   // Todo: simply lookup the target speed instead of recomputing true wind.
   simulated = SimulateBox(boatDatPath, simulated);
 
+  auto calibratedTrueWind = makeCalibratedTrueWind(simulated);
+
   if (proc._debug) {
     visualizeBoatDat(setup.prefix);
   }
@@ -389,7 +449,8 @@ bool makeIllustrations(const Setup &setup) {
       setup.prefix, "illustrations");
   sail::renderDispatcherTableOverview(
       raw.dispatcher().get(), &page);
-  makeAllIllustrations(page, setup, sessions);
+  makeAllIllustrations(page, setup, sessions,
+      rawTrueWind, calibratedTrueWind);
 
   LOG(INFO) << "Processing time for " << proc._boatid << ": "
     << (TimeStamp::now() - start).seconds() << " seconds.";

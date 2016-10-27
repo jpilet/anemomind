@@ -25,9 +25,25 @@ namespace Cairo {
 std::shared_ptr<cairo_surface_t> sharedPtrWrap(cairo_surface_t *x);
 std::shared_ptr<cairo_t> sharedPtrWrap(cairo_t *x);
 
+//template <int rows, int cols>
+//cairo_matrix_t toCairo(
+//    const Eigen::Matrix<double, rows, cols> &mat);
 template <int rows, int cols>
-cairo_matrix_t toCairo(
-    const Eigen::Matrix<double, rows, cols> &mat);
+cairo_matrix_t toCairo(const Eigen::Matrix<double, rows, cols> &mat);
+
+template <int rows, int cols>
+cairo_matrix_t toCairo(const Eigen::Matrix<double, rows, cols> &mat) {
+  static_assert(2 <= rows, "Too few rows");
+  static_assert(3 <= cols, "Too few cols");
+  cairo_matrix_t dst;
+  dst.xx = mat(0, 0);
+  dst.xy = mat(0, 1);
+  dst.yx = mat(1, 0);
+  dst.yy = mat(1, 1);
+  dst.x0 = mat(0, cols-1);
+  dst.y0 = mat(1, cols-1);
+  return dst;
+}
 
 class WithLocalContext {
 public:
