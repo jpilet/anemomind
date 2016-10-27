@@ -64,6 +64,8 @@ class Calibrator  {
                  std::shared_ptr<HTree> tree);
 
     WindOrientedGrammar grammar() const;
+
+    Array<TimeStamp> maneuverTimeStamps() const;
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);

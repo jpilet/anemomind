@@ -503,9 +503,9 @@ bool makeIllustrations(const Setup &setup) {
 
   // First simulation pass: adds true wind
   NavDataset simulated = calibrator.simulate(resampled);
-  for (auto maneuver: calibrator.maneuvers()) {
-
-  }
+  auto times = calibrator.maneuverTimeStamps();
+  std::cout << "Number of maneuver time stamps: " << times.size() << std::endl;
+  CHECK(false);
 
     /*
   Why this is needed:

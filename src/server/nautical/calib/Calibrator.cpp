@@ -337,6 +337,15 @@ WindOrientedGrammar Calibrator::grammar() const {
   return _grammar;
 }
 
+Array<TimeStamp> Calibrator::maneuverTimeStamps() const {
+  auto mans = maneuvers();
+  ArrayBuilder<TimeStamp> dst(mans.size());
+  for (auto man: mans) {
+    dst.add(man->time());
+  }
+  return dst.get();
+}
+
 GnuplotExtra* Calibrator::initializePlot() {
   GnuplotExtra* gnuplot = new GnuplotExtra();
   print();
