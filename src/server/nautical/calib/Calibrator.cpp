@@ -59,9 +59,10 @@ namespace {
 
 class TackCost {
   public:
-    TackCost(NavDataset before, NavDataset after, double weight_)
+    TackCost(NavDataset before, NavDataset after, double weight_, TimeStamp time)
       : _before(makeFilter(before)), _after(makeFilter(after)),
-      _beforeNav(before), _afterNav(after), _weight(weight_) { }
+      _beforeNav(before), _afterNav(after), _weight(weight_),
+      _time(time) { }
 
     template<typename T>
     bool operator()(const T* const x, T* residual) const {
@@ -135,6 +136,8 @@ class TackCost {
     double weight() const {
       return _weight;
     }
+
+    TimeStamp time() const { return _time; }
   private:
     ServerFilter _before;
     ServerFilter _after;
@@ -143,6 +146,7 @@ class TackCost {
     NavDataset _beforeNav;
     NavDataset _afterNav;
     double _weight;
+    TimeStamp _time;
 };
 
 void Calibrator::addTack(int pos, double weight) {
@@ -219,7 +223,7 @@ void Calibrator::addTack(int pos, double weight) {
   }
   */
 
-  TackCost *cost = new TackCost(beforeds, afterds, weight);
+  TackCost *cost = new TackCost(beforeds, afterds, weight, tackTime);
   _maneuvers.push_back(cost);
   CostFunction* cost_function =
       new AutoDiffCostFunction<
@@ -447,12 +451,13 @@ bool Calibrator::saveResultsAsMat(const char *filename) const {
                               &angleError, &normError,
                               &externalAngleError, &externalNormError);
 
-    fprintf(file, "%e\t%e\t%e\t%e\t%e\n",
+    fprintf(file, "%e\t%e\t%e\t%e\t%e\t%ld\n",
             maneuver->weight(),
             angleError,
             normError,
             externalAngleError,
-            externalNormError
+            externalNormError,
+            long(maneuver->time().toSecondsSince1970())
             );
   }
   fclose(file);
