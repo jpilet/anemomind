@@ -37,7 +37,29 @@ enum class RenderMode {
   PerTrajectory
 };
 
+struct ManeuverData2 {
+  TimeStamp time;
+  double angleErrorTacktick;
+  double angleErrorAnemomind;
+};
 
+ManeuverData2 combine(
+    const ManeuverData &tacktick,
+    const ManeuverData &anemomind) {
+  CHECK(tacktick.time == anemomind.time);
+  return ManeuverData2{tacktick.time, tacktick.angleError, anemomind.angleError};
+}
+
+Array<ManeuverData2> combine(const Array<ManeuverData> &tacktick,
+    const Array<ManeuverData> &anemomind) {
+  int n = tacktick.size();
+  CHECK(n == anemomind.size());
+  Array<ManeuverData2> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = combine(tacktick[i], anemomind[i]);
+  }
+  return dst;
+}
 
 
 struct LocalFlowSettings {
@@ -285,7 +307,7 @@ void renderGpsTrajectoryToSvg(
     NavDataset ds,
     const std::string &filename,
     const std::vector<TimeStamp> &selectedTimes,
-    const std::vector<ManeuverData> &maneuverTimes,
+    const std::vector<ManeuverData2> &maneuverTimes,
     const WindToRender &rawTrueWind,
     const WindToRender &calibratedTrueWind) {
 
@@ -405,7 +427,7 @@ void makeSessionIllustration(
     const NavDataset &ds0,
     DOM::Node page,
     const std::vector<TimeStamp> &selectedTimes,
-    const std::vector<ManeuverData> &maneuverTimes,
+    const std::vector<ManeuverData2> &maneuverTimes,
     const WindToRender &rawTrueWind,
     const WindToRender &calibratedTrueWind) {
   std::cout << "What about selected times..." <<
@@ -447,7 +469,7 @@ int findSessionWithTimeStamp(
 }
 
 TimeStamp timeOf(TimeStamp x) {return x;}
-TimeStamp timeOf(const ManeuverData &d) {return d.time;}
+TimeStamp timeOf(const ManeuverData2 &d) {return d.time;}
 
 template <typename T>
 Array<std::vector<T>> assignTimeStampToSession(
@@ -476,7 +498,7 @@ void makeAllIllustrations(
     DOM::Node page,
     const Setup &setup,
     const Array<NavDataset> &sessions,
-    const Array<ManeuverData> &tackTimes,
+    const Array<ManeuverData2> &tackTimes,
     const WindToRender &rawTrueWind,
     const WindToRender &calibratedTrueWind) {
 
@@ -545,10 +567,11 @@ void makeAllIllustrations(
               subPage, std::vector<TimeStamp>{
                   maneuverTime.time - 1.0_minutes,
                   maneuverTime.time + 1.0_minutes},
-              std::vector<ManeuverData>{},
+              std::vector<ManeuverData2>{},
               rawTrueWind, calibratedTrueWind);
           DOM::addSubTextNode(&row, "td", stringFormat("%d", i));
-          DOM::addSubTextNode(&row, "td", stringFormat("%.3g", maneuverTime.angleError));
+          DOM::addSubTextNode(&row, "td", stringFormat("%.3g",
+              maneuverTime.angleErrorAnemomind/maneuverTime.angleErrorTacktick));
         }
       }
     }
@@ -577,22 +600,30 @@ bool makeIllustrations(const Setup &setup) {
     return false;
   }
 
-  Calibrator calibrator(proc._grammar.grammar);
-  if (proc._verboseCalibrator) { calibrator.setVerbose(); }
-  std::string boatDatPath = setup.prefix + "/boat.dat";
-  std::ofstream boatDatFile(boatDatPath);
-
-  // Calibrate. TODO: use filtered data instead of resampled.
-  if (calibrator.calibrate(resampled, fulltree, proc._boatid)) {
-      calibrator.saveCalibration(&boatDatFile);
-  } else {
-    LOG(WARNING) << "Calibration failed. Using default calib values.";
-    calibrator.clear();
-  }
 
   // First simulation pass: adds true wind
-  NavDataset simulated = calibrator.simulate(resampled);
-  auto tackData = calibrator.maneuverData();
+  NavDataset simulated;
+  Array<ManeuverData2> tackData;
+  std::string boatDatPath = setup.prefix + "/boat.dat";
+  std::ofstream boatDatFile(boatDatPath);
+  {
+    Calibrator calibrator(proc._grammar.grammar);
+    if (proc._verboseCalibrator) { calibrator.setVerbose(); }
+
+    // Calibrate. TODO: use filtered data instead of resampled.
+    if (calibrator.calibrate(resampled, fulltree, proc._boatid)) {
+        calibrator.saveCalibration(&boatDatFile);
+    } else {
+      LOG(WARNING) << "Calibration failed. Using default calib values.";
+      calibrator.clear();
+    }
+    simulated = calibrator.simulate(resampled);
+    auto tackDataAnemomind = calibrator.maneuverData();
+    calibrator.initializeParameters();
+    auto tackDataTackTick = calibrator.maneuverData();
+    tackData = combine(tackDataTackTick, tackDataAnemomind);
+  }
+
 
     /*
   Why this is needed:

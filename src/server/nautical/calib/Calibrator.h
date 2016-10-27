@@ -48,6 +48,8 @@ class Calibrator  {
     //! Forget last calibration results.
     void clear();
 
+    void initializeParameters();
+
     //! If set, calibrate() will display detailed information about the
     //  minimization. It will call gnuplot to display errors.
     void setVerbose() { _verbose = true; }

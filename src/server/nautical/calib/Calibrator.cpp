@@ -521,6 +521,11 @@ void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title, bool exte
       );
 }
 
+void Calibrator::initializeParameters() {
+  TrueWindEstimator::initializeParameters(_calibrationValues);
+}
+
+
 void Calibrator::clear() {
   _allnavs = NavDataset();
   _tree.reset();
