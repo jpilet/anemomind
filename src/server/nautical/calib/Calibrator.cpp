@@ -362,6 +362,12 @@ Array<ManeuverData> Calibrator::maneuverData() const {
   return dst.get();
 }
 
+Array<double> Calibrator::values() const {
+  return Array<double>(
+      TrueWindEstimator::NUM_PARAMS,
+      _calibrationValues).dup();
+}
+
 GnuplotExtra* Calibrator::initializePlot() {
   GnuplotExtra* gnuplot = new GnuplotExtra();
   print();

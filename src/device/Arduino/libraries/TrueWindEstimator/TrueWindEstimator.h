@@ -58,6 +58,11 @@ class TrueWindEstimator {
 template <typename T>
 struct WindValues {
   HorizontalMotion<T> trueWind;
+  T aws_bias;
+  T awa_offset;
+  T aws_offset;
+  Angle<T> rawAwa;
+  Velocity<T> rawAws;
 };
 
 template <typename T, typename InstrumentAbstraction>
@@ -104,6 +109,11 @@ WindValues<T> computeWindValues(
   // True wind - boat motion = apparent wind.
   WindValues<T> dst;
   dst.trueWind = appWindMotion + boatMotion;
+  dst.awa_offset = awa_offset;
+  dst.aws_bias = aws_bias;
+  dst.aws_offset = aws_offset;
+  dst.rawAwa = awa;
+  dst.rawAws = aws;
   return dst;
 }
 

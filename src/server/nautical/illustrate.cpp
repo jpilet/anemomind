@@ -578,6 +578,70 @@ void makeAllIllustrations(
   }
 }
 
+WindValues<double> computeWindValuesFromAW(
+    const Array<double> &values,
+    const Velocity<double> &aws,
+    const Angle<double> &awa) {
+  Nav nav;
+  nav.setAwa(awa);
+  nav.setAws(aws);
+  nav.setGpsBearing(0.0_deg);
+  nav.setGpsSpeed(0.0_kn);
+  nav.setMagHdg(0.0_deg);
+  nav.setWatSpeed(0.0_kn);
+
+  return computeWindValues(values.ptr(), nav);
+}
+
+void makeCalibrationParamPlots(
+    const Array<double> &values,
+    const std::string &filenamePrefix) {
+  {
+    std::ofstream file(filenamePrefix + "_orthogrid.txt");
+    file << "% X-index Y-index X-vel Y-vel AWA AWS offset\n";
+    int n = 61;
+    auto maxVel = 15.0_kn;
+    LineKM interp(0, n-1, -1.0, 1.0);
+    for (int xi = 0; xi < n; xi++) {
+      for (int yi = 0; yi < n; yi++) {
+        auto x = double(interp(xi))*maxVel;
+        auto y = double(interp(yi))*maxVel;
+
+        auto motion = HorizontalMotion<double>(x, y);
+        auto aws = motion.norm();
+        auto awa = motion.angle() - 180.0_deg;
+        auto est = computeWindValuesFromAW(
+            values, aws, awa);
+
+        file << xi << " " << yi << " "
+            << x.knots() << " " << y.knots() << " " << awa.degrees()
+            << " " << aws.knots() << " " << est.awa_offset << std::endl;
+      }
+    }
+  }{
+    std::ofstream file(filenamePrefix + "_polargrid.txt");
+    file << "% aws-index awa-index aws awa angle-offset\n";
+    int speedCount = 31;
+    int angleCount = 12;
+    auto maxSpeed = 15.0_kn;
+    LineKM speedInterp(0, speedCount, 0.0, 1.0);
+    LineKM angleInterp(0, angleCount, 0.0, 360.0);
+
+    for (int i = 0; i < speedCount; i++) {
+      auto aws = double(speedInterp(i))*maxSpeed;
+      for (int j = 0; j < angleCount; j++) {
+        auto awa = double(angleInterp(j))*1.0_deg;
+        auto est = computeWindValuesFromAW(values, aws, awa);
+        file << i << " " << j << " " << aws.knots() << " "
+            << awa.degrees() << " " << est.awa_offset << std::endl;
+
+      }
+    }
+  }
+
+
+}
+
 bool makeIllustrations(const Setup &setup) {
   auto start = TimeStamp::now();
   BoatLogProcessor proc;
@@ -619,9 +683,19 @@ bool makeIllustrations(const Setup &setup) {
     }
     simulated = calibrator.simulate(resampled);
     auto tackDataAnemomind = calibrator.maneuverData();
+
+
+    Array<double> values = calibrator.values();
+    makeCalibrationParamPlots(values,
+        PathBuilder::makeDirectory(setup.prefix)
+        .makeFile(setup.outputName + "_calib_data").get().toString());
+
+
     calibrator.initializeParameters();
     auto tackDataTackTick = calibrator.maneuverData();
     tackData = combine(tackDataTackTick, tackDataAnemomind);
+
+
   }
 
 

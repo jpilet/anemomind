@@ -73,6 +73,7 @@ class Calibrator  {
 
     Array<TimeStamp> maneuverTimeStamps() const;
     Array<ManeuverData> maneuverData() const;
+    Array<double> values() const;
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);
