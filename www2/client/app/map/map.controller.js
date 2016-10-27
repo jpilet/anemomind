@@ -23,6 +23,9 @@ angular.module('www2App')
                                    $http, $interval, $state, $location) {
 
     var defaultColor = '#FF0033';
+    var defaultTaillength = 300;
+
+    $scope.tailLength = defaultTaillength;
     $scope.toggleVMG = $location.search().queue && !$location.search().tailColor ? true : false;
     $scope.toggleTail = $location.search().queue ? true : false;
     $scope.sections = {
@@ -257,7 +260,7 @@ angular.module('www2App')
     
     $scope.$watch('toggleTail', function(newVal, oldVal) {
       if (newVal != oldVal) {
-        var queueVal = !newVal ? null : ($scope.tailLength ? $scope.tailLength : 300);
+        var queueVal = !newVal ? null : ($scope.tailLength ? $scope.tailLength : defaultTaillength);
         $location.search('queue', queueVal);
                 
         if(queueVal && !$scope.toggleVMG)
