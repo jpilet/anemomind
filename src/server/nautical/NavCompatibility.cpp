@@ -220,6 +220,15 @@ bool isValidNavBoundaryIndex(const NavDataset &ds, int i) {
   return 0 <= i && i <= getNavSize(ds);
 }
 
+Nav getNavByTime(const NavDataset &ds, TimeStamp t) {
+  const auto &samples = getGpsPositions(ds);
+  auto it = findNearestIterator<
+      GeographicPosition<double>, decltype(samples.begin())>(
+          samples.begin(), samples.end(), t);
+  int index = std::min(int(it - samples.begin()), int(samples.size() - 1));
+  return getNav(ds, index);
+}
+
 const Nav getNav(const NavDataset &ds, int i) {
   assert(isValidNavIndex(ds, i));
   const auto &samples = getGpsPositions(ds);

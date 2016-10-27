@@ -17,6 +17,7 @@ namespace NavCompat {
 int getNavSize(const NavDataset &ds);
 bool isValidNavIndex(const NavDataset &ds, int i);
 bool isValidNavBoundaryIndex(const NavDataset &ds, int i);
+Nav getNavByTime(const NavDataset &ds, TimeStamp t);
 const Nav getNav(const NavDataset &ds, int i);
 NavDataset slice(const NavDataset &ds, int from, int to);
 NavDataset sliceFrom(const NavDataset &ds, int index);
