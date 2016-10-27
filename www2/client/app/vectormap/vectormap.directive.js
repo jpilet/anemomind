@@ -71,8 +71,9 @@ angular.module('www2App')
             onFeatureClic: function(feature, pos) {
               selectEvent(feature);
 
-              if(feature.properties.icon == "image")
-                Lightbox.openModal(images, feature.index);
+              if(feature.properties.icon == "image") {
+                Lightbox.openModal(images, feature.photoIndex);
+              }
             }
           });
           var options = {
@@ -137,10 +138,9 @@ angular.module('www2App')
                 if (!event.dataAtEventTime || !event.dataAtEventTime.pos) {
                   continue;
                 }
-                geojson.features.push({
+                var feature = {
                   "type": "Feature",
                   "id": scope.eventList[i]._id,
-                  "index": i, 
                   "properties": {
                     textPlacement: 'E',
                     hideIcon: false,
@@ -153,15 +153,19 @@ angular.module('www2App')
                       y: event.dataAtEventTime.pos[1]
                     }                    
                   }
-                });
+                };
 
-                if(typeof scope.eventList[i].photo !== 'undefined' && scope.eventList[i].photo && scope.eventList[i].photo != null) {
+                if (typeof scope.eventList[i].photo !== 'undefined'
+                    && scope.eventList[i].photo
+                    && scope.eventList[i].photo != null) {
                   var image = {
                     'url': scope.photoUrl(scope.eventList[i], ''),
                     'caption': scope.eventList[i].comment
                   };
+                  feature.photoIndex = images.length;
                   images.push(image);
                 }
+                geojson.features.push(feature);
               }
 
               canvas.refreshIfNotMoving();
