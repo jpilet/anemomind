@@ -143,6 +143,15 @@ bool drawLocalFlow(
   return true;
 }
 
+void drawCross(cairo_t *cr, double size) {
+  cairo_move_to(cr, -size, -size);
+  cairo_line_to(cr, size, size);
+  cairo_stroke(cr);
+  cairo_move_to(cr, size, -size);
+  cairo_line_to(cr, -size, size);
+  cairo_stroke(cr);
+}
+
 
 
 template cairo_matrix_t toCairo<2, 3>(const Eigen::Matrix<double, 2, 3> &mat);

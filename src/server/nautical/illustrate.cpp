@@ -278,7 +278,8 @@ void renderGpsTrajectoryToSvg(
     const TimedSampleRange<GeographicPosition<double>> &positions,
     NavDataset ds,
     const std::string &filename,
-    const std::vector<TimeStamp> &times,
+    const std::vector<TimeStamp> &selectedTimes,
+    const std::vector<TimeStamp> &maneuverTimes,
     const WindToRender &rawTrueWind,
     const WindToRender &calibratedTrueWind) {
   if (positions.empty()) {
@@ -324,8 +325,23 @@ void renderGpsTrajectoryToSvg(
       auto p = p2[i];
       cairo_line_to(cr.get(), p[0]/lengthUnit, p[1]/lengthUnit);
     }
+    WithLocalDeviceScale wds(cr.get(), WithLocalDeviceScale::Determinant);
+    cairo_stroke(cr.get());
   }
-  cairo_stroke(cr.get());
+
+  for (auto t: maneuverTimes) {
+    WithLocalContext wlc(cr.get());
+    cairo_set_line_width(cr.get(), 4);
+    Cairo::setSourceColor(cr.get(), PlotUtils::HSV::fromHue(240.0_deg));
+    auto px = positions.nearest(t);
+    if (px.defined()) {
+      auto p = ref.map(px.get().value);
+      cairo_translate(cr.get(),
+          double(p[0]/lengthUnit), double(p[1]/lengthUnit));
+      Cairo::drawCross(cr.get(), 20);
+    }
+  }
+
 
   if (setup.mode == RenderMode::PerTrajectory) {
     WithLocalContext with(cr.get());
@@ -341,8 +357,8 @@ void renderGpsTrajectoryToSvg(
 
 
 
-  for (int i = 0; i < times.size(); i++) {
-    auto pose0 = getBoatPose(times[i], ds);
+  for (int i = 0; i < selectedTimes.size(); i++) {
+    auto pose0 = getBoatPose(selectedTimes[i], ds);
     BoatToRender rs;
     if (pose0.defined()) {
       auto pose = pose0.get();
@@ -355,7 +371,7 @@ void renderGpsTrajectoryToSvg(
       } else {
         rs.boatColor = PlotUtils::RGB();
       }
-      auto t = times[i];
+      auto t = selectedTimes[i];
       WithLocalContext with(cr.get());
       renderBoat(setup, rs, cr.get(), ref, t);
     }
@@ -377,11 +393,12 @@ void makeSessionIllustration(
     const Setup &setup,
     const NavDataset &ds0,
     DOM::Node page,
-    const std::vector<TimeStamp> &times,
+    const std::vector<TimeStamp> &selectedTimes,
+    const std::vector<TimeStamp> &maneuverTimes,
     const WindToRender &rawTrueWind,
     const WindToRender &calibratedTrueWind) {
 
-  auto ds = times.empty()? ds0 : cropDataset(ds0, times, setup.margin);
+  auto ds = selectedTimes.empty()? ds0 : cropDataset(ds0, selectedTimes, setup.margin);
 
   renderDispatcherTableOverview(
       ds.dispatcher().get(), &page);
@@ -395,7 +412,8 @@ void makeSessionIllustration(
     renderGpsTrajectoryToSvg(
         setup,
         positions, ds, p.toString(),
-        times, rawTrueWind, calibratedTrueWind);
+        selectedTimes,
+        maneuverTimes, rawTrueWind, calibratedTrueWind);
   }
 }
 
@@ -411,30 +429,44 @@ int findSessionWithTimeStamp(
   return -1;
 }
 
-void makeAllIllustrations(
-    DOM::Node page,
-    const Setup &setup,
+Array<std::vector<TimeStamp>> assignTimeStampToSession(
     const Array<NavDataset> &sessions,
-    const WindToRender &rawTrueWind,
-    const WindToRender &calibratedTrueWind) {
-
+    const Array<TimeStamp> &selected,
+    DOM::Node *page) {
   Array<std::vector<TimeStamp>> selPerSession(sessions.size());
 
-  if (!setup.selected.empty()) {
-    auto p = DOM::makeSubNode(&page, "p");
-    DOM::addTextNode(&p, "You want to look closer at ");
-    auto ul = DOM::makeSubNode(&page, "ul");
-    for (auto t: setup.selected) {
+  if (!selected.empty()) {
+    auto ul = DOM::makeSubNode(page, "ul");
+    for (auto t: selected) {
       int index = findSessionWithTimeStamp(sessions, t);
       DOM::addSubTextNode(&ul, "li", t.toString()
           + stringFormat(" belonging to session %d",
               1+index));
-
       if (index != -1) {
         selPerSession[index].push_back(t);
       }
     }
   }
+  return selPerSession;
+}
+
+
+void makeAllIllustrations(
+    DOM::Node page,
+    const Setup &setup,
+    const Array<NavDataset> &sessions,
+    const Array<TimeStamp> &tackTimes,
+    const WindToRender &rawTrueWind,
+    const WindToRender &calibratedTrueWind) {
+
+  Array<std::vector<TimeStamp>> selPerSession;
+  if (!setup.selected.empty()) {
+    DOM::addSubTextNode(&page, "p", "You want to look closer at ");
+    selPerSession = assignTimeStampToSession(
+        sessions, Array<TimeStamp>::referToVector(setup.selected), &page);
+  }
+  DOM::addSubTextNode(&page, "p", "Maneuvers:");
+  auto mansPerSession = assignTimeStampToSession(sessions, tackTimes, &page);
 
   auto table = DOM::makeSubNode(&page, "table");
   {
@@ -447,6 +479,7 @@ void makeAllIllustrations(
 
   for (int i = 0; i < sessions.size(); i++) {
     const auto &sel = selPerSession[i];
+    const auto &man = mansPerSession[i];
     auto session = sessions[i];
     auto row = DOM::makeSubNode(&table, "tr");
     auto title = stringFormat("Session %d", i);
@@ -454,7 +487,7 @@ void makeAllIllustrations(
       auto td = makeSubNode(&row, "td");
       auto subPage = DOM::linkToSubPage(td, title);
       makeSessionIllustration(
-          setup, session, subPage, sel,
+          setup, session, subPage, sel, man,
           rawTrueWind, calibratedTrueWind);
     }
     DOM::addSubTextNode(&row, "td",
@@ -503,9 +536,7 @@ bool makeIllustrations(const Setup &setup) {
 
   // First simulation pass: adds true wind
   NavDataset simulated = calibrator.simulate(resampled);
-  auto times = calibrator.maneuverTimeStamps();
-  std::cout << "Number of maneuver time stamps: " << times.size() << std::endl;
-  CHECK(false);
+  auto tackTimes = calibrator.maneuverTimeStamps();
 
     /*
   Why this is needed:
@@ -546,7 +577,7 @@ bool makeIllustrations(const Setup &setup) {
   sail::renderDispatcherTableOverview(
       raw.dispatcher().get(), &page);
   makeAllIllustrations(page, setup, sessions,
-      rawTrueWind, calibratedTrueWind);
+      tackTimes, rawTrueWind, calibratedTrueWind);
 
   LOG(INFO) << "Processing time for " << proc._boatid << ": "
     << (TimeStamp::now() - start).seconds() << " seconds.";

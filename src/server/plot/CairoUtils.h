@@ -108,6 +108,8 @@ bool drawLocalFlow(
     double pointSize,
     std::default_random_engine *rng);
 
+void drawCross(cairo_t *cr, double size);
+
 }
 }
 
