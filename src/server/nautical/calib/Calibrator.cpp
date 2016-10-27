@@ -346,6 +346,22 @@ Array<TimeStamp> Calibrator::maneuverTimeStamps() const {
   return dst.get();
 }
 
+Array<ManeuverData> Calibrator::maneuverData() const {
+  auto mans = maneuvers();
+  ArrayBuilder<ManeuverData> dst(mans.size());
+  for (auto maneuver: mans) {
+    double angleError = 0;
+    double normAngle = 0;
+    double externalAngleError = 0;
+    double externalNormAngle = 0;
+    maneuver->angularError(_calibrationValues,
+                              &angleError, &normAngle,
+                              &externalAngleError, &externalNormAngle);
+    dst.add(ManeuverData{maneuver->time(), angleError});
+  }
+  return dst.get();
+}
+
 GnuplotExtra* Calibrator::initializePlot() {
   GnuplotExtra* gnuplot = new GnuplotExtra();
   print();
@@ -406,6 +422,9 @@ void Calibrator::saveCalibration(std::ostream *file) const {
   }
   writeChunk(*file, &calibration);
 }
+
+
+
 
 void Calibrator::print() const {
   double sumAngleError = 0;

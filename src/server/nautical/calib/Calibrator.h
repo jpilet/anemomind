@@ -16,6 +16,10 @@ namespace sail {
 class TackCost;
 class GnuplotExtra;
 
+struct ManeuverData {
+  TimeStamp time;
+  double angleError;
+};
 
 class Calibrator  {
   public:
@@ -66,6 +70,7 @@ class Calibrator  {
     WindOrientedGrammar grammar() const;
 
     Array<TimeStamp> maneuverTimeStamps() const;
+    Array<ManeuverData> maneuverData() const;
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);

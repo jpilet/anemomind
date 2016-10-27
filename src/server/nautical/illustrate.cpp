@@ -68,6 +68,7 @@ struct Setup {
   RenderMode mode = RenderMode::PerTrajectory;
   std::string path;
   TimeStamp from, to;
+  std::string outputName = "illustrations";
   std::string prefix = PathBuilder::makeDirectory(
       Env::BINARY_DIR).get().toString();
   std::string name = "illustrate";
@@ -153,9 +154,9 @@ Optional<HorizontalMotion<double>> getTrueWindByTwdir(
 }
 
 Optional<HorizontalMotion<double>> getTrueWindFromRaw(
-    TimeStamp time,
-    const Dispatcher *raw) {
-  auto awa = raw->get<AWA>()->dispatcher()->values().nearest(time);
+    TimeStamp time, const NavDataset &ds
+    /*const Dispatcher *raw*/) {
+  /*auto awa = raw->get<AWA>()->dispatcher()->values().nearest(time);
   auto aws = raw->get<AWS>()->dispatcher()->values().nearest(time);
   auto magHdg = raw->get<MAG_HEADING>()->dispatcher()->values().nearest(time);
   auto gpsSpeed = raw->get<GPS_SPEED>()->dispatcher()->values().nearest(time);
@@ -172,7 +173,11 @@ Optional<HorizontalMotion<double>> getTrueWindFromRaw(
 
     return HorizontalMotion<double>(gpsMotion + aw);
   }
-  return Optional<HorizontalMotion<double>>();
+  return Optional<HorizontalMotion<double>>();*/
+  auto nav = NavCompat::getNavByTime(ds, time);
+  return HorizontalMotion<double>::polar(
+      nav.externalTws(), 180.0_deg + nav.externalTwa() + nav.gpsBearing());
+
 }
 
 WindToRender makeCalibratedTrueWind(const NavDataset &d) {
@@ -183,11 +188,11 @@ WindToRender makeCalibratedTrueWind(const NavDataset &d) {
   };
 }
 
-WindToRender makeRawTrueWind(const Dispatcher *d) {
+WindToRender makeRawTrueWind(const NavDataset &ds) {
   using namespace PlotUtils;
   return WindToRender{
     hsv2rgb(HSV::fromHue(30.0_deg)), // Orange
-    [=](TimeStamp t) {return getTrueWindFromRaw(t, d);}
+    [=](TimeStamp t) {return getTrueWindFromRaw(t, ds);}
   };
 }
 
@@ -280,9 +285,12 @@ void renderGpsTrajectoryToSvg(
     NavDataset ds,
     const std::string &filename,
     const std::vector<TimeStamp> &selectedTimes,
-    const std::vector<TimeStamp> &maneuverTimes,
+    const std::vector<ManeuverData> &maneuverTimes,
     const WindToRender &rawTrueWind,
     const WindToRender &calibratedTrueWind) {
+
+  std::cout << "renderGpsTrajectoryToSvg" << std::endl;
+
   if (positions.empty()) {
     return;
   }
@@ -314,6 +322,8 @@ void renderGpsTrajectoryToSvg(
       PlotUtils::computeTotalProjection(bbox, settings);
   auto mat = sail::Cairo::toCairo(proj);
 
+  std::cout << "Make the traj..." << std::endl;
+
   WithLocalContext with(cr.get());
   cairo_transform(cr.get(), &mat);
   {
@@ -334,7 +344,7 @@ void renderGpsTrajectoryToSvg(
     WithLocalContext wlc(cr.get());
     cairo_set_line_width(cr.get(), 4);
     Cairo::setSourceColor(cr.get(), PlotUtils::HSV::fromHue(240.0_deg));
-    auto px = positions.nearest(t);
+    auto px = positions.nearest(t.time);
     if (px.defined()) {
       auto p = ref.map(px.get().value);
       cairo_translate(cr.get(),
@@ -395,14 +405,19 @@ void makeSessionIllustration(
     const NavDataset &ds0,
     DOM::Node page,
     const std::vector<TimeStamp> &selectedTimes,
-    const std::vector<TimeStamp> &maneuverTimes,
+    const std::vector<ManeuverData> &maneuverTimes,
     const WindToRender &rawTrueWind,
     const WindToRender &calibratedTrueWind) {
+  std::cout << "What about selected times..." <<
+      std::string(selectedTimes.empty()? "Emtpy" : "have data") << std::endl;
 
   auto ds = selectedTimes.empty()? ds0 : cropDataset(ds0, selectedTimes, setup.margin);
 
+  std::cout << "Make the overview..." << std::endl;
   renderDispatcherTableOverview(
       ds.dispatcher().get(), &page);
+
+  std::cout << "Get the positions" << std::endl;
 
   auto positions = ds.samples<GPS_POS>();
   if (positions.empty()) {
@@ -410,6 +425,7 @@ void makeSessionIllustration(
     DOM::addTextNode(&p, "No GPS data");
   } else {
     auto p = DOM::makeGeneratedImageNode(page, ".svg");
+    std::cout << "Render gps trajectory" << std::endl;
     renderGpsTrajectoryToSvg(
         setup,
         positions, ds, p.toString(),
@@ -430,17 +446,21 @@ int findSessionWithTimeStamp(
   return -1;
 }
 
-Array<std::vector<TimeStamp>> assignTimeStampToSession(
+TimeStamp timeOf(TimeStamp x) {return x;}
+TimeStamp timeOf(const ManeuverData &d) {return d.time;}
+
+template <typename T>
+Array<std::vector<T>> assignTimeStampToSession(
     const Array<NavDataset> &sessions,
-    const Array<TimeStamp> &selected,
+    const Array<T> &selected,
     DOM::Node *page) {
-  Array<std::vector<TimeStamp>> selPerSession(sessions.size());
+  Array<std::vector<T>> selPerSession(sessions.size());
 
   if (!selected.empty()) {
     auto ul = DOM::makeSubNode(page, "ul");
     for (auto t: selected) {
-      int index = findSessionWithTimeStamp(sessions, t);
-      DOM::addSubTextNode(&ul, "li", t.toString()
+      int index = findSessionWithTimeStamp(sessions, timeOf(t));
+      DOM::addSubTextNode(&ul, "li", timeOf(t).toString()
           + stringFormat(" belonging to session %d",
               1+index));
       if (index != -1) {
@@ -456,16 +476,16 @@ void makeAllIllustrations(
     DOM::Node page,
     const Setup &setup,
     const Array<NavDataset> &sessions,
-    const Array<TimeStamp> &tackTimes,
+    const Array<ManeuverData> &tackTimes,
     const WindToRender &rawTrueWind,
     const WindToRender &calibratedTrueWind) {
 
+  std::cout << "Make all illustrations..." << std::endl;
+
   Array<std::vector<TimeStamp>> selPerSession;
-  if (!setup.selected.empty()) {
-    DOM::addSubTextNode(&page, "p", "You want to look closer at ");
-    selPerSession = assignTimeStampToSession(
-        sessions, Array<TimeStamp>::referToVector(setup.selected), &page);
-  }
+  DOM::addSubTextNode(&page, "p", "You want to look closer at ");
+  selPerSession = assignTimeStampToSession(
+      sessions, Array<TimeStamp>::referToVector(setup.selected), &page);
   DOM::addSubTextNode(&page, "p", "Maneuvers:");
   auto mansPerSession = assignTimeStampToSession(sessions, tackTimes, &page);
 
@@ -481,14 +501,17 @@ void makeAllIllustrations(
     }
 
     for (int i = 0; i < sessions.size(); i++) {
+      std::cout << "Illustrate session " << i << std::endl;
       const auto &sel = selPerSession[i];
       const auto &man = mansPerSession[i];
       auto session = sessions[i];
       auto row = DOM::makeSubNode(&table, "tr");
+      std::cout << "Make table title" << std::endl;
       auto title = stringFormat("Session %d", i);
       {
         auto td = makeSubNode(&row, "td");
         auto subPage = DOM::linkToSubPage(td, title);
+        std::cout << "Make session illustration" << std::endl;
         makeSessionIllustration(
             setup, session, subPage, sel, man,
             rawTrueWind, calibratedTrueWind);
@@ -507,6 +530,7 @@ void makeAllIllustrations(
       auto row = DOM::makeSubNode(&table, "tr");
       DOM::addSubTextNode(&row, "th", "At time");
       DOM::addSubTextNode(&row, "th", "Session index");
+      DOM::addSubTextNode(&row, "th", "Angle error");
     }{
       for (int i = 0; i < sessions.size(); i++) {
         auto session = sessions[i];
@@ -514,16 +538,17 @@ void makeAllIllustrations(
         for (auto maneuverTime: man) {
           auto row = DOM::makeSubNode(&table, "tr");
           auto td = makeSubNode(&row, "td");
-          auto title = maneuverTime.toString();
+          auto title = maneuverTime.time.toString();
           auto subPage = DOM::linkToSubPage(td, title);
           makeSessionIllustration(
               setup, session,
               subPage, std::vector<TimeStamp>{
-                  maneuverTime - 1.0_minutes,
-                  maneuverTime + 1.0_minutes},
-              std::vector<TimeStamp>{},
+                  maneuverTime.time - 1.0_minutes,
+                  maneuverTime.time + 1.0_minutes},
+              std::vector<ManeuverData>{},
               rawTrueWind, calibratedTrueWind);
           DOM::addSubTextNode(&row, "td", stringFormat("%d", i));
+          DOM::addSubTextNode(&row, "td", stringFormat("%.3g", maneuverTime.angleError));
         }
       }
     }
@@ -537,7 +562,7 @@ bool makeIllustrations(const Setup &setup) {
   NavDataset raw = loadNavs(setup.path)
       .fitBounds();
 
-  auto rawTrueWind = makeRawTrueWind(raw.dispatcher().get());
+  auto rawTrueWind = makeRawTrueWind(raw);
 
   raw = raw.slice(earliest(setup.from, raw.lowerBound()),
                     latest(setup.to, raw.upperBound()));
@@ -567,7 +592,7 @@ bool makeIllustrations(const Setup &setup) {
 
   // First simulation pass: adds true wind
   NavDataset simulated = calibrator.simulate(resampled);
-  auto tackTimes = calibrator.maneuverTimeStamps();
+  auto tackData = calibrator.maneuverData();
 
     /*
   Why this is needed:
@@ -603,12 +628,13 @@ bool makeIllustrations(const Setup &setup) {
   Array<NavDataset> sessions =
     extractAll("Sailing", simulated, proc._grammar.grammar, fulltree);
 
+  std::cout << "MAKE THE ILLUSTRATIONS!" << std::endl;
   auto page = DOM::makeBasicHtmlPage("Illustrations",
-      setup.prefix, "illustrations");
+      setup.prefix, setup.outputName);
   sail::renderDispatcherTableOverview(
       raw.dispatcher().get(), &page);
   makeAllIllustrations(page, setup, sessions,
-      tackTimes, rawTrueWind, calibratedTrueWind);
+      tackData, rawTrueWind, calibratedTrueWind);
 
   LOG(INFO) << "Processing time for " << proc._boatid << ": "
     << (TimeStamp::now() - start).seconds() << " seconds.";
