@@ -22,7 +22,11 @@ angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
 
-    $scope.toggleVMG = false;
+    var defaultColor = '#FF0033';
+    var defaultTaillength = 300;
+
+    $scope.tailLength = defaultTaillength;
+    $scope.toggleVMG = $location.search().queue && !$location.search().tailColor ? true : false;
     $scope.toggleTail = $location.search().queue ? true : false;
     $scope.sections = {
       showPerfSpeed: false,
@@ -46,6 +50,8 @@ angular.module('www2App')
       }
     };
 
+    // url is not used yet.
+    // I think this will be used if someone will code for the social media sharing?
     $scope.iconList = [
       {
         name: 'linkedin',
@@ -70,6 +76,29 @@ angular.module('www2App')
       {
         name: 'mail',
         url: '#'
+      }
+    ];
+
+    $scope.tabs = [
+      {
+        name: 'res-graph',
+        icon: 'fa-area-chart'
+      },
+      {
+        name: 'res-perf',
+        icon: 'fa-dashboard'
+      },
+      {
+        name: 'res-wind',
+        icon: 'fa-flag'
+      },
+      {
+        name: 'res-details',
+        icon: 'fa-list'
+      },
+      {
+        name: 'res-photos',
+        icon: 'fa-photo'
       }
     ];
 
@@ -148,7 +177,7 @@ angular.module('www2App')
       var aveSpeedText = '32 Kts';
       var windBlowedText = '22 Kts';
       var performanceText = '91%';
-      $scope.shareText = '"'+$scope.boat.name+'" and her team made a great performance with an average speed of '+aveSpeedText+'. The wind blowed at '+windBlowedText+'. Anemomind calculated a global performance of '+performanceText+'.';
+      $scope.shareText = $scope.boat.name+' and her team made a great performance with an average speed of '+aveSpeedText+'. The wind blowed at '+windBlowedText+'. Anemomind calculated a global performance of '+performanceText+'.';
       $scope.shareText += '\n\nAdd text ...'
     });
 
@@ -217,12 +246,27 @@ angular.module('www2App')
         }
       }
     });
+
+    $scope.$watch('toggleVMG', function(newVal, oldVal) {
+      if (newVal != oldVal) {        
+        if(newVal)
+          $location.search('tailColor',null);
+        else
+          $location.search('tailColor',defaultColor);
+
+        refreshMap();
+      }
+    });
     
     $scope.$watch('toggleTail', function(newVal, oldVal) {
       if (newVal != oldVal) {
-        var queueVal = !newVal ? null : ($scope.tailLength ? $scope.tailLength : 300);
+        var queueVal = !newVal ? null : ($scope.tailLength ? $scope.tailLength : defaultTaillength);
         $location.search('queue', queueVal);
-        updatePosition();
+                
+        if(queueVal && !$scope.toggleVMG)
+          $location.search('tailColor',defaultColor);
+
+        refreshMap();
       }
     });
 
@@ -232,7 +276,11 @@ angular.module('www2App')
         $scope.toggleTail = !newVal ? false : true;
         
         $location.search('queue', queueVal);
-        updatePosition();
+
+        if(queueVal && !$scope.toggleVMG)
+          $location.search('tailColor',defaultColor);
+
+        refreshMap();
       }
     });
 
@@ -268,6 +316,12 @@ angular.module('www2App')
       }
       lastPositionUpdate = now;
     }
+
+    // Refreshes the map by triggering the $watch of currentTime
+    var refreshMap = function() {
+      if($scope.currentTime)
+        $scope.currentTime = new Date($scope.currentTime.getTime());
+    };
 
     $scope.$watch('mapLocation', setLocation);
     $scope.$watch('selectedCurve', setLocation);
@@ -354,7 +408,13 @@ angular.module('www2App')
 
     $scope.replaySpeed = 8;
     $scope.slower = function() { $scope.replaySpeed /= 2; }
-    $scope.faster = function() { $scope.replaySpeed *= 2; }
+    $scope.faster = function() {
+      var speed = $scope.replaySpeed * 2;  
+      if(speed > 512)
+        return false;
+
+      $scope.replaySpeed = speed;
+    }
     $scope.cutBefore = function() {
       if ($scope.selectedCurve && $scope.currentTime) {
         $scope.selectedCurve = makeCurveId(
@@ -395,6 +455,23 @@ angular.module('www2App')
       return mapScreenContainer.height();
     };
 
+
+    // Angular Tabs only toggles by switching from 1 tab to another
+    // This will allow to toggle the current tab by hiding it or not.
+    // Why? For the map to have more viewable space.
+    $scope.currentTab = null;
+    $scope.showTabContent = true;
+    $scope.selectTab = function(selectedIndex) {
+      if ($scope.currentTab !== selectedIndex) {
+        $scope.currentTab = selectedIndex;
+        $scope.showTabContent = true;
+      } else {
+        $scope.showTabContent = !$scope.showTabContent;
+      }
+      delayedApply();
+    }
+
+
     // Toggling the visibility of components change their size.
     // However, in HTML, there is no way to bind to a div resize event.
     // To avoid having to poll for size changes in a timer, when we
@@ -434,11 +511,17 @@ angular.module('www2App')
        return { width: width(), height: height() };
     }, function(value) {
        if (value.width < horizontalThreshold) {
-         if ($scope.mapActive && $scope.sideBarActive) {
-           // If the screen becomes to small for both
-           // the side bar and the map/graph container,
-           // we hide the side bar.
-           //$scope.sideBarActive = false;
+         if (!$scope.containers.showGraph) {
+           // If in desktop, the Graph is hidden
+           // then when switching to mobile,
+           // the Graph should be visible at start
+           $scope.containers.showGraph = true;
+         }
+         if (!$scope.showTabContent) {
+           // If in mobile, the Tab contents are hidden
+           // then switch to desktop,
+           // then switch again to mobile, it should be visible
+           $scope.showTabContent = true;
          }
        } else {
          // If the screen got large enough, show the sidebar,

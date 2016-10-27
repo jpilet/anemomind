@@ -13,7 +13,7 @@ height:100%;
   position: absolute;
   top: 8px;
   left: 9px;
-  z-index: 1;
+  z-index: 12;
   width: 34px;
   height: 34px;
   background-image: url('/assets/images/cross_dark.svg');
@@ -112,11 +112,11 @@ height:100%;
 
 .mainControl {
   position: absolute;
-  top: 9%;
-  left: 5%;
+  top: 20px;
+  left: 60px;
   z-index: 11;
   background-color: rgba(248,248,248,0.90);
-  width: auto;
+  width: 363px;
   font-family: 'Muli', "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   border-radius: 10px;
 }
@@ -132,7 +132,7 @@ height:100%;
 }
 .mainControl .heading .boat-name {
   padding: 4px 0 4px 7px;
-  width: 40%;
+  width: 60%;
   border-top-left-radius: 10px;
 }
 .mainControl .boat-name label,
@@ -150,7 +150,7 @@ height:100%;
 }
 .mainControl .heading .share-boat {
   padding: 4px 6px 4px 4px;
-  width: 60%;
+  width: 40%;
   border-top-right-radius: 10px;
 }
 .mainControl .share-boat-holder {
@@ -162,6 +162,10 @@ height:100%;
   width: 78px;
   height: 28px;
   background-image: url('/assets/images/share.svg');
+}
+.mainControl .infos.scrollable {
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 .mainControl .control-btns,
 .mainControl .tail-inputs {
@@ -195,9 +199,8 @@ height:100%;
 }
 .mainControl .control-btns .btn-grouped{
   display: inline-block;
-  border-radius: 3px;
-  background: url('/assets/images/minus_plus.svg') no-repeat;
-  background-size: cover;
+  border-radius: 10px;
+  background-color: #e6e6e6;
 }
 .mainControl .control-btns .btn-grouped button {
   background: transparent;
@@ -206,6 +209,19 @@ height:100%;
   box-shadow: none;
   width: 28px;
   height: 29px;
+  padding: 0;
+}
+.mainControl .control-btns .btn-grouped button i {
+  width: 16px;
+  height: 16px;
+}
+.mainControl .control-btns .btn-grouped button.slower i {
+  height: 5px;
+  vertical-align: middle;
+  background: url('/assets/images/minus_sign.svg') no-repeat;
+}
+.mainControl .control-btns .btn-grouped button.faster i {
+  background: url('/assets/images/plus_sign.svg') no-repeat;
 }
 .mainControl .control-btns .btn-grouped span {
   font-size: 12px;
@@ -285,7 +301,7 @@ height:100%;
 }
 .mainControl .group.tail-length .rzslider {
   margin: 10px 0 0 0;
-  width: 147px;
+  width: 154px;
 }
 .mainControl .group.tail-length .rzslider .rz-bubble.rz-limit {
   display: none;
@@ -317,8 +333,8 @@ height:100%;
   width: 100%;
 }
 .mainControl .section label .anemomind-icon {
-  width: 25px;
-  height: 25px;
+  width: 18px;
+  height: 18px;
   float: right;
   border: none;
 }
@@ -412,24 +428,28 @@ height:100%;
 .mainControl .indicator-description {
   display: none;
 }
-@media only screen and (max-width: 800px) {
+@media only screen and (max-width: 799px) {
   .mainControl {
     top: 0;
     left: 0;
     width: 100%;
     min-height: auto;
   }
-}
-@media only screen and (max-width: 400px) {
+  .close-btn {
+    top: 3px;
+    left: 4px;
+  }
+  .mainControl,
+  .mainControl .heading {
+    border-radius: 0;
+  }
   .mainControl .heading .boat-name {
-    padding: 4px;
+    padding-left: 42px;
   }
-  .mainControl .heading .share-boat {
-    padding: 5px;
-  }
-  .close-btn:before, 
-  .close-btn:after {
-    margin-top: -1px;
+  .mainControl .info-group .perf-speed,
+  .mainControl .info-group .wind,
+  .mainControl .info-group .details {
+    display: none;
   }
 }
 @media only screen and (max-width: 404px) {
@@ -460,8 +480,27 @@ height:100%;
   .mainControl .details table {
     font-size: 11px;
   }
+  .mainControl .group.tail-length .rzslider {
+    width: 175px;
+  }
+}
+@media only screen and (max-width: 400px) {
+  .mainControl .heading .share-boat {
+    padding: 5px;
+  }
+  .close-btn:before, 
+  .close-btn:after {
+    margin-top: -1px;
+  }
 }
 @media only screen and (max-width: 360px) {
+  .close-btn {
+    width: 24px;
+    height: 24px;
+  }
+  .mainControl .heading .boat-name {
+    padding-left: 35px !important;
+  }
   .mainControl .control-btns .group-btn {
     margin-top: 0;
   }
@@ -474,14 +513,6 @@ height:100%;
   }
   .mainControl .heading .boat-name {
     padding: 1px 4px;
-  }
-  .close-btn {
-    width: 16px;
-    height: 16px;
-  }
-  .close-btn:before, 
-  .close-btn:after {
-    height: 3px;
   }
   .mainControl .boat-name label {
     font-size: 16px;
@@ -509,6 +540,36 @@ height:100%;
   }
   .mainControl .control-btns .btn-sm {
     padding: 3px 7px;
+  }
+  .mainControl .group.tail-length .rzslider {
+    width: 173px;
+  }
+}
+@media only screen and (max-width: 345px) {
+  .mainControl .control-btns .play, 
+  .mainControl .control-btns .cut-before, 
+  .mainControl .control-btns .cut-after, 
+  .mainControl .control-btns .split, 
+  .mainControl .control-btns .jump-prev, 
+  .mainControl .control-btns .jump-next {
+    width: 26px;
+    height: 25px;
+  }
+  .mainControl .control-btns .split {
+    width: 54px;
+  }
+  .mainControl .control-btns .btn-grouped button {
+    height: 25px;
+  }
+  .mainControl .control-btns .btn-grouped button i {
+    width: 14px;
+    height: 14px;
+  }
+  .mainControl .control-btns .btn-grouped button.slower i {
+    height: 5px;
+  }
+  .mainControl .group.tail-length .rzslider {
+    width: 148px;
   }
 }
 @media only screen and (max-width: 340px) {
@@ -622,11 +683,41 @@ height:100%;
   background: url('/assets/images/share_send.svg') no-repeat;
   background-size: contain;
 }
+/* Responsive Styles - Lightbox Modal */
+@media only screen and (max-width: 767px) {
+  .modal-body[ng-controller="MapCtrl"] .cls-btn {
+    top: -8px;
+    left: -8px;
+  }
+}
+@media only screen and (max-width: 550px) {
+  .modal-body[ng-controller="MapCtrl"] {
+    padding: 20px 30px;
+  }
+}
 @media only screen and (max-width: 472px) {
   .custom-modal-container .icon-list ul li {
     margin: 0;
   }
 }
+@media only screen and (max-width: 401px) {
+  .modal-body[ng-controller="MapCtrl"] {
+    padding: 20px 15px;
+  }
+}
+@media only screen and (max-width: 371px) {
+  .custom-modal-container .icon-list li i {
+    width: 33px;
+    height: 33px;
+  }
+}
+@media only screen and (max-width: 331px) {
+  .custom-modal-container .icon-list li i {
+    width: 30px;
+    height: 30px;
+  }
+}
+
   
 .titleBox {
   position: absolute;
@@ -704,12 +795,6 @@ perfplot {
 }
 
 .responsiveNavButtons {
-  /*display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-      -ms-flex-direction: row;
-          flex-direction: row;*/
   display: none;
   border-top: 1px solid #aaaaaa;
 }
@@ -722,7 +807,7 @@ perfplot {
   width: 20%;
   text-align: center;
 }
-.responsiveNavButtons .nav-tabs.only-four > li {
+.responsiveNavButtons .nav-tabs > li.only-four {
   width: 25%;
 }
 .responsiveNavButtons .nav-tabs > li a {
@@ -741,16 +826,9 @@ perfplot {
 .responsiveNavButtons .res-container {
   background-color: #fbfbfb;
 }
+
+/* Responsive Styles - Footer icons */
 @media only screen and (max-width: 799px) {
-  .mainControl,
-  .mainControl .heading {
-    border-radius: 0;
-  }
-  .mainControl .info-group .perf-speed,
-  .mainControl .info-group .wind,
-  .mainControl .info-group .details {
-    display: none;
-  }
   .responsiveNavButtons {
     display: block;
   }
@@ -766,7 +844,6 @@ perfplot {
     flex-direction: column;
     min-height: 0;
   }
-  .responsiveNavButtons .tab-content,
   .res-container.res-graph,
   .res-container.res-perf,
   .res-container.res-wind,
@@ -942,12 +1019,6 @@ perfplot {
     height: 12px;
   }
 }
-@media only screen and (max-width: 767px) {
-  .modal-body[ng-controller="MapCtrl"] .cls-btn {
-    top: -8px;
-    left: -8px;
-  }
-}
 @media only screen and (max-width: 700px) {
   .res-container.res-perf .moving-element {
     padding: 5px 14% 0;
@@ -997,11 +1068,6 @@ perfplot {
     right: -116px;
   }
 }
-@media only screen and (max-width: 550px) {
-  .modal-body[ng-controller="MapCtrl"] {
-    padding: 20px 30px;
-  }
-}
 @media only screen and (max-width: 500px) {
   .res-container.res-perf .moving-element {
     padding: 18px 5% 0;
@@ -1033,7 +1099,6 @@ perfplot {
   }
 }
 @media only screen and (max-width: 420px) {
-  .responsiveNavButtons .tab-content,
   .res-container.res-graph,
   .res-container.res-perf,
   .res-container.res-wind,
@@ -1051,23 +1116,12 @@ perfplot {
     padding: 8px 22% 0;
   }
 }
-@media only screen and (max-width: 401px) {
-  .modal-body[ng-controller="MapCtrl"] {
-    padding: 20px 15px;
-  }
-}
 @media only screen and (max-width: 380px) {
   .res-container.res-perf .moving-element {
     padding: 27px 5% 0;
   }
   .res-container.res-wind .moving-element {
     padding: 3px 22% 0 11%;
-  }
-}
-@media only screen and (max-width: 371px) {
-  .custom-modal-container .icon-list li i {
-    width: 33px;
-    height: 33px;
   }
 }
 @media only screen and (max-width: 340px) {
@@ -1081,12 +1135,8 @@ perfplot {
     right: -60px;
   }
 }
-@media only screen and (max-width: 331px) {
-  .custom-modal-container .icon-list li i {
-    width: 30px;
-    height: 30px;
-  }
-}
+
+
 /*==================================================*/
 
 #topwheel {
@@ -1229,6 +1279,7 @@ perfplot {
 }
 .collapse-area.uncollapse-area {
   height: auto;
+  overflow: initial;
 }
 
 /* ========= bootstrap overrides ========= */
