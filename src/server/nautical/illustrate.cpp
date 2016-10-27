@@ -72,6 +72,30 @@ struct WindToRender {
   WindFunction wind;
 };
 
+struct BoatPose {
+  TimeStamp t;
+  GeographicPosition<double> pos;
+  Angle<double> heading;
+};
+
+Optional<BoatPose> getBoatPose(TimeStamp t,
+    const NavDataset &ds) {
+  auto pos = ds.samples<GPS_POS>().nearest(t);
+  if (!pos.defined()) {
+    std::cout << "Missing pos";
+    return Optional<BoatPose>();
+  }
+
+  auto hdg = ds.samples<MAG_HEADING>().nearest(t);
+  if (!hdg.defined()) {
+    std::cout << "Missing heading";
+    return Optional<BoatPose>();
+  }
+  return BoatPose{
+    t, pos.get().value, hdg.get().value
+  };
+}
+
 Optional<HorizontalMotion<double>> getTrueWindByTwdir(
     TimeStamp time,
     const NavDataset &ds) {
@@ -127,7 +151,7 @@ WindToRender makeRawTrueWind(const Dispatcher *d) {
 }
 
 struct BoatToRender {
-  GeographicReference::ProjectedPosition position;
+  GeographicPosition<double> position;
   Angle<double> heading;
 
   PlotUtils::RGB boatColor = PlotUtils::hsv2rgb(
@@ -136,19 +160,6 @@ struct BoatToRender {
   std::vector<WindToRender> winds;
 };
 
-struct BoatData {
-
-  //Optional<Angle<double>> badAwa, goodAwa;
-  //Optional<Angle<double>> badTwdir, goodTwdir;
-};
-
-
-void renderBoatData(
-    cairo_t *cr,
-    const BoatData &boat,
-    const BoatToRender &settings) {
-
-}
 
 namespace {
   auto lengthUnit = 1.0_m;
@@ -158,25 +169,12 @@ void renderBoat(
     BoatToRender rs,
     cairo_t *cr,
     const GeographicReference &ref,
-    TimeStamp time,
-  const NavDataset &ds) {
+    TimeStamp time) {
 
   WithLocalContext withContext(cr);
   setSourceColor(cr, rs.boatColor);
 
-  auto pos = ds.samples<GPS_POS>().nearest(time);
-  if (!pos.defined()) {
-    std::cout << "Missing pos";
-    return;
-  }
-
-  auto hdg = ds.samples<MAG_HEADING>().nearest(time);
-  if (!hdg.defined()) {
-    std::cout << "Missing heading";
-    return;
-  }
-
-  auto localPos = ref.map(pos.get().value);
+  auto localPos = ref.map(rs.position);
 
   cairo_translate(cr,
       localPos[0]/lengthUnit,
@@ -186,7 +184,7 @@ void renderBoat(
 
   {
     WithLocalContext context(cr);
-    rotateGeographically(cr, hdg.get().value);
+    rotateGeographically(cr, rs.heading);
     drawBoat(cr, 60);
   }
 
@@ -258,14 +256,20 @@ void renderGpsTrajectoryToSvg(
 
 
   for (int i = 0; i < times.size(); i++) {
+    auto pose0 = getBoatPose(times[i], ds);
     BoatToRender rs;
-    rs.boatColor = setup.boatColor(i);
-    rs.winds.push_back(rawTrueWind);
-    rs.winds.push_back(calibratedTrueWind);
-    auto t = times[i];
-    WithLocalContext with(cr.get());
-    cairo_transform(cr.get(), &mat);
-    renderBoat(rs, cr.get(), ref, t, ds);
+    if (pose0.defined()) {
+      auto pose = pose0.get();
+      rs.position = pose.pos;
+      rs.heading = pose.heading;
+      rs.boatColor = setup.boatColor(i);
+      rs.winds.push_back(rawTrueWind);
+      rs.winds.push_back(calibratedTrueWind);
+      auto t = times[i];
+      WithLocalContext with(cr.get());
+      cairo_transform(cr.get(), &mat);
+      renderBoat(rs, cr.get(), ref, t);
+    }
   }
 }
 
