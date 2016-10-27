@@ -99,13 +99,13 @@ void TimedSampleCollection<T>::insert(const TimedVector& entries) {
 }
 
 template <typename T, typename Iterator>
-Optional<TimedValue<T> > findNearestTimedValue(Iterator begin, Iterator end, TimeStamp t) {
+Iterator findNearestIterator(Iterator begin, Iterator end, TimeStamp t) {
   if (begin == end) {
-    return Optional<TimedValue<T> >();
+    return end;
   }
   const TimedValue<T> time(t, T());
   if (time < *(begin) || t > (*(end - 1)).time) {
-    return Optional<TimedValue<T> >();
+    return end;
   }
 
   auto it = std::lower_bound(begin, end, time);
@@ -116,6 +116,13 @@ Optional<TimedValue<T> > findNearestTimedValue(Iterator begin, Iterator end, Tim
       it = prev;
     }
   }
+  return it;
+}
+
+template <typename T, typename Iterator>
+Optional<TimedValue<T> > findNearestTimedValue(
+    Iterator begin, Iterator end, TimeStamp t) {
+  auto it = findNearestIterator<T, Iterator>(begin, end, t);
   return Optional<TimedValue<T> >(*it);
 }
 
