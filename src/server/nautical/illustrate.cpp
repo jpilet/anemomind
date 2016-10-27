@@ -27,7 +27,45 @@ using namespace sail::Cairo;
 
 std::default_random_engine rng;
 
+namespace {
+  auto lengthUnit = 1.0_m;
+  auto flowCoef = (4.0_m/1.0_kn)/lengthUnit;
+}
+
+enum class RenderMode {
+  PerBoat,
+  PerTrajectory
+};
+
+
+
+
+struct LocalFlowSettings {
+  int arrowCount = 9;
+  double localStdDev = 60.0;
+  decltype(flowCoef) coef = flowCoef;
+  double pointSize = 0.2;
+  Eigen::Vector2d toRawVector(
+      const HorizontalMotion<double> &motion) const;
+};
+
+Eigen::Vector2d LocalFlowSettings::toRawVector(
+    const HorizontalMotion<double> &motion) const {
+  return Eigen::Vector2d(
+      double(motion[0]*coef),
+      double(motion[1]*coef));
+}
+
+LocalFlowSettings makeTrajFlow() {
+  LocalFlowSettings s;
+  s.arrowCount = 1;
+  s.localStdDev = 30;
+  return s;
+}
+
 struct Setup {
+  LocalFlowSettings localFlowSettings, trajFlow = makeTrajFlow();
+  RenderMode mode = RenderMode::PerTrajectory;
   std::string path;
   TimeStamp from, to;
   std::string prefix = PathBuilder::makeDirectory(
@@ -37,6 +75,7 @@ struct Setup {
   std::vector<TimeStamp> selected;
 
   Duration<double> margin;
+  Duration<double> windSamplingPeriod = 10.0_s;
 
   PlotUtils::RGB boatColor(int index) const;
 };
@@ -123,11 +162,12 @@ Optional<HorizontalMotion<double>> getTrueWindFromRaw(
 
   if (awa.defined() && aws.defined() && magHdg.defined()
       && gpsSpeed.defined() && gpsBearing.defined()) {
+
+
     auto gpsMotion = HorizontalMotion<double>::polar(
         gpsSpeed.get(), gpsBearing.get());
     auto aw = HorizontalMotion<double>::polar(
-        aws.get(),
-        180.0_deg + awa.get() + magHdg.get());
+        aws.get(), 180.0_deg + awa.get() + magHdg.get());
 
     return HorizontalMotion<double>(gpsMotion + aw);
   }
@@ -160,12 +200,8 @@ struct BoatToRender {
   std::vector<WindToRender> winds;
 };
 
-
-namespace {
-  auto lengthUnit = 1.0_m;
-}
-
 void renderBoat(
+    const Setup &setup,
     BoatToRender rs,
     cairo_t *cr,
     const GeographicReference &ref,
@@ -195,15 +231,47 @@ void renderBoat(
     auto motion0 = wind.wind(time);
     if (motion0.defined()) {
       auto motion = motion0.get();
-      auto coef = (4.0_m/1.0_kn)/lengthUnit;
 
-      Eigen::Vector2d flow(
-          double(motion[0]*coef),
-          double(motion[1]*coef));
-      drawLocalFlow(cr, flow, 60.0, 9, 0.2*flow.norm(), &rng);
+      auto flow = setup.localFlowSettings.toRawVector(motion);
+      drawLocalFlow(cr, flow,
+          setup.localFlowSettings.localStdDev,
+          setup.localFlowSettings.arrowCount,
+          setup.localFlowSettings.pointSize*flow.norm(), &rng);
     }
   }
 }
+
+TimeStamp getRandomTime(TimeStamp from, TimeStamp to) {
+  std::uniform_real_distribution<double> distrib(0.0, 1.0);
+  return from + distrib(rng)*(to - from);
+}
+
+void drawLocalWinds(
+    const Setup &setup,
+    const GeographicReference &geoRef,
+    cairo_t *cr,
+    int sampleCount, TimeStamp firstTime,
+    TimeStamp lastTime,
+    const TimedSampleRange<GeographicPosition<double>> &positions,
+    const WindToRender &windToRender) {
+  WithLocalContext with(cr);
+  Cairo::setSourceColor(cr, windToRender.windColor);
+  for (int i = 0; i < sampleCount; i++) {
+    auto time = getRandomTime(firstTime, lastTime);
+    auto gpos = positions.nearest(time);
+    auto wind = windToRender.wind(time);
+    if (gpos.defined() && wind.defined()) {
+      auto pos = geoRef.map(gpos.get().value);
+      WithLocalContext with(cr);
+      cairo_translate(cr, pos[0]/lengthUnit, pos[1]/lengthUnit);
+      auto flow = setup.trajFlow.toRawVector(wind.get());
+      drawLocalFlow(cr, flow,
+          setup.trajFlow.localStdDev, setup.trajFlow.arrowCount,
+          setup.trajFlow.pointSize*flow.norm(), &rng);
+    }
+  }
+}
+
 
 void renderGpsTrajectoryToSvg(
     const Setup &setup,
@@ -213,6 +281,10 @@ void renderGpsTrajectoryToSvg(
     const std::vector<TimeStamp> &times,
     const WindToRender &rawTrueWind,
     const WindToRender &calibratedTrueWind) {
+  if (positions.empty()) {
+    return;
+  }
+
   auto middle = positions[positions.size()/2];
 
   GeographicReference ref(middle.value);
@@ -240,9 +312,10 @@ void renderGpsTrajectoryToSvg(
       PlotUtils::computeTotalProjection(bbox, settings);
   auto mat = sail::Cairo::toCairo(proj);
 
+  WithLocalContext with(cr.get());
+  cairo_transform(cr.get(), &mat);
   {
     WithLocalContext with(cr.get());
-    cairo_transform(cr.get(), &mat);
     {
       auto p = p2[0];
       cairo_move_to(cr.get(), p[0]/lengthUnit, p[1]/lengthUnit);
@@ -254,6 +327,19 @@ void renderGpsTrajectoryToSvg(
   }
   cairo_stroke(cr.get());
 
+  if (setup.mode == RenderMode::PerTrajectory) {
+    WithLocalContext with(cr.get());
+    TimeStamp firstTime = positions.first().time;
+    TimeStamp lastTime = positions.last().time;
+    int sampleCount = int(ceil((lastTime - firstTime)/setup.windSamplingPeriod));
+    drawLocalWinds(setup, ref, cr.get(), sampleCount, firstTime,
+        lastTime, positions, rawTrueWind);
+    drawLocalWinds(setup, ref, cr.get(), sampleCount, firstTime,
+        lastTime, positions, calibratedTrueWind);
+  }
+
+
+
 
   for (int i = 0; i < times.size(); i++) {
     auto pose0 = getBoatPose(times[i], ds);
@@ -262,13 +348,16 @@ void renderGpsTrajectoryToSvg(
       auto pose = pose0.get();
       rs.position = pose.pos;
       rs.heading = pose.heading;
-      rs.boatColor = setup.boatColor(i);
-      rs.winds.push_back(rawTrueWind);
-      rs.winds.push_back(calibratedTrueWind);
+      if (setup.mode == RenderMode::PerBoat) {
+        rs.boatColor = setup.boatColor(i);
+        rs.winds.push_back(rawTrueWind);
+        rs.winds.push_back(calibratedTrueWind);
+      } else {
+        rs.boatColor = PlotUtils::RGB();
+      }
       auto t = times[i];
       WithLocalContext with(cr.get());
-      cairo_transform(cr.get(), &mat);
-      renderBoat(rs, cr.get(), ref, t);
+      renderBoat(setup, rs, cr.get(), ref, t);
     }
   }
 }
@@ -414,6 +503,9 @@ bool makeIllustrations(const Setup &setup) {
 
   // First simulation pass: adds true wind
   NavDataset simulated = calibrator.simulate(resampled);
+  for (auto maneuver: calibrator.maneuvers()) {
+
+  }
 
     /*
   Why this is needed:

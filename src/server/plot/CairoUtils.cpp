@@ -129,6 +129,9 @@ bool drawLocalFlow(
     double localStddev, int n,
     double pointSize,
     std::default_random_engine *rng) {
+
+  Cairo::WithLocalDeviceScale with(cr,
+      Cairo::WithLocalDeviceScale::Determinant);
   std::normal_distribution<double> distrib(0.0, localStddev);
   Eigen::Vector2d half = 0.5*flowVector;
   for (int i = 0; i < n; i++) {
