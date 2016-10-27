@@ -74,6 +74,7 @@ struct Setup {
 
   std::vector<TimeStamp> selected;
 
+  Duration<double> maneuverMarg = 2.0_minutes;
   Duration<double> margin;
   Duration<double> windSamplingPeriod = 10.0_s;
 
@@ -468,34 +469,64 @@ void makeAllIllustrations(
   DOM::addSubTextNode(&page, "p", "Maneuvers:");
   auto mansPerSession = assignTimeStampToSession(sessions, tackTimes, &page);
 
-  auto table = DOM::makeSubNode(&page, "table");
   {
-    auto row = DOM::makeSubNode(&table, "tr");
-    DOM::addSubTextNode(&row, "th", "Index");
-    DOM::addSubTextNode(&row, "th", "From");
-    DOM::addSubTextNode(&row, "th", "To");
-    DOM::addSubTextNode(&row, "th", "Selected count");
-  }
-
-  for (int i = 0; i < sessions.size(); i++) {
-    const auto &sel = selPerSession[i];
-    const auto &man = mansPerSession[i];
-    auto session = sessions[i];
-    auto row = DOM::makeSubNode(&table, "tr");
-    auto title = stringFormat("Session %d", i);
+    DOM::addSubTextNode(&page, "h2", "Per session plots, with selection");
+    auto table = DOM::makeSubNode(&page, "table");
     {
-      auto td = makeSubNode(&row, "td");
-      auto subPage = DOM::linkToSubPage(td, title);
-      makeSessionIllustration(
-          setup, session, subPage, sel, man,
-          rawTrueWind, calibratedTrueWind);
+      auto row = DOM::makeSubNode(&table, "tr");
+      DOM::addSubTextNode(&row, "th", "Index");
+      DOM::addSubTextNode(&row, "th", "From");
+      DOM::addSubTextNode(&row, "th", "To");
+      DOM::addSubTextNode(&row, "th", "Selected count");
     }
-    DOM::addSubTextNode(&row, "td",
-        session.lowerBound().toString());
-    DOM::addSubTextNode(&row, "td",
-        session.upperBound().toString());
-    DOM::addSubTextNode(&row, "td",
-        stringFormat("%d", sel.size()));
+
+    for (int i = 0; i < sessions.size(); i++) {
+      const auto &sel = selPerSession[i];
+      const auto &man = mansPerSession[i];
+      auto session = sessions[i];
+      auto row = DOM::makeSubNode(&table, "tr");
+      auto title = stringFormat("Session %d", i);
+      {
+        auto td = makeSubNode(&row, "td");
+        auto subPage = DOM::linkToSubPage(td, title);
+        makeSessionIllustration(
+            setup, session, subPage, sel, man,
+            rawTrueWind, calibratedTrueWind);
+      }
+      DOM::addSubTextNode(&row, "td",
+          session.lowerBound().toString());
+      DOM::addSubTextNode(&row, "td",
+          session.upperBound().toString());
+      DOM::addSubTextNode(&row, "td",
+          stringFormat("%d", sel.size()));
+    }
+  }{
+    DOM::addSubTextNode(&page, "h2", "Per maneuver-plots");
+    auto table = DOM::makeSubNode(&page, "table");
+    {
+      auto row = DOM::makeSubNode(&table, "tr");
+      DOM::addSubTextNode(&row, "th", "At time");
+      DOM::addSubTextNode(&row, "th", "Session index");
+    }{
+      for (int i = 0; i < sessions.size(); i++) {
+        auto session = sessions[i];
+        auto man = mansPerSession[i];
+        for (auto maneuverTime: man) {
+          auto row = DOM::makeSubNode(&table, "tr");
+          auto td = makeSubNode(&row, "td");
+          auto title = maneuverTime.toString();
+          auto subPage = DOM::linkToSubPage(td, title);
+          makeSessionIllustration(
+              setup, session,
+              subPage, std::vector<TimeStamp>{
+                  maneuverTime - 1.0_minutes,
+                  maneuverTime + 1.0_minutes},
+              std::vector<TimeStamp>{},
+              rawTrueWind, calibratedTrueWind);
+          DOM::addSubTextNode(&row, "td", stringFormat("%d", i));
+        }
+      }
+    }
   }
 }
 
