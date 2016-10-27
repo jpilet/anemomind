@@ -26,15 +26,26 @@ angular.module('www2App')
       boats.push(boat);
     }    
 
-    //
     // return the default boat to display at home
     function getDefaultBoat() {
       if(!boats.length){
-        return {};
+        return undefined;
       }
 
-      // default super implementation
-      return boats[boats.length-1];
+      var bestBoat;
+      var mostRecentSession;
+      for (var boat in sessionsForBoats) {
+        var sessions = sessionsForBoats[boat];
+        for (var j in sessions) {
+          var s = sessions[j];
+          var time = new Date(s.endTime);
+          if (!bestBoat || mostRecentSession < time) {
+            mostRecentSession = time;
+            bestBoat = boat;
+          }
+        }
+      }
+      return (bestBoat ? boatDict[bestBoat] : boats[boats.length - 1]);
     }
 
     function update() {

@@ -121,7 +121,6 @@ p {
 .main-view{
   width: 100%;
   clear: both;
-  min-height: 700px;
   background-color: #fff;
 }
 
