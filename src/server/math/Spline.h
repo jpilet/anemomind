@@ -265,17 +265,20 @@ public:
   const Eigen::MatrixXd &rightMat() const {return _right;}
 
   T getInternalCoef(int index, T *coefs) const {
+    int offset2 = RawType::extraBasesPerBoundary + _basis.intervalCount();
+    int index1 = index - offset2;
     if (index < RawType::extraBasesPerBoundary) {
       T sum(0.0);
       for (int i = 0; i < _left.cols(); i++) {
         sum += _left(index, i)*coefs[i];
       }
       return sum;
-    } else if (_basis.intervalCount() <= index) {
-      int index1 = index - _basis.intervalCount();
+    } else if (0 <= index1) {
+      auto lastCoefs = coefs + _basis.intervalCount() - _right.cols();
       T sum(0.0);
+      std::cout << "index1 = " << index1 << std::endl;
       for (int i = 0; i < _right.cols(); i++) {
-        sum += _right(index1, i)*coefs[i - _right.cols()];
+        sum += _right(index1, i)*lastCoefs[i];
       }
       return sum;
     }
