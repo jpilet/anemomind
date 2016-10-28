@@ -129,7 +129,7 @@ public:
       return false;
     }
 
-    void addScaled(T s, const Weights &other) const {
+    void addScaled(T s, const Weights &other) {
       for (int i = 0; i < dim; i++) {
         CHECK(add(other.inds[i], s*other.weights[i]));
       }
@@ -339,7 +339,7 @@ public:
 
   Weights getInnerWeights(int innerCoef) const {
     Weights dst;
-    int rb = rightBd();
+    /*int rb = rightBd();
     if (innerCoef < leftBd()) {
       for (int i = 0; i < _left.cols(); i++) {
         dst.add(i, _left(innerCoef, i));
@@ -352,17 +352,17 @@ public:
       }
     } else {
       dst.add(innerCoef - RawType::extraBasesPerBoundary, 1.0);
-    }
+    }*/
     return dst;
   }
 
   Weights build(T x) const {
     Weights dst;
-    int index = _basis.computeIntervalIndex(x);
     for (int i_ = 0; i_ < RawType::coefsPerPoint; i_++) {
       int index = i_ + index;
       auto w = _basis.evaluateBasis(index, x);
-      dst.addScaled(w, getInnerWeights(index));
+      auto wsub = getInnerWeights(index);
+      dst.addScaled(w, wsub);
     }
     return dst;
   }
