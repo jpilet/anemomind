@@ -598,7 +598,8 @@ void makeCalibrationParamPlots(
     const std::string &filenamePrefix) {
   {
     std::ofstream file(filenamePrefix + "_orthogrid.txt");
-    file << "% X-index Y-index X-vel Y-vel AWA AWS offset\n";
+    //file << "% X-index Y-index X-vel Y-vel AWA AWS offset\n";
+    file << "% AWA AWS offset\n";
     int n = 61;
     auto maxVel = 15.0_kn;
     LineKM interp(0, n-1, -1.0, 1.0);
@@ -613,29 +614,39 @@ void makeCalibrationParamPlots(
         auto est = computeWindValuesFromAW(
             values, aws, awa);
 
-        file << xi << " " << yi << " "
+        /*file << xi << " " << yi << " "
             << x.knots() << " " << y.knots() << " " << awa.degrees()
-            << " " << aws.knots() << " " << est.awa_offset << std::endl;
+            << " " << aws.knots() << " " << est.awa_offset << std::endl;*/
+        file << awa.degrees() << " " << aws.knots()
+            << " " << est.awa_offset << std::endl;
       }
     }
   }{
-    std::ofstream file(filenamePrefix + "_polargrid.txt");
-    file << "% aws-index awa-index aws awa angle-offset\n";
+    std::ofstream xx(filenamePrefix + "_polargrid_xx.txt");
+    std::ofstream yy(filenamePrefix + "_polargrid_yy.txt");
+    std::ofstream zz(filenamePrefix + "_polargrid_zz.txt");
+    std::ofstream file(filenamePrefix + "_polargrid_list.txt");
+    file << "# AWS (knots) AWA (degrees) Offset" << std::endl;
     int speedCount = 31;
     int angleCount = 12;
     auto maxSpeed = 15.0_kn;
     LineKM speedInterp(0, speedCount, 0.0, 1.0);
-    LineKM angleInterp(0, angleCount, 0.0, 360.0);
+    LineKM angleInterp(0, angleCount, -180.0, 180.0);
 
     for (int i = 0; i < speedCount; i++) {
       auto aws = double(speedInterp(i))*maxSpeed;
       for (int j = 0; j < angleCount; j++) {
         auto awa = double(angleInterp(j))*1.0_deg;
         auto est = computeWindValuesFromAW(values, aws, awa);
-        file << i << " " << j << " " << aws.knots() << " "
-            << awa.degrees() << " " << est.awa_offset << std::endl;
-
+        xx << aws.knots() << " ";
+        yy << awa.degrees() << " ";
+        zz << est.awa_offset << " ";
+        file << aws.knots() << " " << awa.degrees()
+            << " " << est.awa_offset << std::endl;
       }
+      xx << std::endl;
+      yy << std::endl;
+      zz << std::endl;
     }
   }
 
