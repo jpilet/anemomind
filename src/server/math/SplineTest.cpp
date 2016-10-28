@@ -137,4 +137,11 @@ TEST(SplineBasisTest, TestIndices2) {
   EXPECT_EQ(1, inds.computeACol(1));
   EXPECT_EQ(2, inds.computeACol(10));
   EXPECT_EQ(3, inds.computeACol(11));
+
+  EXPECT_EQ(0, inds.computeBCol(2));
+  EXPECT_EQ(1, inds.computeBCol(3));
+  EXPECT_EQ(2, inds.computeBCol(4));
+  EXPECT_EQ(3, inds.computeBCol(7));
+  EXPECT_EQ(4, inds.computeBCol(8));
+  EXPECT_EQ(5, inds.computeBCol(9));
 }

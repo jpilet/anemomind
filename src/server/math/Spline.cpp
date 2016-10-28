@@ -48,7 +48,8 @@ int BoundaryIndices::computeACol(int i) const {
 }
 
 int BoundaryIndices::computeBCol(int i) const {
-  return i < innerLimit()? i - _ep : i - _right.minv();
+  auto il = _left.maxv();
+  return i < il? i - _ep : (i - _right.minv()) + (il - _ep);
 }
 
 
