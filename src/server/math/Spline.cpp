@@ -79,8 +79,8 @@ BoundaryIndices::Solution BoundaryIndices::solve() const {
   int to = std::min(_left.maxv(), _right.maxv() - _ep);
   int k = to - from;
   return Solution{
-    X.block(0, 0, k, X.cols()),
-    X.block(k, 0, k, X.cols())
+    X.block(0, 0, _ep, k),
+    X.block(_ep, _B.cols() - k, _ep, k)
   };
 }
 
