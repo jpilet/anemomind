@@ -23,12 +23,32 @@ bool BoundaryIndices::isLeftIndex(int i) const {
   return i < _ep;
 }
 
+int BoundaryIndices::epRight() const {
+  return _right.maxv() - _ep;
+}
+
+int BoundaryIndices::innerLimit() const {
+  return std::max(_left.maxv(), _right.minv());
+}
+
 bool BoundaryIndices::isRightIndex(int i) const {
-  return _right.maxv() - _ep <= i;
+  return epRight() <= i;
 }
 
 bool BoundaryIndices::isInnerIndex(int i) const {
   return !isLeftIndex(i) && !isRightIndex(i);
+}
+
+int BoundaryIndices::computeACol(int i) const {
+  CHECK(!isInnerIndex(i));
+  if (isLeftIndex(i)) {
+    return i;
+  }
+  return i - epRight();
+}
+
+int BoundaryIndices::computeBCol(int i) const {
+  return i < innerLimit()? i - _ep : i - _right.minv();
 }
 
 

@@ -196,7 +196,12 @@ public:
   bool isLeftIndex(int i) const;
   bool isRightIndex(int i) const;
   bool isInnerIndex(int i) const;
+
+  int computeACol(int i) const;
+  int computeBCol(int i) const;
 private:
+  int epRight() const;
+  int innerLimit() const;
   Spani _left, _right;
   int _ep;
 };

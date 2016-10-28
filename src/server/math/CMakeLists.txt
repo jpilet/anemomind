@@ -180,6 +180,11 @@ add_library(math_Spline
   Spline.cpp
   )
 
+target_link_libraries(math_Spline
+  common_logging
+  )
+
+
 cxx_test(math_SplineTest
   SplineTest.cpp
   gtest_main
