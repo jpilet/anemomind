@@ -37,11 +37,17 @@
     background-repeat: no-repeat;
     background-size: contain;
 }
+.challenges .challenge-types .circle.selected,
+.challenges .challenge-types .circle:hover {
+    background-color: #ff0033;
+    color: #fff;
+}
 .challenges .challenge-types .circle.distance:before {
     background-image: url('/assets/images/distance.svg');
     width: 50px;
     height: 50px;
 }
+.challenges .challenge-types .circle.distance.selected:before,
 .challenges .challenge-types .circle.distance:hover:before {
     background-image: url('/assets/images/distance_white.svg');
 }
@@ -54,30 +60,35 @@
 .challenges .challenge-types .circle.time.minutes10:before {
     background-image: url('/assets/images/10minutes.svg');
 }
+.challenges .challenge-types .circle.time.minutes10.selected:before,
 .challenges .challenge-types .circle.time.minutes10:hover:before {
     background-image: url('/assets/images/10minutes_white.svg');
 }
 .challenges .challenge-types .circle.time.minutes30:before {
     background-image: url('/assets/images/30minutes.svg');
 }
+.challenges .challenge-types .circle.time.minutes30.selected:before,
 .challenges .challenge-types .circle.time.minutes30:hover:before {
     background-image: url('/assets/images/30minutes_white.svg');
 }
 .challenges .challenge-types .circle.time.hour1:before {
     background-image: url('/assets/images/1hour.svg');
 }
+.challenges .challenge-types .circle.time.hour1.selected:before,
 .challenges .challenge-types .circle.time.hour1:hover:before {
     background-image: url('/assets/images/1hour_white.svg');
 }
 .challenges .challenge-types .circle.time.hours5:before {
     background-image: url('/assets/images/5hours.svg');
 }
+.challenges .challenge-types .circle.time.hours5.selected:before,
 .challenges .challenge-types .circle.time.hours5:hover:before {
     background-image: url('/assets/images/5hours_white.svg');
 }
 .challenges .challenge-types .circle.time.hours24:before {
     background-image: url('/assets/images/24hours.svg');
 }
+.challenges .challenge-types .circle.time.hours24.selected:before,
 .challenges .challenge-types .circle.time.hours24:hover:before {
     background-image: url('/assets/images/24hours_white.svg');
 }
@@ -87,6 +98,7 @@
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 0;
+    cursor: pointer;
 }
 .challenges .challenge-types .circle label.km {
     padding: 10% 28%;
@@ -244,7 +256,7 @@
     color: #333;
     background-color: #eee;
     border-color: #ccc;
-    padding: 4px 22px 8px 12px;
+    padding: 6px 22px 6px 12px;
     margin-bottom: 0;
     font-size: 14px;
     font-weight: 400;

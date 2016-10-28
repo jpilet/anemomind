@@ -5,15 +5,9 @@ angular.module('www2App')
       $scope.isAdmin = Auth.isAdmin;
       $scope.isLoggedIn = Auth.isLoggedIn();
 
-      $scope.sharePopup = {
-        content: 'Share my track',
-        templateUrl: 'shareTemplate.html',
-        title: 'Share my track'
-      };
-
-      $scope.propertyName = 'rank';
+      $scope.selectedChallenge = null;
       $scope.reverse = true;
-      var imagePath = 'assets/images/';
+      $scope.defaultOrder = 'rank';
       $scope.challenges = [
         {
           name: '200 meters',
@@ -58,44 +52,53 @@ angular.module('www2App')
       ];
       $scope.challengeList = [
         {
-          'rank': 1,
-          'name': 'Larry Smith',
-          'boat': 'Irene',
-          'type': 'Sailboat',
-          'speed': 4.2,
-          'distance': '500 m',
-          'speedUnit': 'kn',
-          'startTime': '2016-08-25T11:09:36.376Z',
-          'endTime': '2016-08-25T14:29:22.607Z', 
+          rank: 1,
+          name: 'Larry Smith',
+          boat: 'Irene',
+          type: 'Sailboat',
+          speed: 4.2,
+          distance: '500 m',
+          speedUnit: 'kn',
+          startTime: '2016-08-25T11:09:36.376Z',
+          endTime: '2016-08-25T14:29:22.607Z', 
         },
         {
-          'rank': 2,
-          'name': 'Thornton Thompson',
-          'boat': 'Velocissima',
-          'type': 'Sailboat',
-          'speed': 5,
-          'distance': '500 m',
-          'speedUnit': 'kn',
-          'startTime': '2016-08-28T12:14:32.833Z',
-          'endTime': '2016-08-28T15:49:08.463Z', 
+          rank: 2,
+          name: 'Thornton Thompson',
+          boat: 'Velocissima',
+          type: 'Sailboat',
+          speed: 5,
+          distance: '500 m',
+          speedUnit: 'kn',
+          startTime: '2016-08-28T12:14:32.833Z',
+          endTime: '2016-08-28T15:49:08.463Z', 
         },
         {
-          'rank': 3,
-          'name': 'John Doe',
-          'boat': 'Dentuso',
-          'type': 'Sailboat',
-          'speed': 3.5,
-          'distance': '500 m',
-          'speedUnit': 'kn',
-          'startTime': '2016-09-04T11:27:33.175Z',
-          'endTime': '2016-09-04T15:06:33.827Z', 
+          rank: 3,
+          name: 'John Doe',
+          boat: 'Dentuso',
+          type: 'Sailboat',
+          speed: 3.5,
+          distance: '500 m',
+          speedUnit: 'kn',
+          startTime: '2016-09-04T11:27:33.175Z',
+          endTime: '2016-09-04T15:06:33.827Z', 
         }         
       ];
-
-      
-
-      $scope.sortBy = function(propertyName) {
-        $scope.reverse = ($scope.propertyName === propertyName) ? !$scope.reverse : false;
-        $scope.propertyName = propertyName;
+      $scope.sharePopup = {
+        content: 'Share my track',
+        templateUrl: 'shareTemplate.html',
+        title: 'Share my track'
       };
+
+
+      $scope.sortBy = function(sort) {
+        $scope.reverse = ($scope.defaultOrder === sort) ? !$scope.reverse : false;
+        $scope.defaultOrder = sort;
+      };
+
+      $scope.selectChallenge = function(index, challenge) {
+        $scope.selectedChallenge = index;
+        $scope.challengeName = challenge.name;
+      }
   });

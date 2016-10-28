@@ -11,7 +11,9 @@
             </div>
             <div class="panel-body challenge-container">
                 <div class="challenge" ng-repeat="challenge in challenges">
-                    <div class="circle {{challenge.classes}}">
+                    <div class="circle {{challenge.classes}}" 
+                        ng-class="{'selected' : selectedChallenge == $index}"
+                        ng-click="selectChallenge($index, challenge)">
                         <label 
                         ng-class="{'km' : challenge.name.indexOf('km') > -1, 
                                 'minutes' : challenge.name.indexOf('minutes') > -1,
@@ -23,10 +25,10 @@
             </div>
         </div>
         
-        <div class="panel panel-default challenge-records">
+        <div class="panel panel-default challenge-records" ng-show="selectedChallenge >= 0 && selectedChallenge != null">
             <div class="panel-heading">
                 <h3 class="panel-title">
-                    500m Challenge
+                    {{challengeName}}
                 </h3>
             </div>
             <div class="panel-body">
@@ -84,12 +86,14 @@
                         </tr> 
                     </thead> 
                     <tbody> 
-                        <tr ng-repeat="row in challengeList | orderBy:propertyName:reverse"> 
+                        <tr ng-repeat="row in challengeList | orderBy:defaultOrder:reverse"> 
                             <th>{{row.rank}}</th> 
                             <td><a href="/challenge/details">{{row.name}}</a></td> 
                             <td class="details">
                                 {{row.type}}
-                                <a href="#" class="with-popover" uib-popover-template="sharePopup.templateUrl" popover-title="{{sharePopup.title}}"><img src="assets/images/information_black.svg"></a>
+                                <a href="#" class="with-popover" uib-popover-template="sharePopup.templateUrl" popover-title="{{sharePopup.title}}">
+                                    <img src="assets/images/information_black.svg">
+                                </a>
                             </td>
                             <td>{{row.speed}} {{row.speedUnit}}</td>
                             <td>{{row.distance}}</td>
