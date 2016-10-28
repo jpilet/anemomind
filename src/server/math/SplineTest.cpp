@@ -41,7 +41,19 @@ TEST(SplineBasisFunctionTest, TestIt) {
 }
 
 TEST(RawSplineBasisTest, TestBasis) {
-
+  {
+    auto b = RawSplineBasis<double, 0>(1);
+    EXPECT_EQ(b.coefCount(), 1);
+  }{
+    auto b = RawSplineBasis<double, 1>(1);
+    EXPECT_EQ(b.coefCount(), 3);
+  }{
+    auto b = RawSplineBasis<double, 2>(1);
+    EXPECT_EQ(b.coefCount(), 3);
+  }{
+    auto b = RawSplineBasis<double, 3>(1);
+    EXPECT_EQ(b.coefCount(), 5);
+  }
 }
 
 /*TEST(RawSplineBasisTest, TestBasis) {
