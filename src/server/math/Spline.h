@@ -339,18 +339,21 @@ public:
 
   Weights getInnerWeights(int innerCoef) const {
     Weights dst;
-    /*int rb = rightBd();
+    int rb = rightBd();
     if (innerCoef < leftBd()) {
       for (int i = 0; i < _left.cols(); i++) {
         dst.add(i, _left(innerCoef, i));
       }
     } else if (rb <= innerCoef) {
       int index = innerCoef - rb;
+      std::cout << "innerCoef = " << innerCoef << std::endl;
+      std::cout << "index = " << index << std::endl;
+      CHECK(index < _right.rows());
       int k = butLastOffset();
       for (int i = 0; i < _right.cols(); i++) {
         dst.add(i + k, _right(index, i));
       }
-    } else {
+    }/* else {
       dst.add(innerCoef - RawType::extraBasesPerBoundary, 1.0);
     }*/
     return dst;
@@ -358,8 +361,9 @@ public:
 
   Weights build(T x) const {
     Weights dst;
+    int offset = _basis.computeIntervalIndex(x);
     for (int i_ = 0; i_ < RawType::coefsPerPoint; i_++) {
-      int index = i_ + index;
+      int index = i_ + offset;
       auto w = _basis.evaluateBasis(index, x);
       auto wsub = getInnerWeights(index);
       dst.addScaled(w, wsub);
