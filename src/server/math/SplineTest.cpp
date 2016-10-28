@@ -206,7 +206,8 @@ TEST(SplineBasisTest, SmoothBoundary) {
       EXPECT_NEAR(weights.weights[2], 0.0, 1.0e-6);
     }
   }{
-    //SmoothBoundarySplineBasis<double, 1> basis(3);
+    std::cout << "Now the bigger basis" << std::endl;
+    SmoothBoundarySplineBasis<double, 1> basis(3);
     {
       //auto w = basis.build(1.0);
       /*EXPECT_EQ(w.inds[0], 1);

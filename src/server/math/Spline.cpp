@@ -65,7 +65,16 @@ int BoundaryIndices::computeACol(int i) const {
 
 int BoundaryIndices::computeBCol(int i) const {
   auto il = _left.maxv();
-  return i < il? i - _ep : (i - _right.minv()) + (il - _ep);
+  if (i < il) {
+    return i - _ep;
+  } else {
+    int localIndex = (i - std::max(_left.maxv(), _right.minv()));
+    int offset = (il - _ep);
+    std::cout << "Local index = " << localIndex << std::endl;
+    std::cout << "Offset      = " << offset << std::endl;
+    return localIndex + offset;
+  }
+
 }
 
 BoundaryIndices::Solution BoundaryIndices::solve() const {
@@ -88,10 +97,17 @@ void BoundaryIndices::add(int k, int *inds, double *weights) {
   CHECK(k == _left.size());
   for (int i = 0; i < k; i++) {
     int index = inds[i];
+    std::cout << "index = " << index << std::endl;
     if (isInnerIndex(index)) {
-      _B(_counter, computeBCol(index)) = -weights[i];
+      int col = computeBCol(index);
+      std::cout << "  B: col = " << col << " b.cols = "
+          << _B.cols() << std::endl;
+      _B(_counter, col) = -weights[i];
     } else {
-      _A(_counter, computeACol(index)) = weights[i];
+      int col = computeACol(index);
+      std::cout << "  A: col = " << col << " a.cols = "
+          << _A.cols() << std::endl;
+      _A(_counter, col) = weights[i];
     }
   }
   _counter++;
