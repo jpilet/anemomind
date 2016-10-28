@@ -109,9 +109,9 @@ public:
     return _basis(loc - basisLocation(basisIndex));
   }
 
-  /*Weights build(T x) const {
+  Weights build(T x) const {
     int interval = std::min(
-        std::max(0, int(floor(x + 0.5))),
+        std::max(0, int(floor(x - lowerDataBound()))),
           _intervalCount - 1);
     Weights dst;
     for (int i = 0; i < coefsPerPoint; i++) {
@@ -120,7 +120,7 @@ public:
       dst.weights[i] = evaluateBasis(index, x);
     }
     return dst;
-  }*/
+  }
 
   int intervalCount() const {return _intervalCount;}
 private:
