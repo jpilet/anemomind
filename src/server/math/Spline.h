@@ -276,7 +276,6 @@ public:
     } else if (0 <= index1) {
       auto lastCoefs = coefs + _basis.intervalCount() - _right.cols();
       T sum(0.0);
-      std::cout << "index1 = " << index1 << std::endl;
       for (int i = 0; i < _right.cols(); i++) {
         sum += _right(index1, i)*lastCoefs[i];
       }
@@ -286,6 +285,16 @@ public:
   }
 
   int internalCoefCount() const {return _basis.coefCount();}
+
+  T evaluate(const T *coefficients, T x) const {
+    int offset = _basis.computeIntervalIndex(x);
+    T sum(0.0);
+    for (int i = 0; i < RawType::coefsPerPoint; i++) {
+      int index = offset + i;
+      sum += getInteranCoef(index, coefficients)*_basis.evaluateBasis(index, x);
+    }
+    return sum;
+  }
 private:
   Eigen::MatrixXd _left, _right;
   RawSplineBasis<T, Degree> _basis;
