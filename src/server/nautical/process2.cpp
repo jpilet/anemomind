@@ -26,10 +26,12 @@ int main(int argc, const char **argv) {
   LogLoader loader;
 
   Parser parser(
-      "Boat log processor"
-      "  * Calibrates"
-      "  * Filters"
-      "  * Segments");
+      "Boat log processor\n"
+      "  * Calibrates\n"
+      "  * Filters\n"
+      "  * Segments\n"
+      "\n"
+      "Example usage: ./nautical_process2 --alinghi-demo\n");
 
   parser.bind({"--output"}, {
     inputForm([&](bool x) {

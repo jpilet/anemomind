@@ -172,22 +172,29 @@ public:
   const SplineType &basisFunction() const {
     return _basisFunction;
   }
+
+  Spani leftmostCoefs() const {
+    return Spani(0, coefsPerPoint);
+  }
+
+  Spani rightmostCoefs() const {
+    int n = coefCount();
+    return Spani(n-coefsPerPoint, n);
+  }
 private:
   int _intervalCount;
   SplineType _basisFunction;
 };
 
-template <typename T, int Degree>
-struct BoundarySolution {
-  typedef RawSplineBasis<T, Degree> Basis;
-  typedef typename Basis::Weights Weights;
-  static const int N = Basis::extraBasesPerBoundary;
-  Eigen::Matrix<T,
-    N, Eigen::Dynamic> left, right;
 
-  /*BoundarySolution(const std::vector<Weights> &src) {
-
-  }*/
+class BoundaryIndices {
+public:
+  BoundaryIndices(Spani left, Spani right, int ep);
+  int leftDim() const {return 2*_ep;}
+  int totalDim() const;
+private:
+  Spani _left, _right;
+  int _ep;
 };
 
 
@@ -206,21 +213,26 @@ public:
     auto lb = _basis.lowerDataBound();
     auto ub = _basis.upperDataBound();
     auto der = _basis.basisFunction();
-    std::vector<Weights> weights;
-    weights.reserve(RawType::extraBasesPerBoundary);
+    int n = 2*RawType::extraBasesPerBoundary;
+    /*Eigen::MatrixXd A(n, n);
+    Eigen::MatrixXd B(n, 1);
+    int row = 0;
     for (int i = 1; i < upperDerivativeBound; i++) {
       der = der.derivative();
       if (lowerDerivativeBound <= i) {
-        weights.push_back(_basis.build(der, lb));
-        weights.push_back(_basis.build(der, ub));
+        auto left = _basis.build(der, lb);
+        auto right = _basis.build(der, ub);
+        weights.push_back();
+        row++;
       }
-    }
-    //BoundarySolution<T, Degree> sol(weights);
+    }*/
   }
 
   int coefCount() const {
     return _basis.intervalCount();
   }
+
+
 private:
   RawSplineBasis<T, Degree> _basis;
 };

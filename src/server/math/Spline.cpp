@@ -11,4 +11,12 @@
 
 namespace sail {
 
+BoundaryIndices::BoundaryIndices(Spani left, Spani right, int ep) :
+  _left(left), _right(right), _ep(ep) {}
+
+int BoundaryIndices::totalDim() const {
+  auto overlap = std::max(0, _left.maxv() - _right.minv());
+  return _left.size() + _right.size() - overlap;
+}
+
 } /* namespace sail */

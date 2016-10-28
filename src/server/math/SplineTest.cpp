@@ -111,6 +111,8 @@ TEST(RawSplineBasisTest, TestBasis) {
 }
 
 
-TEST(SplineBasisTest, TestSmooth) {
-
+TEST(SplineBasisTest, TestIndices) {
+  BoundaryIndices inds(Spani(0, 5), Spani(2, 7), 2);
+  EXPECT_EQ(inds.leftDim(), 4);
+  EXPECT_EQ(inds.totalDim(), 7);
 }
