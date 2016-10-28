@@ -90,6 +90,13 @@ TEST(RawSplineBasisTest, TestBasis) {
       EXPECT_NEAR(w.weights[0], 0.0, 1.0e-3);
       EXPECT_NEAR(w.weights[1], 0.0, 1.0e-3);
       EXPECT_NEAR(w.weights[2], 0.5, 1.0e-3);
+    }{
+      double coefs[3] = {0, 1, 2};
+      EXPECT_NEAR(b.evaluate(coefs, -1.0), 0.0, 1.0e-6);
+      EXPECT_NEAR(b.evaluate(coefs, -0.5), 0.5, 1.0e-6);
+      EXPECT_NEAR(b.evaluate(coefs, 0.0), 1.0, 1.0e-6);
+      EXPECT_NEAR(b.evaluate(coefs, 0.5), 1.5, 1.0e-6);
+      EXPECT_NEAR(b.evaluate(coefs, 1.0), 2.0, 1.0e-6);
     }
   }{
     auto b = RawSplineBasis<double, 2>(1);
