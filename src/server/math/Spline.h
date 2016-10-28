@@ -287,12 +287,16 @@ public:
   int internalCoefCount() const {return _basis.coefCount();}
 
   T evaluate(const T *coefficients, T x) const {
+    std::cout << "EVALUATE AT x = " << x << "\n";
     int offset = _basis.computeIntervalIndex(x);
     T sum(0.0);
     for (int i = 0; i < RawType::coefsPerPoint; i++) {
       int index = offset + i;
-      sum += getInternalCoef(index, coefficients)
-          *_basis.evaluateBasis(index, x);
+      auto c = getInternalCoef(index, coefficients);
+      auto b = _basis.evaluateBasis(index, x);
+      std::cout << "  coef=" << c << " basis=" << b << std::endl;
+      sum += c*b;
+      std::cout << " sum = " << sum << std::endl;
     }
     return sum;
   }
