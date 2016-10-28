@@ -280,9 +280,11 @@ public:
           inds.add(Weights::dim, right.inds, right.weights);
         }
       }
+      std::cout << "Built it...\n";
       auto sol = inds.solve();
       _left = sol.left;
       _right = sol.right;
+      std::cout << "Done now" << std::endl;
     }
   }
 
