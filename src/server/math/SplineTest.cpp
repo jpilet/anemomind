@@ -147,6 +147,11 @@ TEST(SplineBasisTest, TestIndices2) {
 }
 
 TEST(SplineBasisTest, SmoothBoundary) {
-  SmoothBoundarySplineBasis<double, 0> basis(1);
-  EXPECT_EQ(basis.coefCount(), 1);
+  {
+    SmoothBoundarySplineBasis<double, 0> basis(1);
+    EXPECT_EQ(basis.coefCount(), 1);
+  }{
+    SmoothBoundarySplineBasis<double, 1> basis(1);
+
+  }
 }

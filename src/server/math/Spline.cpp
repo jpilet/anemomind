@@ -75,9 +75,9 @@ void BoundaryIndices::add(int k, int *inds, double *weights) {
   for (int i = 0; i < k; i++) {
     int index = inds[i];
     if (isInnerIndex(index)) {
-      _A(_counter, computeACol(index)) = weights[i];
-    } else {
       _B(_counter, computeBCol(index)) = -weights[i];
+    } else {
+      _A(_counter, computeACol(index)) = weights[i];
     }
   }
   _counter++;
