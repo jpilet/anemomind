@@ -120,4 +120,12 @@ TEST(SplineBasisTest, TestIndices) {
     EXPECT_EQ(2 <= i && i < 5, inds.isInnerIndex(i));
     EXPECT_EQ(5 <= i, inds.isRightIndex(i));
   }
+  EXPECT_EQ(0, inds.computeACol(0));
+  EXPECT_EQ(1, inds.computeACol(1));
+  EXPECT_EQ(2, inds.computeACol(5));
+  EXPECT_EQ(3, inds.computeACol(6));
+
+  EXPECT_EQ(0, inds.computeBCol(2));
+  EXPECT_EQ(1, inds.computeBCol(3));
+  EXPECT_EQ(2, inds.computeBCol(4));
 }
