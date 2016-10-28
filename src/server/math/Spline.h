@@ -264,7 +264,7 @@ public:
   const Eigen::MatrixXd &leftMat() const {return _left;}
   const Eigen::MatrixXd &rightMat() const {return _right;}
 
-  T getInternalCoef(int index, T *coefs) const {
+  T getInternalCoef(int index, const T *coefs) const {
     int offset2 = RawType::extraBasesPerBoundary + _basis.intervalCount();
     int index1 = index - offset2;
     if (index < RawType::extraBasesPerBoundary) {
@@ -291,7 +291,8 @@ public:
     T sum(0.0);
     for (int i = 0; i < RawType::coefsPerPoint; i++) {
       int index = offset + i;
-      sum += getInteranCoef(index, coefficients)*_basis.evaluateBasis(index, x);
+      sum += getInternalCoef(index, coefficients)
+          *_basis.evaluateBasis(index, x);
     }
     return sum;
   }
