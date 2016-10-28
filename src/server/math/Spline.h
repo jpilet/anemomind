@@ -12,6 +12,8 @@
 #include <server/math/Polynomial.h>
 #include <cmath>
 #include <server/common/Span.h>
+#include <server/common/logging.h>
+#include <Eigen/Dense>
 
 namespace sail {
 
@@ -57,7 +59,16 @@ struct SplineBasisFunction {
     return getPiece(pieceIndex(x)).eval(x);
   }
 
+  ThisType derivative() const {
+    ThisType dst;
+    for (int i = 0; i < PieceCount; i++) {
+      dst._pieces[i] = _pieces[i].derivative();
+    }
+    return dst;
+  }
 private:
+  Piece _pieces[PieceCount];
+
   SplineBasisFunction() {}
 
   void initializeBasis() {
@@ -68,7 +79,6 @@ private:
     }
   }
 
-  Piece _pieces[PieceCount];
   void initializeFrom(const SplineBasisFunction<T, PieceCount-1> &x) {
     auto left = Polynomial<T, 2>{-0.5, 1.0};
     auto right = Polynomial<T, 2>{0.5, 1.0};
@@ -89,8 +99,9 @@ private:
 template <typename T, int Degree>
 class RawSplineBasis {
 public:
-  static const int extraBasesPerEndpoint = (Degree + 1)/2;
-  static const int coefsPerPoint = 1 + 2*extraBasesPerEndpoint;
+  typedef SplineBasisFunction<T, Degree+1> SplineType;
+  static const int extraBasesPerBoundary = (Degree + 1)/2;
+  static const int coefsPerPoint = 1 + 2*extraBasesPerBoundary;
 
   struct Weights {
     int inds[coefsPerPoint];
@@ -99,7 +110,7 @@ public:
 
   RawSplineBasis(int intervalCount) :
     _intervalCount(intervalCount),
-    _basis(SplineBasisFunction<T, Degree+1>::make()) {}
+    _basisFunction(SplineType::make()) {}
 
   // The interval that the data we are interpolating is spanning
   double lowerDataBound() const {return -0.5;}
@@ -108,15 +119,19 @@ public:
   }
 
   int coefCount() const {
-    return _intervalCount + 2*extraBasesPerEndpoint;
+    return _intervalCount + 2*extraBasesPerBoundary;
   }
 
   double basisLocation(int basisIndex) const {
-    return -extraBasesPerEndpoint + basisIndex;
+    return -extraBasesPerBoundary + basisIndex;
+  }
+
+  T evaluateBasis(const SplineType &basis, int basisIndex, T loc) const {
+    return basis(loc - basisLocation(basisIndex));
   }
 
   T evaluateBasis(int basisIndex, T loc) const {
-    return _basis(loc - basisLocation(basisIndex));
+    return evaluateBasis(_basisFunction, basisIndex, loc);
   }
 
   int computeIntervalIndex(T x) const {
@@ -125,15 +140,19 @@ public:
               _intervalCount - 1);
   }
 
-  Weights build(T x) const {
+  Weights build(const SplineType &fun, T x) const {
     int interval = computeIntervalIndex(x);
     Weights dst;
     for (int i = 0; i < coefsPerPoint; i++) {
       int index = i + interval;
       dst.inds[i] = index;
-      dst.weights[i] = evaluateBasis(index, x);
+      dst.weights[i] = evaluateBasis(fun, index, x);
     }
     return dst;
+  }
+
+  Weights build(T x) const {
+    return build(_basisFunction, x);
   }
 
   T evaluate(const T *coefficients, T x) const {
@@ -147,16 +166,52 @@ public:
   }
 
   int intervalCount() const {return _intervalCount;}
+
+  const SplineType &basisFunction() const {
+    return _basisFunction;
+  }
 private:
   int _intervalCount;
-  SplineBasisFunction<T, Degree+1> _basis;
+  SplineType _basisFunction;
 };
 
 template <typename T, int Degree>
-class SmoothEndpointSplineBasis {
+struct BoundarySolution {
+  typedef RawSplineBasis<T, Degree> Basis;
+  typedef typename Basis::Weights Weights;
+  Eigen::Matrix<T,
+    Basis::extraBasesPerBoundary,
+    Eigen::Dynamic> left, right;
+
+  BoundarySolution(const std::vector<Weights> &src) {
+
+  }
+};
+
+
+template <typename T, int Degree>
+class SmoothBoundarySplineBasis {
 public:
-  SmoothEndpointSplineBasis(int intervalCount) :
-    _basis(intervalCount) {}
+  typedef RawSplineBasis<T, Degree> RawType;
+  typedef typename RawType::Weights Weights;
+
+  SmoothBoundarySplineBasis(int intervalCount) :
+    _basis(intervalCount) {
+    int upperDerivativeBound = Degree+1;
+    int lowerDerivativeBound = upperDerivativeBound
+        - RawType::extraBasesPerBoundary;
+    CHECK(0 < lowerDerivativeBound);
+    auto lb = _basis.lowerDataBound();
+    auto ub = _basis.upperDataBound();
+    auto der = _basis.basisFunction();
+    std::vector<Weights> weights;
+    for (int i = 1; i < upperDerivativeBound; i++) {
+      der = der.derivative();
+      weights.push_back(_basis.build(der, lb));
+      weights.push_back(_basis.build(der, ub));
+    }
+
+  }
 
   int coefCount() const {
     return _basis.intervalCount();
