@@ -22,7 +22,9 @@ struct SplineBasisFunction {
   typedef Polynomial<T, PieceCount> Piece;
 
   static SplineBasisFunction make() {
-    return SplineBasisFunction();
+    SplineBasisFunction b;
+    b.initializeBasis();
+    return b;
   }
 
   Piece getPiece(int i) const {
@@ -56,7 +58,9 @@ struct SplineBasisFunction {
   }
 
 private:
-  SplineBasisFunction() {
+  SplineBasisFunction() {}
+
+  void initializeBasis() {
     if (pieceCount == 1) {
       _pieces[0] = Piece(1.0);
     } else {
