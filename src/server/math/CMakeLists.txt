@@ -203,6 +203,14 @@ add_library(math_SplineUtils
 
 target_link_libraries(math_SplineUtils
   lapack_BandWrappers
+  math_Spline
+  common_TimeStamp
+  )
+
+cxx_test(math_SplineUtilsTest
+  SplineUtilsTest.cpp
+  math_SplineUtils
+  gtest_main
   )
 
 add_subdirectory(geometry)
