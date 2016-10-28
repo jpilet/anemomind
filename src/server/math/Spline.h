@@ -192,6 +192,10 @@ public:
   BoundaryIndices(Spani left, Spani right, int ep);
   int leftDim() const {return 2*_ep;}
   int totalDim() const;
+
+  bool isLeftIndex(int i) const;
+  bool isRightIndex(int i) const;
+  bool isInnerIndex(int i) const;
 private:
   Spani _left, _right;
   int _ep;

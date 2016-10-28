@@ -19,4 +19,17 @@ int BoundaryIndices::totalDim() const {
   return _left.size() + _right.size() - overlap;
 }
 
+bool BoundaryIndices::isLeftIndex(int i) const {
+  return i < _ep;
+}
+
+bool BoundaryIndices::isRightIndex(int i) const {
+  return _right.maxv() - _ep <= i;
+}
+
+bool BoundaryIndices::isInnerIndex(int i) const {
+  return !isLeftIndex(i) && !isRightIndex(i);
+}
+
+
 } /* namespace sail */
