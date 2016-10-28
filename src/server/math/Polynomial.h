@@ -80,6 +80,15 @@ public:
     return dst;
   }
 
+  ThisType derivativeSameOrder() const {
+    ThisType dst = ThisType::zero();
+    for (int i = 0; i < CoefCount-1; i++) {
+      int k = i+1;
+      dst[i] = _coefs[k]*k;
+    }
+    return dst;
+  }
+
   T &operator[] (int i) {return _coefs[i];}
   const T &operator[] (int i) const {return _coefs[i];}
 

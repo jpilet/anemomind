@@ -63,7 +63,7 @@ struct SplineBasisFunction {
   ThisType derivative() const {
     ThisType dst;
     for (int i = 0; i < PieceCount; i++) {
-      dst._pieces[i] = _pieces[i].derivative();
+      dst._pieces[i] = _pieces[i].derivativeSameOrder();
     }
     return dst;
   }

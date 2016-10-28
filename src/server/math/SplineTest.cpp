@@ -145,3 +145,8 @@ TEST(SplineBasisTest, TestIndices2) {
   EXPECT_EQ(4, inds.computeBCol(8));
   EXPECT_EQ(5, inds.computeBCol(9));
 }
+
+TEST(SplineBasisTest, SmoothBoundary) {
+  SmoothBoundarySplineBasis<double, 0> basis(1);
+  EXPECT_EQ(basis.coefCount(), 1);
+}
