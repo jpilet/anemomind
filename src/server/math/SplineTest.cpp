@@ -174,6 +174,7 @@ TEST(SplineBasisTest, SmoothBoundary) {
     {
       double coefs[2] = {2.0, 3.0};
       EXPECT_NEAR(basis.evaluate(coefs, 0.0), 2.0, 1.0e-6);
+      EXPECT_NEAR(basis.evaluate(coefs, 0.5), 2.5, 1.0e-6);
       EXPECT_NEAR(basis.evaluate(coefs, 1.0), 3.0, 1.0e-6);
     }
   }
