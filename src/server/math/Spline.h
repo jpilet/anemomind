@@ -81,8 +81,8 @@ private:
 template <typename T, int Degree>
 class RawSplineBasis {
 public:
-  static constexpr int coefsPerPoint = Degree + 1;
-  static constexpr double basisOffset = -0.5*Degree;
+  static const int extraBasesPerEndpoint = (Degree + 1)/2;
+  static const int coefsPerPoint = 1 + 2*extraBasesPerEndpoint;
 
   struct Weights {
     int inds[coefsPerPoint];
@@ -98,18 +98,18 @@ public:
   }
 
   int coefCount() const {
-    return _intervalCount + Degree;
+    return _intervalCount + 2*extraBasesPerEndpoint;
   }
 
   double basisLocation(int basisIndex) const {
-    return basisOffset + basisIndex;
+    return -extraBasesPerEndpoint + basisIndex;
   }
 
   T evaluateBasis(int basisIndex, T loc) const {
     return _basis(loc - basisLocation(basisIndex));
   }
 
-  Weights build(T x) const {
+  /*Weights build(T x) const {
     int interval = std::min(
         std::max(0, int(floor(x + 0.5))),
           _intervalCount - 1);
@@ -120,7 +120,7 @@ public:
       dst.weights[i] = evaluateBasis(index, x);
     }
     return dst;
-  }
+  }*/
 
   int intervalCount() const {return _intervalCount;}
 private:
