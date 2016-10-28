@@ -113,7 +113,7 @@ TEST(RawSplineBasisTest, TestBasis) {
 
 TEST(SplineBasisTest, TestIndices) {
   BoundaryIndices inds(Spani(0, 5), Spani(2, 7), 2);
-  EXPECT_EQ(inds.leftDim(), 4);
+  EXPECT_EQ(inds.varDim(), 4);
   EXPECT_EQ(inds.totalDim(), 7);
   for (int i = 0; i < 7; i++) {
     EXPECT_EQ(i < 2, inds.isLeftIndex(i));

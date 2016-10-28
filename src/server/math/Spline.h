@@ -190,8 +190,9 @@ private:
 class BoundaryIndices {
 public:
   BoundaryIndices(Spani left, Spani right, int ep);
-  int leftDim() const {return 2*_ep;}
+  int varDim() const {return 2*_ep;}
   int totalDim() const;
+  int rightDim() const;
 
   bool isLeftIndex(int i) const;
   bool isRightIndex(int i) const;
@@ -199,11 +200,20 @@ public:
 
   int computeACol(int i) const;
   int computeBCol(int i) const;
+
+  void add(int k, int *inds, double *weights);
+
+  struct Solution {
+    Eigen::MatrixXd left, right;
+  };
+  Solution solve() const;
 private:
+  Eigen::MatrixXd _A, _B;
   int epRight() const;
   int innerLimit() const;
   Spani _left, _right;
   int _ep;
+  int _counter;
 };
 
 
@@ -218,23 +228,26 @@ public:
     int upperDerivativeBound = Degree+1;
     int lowerDerivativeBound = upperDerivativeBound
         - RawType::extraBasesPerBoundary;
+
+    BoundaryIndices inds(_basis.leftmostCoefs(),
+        _basis.rightmostCoefs(),
+        RawType::extraBasesPerBoundary);
+
     CHECK(0 < lowerDerivativeBound);
     auto lb = _basis.lowerDataBound();
     auto ub = _basis.upperDataBound();
     auto der = _basis.basisFunction();
     int n = 2*RawType::extraBasesPerBoundary;
-    /*Eigen::MatrixXd A(n, n);
-    Eigen::MatrixXd B(n, 1);
-    int row = 0;
     for (int i = 1; i < upperDerivativeBound; i++) {
       der = der.derivative();
       if (lowerDerivativeBound <= i) {
         auto left = _basis.build(der, lb);
         auto right = _basis.build(der, ub);
-        weights.push_back();
-        row++;
+        inds.add(Weights::dim, left.inds, left.weights);
+        inds.add(Weights::dim, right.inds, right.weights);
       }
-    }*/
+    }
+
   }
 
   int coefCount() const {
@@ -243,6 +256,7 @@ public:
 
 
 private:
+  Eigen::MatrixXd _left, _right;
   RawSplineBasis<T, Degree> _basis;
 };
 

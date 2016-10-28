@@ -12,7 +12,11 @@
 namespace sail {
 
 BoundaryIndices::BoundaryIndices(Spani left, Spani right, int ep) :
-  _left(left), _right(right), _ep(ep) {}
+  _left(left), _right(right), _ep(ep), _counter(0) {
+  int n = varDim();
+  _A = Eigen::MatrixXd::Zero(n, n);
+  _B = Eigen::MatrixXd::Zero(n, rightDim());
+}
 
 int BoundaryIndices::totalDim() const {
   auto overlap = std::max(0, _left.maxv() - _right.minv());
@@ -21,6 +25,10 @@ int BoundaryIndices::totalDim() const {
 
 bool BoundaryIndices::isLeftIndex(int i) const {
   return i < _ep;
+}
+
+int BoundaryIndices::rightDim() const {
+  return totalDim() - varDim();
 }
 
 int BoundaryIndices::epRight() const {
@@ -50,6 +58,24 @@ int BoundaryIndices::computeACol(int i) const {
 int BoundaryIndices::computeBCol(int i) const {
   auto il = _left.maxv();
   return i < il? i - _ep : (i - _right.minv()) + (il - _ep);
+}
+
+BoundaryIndices::Solution BoundaryIndices::solve() const {
+  CHECK(_counter == varDim());
+  Eigen::MatrixXd X = _A.lu().solve(_B);
+}
+
+void BoundaryIndices::add(int k, int *inds, double *weights) {
+  CHECK(k == _left.size());
+  for (int i = 0; i < k; i++) {
+    int index = inds[i];
+    if (isInnerIndex(index)) {
+      _A(_counter, computeACol(index)) = weights[i];
+    } else {
+      _B(_counter, computeBCol(index)) = -weights[i];
+    }
+  }
+  _counter++;
 }
 
 
