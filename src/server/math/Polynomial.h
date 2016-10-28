@@ -59,12 +59,23 @@ public:
     return dst;
   }
 
-  Polynomial<T, CoefCount+1> primitive() const {
-    Polynomial<T, CoefCount+1> dst;
+  typedef Polynomial<T, CoefCount+1> Primitive;
+  Primitive primitive() const {
+    Primitive dst;
     dst[0] = 0.0;
     for (int i = 0; i < CoefCount; i++) {
       int nextDeg = i+1;
       dst[nextDeg] = _coefs[i]/nextDeg;
+    }
+    return dst;
+  }
+
+  typedef Polynomial<T, cmax(0, CoefCount-1)> Derivative;
+  Derivative derivative() const {
+    Derivative dst;
+    for (int i = 0; i < CoefCount-1; i++) {
+      int k = i+1;
+      dst[i] = _coefs[k]*k;
     }
     return dst;
   }

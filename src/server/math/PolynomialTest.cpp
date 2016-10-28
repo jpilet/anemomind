@@ -29,3 +29,12 @@ TEST(SplineTest, PolyTest) {
   EXPECT_EQ(eval(P2{3, 9}, P1{7}), (P1{66}));
   EXPECT_EQ(eval(P3{0, 0, 1}, P2{5, 4}), (P3{25, 40, 16}));
 }
+
+TEST(SplineTest, Derivative) {
+  auto p2 = Polynomial<double, 2>{3.0, 4.0, 5.0};
+  auto p1 = Polynomial<double, 1>{4.0, 10.0};
+  auto p0 = Polynomial<double, 0>{10.0};
+
+  EXPECT_EQ(p1, p2.derivative());
+  EXPECT_EQ(p0, p1.derivative());
+}
