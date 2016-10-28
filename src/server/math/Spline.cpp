@@ -16,12 +16,19 @@ BoundaryIndices::BoundaryIndices(Spani left, Spani right, int ep) :
   int n = varDim();
   _A = Eigen::MatrixXd::Zero(n, n);
   _B = Eigen::MatrixXd::Zero(n, rightDim());
+  CHECK(_left.minv() <= _right.maxv());
+  CHECK(_left.maxv() <= _right.maxv());
+  CHECK(_left.minv() == 0);
 }
 
 int BoundaryIndices::totalDim() const {
-  auto overlap = std::max(0, _left.maxv() - _right.minv());
-  return _left.size() + _right.size() - overlap;
+  return _left.size() + _right.size() - overlap();
 }
+
+int BoundaryIndices::overlap() const {
+  return std::max(0, _left.maxv() - _right.minv());
+}
+
 
 bool BoundaryIndices::isLeftIndex(int i) const {
   return i < _ep;
@@ -63,7 +70,14 @@ int BoundaryIndices::computeBCol(int i) const {
 BoundaryIndices::Solution BoundaryIndices::solve() const {
   CHECK(_counter == varDim());
   Eigen::MatrixXd X = _A.lu().solve(_B);
-  int k = _left.maxv() - _ep;
+
+  std::cout << " A = \n" << _A << std::endl;
+  std::cout << " B = \n" << _B << std::endl;
+
+
+  int from = _ep;
+  int to = std::min(_left.maxv(), _right.maxv() - _ep);
+  int k = to - from;
   return Solution{
     X.block(0, 0, k, X.cols()),
     X.block(k, 0, k, X.cols())

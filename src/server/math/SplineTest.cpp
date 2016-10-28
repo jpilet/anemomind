@@ -152,6 +152,9 @@ TEST(SplineBasisTest, SmoothBoundary) {
     EXPECT_EQ(basis.coefCount(), 1);
   }{
     SmoothBoundarySplineBasis<double, 1> basis(1);
-
+    auto left = basis.leftMat();
+    EXPECT_EQ(left.rows(), 1);
+    EXPECT_EQ(left.cols(), 1);
+    EXPECT_NEAR(left(0, 0), 1.0, 1.0e-6);
   }
 }

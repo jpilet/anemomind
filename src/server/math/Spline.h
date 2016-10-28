@@ -193,6 +193,7 @@ public:
   int varDim() const {return 2*_ep;}
   int totalDim() const;
   int rightDim() const;
+  int overlap() const;
 
   bool isLeftIndex(int i) const;
   bool isRightIndex(int i) const;
@@ -257,7 +258,8 @@ public:
     return _basis.intervalCount();
   }
 
-
+  const Eigen::MatrixXd &leftMat() const {return _left;}
+  const Eigen::MatrixXd &rightMat() const {return _right;}
 private:
   Eigen::MatrixXd _left, _right;
   RawSplineBasis<T, Degree> _basis;
