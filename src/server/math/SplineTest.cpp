@@ -196,6 +196,26 @@ TEST(SplineBasisTest, SmoothBoundary) {
       EXPECT_NEAR(weights.weights[0], 0.5, 1.0e-6);
       EXPECT_NEAR(weights.weights[1], 0.5, 1.0e-6);
       EXPECT_NEAR(weights.weights[2], 0.0, 1.0e-6);
+    }{
+      auto weights = basis.build(-0.5);
+      EXPECT_EQ(weights.inds[0], 0);
+      EXPECT_EQ(weights.inds[1], 0);
+      EXPECT_EQ(weights.inds[2], 0);
+      EXPECT_NEAR(weights.weights[0], 1.0, 1.0e-6);
+      EXPECT_NEAR(weights.weights[1], 0.0, 1.0e-6);
+      EXPECT_NEAR(weights.weights[2], 0.0, 1.0e-6);
     }
+  }{
+    //SmoothBoundarySplineBasis<double, 1> basis(3);
+    {
+      //auto w = basis.build(1.0);
+      /*EXPECT_EQ(w.inds[0], 1);
+      EXPECT_EQ(w.inds[1], 0);
+      EXPECT_EQ(w.inds[2], 0);
+      EXPECT_NEAR(w.weights[0], 1.0, 1.0e-6);
+      EXPECT_NEAR(w.weights[1], 0.0, 1.0e-6);
+      EXPECT_NEAR(w.weights[2], 0.0, 1.0e-6);*/
+    }
+
   }
 }

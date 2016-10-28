@@ -117,6 +117,9 @@ public:
     }
 
     bool add(int index, T value) {
+      if (value == T(0.0)) {
+        return true;
+      }
       for (int i = 0; i < coefsPerPoint; i++) {
         int &id = inds[i];
         T &w = weights[i];
