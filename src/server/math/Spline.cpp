@@ -70,8 +70,6 @@ int BoundaryIndices::computeBCol(int i) const {
   } else {
     int localIndex = (i - std::max(_left.maxv(), _right.minv()));
     int offset = (il - _ep);
-    std::cout << "Local index = " << localIndex << std::endl;
-    std::cout << "Offset      = " << offset << std::endl;
     return localIndex + offset;
   }
 
