@@ -353,9 +353,9 @@ public:
       for (int i = 0; i < _right.cols(); i++) {
         dst.add(i + k, _right(index, i));
       }
-    }/* else {
+    } else {
       dst.add(innerCoef - RawType::extraBasesPerBoundary, 1.0);
-    }*/
+    }
     return dst;
   }
 
