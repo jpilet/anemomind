@@ -21,12 +21,8 @@ struct SplineBasisFunction {
   typedef SplineBasisFunction<T, PieceCount> ThisType;
   typedef Polynomial<T, PieceCount> Piece;
 
-  SplineBasisFunction() {
-    if (pieceCount == 1) {
-      _pieces[0] = Piece(1.0);
-    } else {
-      initializeFrom(SplineBasisFunction<T, cmax(1, PieceCount-1)>());
-    }
+  static SplineBasisFunction make() {
+    return SplineBasisFunction();
   }
 
   Piece getPiece(int i) const {
@@ -60,6 +56,14 @@ struct SplineBasisFunction {
   }
 
 private:
+  SplineBasisFunction() {
+    if (pieceCount == 1) {
+      _pieces[0] = Piece(1.0);
+    } else {
+      initializeFrom(SplineBasisFunction<T, cmax(1, PieceCount-1)>::make());
+    }
+  }
+
   Piece _pieces[PieceCount];
   void initializeFrom(const SplineBasisFunction<T, PieceCount-1> &x) {
     auto left = Polynomial<T, 2>{-0.5, 1.0};
@@ -89,7 +93,9 @@ public:
     T weights[coefsPerPoint];
   };
 
-  RawSplineBasis(int intervalCount) : _intervalCount(intervalCount) {}
+  RawSplineBasis(int intervalCount) :
+    _intervalCount(intervalCount),
+    _basis(SplineBasisFunction<T, Degree+1>::make()) {}
 
   // The interval that the data we are interpolating is spanning
   double lowerDataBound() const {return -0.5;}
@@ -145,8 +151,6 @@ private:
 template <typename T, int Degree>
 class SmoothEndpointSplineBasis {
 public:
-  static const int excessiveCountPerEndpoint = cmax(0, (Degree+1)/2);
-
   SmoothEndpointSplineBasis(int intervalCount) :
     _basis(intervalCount) {}
 

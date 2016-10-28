@@ -11,7 +11,7 @@
 using namespace sail;
 
 TEST(SplineBasisFunctionTest, TestIt) {
-  SplineBasisFunction<double, 1> s1;
+  auto s1 = SplineBasisFunction<double, 1>::make();
   EXPECT_EQ(s1.polynomialBoundary(0), -0.5);
   EXPECT_EQ(s1.polynomialBoundary(1), 0.5);
 
@@ -24,7 +24,7 @@ TEST(SplineBasisFunctionTest, TestIt) {
   EXPECT_EQ(s1(0.4), 1.0);
   EXPECT_EQ(s1(0.6), 0.0);
 
-  SplineBasisFunction<double, 2> s2;
+  auto s2 = SplineBasisFunction<double, 2>::make();
   EXPECT_NEAR(s2(-30.0), 0.0, 1.0e-6);
   EXPECT_NEAR(s2(-1.0), 0.0, 1.0e-6);
   EXPECT_NEAR(s2(-0.5), 0.5, 1.0e-6);
@@ -33,7 +33,7 @@ TEST(SplineBasisFunctionTest, TestIt) {
   EXPECT_NEAR(s2(1.0), 0.0, 1.0e-6);
   EXPECT_NEAR(s2(30.0), 0.0, 1.0e-6);
 
-  SplineBasisFunction<double, 3> s3;
+  auto s3 = SplineBasisFunction<double, 3>::make();
   EXPECT_NEAR(s3(0.0), 0.5*1 + 2*((0.5*0.5)/2.0), 1.0e-6);
   EXPECT_NEAR(s3(-0.5), 0.5, 1.0e-6);
   EXPECT_NEAR(s3(0.5), 0.5, 1.0e-6);
