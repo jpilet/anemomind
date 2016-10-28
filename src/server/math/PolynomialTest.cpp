@@ -31,9 +31,9 @@ TEST(SplineTest, PolyTest) {
 }
 
 TEST(SplineTest, Derivative) {
-  auto p2 = Polynomial<double, 2>{3.0, 4.0, 5.0};
-  auto p1 = Polynomial<double, 1>{4.0, 10.0};
-  auto p0 = Polynomial<double, 0>{10.0};
+  auto p2 = Polynomial<double, 3>{3.0, 4.0, 5.0};
+  auto p1 = Polynomial<double, 2>{4.0, 10.0};
+  auto p0 = Polynomial<double, 1>{10.0};
 
   EXPECT_EQ(p1, p2.derivative());
   EXPECT_EQ(p0, p1.derivative());
