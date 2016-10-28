@@ -196,6 +196,13 @@ cxx_test(math_PolynomialTest
   gtest_main
   )
 
+add_library(math_SplineUtils
+  SplineUtils.h
+  SplineUtils.cpp
+  )
+
+target_link_libraries(math_SplineUtils)
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
