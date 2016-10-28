@@ -44,7 +44,7 @@ int BoundaryIndices::computeACol(int i) const {
   if (isLeftIndex(i)) {
     return i;
   }
-  return i - epRight();
+  return i - epRight() + _ep;
 }
 
 int BoundaryIndices::computeBCol(int i) const {
