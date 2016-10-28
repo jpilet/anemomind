@@ -158,6 +158,13 @@ TEST(SplineBasisTest, SmoothBoundary) {
     EXPECT_NEAR(left(0, 0), 1.0, 1.0e-6);
   }{
     SmoothBoundarySplineBasis<double, 3> basis(1);
+    std::cout << "Left = \n" << basis.leftMat() << std::endl;
+    std::cout << "Right = \n" << basis.rightMat() << std::endl;
 
+    double coefs[1] = {1.0};
+    for (int i = 0; i < basis.internalCoefCount(); i++) {
+      std::cout << "  Coef " << i << ": "
+          << basis.getInternalCoef(i, coefs) << std::endl;
+    }
   }
 }

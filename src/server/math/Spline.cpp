@@ -14,8 +14,9 @@ namespace sail {
 BoundaryIndices::BoundaryIndices(Spani left, Spani right, int ep) :
   _left(left), _right(right), _ep(ep), _counter(0) {
   int n = varDim();
-  _A = Eigen::MatrixXd::Zero(n, n);
-  _B = Eigen::MatrixXd::Zero(n, rightDim());
+  int rows = 2*n;
+  _A = Eigen::MatrixXd::Zero(rows, n);
+  _B = Eigen::MatrixXd::Zero(rows, rightDim());
   CHECK(_left.minv() <= _right.maxv());
   CHECK(_left.maxv() <= _right.maxv());
   CHECK(_left.minv() == 0);
@@ -68,12 +69,11 @@ int BoundaryIndices::computeBCol(int i) const {
 }
 
 BoundaryIndices::Solution BoundaryIndices::solve() const {
-  CHECK(_counter == varDim());
-  Eigen::MatrixXd X = _A.lu().solve(_B);
+  Eigen::MatrixXd X = _A.householderQr().solve(_B);
 
   std::cout << " A = \n" << _A << std::endl;
   std::cout << " B = \n" << _B << std::endl;
-
+  std::cout << " X = \n" << X << std::endl;
 
   int from = _ep;
   int to = std::min(_left.maxv(), _right.maxv() - _ep);

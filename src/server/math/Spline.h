@@ -229,6 +229,9 @@ public:
     int upperDerivativeBound = Degree+1;
     int lowerDerivativeBound = upperDerivativeBound
         - RawType::extraBasesPerBoundary;
+    if (intervalCount == 1) {
+      lowerDerivativeBound = 1;
+    }
 
     BoundaryIndices inds(_basis.leftmostCoefs(),
         _basis.rightmostCoefs(),
@@ -260,6 +263,26 @@ public:
 
   const Eigen::MatrixXd &leftMat() const {return _left;}
   const Eigen::MatrixXd &rightMat() const {return _right;}
+
+  T getInternalCoef(int index, T *coefs) const {
+    if (index < RawType::extraBasesPerBoundary) {
+      T sum(0.0);
+      for (int i = 0; i < _left.cols(); i++) {
+        sum += _left(index, i)*coefs[i];
+      }
+      return sum;
+    } else if (_basis.intervalCount() <= index) {
+      int index1 = index - _basis.intervalCount();
+      T sum(0.0);
+      for (int i = 0; i < _right.cols(); i++) {
+        sum += _right(index1, i)*coefs[i - _right.cols()];
+      }
+      return sum;
+    }
+    return coefs[index - RawType::extraBasesPerBoundary];
+  }
+
+  int internalCoefCount() const {return _basis.coefCount();}
 private:
   Eigen::MatrixXd _left, _right;
   RawSplineBasis<T, Degree> _basis;
