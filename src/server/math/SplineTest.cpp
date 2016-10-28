@@ -50,14 +50,23 @@ TEST(RawSplineBasisTest, TestBasis) {
     EXPECT_NEAR(b.basisLocation(0), -1.0, 1.0e-6);
     EXPECT_NEAR(b.basisLocation(1),  0.0, 1.0e-6);
     EXPECT_NEAR(b.basisLocation(2),  1.0, 1.0e-6);
-
-    auto w = b.build(0.0);
-    EXPECT_EQ(w.inds[0], 0);
-    EXPECT_EQ(w.inds[1], 1);
-    EXPECT_EQ(w.inds[2], 2);
-    EXPECT_NEAR(w.weights[0], 0.0, 1.0e-6);
-    EXPECT_NEAR(w.weights[1], 1.0, 1.0e-6);
-    EXPECT_NEAR(w.weights[2], 0.0, 1.0e-6);
+    {
+      auto w = b.build(0.0);
+      EXPECT_EQ(w.inds[0], 0);
+      EXPECT_EQ(w.inds[1], 1);
+      EXPECT_EQ(w.inds[2], 2);
+      EXPECT_NEAR(w.weights[0], 0.0, 1.0e-6);
+      EXPECT_NEAR(w.weights[1], 1.0, 1.0e-6);
+      EXPECT_NEAR(w.weights[2], 0.0, 1.0e-6);
+    }{
+      auto w = b.build(-0.5000001);
+      EXPECT_EQ(w.inds[0], 0);
+      EXPECT_EQ(w.inds[1], 1);
+      EXPECT_EQ(w.inds[2], 2);
+      EXPECT_NEAR(w.weights[0], 0.5, 1.0e-3);
+      EXPECT_NEAR(w.weights[1], 0.5, 1.0e-3);
+      EXPECT_NEAR(w.weights[2], 0.0, 1.0e-3);
+    }
   }{
     auto b = RawSplineBasis<double, 2>(1);
     EXPECT_EQ(b.coefCount(), 3);
