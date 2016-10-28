@@ -285,11 +285,9 @@ public:
           inds.add(Weights::dim, right.inds, right.weights);
         }
       }
-      std::cout << "Built it...\n";
       auto sol = inds.solve();
       _left = sol.left;
       _right = sol.right;
-      std::cout << "Done now" << std::endl;
     }
   }
 
@@ -356,8 +354,6 @@ public:
       }
     } else if (rb <= innerCoef) {
       int index = innerCoef - rb;
-      std::cout << "innerCoef = " << innerCoef << std::endl;
-      std::cout << "index = " << index << std::endl;
       CHECK(index < _right.rows());
       int k = butLastOffset();
       for (int i = 0; i < _right.cols(); i++) {

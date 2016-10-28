@@ -78,10 +78,6 @@ int BoundaryIndices::computeBCol(int i) const {
 BoundaryIndices::Solution BoundaryIndices::solve() const {
   Eigen::MatrixXd X = _A.householderQr().solve(_B);
 
-  std::cout << " A = \n" << _A << std::endl;
-  std::cout << " B = \n" << _B << std::endl;
-  std::cout << " X = \n" << X << std::endl;
-
   int from = _ep;
   int to = std::min(_left.maxv(), _right.maxv() - _ep);
   int k = to - from;
@@ -95,16 +91,11 @@ void BoundaryIndices::add(int k, int *inds, double *weights) {
   CHECK(k == _left.size());
   for (int i = 0; i < k; i++) {
     int index = inds[i];
-    std::cout << "index = " << index << std::endl;
     if (isInnerIndex(index)) {
       int col = computeBCol(index);
-      std::cout << "  B: col = " << col << " b.cols = "
-          << _B.cols() << std::endl;
       _B(_counter, col) = -weights[i];
     } else {
       int col = computeACol(index);
-      std::cout << "  A: col = " << col << " a.cols = "
-          << _A.cols() << std::endl;
       _A(_counter, col) = weights[i];
     }
   }

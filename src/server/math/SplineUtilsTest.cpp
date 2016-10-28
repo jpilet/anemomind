@@ -25,11 +25,8 @@ TEST(SplineUtilsTest, TemporalTest) {
 
   Arrayd dst{9, 7, 4, 17, -3.4};
 
-  std::cout << "Build the curve" << std::endl;
 
   TemporalSplineCurve c(span, 1.0_s, src, dst);
-
-  std::cout << "Built the curve" << std::endl;
 
   EXPECT_NEAR(c.evaluate(offset + 0.0_s), 9.0, 1.0e-4);
   EXPECT_NEAR(c.evaluate(offset + 1.0_s), 7.0, 1.0e-4);
