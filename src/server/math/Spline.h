@@ -139,6 +139,9 @@ public:
     }
   };
 
+  RawSplineBasis() : _intervalCount(0),
+      _basisFunction(SplineType::make()) {}
+
   RawSplineBasis(int intervalCount) :
     _intervalCount(intervalCount),
     _basisFunction(SplineType::make()) {}
@@ -252,6 +255,8 @@ class SmoothBoundarySplineBasis {
 public:
   typedef RawSplineBasis<T, Degree> RawType;
   typedef typename RawType::Weights Weights;
+
+  SmoothBoundarySplineBasis() : _basis(0) {}
 
   SmoothBoundarySplineBasis(int intervalCount) :
     _basis(intervalCount) {

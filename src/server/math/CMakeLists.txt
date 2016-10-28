@@ -201,7 +201,9 @@ add_library(math_SplineUtils
   SplineUtils.cpp
   )
 
-target_link_libraries(math_SplineUtils)
+target_link_libraries(math_SplineUtils
+  lapack_BandWrappers
+  )
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
