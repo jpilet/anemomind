@@ -74,6 +74,14 @@ TEST(RawSplineBasisTest, TestBasis) {
       EXPECT_NEAR(w.weights[0], 1.0, 1.0e-3);
       EXPECT_NEAR(w.weights[1], 0.0, 1.0e-3);
       EXPECT_NEAR(w.weights[2], 0.0, 1.0e-3);
+    }{
+      auto w = b.build(-1.5);
+      EXPECT_EQ(w.inds[0], 0);
+      EXPECT_EQ(w.inds[1], 1);
+      EXPECT_EQ(w.inds[2], 2);
+      EXPECT_NEAR(w.weights[0], 0.5, 1.0e-3);
+      EXPECT_NEAR(w.weights[1], 0.0, 1.0e-3);
+      EXPECT_NEAR(w.weights[2], 0.0, 1.0e-3);
     }
   }{
     auto b = RawSplineBasis<double, 2>(1);
