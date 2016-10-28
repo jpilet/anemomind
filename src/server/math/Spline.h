@@ -121,6 +121,8 @@ public:
     }
     return dst;
   }
+
+  int intervalCount() const {return _intervalCount;}
 private:
   int _intervalCount;
   SplineBasisFunction<T, Degree+1> _basis;
@@ -129,13 +131,13 @@ private:
 template <typename T, int Degree>
 class SmoothEndpointSplineBasis {
 public:
-  static const int excessiveCountPerEndpoint = cmax(0, Degree - 1);
+  static const int excessiveCountPerEndpoint = cmax(0, (Degree+1)/2);
 
   SmoothEndpointSplineBasis(int intervalCount) :
     _basis(intervalCount) {}
 
   int coefCount() const {
-    return _basis.coefCount() - 2*excessiveCountPerEndpoint;
+    return _basis.intervalCount();
   }
 private:
   RawSplineBasis<T, Degree> _basis;
