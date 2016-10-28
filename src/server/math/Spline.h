@@ -108,6 +108,32 @@ public:
     static const int dim = coefsPerPoint;
     int inds[dim];
     T weights[dim];
+
+    Weights() {
+      for (int i = 0; i < dim; i++) {
+        inds[i] = 0;
+        weights[i] = 0.0;
+      }
+    }
+
+    bool add(int index, T value) {
+      for (int i = 0; i < coefsPerPoint; i++) {
+        int &id = inds[i];
+        T &w = weights[i];
+        if (id == index || w == T(0.0)) {
+          id = index;
+          w += value;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    void addScaled(T s, const Weights &other) const {
+      for (int i = 0; i < dim; i++) {
+        CHECK(add(other.inds[i], s*other.weights[i]));
+      }
+    }
   };
 
   RawSplineBasis(int intervalCount) :
@@ -264,17 +290,29 @@ public:
   const Eigen::MatrixXd &leftMat() const {return _left;}
   const Eigen::MatrixXd &rightMat() const {return _right;}
 
+  int leftBd() const {
+    return RawType::extraBasesPerBoundary;
+  }
+
+  int rightBd() const {
+    return RawType::extraBasesPerBoundary + _basis.intervalCount();
+  }
+
+  int butLastOffset() const {
+    return _basis.intervalCount() - _right.cols();
+  }
+
   T getInternalCoef(int index, const T *coefs) const {
-    int offset2 = RawType::extraBasesPerBoundary + _basis.intervalCount();
+    int offset2 = rightBd();
     int index1 = index - offset2;
-    if (index < RawType::extraBasesPerBoundary) {
+    if (index < leftBd()) {
       T sum(0.0);
       for (int i = 0; i < _left.cols(); i++) {
         sum += _left(index, i)*coefs[i];
       }
       return sum;
     } else if (0 <= index1) {
-      auto lastCoefs = coefs + _basis.intervalCount() - _right.cols();
+      auto lastCoefs = coefs + butLastOffset();
       T sum(0.0);
       for (int i = 0; i < _right.cols(); i++) {
         sum += _right(index1, i)*lastCoefs[i];
@@ -284,22 +322,52 @@ public:
     return coefs[index - RawType::extraBasesPerBoundary];
   }
 
+
   int internalCoefCount() const {return _basis.coefCount();}
 
   T evaluate(const T *coefficients, T x) const {
-    std::cout << "EVALUATE AT x = " << x << "\n";
     int offset = _basis.computeIntervalIndex(x);
     T sum(0.0);
     for (int i = 0; i < RawType::coefsPerPoint; i++) {
       int index = offset + i;
       auto c = getInternalCoef(index, coefficients);
       auto b = _basis.evaluateBasis(index, x);
-      std::cout << "  coef=" << c << " basis=" << b << std::endl;
       sum += c*b;
-      std::cout << " sum = " << sum << std::endl;
     }
     return sum;
   }
+
+  Weights getInnerWeights(int innerCoef) const {
+    Weights dst;
+    int rb = rightBd();
+    if (innerCoef < leftBd()) {
+      for (int i = 0; i < _left.cols(); i++) {
+        dst.add(i, _left(innerCoef, i));
+      }
+    } else if (rb <= innerCoef) {
+      int index = innerCoef - rb;
+      int k = butLastOffset();
+      for (int i = 0; i < _right.cols(); i++) {
+        dst.add(i + k, _right(index, i));
+      }
+    } else {
+      dst.add(innerCoef - RawType::extraBasesPerBoundary, 1.0);
+    }
+    return dst;
+  }
+
+  Weights build(T x) const {
+    Weights dst;
+    int index = _basis.computeIntervalIndex(x);
+    for (int i_ = 0; i_ < RawType::coefsPerPoint; i_++) {
+      int index = i_ + index;
+      auto w = _basis.evaluateBasis(index, x);
+      dst.addScaled(w, getInnerWeights(index));
+    }
+    return dst;
+  }
+
+
 private:
   Eigen::MatrixXd _left, _right;
   RawSplineBasis<T, Degree> _basis;
