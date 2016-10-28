@@ -53,6 +53,9 @@ TEST(RawSplineBasisTest, TestBasis) {
   }{
     auto b = RawSplineBasis<double, 3>(1);
     EXPECT_EQ(b.coefCount(), 5);
+  }{
+    auto b = RawSplineBasis<double, 3>(2);
+    EXPECT_EQ(b.coefCount(), 6);
   }
 }
 
