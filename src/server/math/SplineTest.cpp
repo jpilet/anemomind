@@ -133,4 +133,8 @@ TEST(SplineBasisTest, TestIndices) {
 TEST(SplineBasisTest, TestIndices2) {
   BoundaryIndices inds(Spani(0, 5), Spani(7, 12), 2);
   EXPECT_EQ(inds.totalDim(), 10);
+  EXPECT_EQ(0, inds.computeACol(0));
+  EXPECT_EQ(1, inds.computeACol(1));
+  EXPECT_EQ(2, inds.computeACol(10));
+  EXPECT_EQ(3, inds.computeACol(11));
 }
