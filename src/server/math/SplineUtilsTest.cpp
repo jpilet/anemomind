@@ -23,5 +23,9 @@ TEST(SplineUtilsTest, TemporalTest) {
 
   Arrayd dst{9, 7, 4};
 
-  TemporalSplineCurve basis(span, 1.0_s, src, dst);
+  TemporalSplineCurve c(span, 1.0_s, src, dst);
+
+  EXPECT_NEAR(c.evaluate(offset + 0.0_s), 9.0, 1.0e-4);
+  EXPECT_NEAR(c.evaluate(offset + 1.0_s), 7.0, 1.0e-4);
+  EXPECT_NEAR(c.evaluate(offset + 2.0_s), 4.0, 1.0e-4);
 }
