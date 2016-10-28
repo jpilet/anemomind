@@ -14,6 +14,7 @@
 #include <server/common/Span.h>
 #include <server/common/logging.h>
 #include <Eigen/Dense>
+#include <map>
 
 namespace sail {
 
@@ -104,8 +105,9 @@ public:
   static const int coefsPerPoint = 1 + 2*extraBasesPerBoundary;
 
   struct Weights {
-    int inds[coefsPerPoint];
-    T weights[coefsPerPoint];
+    static const int dim = coefsPerPoint;
+    int inds[dim];
+    T weights[dim];
   };
 
   RawSplineBasis(int intervalCount) :
@@ -179,13 +181,13 @@ template <typename T, int Degree>
 struct BoundarySolution {
   typedef RawSplineBasis<T, Degree> Basis;
   typedef typename Basis::Weights Weights;
+  static const int N = Basis::extraBasesPerBoundary;
   Eigen::Matrix<T,
-    Basis::extraBasesPerBoundary,
-    Eigen::Dynamic> left, right;
+    N, Eigen::Dynamic> left, right;
 
-  BoundarySolution(const std::vector<Weights> &src) {
+  /*BoundarySolution(const std::vector<Weights> &src) {
 
-  }
+  }*/
 };
 
 
@@ -205,12 +207,15 @@ public:
     auto ub = _basis.upperDataBound();
     auto der = _basis.basisFunction();
     std::vector<Weights> weights;
+    weights.reserve(RawType::extraBasesPerBoundary);
     for (int i = 1; i < upperDerivativeBound; i++) {
       der = der.derivative();
-      weights.push_back(_basis.build(der, lb));
-      weights.push_back(_basis.build(der, ub));
+      if (lowerDerivativeBound <= i) {
+        weights.push_back(_basis.build(der, lb));
+        weights.push_back(_basis.build(der, ub));
+      }
     }
-
+    //BoundarySolution<T, Degree> sol(weights);
   }
 
   int coefCount() const {

@@ -109,3 +109,8 @@ TEST(RawSplineBasisTest, TestBasis) {
     EXPECT_EQ(b.coefCount(), 6);
   }
 }
+
+
+TEST(SplineBasisTest, TestSmooth) {
+
+}
