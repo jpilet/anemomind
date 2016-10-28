@@ -17,15 +17,17 @@ TEST(SplineUtilsTest, TemporalTest) {
   Array<TimeStamp> src{
     offset + 0.0_s,
     offset + 1.0_s,
-    offset + 2.0_s
+    offset + 2.0_s,
+    offset + 3.0_s
   };
-  Span<TimeStamp> span(offset, offset + 3.0_s);
+  Span<TimeStamp> span(offset, offset + 4.0_s);
 
-  Arrayd dst{9, 7, 4};
+  Arrayd dst{9, 7, 4, 17};
 
   TemporalSplineCurve c(span, 1.0_s, src, dst);
 
   EXPECT_NEAR(c.evaluate(offset + 0.0_s), 9.0, 1.0e-4);
   EXPECT_NEAR(c.evaluate(offset + 1.0_s), 7.0, 1.0e-4);
   EXPECT_NEAR(c.evaluate(offset + 2.0_s), 4.0, 1.0e-4);
+  EXPECT_NEAR(c.evaluate(offset + 3.0_s), 17.0, 1.0e-4);
 }
