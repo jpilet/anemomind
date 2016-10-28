@@ -234,20 +234,23 @@ public:
         RawType::extraBasesPerBoundary);
 
     CHECK(0 < lowerDerivativeBound);
-    auto lb = _basis.lowerDataBound();
-    auto ub = _basis.upperDataBound();
-    auto der = _basis.basisFunction();
-    int n = 2*RawType::extraBasesPerBoundary;
-    for (int i = 1; i < upperDerivativeBound; i++) {
-      der = der.derivative();
-      if (lowerDerivativeBound <= i) {
-        auto left = _basis.build(der, lb);
-        auto right = _basis.build(der, ub);
-        inds.add(Weights::dim, left.inds, left.weights);
-        inds.add(Weights::dim, right.inds, right.weights);
+    if (0 < RawType::extraBasesPerBoundary) {
+      auto lb = _basis.lowerDataBound();
+      auto ub = _basis.upperDataBound();
+      auto der = _basis.basisFunction();
+      for (int i = 1; i < upperDerivativeBound; i++) {
+        der = der.derivative();
+        if (lowerDerivativeBound <= i) {
+          auto left = _basis.build(der, lb);
+          auto right = _basis.build(der, ub);
+          inds.add(Weights::dim, left.inds, left.weights);
+          inds.add(Weights::dim, right.inds, right.weights);
+        }
       }
+      auto sol = inds.solve();
+      _left = sol.left;
+      _right = sol.right;
     }
-
   }
 
   int coefCount() const {

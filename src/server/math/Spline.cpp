@@ -63,6 +63,11 @@ int BoundaryIndices::computeBCol(int i) const {
 BoundaryIndices::Solution BoundaryIndices::solve() const {
   CHECK(_counter == varDim());
   Eigen::MatrixXd X = _A.lu().solve(_B);
+  int k = _left.maxv() - _ep;
+  return Solution{
+    X.block(0, 0, k, X.cols()),
+    X.block(k, 0, k, X.cols())
+  };
 }
 
 void BoundaryIndices::add(int k, int *inds, double *weights) {
