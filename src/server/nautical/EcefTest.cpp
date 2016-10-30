@@ -25,6 +25,7 @@ TEST(EcefTest, BasicBackAndForth) {
   EXPECT_NEAR(sin(src.lat), sin(src2.lat), 1.0e-6);
   EXPECT_NEAR(cos(src.lon), cos(src2.lon), 1.0e-6);
   EXPECT_NEAR(sin(src.lon), sin(src2.lon), 1.0e-6);
+  EXPECT_NEAR(src.height.meters(), src2.height.meters(), 1.0e-6);
 }
 
 
