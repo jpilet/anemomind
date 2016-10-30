@@ -238,7 +238,7 @@ double getAxisPosition(Array<AxisTick<double>> ticks) {
   return ticks.first().position;
 }
 
-void renderAxisText(int dim, const char *text,
+void renderAxisText(int dim, const std::string &text,
     cairo_t *dst) {
   WithLocalContext wlc(dst);
   WithLocalDeviceScale wlds(dst,
@@ -246,7 +246,7 @@ void renderAxisText(int dim, const char *text,
   cairo_translate(dst, 0.0, 20.0*(2*dim - 1));
   WithLocalDeviceScale wlds2(dst,
       WithLocalDeviceScale::Identity);
-  cairo_show_text(dst, text);
+  cairo_show_text(dst, text.c_str());
 }
 
 void renderAxis(int dim,
@@ -283,12 +283,12 @@ void renderAxis(int dim,
       cairo_line_to(dst, 0.0, 5.0);
       cairo_stroke(dst);
     }
-    renderAxisText(dim, tick.tickLabel.c_str(), dst);
+    renderAxisText(dim, tick.tickLabel, dst);
   }
   {
     WithLocalContext w2(dst);
     cairo_translate(dst, ticks.last().position, position);
-    renderAxisText(dim, "kattskit"/*label.c_str()*/, dst);
+    renderAxisText(dim, label, dst);
   }
 }
 
