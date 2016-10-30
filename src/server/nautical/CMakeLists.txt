@@ -380,3 +380,8 @@ target_link_libraries(nautical_process2
   common_DOMUtils
   html_HtmlDispatcher
   )
+
+cxx_test(nautical_EcefTest
+  EcefTest.cpp
+  gtest_main
+  )
