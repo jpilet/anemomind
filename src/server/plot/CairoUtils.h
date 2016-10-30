@@ -50,7 +50,7 @@ private:
 // the boat drawing to be invariant to zoom.
 class WithLocalDeviceScale {
 public:
-  enum Mode {Determinant, Identity};
+  enum Mode {Determinant, Identity, Orientation};
 
   WithLocalDeviceScale(cairo_t *cr, Mode mode);
   ~WithLocalDeviceScale();

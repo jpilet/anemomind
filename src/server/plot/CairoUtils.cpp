@@ -39,12 +39,31 @@ WithLocalDeviceScale::WithLocalDeviceScale(
     tmp.yy = 1.0;
     tmp.xy = 0.0;
     tmp.yx = 0.0;
-  } else {
+  } else if (mode == Mode::Determinant){
     double s = 1.0/sqrt(absDet);
     tmp.xx *= s;
     tmp.xy *= s;
     tmp.yx *= s;
     tmp.yy *= s;
+  } else if (mode == Mode::Orientation) {
+    Eigen::Matrix2d A;
+    A << tmp.xx, tmp.xy,
+         tmp.yx, tmp.yy;
+
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> s0(
+        A.transpose()*A);
+
+
+    Eigen::Matrix2d R = solver.eigenvectors().transpose();
+    Eigen::Matrix2d C = R; //*R.transpose();
+
+    std::cout << "A = " << A << std::endl;
+    std::cout << ""
+
+    tmp.xx = C(0, 0);
+    tmp.xy = C(0, 1);
+    tmp.yx = C(1, 0);
+    tmp.yy = C(1, 1);
   }
   cairo_set_matrix(cr, &tmp);
 }
@@ -263,7 +282,7 @@ void renderAxis(int dim,
     cairo_translate(dst, tick.position, position);
     {
       WithLocalDeviceScale wlds(dst,
-          WithLocalDeviceScale::Identity);
+          WithLocalDeviceScale::Orientation);
       cairo_move_to(dst, 0.0, -5.0);
       cairo_line_to(dst, 0.0, 5.0);
       cairo_stroke(dst);
