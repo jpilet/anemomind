@@ -35,7 +35,7 @@ struct AxisTick {
 class BasicTickIterator {
 public:
   typedef double type;
-  BasicTickIterator(int e, const std::string &unit = "");
+  BasicTickIterator(int e = 0, const std::string &unit = "");
   BasicTickIterator coarser() const;
   BasicTickIterator finer() const;
   double computeFracIndex(double value) const;

@@ -197,6 +197,17 @@ void renderPlot(
   contextRenderer(dataBbox, dst);
 }
 
+void renderPlot(
+    const PlotUtils::Settings2d &settings,
+    std::function<void(cairo_t*)> dataRenderer,
+    const std::string &xLabel,
+    const std::string &yLabel,
+    cairo_t *dst) {
+  renderPlot(settings, dataRenderer,
+      [&](const BBox3d &box, cairo_t *dst) {
+
+  }, dst);
+}
 
 }
 } /* namespace sail */

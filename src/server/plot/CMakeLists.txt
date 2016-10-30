@@ -29,6 +29,7 @@ add_library(plot_CairoUtils
 
 target_link_libraries(plot_CairoUtils
   ${CAIRO_LIBRARIES}
+  plot_PlotUtils
   )
   
 add_library(plot_PlotUtils
@@ -67,4 +68,12 @@ add_library(plot_ColorMap
 
 target_link_libraries(plot_ColorMap
   common_TimeStamp
+  )
+
+add_executable(plot_plotDemo
+  plotDemo.cpp
+  )
+
+target_link_libraries(plot_plotDemo
+  plot_CairoUtils
   )

@@ -105,6 +105,13 @@ void renderPlot(
 
     cairo_t *dst);
 
+void renderPlot(
+    const PlotUtils::Settings2d &settings,
+    std::function<void(cairo_t*)> dataRenderer,
+    const std::string &xLabel,
+    const std::string &yLabel,
+    cairo_t *dst);
+
 }
 }
 
