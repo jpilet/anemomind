@@ -211,6 +211,7 @@ cxx_test(math_SplineUtilsTest
   SplineUtilsTest.cpp
   math_SplineUtils
   gtest_main
+  plot_gnuplot
   )
 
 add_subdirectory(geometry)

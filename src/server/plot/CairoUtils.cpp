@@ -157,5 +157,46 @@ cairo_matrix_t toCairo(const Eigen::Matrix<double, rows, cols> &mat) {
 template cairo_matrix_t toCairo<2, 3>(const Eigen::Matrix<double, 2, 3> &mat);
 template cairo_matrix_t toCairo<2, 4>(const Eigen::Matrix<double, 2, 4> &mat);
 
+namespace {
+  BBox3d getBBox(cairo_surface_t *surface) {
+    double x = 0;
+    double y = 0;
+    double width = 0;
+    double height = 0;
+    cairo_recording_surface_ink_extents(surface,
+        &x, &y, &width, &height);
+    BBox3d box;
+    box.extend({x, y, 0.0});
+    box.extend({x+width, y+width, 0.0});
+    return box;
+  }
+}
+
+void renderPlot(
+    const PlotUtils::Settings2d &settings,
+    std::function<void(cairo_t*)> dataRenderer,
+    std::function<void(BBox3d, cairo_t*)> contextRenderer,
+    cairo_t *dst) {
+  auto surface = sharedPtrWrap(
+      cairo_recording_surface_create(
+          CAIRO_CONTENT_COLOR_ALPHA, nullptr));
+  auto cr = sharedPtrWrap(cairo_create(surface.get()));
+  dataRenderer(cr.get());
+  auto dataBbox = getBBox(surface.get());
+  contextRenderer(dataBbox, cr.get());
+  auto fullBbox = getBBox(surface.get());
+  auto goodBbox = PlotUtils::ensureGoodBBox(fullBbox, settings);
+  auto proj = PlotUtils::computeTotalProjection(
+      goodBbox, settings);
+
+  // Render to the real surface
+  WithLocalContext wlc(dst);
+  auto mat = toCairo(proj);
+  cairo_set_matrix(dst, &mat);
+  dataRenderer(dst);
+  contextRenderer(dataBbox, dst);
+}
+
+
 }
 } /* namespace sail */

@@ -92,6 +92,19 @@ bool drawLocalFlow(
     double pointSize,
     std::default_random_engine *rng);
 
+void renderPlot(
+    // Settings for how the data should be renderered.
+    const PlotUtils::Settings2d &settings,
+
+    // Renders the data to be plotted
+    std::function<void(cairo_t*)> dataRenderer,
+
+    // Renders axes, labels, etc,
+    // given the bounding box of the data
+    std::function<void(BBox3d, cairo_t*)> contextRenderer,
+
+    cairo_t *dst);
+
 }
 }
 
