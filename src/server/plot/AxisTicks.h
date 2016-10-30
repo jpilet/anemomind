@@ -88,7 +88,7 @@ template <typename TickIterator>
 double tickIteratorCost(TickIterator iter,
     TypeOfTick<TickIterator> lower,
     TypeOfTick<TickIterator> upper) {
-  double idealTickCount = 4.0;
+  double idealTickCount = 8.0;
   double width = std::abs(
       iter.computeFracIndex(lower)
       - iter.computeFracIndex(upper));

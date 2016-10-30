@@ -17,8 +17,8 @@ int main(int argc, const char **argv) {
 
   renderPlot(settings, [&](cairo_t *dst) {
     int n = 300;
-    LineKM m(0, n, -4, 4);
-    auto f = [](double x) {return x*x/(x*x + 1.0);};
+    LineKM m(0, n, -400, 400);
+    auto f = [](double x0) {auto x = x0/100; return 100*x*x/(x*x + 1.0);};
 
     cairo_move_to(dst, m(0), f(m(0)));
     for (int i = 0; i < n; i++) {

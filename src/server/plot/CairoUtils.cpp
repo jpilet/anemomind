@@ -8,6 +8,7 @@
 #include <server/plot/CairoUtils.h>
 #include <Eigen/Dense>
 #include <server/plot/AxisTicks.h>
+#include <iostream>
 
 namespace sail {
 namespace Cairo {
@@ -168,7 +169,13 @@ namespace {
         &x, &y, &width, &height);
     BBox3d box;
     box.extend({x, y, 0.0});
-    box.extend({x+width, y+width, 0.0});
+    box.extend({x+width, y+height, 0.0});
+
+    std::cout << "x = " << x << std::endl;
+    std::cout << "y = " << y << std::endl;
+    std::cout << "width = " << width << std::endl;
+    std::cout << "height = " << height << std::endl;
+
     return box;
   }
 }
@@ -178,6 +185,8 @@ void renderPlot(
     std::function<void(cairo_t*)> dataRenderer,
     std::function<void(BBox3d, cairo_t*)> contextRenderer,
     cairo_t *dst) {
+
+  std::cout << "First pass" << std::endl;
   auto surface = sharedPtrWrap(
       cairo_recording_surface_create(
           CAIRO_CONTENT_COLOR_ALPHA, nullptr));
@@ -191,6 +200,7 @@ void renderPlot(
       goodBbox, settings);
 
   // Render to the real surface
+  std::cout << "Second pass" << std::endl;
   WithLocalContext wlc(dst);
   auto mat = toCairo(proj);
   cairo_set_matrix(dst, &mat);
@@ -207,6 +217,7 @@ double getAxisPosition(Array<AxisTick<double>> ticks) {
 
 void renderAxisText(int dim, const char *text,
     cairo_t *dst) {
+  WithLocalContext wlc(dst);
   WithLocalDeviceScale wlds(dst,
       WithLocalDeviceScale::Determinant);
   cairo_translate(dst, 0.0, 10.0*(2*dim - 1));
@@ -219,6 +230,10 @@ void renderAxis(int dim,
     Array<AxisTick<double>> ticks,
     const std::string &label,
     double position, cairo_t *dst) {
+  std::cout << "DIM " << dim << " TICKS from "
+      << ticks.first().position << " to "
+      << ticks.last().position << std::endl;
+
   WithLocalContext wlc(dst);
   if (dim == 1) {
     cairo_matrix_t mat;
@@ -247,8 +262,11 @@ void renderAxis(int dim,
     }
     renderAxisText(dim, tick.tickLabel.c_str(), dst);
   }
-  //cairo_translate(dst, ticks.last().position, position);
-  //renderAxisText(dim, label.c_str(), dst);
+  {
+    WithLocalContext w2(dst);
+    cairo_translate(dst, ticks.last().position, position);
+    renderAxisText(dim, "kattskit"/*label.c_str()*/, dst);
+  }
 }
 
 void renderPlot(
@@ -266,6 +284,12 @@ void renderPlot(
     auto yTicks = computeAxisTicks<Iter>(
             box.getSpan(1).minv(),
             box.getSpan(1).maxv(), Iter());
+
+    for (int i = 0; i < 2; i++) {
+      auto sp = box.getSpan(i);
+      std::cout << "DIM " << i << " data: " << sp.minv() << " to "
+          << sp.maxv() << std::endl;
+    }
 
     renderAxis(0, xTicks, xLabel,
         getAxisPosition(yTicks), dst);
