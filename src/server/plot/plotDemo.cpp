@@ -22,7 +22,7 @@ int main(int argc, const char **argv) {
     auto f = [&](double x0) {auto x = x0/s; return s*x*x/(x*x + 1.0);};
 
     cairo_move_to(dst, m(0), f(m(0)));
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i <= n; i++) {
       auto x = m(i);
       auto y = f(x);
       cairo_line_to(dst, x, y);
