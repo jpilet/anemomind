@@ -13,6 +13,8 @@ int main(int argc, const char **argv) {
           settings.width, settings.height));
   auto cr = sharedPtrWrap(cairo_create(surface.get()));
 
+  settings.orthogonal = false;
+
   renderPlot(settings, [&](cairo_t *dst) {
     int n = 300;
 
@@ -28,7 +30,7 @@ int main(int argc, const char **argv) {
       cairo_line_to(dst, x, y);
     }
     WithLocalDeviceScale ws(dst,
-        WithLocalDeviceScale::Determinant);
+        WithLocalDeviceScale::Identity);
     cairo_stroke(dst);
 
   }, "Time", "Velocity", cr.get());
