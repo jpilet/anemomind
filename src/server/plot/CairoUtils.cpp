@@ -160,13 +160,20 @@ template cairo_matrix_t toCairo<2, 3>(const Eigen::Matrix<double, 2, 3> &mat);
 template cairo_matrix_t toCairo<2, 4>(const Eigen::Matrix<double, 2, 4> &mat);
 
 namespace {
-  BBox3d getBBox(cairo_surface_t *surface) {
+  BBox3d getBBox(cairo_surface_t *surface,
+      double pixelsPerUnit) {
     double x = 0;
     double y = 0;
     double width = 0;
     double height = 0;
     cairo_recording_surface_ink_extents(surface,
         &x, &y, &width, &height);
+
+    x /= pixelsPerUnit;
+    y /= pixelsPerUnit;
+    width /= pixelsPerUnit;
+    height /= pixelsPerUnit;
+
     BBox3d box;
     box.extend({x, y, 0.0});
     box.extend({x+width, y+height, 0.0});
@@ -191,10 +198,13 @@ void renderPlot(
       cairo_recording_surface_create(
           CAIRO_CONTENT_COLOR_ALPHA, nullptr));
   auto cr = sharedPtrWrap(cairo_create(surface.get()));
+  cairo_scale(cr.get(),
+      settings.pixelsPerUnit,
+      settings.pixelsPerUnit);
   dataRenderer(cr.get());
-  auto dataBbox = getBBox(surface.get());
+  auto dataBbox = getBBox(surface.get(), settings.pixelsPerUnit);
   contextRenderer(dataBbox, cr.get());
-  auto fullBbox = getBBox(surface.get());
+  auto fullBbox = getBBox(surface.get(), settings.pixelsPerUnit);
   auto goodBbox = PlotUtils::ensureGoodBBox(fullBbox, settings);
   auto proj = PlotUtils::computeTotalProjection(
       goodBbox, settings);
