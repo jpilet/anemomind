@@ -255,7 +255,7 @@ void renderAxis(int dim,
   cairo_line_to(dst, ticks.last().position, position);
   {
     WithLocalDeviceScale wlds(dst,
-        WithLocalDeviceScale::Determinant);
+        WithLocalDeviceScale::Identity);
     cairo_stroke(dst);
   }
   for (auto tick: ticks) {
@@ -263,7 +263,7 @@ void renderAxis(int dim,
     cairo_translate(dst, tick.position, position);
     {
       WithLocalDeviceScale wlds(dst,
-          WithLocalDeviceScale::Determinant);
+          WithLocalDeviceScale::Identity);
       cairo_move_to(dst, 0.0, -5.0);
       cairo_line_to(dst, 0.0, 5.0);
       cairo_stroke(dst);
