@@ -7,6 +7,7 @@
 
 #include <server/plot/CairoUtils.h>
 #include <Eigen/Dense>
+#include <server/plot/AxisTicks.h>
 
 namespace sail {
 namespace Cairo {
@@ -197,6 +198,59 @@ void renderPlot(
   contextRenderer(dataBbox, dst);
 }
 
+double getAxisPosition(Array<AxisTick<double>> ticks) {
+  if (ticks.first().position <= 0 && 0 < ticks.last().position) {
+    return 0;
+  }
+  return ticks.first().position;
+}
+
+void renderAxisText(int dim, const char *text,
+    cairo_t *dst) {
+  WithLocalDeviceScale wlds(dst,
+      WithLocalDeviceScale::Determinant);
+  cairo_translate(dst, 0.0, 10.0*(2*dim - 1));
+  WithLocalDeviceScale wlds2(dst,
+      WithLocalDeviceScale::Identity);
+  cairo_show_text(dst, text);
+}
+
+void renderAxis(int dim,
+    Array<AxisTick<double>> ticks,
+    const std::string &label,
+    double position, cairo_t *dst) {
+  WithLocalContext wlc(dst);
+  if (dim == 1) {
+    cairo_matrix_t mat;
+    mat.xx = 0;
+    mat.xy = 1;
+    mat.yx = 1;
+    mat.yy = 0;
+    cairo_transform(dst, &mat);
+  }
+  cairo_move_to(dst, ticks.first().position, position);
+  cairo_line_to(dst, ticks.last().position, position);
+  {
+    WithLocalDeviceScale wlds(dst,
+        WithLocalDeviceScale::Determinant);
+    cairo_stroke(dst);
+  }
+  for (auto tick: ticks) {
+    WithLocalContext wlc2(dst);
+    cairo_translate(dst, tick.position, position);
+    {
+      WithLocalDeviceScale wlds(dst,
+          WithLocalDeviceScale::Determinant);
+      cairo_move_to(dst, 0.0, -5.0);
+      cairo_line_to(dst, 0.0, 5.0);
+      cairo_stroke(dst);
+    }
+    renderAxisText(dim, tick.tickLabel.c_str(), dst);
+  }
+  //cairo_translate(dst, ticks.last().position, position);
+  //renderAxisText(dim, label.c_str(), dst);
+}
+
 void renderPlot(
     const PlotUtils::Settings2d &settings,
     std::function<void(cairo_t*)> dataRenderer,
@@ -205,6 +259,18 @@ void renderPlot(
     cairo_t *dst) {
   renderPlot(settings, dataRenderer,
       [&](const BBox3d &box, cairo_t *dst) {
+    typedef BasicTickIterator Iter;
+    auto xTicks = computeAxisTicks<Iter>(
+            box.getSpan(0).minv(),
+            box.getSpan(0).maxv(), Iter());
+    auto yTicks = computeAxisTicks<Iter>(
+            box.getSpan(1).minv(),
+            box.getSpan(1).maxv(), Iter());
+
+    renderAxis(0, xTicks, xLabel,
+        getAxisPosition(yTicks), dst);
+    renderAxis(1, yTicks, yLabel,
+        getAxisPosition(xTicks), dst);
 
   }, dst);
 }

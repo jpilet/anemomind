@@ -28,6 +28,7 @@ int main(int argc, const char **argv) {
     }
     WithLocalDeviceScale ws(dst,
         WithLocalDeviceScale::Determinant);
+    cairo_stroke(dst);
 
   }, "Time", "Velocity", cr.get());
 

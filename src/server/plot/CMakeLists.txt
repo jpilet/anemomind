@@ -30,6 +30,7 @@ add_library(plot_CairoUtils
 target_link_libraries(plot_CairoUtils
   ${CAIRO_LIBRARIES}
   plot_PlotUtils
+  plot_AxisTicks
   )
   
 add_library(plot_PlotUtils
@@ -51,6 +52,8 @@ add_library(plot_AxisTicks
 
 target_link_libraries(plot_AxisTicks
   common_logging
+  common_string
+  common_TimeStamp
   )
 
 cxx_test(plot_AxisTicksTest
