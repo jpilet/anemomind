@@ -178,11 +178,6 @@ namespace {
     box.extend({x, y, 0.0});
     box.extend({x+width, y+height, 0.0});
 
-    std::cout << "x = " << x << std::endl;
-    std::cout << "y = " << y << std::endl;
-    std::cout << "width = " << width << std::endl;
-    std::cout << "height = " << height << std::endl;
-
     return box;
   }
 }
@@ -204,7 +199,7 @@ void renderPlot(
   dataRenderer(cr.get());
   auto dataBbox = getBBox(surface.get(), settings.pixelsPerUnit);
   contextRenderer(dataBbox, cr.get());
-  auto fullBbox = getBBox(surface.get(), settings.pixelsPerUnit);
+  auto fullBbox = getBBox(surface.get(), 1.0);
   auto goodBbox = PlotUtils::ensureGoodBBox(fullBbox, settings);
   auto proj = PlotUtils::computeTotalProjection(
       goodBbox, settings);
@@ -213,7 +208,10 @@ void renderPlot(
   std::cout << "Second pass" << std::endl;
   WithLocalContext wlc(dst);
   auto mat = toCairo(proj);
-  cairo_set_matrix(dst, &mat);
+  cairo_transform(dst, &mat);
+  cairo_scale(dst,
+      settings.pixelsPerUnit,
+      settings.pixelsPerUnit);
   dataRenderer(dst);
   contextRenderer(dataBbox, dst);
 }

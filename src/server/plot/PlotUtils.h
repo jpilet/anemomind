@@ -27,7 +27,7 @@ struct Settings2d {
   bool axisIJ = false;
   bool orthogonal = true;
   BBox3d defaultBBox = makeDefaultBBox();
-  double pixelsPerUnit = 1.0;
+  double pixelsPerUnit = 10000.0;
 };
 
 bool isEmpty(const BBox3d &box);
