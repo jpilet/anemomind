@@ -242,8 +242,8 @@ void renderAxisText(int dim, const std::string &text,
     cairo_t *dst) {
   WithLocalContext wlc(dst);
   WithLocalDeviceScale wlds(dst,
-      WithLocalDeviceScale::Determinant);
-  cairo_translate(dst, 0.0, 20.0*(2*dim - 1));
+      WithLocalDeviceScale::SVD);
+  cairo_translate(dst, 0.0, 10.0*(2*dim - 1));
   WithLocalDeviceScale wlds2(dst,
       WithLocalDeviceScale::Identity);
   cairo_show_text(dst, text.c_str());
