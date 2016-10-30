@@ -28,5 +28,19 @@ TEST(EcefTest, BasicBackAndForth) {
   EXPECT_NEAR(src.height.meters(), src2.height.meters(), 1.0e-6);
 }
 
+TEST(EcefTest, TestEcef) {
+  auto lon = 34.0_deg;
+  auto lat = 49.0_deg;
+  auto h = 5.7_m;
+  HorizontalMotion<double> motion{3.4_kn, 9.7_kn};
+  auto m = motion.norm();
+  ECEFCoords<double, 1> xyzVel =
+      ECEF::hMotionToXYZ<double>(LLACoords<double>{lon, lat, h}, motion);
 
+  auto m2 = sqrt(
+      sqr(xyzVel.xyz[0].metersPerSecond()) +
+      sqr(xyzVel.xyz[1].metersPerSecond()) +
+      sqr(xyzVel.xyz[2].metersPerSecond()));
 
+  EXPECT_NEAR(m2, m.metersPerSecond(), 1.0e-5);
+}

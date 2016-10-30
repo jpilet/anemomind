@@ -254,7 +254,7 @@ class PhysicalQuantity {
 public:
   static const int valueDimension = 1; // How many elements that are needed to represent this object as vector.
   typedef DimensionlessTraits<T, System, TimeDim, LengthDim, AngleDim, MassDim> DimensionlessInfo;
-
+  typedef System SystemType;
   typedef T ValueType;
 
 #if ON_SERVER
@@ -446,6 +446,12 @@ private:
   PhysicalQuantity(T x) : _x(x) {}
   T _x;
 };
+
+template <typename T, int order>
+using TimeDerivative = decltype(std::declval<T>()/
+    std::declval<PhysicalQuantity<typename T::ValueType,
+      typename T::SystemType, order, 0, 0, 0>>());
+
 
 template <typename T, typename sys,
   int t0, int l0, int a0, int m0,

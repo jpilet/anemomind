@@ -10,22 +10,23 @@
 
 #include <server/math/JetUtils.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <Eigen/Dense>
 
 namespace sail {
 
 // Implementation of
 // https://microem.ru/files/2012/08/GPS.G1-X-00006.pdf
 
-template <typename T>
+template <typename T, int order = 0>
 struct ECEFCoords {
-  Length<T> xyz[3];
+  TimeDerivative<Length<T>, order> xyz[3];
 };
 
-template <typename T>
+template <typename T, int order = 0>
 struct LLACoords {
-  Angle<T> lon;
-  Angle<T> lat;
-  Length<T> height;
+  TimeDerivative<Angle<T>, order> lon;
+  TimeDerivative<Angle<T>, order> lat;
+  TimeDerivative<Length<T>, order> height;
 };
 
 
@@ -113,6 +114,44 @@ struct ECEF {
     *heightMetersOut = p/cos(phi) - computeNFromPhi<T>(phi);
     *lonRadOut = lambda;
     *latRadOut = phi;
+  }
+
+  template <typename T>
+  static Eigen::Matrix<T, 3, 1> hMotionToXYZ(
+      T lon, T lat, T h,
+      T eastMps, T northMps, T downMps) {
+    Eigen::Matrix<T, 3, 1> B;
+    T phi = lat;
+    T lambda = lon;
+    Eigen::Matrix<T, 3, 3> A;
+    A << -sin(phi)*cos(lambda),
+         -sin(phi)*sin(lambda),
+         cos(phi),
+
+         -sin(lambda), cos(lambda), MakeConstant<T>::apply(0.0),
+
+         -cos(phi)*cos(lambda),
+         -cos(phi)*sin(lambda),
+         -sin(phi);
+    B << northMps, eastMps, downMps;
+    return A.lu().solve(B);
+  }
+
+  template <typename T>
+  static ECEFCoords<T, 1> hMotionToXYZ(
+      const LLACoords<T> &pos,
+      const HorizontalMotion<T> &motion,
+      Length<T> height = Length<T>::meters(MakeConstant<T>::apply(0.0))) {
+    auto xyz = hMotionToXYZ(
+        pos.lon.radians(), pos.lat.radians(), pos.height.meters(),
+        motion[0].metersPerSecond(),
+        motion[1].metersPerSecond(),
+        height.meters());
+    return ECEFCoords<T, 1>{
+      Velocity<T>::metersPerSecond(xyz(0)),
+      Velocity<T>::metersPerSecond(xyz(1)),
+      Velocity<T>::metersPerSecond(xyz(2))
+    };
   }
 
 
