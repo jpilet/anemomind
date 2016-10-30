@@ -253,11 +253,9 @@ void renderAxis(int dim,
     Array<AxisTick<double>> ticks,
     const std::string &label,
     double position, cairo_t *dst) {
-  std::cout << "DIM " << dim << " TICKS from "
-      << ticks.first().position << " to "
-      << ticks.last().position << std::endl;
-
   WithLocalContext wlc(dst);
+  cairo_set_line_width(dst, 1.0);
+  Cairo::setSourceColor(dst, PlotUtils::RGB::black());
   if (dim == 1) {
     cairo_matrix_t mat;
     mat.xx = 0;

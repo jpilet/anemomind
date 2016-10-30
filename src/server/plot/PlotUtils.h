@@ -27,7 +27,8 @@ struct Settings2d {
   bool axisIJ = false;
   bool orthogonal = true;
   BBox3d defaultBBox = makeDefaultBBox();
-  double pixelsPerUnit = 10000.0;
+  double pixelsPerUnit = 100.0;
+  bool dataOnTop = false;
 };
 
 bool isEmpty(const BBox3d &box);
@@ -54,9 +55,16 @@ Eigen::Matrix<double, 2, 4> computeTotalProjection(
     const BBox3d &a, const Settings2d &settings);
 
 struct RGB {
+  RGB(double r, double g, double b) : red(r), green(g), blue(b) {}
+  RGB() {}
+
   double red = 0;
   double green = 0;
   double blue = 0;
+
+  static RGB black() {
+    return RGB(0, 0, 0);
+  }
 };
 
 struct HSV {

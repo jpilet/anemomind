@@ -146,7 +146,7 @@ Array<AxisTick<TypeOfTick<TickIterator>>> computeAxisTicks(
     TypeOfTick<TickIterator> lower,
     TypeOfTick<TickIterator> upper,
     TickIterator init) {
-  CHECK(lower < upper);
+  CHECK(lower <= upper);
   auto iter = optimizeTickIterator(lower, upper, init);
   int lowerIndex = int(floor(iter.computeFracIndex(lower)));
   int upperIndex = int(ceil(iter.computeFracIndex(upper)));
