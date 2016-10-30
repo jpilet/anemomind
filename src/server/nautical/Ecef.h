@@ -37,8 +37,6 @@ struct ECEF {
   static constexpr double b2 = b*b;
   static constexpr double e2 = (a2 - b2)/a2;
   static constexpr double ep2 = (a2 - b2)/b2;
-  static double e() {return sqrt(e2);}
-  static double ep() {return sqrt(ep2);}
 
   template <typename T>
   static T computeNFromSinPhi2(T sinPhi2) {
