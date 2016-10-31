@@ -1,7 +1,7 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
 <div class="container challenges">
-<div class="row">
+<div class="record">
     <div class="col-md-12">
         <div class="panel panel-default challenge-types">
             <div class="panel-heading">
@@ -72,13 +72,13 @@
                 <table class="table sortable-custom"> 
                     <thead> 
                         <tr> 
-                            <th class="arrow heading" reverse="reverse" ng-click="sortBy('rank')">Rank</th> 
-                            <th class="arrow heading" reverse="reverse" ng-click="sortBy('name')">Name</th> 
-                            <th class="arrow heading" reverse="reverse" ng-click="sortBy('boat')">Boat Type</th>
-                            <th class="arrow heading" reverse="reverse" ng-click="sortBy('speed')">Speed</th>
-                            <th class="arrow heading" reverse="reverse" ng-click="sortBy('distance')">Distance</th>
+                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('rank')">Rank</th> 
+                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('name')">Name</th> 
+                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('boat')">Boat Type</th>
+                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('speed')">Speed</th>
+                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('distance')">Distance</th>
                             <th>Time Elapsed</th>
-                            <th class="arrow heading" reverse="reverse" ng-click="sortBy('startTime')">Date</th>
+                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('startTime')">Date</th>
                             <th class="text-center">Track</th>
                             <th class="text-center">&nbsp;</th>
                             
@@ -86,21 +86,21 @@
                         </tr> 
                     </thead> 
                     <tbody> 
-                        <tr ng-repeat="row in challengeList | orderBy:defaultOrder:reverse"> 
-                            <th>{{row.rank}}</th> 
-                            <td><a href="/challenge/details">{{row.name}}</a></td> 
+                        <tr ng-repeat="record in challengeList | orderBy:defaultOrder:reverse"> 
+                            <th>{{record.rank}}</th> 
+                            <td><a href="/challenge/details">{{record.name}}</a></td> 
                             <td class="details">
-                                {{row.type}}
-                                <a href="#" class="with-popover" uib-popover-template="sharePopup.templateUrl" popover-title="{{sharePopup.title}}">
+                                {{record.type}}
+                                <a href="#" class="with-popover" ng-click="fillDetails(record)" uib-popover-template="sharePopup.templateUrl" popover-title="{{sharePopup.title}}">
                                     <img src="assets/images/information_black.svg">
                                 </a>
                             </td>
-                            <td>{{row.speed}} {{row.speedUnit}}</td>
-                            <td>{{row.distance}}</td>
-                            <td>{{[row.startTime, row.endTime] | timeSpan}}</td>
-                            <td>{{row.startTime | date: 'd.M.yyyy H:mm'}}</td>
+                            <td>{{record.speed}} {{record.speedUnit}}</td>
+                            <td>{{record.distance}}</td>
+                            <td>{{[record.startTime, record.endTime] | timeSpan}}</td>
+                            <td>{{record.startTime | date: 'd.M.yyyy H:mm'}}</td>
                             <td class="text-center track"><a href="#"><img src="assets/images/tracking.svg"></a></td>
-                            <td class="text-center share"><a href="#"><img src="assets/images/share-3.svg"></a></td>
+                            <td class="text-center share"><a href="#" ng-click="showModal(record)" user-details="record"><img src="assets/images/share-3.svg"></a></td>
                         </tr> 
                         <tr>
                     </tbody> 
@@ -111,10 +111,24 @@
 </div>
 
 <script type="text/ng-template" id="shareTemplate.html">
-    <div class="form-group">
-        <a href="#"><img title="facebook" alt="Facebook" src="assets/images/sm-facebook.png"></a>
-        <a href="#"><img title="facebook" alt="Instagram" src="assets/images/sm-instagram.png"></a>
-        <a href="#"><img title="facebook" alt="Twitter" src="assets/images/sm-twitter.png"></a>
+    <div class="details-popup">
+        <div class="left-side">
+            <div class="line">
+                <label for="boat-name">Boat name: </label><span>&nbsp;{{detail.boat}}</span>
+            </div>
+            <div class="line">
+                <label for="boat-class">Class: </label><span>&nbsp;{{detail.class}}</span>
+            </div>
+            <div class="line">
+                <label for="boat-number">Sail number: </label><span>&nbsp;{{detail.number}}</span>
+            </div>
+            <div class="line">
+                <label for="boat-length">Length: </label><span>&nbsp;{{detail.length}}</span>
+            </div>
+        </div>
+        <div class="right-side">
+            <img src="/assets/images/sample-image.jpg">
+        </div>
     </div>
 </script>
 

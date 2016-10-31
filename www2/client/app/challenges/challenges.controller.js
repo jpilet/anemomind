@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('ChallengesCtrl', function ($scope, $http, socket, Auth) {
+  .controller('ChallengesCtrl', function ($scope, $http, socket, Auth, ModalService) {
       $scope.isAdmin = Auth.isAdmin;
       $scope.isLoggedIn = Auth.isLoggedIn();
 
@@ -56,6 +56,9 @@ angular.module('www2App')
           name: 'Larry Smith',
           boat: 'Irene',
           type: 'Sailboat',
+          class: '6 MR',
+          sailNumber: 'SUI 91',
+          length: '11 meters',
           speed: 4.2,
           distance: '500 m',
           speedUnit: 'kn',
@@ -67,6 +70,9 @@ angular.module('www2App')
           name: 'Thornton Thompson',
           boat: 'Velocissima',
           type: 'Sailboat',
+          class: '6 MR',
+          sailNumber: 'SUI 91',
+          length: '11 meters',
           speed: 5,
           distance: '500 m',
           speedUnit: 'kn',
@@ -78,6 +84,9 @@ angular.module('www2App')
           name: 'John Doe',
           boat: 'Dentuso',
           type: 'Sailboat',
+          class: '6 MR',
+          sailNumber: 'SUI 91',
+          length: '11 meters',
           speed: 3.5,
           distance: '500 m',
           speedUnit: 'kn',
@@ -85,12 +94,20 @@ angular.module('www2App')
           endTime: '2016-09-04T15:06:33.827Z', 
         }         
       ];
+      
       $scope.sharePopup = {
-        content: 'Share my track',
+        content: '',
         templateUrl: 'shareTemplate.html',
-        title: 'Share my track'
+        title: ''
       };
-
+      $scope.fillDetails = function(data) {
+        $scope.detail = {
+          boat: data.boat,
+          class: data.class,
+          sailNumber: data.sailNumber,
+          length: data.length,
+        };
+      }
 
       $scope.sortBy = function(sort) {
         $scope.reverse = ($scope.defaultOrder === sort) ? !$scope.reverse : false;
@@ -100,5 +117,17 @@ angular.module('www2App')
       $scope.selectChallenge = function(index, challenge) {
         $scope.selectedChallenge = index;
         $scope.challengeName = challenge.name;
+      }
+
+      $scope.showModal = function(data) {        
+        ModalService.data = data;
+        ModalService.showModal({
+          templateUrl: "app/share/share.html",
+          controller: "ShareCtrl",
+          inputs: {
+            name: "Fry",
+            year: 3001
+          }
+        });
       }
   });

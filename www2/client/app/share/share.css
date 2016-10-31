@@ -1,0 +1,145 @@
+.share-modal .custom-modal-container {
+  width: 100%;
+}
+.share-modal .modal-header {
+  height: 0;
+  min-height: 0;
+  border: none;
+  padding: 0;
+}
+.share-modal .cls-btn {
+  background-image: url('/assets/images/cross_clear.svg');
+  position: absolute;
+  top: -17px;
+  left: -16px;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  border: none;
+  background-color: transparent;
+}
+.share-modal .cls-btn:hover {
+  background-image: url('/assets/images/cross_dark.svg');
+}
+.share-modal .modal-body {
+  padding: 20px 80px;
+}
+.share-modal .custom-modal-container .icon-list {
+  text-align: center;
+  margin: 20px 0 12px;
+}
+.share-modal .custom-modal-container .icon-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.share-modal .custom-modal-container .icon-list ul li {
+  display: inline-block;
+  padding: 5px;
+  margin: 0 4px;
+  cursor: pointer;
+}
+.share-modal .custom-modal-container .icon-list li i {
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+}
+.share-modal .custom-modal-container .icon-list li.linkedin i {
+  background-image: url('/assets/images/linkedin_gray.svg');
+}
+.share-modal .custom-modal-container .icon-list li.facebook i {
+  background-image: url('/assets/images/facebook_gray.svg');
+}
+.share-modal .custom-modal-container .icon-list li.pinterest i {
+  background-image: url('/assets/images/pinterest_gray.svg');
+}
+.share-modal .custom-modal-container .icon-list li.twitter i {
+  background-image: url('/assets/images/twitter_gray.svg');
+}
+.share-modal .custom-modal-container .icon-list li.google i {
+  background-image: url('/assets/images/google_gray.svg');
+}
+.share-modal .custom-modal-container .icon-list li.mail i {
+  background-image: url('/assets/images/mail_gray.svg');
+}
+.share-modal .custom-modal-container .icon-list li.linkedin i.selected,
+.share-modal .custom-modal-container .icon-list li.linkedin i:hover {
+  background-image: url('/assets/images/linkedin_red.svg');
+}
+.share-modal .custom-modal-container .icon-list li.facebook i.selected,
+.share-modal .custom-modal-container .icon-list li.facebook i:hover {
+  background-image: url('/assets/images/facebook_red.svg');
+}
+.share-modal .custom-modal-container .icon-list li.pinterest i.selected,
+.share-modal .custom-modal-container .icon-list li.pinterest i:hover {
+  background-image: url('/assets/images/pinterest_red.svg');
+}
+.share-modal .custom-modal-container .icon-list li.twitter i.selected,
+.share-modal .custom-modal-container .icon-list li.twitter i:hover {
+  background-image: url('/assets/images/twitter_red.svg');
+}
+.share-modal .custom-modal-container .icon-list li.google i.selected,
+.share-modal .custom-modal-container .icon-list li.google i:hover {
+  background-image: url('/assets/images/google_red.svg');
+}
+.share-modal .custom-modal-container .icon-list li.mail i.selected,
+.share-modal .custom-modal-container .icon-list li.mail i:hover {
+  background-image: url('/assets/images/mail_red.svg');
+}
+.share-modal .custom-modal-container .share-box {
+  text-align: right;
+} 
+.share-modal .custom-modal-container .share-box textarea {
+  width: 100%;
+  border: 2px solid #cccccc;
+  border-left: none;
+  border-right: none;
+  margin-bottom: 25px;
+  min-height: 150px;
+  padding: 5px 10px;
+  color: #ed1a28;
+}
+.share-modal .custom-modal-container .share-box button {
+  border: none;
+  width: 65px;
+  height: 32px;
+  padding: 0;
+  background: url('/assets/images/share_send_red.svg') no-repeat;
+  background-size: contain;
+}
+/* Responsive Styles - Lightbox Modal */
+@media only screen and (max-width: 767px) {
+  .share-modal .modal-body .cls-btn {
+    top: -8px;
+    left: -8px;
+  }
+}
+@media only screen and (max-width: 550px) {
+  .share-modal .modal-body {
+    padding: 20px 30px;
+  }
+}
+@media only screen and (max-width: 472px) {
+  .share-modal .custom-modal-container .icon-list ul li {
+    margin: 0;
+  }
+}
+@media only screen and (max-width: 401px) {
+  .share-modal .modal-body {
+    padding: 20px 15px;
+  }
+}
+@media only screen and (max-width: 371px) {
+  .share-modal .custom-modal-container .icon-list li i {
+    width: 33px;
+    height: 33px;
+  }
+}
+@media only screen and (max-width: 331px) {
+  .share-modal .custom-modal-container .icon-list li i {
+    width: 30px;
+    height: 30px;
+  }
+}

@@ -291,3 +291,34 @@
 .challenges table td.share img {
     width: 60px;
 }
+
+.challenges .popover {
+    max-width: 300px;
+    width: 100%;
+    background-color: #ff0033;
+    color: #fff;
+    border-radius: 10px;
+}
+.challenges .popover.top > .arrow:after {
+    border-top-color: #ff0033;
+} 
+.challenges .popover-title {
+    display: none;
+}
+.challenges .details-popup {
+    width: 100%;
+    display: flex;
+}
+.challenges .left-side {
+    font-size: 12px;
+    width: 65%;
+}
+.challenges .right-side {
+    text-align: right;
+    width: 35%;
+}
+.challenges .right-side img {
+    width: 100% !important;
+    height: 100%;
+    border-radius: 10px;
+}
