@@ -58,15 +58,14 @@ function getCanvas(width, height, name, cb) {
     canvas.height = height;
     context = canvas.getContext('2d');
 
-    if (!renderer) {
-      renderer = new OffscreenTileRenderer({
-        canvas: canvas,
-        forceDevicePixelRatio: 1,
-        url: function(scale, x, y) { 
-          var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
-          return "http://stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
-            + scale + "/" + x + "/" + y + ".png";
-        },
+    renderer = new OffscreenTileRenderer({
+      canvas: canvas,
+      forceDevicePixelRatio: 1,
+      url: function(scale, x, y) { 
+        var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
+        return "http://stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
+          + scale + "/" + x + "/" + y + ".png";
+      },
 
       // Allow direct disc access instead of going through a http call
       localImagePath: config.root
