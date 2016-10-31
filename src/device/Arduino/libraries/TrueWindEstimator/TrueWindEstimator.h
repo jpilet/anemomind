@@ -8,6 +8,7 @@
 #endif
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
+#include <algorithm>
 
 namespace sail {
 
@@ -63,7 +64,10 @@ HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
     bool upwind = (awad > WorkType(-90)) && (awad < WorkType(90));
     bool starboard = awad > WorkType(0);
     auto aws = measures.aws();
-    T awsk(aws.knots()); 
+
+    // Due to a bug in NKE stuff and to an overflow in NmeaParser,
+    // we sometime have negative values for aws that should be considered as 0.
+    T awsk(std::max(0.0, double(aws.knots()))); 
 
     T awa_offset(params[PARAM_AWA_OFFSET]);
     T aws_bias(1.0);

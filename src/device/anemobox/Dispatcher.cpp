@@ -12,6 +12,7 @@ const char* descriptionForCode(DataCode code) {
   FOREACH_CHANNEL(CASE_ENTRY)
 #undef CASE_ENTRY
   }
+  return nullptr;
 }
 
 const char* wordIdentifierForCode(DataCode code) {
@@ -22,6 +23,7 @@ const char* wordIdentifierForCode(DataCode code) {
   FOREACH_CHANNEL(CASE_ENTRY)
 #undef CASE_ENTRY
   }
+  return nullptr;
 }
 
 Dispatcher::Dispatcher() {
