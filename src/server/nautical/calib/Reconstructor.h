@@ -17,39 +17,18 @@
 #include <server/common/TimedValue.h>
 #include <server/nautical/calib/BoatParameters.h>
 #include <server/common/DOMUtils.h>
+#include <server/common/TimeMapper.h>
 
 namespace sail {
 
-struct TimeStampToIndexMapper {
-public:
-  TimeStamp offset;
-  Duration<double> period;
-  int sampleCount = 0;
 
-  bool empty() const {
-    return 0 == sampleCount;
-  }
-
-  TimeStampToIndexMapper() : sampleCount(0) {}
-  TimeStampToIndexMapper(TimeStamp offs, Duration<double> per,
-      int n) : offset(offs), period(per), sampleCount(n) {}
-
-  int map(TimeStamp t) const {
-    int index = int(round((t - offset)/period));
-    return 0 <= index && index < sampleCount? index : -1;
-  }
-
-  TimeStamp unmap(int i) const {
-    return offset + double(i)*period;
-  }
-};
 
 // A CalibDataChunk are measurements that are grouped together
 // They are dense without any big gaps.
 struct CalibDataChunk {
   Array<TimedValue<GeographicPosition<double>>> filteredPositions;
   Array<BoatState<double>> initialStates;
-  TimeStampToIndexMapper timeMapper;
+  TimeMapper timeMapper;
 
 #define MAKE_DATA_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   std::map<std::string, Array<TimedValue<TYPE>>> HANDLE;
@@ -60,7 +39,7 @@ FOREACH_CHANNEL(MAKE_DATA_MAP)
 struct ReconstructionSettings {};
 
 struct ReconstructedChunk {
-  TimeStampToIndexMapper mapper;
+  TimeMapper mapper;
   Array<BoatState<double>> states;
 };
 

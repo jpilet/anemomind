@@ -109,7 +109,7 @@ Array<HorizontalMotion<double>> computeMotionPerPosition(
 }
 
 Array<BoatState<double> > makeInitialStates(
-    const TimeStampToIndexMapper &mapper,
+    const TimeMapper &mapper,
     const Array<TimedValue<GeographicPosition<double>>> &positions) {
   int n = positions.size();
   auto motions = computeMotionPerPosition(positions);
@@ -162,7 +162,7 @@ Array<CalibDataChunk> makeCalibChunks(
       auto pos = cutGpsPositions[i];
       int stateCount = pos.size();
       if (2 <= stateCount) {
-        TimeStampToIndexMapper mapper(
+        TimeMapper mapper(
             pos.first().time,
             (1.0/stateCount)*(pos.last().time - pos.first().time),
             stateCount);
