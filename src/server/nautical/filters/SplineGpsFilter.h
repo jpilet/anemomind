@@ -26,16 +26,23 @@ struct Settings {
 
 class Curve {
 public:
+  Curve(const TimeMapper &mapper);
+
+  double *ptr();
+
+  const TimeMapper &timeMapper() const {
+    return _timeMapper;
+  }
 private:
   TimeMapper _timeMapper;
   SmoothBoundarySplineBasis<double, 3> _basis;
-  Array<double> coefs[3];
+  Array<double> _coefs;
 };
 
 Array<Curve> filter(
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
-    const TimeMapper &segments,
+    const Array<TimeMapper> &segments,
     const Settings &settings);
 
 }
