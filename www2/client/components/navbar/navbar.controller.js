@@ -9,7 +9,10 @@ angular.module('www2App')
     }];
 
     boatList.boats().then(function(boats) {
+      var displayNavbarBoats=11;
       $scope.boats = boats;
+      $scope.limit = Math.min(displayNavbarBoats,boats.length);
+      $scope.offset= Math.max(boats.length-displayNavbarBoats,$scope.limit-1);
     });
 
     $scope.isCollapsed = true;
