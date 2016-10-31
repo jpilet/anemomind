@@ -8,14 +8,17 @@
 #include "SplineGpsFilter.h"
 
 namespace sail {
+namespace SplineGpsFilter {
 
-SplineGpsFilter::SplineGpsFilter() {
-  // TODO Auto-generated constructor stub
+Array<Curve> filter(
+    const Array<TimedValue<GeographicPosition<double>>> &positionData,
+    const Array<TimedValue<HorizontalMotion<double>>> &motionData,
+    const TimeMapper &segments,
+    const Settings &settings) {
 
 }
 
-SplineGpsFilter::~SplineGpsFilter() {
-  // TODO Auto-generated destructor stub
-}
 
-} /* namespace sail */
+
+}
+}

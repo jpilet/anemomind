@@ -87,3 +87,19 @@ target_link_libraries(filters_tryNewGpsFilter
   filters_SmoothGpsFilter
   logimport_LogLoader
   )
+
+add_library(filters_SplineGpsFilter
+  SplineGpsFilter.h
+  SplineGpsFilter.cpp
+  )
+
+target_link_libraries(filters_SplineGpsFilter
+  common_TimeStamp
+  math_Spline
+  )
+
+cxx_test(filters_SplineGpsFilterTest
+  SplineGpsFilterTest.cpp
+  gtest_main
+  filters_SplineGpsFilter
+  )

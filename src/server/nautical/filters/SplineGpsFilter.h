@@ -10,25 +10,33 @@
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/nautical/Ecef.h>
-//#include <server/math/Spline.h>
+#include <server/common/TimeMapper.h>
+#include <server/math/Spline.h>
+#include <server/common/TimedValue.h>
+#include <server/nautical/GeographicPosition.h>
 
 namespace sail {
 namespace SplineGpsFilter {
 
 struct Settings {
   Duration<double> period = 2.0_s;
-  Length<double> inlierThreshold = 1.0_s;
+  Length<double> inlierThreshold = 12.0_m;
   double regWeight = 1.0;
 };
 
 class Curve {
 public:
 private:
+  TimeMapper _timeMapper;
   SmoothBoundarySplineBasis<double, 3> _basis;
   Array<double> coefs[3];
 };
 
-Array<GpsCurve>
+Array<Curve> filter(
+    const Array<TimedValue<GeographicPosition<double>>> &positionData,
+    const Array<TimedValue<HorizontalMotion<double>>> &motionData,
+    const TimeMapper &segments,
+    const Settings &settings);
 
 }
 }
