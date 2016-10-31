@@ -26,6 +26,7 @@ struct Settings {
 
 class Curve {
 public:
+  Curve() {}
   Curve(const TimeMapper &mapper);
 
   double *ptr();
