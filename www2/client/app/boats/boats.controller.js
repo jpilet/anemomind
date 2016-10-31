@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('BoatsCtrl', function ($scope, $http, $stateParams, socket, boatList,Auth,$log) {
+  .controller('BoatsCtrl', function ($scope, $http, $stateParams,$location, socket, boatList,Auth,$log) {
     $scope.isLoggedIn = Auth.isLoggedIn();
 
     $scope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
@@ -11,21 +11,19 @@ angular.module('www2App')
     
     $log.log('-- boat.ctrl.0');
 
+    // TODO: only load the boat we want, not all boats.
     boatList.boats().then(function(boats) {
       $scope.boats = boats;
 
       $log.log('-- boat.ctrl.1',boats.length);
 
-      //
       // display selected boat
       $scope.boatId=$stateParams.boatId;
-      if(!$scope.boatId){
+      if(!$scope.boatId && $location.path()==='/'){
         //
         // display default boat
-        $scope.boatId=boatList.getDefaultBoat()._id;        
+        $scope.boatId=(boatList.getDefaultBoat() || {})._id;        
       }
-
-
     });
 
 

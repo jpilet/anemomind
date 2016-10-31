@@ -223,7 +223,9 @@ app.directive('boatMainImage', ['$parse', function($parse) {
            boatMainImage._id&&
            boatMainImage.photos&&
            boatMainImage.photos.length){
-          var path=scope.$parent.photoUrl(boatMainImage._id,boatMainImage.photos[0].src,'300x400');
+          // get a random picture in boat summary
+          var photoIdx=~~(Math.random()*boatMainImage.photos.length);
+          var path=scope.$parent.photoUrl(boatMainImage._id,boatMainImage.photos[photoIdx].src,'300x400');
           style['background-image']='url('+path+')';
         }
         element.css(style);

@@ -26,11 +26,10 @@ angular.module('www2App')
       boats.push(boat);
     }    
 
-    //
     // return the default boat to display at home
     function getDefaultBoat() {
       if(!boats.length){
-        return {};
+        return undefined;
       }
 
       var bestBoat;
@@ -46,7 +45,7 @@ angular.module('www2App')
           }
         }
       }
-      return (bestBoat ? boatDict[bestBoat] : undefined);
+      return (bestBoat ? boatDict[bestBoat] : boats[boats.length - 1]);
     }
 
     function update() {
