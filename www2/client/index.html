@@ -18,6 +18,16 @@
     <title>ANEMOLAB</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
+
+    <!-- OPEN GRAPH -->
+    <meta property="og:url"                content="<%this.url%>" />
+    <meta property="og:title"              content="<%this.title%>" />
+    <meta property="og:description"        content="<%this.description%>" />
+    <meta property="og:image"              content="<%this.img%>" />
+    <meta property="og:image:width"        content="<%this.w%>" />
+    <meta property="og:image:height"       content="<%this.h%>" />
+
+
     <link href='//fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css" />
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
@@ -123,6 +133,7 @@
           <script src="app/admin/admin.js"></script>
           <script src="app/arrowIndicator/arrowIndicator.directive.js"></script>
           <script src="app/arrowIndicator/arrowIndicator.js"></script>
+          <script src="app/boatList/boatList.directive.js"></script>
           <script src="app/boatList/boatList.service.js"></script>
           <script src="app/boatSummary/boatSummary.directive.js"></script>
           <script src="app/boatadmin/boatadmin.controller.js"></script>
@@ -150,6 +161,7 @@
           <script src="app/heelingIndicator/heelingIndicator.directive.js"></script>
           <script src="app/heelingIndicator/heelingIndicator.js"></script>
           <script src="app/map/map.controller.js"></script>
+          <script src="app/map/map.directive.js"></script>
           <script src="app/map/map.js"></script>
           <script src="app/perfplot/perfplot.directive.js"></script>
           <script src="app/perfplot/perfplot.js"></script>

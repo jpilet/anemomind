@@ -1,6 +1,7 @@
 <div class="mapScreenContainer">
 
   <div class="mapAndGraphAndSidebar">
+    <div ng-include="'app/map/map.social.html'"></div>  
     <div ng-show="mapActive || graphActive" class="mapAndGraph">
       <div class="map" ng-show="mapActive">
         <div class="titleBox">{{boat.name}}
@@ -8,7 +9,7 @@
             onclick="window.history.go(-1)"><i class="fa fa-times"></i></button>
         </div>
 
-        <div class="animationControls">
+        <div class="animationControls ng-cloak" boat-isadmin="{{boat._id}}" >
           <button type="button" class="btn btn-default btn-sm" ng-hide="isPlaying" ng-click="togglePlayPause()">&#9658; play</button>
           <button type="button" class="btn btn-default btn-sm" ng-show="isPlaying" ng-click="togglePlayPause()">&#10073;&#10073; pause</button>
           <button type="button" class="btn btn-default btn-sm" ng-click="slower()">-</button>
@@ -22,6 +23,10 @@
             <i class="fa fa-step-forward" aria-hidden="true"></i>
             <i class="fa fa-scissors" aria-hidden="true"></i>
           </button>
+
+          <button type="button" class="btn btn-default btn-sm" 
+                  data-toggle="modal" data-target="#modal-share"> <i class="fa fa-share-alt"></i> Share</button>
+          
         </div>
         <div class="vectorMapContainer" vectormap></div>
       </div>
