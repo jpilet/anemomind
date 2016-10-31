@@ -63,14 +63,14 @@
 <div class="session-container">
   <div class="card card-horizontal cursor-pointer" 
        ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |limitTo:pageSize" >
-    <a ng-href="/map/{{boatId}}?c={{session._id}}">
+    <a ng-href="/map/{{boatId}}?c={{session._id}}&t={{timeToInt(session.maxSpeedOverGroundTime)}}">
     <div class="card-image">
       <div class="" thumbnailspng="{{session._id}}" boat-id="{{boatId}}"></div>
     </div>
     <div class="card-content" >
       <h3>{{session.startTime | date: 'd.M.yyyy'}}</h3>
       <p>
-        <a href="/map/{{boatId}}?c={{session._id}}&t={{timeToInt(session.maxSpeedOverGroundTime)}}">max {{session.maxSpeedOverGround | number: 1}} kn</a>, {{ session.trajectoryLength | number : 1 }} nm<br/>
+        max {{session.maxSpeedOverGround | number: 1}} kn, {{ session.trajectoryLength | number : 1 }} nm<br/>
         <div class="block">
           <b>{{ twdirToCardinal(session.avgWindDir) }}</b> {{ knotsToBeaufort(session.avgWindSpeed) }} bf, max: {{ session.strongestWindSpeed | number: 1 }} kn
         </div>
