@@ -20,7 +20,8 @@
     "d3": "~3.5.5",
     "nvd3": "~1.8.1",
     "angular-nvd3": "~1.0.5",
-    "angular-bootstrap-lightbox": "~0.12.0"
+    "angular-bootstrap-lightbox": "~0.12.0",
+    "angularjs-slider": "~5.8.0"
   },
   "devDependencies": {
     "angular-mocks": ">=1.2.*",
