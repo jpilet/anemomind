@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('VmgplotCtrl', function ($scope, $stateParams, $http, boatList) {
+  .controller('VmgplotCtrl', function ($rootScope, $scope, $stateParams, $http, boatList) {
     $scope.message = 'Loading...';
     $scope.boatId=$stateParams.boatId;
     $scope.boat = {};
@@ -12,6 +12,10 @@ angular.module('www2App')
     // $scope.$on('boatList:updated', function(event, boats) {
     //   $scope.boat = boatList.boat($stateParams.boatId);
     // });
+
+    $scope.$on("$destroy",function(){
+      $("div.nvtooltip").remove();
+    });
 
     $scope.options = {
       chart: {
