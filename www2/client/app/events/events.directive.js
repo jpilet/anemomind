@@ -31,19 +31,25 @@ angular.module('www2App')
           scope.currentTime = when;
         };
         
-        scope.openLightboxModal = function(index) {
+        scope.openLightboxModal = function(photo) {
           var images = [];
+          var index;
           angular.forEach(scope.events, function(value, key) {
             if(typeof value.photo !== 'undefined' && value.photo && value.photo != null) {
               var image = {
                 'url': scope.photoUrl(value, ''),
                 'caption': value.comment
               };
+              if (value.photo == photo) {
+                index = images.length;
+              }
               images.push(image);
             }
           });
 
-          Lightbox.openModal(images, index);
+          if (index != undefined) {
+            Lightbox.openModal(images, index);
+          }
         }
       }
     };
