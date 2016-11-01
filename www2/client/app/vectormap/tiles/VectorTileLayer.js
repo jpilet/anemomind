@@ -41,6 +41,8 @@ function VectorTileLayer(params, renderer) {
 
   this.boatIcon = new Image();
   this.boatIcon.src = '/assets/images/boat.svg';
+  this.boatIcon.width = 12;
+  this.boatIcon.height = 34;
   this.trueWindIcon = new Image();
   this.trueWindIcon.src = '/assets/images/truewind.svg';
   this.trueWindIcon.width = 14;
