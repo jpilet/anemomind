@@ -26,7 +26,7 @@ angular.module('www2App')
     var defaultTaillength = 300;
 
     $scope.tailLength = defaultTaillength;
-    $scope.toggleVMG = $location.search().queue && !$location.search().tailColor ? true : false;
+    $scope.toggleVMG = ($location.search().queue && !$location.search().tailColor) || $location.search().allTrack ? true : false;
     $scope.toggleTail = $location.search().queue ? true : false;
     $scope.sections = {
       showPerfSpeed: false,
@@ -123,6 +123,9 @@ angular.module('www2App')
         }
         if ($location.search().tailColor) {
           search += '&tailColor=' + $location.search().tailColor;
+        }
+        if ($location.search().allTrack) {
+          search += '&allTrack=' + $location.search().allTrack;
         }
         if (typeof $scope.currentTime !== 'undefined' && !isNaN($scope.currentTime)) {
           search += '&t=' + $scope.currentTime.getTime();
@@ -249,10 +252,14 @@ angular.module('www2App')
 
     $scope.$watch('toggleVMG', function(newVal, oldVal) {
       if (newVal != oldVal) {        
-        if(newVal)
+        if(newVal) {
           $location.search('tailColor',null);
-        else
+          $location.search('allTrack',1);
+        }          
+        else {
           $location.search('tailColor',defaultColor);
+          $location.search('allTrack',0);
+        }          
 
         refreshMap();
       }
