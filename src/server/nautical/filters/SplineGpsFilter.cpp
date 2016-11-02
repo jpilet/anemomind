@@ -10,13 +10,6 @@
 namespace sail {
 namespace SplineGpsFilter {
 
-Curve::Curve(const TimeMapper &mapper) : _timeMapper(mapper),
-    _coefs(Array<double>::fill(mapper.sampleCount*3, 0.0)),
-    _basis(mapper.sampleCount) {}
-
-double *Curve::ptr() {
-  return _coefs.ptr();
-}
 
 Array<Curve> allocateCurves(const Array<TimeMapper> &mappers) {
   int n = mappers.size();
@@ -43,6 +36,7 @@ Array<Curve> filter(
   auto curves = allocateCurves(segments);
   int totalSampleCount = computeTotalSampleCount(segments);
   int dim = 4.0*totalSampleCount;
+
   return curves;
 }
 

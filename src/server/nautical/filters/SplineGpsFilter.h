@@ -24,20 +24,14 @@ struct Settings {
   double regWeight = 1.0;
 };
 
-class Curve {
-public:
+struct Curve {
+  TimeMapper timeMapper;
+  SmoothBoundarySplineBasis<double, 3> basis;
+
   Curve() {}
-  Curve(const TimeMapper &mapper);
+  Curve(const TimeMapper &mapper) : timeMapper(mapper),
+      basis(mapper.sampleCount) {}
 
-  double *ptr();
-
-  const TimeMapper &timeMapper() const {
-    return _timeMapper;
-  }
-private:
-  TimeMapper _timeMapper;
-  SmoothBoundarySplineBasis<double, 3> _basis;
-  Array<double> _coefs;
 };
 
 Array<Curve> filter(
