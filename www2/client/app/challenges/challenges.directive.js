@@ -44,7 +44,8 @@ angular.module('www2App')
           if($window.outerWidth <= 768) {
             el.slick({
               centerMode: true,
-              centerPadding: '60px',
+              arrows: true,
+              centerPadding: '40px',
               slidesToShow: 3,
               prevArrow: '<button type="button" class="slick-arrow slick-prev">&nbsp;</button>',
               nextArrow: '<button type="button" class="slick-arrow slick-next">&nbsp;</button>',
@@ -52,27 +53,18 @@ angular.module('www2App')
                 {
                   breakpoint: 768,
                   settings: {
-                    arrows: true,
-                    centerMode: true,
-                    centerPadding: '40px',
                     slidesToShow: 3
                   }
                 },
                 {
                   breakpoint: 480,
                   settings: {
-                    arrows: true,
-                    centerMode: true,
-                    centerPadding: '40px',
                     slidesToShow: 2
                   }
                 },
                 {
                   breakpoint: 380,
                   settings: {
-                    arrows: true,
-                    centerMode: true,
-                    centerPadding: '40px',
                     slidesToShow: 1
                   }
                 }
