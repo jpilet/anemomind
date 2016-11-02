@@ -377,7 +377,9 @@ public:
     return dst;
   }
 
-
+  const RawSplineBasis<T, Degree> &raw() const {
+    return _basis;
+  }
 private:
   Eigen::MatrixXd _left, _right;
   RawSplineBasis<T, Degree> _basis;

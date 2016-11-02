@@ -14,6 +14,7 @@
 #include <server/math/Spline.h>
 #include <server/common/TimedValue.h>
 #include <server/nautical/GeographicPosition.h>
+#include <server/math/BandedLevMar.h>
 
 namespace sail {
 namespace SplineGpsFilter {
@@ -27,6 +28,12 @@ struct Settings {
 struct Curve {
   TimeMapper timeMapper;
   SmoothBoundarySplineBasis<double, 3> basis;
+
+  Span<TimeStamp> timeSpan() const {
+    return Span<TimeStamp>(
+        timeMapper.unmap(basis.raw().lowerDataBound()),
+        timeMapper.unmap(basis.raw().upperDataBound()));
+  }
 
   Curve() {}
   Curve(const TimeMapper &mapper) : timeMapper(mapper),
