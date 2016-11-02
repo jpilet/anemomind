@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('withPopover', function ($http, Auth, userDB, $httpParamSerializer) {
+  .directive('withPopover', function () {
     return {
       restrict: 'C',
       link: function (scope, element, attrs) {
@@ -14,7 +14,7 @@ angular.module('www2App')
       }
     };
   })
-  .directive('heading', function ($http, Auth, userDB, $httpParamSerializer) {
+  .directive('heading', function () {
     return {
       restrict: 'C',
       scope: {
@@ -30,6 +30,65 @@ angular.module('www2App')
             sort = scope.reverse ? 'up' : 'down';
             el.siblings().removeClass('up down');
             _this.removeClass('up down').addClass(sort);
+        });
+      }
+    };
+  })
+  .directive('challengeContainer', function ($window, $timeout) {
+    return {
+      restrict: 'C',
+      link: function (scope, element, attrs) {
+        var sort = '';
+        var el = angular.element(element);
+        var initSlick = function(el) {
+          if($window.outerWidth <= 768) {
+            el.slick({
+              centerMode: true,
+              centerPadding: '60px',
+              slidesToShow: 3,
+              prevArrow: '<button type="button" class="slick-arrow slick-prev">&nbsp;</button>',
+              nextArrow: '<button type="button" class="slick-arrow slick-next">&nbsp;</button>',
+              responsive: [
+                {
+                  breakpoint: 768,
+                  settings: {
+                    arrows: true,
+                    centerMode: true,
+                    centerPadding: '40px',
+                    slidesToShow: 3
+                  }
+                },
+                {
+                  breakpoint: 480,
+                  settings: {
+                    arrows: true,
+                    centerMode: true,
+                    centerPadding: '40px',
+                    slidesToShow: 2
+                  }
+                },
+                {
+                  breakpoint: 380,
+                  settings: {
+                    arrows: true,
+                    centerMode: true,
+                    centerPadding: '40px',
+                    slidesToShow: 1
+                  }
+                }
+              ]
+            });
+          }
+          else {
+            if(el.hasClass('slick-slider'))
+              el.slick('unslick');
+          }
+        }
+        
+        // same as document.ready
+        $timeout(function() { initSlick(el); }, 100);
+        angular.element($window).on('resize', function() {
+          initSlick(el);
         });
       }
     };

@@ -22,6 +22,12 @@
 .challenges .challenge-container .challenge {
     text-align: center;
     width: 20%;
+    outline: none;
+}
+@media only screen and (max-width: 767px) {
+    .challenges .challenge-container {
+        padding: 0 15px;
+    }
 }
 .challenges .challenge-types .circle {
     position: relative;
@@ -175,13 +181,35 @@
         line-height: 15px;
     }
 }
-@media only screen and (max-width: 767px) {
-    .challenges .challenge-types .circle:before {
-        content: initial;
+@media only screen and (max-width: 768px) {
+    .challenges .challenge-types .circle {
+        width: 66px;
+        padding: 4px 8px;
     }
     .challenges .navbar-form .form-group {
         display: inline-block;
     }
+}
+
+.challenges .challenge-container .slick-arrow {
+    position: absolute;
+    top: 30px;
+    height: 28px;
+    width: 14px;
+    background-color: transparent;
+    border: none;
+    background-size: contain;
+    padding: 0;
+    z-index: 1;
+    outline: none;
+}
+.challenges .challenge-container .slick-arrow.slick-prev {
+    background: url('/assets/images/left_arrow.svg') no-repeat;
+    left: 10px;
+}
+.challenges .challenge-container .slick-arrow.slick-next {
+    background: url('/assets/images/right_arrow.svg') no-repeat;
+    right: 10px;
 }
 
 .challenges .challenge-records .panel-title {
@@ -271,7 +299,7 @@
 .challenges form select {
     color: #333;
     background-color: #eee;
-    border-color: #ccc;
+    border: 1px solid #ccc;
     padding: 6px 22px 6px 12px;
     margin-bottom: 0;
     font-size: 14px;
@@ -288,6 +316,7 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     outline: none;
+    text-align: left;
 }
 .challenges form .boat-label {
     margin-top: 18px;
