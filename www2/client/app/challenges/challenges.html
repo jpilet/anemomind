@@ -74,11 +74,11 @@
                         <tr> 
                             <th class="arrecord heading" reverse="reverse" ng-click="sortBy('rank')">Rank</th> 
                             <th class="arrecord heading" reverse="reverse" ng-click="sortBy('name')">Name</th> 
-                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('boat')">Boat Type</th>
-                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('speed')">Speed</th>
-                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('distance')">Distance</th>
-                            <th>Time Elapsed</th>
-                            <th class="arrecord heading" reverse="reverse" ng-click="sortBy('startTime')">Date</th>
+                            <th class="arrecord heading hidden-sm hidden-xs" reverse="reverse" ng-click="sortBy('boat')">Boat Type</th>
+                            <th class="arrecord heading hidden-sm hidden-xs" reverse="reverse" ng-click="sortBy('speed')">Speed</th>
+                            <th class="arrecord heading hidden-sm hidden-xs" reverse="reverse" ng-click="sortBy('distance')">Distance</th>
+                            <th class="hidden-sm hidden-xs">Time Elapsed</th>
+                            <th class="arrecord heading hidden-xs" reverse="reverse" ng-click="sortBy('startTime')">Date</th>
                             <th class="text-center">Track</th>
                             <th class="text-center">&nbsp;</th>
                             
@@ -89,16 +89,16 @@
                         <tr ng-repeat="record in challengeList | orderBy:defaultOrder:reverse"> 
                             <th>{{record.rank}}</th> 
                             <td><a href="/challenge/details">{{record.name}}</a></td> 
-                            <td class="details">
+                            <td class="details hidden-sm hidden-xs">
                                 {{record.type}}
                                 <a href="#" class="with-popover" ng-click="fillDetails(record)" uib-popover-template="sharePopup.templateUrl" popover-title="{{sharePopup.title}}">
                                     <img src="assets/images/information_black.svg">
                                 </a>
                             </td>
-                            <td>{{record.speed}} {{record.speedUnit}}</td>
-                            <td>{{record.distance}}</td>
-                            <td>{{[record.startTime, record.endTime] | timeSpan}}</td>
-                            <td>{{record.startTime | date: 'd.M.yyyy H:mm'}}</td>
+                            <td class="hidden-sm hidden-xs">{{record.speed}} {{record.speedUnit}}</td>
+                            <td class="hidden-sm hidden-xs">{{record.distance}}</td>
+                            <td class="hidden-sm hidden-xs">{{[record.startTime, record.endTime] | timeSpan}}</td>
+                            <td class="hidden-xs">{{record.startTime | date: 'd.M.yyyy H:mm'}}</td>
                             <td class="text-center track"><a href="#"><img src="assets/images/tracking.svg"></a></td>
                             <td class="text-center share"><a href="#" ng-click="showModal(record)" user-details="record"><img src="assets/images/share-3.svg"></a></td>
                         </tr> 
