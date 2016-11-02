@@ -23,6 +23,12 @@
 .share-modal .cls-btn:hover {
   background-image: url('/assets/images/cross_dark.svg');
 }
+@media only screen and (max-width: 767px) {
+    .share-modal .cls-btn {
+      top: 5px;
+      left: 5px;
+    }
+}
 .share-modal .modal-body {
   padding: 20px 80px;
 }
