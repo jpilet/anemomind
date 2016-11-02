@@ -7,6 +7,7 @@
 
 #include "SplineGpsFilter.h"
 #include <server/common/ArrayBuilder.h>
+#include <server/common/TimedValueCutter.h>
 
 namespace sail {
 namespace SplineGpsFilter {
@@ -50,31 +51,14 @@ Array<Span<TimeStamp>> listTimeSpans(const Array<Curve> &curves) {
   return dst;
 }
 
-template <typename T>
-Array<Array<TimedValue<T>>> segmentTimedValues(
-    const Array<Span<TimeStamp>> &timeSpans,
-    const Array<TimedValue<T>> &values) {
-  int n = timeSpans.size();
-  int current = 0;
-  Array<ArrayBuilder<TimedValue<T>>> dst(n);
-  for (auto sample: values) {
-    if (timeSpans.size() <= current) {
-      break;
-    }
 
-    while (current < timeSpans.size() &&
-        timeSpans[current].maxv() < sample.time) {
-      current++;
-    }
-    if (timeSpans[current].contains(sample.time)) {
-      dst[current].add(current);
-    }
-  }
-  Array<Array<TimedValue<T>>> dst2(n);
-  for (int i = 0; i < n; i++) {
-    dst2[i] = dst[i].get();
-  }
-  return dst2;
+void buildProblemPerCurve(
+    const Curve &c,
+    Span<int> sampleSpan,
+    const Array<TimedValue<GeographicPosition<double>>> &pd,
+    const Array<TimedValue<HorizontalMotion<double>>> &md,
+    BandedLevMar::Problem<double> *dst) {
+  Span<int> valueSpan = 4*sampleSpan;
 }
 
 void buildProblem(
@@ -84,15 +68,15 @@ void buildProblem(
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
     BandedLevMar::Problem<double> *dst) {
-  auto pd = segmentTimedValues<GeographicPosition<double>>(
-      timeSpans, positionData);
-  auto md = segmentTimedValues<HorizontalMotion<double>>(
-      timeSpans, motionData);
+  auto pd = cutTimedValues(
+      positionData.begin(), positionData.end(), timeSpans);
+  auto md = cutTimedValues(
+      motionData.begin(), motionData.end(), timeSpans);
   for (int i = 0; i < curves.size(); i++) {
-    /*buildProblemPerCurve(sampleSpans[i],
+    buildProblemPerCurve(
         curves[i],
-        positionData,
-        motionData);*/
+        sampleSpans[i],
+        pd[i], md[i], dst);
   }
 }
 
