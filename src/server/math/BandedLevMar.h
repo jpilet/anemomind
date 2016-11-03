@@ -21,6 +21,7 @@
 #include <server/common/math.h>
 #include <random>
 #include <server/math/JetUtils.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 namespace BandedLevMar {

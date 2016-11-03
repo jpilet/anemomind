@@ -97,6 +97,7 @@ target_link_libraries(filters_SplineGpsFilter
   common_TimeStamp
   math_Spline
   math_OutlierRejector
+  lapack_BandWrappers
   )
 
 cxx_test(filters_SplineGpsFilterTest

@@ -130,8 +130,10 @@ void addDataTerm(const Settings &settings,
     BandedLevMar::Problem<double> *dst) {
   auto f = new DataFitness(weights, observation,
             settings.positionSettings(), w2i);
+  int from = sampleSpan.minv();
+  int to = from + weights.dim;
   auto cost = dst->addCostFunction(
-      blockSize*(weights.span() + sampleSpan.minv()), f);
+      blockSize*Span<int>(from, to), f);
   cost->addIterationCallback([&](int i, const double *residuals) {
     f->update(i, residuals);
   });
@@ -228,6 +230,34 @@ void addDataRegTerms(const Settings &s,
   }
 }
 
+struct Stabilizer {
+  double w = 1.0e-12;
+
+  Stabilizer(double p) : w(p) {}
+
+  static const int inputCount = blockSize;
+  static const int outputCount = blockSize;
+
+  template <typename T>
+  bool evaluate(const T *input, T *output) const {
+    for (int i = 0; i < blockSize; i++) {
+      output[i] = w*input[i];
+    }
+    return true;
+  }
+
+};
+
+void addStabilizeTerms(
+    const Settings &settings,
+    Span<int> sampleSpan,
+    BandedLevMar::Problem<double> *dst) {
+  for (auto i: sampleSpan) {
+    dst->addCostFunction(blockSize*Span<int>(i, i+1),
+        new Stabilizer(settings.stabilizerWeight));
+  }
+}
+
 void buildProblemPerCurve(
     const Settings &settings,
     const Curve &c,
@@ -237,17 +267,10 @@ void buildProblemPerCurve(
     BandedLevMar::Problem<double> *dst) {
   Span<int> valueSpan = blockSize*sampleSpan;
 
-  // Add data terms
   addPositionDataTerms(settings, c, sampleSpan, pd, dst);
-
-  // addMotionDataTerms
-  addMotionDataTerms(settings, c, sampleSpan, md, dst);
-
-  // addRegDataTerms
-  addDataRegTerms(settings, c, sampleSpan, dst);
-
-  // addStabilizeDataTerms
-
+  //addMotionDataTerms(settings, c, sampleSpan, md, dst);
+  //addDataRegTerms(settings, c, sampleSpan, dst);
+  //addStabilizeTerms(settings, sampleSpan, dst);
 }
 
 void buildProblem(
@@ -280,9 +303,7 @@ Array<Curve> filter(
   int totalSampleCount = computeTotalSampleCount(segments);
   int dim = blockSize*totalSampleCount;
 
-  BandedLevMar::Settings lmSettings;
   BandedLevMar::Problem<double> problem;
-  auto X = Eigen::VectorXd::Zero(dim);
   auto sampleSpans = listSampleSpans(curves);
   CHECK(sampleSpans.size() == curves.size());
   CHECK(sampleSpans.last().maxv() == totalSampleCount);
@@ -291,6 +312,10 @@ Array<Curve> filter(
       settings,
       curves, sampleSpans,timeSpans,
       positionData, motionData, &problem);
+
+  Eigen::VectorXd X = Eigen::VectorXd::Zero(problem.paramCount());
+  BandedLevMar::runLevMar(settings.lmSettings,
+      problem, &X);
 
   return curves;
 }

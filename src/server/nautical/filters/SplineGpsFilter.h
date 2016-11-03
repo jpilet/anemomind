@@ -16,6 +16,7 @@
 #include <server/nautical/GeographicPosition.h>
 #include <server/math/BandedLevMar.h>
 #include <server/math/OutlierRejector.h>
+#include <server/common/MDArray.h>
 
 namespace sail {
 namespace SplineGpsFilter {
@@ -24,6 +25,7 @@ struct Settings {
   Duration<double> period = 2.0_s;
   Length<double> inlierThreshold = 12.0_m;
   double regWeight = 1.0;
+  double stabilizerWeight = 1.0e-12;
   BandedLevMar::Settings lmSettings;
 
   double initialWeight = 0.01;
