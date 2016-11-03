@@ -47,6 +47,7 @@ public:
   TimeStamp lower() const;
   TimeStamp upper() const;
   ECEFCoords<double> evaluateEcefPosition(TimeStamp t) const;
+  ECEFCoords<double, 1> evaluateEcefMotion(TimeStamp t) const;
 
   GeographicPosition<double> evaluateGeographicPosition(TimeStamp t) const;
   HorizontalMotion<double> evaluateHorizontalMotion(TimeStamp t) const;
