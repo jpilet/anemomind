@@ -14,6 +14,22 @@
 namespace sail {
 namespace SplineGpsFilter {
 
+struct Curve {
+  TimeMapper timeMapper;
+  SmoothBoundarySplineBasis<double, 3> basis;
+
+  Span<TimeStamp> timeSpan() const {
+    return Span<TimeStamp>(
+        timeMapper.unmap(basis.raw().lowerDataBound()),
+        timeMapper.unmap(basis.raw().upperDataBound()));
+  }
+
+  Curve() {}
+  Curve(const TimeMapper &mapper) : timeMapper(mapper),
+      basis(mapper.sampleCount) {}
+
+};
+
 static const int blockSize = 4;
 
 OutlierRejector::Settings Settings::positionSettings() const {
@@ -366,7 +382,7 @@ void buildProblem(
   }
 }
 
-Array<Curve> filter(
+Array<EcefCurve> filter(
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
     const Array<TimeMapper> &segments,
@@ -391,7 +407,15 @@ Array<Curve> filter(
   BandedLevMar::runLevMar(settings.lmSettings,
       problem, &X);
 
-  return curves;
+  Array<EcefCurve> resultCurves(curves.size());
+  for (int i = 0; i < curves.size(); i++) {
+    auto span = blockSize*sampleSpans[i];
+    auto c = curves[i];
+    resultCurves[i] = EcefCurve(
+        c.timeMapper, c.basis, X.data() + span.minv(), blockSize);
+  }
+
+  return resultCurves;
 }
 
 

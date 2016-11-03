@@ -57,23 +57,7 @@ private:
   Array<double> _coefs[3];
 };
 
-struct Curve {
-  TimeMapper timeMapper;
-  SmoothBoundarySplineBasis<double, 3> basis;
-
-  Span<TimeStamp> timeSpan() const {
-    return Span<TimeStamp>(
-        timeMapper.unmap(basis.raw().lowerDataBound()),
-        timeMapper.unmap(basis.raw().upperDataBound()));
-  }
-
-  Curve() {}
-  Curve(const TimeMapper &mapper) : timeMapper(mapper),
-      basis(mapper.sampleCount) {}
-
-};
-
-Array<Curve> filter(
+Array<EcefCurve> filter(
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
     const Array<TimeMapper> &segments,
