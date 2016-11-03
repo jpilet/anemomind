@@ -107,7 +107,6 @@ struct DataFitness {
 
     double rw = robust? rejector.computeWeight() : 1.0;
     for (int i = 0; i < 3; i++) {
-      std::cout << "  " << i << ": " << xyz[i] << std::endl;
       output[i] = rw*(xyz[i] - data[i]);
     }
     return true;
