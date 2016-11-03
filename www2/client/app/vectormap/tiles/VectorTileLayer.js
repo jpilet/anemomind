@@ -539,8 +539,8 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
     context.strokeStyle = '#ff0033';
     context.stroke();
 
-    var l = 40 * pixelRatio;
-    var w = 20 * pixelRatio;
+    var l = this.boatIcon.height * pixelRatio;
+    var w = this.boatIcon.width * pixelRatio;
     context.drawImage(this.boatIcon,
                       - w/2,
                       - l/2,
