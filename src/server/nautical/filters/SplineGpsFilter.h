@@ -30,7 +30,7 @@ struct Settings {
   double stabilizerWeight = 1.0e-12;
   BandedLevMar::Settings lmSettings;
 
-  double initialWeight = 100;
+  double initialWeight = 0.1;
   double finalWeight = 10000;
 
   std::function<double(int)> weightToIndex() const;
