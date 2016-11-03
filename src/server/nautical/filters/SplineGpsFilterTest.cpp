@@ -81,17 +81,28 @@ TEST(SplineGpsFilterTest, FilterItWithOneOutlier) {
   auto positions = positions0.get();
   TimeMapper mapper{offset, 2.0_s, 15};
 
+  SplineGpsFilter::Settings settings;
+  settings.regWeight = 10;
+  settings.initialWeight = 0.1;
+  settings.finalWeight = 10000;
+  settings.lmSettings.iters = 30;
+  settings.lmSettings.e1 = 0.0;
+  settings.lmSettings.e2 = 0.0;
+  settings.lmSettings.e3 = 0.0;
+
   auto curves = SplineGpsFilter::filter(positions,
       Array<TimedValue<HorizontalMotion<double>>>(),
-      Array<TimeMapper>{mapper}, SplineGpsFilter::Settings());
+      Array<TimeMapper>{mapper}, settings);
+
+  auto tol = 5.0;
 
   EXPECT_EQ(curves.size(), 1);
-  /*for (int i = 0; i < m; i++) {
+  for (int i = 0; i < m; i++) {
     auto pos = curves[0].evaluateGeographicPosition(
         offset + double(i)*1.0_s);
 
-    EXPECT_NEAR(pos.lon().degrees(), 34.0 + (0.0001*i), 1.0e-6);
-    EXPECT_NEAR(pos.lat().degrees(), 44.0, 1.0e-6);
-  }*/
+    EXPECT_NEAR(pos.lon().degrees(), 34.0 + (0.0001*i), tol);
+    EXPECT_NEAR(pos.lat().degrees(), 44.0, tol);
+  }
 }
 
