@@ -34,7 +34,7 @@ TEST(SplineGpsFilterTest, FilterIt) {
 
   EXPECT_EQ(curves.size(), 1);
   auto pos = curves[0].evaluateGeographicPosition(offset);
-  EXPECT_NEAR(pos.lon().degrees(), 34.0, 0.00001);
+  EXPECT_NEAR(pos.lon().degrees(), 34.0, 1.0e-6);
 }
 
 
