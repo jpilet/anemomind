@@ -204,6 +204,7 @@ public:
     std::shared_ptr<CostFunctionBase<T>> cost(
             new SharedCostFunction<CostEvaluator, T>(
                 inputRange, f));
+    CHECK(cost);
     return addCost(cost);
   }
 
@@ -276,7 +277,8 @@ public:
   std::shared_ptr<CostFunctionBase<T>> addCost(std::shared_ptr<CostFunctionBase<T>> &cost) {
     _kd = std::max(_kd, cost->inputCount()-1);
     _paramCount = std::max(_paramCount, cost->inputRange.maxv());
-    _costFunctions.push_back(std::move(cost));
+    _costFunctions.push_back(cost);
+    CHECK(cost);
     return cost;
   }
 private:
