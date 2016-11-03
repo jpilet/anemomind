@@ -92,14 +92,20 @@ struct DataFitness {
 
   template <typename T>
   bool evaluate(const T *input, T *output) const {
+    std::cout <<"\n\n\nAt the top\n";
     for (int i = 0; i < inputCount; i++) {
       CHECK(isFinite(input[i]));
     }
     T xyz[3] = {T(0.0), T(0.0), T(0.0)};
     for (int i = 0; i < Weights::dim; i++) {
-      const T *x = input + blockSize*weights.inds[i];
+      std::cout << "inds[i] = " << weights.inds[i] << std::endl;
+      int offs = blockSize*weights.inds[i];
+      std::cout << "Offset = " << offs << std::endl;
+      const T *x = input + offs;
       double w = weights.weights[i];
+      std::cout << "Weight = " << w << std::endl;
       for (int j = 0; j < 3; j++) {
+        std::cout << "x[" << j << "] = " << x[j] << std::endl;
         xyz[j] += x[j]*w;
       }
     }
@@ -340,6 +346,7 @@ Array<Curve> filter(
       positionData, motionData, &problem);
 
   Eigen::VectorXd X = Eigen::VectorXd::Zero(problem.paramCount());
+
   BandedLevMar::runLevMar(settings.lmSettings,
       problem, &X);
 
