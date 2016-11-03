@@ -104,6 +104,11 @@ struct DataFitness {
       }
     }
     std::cout << "Evaluate it\n";
+    std::cout << " weights: ";
+    for (int i = 0; i < weights.dim; i++) {
+      std::cout << weights.weights[i] << " ";
+    }
+    std::cout << "\n";
     std::cout << " input: ";
     for (int i = 0; i < inputCount; i++) {
       std::cout << input[i] << " ";
