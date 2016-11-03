@@ -100,6 +100,7 @@ private:
 template <typename T, int Degree>
 class RawSplineBasis {
 public:
+  typedef RawSplineBasis<T, Degree> ThisType;
   typedef SplineBasisFunction<T, Degree+1> SplineType;
   static const int extraBasesPerBoundary = (Degree + 1)/2;
   static const int coefsPerPoint = 1 + 2*extraBasesPerBoundary;
@@ -138,10 +139,12 @@ public:
       }
     }
 
-    void offsetIndices(int offset) {
+    Weights operator*(T s) const {
+      Weights dst = *this;
       for (int i = 0; i < dim; i++) {
-        inds[i] += offset;
+        dst.weights[i] *= s;
       }
+      return dst;
     }
 
     Span<int> span() const {
@@ -227,7 +230,14 @@ public:
     int n = coefCount();
     return Spani(n-coefsPerPoint, n);
   }
+
+  ThisType derivative() const {
+    return ThisType(_intervalCount, _basisFunction.derivative());
+  }
 private:
+  RawSplineBasis(int i, const SplineType &st) : _intervalCount(i),
+    _basisFunction(st) {}
+
   int _intervalCount;
   SplineType _basisFunction;
 };
@@ -269,6 +279,7 @@ class SmoothBoundarySplineBasis {
 public:
   typedef RawSplineBasis<T, Degree> RawType;
   typedef typename RawType::Weights Weights;
+  typedef SmoothBoundarySplineBasis<T, Degree> ThisType;
 
   SmoothBoundarySplineBasis() : _basis(0) {}
 
@@ -394,7 +405,14 @@ public:
   const RawSplineBasis<T, Degree> &raw() const {
     return _basis;
   }
+
+  ThisType derivative() const {
+    return ThisType(_left, _right, _basis.derivative());
+  }
 private:
+  SmoothBoundarySplineBasis(const Eigen::MatrixXd &l, const Eigen::MatrixXd &r,
+      const RawType &rt) : _left(l), _right(r), _basis(rt) {}
+
   Eigen::MatrixXd _left, _right;
   RawSplineBasis<T, Degree> _basis;
 };

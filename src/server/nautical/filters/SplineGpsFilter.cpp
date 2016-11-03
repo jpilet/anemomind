@@ -122,6 +122,21 @@ std::function<double(int)> Settings::weightToIndex() const {
   return makeWeightToIndex(lmSettings.iters, initialWeight, finalWeight);
 }
 
+void addDataTerm(const Settings &settings,
+    Span<int> sampleSpan,
+    const Eigen::Vector3d &observation,
+    const RawSplineBasis<double, 3>::Weights &weights,
+    std::function<double(int)> w2i,
+    BandedLevMar::Problem<double> *dst) {
+  auto f = new DataFitness(weights, observation,
+            settings.positionSettings(), w2i);
+  auto cost = dst->addCostFunction(
+      blockSize*(weights.span() + sampleSpan.minv()), f);
+  cost->addIterationCallback([&](int i, const double *residuals) {
+    f->update(i, residuals);
+  });
+}
+
 void addPositionDataTerm(
     const Settings &settings,
     const Curve &c,
@@ -132,15 +147,8 @@ void addPositionDataTerm(
   double x = c.timeMapper.mapToReal(value.time);
   auto weights = c.basis.build(x);
   auto pos = ECEF::convert(value.value);
-
-  auto f = new DataFitness(weights, toMeters(pos),
-            settings.positionSettings(),
-            w2i);
-  auto cost = dst->addCostFunction(
-      blockSize*(weights.span() + sampleSpan.minv()), f);
-  cost->addIterationCallback([&](int i, const double *residuals) {
-    f->update(i, residuals);
-  });
+  addDataTerm(settings, sampleSpan,
+      toMeters(pos), weights, w2i, dst);
 }
 
 void addPositionDataTerms(
@@ -152,6 +160,71 @@ void addPositionDataTerms(
   auto w2i = settings.weightToIndex();
   for (auto sample: pd) {
     addPositionDataTerm(settings, c, sampleSpan, sample, w2i, dst);
+  }
+}
+
+void addMotionDataTerm(
+    const Settings &settings,
+    const SmoothBoundarySplineBasis<double, 3> &basis,
+    const TimeMapper &mapper,
+    Span<int> sampleSpan, const TimedValue<HorizontalMotion<double>> &value,
+    const std::function<double(int)> w2i, BandedLevMar::Problem<double> *dst) {
+  auto x = mapper.mapToReal(value.time);
+  auto weights = basis.build(x);
+}
+
+void addMotionDataTerms(
+    const Settings &settings,
+    const Curve &curve,
+    Span<int> sampleSpan,
+    const Array<TimedValue<HorizontalMotion<double>>> &pm,
+    BandedLevMar::Problem<double> *dst) {
+  auto der = curve.basis.derivative();
+  auto w2i = settings.weightToIndex();
+  for (auto sample: pm) {
+    addMotionDataTerm(settings, der, curve.timeMapper,
+        sampleSpan, sample, w2i,
+        dst);
+  }
+}
+
+struct RegCost {
+  typedef RawSplineBasis<double, 3>::Weights Weights;
+
+  Weights weights;
+
+  static const int inputCount = blockSize*Weights::dim;
+  static const int outputCount = 3;
+
+  RegCost(Weights w) : weights(w) {}
+
+  template <typename T>
+  bool evaluate(const T *input, T *output) const {
+    T dst[3] = {T(0.0), T(0.0), T(0.0)};
+    for (int i = 0; i < Weights::dim; i++) {
+      auto x = input + blockSize*i;
+      double w = weights.weights[i];
+      for (int j = 0; j < 3; j++) {
+        dst[j] += x[j]*w;
+      }
+    }
+    for (int i = 0; i < 3; i++) {
+      output[i] = dst[i];
+    }
+    return true;
+  }
+};
+
+void addDataRegTerms(const Settings &s,
+    const Curve &c,
+    Span<int> sampleSpan,
+    BandedLevMar::Problem<double> *dst) {
+  auto der2 = c.basis.derivative().derivative();
+  for (int i = 0; i < c.timeMapper.sampleCount; i++) {
+    auto weights = der2.build(i);
+    int from = sampleSpan.minv();
+    int to = from + weights.dim;
+    dst->addCostFunction(blockSize*Spani(from, to), new RegCost(weights*s.regWeight));
   }
 }
 
@@ -168,8 +241,10 @@ void buildProblemPerCurve(
   addPositionDataTerms(settings, c, sampleSpan, pd, dst);
 
   // addMotionDataTerms
+  addMotionDataTerms(settings, c, sampleSpan, md, dst);
 
   // addRegDataTerms
+  addDataRegTerms(settings, c, sampleSpan, dst);
 
   // addStabilizeDataTerms
 
