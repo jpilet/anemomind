@@ -86,6 +86,8 @@ LocalFlowSettings makeTrajFlow() {
 }
 
 struct Setup {
+  Array<double> calibValues;
+
   LocalFlowSettings localFlowSettings, trajFlow = makeTrajFlow();
   RenderMode mode = RenderMode::PerTrajectory;
   std::string path;
@@ -627,11 +629,11 @@ void makeCalibrationParamPlots(
     std::ofstream zz(filenamePrefix + "_polargrid_zz.txt");
     std::ofstream file(filenamePrefix + "_polargrid_list.txt");
     file << "# AWS (knots) AWA (degrees) Offset" << std::endl;
-    int speedCount = 31;
-    int angleCount = 12;
-    auto maxSpeed = 15.0_kn;
-    LineKM speedInterp(0, speedCount, 0.0, 1.0);
-    LineKM angleInterp(0, angleCount, -180.0, 180.0);
+    int speedCount = 40;
+    int angleCount = 72;
+    auto maxSpeed = 20.0_kn;
+    LineKM speedInterp(0, speedCount-1, 0.0, 1.0);
+    LineKM angleInterp(0, angleCount-1, -180.0, 180.0);
 
     for (int i = 0; i < speedCount; i++) {
       auto aws = double(speedInterp(i))*maxSpeed;
@@ -647,6 +649,38 @@ void makeCalibrationParamPlots(
       xx << std::endl;
       yy << std::endl;
       zz << std::endl;
+    }
+  }{
+    std::ofstream file(filenamePrefix + "_offset_per_awa.txt");
+    Velocity<double> maxSpeed = 20.0_kn;
+    int n = 2000;
+    LineKM angleInterp(0, n-1, -180.0, 180.0);
+    LineKM speedInterp(0, n-1, 0.0, maxSpeed.knots());
+    for (int i = 0; i < n; i++) {
+      //Angle<double> angle = double(angleInterp(i))*1.0_deg;
+      auto angle = 170.0_deg;
+      auto speed = speedInterp(i)*1.0_kn;
+      auto wv = computeWindValuesFromAW(values, speed, angle);
+      file << speed.knots()/*angle.degrees()*/ << " " << wv.awa_offset << std::endl;
+    }
+  }{
+    double awaValues[4] = {-135, -45, 45, 135};
+    for (int i = 0; i < 4; i++) {
+      std::stringstream filename;
+      filename << filenamePrefix << "_curve" << i << ".txt";
+      std::ofstream file(filename.str());
+      auto awa = awaValues[i]*1.0_deg;
+
+      int speedCount = 300;
+      auto maxSpeed = 20.0_kn;
+
+      LineKM speedMap(0, speedCount-1, 0.0, 1.0);
+      for (int j = 0; j < speedCount; j++) {
+        auto speed = speedMap(j)*maxSpeed;
+
+        auto wv = computeWindValuesFromAW(values, speed, awa);
+        file << speed.knots() << " " << wv.awa_offset << std::endl;
+      }
     }
   }
 
@@ -697,6 +731,10 @@ bool makeIllustrations(const Setup &setup) {
 
 
     Array<double> values = calibrator.values();
+    if (!setup.calibValues.empty()) {
+      values = setup.calibValues;
+    }
+
     makeCalibrationParamPlots(values,
         PathBuilder::makeDirectory(setup.prefix)
         .makeFile(setup.outputName + "_calib_data").get().toString());
@@ -846,6 +884,22 @@ int main(int argc, const char **argv) {
         return Result::success();
       }, Arg<std::string>("date").describe("YYYY-MM-DD"))
   }).describe("Add a selected date");
+
+
+
+
+  parser.bind({"--calib-params"}, {
+    inputForm([&](double a, double b, double c,
+        double d, double e, double f) {
+      setup.calibValues = Array<double>{a, b, c, d, e, f};
+      return true;
+    }, Arg<double>("PARAM_AWA_OFFSET"),
+       Arg<double>("PARAM_UPWIND0"),
+       Arg<double>("PARAM_DOWNWIND0"),
+       Arg<double>("PARAM_DOWNWIND1"),
+       Arg<double>("PARAM_DOWNWIND2"),
+       Arg<double>("PARAM_DOWNWIND"))
+  }).describe("Plot for specific parameters");
 
   auto status = parser.parse(argc, argv);
   switch (status) {

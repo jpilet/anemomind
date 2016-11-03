@@ -89,7 +89,7 @@ class Array {
 
   Array(int size, const T *srcData) {
     initialize(size);
-    assert(srcData != nullptr);
+    assert(srcData != nullptr || size == 0);
     for (int i = 0; i < size; i++) {
       _data[i] = srcData[i];
     }
