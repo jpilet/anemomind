@@ -9,6 +9,7 @@
 #include <cmath>
 #include <assert.h>
 #include <limits>
+#include <iostream>
 #include <server/common/math.h>
 
 namespace sail {
@@ -34,10 +35,11 @@ void OutlierRejector::update(
     double weight, double residual) {
   assert(std::isfinite(_sigma));
   auto a = computeSlack(residual, _alpha);
-  auto b = computeSlack(residual, _beta);
+  auto b = computeSlack(_sigma, _beta);
   auto ar = std::abs(a);
   auto br = std::abs(b);
   auto f = (2.0*weight)/(ar + br);
+  std::cout << "  a=" << a << "  b=" << b << "  f=" << f << std::endl;
   _alpha = f*br;
   _beta = f*ar;
 }

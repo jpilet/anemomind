@@ -513,7 +513,7 @@ Results runLevMar(
   }
 
   if (1 <= settings.verbosity) {
-    LOG(INFO) << "Max iteration count reached";
+    LOG(INFO) << "Max iteration count " << settings.iters << " reached";
   }
 
   results.type = Results::MaxIterationsReached;

@@ -39,7 +39,7 @@ OutlierRejector::Settings Settings::positionSettings() const {
 }
 
 Settings::Settings() {
-  lmSettings.iters = 30;
+  lmSettings.iters = 120;
   lmSettings.e1 = 0.0;
   lmSettings.e2 = 0.0;
   lmSettings.e3 = 0.0;
@@ -192,7 +192,7 @@ struct DataFitness {
     }
 
     double rw = robust? rejector.computeWeight() : 1.0;
-    std::cout << "  Using weight " << rw << std::endl;
+    std::cout << "  Using weight " << std::setprecision(12) << rw << std::endl;
     for (int i = 0; i < 3; i++) {
       output[i] = rw*(xyz[i] - data[i]);
     }
