@@ -15,7 +15,7 @@ using namespace sail;
 
 auto offset = TimeStamp::UTC(2016, 11, 1, 8, 17, 0.0);
 
-TEST(SplineGpsFilterTest, FilterIt) {
+/*TEST(SplineGpsFilterTest, FilterIt) {
   ArrayBuilder<TimedValue<GeographicPosition<double>>> positions0;
   int m = 30;
   for (int i = 0; i < m; i++) {
@@ -58,7 +58,7 @@ TEST(SplineGpsFilterTest, FilterIt) {
   EXPECT_NEAR(motion[0].metersPerSecond(), speed, 1.0e-3);
   EXPECT_NEAR(motion[1].metersPerSecond(), 0.0, 1.0e-3);
 }
-
+*/
 TEST(SplineGpsFilterTest, FilterItWithOneOutlier) {
   ArrayBuilder<TimedValue<GeographicPosition<double>>> positions0;
   int m = 30;
