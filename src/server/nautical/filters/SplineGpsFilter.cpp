@@ -157,7 +157,7 @@ struct DataFitness {
   static const int inputCount = blockSize*Weights::dim;
   static const int outputCount = 3;
 
-  static const bool robust = false;
+  static const bool robust = true;
 
   DataFitness(
       const RawSplineBasis<double, 3>::Weights &w,
@@ -191,11 +191,18 @@ struct DataFitness {
     return true;
   }
 
-  void update(int iteration, const double *r3) {
-    std::cout << "Iteration: " << iteration << std::endl;
+  void update(int iteration, const double *input) {
     auto newWeight = weightToIndex(iteration);
-    rejector.update(newWeight, Eigen::Vector3d(
-        r3[0], r3[1], r3[2]).norm());
+
+    std::cout << "Iteration: " << iteration << " with weight " <<
+        newWeight << std::endl;
+
+    double tmp[3] = {0, 0, 0};
+    if (evaluate<double>(input, tmp)) {
+      rejector.update(newWeight,
+          Eigen::Vector3d(tmp[0], tmp[1], tmp[2]).norm());
+    }
+
   }
 };
 
