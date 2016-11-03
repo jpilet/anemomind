@@ -37,7 +37,7 @@ T dotProduct(T *a, T *b) {
 template <typename T>
 class CostFunctionBase {
 public:
-  typedef std::function<void(int, const double*)> Callback;
+  typedef std::function<void(int, const T*)> Callback;
 
   Spani inputRange;
   int inputCount() const {return inputRange.width();}
@@ -56,7 +56,7 @@ public:
     _callbacks.push_back(cb);
   }
 
-  void callIterationCallbacks(int iteration, const double *data) const {
+  void callIterationCallbacks(int iteration, const T *data) const {
     for (auto cb: _callbacks) {
       cb(iteration, data + inputRange.minv());
     }
@@ -257,6 +257,21 @@ public:
     return _callbacks;
   }
 
+  void callIterationCallbacks(
+      int iterationsCompleted,
+      const Eigen::Matrix<T, Eigen::Dynamic, 1> &X) const {
+    if (!_callbacks.empty()) {
+      IterationSummary<T> summary{iterationsCompleted, X};
+      for (auto cb: _callbacks) {
+        cb(summary);
+      }
+    }
+    for (auto f: _costFunctions) {
+      f->callIterationCallbacks(iterationsCompleted, X.data());
+    }
+  }
+
+
   std::shared_ptr<CostFunctionBase<T>> addCost(std::shared_ptr<CostFunctionBase<T>> &cost) {
     _kd = std::max(_kd, cost->inputCount()-1);
     _paramCount = std::max(_paramCount, cost->inputRange.maxv());
@@ -361,19 +376,6 @@ T maxAbs(const MDArray<T, 2> &X) {
   return maxv;
 }
 
-template <typename T>
-void callIterationCallbacks(
-    int iterationsCompleted,
-    const Vec<T> &X,
-    const std::vector<std::function<void(IterationSummary<T>)>> &callbacks) {
-  if (!callbacks.empty()) {
-    IterationSummary<T> summary{iterationsCompleted, X};
-    for (auto cb: callbacks) {
-      cb(summary);
-    }
-  }
-}
-
 // Implemented closely according to
 // http://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
 template <typename T>
@@ -387,7 +389,7 @@ Results runLevMar(
 
   SymmetricBandMatrixL<T> JtJ0;
   MDArray<T, 2> minusJtF0;
-  callIterationCallbacks<T>(0, *X, problem.callbacks());
+  problem.callIterationCallbacks(0, *X);
   for (int i = 0; i < settings.iters; i++) {
     if (1 <= settings.verbosity) {
       LOG(INFO) << "--------- LevMar Iteration " << i;
@@ -499,7 +501,7 @@ Results runLevMar(
     }
 
     results.iterationsCompleted = i+1;
-    callIterationCallbacks<T>(i+1, *X, problem.callbacks());
+    problem.callIterationCallbacks(i+1, *X);
   }
 
   if (1 <= settings.verbosity) {
