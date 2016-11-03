@@ -29,7 +29,6 @@ var app = angular.module('www2App')
 
             scope.boat = boatList.boat(scope.boatId);
             scope.sessions = boatList.sessionsForBoat(scope.boatId);
-
             //
             // ensure that sessions is not empty
             scope.sessions=scope.sessions||[];
@@ -41,6 +40,19 @@ var app = angular.module('www2App')
             scope.sessions.forEach(function(session) {
               session.hasPhoto=scope.hasSocialActivity(session,'photos');
               session.hasComment=scope.hasSocialActivity(session,'comments');
+
+              //
+              // keep session _id in photos as helper to link on viewmap
+              if(session.hasPhoto){
+                var start=new Date(session.startTime);
+                var end=new Date(session.endTime);
+                scope.boat.photos.forEach(function (photo) {
+                  var when=new Date(photo.when);
+                  if(start<=when&&end>=when){
+                    photo.sid=session._id;
+                  }
+                });
+              }
 
               var maxSpeed = session.maxSpeedOverGround;
               if (!isNaN(maxSpeed) && maxSpeed > 1.0) {
