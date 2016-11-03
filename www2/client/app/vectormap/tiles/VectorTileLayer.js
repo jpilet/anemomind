@@ -48,7 +48,7 @@ function VectorTileLayer(params, renderer) {
     });
   };
   // URL have to be absolute because imgmin will change the name
-  loadIcon('/assets/images/boat.svg', 'boatIcon');
+  loadIcon('/assets/images/boat.svg', 'boatIcon', 12, 34);
   loadIcon('/assets/images/truewind.svg', 'trueWindIcon', 14, 28);
   loadIcon('/assets/images/appwind.svg', 'appWindIcon', 14, 28);
 
@@ -64,6 +64,7 @@ function VectorTileLayer(params, renderer) {
   this.queueSeconds = undefined;
   this.currentTime = undefined;
   this.tailColor = undefined;
+  this.allTrack = undefined;
   this.outOfTailColor = '#888888';
   this.outOfTailWidth = .3;
 
@@ -351,27 +352,35 @@ VectorTileLayer.prototype.checkIfTail = function(point) {
   return (pointTime.getTime() >= queueTime && pointTime.getTime() <= this.currentTime.getTime());
 };
 
+VectorTileLayer.prototype.colorForVmgPerf = function(point) {
+  var currentPerf = perfAtPoint(point);
+
+  if (isNaN(currentPerf)) {
+    return this.colorSpectrum[0];
+  }
+  for(var i=0; i<this.vmgPerf.length; i++) {
+    if (currentPerf <= this.vmgPerf[i]) {
+      return this.colorSpectrum[i];
+    }
+  }
+  return this.colorSpectrum[this.colorSpectrum.length - 1];
+}
+
 VectorTileLayer.prototype.colorForPoint = function(point) {
   if (this.queueSeconds) {
     if (this.checkIfTail(point)) {
       if (this.tailColor) {
         return this.tailColor;
       }
-      var currentPerf = perfAtPoint(point);
-
-      if (isNaN(currentPerf)) {
-        return this.colorSpectrum[0];
-      }
-      for(var i=0; i<this.vmgPerf.length; i++) {
-        if (currentPerf <= this.vmgPerf[i]) {
-          return this.colorSpectrum[i];
-        }
-      }
-      return this.colorSpectrum[this.colorSpectrum.length - 1];
+      return this.colorForVmgPerf(point);
     } else {
       return this.outOfTailColor;
     }
   } else {
+    // VMG Perf color for the whole trajectory
+    if(this.allTrack)
+      return this.colorForVmgPerf(point);
+
     // default color when no tail is displayed
     return '#FF0033';
   }
