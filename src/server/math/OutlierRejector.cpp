@@ -7,6 +7,7 @@
 
 #include <server/math/OutlierRejector.h>
 #include <cmath>
+#include <assert.h>
 #include <limits>
 
 namespace sail {
@@ -30,6 +31,7 @@ double computeSlack(
 
 void OutlierRejector::update(
     double weight, double residual) {
+  assert(std::isfinite(_sigma));
   auto a = computeSlack(residual, _alpha);
   auto b = computeSlack(residual, _beta);
   auto ar = std::abs(a);
@@ -40,6 +42,7 @@ void OutlierRejector::update(
 }
 
 double OutlierRejector::computeSquaredWeight() const {
+  assert(std::isfinite(_sigma));
   return 1.0 - 1.0/(1.0 + sqr(_alpha));
 }
 
