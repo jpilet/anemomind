@@ -14,6 +14,8 @@
 namespace sail {
 namespace SplineGpsFilter {
 
+typedef RawSplineBasis<double, 3>::Weights Weights;
+
 struct Curve {
   TimeMapper timeMapper;
   SmoothBoundarySplineBasis<double, 3> basis;
@@ -156,7 +158,7 @@ std::function<double(int)> makeWeightToIndex(int iters, double from, double to) 
 
 template <typename T>
 void evaluateEcefPos(
-    const RawSplineBasis<double, 3>::Weights &weights,
+    const Weights &weights,
     const T *input,
     T *dst) {
   for (int i = 0; i < 3; i++) {
@@ -173,7 +175,6 @@ void evaluateEcefPos(
 }
 
 struct DataFitness {
-  typedef RawSplineBasis<double, 3>::Weights Weights;
   Weights weights;
   Eigen::Vector3d data;
   OutlierRejector rejector;
@@ -241,20 +242,92 @@ std::function<double(int)> Settings::weightToIndex() const {
   return makeWeightToIndex(lmSettings.iters, initialWeight, finalWeight);
 }
 
+
+template <typename T>
+T sqrtHuber(T x) {
+  static const T zero = MakeConstant<T>::apply(0.0);
+  static const T one = MakeConstant<T>::apply(1.0);
+  static const T two = MakeConstant<T>::apply(2.0);
+  if (x < zero) {
+    return -sqrtHuber(-x);
+  } else {
+    return x < one? x : sqrt(one + two*(x - one));
+  }
+}
+
+struct HuberDataCost {
+  Weights weights;
+  Eigen::Vector3d pos;
+  double threshold;
+
+  HuberDataCost(const Weights &w,
+      const Eigen::Vector3d &p, double t) : weights(w),
+          pos(p), threshold(t) {}
+
+  static const int inputCount = blockSize*Weights::dim;
+  static const int outputCount = 3;
+
+  template <typename T>
+  bool evaluate(const T *input, T *output) const {
+    double marg = 1.0e-9;
+    T res[3];
+    evaluateEcefPos<T>(weights, input, res);
+    for (int i = 0; i < 3; i++) {
+      res[i] -= T(pos(i));
+    }
+    auto len = sqrt(marg + sqr(res[0]) + sqr(res[1]) + sqr(res[2]));
+    auto h = threshold*sqrtHuber(len/threshold);
+    auto f = h/len;
+    std::cout << "len = " << len << std::endl;
+    std::cout << "h = " << h << std::endl;
+    std::cout << "f = " << f << std::endl;
+    for (int i = 0; i < 3; i++) {
+      output[i] = f*res[i];
+    }
+    return true;
+  }
+};
+
+struct SquaredCost {
+  Weights weights;
+  Eigen::Vector3d pos;
+
+  static const int inputCount = blockSize*Weights::dim;
+  static const int outputCount = 3;
+
+  template <typename T>
+    bool evaluate(const T *input, T *output) const {
+      T res[3];
+      evaluateEcefPos<T>(weights, input, output);
+      for (int i = 0; i < 3; i++) {
+        output[i] -= T(pos(i));
+      }
+      return true;
+    }
+};
+
 void addDataTerm(const Settings &settings,
     Span<int> dstSpan,
     const Eigen::Vector3d &observation,
     const RawSplineBasis<double, 3>::Weights &weights,
     std::function<double(int)> w2i,
     BandedLevMar::Problem<double> *dst) {
-  auto f = new DataFitness(weights, observation,
-            settings.positionSettings(), w2i);
-  auto cost = dst->addCostFunction(
-      blockSize*dstSpan, f);
-  CHECK(cost);
-  cost->addIterationCallback([=](int i, const double *residuals) {
-    f->update(i, residuals);
-  });
+  if (settings.reweighted) {
+    auto f = new DataFitness(weights, observation,
+              settings.positionSettings(), w2i);
+    auto cost = dst->addCostFunction(
+        blockSize*dstSpan, f);
+    CHECK(cost);
+    cost->addIterationCallback([=](int i, const double *residuals) {
+      f->update(i, residuals);
+    });
+  } else {
+    /*dst->addCostFunction(blockSize*dstSpan,
+        new HuberDataCost(weights, observation,
+            settings.inlierThreshold.meters()));*/
+    dst->addCostFunction(blockSize*dstSpan,
+        new SquaredCost{weights, observation});
+  }
 }
 
 void addPositionDataTerm(
