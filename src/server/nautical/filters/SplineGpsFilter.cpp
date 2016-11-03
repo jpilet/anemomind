@@ -39,7 +39,7 @@ OutlierRejector::Settings Settings::positionSettings() const {
 }
 
 Settings::Settings() {
-  lmSettings.iters = 120;
+  lmSettings.iters = 30;
   lmSettings.e1 = 0.0;
   lmSettings.e2 = 0.0;
   lmSettings.e3 = 0.0;
@@ -198,9 +198,9 @@ struct DataFitness {
 
   template <typename T>
     bool evaluate(const T *input, T *output) const {
+      double weight = robust? rejector.computeWeight() : 1.0;
       return evaluateSub<T>(
-          robust? rejector.computeWeight() : 1.0,
-          input, output);
+          weight, input, output);
     }
 
   void update(int iteration, const double *input) {
@@ -212,6 +212,8 @@ struct DataFitness {
       std::cout << "Residual " << residual << std::endl;
       rejector.update(newWeight,
           residual);
+      std::cout << "  resulting in weight "
+          << rejector.computeWeight() << std::endl;
     }
 
   }
@@ -310,14 +312,11 @@ struct RegCost {
   bool evaluate(const T *input, T *output) const {
     T dst[3] = {T(0.0), T(0.0), T(0.0)};
     for (int i = 0; i < Weights::dim; i++) {
-      auto x = input + blockSize*i;
+      auto x = input + blockSize*weights.inds[i];
       double w = weights.weights[i];
       for (int j = 0; j < 3; j++) {
         dst[j] += x[j]*w;
       }
-    }
-    for (int i = 0; i < 3; i++) {
-      output[i] = dst[i];
     }
     return true;
   }
@@ -376,7 +375,7 @@ void buildProblemPerCurve(
   addPositionDataTerms(settings, c, sampleSpan, pd, dst);
   //addMotionDataTerms(settings, c, sampleSpan, md, dst);
   addDataRegTerms(settings, c, sampleSpan, dst);
-  addStabilizeTerms(settings, sampleSpan, dst);
+  //addStabilizeTerms(settings, sampleSpan, dst);
 }
 
 void buildProblem(
