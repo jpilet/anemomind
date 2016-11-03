@@ -117,6 +117,10 @@ public:
       }
     }
 
+    bool isSet(int i) const {
+      return weights[i] != T(0.0);
+    }
+
     bool add(int index, T value) {
       if (value == T(0.0)) {
         return true;
@@ -147,12 +151,25 @@ public:
       return dst;
     }
 
-    Span<int> span() const {
+    Span<int> getSpan() const {
       Span<int> dst;
       for (int i = 0; i < dim; i++) {
-        dst.extend(inds[i]);
+        if (isSet(i)) {
+          dst.extend(inds[i]);
+        }
       }
       return dst;
+    }
+
+    Span<int> getSpanAndOffsetAt0() {
+      auto span = getSpan();
+      for (int i = 0; i < dim; i++) {
+        inds[i] -= span.minv();
+        if (!isSet(i) || inds[i] < 0) {
+          inds[i] = 0;
+        }
+      }
+      return Span<int>(span.minv(), span.minv() + dim);
     }
   };
 

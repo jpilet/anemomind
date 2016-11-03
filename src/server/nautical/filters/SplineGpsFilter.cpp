@@ -154,17 +154,15 @@ std::function<double(int)> Settings::weightToIndex() const {
 }
 
 void addDataTerm(const Settings &settings,
-    Span<int> sampleSpan,
+    Span<int> dstSpan,
     const Eigen::Vector3d &observation,
     const RawSplineBasis<double, 3>::Weights &weights,
     std::function<double(int)> w2i,
     BandedLevMar::Problem<double> *dst) {
   auto f = new DataFitness(weights, observation,
             settings.positionSettings(), w2i);
-  int from = sampleSpan.minv();
-  int to = from + weights.dim;
   auto cost = dst->addCostFunction(
-      blockSize*Span<int>(from, to), f);
+      blockSize*dstSpan, f);
   CHECK(cost);
   cost->addIterationCallback([=](int i, const double *residuals) {
     f->update(i, residuals);
@@ -180,8 +178,9 @@ void addPositionDataTerm(
     BandedLevMar::Problem<double> *dst) {
   double x = c.timeMapper.mapToReal(value.time);
   auto weights = c.basis.build(x);
+  auto dstSpan = weights.getSpanAndOffsetAt0();
   auto pos = ECEF::convert(value.value);
-  addDataTerm(settings, sampleSpan,
+  addDataTerm(settings, dstSpan + sampleSpan.minv(),
       toMeters(pos), weights, w2i, dst);
 }
 
