@@ -59,7 +59,7 @@ TEST(SplineGpsFilterTest, FilterIt) {
   EXPECT_NEAR(motion[1].metersPerSecond(), 0.0, 1.0e-3);
 }
 
-/*TEST(SplineGpsFilterTest, FilterItWithOneOutlier) {
+TEST(SplineGpsFilterTest, FilterItWithOneOutlier) {
   ArrayBuilder<TimedValue<GeographicPosition<double>>> positions0;
   int m = 30;
   for (int i = 0; i < m; i++) {
@@ -99,4 +99,3 @@ TEST(SplineGpsFilterTest, FilterIt) {
   }
 }
 
-*/

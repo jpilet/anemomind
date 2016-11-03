@@ -177,33 +177,37 @@ struct DataFitness {
         rejector(OutlierRejector(s)) {}
 
   template <typename T>
-  bool evaluate(const T *input, T *output) const {
-    for (int i = 0; i < inputCount; i++) {
-      CHECK(isFinite(input[i]));
-    }
-    T xyz[3] = {T(0.0), T(0.0), T(0.0)};
-    for (int i = 0; i < Weights::dim; i++) {
-      int offs = blockSize*weights.inds[i];
-      const T *x = input + offs;
-      double w = weights.weights[i];
-      for (int j = 0; j < 3; j++) {
-        xyz[j] += x[j]*w;
+    bool evaluateSub(double weight, const T *input, T *output) const {
+      for (int i = 0; i < inputCount; i++) {
+        CHECK(isFinite(input[i]));
       }
+      T xyz[3] = {T(0.0), T(0.0), T(0.0)};
+      for (int i = 0; i < Weights::dim; i++) {
+        int offs = blockSize*weights.inds[i];
+        const T *x = input + offs;
+        double w = weights.weights[i];
+        for (int j = 0; j < 3; j++) {
+          xyz[j] += x[j]*w;
+        }
+      }
+      for (int i = 0; i < 3; i++) {
+        output[i] = weight*(xyz[i] - data[i]);
+      }
+      return true;
     }
 
-    double rw = robust? rejector.computeWeight() : 1.0;
-    std::cout << "  Using weight " << std::setprecision(12) << rw << std::endl;
-    for (int i = 0; i < 3; i++) {
-      output[i] = rw*(xyz[i] - data[i]);
+  template <typename T>
+    bool evaluate(const T *input, T *output) const {
+      return evaluateSub<T>(
+          robust? rejector.computeWeight() : 1.0,
+          input, output);
     }
-    return true;
-  }
 
   void update(int iteration, const double *input) {
     auto newWeight = weightToIndex(iteration);
 
     double tmp[3] = {0, 0, 0};
-    if (evaluate<double>(input, tmp)) {
+    if (evaluateSub<double>(1.0, input, tmp)) {
       auto residual = Eigen::Vector3d(tmp[0], tmp[1], tmp[2]).norm();
       std::cout << "Residual " << residual << std::endl;
       rejector.update(newWeight,
