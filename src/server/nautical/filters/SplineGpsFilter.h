@@ -26,7 +26,7 @@ struct Settings {
 
   Duration<double> period = 2.0_s;
   Length<double> inlierThreshold = 12.0_m;
-  double regWeight = 10.0;
+  double regWeight = 0.0; //10.0;
   double stabilizerWeight = 1.0e-12;
   BandedLevMar::Settings lmSettings;
 

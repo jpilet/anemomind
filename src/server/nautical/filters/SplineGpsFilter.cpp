@@ -321,14 +321,7 @@ struct RegCost {
 
   template <typename T>
   bool evaluate(const T *input, T *output) const {
-    T dst[3] = {T(0.0), T(0.0), T(0.0)};
-    for (int i = 0; i < Weights::dim; i++) {
-      auto x = input + blockSize*weights.inds[i];
-      double w = weights.weights[i];
-      for (int j = 0; j < 3; j++) {
-        dst[j] += x[j]*w;
-      }
-    }
+    evaluateEcefPos<T>(weights, input, output);
     return true;
   }
 };
