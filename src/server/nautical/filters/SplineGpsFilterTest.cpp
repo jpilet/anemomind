@@ -37,8 +37,26 @@ TEST(SplineGpsFilterTest, FilterIt) {
   for (int i = 0; i < m; i++) {
     auto pos = curves[0].evaluateGeographicPosition(
         offset + double(i)*1.0_s);
+
     EXPECT_NEAR(pos.lon().degrees(), 34.0 + (0.0001*i), 1.0e-6);
+    EXPECT_NEAR(pos.lat().degrees(), 44.0, 1.0e-6);
   }
+
+  auto firstPos = ECEF::convert(positions.first().value);
+  auto lastPos = ECEF::convert(positions.last().value);
+  auto timeDif = positions.last().time - positions.first().time;
+  double distMeters = 0.0;
+  for (int i = 0; i < 3; i++) {
+    distMeters += sqr(firstPos.xyz[i].meters() - lastPos.xyz[i].meters());
+  }
+  distMeters = sqrt(distMeters);
+  double speed = (distMeters/timeDif.seconds());
+
+  EXPECT_NEAR(speed, 8.0, 2.0);
+
+  auto motion = curves[0].evaluateHorizontalMotion(offset + 15.0_s);
+  EXPECT_NEAR(motion[0].metersPerSecond(), speed, 1.0e-3);
+  EXPECT_NEAR(motion[1].metersPerSecond(), 0.0, 1.0e-3);
 }
 
 
