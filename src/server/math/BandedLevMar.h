@@ -311,7 +311,8 @@ struct Results {
     FullEvaluationFailed = 3,
     ResidualEvaluationFailed = 4,
     PbsvFailed = 5,
-    IterationsExceeded = 6
+    IterationsExceeded = 6,
+    InnerStepFailed = 7
   };
 
   TerminationType type = None;
@@ -471,7 +472,11 @@ Results runLevMar(
         LOG(INFO) << "RHO = " << rho;
       }
 
-      if (T(0.0) < rho) {
+      if (!isFinite(rho)) {
+        LOG(ERROR) << "Rho is not finite, cancel\n";
+        results.type = Results::InnerStepFailed;
+        return results;
+      } else if (T(0.0) < rho) {
         if (2 <= settings.verbosity) {
           LOG(INFO) << "Accept the update";
         }

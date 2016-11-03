@@ -38,6 +38,13 @@ OutlierRejector::Settings Settings::positionSettings() const {
   return settings;
 }
 
+Settings::Settings() {
+  lmSettings.iters = 30;
+  lmSettings.e1 = 0.0;
+  lmSettings.e2 = 0.0;
+  lmSettings.e3 = 0.0;
+}
+
 EcefCurve::EcefCurve(
     const TimeMapper &mapper,
     const SmoothBoundarySplineBasis<double, 3> &b,
@@ -195,13 +202,12 @@ struct DataFitness {
   void update(int iteration, const double *input) {
     auto newWeight = weightToIndex(iteration);
 
-    std::cout << "Iteration: " << iteration << " with weight " <<
-        newWeight << std::endl;
-
     double tmp[3] = {0, 0, 0};
     if (evaluate<double>(input, tmp)) {
+      auto residual = Eigen::Vector3d(tmp[0], tmp[1], tmp[2]).norm();
+      std::cout << "Residual " << residual << std::endl;
       rejector.update(newWeight,
-          Eigen::Vector3d(tmp[0], tmp[1], tmp[2]).norm());
+          residual);
     }
 
   }
