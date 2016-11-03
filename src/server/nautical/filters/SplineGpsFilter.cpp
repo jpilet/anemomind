@@ -59,6 +59,9 @@ void buildProblemPerCurve(
     const Array<TimedValue<HorizontalMotion<double>>> &md,
     BandedLevMar::Problem<double> *dst) {
   Span<int> valueSpan = 4*sampleSpan;
+
+  // Add data terms
+
 }
 
 void buildProblem(
