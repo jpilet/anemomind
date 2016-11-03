@@ -17,7 +17,8 @@ auto offset = TimeStamp::UTC(2016, 11, 1, 8, 17, 0.0);
 
 TEST(SplineGpsFilterTest, FilterIt) {
   ArrayBuilder<TimedValue<GeographicPosition<double>>> positions0;
-  for (int i = 0; i < 30; i++) {
+  int m = 30;
+  for (int i = 0; i < m; i++) {
     auto t = offset + double(i)*1.0_s;
     auto p = GeographicPosition<double>(34.0_deg + (0.0001*i)*1.0_deg,
         44.0_deg, 0.0_m);
@@ -33,8 +34,11 @@ TEST(SplineGpsFilterTest, FilterIt) {
       Array<TimeMapper>{mapper}, SplineGpsFilter::Settings());
 
   EXPECT_EQ(curves.size(), 1);
-  auto pos = curves[0].evaluateGeographicPosition(offset);
-  EXPECT_NEAR(pos.lon().degrees(), 34.0, 1.0e-6);
+  for (int i = 0; i < m; i++) {
+    auto pos = curves[0].evaluateGeographicPosition(
+        offset + double(i)*1.0_s);
+    EXPECT_NEAR(pos.lon().degrees(), 34.0 + (0.0001*i), 1.0e-6);
+  }
 }
 
 
