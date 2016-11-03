@@ -53,6 +53,7 @@ Array<Span<TimeStamp>> listTimeSpans(const Array<Curve> &curves) {
 
 
 void buildProblemPerCurve(
+    const Settings &settings,
     const Curve &c,
     Span<int> sampleSpan,
     const Array<TimedValue<GeographicPosition<double>>> &pd,
@@ -61,10 +62,18 @@ void buildProblemPerCurve(
   Span<int> valueSpan = 4*sampleSpan;
 
   // Add data terms
+  //addPositionDataTerms(settings, c, sampleSpan, pd, dst);
+
+  // addMotionDataTerms
+
+  // addRegDataTerms
+
+  // addStabilizeDataTerms
 
 }
 
 void buildProblem(
+    const Settings &settings,
     const Array<Curve> &curves,
     const Array<Span<int>> &sampleSpans,
     const Array<Span<TimeStamp>> &timeSpans,
@@ -77,6 +86,7 @@ void buildProblem(
       motionData.begin(), motionData.end(), timeSpans);
   for (int i = 0; i < curves.size(); i++) {
     buildProblemPerCurve(
+        settings,
         curves[i],
         sampleSpans[i],
         pd[i], md[i], dst);
@@ -100,6 +110,7 @@ Array<Curve> filter(
   CHECK(sampleSpans.last().maxv() == totalSampleCount);
   auto timeSpans = listTimeSpans(curves);
   buildProblem(
+      settings,
       curves, sampleSpans,timeSpans,
       positionData, motionData, &problem);
 
