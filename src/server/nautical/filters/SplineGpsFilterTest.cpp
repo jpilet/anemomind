@@ -87,7 +87,7 @@ TEST(SplineTest, Test2) {
       Array<TimedValue<HorizontalMotion<double>>>(),
       Array<TimeMapper>{mapper}, settings);
 
-  auto tol = 5.0;
+  auto tol = 0.0001;
 
   EXPECT_EQ(curves.size(), 1);
   for (int i = 0; i < m; i++) {
