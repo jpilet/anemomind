@@ -48,9 +48,11 @@
     <div class="card-block-bottom hidden-sm">
       <h3>Recent pictures</h3>
       <div>
-        <img src="{{photoUrl(boatId,img.src,'80x80')}}" 
-             class="img-rounded" ng-repeat="img in boat.photos|limitTo:4"
+        <a ng-href="/map/{{boatId}}?c={{img.sid}}&t={{timeToInt(img.when)}}" ng-repeat="img in boat.photos|limitTo:4">
+          <img src="{{photoUrl(boatId,img.src,'80x80')}}" 
+             class="img-rounded" 
              style="padding: 2px;">
+        </a>
         <img ng-hide="boat.photos.length" class="img-rounded"  src="//placehold.it/80x80" data-holder-rendered="true" >
       </div>
     </div>
