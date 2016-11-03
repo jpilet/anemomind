@@ -26,8 +26,12 @@ public:
   TimeMapper(TimeStamp offs, Duration<double> per,
       int n) : offset(offs), period(per), sampleCount(n) {}
 
+  double mapToReal(TimeStamp t) const {
+    return (t - offset)/period;
+  }
+
   int map(TimeStamp t) const {
-    int index = int(round((t - offset)/period));
+    int index = int(round(mapToReal(t)));
     return 0 <= index && index < sampleCount? index : -1;
   }
 

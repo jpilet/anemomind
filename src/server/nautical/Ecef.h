@@ -11,6 +11,7 @@
 #include <server/math/JetUtils.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <Eigen/Dense>
+#include <server/nautical/GeographicPosition.h>
 
 namespace sail {
 
@@ -63,6 +64,11 @@ struct ECEF {
       Length<T>::meters(y),
       Length<T>::meters(z),
     };
+  }
+
+  template <typename T>
+  static ECEFCoords<T> convert(const GeographicPosition<T> &x) {
+    return convert(LLACoords<T>{x.lon(), x.lat(), x.alt()});
   }
 
   template <typename T>

@@ -137,6 +137,20 @@ public:
         CHECK(add(other.inds[i], s*other.weights[i]));
       }
     }
+
+    void offsetIndices(int offset) {
+      for (int i = 0; i < dim; i++) {
+        inds[i] += offset;
+      }
+    }
+
+    Span<int> span() const {
+      Span<int> dst;
+      for (int i = 0; i < dim; i++) {
+        dst.extend(inds[i]);
+      }
+      return dst;
+    }
   };
 
   RawSplineBasis() : _intervalCount(0),

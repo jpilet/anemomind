@@ -37,6 +37,8 @@ T dotProduct(T *a, T *b) {
 template <typename T>
 class CostFunctionBase {
 public:
+  typedef std::function<void(int, const double*)> Callback;
+
   Spani inputRange;
   int inputCount() const {return inputRange.width();}
 
@@ -50,7 +52,19 @@ public:
       MDArray<T, 2> *minusJtF,
       T *totalCost) = 0;
 
+  void addIterationCallback(Callback cb) {
+    _callbacks.push_back(cb);
+  }
+
+  void callIterationCallbacks(int iteration, const double *data) const {
+    for (auto cb: _callbacks) {
+      cb(iteration, data + inputRange.minv());
+    }
+  }
+
   virtual ~CostFunctionBase() {}
+private:
+  std::vector<Callback> _callbacks;
 };
 
 
@@ -184,18 +198,18 @@ public:
   }
 
   template <typename CostEvaluator>
-  void addCostFunction(Spani inputRange,
+  std::shared_ptr<CostFunctionBase<T>> addCostFunction(Spani inputRange,
       const std::shared_ptr<CostEvaluator> &f) {
     std::shared_ptr<CostFunctionBase<T>> cost(
             new SharedCostFunction<CostEvaluator, T>(
                 inputRange, f));
-    addCost(cost);
+    return addCost(cost);
   }
 
   template <typename CostEvaluator>
-  void addCostFunction(Spani inputRange,
+  std::shared_ptr<CostFunctionBase<T>> addCostFunction(Spani inputRange,
       CostEvaluator *f) {
-    addCostFunction<CostEvaluator>(inputRange,
+    return addCostFunction<CostEvaluator>(inputRange,
         std::shared_ptr<CostEvaluator>(f));
   }
 
@@ -243,10 +257,11 @@ public:
     return _callbacks;
   }
 
-  void addCost(std::shared_ptr<CostFunctionBase<T>> &cost) {
+  std::shared_ptr<CostFunctionBase<T>> addCost(std::shared_ptr<CostFunctionBase<T>> &cost) {
     _kd = std::max(_kd, cost->inputCount()-1);
     _paramCount = std::max(_paramCount, cost->inputRange.maxv());
     _costFunctions.push_back(std::move(cost));
+    return cost;
   }
 private:
   int _kd, _paramCount;

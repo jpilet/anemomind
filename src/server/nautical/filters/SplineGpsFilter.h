@@ -15,6 +15,7 @@
 #include <server/common/TimedValue.h>
 #include <server/nautical/GeographicPosition.h>
 #include <server/math/BandedLevMar.h>
+#include <server/math/OutlierRejector.h>
 
 namespace sail {
 namespace SplineGpsFilter {
@@ -23,6 +24,14 @@ struct Settings {
   Duration<double> period = 2.0_s;
   Length<double> inlierThreshold = 12.0_m;
   double regWeight = 1.0;
+  BandedLevMar::Settings lmSettings;
+
+  double initialWeight = 0.01;
+  double finalWeight = 1000;
+
+  std::function<double(int)> weightToIndex() const;
+
+  OutlierRejector::Settings positionSettings() const;
 };
 
 struct Curve {

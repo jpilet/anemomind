@@ -96,6 +96,7 @@ add_library(filters_SplineGpsFilter
 target_link_libraries(filters_SplineGpsFilter
   common_TimeStamp
   math_Spline
+  math_OutlierRejector
   )
 
 cxx_test(filters_SplineGpsFilterTest

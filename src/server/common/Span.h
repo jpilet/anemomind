@@ -192,6 +192,16 @@ Span<T> operator*(T s, Span<T> x) {
   return Span<T>(s*x.minv(), s*x.maxv());
 }
 
+template <typename T>
+Span<T> operator+(T s, Span<T> x) {
+  return Span<T>(s + x.minv(), s + x.maxv());
+}
+
+template <typename T>
+Span<T> operator+(Span<T> x, T s) {
+  return s + x;
+}
+
 typedef Span<double> Spand;
 typedef Span<int> Spani;
 

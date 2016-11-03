@@ -9,6 +9,7 @@
 #include <cmath>
 #include <assert.h>
 #include <limits>
+#include <server/common/math.h>
 
 namespace sail {
 
