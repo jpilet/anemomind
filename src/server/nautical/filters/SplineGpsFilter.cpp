@@ -233,9 +233,9 @@ void addDataRegTerms(const Settings &s,
   auto der2 = c.basis.derivative().derivative();
   for (int i = 0; i < c.timeMapper.sampleCount; i++) {
     auto weights = der2.build(i);
-    int from = sampleSpan.minv();
-    int to = from + weights.dim;
-    dst->addCostFunction(blockSize*Spani(from, to), new RegCost(weights*s.regWeight));
+    auto span = weights.getSpanAndOffsetAt0();
+    dst->addCostFunction(blockSize*span,
+        new RegCost(weights*s.regWeight));
   }
 }
 
@@ -278,7 +278,7 @@ void buildProblemPerCurve(
 
   addPositionDataTerms(settings, c, sampleSpan, pd, dst);
   //addMotionDataTerms(settings, c, sampleSpan, md, dst);
-  //addDataRegTerms(settings, c, sampleSpan, dst);
+  addDataRegTerms(settings, c, sampleSpan, dst);
   addStabilizeTerms(settings, sampleSpan, dst);
 }
 
