@@ -78,6 +78,8 @@ struct DataFitness {
   static const int inputCount = blockSize*Weights::dim;
   static const int outputCount = 3;
 
+  static const bool robust = false;
+
   DataFitness(
       const RawSplineBasis<double, 3>::Weights &w,
       const Eigen::Vector3d &d,
@@ -90,6 +92,9 @@ struct DataFitness {
 
   template <typename T>
   bool evaluate(const T *input, T *output) const {
+    for (int i = 0; i < inputCount; i++) {
+      CHECK(isFinite(input[i]));
+    }
     T xyz[3] = {T(0.0), T(0.0), T(0.0)};
     for (int i = 0; i < Weights::dim; i++) {
       const T *x = input + blockSize*weights.inds[i];
@@ -98,15 +103,30 @@ struct DataFitness {
         xyz[j] += x[j]*w;
       }
     }
-    double rw = rejector.computeWeight();
+    std::cout << "Evaluate it\n";
+    std::cout << " input: ";
+    for (int i = 0; i < inputCount; i++) {
+      std::cout << input[i] << " ";
+    }
+    std::cout << std::endl;
+    std::cout << " data: ";
     for (int i = 0; i < 3; i++) {
+      std::cout << data[i] << " ";
+    }
+    std::cout << std::endl;
+
+    double rw = robust? rejector.computeWeight() : 1.0;
+    for (int i = 0; i < 3; i++) {
+      std::cout << "  " << i << ": " << xyz[i] << std::endl;
       output[i] = rw*(xyz[i] - data[i]);
     }
     return true;
   }
 
   void update(int iteration, const double *r3) {
-    rejector.update(weightToIndex(iteration), Eigen::Vector3d(
+    std::cout << "Iteration: " << iteration << std::endl;
+    auto newWeight = weightToIndex(iteration);
+    rejector.update(newWeight, Eigen::Vector3d(
         r3[0], r3[1], r3[2]).norm());
   }
 };
@@ -134,12 +154,10 @@ void addDataTerm(const Settings &settings,
   int to = from + weights.dim;
   auto cost = dst->addCostFunction(
       blockSize*Span<int>(from, to), f);
-  std::cout << "Add iteration callback" << std::endl;
   CHECK(cost);
   cost->addIterationCallback([=](int i, const double *residuals) {
     f->update(i, residuals);
   });
-  std::cout << "Added iteration callback" << std::endl;
 }
 
 void addPositionDataTerm(
@@ -152,7 +170,6 @@ void addPositionDataTerm(
   double x = c.timeMapper.mapToReal(value.time);
   auto weights = c.basis.build(x);
   auto pos = ECEF::convert(value.value);
-  std::cout << "Add the data term" << std::endl;
   addDataTerm(settings, sampleSpan,
       toMeters(pos), weights, w2i, dst);
 }
@@ -165,9 +182,7 @@ void addPositionDataTerms(
     BandedLevMar::Problem<double> *dst) {
   auto w2i = settings.weightToIndex();
   for (auto sample: pd) {
-    std::cout << "Add position term..." << std::endl;
     addPositionDataTerm(settings, c, sampleSpan, sample, w2i, dst);
-    std::cout << "Added it" << std::endl;
   }
 }
 
@@ -314,18 +329,14 @@ Array<Curve> filter(
   CHECK(sampleSpans.size() == curves.size());
   CHECK(sampleSpans.last().maxv() == totalSampleCount);
   auto timeSpans = listTimeSpans(curves);
-  std::cout << "Build problem..." << std::endl;
   buildProblem(
       settings,
       curves, sampleSpans,timeSpans,
       positionData, motionData, &problem);
-  std::cout << "Built it" << std::endl;
 
   Eigen::VectorXd X = Eigen::VectorXd::Zero(problem.paramCount());
-  std::cout << "Try to run it" << std::endl;
   BandedLevMar::runLevMar(settings.lmSettings,
       problem, &X);
-  std::cout << "Ran it..." << std::endl;
 
   return curves;
 }
