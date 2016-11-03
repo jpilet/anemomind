@@ -154,6 +154,24 @@ std::function<double(int)> makeWeightToIndex(int iters, double from, double to) 
   };
 }
 
+template <typename T>
+void evaluateEcefPos(
+    const RawSplineBasis<double, 3>::Weights &weights,
+    const T *input,
+    T *dst) {
+  for (int i = 0; i < 3; i++) {
+    dst[i] = T(0.0);
+  }
+  for (int i = 0; i < weights.dim; i++) {
+    int offs = blockSize*weights.inds[i];
+    const T *x = input + offs;
+    double w = weights.weights[i];
+    for (int j = 0; j < 3; j++) {
+      dst[j] += x[j]*w;
+    }
+  }
+}
+
 struct DataFitness {
   typedef RawSplineBasis<double, 3>::Weights Weights;
   Weights weights;
@@ -181,15 +199,8 @@ struct DataFitness {
       for (int i = 0; i < inputCount; i++) {
         CHECK(isFinite(input[i]));
       }
-      T xyz[3] = {T(0.0), T(0.0), T(0.0)};
-      for (int i = 0; i < Weights::dim; i++) {
-        int offs = blockSize*weights.inds[i];
-        const T *x = input + offs;
-        double w = weights.weights[i];
-        for (int j = 0; j < 3; j++) {
-          xyz[j] += x[j]*w;
-        }
-      }
+      T xyz[3];
+      evaluateEcefPos<T>(weights, input, xyz);
       for (int i = 0; i < 3; i++) {
         output[i] = weight*(xyz[i] - data[i]);
       }
