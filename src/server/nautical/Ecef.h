@@ -168,7 +168,9 @@ struct ECEF {
         motion.xyz[1].metersPerSecond(),
         motion.xyz[2].metersPerSecond());
     Eigen::Matrix<T, 3, 1> hmotion = A*B;
-    return HorizontalMotion<T>(hmotion(1), hmotion(0));
+    return HorizontalMotion<T>(
+        Velocity<T>::metersPerSecond(hmotion(1)),
+        Velocity<T>::metersPerSecond(hmotion(0)));
   }
 
   template <typename T>
