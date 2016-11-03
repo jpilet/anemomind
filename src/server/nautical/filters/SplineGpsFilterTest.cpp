@@ -31,6 +31,10 @@ TEST(SplineGpsFilterTest, FilterIt) {
   auto curves = SplineGpsFilter::filter(positions,
       Array<TimedValue<HorizontalMotion<double>>>(),
       Array<TimeMapper>{mapper}, SplineGpsFilter::Settings());
+
+  EXPECT_EQ(curves.size(), 1);
+  auto pos = curves[0].evaluateGeographicPosition(offset);
+  EXPECT_NEAR(pos.lon().degrees(), 34.0, 0.00001);
 }
 
 
