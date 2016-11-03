@@ -123,10 +123,8 @@ struct ECEF {
   }
 
   template <typename T>
-  static Eigen::Matrix<T, 3, 1> hMotionToXYZ(
-      T lon, T lat, T h,
-      T eastMps, T northMps, T downMps) {
-    Eigen::Matrix<T, 3, 1> B;
+  static Eigen::Matrix<T, 3, 3> makeEcefToHMotionMatrix(
+      T lon, T lat, T h) {
     T phi = lat;
     T lambda = lon;
     Eigen::Matrix<T, 3, 3> A;
@@ -139,8 +137,38 @@ struct ECEF {
          -cos(phi)*cos(lambda),
          -cos(phi)*sin(lambda),
          -sin(phi);
-    B << northMps, eastMps, downMps;
+    return A;
+  }
+
+  template <typename T>
+  static Eigen::Matrix<T, 3, 3> makeEcefToHMotionMatrix(
+      const LLACoords<T> &lla) {
+    return makeEcefToHMotionMatrix(
+        lla.lon.radians(),
+        lla.lat.radians(),
+        lla.height.meters());
+  }
+
+  template <typename T>
+  static Eigen::Matrix<T, 3, 1> hMotionToXYZ(
+      T lon, T lat, T h,
+      T eastMps, T northMps, T downMps) {
+    Eigen::Matrix<T, 3, 1> B(northMps, eastMps, downMps);
+    auto A = makeEcefToHMotionMatrix(lon, lat, h);
     return A.lu().solve(B);
+  }
+
+  template <typename T>
+  static HorizontalMotion<T> computeEcefToHMotion(
+      const ECEFCoords<T, 0> &pos,
+      const ECEFCoords<T, 1> &motion) {
+    auto A = makeEcefToHMotionMatrix(convert(pos));
+    Eigen::Matrix<T, 3, 1> B(
+        motion.xyz[0].metersPerSecond(),
+        motion.xyz[1].metersPerSecond(),
+        motion.xyz[2].metersPerSecond());
+    Eigen::Matrix<T, 3, 1> hmotion = A*B;
+    return HorizontalMotion<T>(hmotion(1), hmotion(0));
   }
 
   template <typename T>

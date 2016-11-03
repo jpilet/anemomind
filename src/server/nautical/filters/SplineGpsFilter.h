@@ -36,6 +36,26 @@ struct Settings {
   OutlierRejector::Settings positionSettings() const;
 };
 
+class EcefCurve {
+public:
+  EcefCurve() {}
+  EcefCurve(
+      const TimeMapper &mapper,
+      const SmoothBoundarySplineBasis<double, 3> &b,
+      const double *coefs, int stride);
+
+  TimeStamp lower() const;
+  TimeStamp upper() const;
+  ECEFCoords<double> evaluateEcefPosition(TimeStamp t) const;
+
+  GeographicPosition<double> evaluateGeographicPosition(TimeStamp t) const;
+  HorizontalMotion<double> evaluateHorizontalMotion(TimeStamp t) const;
+private:
+  TimeMapper _mapper;
+  SmoothBoundarySplineBasis<double, 3> _basis, _motionBasis;
+  Array<double> _coefs[3];
+};
+
 struct Curve {
   TimeMapper timeMapper;
   SmoothBoundarySplineBasis<double, 3> basis;
@@ -56,7 +76,7 @@ Array<Curve> filter(
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
     const Array<TimeMapper> &segments,
-    const Settings &settings);
+    Settings settings);
 
 }
 }

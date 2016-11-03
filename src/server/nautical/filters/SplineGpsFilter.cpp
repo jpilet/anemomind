@@ -22,6 +22,58 @@ OutlierRejector::Settings Settings::positionSettings() const {
   return settings;
 }
 
+EcefCurve::EcefCurve(
+    const TimeMapper &mapper,
+    const SmoothBoundarySplineBasis<double, 3> &b,
+    const double *coefs, int stride) : _mapper(mapper), _basis(b),
+
+        // f(x) = g(x/T);
+        // f'(x) = g'(x/T)*(1/T)
+        _motionBasis(b.derivative().scale(1.0/mapper.period.seconds())) {
+
+  int n = _mapper.sampleCount;
+  for (int i = 0; i < 3; i++) {
+    _coefs[i] = Array<double>::fill(n, 0.0);
+  }
+  for (int i = 0; i < n; i++) {
+    const double *x = coefs + stride*i;
+    for (int j = 0; j < 3; j++) {
+      _coefs[j][i] = x[j];
+    }
+  }
+}
+
+TimeStamp EcefCurve::lower() const {
+  return _mapper.unmap(_basis.raw().lowerDataBound());
+}
+
+TimeStamp EcefCurve::upper() const {
+  return _mapper.unmap(_basis.raw().upperDataBound());
+}
+
+ECEFCoords<double> EcefCurve::evaluateEcefPosition(TimeStamp t) const {
+  auto x = _mapper.mapToReal(t);
+  auto unit = 1.0_m;
+  return ECEFCoords<double>{
+    _basis.evaluate(_coefs[0].ptr(), x)*unit,
+    _basis.evaluate(_coefs[1].ptr(), x)*unit,
+    _basis.evaluate(_coefs[2].ptr(), x)*unit
+  };
+}
+
+GeographicPosition<double> EcefCurve::evaluateGeographicPosition(
+    TimeStamp t) const {
+  auto pos = evaluateEcefPosition(t);
+  auto lla = ECEF::convert(pos);
+  return GeographicPosition<double>(lla.lon, lla.lat, lla.height);
+}
+
+HorizontalMotion<double> EcefCurve::evaluateHorizontalMotion(
+    TimeStamp t) const {
+  auto pos = evaluateEcefPosition(t);
+  auto m = evaluateEcefMotion()
+}
+
 Array<Curve> allocateCurves(const Array<TimeMapper> &mappers) {
   int n = mappers.size();
   Array<Curve> dst(n);
@@ -307,7 +359,7 @@ Array<Curve> filter(
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
     const Array<TimeMapper> &segments,
-    const Settings &settings) {
+    Settings settings) {
   auto curves = allocateCurves(segments);
   int totalSampleCount = computeTotalSampleCount(segments);
   int dim = blockSize*totalSampleCount;
@@ -324,6 +376,7 @@ Array<Curve> filter(
 
   Eigen::VectorXd X = Eigen::VectorXd::Zero(problem.paramCount());
 
+  settings.lmSettings.verbosity = 2;
   BandedLevMar::runLevMar(settings.lmSettings,
       problem, &X);
 

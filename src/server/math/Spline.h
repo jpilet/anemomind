@@ -67,6 +67,14 @@ struct SplineBasisFunction {
     }
     return dst;
   }
+
+  ThisType scale(T s) const {
+    ThisType dst;
+    for (int i = 0; i < PieceCount; i++) {
+      dst._pieces[i] = s*_pieces[i];
+    }
+    return dst;
+  }
 private:
   Piece _pieces[PieceCount];
 
@@ -251,6 +259,10 @@ public:
   ThisType derivative() const {
     return ThisType(_intervalCount, _basisFunction.derivative());
   }
+
+  ThisType scale(T s) const {
+    return ThisType(_intervalCount, _basisFunction.scale(s));
+  }
 private:
   RawSplineBasis(int i, const SplineType &st) : _intervalCount(i),
     _basisFunction(st) {}
@@ -425,6 +437,10 @@ public:
 
   ThisType derivative() const {
     return ThisType(_left, _right, _basis.derivative());
+  }
+
+  ThisType scale(T s) const {
+    return ThisType(_left, _right, _basis.scale(s));
   }
 private:
   SmoothBoundarySplineBasis(const Eigen::MatrixXd &l, const Eigen::MatrixXd &r,
