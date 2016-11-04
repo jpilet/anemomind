@@ -169,14 +169,18 @@ public:
       return dst;
     }
 
-    Span<int> getSpanAndOffsetAt0() {
-      auto span = getSpan();
+    void shiftTo(int offset) {
       for (int i = 0; i < dim; i++) {
-        inds[i] -= span.minv();
+        inds[i] -= offset;
         if (!isSet(i) || inds[i] < 0) {
           inds[i] = 0;
         }
       }
+    }
+
+    Span<int> getSpanAndOffsetAt0() {
+      auto span = getSpan();
+      shiftTo(span.minv());
       return Span<int>(span.minv(), span.minv() + dim);
     }
   };

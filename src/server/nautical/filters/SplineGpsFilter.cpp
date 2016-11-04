@@ -329,10 +329,12 @@ void addPositionDataTerm(
       toMeters(pos), weights, dst);
 }
 
+auto timeMarg = 0.0001_s;
+
 double computeSpeed(
     const TimedValue<GeographicPosition<double>> &a,
     const TimedValue<GeographicPosition<double>> &b) {
-  auto dif = b.time - a.time + 0.0001_s;
+  auto dif = b.time - a.time + timeMarg;
   return (distance(a.value, b.value)/dif).metersPerSecond();
 }
 
@@ -346,8 +348,7 @@ Array<bool> computeMask(
    outlierSettings.threshold = threshold;
    typedef TimedValue<T> TV;
    auto mask = DiscreteOutlierFilter::computeOutlierMask<const TV*, TV>(
-       samples.begin(), samples.end(),
-       std::function<double(TV, TV)>(&computeSpeed),
+       samples.begin(), samples.end(), cost,
        [=](TV x, TV y) {
          return y.time - x.time > cut;
        },
@@ -373,15 +374,87 @@ void addPositionDataTerms(
   }
 }
 
+template <typename T, int n>
+struct ToEcef {};
+
+template <typename T>
+struct ToEcef<T, 0> {
+  static Length<T> apply(T x) {return Length<T>::meters(T(x));}
+};
+template <typename T>
+struct ToEcef<T, 1> {
+  static Velocity<T> apply(T x) {return Velocity<T>::metersPerSecond(T(x));}
+};
+
+template <typename T, int n>
+ECEFCoords<T, n> toEcefCoords(T *x) {
+  ECEFCoords<T, n> dst;
+  for (int i = 0; i < 3; i++) {
+    dst.xyz[i] = ToEcef<T, n>::apply(x[i]);
+  }
+  return dst;
+}
+
+struct MotionDataTerm {
+  Weights position, motion;
+  HorizontalMotion<double> dst;
+  Duration<double> period;
+
+  static const int inputCount = blockSize*Weights::dim;
+  static const int outputCount = 2;
+
+  MotionDataTerm(
+      Weights p, Weights m,
+      const HorizontalMotion<double> &v,
+      Duration<double> per) : position(p),
+          motion(m), dst(v), period(per) {}
+
+  template <typename T>
+  bool evaluate(const T *input, T *output) const {
+    T pos[3], mot[3];
+    evaluateEcefPos<T>(position, input, pos);
+    evaluateEcefPos<T>(motion, input, mot);
+    auto hm = ECEF::computeEcefToHMotion(
+        toEcefCoords<T, 0>(pos),
+        toEcefCoords<T, 1>(mot));
+    if (isFinite(hm[0]) && isFinite(hm[1])) {
+      for (int i = 0; i < 2; i++) {
+        output[i] = period.seconds()*(hm[i].metersPerSecond()
+            - T(dst[i].metersPerSecond()));
+      }
+    } else {
+      for (int i = 0; i < 2; i++) {
+        output[i] = T(100.0);
+      }
+    }
+    return true;
+  }
+};
+
 void addMotionDataTerm(
     const Settings &settings,
-    const SmoothBoundarySplineBasis<double, 3> &basis,
+    const SmoothBoundarySplineBasis<double, 3> &positionBasis,
+    const SmoothBoundarySplineBasis<double, 3> &motionBasis,
     const TimeMapper &mapper,
     Span<int> sampleSpan,
     const TimedValue<HorizontalMotion<double>> &value,
     BandedLevMar::Problem<double> *dst) {
   auto x = mapper.mapToReal(value.time);
-  auto weights = basis.build(x);
+  auto positionWeights = positionBasis.build(x);
+  auto span = positionWeights.getSpanAndOffsetAt0();
+  auto motionWeights = motionBasis.build(x);
+  motionWeights.shiftTo(span.minv());
+  dst->addCostFunction(blockSize*span, new MotionDataTerm(
+      positionWeights, motionWeights,
+      value.value, settings.period));
+}
+
+double computeAcceleration(
+    const TimedValue<HorizontalMotion<double>> &a,
+    const TimedValue<HorizontalMotion<double>> &b) {
+  return HorizontalMotion<double>(a.value
+      - b.value).norm().metersPerSecond()
+      /(b.time - a.time + timeMarg).seconds();
 }
 
 void addMotionDataTerms(
@@ -392,12 +465,18 @@ void addMotionDataTerms(
     BandedLevMar::Problem<double> *dst) {
   auto der = curve.basis.derivative();
 
+  auto mask = computeMask<HorizontalMotion<double>>(
+      settings.outlierCutThreshold,
+      &computeAcceleration,
+      settings.maxAcceleration/(1.0_mps/1.0_s),
+      pm);
 
-
-  for (auto sample: pm) {
-    addMotionDataTerm(settings, der, curve.timeMapper,
-        sampleSpan, sample,
-        dst);
+  for (int i = 0; i < pm.size(); i++) {
+    if (mask[i]) {
+      addMotionDataTerm(settings, curve.basis, der, curve.timeMapper,
+          sampleSpan, pm[i],
+          dst);
+    }
   }
 }
 
