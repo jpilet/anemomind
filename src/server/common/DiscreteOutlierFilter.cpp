@@ -86,6 +86,13 @@ Array<bool> solveMask(
     }
     backPointers[i] = ptr;
   }
+
+  for (int i = 0; i <= n; i++) {
+    auto ptr = backPointers[i];
+    std::cout << "Backptr at "<< i << "  prev="
+        << ptr.previous << " cost=" << ptr.cost << std::endl;
+  }
+
   auto segmentMask = Array<bool>::fill(n, false);
   int i = n;
   while (true) {
