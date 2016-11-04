@@ -7,6 +7,7 @@
 
 #include <server/common/DiscreteOutlierFilter.h>
 #include <gtest/gtest.h>
+#include <server/common/ArrayIO.h>
 
 using namespace sail;
 
@@ -52,4 +53,20 @@ TEST(DiscreteOutlierFilterTest, BasicTest3) {
       values.begin(), values.end(),
       [](double a, double b) {return std::abs(a - b);},
       settings).empty()));
+}
+
+TEST(DiscreteOutlierFilterTest, BasicTest4) {
+
+  Array<double> values{1, 2, 3, 2, 2, 2, 2, 4, 5, 100, 10001, 300, 3, 4, 5};
+  DiscreteOutlierFilter::Settings settings;
+  settings.threshold = 20;
+
+  auto mask = DiscreteOutlierFilter::computeOutlierMask<double*, double>(
+      values.begin(), values.end(),
+      [](double a, double b) {return std::abs(a - b);},
+      settings);
+  EXPECT_EQ(mask, (Array<bool>{
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1
+  }));
+  std::cout << "mask: " << mask << std::endl;
 }
