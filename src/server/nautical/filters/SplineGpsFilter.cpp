@@ -548,9 +548,8 @@ void buildProblemPerCurve(
   Span<int> valueSpan = blockSize*sampleSpan;
 
   addPositionDataTerms(settings, c, sampleSpan, pd, dst);
-  //addMotionDataTerms(settings, c, sampleSpan, md, dst);
+  addMotionDataTerms(settings, c, sampleSpan, md, dst);
   addDataRegTerms(settings, c, sampleSpan, dst);
-  addStabilizeTerms(settings, sampleSpan, dst);
 }
 
 void buildProblem(
