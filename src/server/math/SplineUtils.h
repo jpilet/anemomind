@@ -13,6 +13,10 @@
 
 namespace sail {
 
+Arrayd fitSplineCoefs(
+    const SmoothBoundarySplineBasis<double, 3> &basis,
+    std::function<double(int)> sampleFun);
+
 class TemporalSplineCurve {
 public:
   TemporalSplineCurve(

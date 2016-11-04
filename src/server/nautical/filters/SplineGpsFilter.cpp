@@ -12,6 +12,8 @@
 #include <server/common/LineKM.h>
 #include <server/nautical/WGS84.h>
 #include <server/common/DiscreteOutlierFilter.h>
+#include <server/math/nonlinear/SpatialMedian.h>
+#include <server/math/SplineUtils.h>
 
 namespace sail {
 namespace SplineGpsFilter {
@@ -538,13 +540,44 @@ void addStabilizeTerms(
   }
 }
 
+Array<Eigen::Vector3d>
+  to3dPositions(
+      const Array<TimedValue<GeographicPosition<double>>> &positions) {
+  int n = positions.size();
+  Array<Eigen::Vector3d> data(n);
+  for (int i = 0; i < n; i++) {
+    auto k = ECEF::convert(positions[i].value);
+    data[i] = Eigen::Vector3d(
+        k.xyz[0].meters(),
+        k.xyz[1].meters(),
+        k.xyz[2].meters());
+  }
+  return data;
+}
+
+void initializeByMedian(
+    const Curve &curve,
+    const Array<TimedValue<GeographicPosition<double>>> &src,
+    double *dst) {
+  SpatialMedian::Settings settings;
+  auto pos3d = to3dPositions(src);
+  auto medianPos = SpatialMedian::compute<3, double>(
+      pos3d, settings);
+  Arrayd coefs[3];
+  for (int i = 0; i < 3; i++) {
+    coefs[i] = fitSplineCoefs(curve.basis,
+        [=](int) {return medianPos(i);});
+  }
+}
+
 void buildProblemPerCurve(
     const Settings &settings,
     const Curve &c,
     Span<int> sampleSpan,
     const Array<TimedValue<GeographicPosition<double>>> &pd,
     const Array<TimedValue<HorizontalMotion<double>>> &md,
-    BandedLevMar::Problem<double> *dst) {
+    BandedLevMar::Problem<double> *dst,
+    double *XinitSub) {
   Span<int> valueSpan = blockSize*sampleSpan;
 
   addPositionDataTerms(settings, c, sampleSpan, pd, dst);
@@ -559,17 +592,20 @@ void buildProblem(
     const Array<Span<TimeStamp>> &timeSpans,
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
-    BandedLevMar::Problem<double> *dst) {
+    BandedLevMar::Problem<double> *dst,
+    Eigen::VectorXd *Xinit) {
   auto pd = cutTimedValues(
       positionData.begin(), positionData.end(), timeSpans);
   auto md = cutTimedValues(
       motionData.begin(), motionData.end(), timeSpans);
   for (int i = 0; i < curves.size(); i++) {
+    auto sampleSpan = sampleSpans[i];
     buildProblemPerCurve(
         settings,
         curves[i],
-        sampleSpans[i],
-        pd[i], md[i], dst);
+        sampleSpan,
+        pd[i], md[i], dst,
+        Xinit->data() + blockSize*sampleSpan.minv());
   }
 }
 
@@ -587,14 +623,14 @@ Array<EcefCurve> filter(
   CHECK(sampleSpans.size() == curves.size());
   CHECK(sampleSpans.last().maxv() == totalSampleCount);
   auto timeSpans = listTimeSpans(curves);
+  Eigen::VectorXd X = Eigen::VectorXd::Zero(blockSize*totalSampleCount);
   buildProblem(
       settings,
       curves, sampleSpans,timeSpans,
-      positionData, motionData, &problem);
+      positionData, motionData, &problem, &X);
+  CHECK(problem.paramCount() == blockSize*totalSampleCount);
 
-  Eigen::VectorXd X = Eigen::VectorXd::Zero(problem.paramCount());
 
-  settings.lmSettings.verbosity = 2;
   BandedLevMar::runLevMar(settings.lmSettings,
       problem, &X);
 

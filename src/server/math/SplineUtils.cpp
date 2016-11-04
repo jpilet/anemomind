@@ -10,6 +10,34 @@
 
 namespace sail {
 
+void accumulateNormalEqs(
+    const SmoothBoundarySplineBasis<double, 3>::Weights &w, double y,
+    SymmetricBandMatrixL<double> *lhs,
+    MDArray2d *rhs) {
+  for (int i = 0; i < w.dim; i++) {
+    for (int j = 0; j < w.dim; j++) {
+      int I = w.inds[i];
+      int J = w.inds[j];
+      lhs->add(I, J, w.weights[i]*w.weights[j]);
+    }
+    (*rhs)(w.inds[i], 0) += w.weights[i]*y;
+  }
+}
+
+Arrayd fitSplineCoefs(
+    const SmoothBoundarySplineBasis<double, 3> &basis,
+    std::function<double(int)> sampleFun) {
+  int n = basis.coefCount();
+  auto lhs = SymmetricBandMatrixL<double>::zero(
+      n, SmoothBoundarySplineBasis<double, 3>::Weights::dim);
+  auto rhs = MDArray2d(n, 1);
+  for (int i = 0; i < n; i++) {
+    accumulateNormalEqs(basis.build(i), sampleFun(i), &lhs, &rhs);
+  }
+  Pbsv<double>::apply(&lhs, &rhs);
+  return rhs.getStorage();
+}
+
 TemporalSplineCurve::TemporalSplineCurve(
     Span<TimeStamp> timeSpan,
     Duration<double> period,
@@ -33,14 +61,7 @@ TemporalSplineCurve::TemporalSplineCurve(
     double x = toLocal(src[k]);
     double y = dst[k];
     auto w = _basis.build(x);
-    for (int i = 0; i < w.dim; i++) {
-      for (int j = 0; j < w.dim; j++) {
-        int I = w.inds[i];
-        int J = w.inds[j];
-        lhs.add(I, J, w.weights[i]*w.weights[j]);
-      }
-      rhs(w.inds[i], 0) += w.weights[i]*y;
-    }
+    accumulateNormalEqs(w, y, &lhs, &rhs);
   }
   Pbsv<double>::apply(&lhs, &rhs);
   _coefs = rhs.getStorage();
