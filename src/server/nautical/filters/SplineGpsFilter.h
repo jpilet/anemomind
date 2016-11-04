@@ -31,6 +31,8 @@ struct Settings {
   BandedLevMar::Settings lmSettings;
 
   Velocity<double> maxSpeed = 100.0_kn;
+  QuantityPerQuantity<Velocity<double>, Duration<double>>
+    maxAcceleration = 100.0_kn/1.0_s;
 
   OutlierRejector::Settings positionSettings() const;
 };
