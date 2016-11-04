@@ -15,12 +15,16 @@ void accumulateNormalEqs(
     SymmetricBandMatrixL<double> *lhs,
     MDArray2d *rhs) {
   for (int i = 0; i < w.dim; i++) {
-    for (int j = 0; j < w.dim; j++) {
-      int I = w.inds[i];
-      int J = w.inds[j];
-      lhs->add(I, J, w.weights[i]*w.weights[j]);
+    if (w.isSet(i)) {
+      for (int j = 0; j < w.dim; j++) {
+        if (w.isSet(j)) {
+          int I = w.inds[i];
+          int J = w.inds[j];
+          lhs->add(I, J, w.weights[i]*w.weights[j]);
+        }
+      }
+      (*rhs)(w.inds[i], 0) += w.weights[i]*y;
     }
-    (*rhs)(w.inds[i], 0) += w.weights[i]*y;
   }
 }
 
@@ -31,9 +35,11 @@ Arrayd fitSplineCoefs(
   auto lhs = SymmetricBandMatrixL<double>::zero(
       n, SmoothBoundarySplineBasis<double, 3>::Weights::dim);
   auto rhs = MDArray2d(n, 1);
+  std::cout << "Solving for " << n << std::endl;
   for (int i = 0; i < n; i++) {
     accumulateNormalEqs(basis.build(i), sampleFun(i), &lhs, &rhs);
   }
+  std::cout << "NOw solv it" << std::endl;
   Pbsv<double>::apply(&lhs, &rhs);
   return rhs.getStorage();
 }

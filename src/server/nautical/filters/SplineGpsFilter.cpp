@@ -567,6 +567,13 @@ void initializeByMedian(
     coefs[i] = fitSplineCoefs(curve.basis,
         [=](int) {return medianPos(i);});
   }
+  int n = curve.basis.coefCount();
+  for (int i = 0; i < n; i++) {
+    int offset = i*blockSize;
+    for (int j = 0; j < 3; j++) {
+      dst[offset + j] = coefs[j][i];
+    }
+  }
 }
 
 void buildProblemPerCurve(
@@ -575,7 +582,9 @@ void buildProblemPerCurve(
     Span<int> sampleSpan,
     const Array<TimedValue<GeographicPosition<double>>> &pd,
     const Array<TimedValue<HorizontalMotion<double>>> &md,
-    BandedLevMar::Problem<double> *dst) {
+    BandedLevMar::Problem<double> *dst,
+    double *Xinit) {
+  initializeByMedian(c, pd, Xinit);
   Span<int> valueSpan = blockSize*sampleSpan;
 
   addPositionDataTerms(settings, c, sampleSpan, pd, dst);
@@ -590,7 +599,8 @@ void buildProblem(
     const Array<Span<TimeStamp>> &timeSpans,
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
-    BandedLevMar::Problem<double> *dst) {
+    BandedLevMar::Problem<double> *dst,
+    double *Xinit) {
   auto pd = cutTimedValues(
       positionData.begin(), positionData.end(), timeSpans);
   auto md = cutTimedValues(
@@ -601,7 +611,8 @@ void buildProblem(
         settings,
         curves[i],
         sampleSpan,
-        pd[i], md[i], dst);
+        pd[i], md[i], dst,
+        Xinit + blockSize*sampleSpan.minv());
   }
 }
 
@@ -619,12 +630,16 @@ Array<EcefCurve> filter(
   CHECK(sampleSpans.size() == curves.size());
   CHECK(sampleSpans.last().maxv() == totalSampleCount);
   auto timeSpans = listTimeSpans(curves);
+
+  Eigen::VectorXd Xinit = Eigen::VectorXd(blockSize*totalSampleCount);
   buildProblem(
       settings,
       curves, sampleSpans,timeSpans,
-      positionData, motionData, &problem);
+      positionData, motionData, &problem,
+      Xinit.data());
 
   Eigen::VectorXd X = Eigen::VectorXd::Zero(problem.paramCount());
+  X.block(0, 0, Xinit.size(), 1) = Xinit;
 
 
   BandedLevMar::runLevMar(settings.lmSettings,
