@@ -449,3 +449,14 @@ cxx_test(common_CmdArgTest
   gtest_main
   common_CmdArg
   )
+
+add_library(common_DiscreteOutlierFilter
+  DiscreteOutlierFilter.h
+  DiscreteOutlierFilter.cpp
+  )
+
+cxx_test(common_DiscreteOutlierFilterTest
+  DiscreteOutlierFilterTest.cpp
+  gtest_main
+  common_DiscreteOutlierFilter
+  )
