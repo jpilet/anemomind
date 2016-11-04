@@ -87,12 +87,6 @@ Array<bool> solveMask(
     backPointers[i] = ptr;
   }
 
-  for (int i = 0; i <= n; i++) {
-    auto ptr = backPointers[i];
-    std::cout << "Backptr at "<< i << "  prev="
-        << ptr.previous << " cost=" << ptr.cost << std::endl;
-  }
-
   auto segmentMask = Array<bool>::fill(n, false);
   int i = n;
   while (true) {
@@ -108,6 +102,7 @@ Array<bool> solveMask(
 
 Array<bool> computeOutlierMaskFromPairwiseCosts(
     int n, std::function<double(int, int)> cost,
+    std::function<bool(int, int)> cut,
     const Settings &settings) {
   int pairCount = n-1;
   if (pairCount <= 0) {
@@ -118,7 +113,7 @@ Array<bool> computeOutlierMaskFromPairwiseCosts(
   splits.add(0);
   ArrayBuilder<double> splitCosts(pairCount);
   for (int i = 0; i < pairCount; i++) {
-    if (settings.threshold < cost(i, i+1)) {
+    if (settings.threshold < cost(i, i+1) || cut(i, i+1)) {
       int index = i + 1;
       splits.add(index);
       splitCosts.add(index);

@@ -346,7 +346,11 @@ void addPositionDataTerms(
   outlierSettings.threshold = settings.maxSpeed.metersPerSecond();
   typedef TimedValue<GeographicPosition<double>> TV;
   auto mask = DiscreteOutlierFilter::computeOutlierMask<const TV*, TV>(
-      pd.begin(), pd.end(), std::function<double(TV, TV)>(&computeSpeed),
+      pd.begin(), pd.end(),
+      std::function<double(TV, TV)>(&computeSpeed),
+      [=](TV x, TV y) {
+        return y.time - x.time > settings.outlierCutThreshold;
+      },
       outlierSettings);
   CHECK(mask.size() == pd.size());
   for (int i = 0; i <pd.size(); i++) {

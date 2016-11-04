@@ -30,6 +30,8 @@ struct Settings {
   double stabilizerWeight = 1.0e-12;
   BandedLevMar::Settings lmSettings;
 
+  Duration<double> outlierCutThreshold = 1.0_minutes;
+
   Velocity<double> maxSpeed = 100.0_kn;
   QuantityPerQuantity<Velocity<double>, Duration<double>>
     maxAcceleration = 100.0_kn/1.0_s;

@@ -20,7 +20,9 @@ struct Settings {
 };
 
 Array<bool> computeOutlierMaskFromPairwiseCosts(
-    int n, std::function<double(int, int)> cost,
+    int n,
+    std::function<double(int, int)> cost,
+    std::function<bool(int, int)> cut,
     const Settings &settings);
 
 
@@ -29,13 +31,25 @@ Array<bool> computeOutlierMaskFromPairwiseCosts(
 template <typename Iterator, typename T = typename Iterator::type>
 Array<bool> computeOutlierMask(Iterator begin, Iterator end,
     std::function<double(T, T)> cost,
+    std::function<bool(T, T)> cut,
     const Settings &settings) {
   return computeOutlierMaskFromPairwiseCosts(
       std::distance(begin, end),
       [=](int i, int j) {
          return cost(*(begin + i), *(begin + j));
+      }, [=](int i, int j) {
+        return cut(*(begin + i), *(begin + j));
       }, settings);
 }
+
+template <typename Iterator, typename T = typename Iterator::type>
+Array<bool> computeOutlierMask(Iterator begin, Iterator end,
+    std::function<double(T, T)> cost,
+    const Settings &settings) {
+  return computeOutlierMask<Iterator, T>(begin, end, cost,
+      [](T x, T y) {return false;}, settings);
+}
+
 
 }
 }
