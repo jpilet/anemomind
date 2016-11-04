@@ -437,10 +437,6 @@ struct MotionDataTerm {
         output[i] = hm(flipped) - k;
       }
       output[2] = hm(2);
-      /*std::cout << "Fit it" << std::endl;
-      for (int i = 0; i < 3; i++) {
-        std::cout << " motion fit " << i << ": " << output[i] << std::endl;
-      }*/
     } else {
       for (int i = 0; i < 3; i++) {
         output[i] = T(100.0);
