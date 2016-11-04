@@ -24,8 +24,8 @@ Array<bool> computeOutlierMaskFromPairwiseCosts(
     const Settings &settings);
 
 
-// Note: don't forget to make sure the cost is positive,
-//
+// Note: don't forget to make sure the cost is non-negative,
+// which it should be in most cases.
 template <typename Iterator, typename T = typename Iterator::type>
 Array<bool> computeOutlierMask(Iterator begin, Iterator end,
     std::function<double(T, T)> cost,

@@ -69,3 +69,18 @@ TEST(DiscreteOutlierFilterTest, BasicTest4) {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1
   }));
 }
+
+TEST(DiscreteOutlierFilterTest, BasicTest5) {
+
+  Array<double> values{1};
+  DiscreteOutlierFilter::Settings settings;
+  settings.threshold = 20;
+
+  auto mask = DiscreteOutlierFilter::computeOutlierMask<double*, double>(
+      values.begin(), values.end(),
+      [](double a, double b) {return std::abs(a - b);},
+      settings);
+  EXPECT_EQ(mask, (Array<bool>{
+    1
+  }));
+}
