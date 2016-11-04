@@ -64,6 +64,7 @@ Array<bool> solveMask(
   auto backPointers = Array<BackPointer>::fill(n+1, BackPointer());
 
   for (int i = 1; i <= n; i++) {
+    std::cout << "Iteration " << i << std::endl;
     BackPointer ptr;
     ptr.cost = std::numeric_limits<double>::max();
     for (int j = 0; j < settings.backSteps.size(); j++) {
@@ -82,6 +83,7 @@ Array<bool> solveMask(
     }
     backPointers[i] = ptr;
   }
+  std::cout << "Done" << std::endl;
   auto segmentMask = Array<bool>::fill(n, false);
   int i = n;
   while (true) {
