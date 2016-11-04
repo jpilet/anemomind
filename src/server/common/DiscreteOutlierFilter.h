@@ -8,7 +8,8 @@
 #ifndef SERVER_COMMON_DISCRETEOUTLIERFILTER_H_
 #define SERVER_COMMON_DISCRETEOUTLIERFILTER_H_
 
-#include <server/common/Array.h>
+#include <server/common/ArrayBuilder.h>
+#include <server/common/TimedValue.h>
 
 namespace sail {
 namespace DiscreteOutlierFilter {
@@ -18,27 +19,22 @@ struct Settings {
   Array<int> backSteps = Array<int>{1, 2, 4, 8, 16, 32, 64, 128};
 };
 
-Array<double> computeOutlierMaskFromPairwiseCosts(
-    const Array<double> &pairwiseCosts, const Settings &settings);
+Array<bool> computeOutlierMaskFromPairwiseCosts(
+    int n, std::function<double(int, int)> cost,
+    const Settings &settings);
 
 
 // Note: don't forget to make sure the cost is positive,
 //
 template <typename Iterator, typename T = typename Iterator::type>
 Array<bool> computeOutlierMask(Iterator begin, Iterator end,
-    std::function<double(TimedValue<T>, TimedValue<T>)> cost,
+    std::function<double(T, T)> cost,
     const Settings &settings) {
-  int n = std::distance(begin, end);
-  if (n <= 1) {
-    return Array<bool>::fill(n, true);
-  }
-  auto butLast = end-1;
-  ArrayBuilder<double> costs(n-1);
-  for (auto iter = begin; iter != butLast; iter++) {
-    costs.add(cost(*iter, *(iter + 1)));
-  }
   return computeOutlierMaskFromPairwiseCosts(
-      costs.get(), settings);
+      std::distance(begin, end),
+      [=](int i, int j) {
+         return cost(*(begin + i), *(begin + j));
+      }, settings);
 }
 
 }
