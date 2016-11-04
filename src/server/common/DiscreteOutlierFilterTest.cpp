@@ -22,6 +22,6 @@ TEST(DiscreteOutlierFilterTest, BasicTest) {
       settings);
 
   for (int i = 0; i < 5; i++) {
-    EXPECT_EQ(values[i], i != 2);
+    EXPECT_EQ(mask[i], i != 2);
   }
 }
