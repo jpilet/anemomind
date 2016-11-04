@@ -47,7 +47,7 @@ OutlierRejector::Settings Settings::positionSettings() const {
 }
 
 Settings::Settings() {
-  lmSettings.iters = 30;
+  lmSettings.iters = 8;
 }
 
 EcefCurve::EcefCurve(
