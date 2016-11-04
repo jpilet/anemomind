@@ -124,7 +124,6 @@ TEST(SplineTest, Test3) {
   TimeMapper mapper{offset, 2.0_s, 15};
 
   SplineGpsFilter::Settings settings;
-  settings.lmSettings.verbosity = 2;
 
   auto curves = SplineGpsFilter::filter(positions, motions.get(),
       Array<TimeMapper>{mapper}, settings);
@@ -145,10 +144,10 @@ TEST(SplineTest, Test3) {
     EXPECT_NEAR(m[1].metersPerSecond(), .0, 1.0e-2);
   }
 
-  /*{
+  {
     auto m = curve.evaluateHorizontalMotion(offset + 9.0_s);
     EXPECT_NEAR(m[0].metersPerSecond(), -1.0, 1.0e-2);
     EXPECT_NEAR(m[1].metersPerSecond(), .0, 1.0e-2);
-  }*/
+  }
 }
 
