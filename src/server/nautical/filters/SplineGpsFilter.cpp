@@ -313,8 +313,7 @@ void addDataTerm(const Settings &settings,
     const Eigen::Vector3d &observation,
     const RawSplineBasis<double, 3>::Weights &weights,
     BandedLevMar::Problem<double> *dst) {
-    dst->addCostFunction(blockSize*dstSpan,
-        new SquaredCost{weights, observation});
+
 }
 
 void addPositionDataTerm(
@@ -327,8 +326,8 @@ void addPositionDataTerm(
   auto weights = c.basis.build(x);
   auto dstSpan = weights.getSpanAndOffsetAt0();
   auto pos = ECEF::convert(value.value);
-  addDataTerm(settings, dstSpan + sampleSpan.minv(),
-      toMeters(pos), weights, dst);
+  dst->addCostFunction(blockSize*(dstSpan + sampleSpan.minv()),
+      new SquaredCost{weights, toMeters(pos)});
 }
 
 auto timeMarg = 0.0001_s;
@@ -446,7 +445,7 @@ void addMotionDataTerm(
   auto span = positionWeights.getSpanAndOffsetAt0();
   auto motionWeights = motionBasis.build(x);
   motionWeights.shiftTo(span.minv());
-  dst->addCostFunction(blockSize*span, new MotionDataTerm(
+  dst->addCostFunction(blockSize*(span + sampleSpan.minv()), new MotionDataTerm(
       positionWeights, motionWeights,
       value.value, mapper.period));
 }
@@ -507,7 +506,7 @@ void addDataRegTerms(const Settings &s,
   for (int i = 0; i < c.timeMapper.sampleCount; i++) {
     auto weights = der2.build(i);
     auto span = weights.getSpanAndOffsetAt0();
-    dst->addCostFunction(blockSize*span,
+    dst->addCostFunction(blockSize*(span + sampleSpan.minv()),
         new RegCost(weights*s.regWeight));
   }
 }
