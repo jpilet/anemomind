@@ -118,20 +118,31 @@ TEST(SplineTest, Test3) {
 
   ArrayBuilder<TimedValue<HorizontalMotion<double>>> motions;
   for (int i = 0; i < 30; i++) {
-    //motions.add(tv(i, m));
+    motions.add(tv(i, m));
   }
 
   TimeMapper mapper{offset, 2.0_s, 15};
 
   SplineGpsFilter::Settings settings;
+  settings.lmSettings.verbosity = 2;
 
   auto curves = SplineGpsFilter::filter(positions, motions.get(),
       Array<TimeMapper>{mapper}, settings);
 
   EXPECT_EQ(curves.size(), 1);
-  auto pos = curves[0].evaluateGeographicPosition(offset);
-  EXPECT_NEAR(pos.lon().degrees(), 34.0, 1.0e-6);
-  EXPECT_NEAR(pos.lat().degrees(), 9.0, 1.0e-6);
-  EXPECT_NEAR(pos.alt().meters(), 0.0, 1.0e-6);
+  auto curve = curves[0];
+
+  {
+    auto pos = curve.evaluateGeographicPosition(offset);
+    EXPECT_NEAR(pos.lon().degrees(), 34.0, 1.0e-6);
+    EXPECT_NEAR(pos.lat().degrees(), 9.0, 1.0e-6);
+    EXPECT_NEAR(pos.alt().meters(), 0.0, 1.0e-6);
+  }
+
+  {
+    auto m = curve.evaluateHorizontalMotion(offset);
+    EXPECT_NEAR(m[0].metersPerSecond(), -1.0, 1.0e-6);
+    EXPECT_NEAR(m[1].metersPerSecond(), .0, 1.0e-6);
+  }
 }
 

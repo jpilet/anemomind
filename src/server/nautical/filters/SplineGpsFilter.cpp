@@ -418,11 +418,11 @@ struct MotionDataTerm {
     auto hm = ECEF::computeNorthEastDownMotion<T>(
         toEcefCoords<T, 0>(pos),
         toEcefCoords<T, 1>(mot));
+    std::cout << "Period: " << period.seconds() << std::endl;
     if (isFinite(hm[0]) && isFinite(hm[1])) {
       for (int i = 0; i < 2; i++) {
         int flipped = 1 - i;
-        output[i] = period.seconds()*(hm(flipped)
-            - T(dst[i].metersPerSecond()));
+        output[i] = hm(flipped) - T(period.seconds()*dst[i].metersPerSecond());
       }
       output[2] = hm(2);
     } else {
