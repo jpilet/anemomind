@@ -68,5 +68,4 @@ TEST(DiscreteOutlierFilterTest, BasicTest4) {
   EXPECT_EQ(mask, (Array<bool>{
     1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1
   }));
-  std::cout << "mask: " << mask << std::endl;
 }
