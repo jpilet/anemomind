@@ -336,23 +336,35 @@ double computeSpeed(
   return (distance(a.value, b.value)/dif).metersPerSecond();
 }
 
+template <typename T>
+Array<bool> computeMask(
+    Duration<double> cut,
+    std::function<double(TimedValue<T>, TimedValue<T>)> cost,
+    double threshold,
+    const Array<TimedValue<T>> &samples) {
+  DiscreteOutlierFilter::Settings outlierSettings;
+   outlierSettings.threshold = threshold;
+   typedef TimedValue<T> TV;
+   auto mask = DiscreteOutlierFilter::computeOutlierMask<const TV*, TV>(
+       samples.begin(), samples.end(),
+       std::function<double(TV, TV)>(&computeSpeed),
+       [=](TV x, TV y) {
+         return y.time - x.time > cut;
+       },
+       outlierSettings);
+   CHECK(mask.size() == samples.size());
+   return mask;
+}
+
 void addPositionDataTerms(
     const Settings &settings,
     const Curve &c,
     Span<int> sampleSpan,
     const Array<TimedValue<GeographicPosition<double>>> &pd,
     BandedLevMar::Problem<double> *dst) {
-  DiscreteOutlierFilter::Settings outlierSettings;
-  outlierSettings.threshold = settings.maxSpeed.metersPerSecond();
-  typedef TimedValue<GeographicPosition<double>> TV;
-  auto mask = DiscreteOutlierFilter::computeOutlierMask<const TV*, TV>(
-      pd.begin(), pd.end(),
-      std::function<double(TV, TV)>(&computeSpeed),
-      [=](TV x, TV y) {
-        return y.time - x.time > settings.outlierCutThreshold;
-      },
-      outlierSettings);
-  CHECK(mask.size() == pd.size());
+  auto mask = computeMask<GeographicPosition<double>>(
+      settings.outlierCutThreshold, &computeSpeed,
+      settings.maxSpeed.metersPerSecond(), pd);
   for (int i = 0; i <pd.size(); i++) {
     if (mask[i]) {
       addPositionDataTerm(settings, c,
@@ -379,6 +391,9 @@ void addMotionDataTerms(
     const Array<TimedValue<HorizontalMotion<double>>> &pm,
     BandedLevMar::Problem<double> *dst) {
   auto der = curve.basis.derivative();
+
+
+
   for (auto sample: pm) {
     addMotionDataTerm(settings, der, curve.timeMapper,
         sampleSpan, sample,
