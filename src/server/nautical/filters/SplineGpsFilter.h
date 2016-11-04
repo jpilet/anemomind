@@ -24,17 +24,13 @@ namespace SplineGpsFilter {
 struct Settings {
   Settings();
 
-  bool reweighted = true;
   Duration<double> period = 2.0_s;
   Length<double> inlierThreshold = 12.0_m;
   double regWeight = 1; //10.0;
   double stabilizerWeight = 1.0e-12;
   BandedLevMar::Settings lmSettings;
 
-  double initialWeight = 0.1;
-  double finalWeight = 10000;
-
-  std::function<double(int)> weightToIndex() const;
+  Velocity<double> maxSpeed = 100.0_kn;
 
   OutlierRejector::Settings positionSettings() const;
 };

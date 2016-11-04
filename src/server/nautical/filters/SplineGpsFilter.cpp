@@ -10,6 +10,8 @@
 #include <server/common/TimedValueCutter.h>
 #include <server/math/OutlierRejector.h>
 #include <server/common/LineKM.h>
+#include <server/nautical/WGS84.h>
+#include <server/common/DiscreteOutlierFilter.h>
 
 namespace sail {
 namespace SplineGpsFilter {
@@ -244,11 +246,6 @@ Eigen::Vector3d toMeters(const ECEFCoords<double> &src) {
       src.xyz[2].meters());
 }
 
-std::function<double(int)> Settings::weightToIndex() const {
-  return makeWeightToIndex(lmSettings.iters, initialWeight, finalWeight);
-}
-
-
 template <typename T>
 T sqrtHuber(T x) {
   static const T zero = MakeConstant<T>::apply(0.0);
@@ -316,24 +313,9 @@ void addDataTerm(const Settings &settings,
     Span<int> dstSpan,
     const Eigen::Vector3d &observation,
     const RawSplineBasis<double, 3>::Weights &weights,
-    std::function<double(int)> w2i,
     BandedLevMar::Problem<double> *dst) {
-  if (settings.reweighted) {
-    auto f = new DataFitness(weights, observation,
-              settings.positionSettings(), w2i);
-    auto cost = dst->addCostFunction(
-        blockSize*dstSpan, f);
-    CHECK(cost);
-    cost->addIterationCallback([=](int i, const double *residuals) {
-      f->update(i, residuals);
-    });
-  } else {
-    /*dst->addCostFunction(blockSize*dstSpan,
-        new HuberDataCost(weights, observation,
-            settings.inlierThreshold.meters()));*/
     dst->addCostFunction(blockSize*dstSpan,
         new SquaredCost{weights, observation});
-  }
 }
 
 void addPositionDataTerm(
@@ -341,14 +323,20 @@ void addPositionDataTerm(
     const Curve &c,
     const Span<int> &sampleSpan,
     const TimedValue<GeographicPosition<double>> &value,
-    std::function<double(int)> w2i,
     BandedLevMar::Problem<double> *dst) {
   double x = c.timeMapper.mapToReal(value.time);
   auto weights = c.basis.build(x);
   auto dstSpan = weights.getSpanAndOffsetAt0();
   auto pos = ECEF::convert(value.value);
   addDataTerm(settings, dstSpan + sampleSpan.minv(),
-      toMeters(pos), weights, w2i, dst);
+      toMeters(pos), weights, dst);
+}
+
+double computeSpeed(
+    const TimedValue<GeographicPosition<double>> &a,
+    const TimedValue<GeographicPosition<double>> &b) {
+  auto dif = b.time - a.time + 0.0001_s;
+  return (distance(a.value, b.value)/dif).metersPerSecond();
 }
 
 void addPositionDataTerms(
@@ -357,9 +345,18 @@ void addPositionDataTerms(
     Span<int> sampleSpan,
     const Array<TimedValue<GeographicPosition<double>>> &pd,
     BandedLevMar::Problem<double> *dst) {
-  auto w2i = settings.weightToIndex();
-  for (auto sample: pd) {
-    addPositionDataTerm(settings, c, sampleSpan, sample, w2i, dst);
+  DiscreteOutlierFilter::Settings outlierSettings;
+  outlierSettings.threshold = settings.maxSpeed.metersPerSecond();
+  typedef TimedValue<GeographicPosition<double>> TV;
+  auto mask = DiscreteOutlierFilter::computeOutlierMask<const TV*, TV>(
+      pd.begin(), pd.end(), std::function<double(TV, TV)>(&computeSpeed),
+      outlierSettings);
+  CHECK(mask.size() == pd.size());
+  for (int i = 0; i <pd.size(); i++) {
+    if (mask[i]) {
+      addPositionDataTerm(settings, c,
+          sampleSpan, pd[i], dst);
+    }
   }
 }
 
@@ -367,8 +364,9 @@ void addMotionDataTerm(
     const Settings &settings,
     const SmoothBoundarySplineBasis<double, 3> &basis,
     const TimeMapper &mapper,
-    Span<int> sampleSpan, const TimedValue<HorizontalMotion<double>> &value,
-    const std::function<double(int)> w2i, BandedLevMar::Problem<double> *dst) {
+    Span<int> sampleSpan,
+    const TimedValue<HorizontalMotion<double>> &value,
+    BandedLevMar::Problem<double> *dst) {
   auto x = mapper.mapToReal(value.time);
   auto weights = basis.build(x);
 }
@@ -380,10 +378,9 @@ void addMotionDataTerms(
     const Array<TimedValue<HorizontalMotion<double>>> &pm,
     BandedLevMar::Problem<double> *dst) {
   auto der = curve.basis.derivative();
-  auto w2i = settings.weightToIndex();
   for (auto sample: pm) {
     addMotionDataTerm(settings, der, curve.timeMapper,
-        sampleSpan, sample, w2i,
+        sampleSpan, sample,
         dst);
   }
 }

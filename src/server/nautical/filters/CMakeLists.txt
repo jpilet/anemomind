@@ -98,6 +98,7 @@ target_link_libraries(filters_SplineGpsFilter
   math_Spline
   math_OutlierRejector
   lapack_BandWrappers
+  common_DiscreteOutlierFilter
   )
 
 cxx_test(filters_SplineGpsFilterTest
