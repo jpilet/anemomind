@@ -158,8 +158,10 @@ struct ECEF {
     return A.lu().solve(B);
   }
 
+
+
   template <typename T>
-  static HorizontalMotion<T> computeEcefToHMotion(
+  static Eigen::Matrix<T, 3, 1> computeNorthEastDownMotion(
       const ECEFCoords<T, 0> &pos,
       const ECEFCoords<T, 1> &motion) {
     auto A = makeEcefToHMotionMatrix(convert(pos));
@@ -168,6 +170,15 @@ struct ECEF {
         motion.xyz[1].metersPerSecond(),
         motion.xyz[2].metersPerSecond());
     Eigen::Matrix<T, 3, 1> hmotion = A*B;
+    return hmotion;
+  }
+
+
+  template <typename T>
+  static HorizontalMotion<T> computeEcefToHMotion(
+      const ECEFCoords<T, 0> &pos,
+      const ECEFCoords<T, 1> &motion) {
+    auto hmotion = computeNorthEastDownMotion(pos, motion);
     return HorizontalMotion<T>(
         Velocity<T>::metersPerSecond(hmotion(1)),
         Velocity<T>::metersPerSecond(hmotion(0)));

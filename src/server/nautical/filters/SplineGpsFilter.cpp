@@ -402,7 +402,7 @@ struct MotionDataTerm {
   Duration<double> period;
 
   static const int inputCount = blockSize*Weights::dim;
-  static const int outputCount = 2;
+  static const int outputCount = 3;
 
   MotionDataTerm(
       Weights p, Weights m,
@@ -415,16 +415,18 @@ struct MotionDataTerm {
     T pos[3], mot[3];
     evaluateEcefPos<T>(position, input, pos);
     evaluateEcefPos<T>(motion, input, mot);
-    auto hm = ECEF::computeEcefToHMotion(
+    auto hm = ECEF::computeNorthEastDownMotion<T>(
         toEcefCoords<T, 0>(pos),
         toEcefCoords<T, 1>(mot));
     if (isFinite(hm[0]) && isFinite(hm[1])) {
       for (int i = 0; i < 2; i++) {
-        output[i] = period.seconds()*(hm[i].metersPerSecond()
+        int flipped = 1 - i;
+        output[i] = period.seconds()*(hm(flipped)
             - T(dst[i].metersPerSecond()));
       }
+      output[2] = hm(2);
     } else {
-      for (int i = 0; i < 2; i++) {
+      for (int i = 0; i < 3; i++) {
         output[i] = T(100.0);
       }
     }
