@@ -434,6 +434,7 @@ Results runLevMar(
       }
 
       T xNorm = X->norm();
+      CHECK(isFinite(xNorm));
       auto eigenStep = wrapEigen1(minusJtF);
       if (eigenStep.norm() < settings.e2*xNorm) {
         if (1 <= settings.verbosity) {

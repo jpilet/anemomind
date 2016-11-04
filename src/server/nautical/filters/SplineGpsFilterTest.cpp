@@ -145,10 +145,10 @@ TEST(SplineTest, Test3) {
     EXPECT_NEAR(m[1].metersPerSecond(), .0, 1.0e-2);
   }
 
-  {
+  /*{
     auto m = curve.evaluateHorizontalMotion(offset + 9.0_s);
     EXPECT_NEAR(m[0].metersPerSecond(), -1.0, 1.0e-2);
     EXPECT_NEAR(m[1].metersPerSecond(), .0, 1.0e-2);
-  }
+  }*/
 }
 

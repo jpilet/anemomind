@@ -168,11 +168,13 @@ void evaluateEcefPos(
     dst[i] = T(0.0);
   }
   for (int i = 0; i < weights.dim; i++) {
-    int offs = blockSize*weights.inds[i];
-    const T *x = input + offs;
-    double w = weights.weights[i];
-    for (int j = 0; j < 3; j++) {
-      dst[j] += x[j]*w;
+    if (weights.isSet(i)) {
+      int offs = blockSize*weights.inds[i];
+      const T *x = input + offs;
+      double w = weights.weights[i];
+      for (int j = 0; j < 3; j++) {
+        dst[j] += x[j]*w;
+      }
     }
   }
 }
@@ -396,6 +398,16 @@ ECEFCoords<T, n> toEcefCoords(T *x) {
   return dst;
 }
 
+template <typename T>
+double onlyScalar(T x) {
+  return x.a;
+}
+
+template <>
+double onlyScalar(double x) {
+  return x;
+}
+
 struct MotionDataTerm {
   Weights position, motion;
   HorizontalMotion<double> dst;
@@ -418,13 +430,17 @@ struct MotionDataTerm {
     auto hm = ECEF::computeNorthEastDownMotion<T>(
         toEcefCoords<T, 0>(pos),
         toEcefCoords<T, 1>(mot));
-    std::cout << "Period: " << period.seconds() << std::endl;
     if (isFinite(hm[0]) && isFinite(hm[1])) {
       for (int i = 0; i < 2; i++) {
+        auto k = T(period.seconds()*dst[i].metersPerSecond());
         int flipped = 1 - i;
-        output[i] = hm(flipped) - T(period.seconds()*dst[i].metersPerSecond());
+        output[i] = hm(flipped) - k;
       }
       output[2] = hm(2);
+      /*std::cout << "Fit it" << std::endl;
+      for (int i = 0; i < 3; i++) {
+        std::cout << " motion fit " << i << ": " << output[i] << std::endl;
+      }*/
     } else {
       for (int i = 0; i < 3; i++) {
         output[i] = T(100.0);
@@ -633,7 +649,8 @@ Array<EcefCurve> filter(
   CHECK(sampleSpans.last().maxv() == totalSampleCount);
   auto timeSpans = listTimeSpans(curves);
 
-  Eigen::VectorXd Xinit = Eigen::VectorXd(blockSize*totalSampleCount);
+  Eigen::VectorXd Xinit = Eigen::VectorXd::Zero(
+      blockSize*totalSampleCount);
   buildProblem(
       settings,
       curves, sampleSpans,timeSpans,
