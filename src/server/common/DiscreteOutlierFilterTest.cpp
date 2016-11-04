@@ -41,3 +41,15 @@ TEST(DiscreteOutlierFilterTest, BasicTest2) {
     EXPECT_EQ(mask[i], (i != 1 && i != 3));
   }
 }
+
+TEST(DiscreteOutlierFilterTest, BasicTest3) {
+
+  Array<double> values;
+  DiscreteOutlierFilter::Settings settings;
+  settings.threshold = 20;
+
+  EXPECT_TRUE((DiscreteOutlierFilter::computeOutlierMask<double*, double>(
+      values.begin(), values.end(),
+      [](double a, double b) {return std::abs(a - b);},
+      settings).empty()));
+}
