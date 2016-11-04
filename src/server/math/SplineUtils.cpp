@@ -35,11 +35,9 @@ Arrayd fitSplineCoefs(
   auto lhs = SymmetricBandMatrixL<double>::zero(
       n, SmoothBoundarySplineBasis<double, 3>::Weights::dim);
   auto rhs = MDArray2d(n, 1);
-  std::cout << "Solving for " << n << std::endl;
   for (int i = 0; i < n; i++) {
     accumulateNormalEqs(basis.build(i), sampleFun(i), &lhs, &rhs);
   }
-  std::cout << "NOw solv it" << std::endl;
   Pbsv<double>::apply(&lhs, &rhs);
   return rhs.getStorage();
 }
