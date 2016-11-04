@@ -22,8 +22,8 @@ OutlierRejector::OutlierRejector() :
 OutlierRejector::OutlierRejector(
     const Settings &settings) :
       _sigma(settings.sigma),
-      _alpha(settings.initialWeight),
-      _beta(settings.initialWeight) {}
+      _alpha(settings.initialAlpha),
+      _beta(settings.initialBeta) {}
 
 double computeSlack(
     double residual,

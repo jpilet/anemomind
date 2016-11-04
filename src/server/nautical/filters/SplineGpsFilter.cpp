@@ -37,6 +37,8 @@ static const int blockSize = 4;
 OutlierRejector::Settings Settings::positionSettings() const {
   OutlierRejector::Settings settings;
   settings.sigma = inlierThreshold.meters();
+  settings.initialAlpha = 1.0e6;
+  settings.initialBeta = 0.001;
   return settings;
 }
 
@@ -216,18 +218,23 @@ struct DataFitness {
     }
 
   void update(int iteration, const double *input) {
-    auto newWeight = weightToIndex(iteration);
+    if (1 <= iteration) {
+      auto newWeight = weightToIndex(iteration);
 
-    double tmp[3] = {0, 0, 0};
-    if (evaluateSub<double>(1.0, input, tmp)) {
-      auto residual = Eigen::Vector3d(tmp[0], tmp[1], tmp[2]).norm();
-      std::cout << "Residual " << residual << std::endl;
-      rejector.update(newWeight,
-          residual);
-      std::cout << "  resulting in weight "
+      double tmp[3] = {0, 0, 0};
+      if (evaluateSub<double>(1.0, input, tmp)) {
+        auto residual = Eigen::Vector3d(tmp[0], tmp[1], tmp[2]).norm();
+        std::cout << "Residual " << residual << std::endl;
+        rejector.update(newWeight,
+            residual);
+        std::cout << "  resulting in weight "
+            << rejector.computeWeight() << std::endl;
+      }
+      CHECK(iteration < 7);
+    } else {
+      std::cout << "First iteration weight: "
           << rejector.computeWeight() << std::endl;
     }
-
   }
 };
 

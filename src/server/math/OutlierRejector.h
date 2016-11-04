@@ -13,7 +13,8 @@ namespace sail {
 class OutlierRejector {
 public:
   struct Settings {
-    double initialWeight = 0.0001;
+    double initialAlpha = 0.0001;
+    double initialBeta = 0.0001;
     double sigma = 1.0;
   };
 

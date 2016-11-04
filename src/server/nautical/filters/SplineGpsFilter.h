@@ -24,10 +24,10 @@ namespace SplineGpsFilter {
 struct Settings {
   Settings();
 
-  bool reweighted = false;
+  bool reweighted = true;
   Duration<double> period = 2.0_s;
   Length<double> inlierThreshold = 12.0_m;
-  double regWeight = 10; //10.0;
+  double regWeight = 1; //10.0;
   double stabilizerWeight = 1.0e-12;
   BandedLevMar::Settings lmSettings;
 
