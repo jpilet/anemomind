@@ -576,8 +576,7 @@ void buildProblemPerCurve(
     Span<int> sampleSpan,
     const Array<TimedValue<GeographicPosition<double>>> &pd,
     const Array<TimedValue<HorizontalMotion<double>>> &md,
-    BandedLevMar::Problem<double> *dst,
-    double *XinitSub) {
+    BandedLevMar::Problem<double> *dst) {
   Span<int> valueSpan = blockSize*sampleSpan;
 
   addPositionDataTerms(settings, c, sampleSpan, pd, dst);
@@ -592,8 +591,7 @@ void buildProblem(
     const Array<Span<TimeStamp>> &timeSpans,
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
-    BandedLevMar::Problem<double> *dst,
-    Eigen::VectorXd *Xinit) {
+    BandedLevMar::Problem<double> *dst) {
   auto pd = cutTimedValues(
       positionData.begin(), positionData.end(), timeSpans);
   auto md = cutTimedValues(
@@ -604,8 +602,7 @@ void buildProblem(
         settings,
         curves[i],
         sampleSpan,
-        pd[i], md[i], dst,
-        Xinit->data() + blockSize*sampleSpan.minv());
+        pd[i], md[i], dst);
   }
 }
 
@@ -623,12 +620,12 @@ Array<EcefCurve> filter(
   CHECK(sampleSpans.size() == curves.size());
   CHECK(sampleSpans.last().maxv() == totalSampleCount);
   auto timeSpans = listTimeSpans(curves);
-  Eigen::VectorXd X = Eigen::VectorXd::Zero(blockSize*totalSampleCount);
   buildProblem(
       settings,
       curves, sampleSpans,timeSpans,
-      positionData, motionData, &problem, &X);
-  CHECK(problem.paramCount() == blockSize*totalSampleCount);
+      positionData, motionData, &problem);
+
+  Eigen::VectorXd X = Eigen::VectorXd::Zero(problem.paramCount());
 
 
   BandedLevMar::runLevMar(settings.lmSettings,
