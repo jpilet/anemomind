@@ -230,7 +230,6 @@ struct DataFitness {
         std::cout << "  resulting in weight "
             << rejector.computeWeight() << std::endl;
       }
-      CHECK(iteration < 7);
     } else {
       std::cout << "First iteration weight: "
           << rejector.computeWeight() << std::endl;
