@@ -45,7 +45,7 @@ OutlierRejector::Settings Settings::positionSettings() const {
 }
 
 Settings::Settings() {
-  lmSettings.iters = 6;
+  lmSettings.iters = 30;
 }
 
 EcefCurve::EcefCurve(
@@ -446,7 +446,7 @@ void addMotionDataTerm(
   motionWeights.shiftTo(span.minv());
   dst->addCostFunction(blockSize*span, new MotionDataTerm(
       positionWeights, motionWeights,
-      value.value, settings.period));
+      value.value, mapper.period));
 }
 
 double computeAcceleration(

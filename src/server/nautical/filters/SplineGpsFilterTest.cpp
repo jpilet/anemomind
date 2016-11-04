@@ -40,6 +40,7 @@ TEST(SplineTest, Test1) {
 
     EXPECT_NEAR(pos.lon().degrees(), 34.0 + (0.0001*i), 1.0e-6);
     EXPECT_NEAR(pos.lat().degrees(), 44.0, 1.0e-6);
+    EXPECT_NEAR(pos.alt().meters(), 0.0, 1.0e-3);
   }
 
   auto firstPos = ECEF::convert(positions.first().value);
@@ -96,6 +97,41 @@ TEST(SplineTest, Test2) {
 
     EXPECT_NEAR(pos.lon().degrees(), 34.0 + (0.0001*i), tol);
     EXPECT_NEAR(pos.lat().degrees(), 44.0, tol);
+    EXPECT_NEAR(pos.alt().meters(), 0.0, tol);
   }
+}
+
+namespace {
+TimedValue<HorizontalMotion<double>> tv(double s,
+      const HorizontalMotion<double> &m) {
+    return TimedValue<HorizontalMotion<double>>(offset + s*1.0_s, m);
+  }
+}
+
+TEST(SplineTest, Test3) {
+  auto pos0 = GeographicPosition<double>(34.0_deg, 9.0_deg, 0.0_m);
+  Array<TimedValue<GeographicPosition<double>>> positions{
+    TimedValue<GeographicPosition<double>>{offset, pos0}
+  };
+
+  auto m = HorizontalMotion<double>(-1.0_mps, 0.0_mps);
+
+  ArrayBuilder<TimedValue<HorizontalMotion<double>>> motions;
+  for (int i = 0; i < 30; i++) {
+    //motions.add(tv(i, m));
+  }
+
+  TimeMapper mapper{offset, 2.0_s, 15};
+
+  SplineGpsFilter::Settings settings;
+
+  auto curves = SplineGpsFilter::filter(positions, motions.get(),
+      Array<TimeMapper>{mapper}, settings);
+
+  EXPECT_EQ(curves.size(), 1);
+  auto pos = curves[0].evaluateGeographicPosition(offset);
+  EXPECT_NEAR(pos.lon().degrees(), 34.0, 1.0e-6);
+  EXPECT_NEAR(pos.lat().degrees(), 9.0, 1.0e-6);
+  EXPECT_NEAR(pos.alt().meters(), 0.0, 1.0e-6);
 }
 

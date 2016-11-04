@@ -24,7 +24,6 @@ namespace SplineGpsFilter {
 struct Settings {
   Settings();
 
-  Duration<double> period = 2.0_s;
   Length<double> inlierThreshold = 12.0_m;
   double regWeight = 1; //10.0;
   double stabilizerWeight = 1.0e-12;
