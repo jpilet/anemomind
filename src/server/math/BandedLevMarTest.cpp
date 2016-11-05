@@ -151,6 +151,7 @@ namespace {
     Eigen::Matrix<T, Eigen::Dynamic, 1> X(1);
     X[0] = T(0.0);
     Settings settings;
+    settings.verbosity = 2;
     auto results = runLevMar(settings, problem, &X);
     EXPECT_EQ(counter, results.iterationsCompleted);
     return mapAngleToEllipse(A, B, X(0));
