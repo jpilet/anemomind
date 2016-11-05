@@ -22,15 +22,6 @@ Array<Span<int>> makeSpans(const Array<int> &pts) {
   return dst;
 }
 
-struct BackPointer {
-  int previous = -1;
-  double cost = 0.0;
-
-  bool operator<(const BackPointer &other) const {
-    return cost < other.cost;
-  }
-};
-
 double evalTransitionCost(
     std::function<double(int, int)> f,
     Span<int> a, Span<int> b) {

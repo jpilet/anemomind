@@ -19,6 +19,16 @@ struct Settings {
   Array<int> backSteps = Array<int>{1, 2, 4, 8, 16, 32, 64, 128};
 };
 
+struct BackPointer {
+  int previous = -1;
+  double cost = 0.0;
+
+  bool operator<(const BackPointer &other) const {
+    return cost < other.cost;
+  }
+};
+
+
 Array<bool> computeOutlierMaskFromPairwiseCosts(
     int n,
     std::function<double(int, int)> cost,
