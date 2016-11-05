@@ -433,11 +433,7 @@ Results runLevMar(
         return results;
       }
 
-      T xNorm = sqrt(X->squaredNorm() + MakeConstant<T>::apply(1.0e-12));
-      std::cout << "X:\n";
-      for (int i = 0; i < X->size(); i++) {
-        std::cout << "  " << (*X)(i) << std::endl;
-      }
+      T xNorm = sqrt(X->squaredNorm() + MakeConstant<T>::apply(1.0e-30));
       CHECK(isFinite(xNorm));
       auto eigenStep = wrapEigen1(minusJtF);
       if (eigenStep.norm() < settings.e2*xNorm) {
