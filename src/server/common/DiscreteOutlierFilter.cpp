@@ -79,8 +79,6 @@ Array<Array<BackPointer>> buildBackPointers(
     }
   }
 
-  std::cout << "Built these pointers: \n" << dst << std::endl;
-
   return dst;
 }
 
@@ -105,7 +103,6 @@ Array<bool> solveBackPointers(
   Array<BackPointer> path(n+1);
   for (int i_ = 0; i_ < n; i_++) {
     int i = i_+1;
-    std::cout << "Solving for " << i << std::endl;
     auto ptrs = pointers[i_];
     BackPointer best;
     best.cost = std::numeric_limits<double>::max();
@@ -117,8 +114,6 @@ Array<bool> solveBackPointers(
       }
       best = std::min(best, candidate);
     }
-    std::cout << "   Best candidate " << best.previous << std::endl;
-    std::cout << "     with cost " << best.cost << std::endl;
     path[i] = best;
   }
   return unwindBackPointers(path);
@@ -135,27 +130,34 @@ Array<bool> solveMask(const Array<Span<int>> spans,
   return buildSampleMask(mask, spans);
 }
 
-Array<bool> computeOutlierMaskFromPairwiseCosts(
-    int n, std::function<double(int, int)> cost,
-    std::function<bool(int, int)> cut,
-    const Settings &settings) {
+Array<Span<int>> segment(int n,
+    std::function<bool(int, int)> cut) {
   int pairCount = n-1;
   if (pairCount <= 0) {
-    return Array<bool>::fill(n, true);
+    return Array<Span<int>>{Span<int>{0, n}};
   }
 
   ArrayBuilder<int> splits(pairCount+2);
   splits.add(0);
   ArrayBuilder<double> splitCosts(pairCount);
   for (int i = 0; i < pairCount; i++) {
-    if (settings.threshold < cost(i, i+1) || cut(i, i+1)) {
+    if (cut(i, i+1)) {
       int index = i + 1;
       splits.add(index);
       splitCosts.add(index);
     }
   }
   splits.add(n);
-  auto spans = makeSpans(splits.get());
+  return makeSpans(splits.get());
+}
+
+Array<bool> computeOutlierMaskFromPairwiseCosts(
+    int n, std::function<double(int, int)> cost,
+    std::function<bool(int, int)> cut,
+    const Settings &settings) {
+  auto spans = segment(n, [=](int i, int j) {
+    return cut(i, j) || settings.threshold < cost(i, j);
+  });
   return solveMask(spans, cost, settings);
 }
 
