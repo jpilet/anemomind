@@ -41,6 +41,11 @@ TEST(ReduceTreeTest, FindItAndIntegrate) {
   EXPECT_EQ(2, tree.findLeafIndex(21.9));
   EXPECT_EQ(-1, tree.findLeafIndex(23));
 
+  EXPECT_NEAR(0.0, tree.integrate(-1), 1.0e-6);
+  EXPECT_NEAR(0.0, tree.integrate(0), 1.0e-6);
   EXPECT_NEAR(10.0, tree.integrate(1), 1.0e-6);
+  EXPECT_NEAR(13.0, tree.integrate(2), 1.0e-6);
+  EXPECT_NEAR(22.0, tree.integrate(3), 1.0e-6);
+  EXPECT_NEAR(22.0, tree.integrate(4), 1.0e-6);
 }
 

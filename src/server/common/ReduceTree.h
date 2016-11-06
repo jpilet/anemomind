@@ -9,6 +9,7 @@
 #define SERVER_COMMON_REDUCETREE_H_
 
 #include <server/common/Array.h>
+#include <iostream>
 
 namespace sail {
 
@@ -123,13 +124,20 @@ public:
   }
 
   T integrate(int toLeaf) const {
+    if (_allData.empty()) {
+      auto k = T();
+      return k - k;
+    }
     int nodeIndex = toLeaf + _leafOffset;
-    T sum = _allData[nodeIndex] - _allData[nodeIndex];
-    if (nodeIndex < 0) {
+    int k = _leaves.size();
+    T sum = _allData[0] - _allData[0];
+    if (toLeaf < 0) {
       return sum;
-    } else if (_leaves.size() <= toLeaf) {
+    } else if (k <= toLeaf) {
       return _allData[0];
     }
+
+    std::cout << "Ordinary..." << std::endl;
     while (!isRoot(nodeIndex)) {
       int next = parent(nodeIndex);
       if (right(next) == nodeIndex) {
