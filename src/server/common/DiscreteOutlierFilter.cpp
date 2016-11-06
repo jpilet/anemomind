@@ -219,22 +219,17 @@ Array<Array<BackPointer>> buildTemporalBackPointers(
     std::function<double(TimedValue<T>, TimedValue<T>)> costFun,
     CostPerTime costPerTime) {
   auto timeSpans = toTimeSpans(segments, data);
-  std::cout << "Allocate the indexer" << std::endl;
   TimeSpanIndexer indexer(timeSpans);
   int n = segments.size();
   Array<BackPointer> allPointers(n*backSteps.size());
   Array<Array<BackPointer>> dst(n);
-  std::cout << "Looping over it all " << std::endl;
   for (int i = 1; i < n+1; i++) {
-    std::cout << "Allocate for " << i << std::endl;
     int i0 = i-1;
     auto sub = allPointers.sliceBlock(i0, backSteps.size());
     dst[i0] = sub;
     auto currentTime = i < n?
         timeSpans[i].minv() : timeSpans.last().maxv();
-    std::cout << "Consider back steps" << std::endl;
     for (int j = 0; j < backSteps.size(); j++) {
-      std::cout << "Consider back step " << j << std::endl;
       BackPointer ptr;
       ptr.previous = indexer.lookUp(currentTime - backSteps[j]);
       auto dur = currentTime - indexer.getTime(ptr.previous);
@@ -245,7 +240,6 @@ Array<Array<BackPointer>> buildTemporalBackPointers(
             data[segments[i].minv()]);
       }
       sub[j] = ptr;
-      std::cout << "Assigned it for " << j << std::endl;
     }
   }
   return dst;
@@ -262,19 +256,15 @@ Array<bool> identifyOutliers(
     return Array<bool>::fill(data.size(), true);
   }
 
-  std::cout << "Build segments..." << std::endl;
   auto segments = segment(data.size(), [=](int i, int j) {
     return threshold < cost(data[i], data[j]);
   });
 
-  std::cout << "Built " << segments.size() << std::endl;
   auto dur = data.last().time - data.first().time;
   CostPerTime costPerTime = (threshold*segments.size()*1.0_units)/dur;
-  std::cout << "Build pointers"<< std::endl;
   auto ptrs = buildTemporalBackPointers<T>(
       segments, data, threshold, backSteps,
       cost, costPerTime);
-  std::cout << "Built pointers" << std::endl;
   return buildSampleMask(solveBackPointers(ptrs), segments);
 }
 
