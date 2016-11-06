@@ -130,13 +130,12 @@ Array<bool> solveMask(const Array<Span<int>> spans,
   return buildSampleMask(mask, spans);
 }
 
-Array<Span<int>> segment(int n,
+Array<int> computeSplits(int n,
     std::function<bool(int, int)> cut) {
   int pairCount = n-1;
   if (pairCount <= 0) {
-    return Array<Span<int>>{Span<int>{0, n}};
+    return Array<int>{0, n};
   }
-
   ArrayBuilder<int> splits(pairCount+2);
   splits.add(0);
   ArrayBuilder<double> splitCosts(pairCount);
@@ -148,7 +147,12 @@ Array<Span<int>> segment(int n,
     }
   }
   splits.add(n);
-  return makeSpans(splits.get());
+  return splits.get();
+}
+
+Array<Span<int>> segment(int n,
+    std::function<bool(int, int)> cut) {
+  return makeSpans(computeSplits(n, cut));
 }
 
 Array<bool> computeOutlierMaskFromPairwiseCosts(

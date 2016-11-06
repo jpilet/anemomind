@@ -14,10 +14,6 @@
 namespace sail {
 namespace DiscreteOutlierFilter {
 
-struct Settings {
-  double threshold = 1.0e6;
-  Array<int> backSteps = Array<int>{1, 2, 4, 8, 16, 32, 64, 128};
-};
 
 struct BackPointer {
   int previous = -1;
@@ -28,6 +24,14 @@ struct BackPointer {
   }
 };
 
+
+
+
+
+struct Settings {
+  double threshold = 1.0e6;
+  Array<int> backSteps = Array<int>{1, 2, 4, 8, 16, 32, 64, 128};
+};
 
 Array<bool> computeOutlierMaskFromPairwiseCosts(
     int n,
