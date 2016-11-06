@@ -147,3 +147,33 @@ TEST(DiscreteOutlierFilterTest, TimedTest1) {
     1, 1, 1, 0, 0, 1, 1
   }));
 }
+
+TEST(DiscreteOutlierFilterTest, TimedTest2) {
+  auto data = Array<TimedValue<double>>{
+    tv(0.0, 1.0)
+  };
+
+  auto outliers = DiscreteOutlierFilter::identifyOutliers<double>(
+      data, &costDouble,
+      Array<Duration<double>>{
+        1.0_s, 2.0_s, 4.0_s, 8.0_s,
+        16.0_s, 32.0_s},
+      9.0);
+  EXPECT_EQ(outliers, (Array<bool>{
+    1
+  }));
+}
+
+TEST(DiscreteOutlierFilterTest, TimedTest3) {
+  auto data = Array<TimedValue<double>>{};
+
+  auto outliers = DiscreteOutlierFilter::identifyOutliers<double>(
+      data, &costDouble,
+      Array<Duration<double>>{
+        1.0_s, 2.0_s, 4.0_s, 8.0_s,
+        16.0_s, 32.0_s},
+      9.0);
+  EXPECT_EQ(outliers, (Array<bool>{}));
+}
+
+
