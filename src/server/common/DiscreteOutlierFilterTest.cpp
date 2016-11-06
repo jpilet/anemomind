@@ -108,6 +108,9 @@ namespace {
   }
 
   double costDouble(TimedValue<double> a, TimedValue<double> b) {
+
+    // Add an extra second to the denominator
+    // to regularize away quantization effects.
     return std::abs((a.value - b.value)/(
         1.0 + std::abs((a.time - b.time).seconds())));
   }
