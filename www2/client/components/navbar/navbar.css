@@ -110,4 +110,17 @@
     background-color: #fff;
     border-bottom: 4px solid #eee;
   }
+  
+}
+
+
+.navbar-logo {
+	padding-top: 5px;
+    margin-right: 50px;
+    float: left;
+}
+@media only screen and (max-width: 767px) {
+    .navbar-logo {
+        margin-left: 15px;
+    }
 }
