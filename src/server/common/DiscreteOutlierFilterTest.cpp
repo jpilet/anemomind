@@ -84,3 +84,16 @@ TEST(DiscreteOutlierFilterTest, BasicTest5) {
     1
   }));
 }
+
+TEST(DiscreteOutlierFilterTest, FindSpan) {
+  auto offset = TimeStamp::UTC(2016, 11, 6, 10, 59, 0);
+  DiscreteOutlierFilter::TimeSpanIndexer indexer(Array<Span<TimeStamp>>{
+    Span<TimeStamp>(offset, offset + 3.0_s),
+    Span<TimeStamp>(offset + 5.0_s, offset + 7.0_s),
+    Span<TimeStamp>(offset + 7.1_s, offset + 8.0_s)
+  });
+  EXPECT_EQ(-1, indexer.lookUp(offset - 1.0_s));
+  EXPECT_EQ(0, indexer.lookUp(offset + 1.0_s));
+  EXPECT_EQ(2, indexer.lookUp(offset + 7.5_s));
+  EXPECT_EQ(-1, indexer.lookUp(offset + 11.5_s));
+}

@@ -100,6 +100,9 @@ public:
   }
 
   int findNode(const T &value, int index) const {
+    if (value < (value - value)/*0*/) {
+      return -1;
+    }
     if (isLeaf(index)) {
       return index;
     } else {
