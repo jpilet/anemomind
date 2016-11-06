@@ -228,6 +228,12 @@ ReduceTree<Duration<double>> makeTimeIntegrator(
       &addDurs, getNonFilledDurs(timeSpans));
 }
 
+Duration<double> integrateTime(
+    const ReduceTree<Duration<double>> &tree,
+    int from, int to) {
+  return from <= to? tree.integrate(to) - tree.integrate(from) : 0.0_s;
+}
+
 template <typename T>
 Array<Array<BackPointer>> buildTemporalBackPointers(
     const Array<Span<int>> &segments,
@@ -251,7 +257,7 @@ Array<Array<BackPointer>> buildTemporalBackPointers(
     for (int j = 0; j < backSteps.size(); j++) {
       BackPointer ptr;
       ptr.previous = indexer.lookUp(currentTime - backSteps[j]);
-      auto dur = currentTime - indexer.getTime(ptr.previous);
+      auto dur = integrateTime(timeIntegrator, ptr.previous + 1, i);
       ptr.cost = double(dur*costPerTime);
       if (0 <= ptr.previous && i < n) {
         ptr.cost += costFun(

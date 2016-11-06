@@ -9,7 +9,6 @@
 #define SERVER_COMMON_REDUCETREE_H_
 
 #include <server/common/Array.h>
-#include <iostream>
 
 namespace sail {
 
@@ -137,7 +136,6 @@ public:
       return _allData[0];
     }
 
-    std::cout << "Ordinary..." << std::endl;
     while (!isRoot(nodeIndex)) {
       int next = parent(nodeIndex);
       if (right(next) == nodeIndex) {
