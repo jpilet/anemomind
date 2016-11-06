@@ -94,6 +94,7 @@ TEST(DiscreteOutlierFilterTest, FindSpan) {
   });
   EXPECT_EQ(-1, indexer.lookUp(offset - 1.0_s));
   EXPECT_EQ(0, indexer.lookUp(offset + 1.0_s));
+  EXPECT_EQ(0, indexer.lookUp(offset + 4.0_s));
   EXPECT_EQ(2, indexer.lookUp(offset + 7.5_s));
   EXPECT_EQ(-1, indexer.lookUp(offset + 11.5_s));
 }
