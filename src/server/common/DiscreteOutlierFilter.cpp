@@ -9,9 +9,16 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/Span.h>
 #include <iostream>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 namespace DiscreteOutlierFilter {
+
+std::ostream &operator<<(std::ostream &s,
+    const BackPointer &bptr) {
+  s << "BackPointer(prev=" << bptr.previous << ", cost=" << bptr.cost << ")";
+  return s;
+}
 
 Array<Span<int>> makeSpans(const Array<int> &pts) {
   int n = pts.size() - 1;
@@ -48,47 +55,84 @@ Array<bool> buildSampleMask(const Array<bool> &segmentMask,
   return dst;
 }
 
-Array<bool> solveMask(
+Array<Array<BackPointer>> buildBackPointers(
     const Array<Span<int>> &spans,
-    std::function<double(int, int)> costFun,
-    const Settings &settings) {
+        std::function<double(int, int)> costFun,
+        Array<int> backSteps,
+        double threshold) {
   int n = spans.size();
-  auto backPointers = Array<BackPointer>::fill(n+1, BackPointer());
-
-  for (int i = 1; i <= n; i++) {
-    BackPointer ptr;
-    ptr.cost = std::numeric_limits<double>::max();
-    for (int j = 0; j < settings.backSteps.size(); j++) {
-      int steps = settings.backSteps[j];
-      assert(1 <= steps);
-      int prev = std::max(i - steps, -1);
-      BackPointer cand;
-      cand.previous = prev;
-      int skipped = std::max(0, steps - 1);
-      cand.cost = skipped*settings.threshold;
-      if (0 <= prev && i < n) {
-        cand.previous = prev;
-        auto backCost = backPointers[prev].cost;
-        auto transCost = evalTransitionCost(
-            costFun, spans[prev], spans[i]);
-        cand.cost += backCost + transCost;
+  auto data = Array<BackPointer>(n*backSteps.size());
+  Array<Array<BackPointer>> dst(n);
+  for (int i = 1; i < n+1; i++) {
+    auto sub = data.sliceBlock(i-1, backSteps.size());
+    dst[i-1] = sub;
+    for (int j = 0; j < backSteps.size(); j++) {
+      BackPointer ptr;
+      ptr.previous = std::max(-1, i - backSteps[j]);
+      int stepSize = std::max(0, i - ptr.previous - 1);
+      ptr.cost = stepSize*threshold;
+      if (0 <= ptr.previous && i < n) {
+        ptr.cost += evalTransitionCost(
+            costFun, spans[ptr.previous], spans[i]);
       }
-      ptr = std::min(ptr, cand);
+      sub[j] = ptr;
     }
-    backPointers[i] = ptr;
   }
 
+  std::cout << "Built these pointers: \n" << dst << std::endl;
+
+  return dst;
+}
+
+Array<bool> unwindBackPointers(const Array<BackPointer> &path) {
+  int n = path.size()-1;
   auto segmentMask = Array<bool>::fill(n, false);
   int i = n;
   while (true) {
-    i = backPointers[i].previous;
+    i = path[i].previous;
     if (0 <= i) {
       segmentMask[i] = true;
     } else {
       break;
     }
   }
-  return buildSampleMask(segmentMask, spans);
+  return segmentMask;
+}
+
+Array<bool> solveBackPointers(
+    const Array<Array<BackPointer>> &pointers) {
+  int n = pointers.size();
+  Array<BackPointer> path(n+1);
+  for (int i_ = 0; i_ < n; i_++) {
+    int i = i_+1;
+    std::cout << "Solving for " << i << std::endl;
+    auto ptrs = pointers[i_];
+    BackPointer best;
+    best.cost = std::numeric_limits<double>::max();
+    for (int j = 0; j < ptrs.size(); j++) {
+      BackPointer candidate;
+      candidate = ptrs[j];
+      if (0 <= candidate.previous) {
+        candidate.cost += path[candidate.previous].cost;
+      }
+      best = std::min(best, candidate);
+    }
+    std::cout << "   Best candidate " << best.previous << std::endl;
+    std::cout << "     with cost " << best.cost << std::endl;
+    path[i] = best;
+  }
+  return unwindBackPointers(path);
+}
+
+
+Array<bool> solveMask(const Array<Span<int>> spans,
+    const std::function<double(int,int)> costFun,
+    const Settings &settings) {
+  auto pointers = buildBackPointers(
+      spans, costFun, settings.backSteps,
+      settings.threshold);
+  auto mask = solveBackPointers(pointers);
+  return buildSampleMask(mask, spans);
 }
 
 Array<bool> computeOutlierMaskFromPairwiseCosts(
