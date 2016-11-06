@@ -459,4 +459,5 @@ cxx_test(common_DiscreteOutlierFilterTest
   DiscreteOutlierFilterTest.cpp
   gtest_main
   common_DiscreteOutlierFilter
+  common_TimeStamp
   )

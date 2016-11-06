@@ -98,6 +98,26 @@ public:
   Array<T> leaves() const {
     return _leaves;
   }
+
+  int findNode(const T &value, int index) const {
+    if (isLeaf(index)) {
+      return index;
+    } else {
+      auto l = left(index);
+      auto r = right(index);
+      if (contains(l) && value < getNodeValue(l)) {
+        return findNode(value, l);
+      } else if (contains(r)) {
+        return findNode(value - getNodeValue(l), r);
+      }
+      return -1;
+    }
+  }
+
+  int findLeafIndex(const T &value) const {
+    auto nodeIndex = findNode(value, 0);
+    return nodeIndex == -1? -1 : nodeIndex - _leafOffset;
+  }
 private:
   std::function<T(T, T)> _reducer;
   Array<T> _allData;
@@ -126,11 +146,8 @@ private:
       return _allData[index];
     }
   }
-
 };
 
 }
-
-
 
 #endif /* SERVER_COMMON_REDUCETREE_H_ */

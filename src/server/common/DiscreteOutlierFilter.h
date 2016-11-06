@@ -10,10 +10,22 @@
 
 #include <server/common/ArrayBuilder.h>
 #include <server/common/TimedValue.h>
+#include <server/common/ReduceTree.h>
+#include <server/common/TimeStamp.h>
+#include <server/common/Span.h>
 
 namespace sail {
 namespace DiscreteOutlierFilter {
 
+
+class TimeSpanIndexer {
+public:
+  TimeSpanIndexer(const Array<Span<TimeStamp>> &timeSpans);
+  int lookUp(TimeStamp t) const;
+private:
+  TimeStamp _offset;
+  ReduceTree<Duration<double>> _tree;
+};
 
 struct BackPointer {
   int previous = -1;

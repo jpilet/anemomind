@@ -14,6 +14,41 @@
 namespace sail {
 namespace DiscreteOutlierFilter {
 
+Duration<double> addDurs(
+    const Duration<double> &a,
+    const Duration<double> &b) {
+  return a + b;
+}
+
+Array<Duration<double>> getDurs(const Array<Span<TimeStamp>> &spans) {
+  int n = spans.size();
+  int last = n-1;
+  Array<Duration<double>> durs(n);
+  for (int i = 0; i < last; i++) {
+    durs[i] = spans[i+1].minv() - spans[i].minv();
+  }
+  durs[last] = spans[last].maxv() - spans[last].minv();
+  return durs;
+}
+
+TimeSpanIndexer::TimeSpanIndexer(
+    const Array<Span<TimeStamp>> &timeSpans) :
+        _tree(addDurs, getDurs(timeSpans)) {
+  if (!timeSpans.empty()) {
+    _offset = timeSpans.first().minv();
+  }
+}
+
+
+int TimeSpanIndexer::lookUp(TimeStamp t) const {
+  if (!_offset.defined()) {
+    return -1;
+  }
+
+  return _tree.findLeafIndex(t - _offset);
+}
+
+
 std::ostream &operator<<(std::ostream &s,
     const BackPointer &bptr) {
   s << "BackPointer(prev=" << bptr.previous << ", cost=" << bptr.cost << ")";
