@@ -29,7 +29,7 @@ TEST(ReduceTreeTest, SumTree) {
   std::cout << "All data: " << tree.allData() << std::endl;
 }
 
-TEST(ReduceTreeTest, FindIt) {
+TEST(ReduceTreeTest, FindItAndIntegrate) {
   ReduceTree<double> tree([](double a, double b) {return a + b;},
       Array<double>{10, 3, 9});
   EXPECT_EQ(0, tree.findLeafIndex(5));
@@ -40,5 +40,7 @@ TEST(ReduceTreeTest, FindIt) {
   EXPECT_EQ(2, tree.findLeafIndex(13.1));
   EXPECT_EQ(2, tree.findLeafIndex(21.9));
   EXPECT_EQ(-1, tree.findLeafIndex(23));
+
+  EXPECT_NEAR(10.0, tree.integrate(1), 1.0e-6);
 }
 

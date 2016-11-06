@@ -121,6 +121,24 @@ public:
     auto nodeIndex = findNode(value, 0);
     return nodeIndex == -1? -1 : nodeIndex - _leafOffset;
   }
+
+  T integrate(int toLeaf) const {
+    int nodeIndex = toLeaf + _leafOffset;
+    T sum = _allData[nodeIndex] - _allData[nodeIndex];
+    if (nodeIndex < 0) {
+      return sum;
+    } else if (_leaves.size() <= toLeaf) {
+      return _allData[0];
+    }
+    while (!isRoot(nodeIndex)) {
+      int next = parent(nodeIndex);
+      if (right(next) == nodeIndex) {
+        sum = sum + _allData[left(next)];
+      }
+      nodeIndex = next;
+    }
+    return sum;
+  }
 private:
   std::function<T(T, T)> _reducer;
   Array<T> _allData;

@@ -21,11 +21,12 @@ Duration<double> addDurs(
   return a + b;
 }
 
-Array<Duration<double>> getDurs(const Array<Span<TimeStamp>> &spans) {
+Array<Duration<double>> getFilledDurs(const Array<Span<TimeStamp>> &spans) {
   int n = spans.size();
   int last = n-1;
   Array<Duration<double>> durs(n);
   for (int i = 0; i < last; i++) {
+    // Extend all the way to the beginning of the next time stamp
     durs[i] = spans[i+1].minv() - spans[i].minv();
   }
   durs[last] = spans[last].maxv() - spans[last].minv();
@@ -34,7 +35,7 @@ Array<Duration<double>> getDurs(const Array<Span<TimeStamp>> &spans) {
 
 TimeSpanIndexer::TimeSpanIndexer(
     const Array<Span<TimeStamp>> &timeSpans) :
-        _tree(addDurs, getDurs(timeSpans)),
+        _tree(addDurs, getFilledDurs(timeSpans)),
         _spans(timeSpans) {
   if (!timeSpans.empty()) {
     _offset = timeSpans.first().minv();
@@ -210,6 +211,23 @@ Array<Span<TimeStamp>> toTimeSpans(
   return dst;
 }
 
+Array<Duration<double>> getNonFilledDurs(
+    const Array<Span<TimeStamp>> &spans) {
+  int n = spans.size();
+  Array<Duration<double>> durs(n);
+  for (int i = 0; i < n; i++) {
+    auto sp = spans[i];
+    durs[i] = sp.maxv() - sp.minv();
+  }
+  return durs;
+}
+
+ReduceTree<Duration<double>> makeTimeIntegrator(
+    const Array<Span<TimeStamp>> &timeSpans) {
+  return ReduceTree<Duration<double>>(
+      &addDurs, getNonFilledDurs(timeSpans));
+}
+
 template <typename T>
 Array<Array<BackPointer>> buildTemporalBackPointers(
     const Array<Span<int>> &segments,
@@ -220,6 +238,7 @@ Array<Array<BackPointer>> buildTemporalBackPointers(
     CostPerTime costPerTime) {
   auto timeSpans = toTimeSpans(segments, data);
   TimeSpanIndexer indexer(timeSpans);
+  auto timeIntegrator = makeTimeIntegrator(timeSpans);
   int n = segments.size();
   Array<BackPointer> allPointers(n*backSteps.size());
   Array<Array<BackPointer>> dst(n);
