@@ -22,7 +22,9 @@ class TimeSpanIndexer {
 public:
   TimeSpanIndexer(const Array<Span<TimeStamp>> &timeSpans);
   int lookUp(TimeStamp t) const;
+  TimeStamp getTime(int i) const;
 private:
+  Array<Span<TimeStamp>> _spans;
   TimeStamp _offset;
   ReduceTree<Duration<double>> _tree;
 };
@@ -36,7 +38,13 @@ struct BackPointer {
   }
 };
 
-
+template <typename T>
+Array<bool> identifyOutliers(
+    const Array<TimedValue<T>> &data,
+    std::function<double(const TimedValue<T>&,
+        const TimedValue<T> &)> cost,
+    Array<Duration<double>> backSteps,
+    double threshold);
 
 
 

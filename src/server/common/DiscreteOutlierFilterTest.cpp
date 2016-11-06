@@ -98,3 +98,32 @@ TEST(DiscreteOutlierFilterTest, FindSpan) {
   EXPECT_EQ(2, indexer.lookUp(offset + 7.5_s));
   EXPECT_EQ(-1, indexer.lookUp(offset + 11.5_s));
 }
+
+
+namespace {
+  auto offset = TimeStamp::UTC(2016, 11, 6, 10, 59, 0);
+
+  TimedValue<double> tv(double t, double v) {
+    return TimedValue<double>(offset + t*1.0_s, v);
+  }
+
+  double costDouble(TimedValue<double> a, TimedValue<double> b) {
+    return std::abs((a.value - b.value)/(
+        1.0 + std::abs((a.time - b.time).seconds())));
+  }
+}
+
+TEST(DiscreteOutlierFilterTest, TimedTest) {
+  auto data = Array<TimedValue<double>>{
+    tv(0.0, 1.0), tv(1.0, 2.0), tv(2.0, 3.0),
+        tv(3.0, 1134.0), tv(4.0, 1135.0)
+  };
+
+  auto outliers = DiscreteOutlierFilter::identifyOutliers<double>(
+      data, &costDouble,
+      Array<Duration<double>>{
+        1.0_s, 2.0_s, 4.0_s, 8.0_s,
+        16.0_s, 32.0_s},
+      9.0);
+
+}

@@ -789,6 +789,7 @@ DEFINE_LITERAL(Duration, minutes, _min)
 DEFINE_LITERAL(Velocity, metersPerSecond, _mps)
 DEFINE_LITERAL(Velocity, knots, _kn)
 DEFINE_LITERAL(Velocity, knots, _kt)
+DEFINE_LITERAL(Dimensionless, dimensionless, _units)
 #undef DEFINE_LITERAL
 
 
