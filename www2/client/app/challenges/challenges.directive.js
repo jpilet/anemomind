@@ -1,6 +1,8 @@
 'use strict';
 
 angular.module('www2App')
+  // To hide other pop-ups when
+  // a current popover is clicked
   .directive('withPopover', function () {
     return {
       restrict: 'C',
