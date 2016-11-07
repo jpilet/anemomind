@@ -216,7 +216,7 @@
     display: inline-block;
     background-color: #ff0033;
     color: #fff;
-    padding: 5px 8px;
+    padding: 5px 8px 2px 8px;
     border-radius: 10px;
 }
 .challenges table.sortable-custom thead tr {
