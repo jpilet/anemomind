@@ -113,7 +113,6 @@
   
 }
 
-
 .navbar-logo {
 	padding-top: 5px;
     margin-right: 50px;
@@ -122,5 +121,26 @@
 @media only screen and (max-width: 767px) {
     .navbar-logo {
         margin-left: 15px;
+    }
+}
+
+
+.navbar {
+    position: relative;
+}
+.navbar .navbar-header,
+.navbar .navbar-right {
+    position: absolute;
+}
+.navbar .navbar-header {
+    left: 20px;
+}
+.navbar .navbar-right {
+    right: 20px;
+}
+@media only screen and (max-width: 1277px) {
+    .navbar .navbar-header,
+    .navbar .navbar-right {
+        position: static;
     }
 }
