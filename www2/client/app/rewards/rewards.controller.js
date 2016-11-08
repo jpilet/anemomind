@@ -60,6 +60,40 @@ angular.module('www2App')
       }
     ];
 
+    $scope.infos = [
+      {
+        name: 'Community',
+        desc: 'Boat data sharing is enabled with others',
+        active: false,
+      },
+      {
+        name: 'Share',
+        desc: 'Share at least one track on social media',
+        active: true,
+      },
+      {
+        name: 'Competitor',
+        desc: 'Get ranked in all challenges',
+        active: false,
+      },
+      {
+        name: 'The Ultimate',
+        desc: 'Get maximum ranking at each challenges excluding speed',
+        active: false,
+      }
+    ];
+
+    // To display the count of bars
+    // in ng-repeat
+    $scope.range = function(count){
+      var ratings = []; 
+
+      for (var i = 0; i < count; i++) { 
+        ratings.push(i) 
+      }
+      return ratings;
+    }
+
     // The goal is to display the levels by 3's 
     // The format based from the mockup will be like:
     // 0 [1 2 3]
@@ -120,14 +154,30 @@ angular.module('www2App')
     }
 
 
-    // To display the count of bars
-    // in ng-repeat
-    $scope.range = function(count){
-      var ratings = []; 
-
-      for (var i = 0; i < count; i++) { 
-        ratings.push(i) 
-      }
-      return ratings;
+    $scope.popup = {
+      content: '',
+      templateUrl: 'descriptionTemplate.html',
+      title: ''
+    };
+    $scope.fillDesc = function(desc) {
+      $scope.itemDesc = desc;
     }
+
+    // Only show the pop-ups on stated widths
+    // or lesser of it
+    var rewardThreshold = 767;
+    var infoThreshold = 412;
+
+    var container = angular.element(window);
+    var width = function() {
+      return container.width();
+    };
+
+    $scope.rewardsPopupActive = (width() <= rewardThreshold);
+    $scope.infoPopupActive = (width() <= infoThreshold);
+    
+    container.on('resize', function() {
+      $scope.rewardsPopupActive = (width() <= rewardThreshold);
+      $scope.infoPopupActive = (width() <= infoThreshold);
+    });
   });

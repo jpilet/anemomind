@@ -4,15 +4,24 @@
 <div class="record">
     <div class="col-md-12">
         <div class="panel panel-default challenge-types">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    Rewards
+                </h3>
+            </div>
             <div class="panel-body rewards-container">
-
                 <div class="rewards-list">
-                    <div class="reward" ng-repeat="challenge in challenges">
-                        <div class="name">
+                    <div class="reward" 
+                    ng-repeat="challenge in challenges">
+                        <div class="name with-popover"
+                            ng-click="fillDesc(challenge.progress+' '+challenge.unit)"
+                            uib-popover-template="popup.templateUrl" 
+                            popover-title=""
+                            popover-enable="rewardsPopupActive">
                             <div class="circle">
-                                <label>{{challenge.name}}</label>
+                                <label class="noselect">{{challenge.name}}</label>
                                 <i class="fa {{challenge.icon}} hidden-xs" aria-hidden="true"></i>
-                                <small class="hidden-sm hidden-md hidden-lg">L {{challenge.level}}</small>
+                                <small class="noselect hidden-sm hidden-md hidden-lg">L {{challenge.level}}</small>
                             </div>
                         </div>
                         <div class="bar-container hidden-xs">
@@ -39,33 +48,20 @@
                 </div>
 
                 <div class="other-info">
-                    <div class="circle">
-                        <label>Community</label>
-                        <div class="description">
-                            Boat data sharing is enabled with others
+                    <div class="circle with-popover" 
+                        ng-repeat="info in infos" 
+                        ng-class="{'active': info.active}"
+                        ng-click="fillDesc(info.desc)"
+                        uib-popover-template="popup.templateUrl" 
+                        popover-title=""
+                        popover-enable="infoPopupActive">
+                        <div class="circle-holder">
+                            <label class="noselect">{{info.name}}</label>
+                            <div class="noselect description">
+                                {{info.desc}}
+                            </div>
+                            <i class="fa fa-star" aria-hidden="true"></i>
                         </div>
-                        <i class="fa fa-star" aria-hidden="true"></i>
-                    </div>
-                    <div class="circle active">
-                        <label>Share</label>
-                        <div class="description">
-                            Share at least one track on social media
-                        </div>
-                        <i class="fa fa-star" aria-hidden="true"></i>
-                    </div>
-                    <div class="circle">
-                        <label>Competitor</label>
-                        <div class="description">
-                            Get ranked in all challenges
-                        </div>
-                        <i class="fa fa-star" aria-hidden="true"></i>
-                    </div>
-                    <div class="circle">
-                        <label>The Ultimate</label>
-                        <div class="description">
-                            Get maximum ranking at each challenges excluding speed
-                        </div>
-                        <i class="fa fa-star" aria-hidden="true"></i>
                     </div>
                 </div>
             </div>
@@ -74,5 +70,11 @@
 </div>
 
 
+
+<script type="text/ng-template" id="descriptionTemplate.html">
+    <div class="description">
+        {{itemDesc}}
+    </div>
+</script>
 
 </div>

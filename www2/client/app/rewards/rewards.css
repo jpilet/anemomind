@@ -1,3 +1,17 @@
+.rewards .panel-heading {
+    background: transparent;
+    border: none;
+}
+.rewards .panel-heading .panel-title {
+    border-bottom: 2px solid;
+    display: inline-block;
+}
+@media only screen and (max-width: 767px) {
+    .rewards .panel-heading {
+        padding: 10px 9px;
+    }
+}
+
 .rewards .reward {
     width: 100%;
     display: flex;
@@ -153,7 +167,7 @@
 .rewards .other-info i {
     position: absolute;
     bottom: 16px;
-    left: 89px;
+    left: 94px;
     font-size: 46px;
 }
 .rewards .other-info .circle.active .description,
@@ -172,6 +186,7 @@
     .rewards .other-info .circle {
         width: 148px;
         height: 144px;
+        cursor: pointer;
     }
     .rewards .other-info label {
         padding: 3px 8px;
@@ -183,4 +198,21 @@
         bottom: 18px;
         left: 54px;
     }
+}
+
+.rewards .popover {
+    max-width: 300px;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+}
+.rewards .popover.top > .arrow:after {
+    border-top-color: #1e1e1e;
+} 
+.rewards .popover-title {
+    display: none;
+}
+.rewards .popover .description {
+    display: initial;
+    font-size: 16px;
+    color: #fff !important;
 }
