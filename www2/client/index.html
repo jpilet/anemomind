@@ -17,17 +17,10 @@
     <base href="/">
     <title>ANEMOLAB</title>
     <meta name="description" content="">
-    <meta name="viewport" content="width=device-width">
 
     <!-- OPEN GRAPH -->
-    <meta property="og:url"                content="<%this.url%>" />
-    <meta property="og:title"              content="<%this.title%>" />
-    <meta property="og:description"        content="<%this.description%>" />
-    <meta property="og:image"              content="<%this.img%>" />
-    <meta property="og:image:width"        content="<%this.w%>" />
-    <meta property="og:image:height"       content="<%this.h%>" />
 
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href='//fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css" />
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
@@ -37,6 +30,8 @@
       <!-- bower:css -->
       <link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css" />
       <link rel="stylesheet" href="bower_components/angular-bootstrap-lightbox/dist/angular-bootstrap-lightbox.css" />
+      <link rel="stylesheet" href="bower_components/angularjs-slider/dist/rzslider.css" />
+      <link rel="stylesheet" href="bower_components/slick-carousel/slick/slick.css" />
       <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css({.tmp,client}) app/app.css -->
@@ -49,7 +44,6 @@
       <link rel="stylesheet" href="app/boatSummary/boatSummary.css">
       <link rel="stylesheet" href="app/boats/boats.css">
       <link rel="stylesheet" href="app/challengeDetails/challenge-details.css">
-      <link rel="stylesheet" href="app/challenges/challenge-list.css">
       <link rel="stylesheet" href="app/challenges/challenges.css">
       <link rel="stylesheet" href="app/events/events.css">
       <link rel="stylesheet" href="app/gaugeIndicator/gaugeIndicator.css">
@@ -58,6 +52,7 @@
       <link rel="stylesheet" href="app/map/map.css">
       <link rel="stylesheet" href="app/perfplot/perfplot.css">
       <link rel="stylesheet" href="app/sessionplot/sessionplot.css">
+      <link rel="stylesheet" href="app/share/share.css">
       <link rel="stylesheet" href="app/util.css">
       <link rel="stylesheet" href="app/vmgplot/vmgplot.css">
       <link rel="stylesheet" href="app/wheelIndicator/wheelIndicator.css">
@@ -115,6 +110,9 @@
       <script src="bower_components/d3/d3.js"></script>
       <script src="bower_components/nvd3/build/nv.d3.js"></script>
       <script src="bower_components/angular-bootstrap-lightbox/dist/angular-bootstrap-lightbox.js"></script>
+      <script src="bower_components/angularjs-slider/dist/rzslider.js"></script>
+      <script src="bower_components/angular-modal-service/dst/angular-modal-service.js"></script>
+      <script src="bower_components/slick-carousel/slick/slick.js"></script>
       <!-- endbower -->
       <script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
       <script src="socket.io-client/socket.io.js"></script>
@@ -147,9 +145,8 @@
           <script src="app/boats/boats.js"></script>
           <script src="app/challengeDetails/challenge-details.controller.js"></script>
           <script src="app/challengeDetails/challenge-details.js"></script>
-          <script src="app/challenges/challenge-list.controller.js"></script>
-          <script src="app/challenges/challenge-list.directive.js"></script>
           <script src="app/challenges/challenges.controller.js"></script>
+          <script src="app/challenges/challenges.directive.js"></script>
           <script src="app/challenges/challenges.js"></script>
           <script src="app/events/events.directive.js"></script>
           <script src="app/filters/angle/angle.filter.js"></script>
@@ -166,6 +163,7 @@
           <script src="app/perfplot/perfplot.directive.js"></script>
           <script src="app/perfplot/perfplot.js"></script>
           <script src="app/sessionplot/sessionplot.directive.js"></script>
+          <script src="app/share/share.controller.js"></script>
           <script src="app/userDB/userDB.service.js"></script>
           <script src="app/vectormap/thumbnailsmap.directive.js"></script>
           <script src="app/vectormap/thumbnailspng.directive.js"></script>

@@ -72,8 +72,9 @@ angular.module('www2App')
             onFeatureClic: function(feature, pos) {
               selectEvent(feature);
 
-              if(feature.properties.icon == "image")
-                Lightbox.openModal(images, feature.index);
+              if(feature.properties.icon == "image") {
+                Lightbox.openModal(images, feature.photoIndex);
+              }
             }
           });
           var options = {
@@ -138,10 +139,9 @@ angular.module('www2App')
                 if (!event.dataAtEventTime || !event.dataAtEventTime.pos) {
                   continue;
                 }
-                geojson.features.push({
+                var feature = {
                   "type": "Feature",
                   "id": scope.eventList[i]._id,
-                  "index": i, 
                   "properties": {
                     textPlacement: 'E',
                     hideIcon: false,
@@ -154,15 +154,19 @@ angular.module('www2App')
                       y: event.dataAtEventTime.pos[1]
                     }                    
                   }
-                });
+                };
 
-                if(typeof scope.eventList[i].photo !== 'undefined' && scope.eventList[i].photo && scope.eventList[i].photo != null) {
+                if (typeof scope.eventList[i].photo !== 'undefined'
+                    && scope.eventList[i].photo
+                    && scope.eventList[i].photo != null) {
                   var image = {
                     'url': scope.photoUrl(scope.eventList[i], ''),
                     'caption': scope.eventList[i].comment
                   };
+                  feature.photoIndex = images.length;
                   images.push(image);
                 }
+                geojson.features.push(feature);
               }
 
               canvas.refreshIfNotMoving();
@@ -234,6 +238,11 @@ angular.module('www2App')
 
             if(scope.eventList.length > 0) {
               for(var i in scope.eventList) {
+                //
+                // avoid crash when data are inconsistent 
+                if(!scope.eventList[i].dataAtEventTime){
+                  continue;
+                }
                 var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
                 var diffTime = Math.abs(eventTime.getTime() - time.getTime());
 
@@ -263,6 +272,7 @@ angular.module('www2App')
               scope.pathLayer.setCurrentTime(newValue);
               scope.pathLayer.queueSeconds = $location.search().queue;
               scope.pathLayer.tailColor = $location.search().tailColor;
+              scope.pathLayer.allTrack = $location.search().allTrack;
               selectEventByTime(newValue);
             }
           });

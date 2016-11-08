@@ -64,6 +64,10 @@ h2{
   color:#ff0033!important;
 }
 
+.gray{
+  color: #ddd!important;
+}
+
 .link{
   border-bottom: 1px dotted;
   text-decoration: none!important;

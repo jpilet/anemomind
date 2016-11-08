@@ -9,7 +9,9 @@ angular.module('www2App', [
   'ui.bootstrap',
   'angularFileUpload',
   'nvd3',
-  'bootstrapLightbox'
+  'bootstrapLightbox',
+  'rzModule',
+  'angularModalService'
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, LightboxProvider) {
     $urlRouterProvider

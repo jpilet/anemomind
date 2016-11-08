@@ -1,19 +1,24 @@
 'use strict';
-var express = require('express');
-var config = require('../config/environment');
-var User = require('../api/user/user.model');
-var auth = require('../auth/auth.service');
-var access = require('../api/boat/access');
 var mongoose = require('mongoose');
-
 module.exports = function(app) {
+	//
+	// exported methods
+	var controller={};
+
+	var oghtml=`
+    <!-- OPEN GRAPH -->
+    <meta property="og:url"                content="<%this.url%>" />
+    <meta property="og:title"              content="<%this.title%>" />
+    <meta property="og:description"        content="<%this.description%>" />
+    <meta property="og:image"              content="<%this.img%>" />
+    <meta property="og:image:width"        content="<%this.w%>" />
+    <meta property="og:image:height"       content="<%this.h%>" />
+	`;
 
 	//
 	// preload index.html
 	var index=require('fs').readFileSync(app.get('appPath') + '/index.html').toString();  
 
-
-	var router = express.Router();
 
 	// TODO replace this code with require('VectorTileLayer').curveEndTimeStr
   function curveEndTimeStr(curveId) {
@@ -47,7 +52,7 @@ module.exports = function(app) {
 
 	//
 	// open a shared map
-	function get(req,res) {
+	controller.get=function (req,res) {
 
 	  var l=req.query.l, 
 	      boatId=req.params.boatId,
@@ -73,6 +78,7 @@ module.exports = function(app) {
 	  	// build shared url 
 	  	var hostname=req.protocol + '://' + req.host;
 
+
 	  	//
 	  	// prepare social data model
 	  	// TODO make this information more accurate
@@ -84,15 +90,12 @@ module.exports = function(app) {
 		    w:width,
 		    h:height
 		  }
-		  res.send(req.app.locals.template(index,model));	
+
+			//
+			// send content
+		  res.send(index.replace('<!-- OPEN GRAPH -->',template(oghtml,model)));	
 	  });
 	}
 
-	//
-	// define router
-	router.get('/:boatId',
-	           auth.maybeAuthenticated(), 
-	           access.boatReadAccess,
-	           get);
-	return router;
+	return controller;
 }

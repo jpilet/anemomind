@@ -12,7 +12,8 @@ var fs = require('fs');
 var config = require('../../config/environment');
 
 var sources = [
-  "tiles/VectorTileLayer.js"
+  "tiles/VectorTileLayer.js",
+  "tiles/ClearLayer.js"
 ];
 
 for (var i in sources) {
@@ -40,43 +41,60 @@ function ensureNotBusy(cb) {
   }
 };
 
-var canvas;
-var renderer;
-var pathLayer;
-var context;
-
-function getCanvas(width, height, cb) {
-    if (!canvas) {
-      canvas = new Canvas(width, height);
+var preparedCanvases = {};
+function getCanvas(width, height, name, cb) {
+    if (preparedCanvases[name]) {
+      cb(preparedCanvases[name]);
+      return;
     }
+
+    var canvas;
+    var renderer;
+    var pathLayer;
+    var context;
+
+    canvas = new Canvas(width, height);
     canvas.width = width;
     canvas.height = height;
     context = canvas.getContext('2d');
 
-    if (!renderer) {
-      renderer = new OffscreenTileRenderer({
-        canvas: canvas,
-        forceDevicePixelRatio: 1,
-        url: "http://stamen-tiles-a.a.ssl.fastly.net/toner-lite/$scale/$x/$y.png",
+    renderer = new OffscreenTileRenderer({
+      canvas: canvas,
+      forceDevicePixelRatio: 1,
+      url: function(scale, x, y) { 
+        var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
+        return "http://stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
+          + scale + "/" + x + "/" + y + ".png";
+      },
 
-        // Allow direct disc access instead of going through a http call
-        localImagePath: config.root
-            + (config.env == 'production' ? '/public' : '/client'),
+      // Allow direct disc access instead of going through a http call
+      localImagePath: config.root
+          + (config.env == 'production' ? '/public' : '/client'),
 
-        initialLocation: {x:0.5,y:0.5,scale:0.01},
-        maxNumCachedTiles: 256
-      });
+      initialLocation: {x:0.5,y:0.5,scale:0.01},
+      maxNumCachedTiles: 256
+    });
 
-      pathLayer = new VectorTileLayer({
-        maxNumCachedTiles: 512,
-        maxSimultaneousLoads: 64,
-        maxUpLevel: 1
-      }, renderer);
-      renderer.addLayer(pathLayer);
-
+    if (name == 'noMap') {
+      renderer.layers[0] = new ClearLayer({color: '#d9d9d9'});
     }
 
-    cb(canvas, renderer);
+    pathLayer = new VectorTileLayer({
+      maxNumCachedTiles: 512,
+      maxSimultaneousLoads: 64,
+      maxUpLevel: 1
+    }, renderer);
+    renderer.addLayer(pathLayer);
+
+    var prepared = {
+      canvas: canvas,
+      renderer: renderer,
+      pathLayer: pathLayer,
+      context: context
+    };
+    preparedCanvases[name] = prepared;
+
+    cb(prepared);
 }
 
 
@@ -89,16 +107,12 @@ function parseLocation(encoded) {
   };
 }
 
-module.exports.getMapPng = function(req, res, next) {
-  var boat = req.params.boat;
-  var start = new Date(req.params.timeStart +'Z');
-  var end = new Date(req.params.timeEnd + 'Z');
-  var location = req.params.location;
-
+function generateMapImage(boat, start, end, location, width, height, style,
+                          cb) {
   ensureNotBusy(function(done) {
-    getCanvas(parseInt(req.params.width), parseInt(req.params.height),
-              function(canvas, renderer) {
-      renderer.setLocation(parseLocation(location));
+    getCanvas(width,height, style, function(prepared) {
+      prepared.renderer.setLocation(location);
+      var pathLayer = prepared.pathLayer;
 
       pathLayer.setUrl(function(scale, x, y) { return [scale, x, y].join('/'); });
       pathLayer.fetchTile = function(url, success, error) {
@@ -106,42 +120,77 @@ module.exports.getMapPng = function(req, res, next) {
         var scale = urlAsArray[0];
         var x = urlAsArray[1];
         var y = urlAsArray[2];
-        renderer.addLoading();
+        prepared.renderer.addLoading();
         fetchTiles(boat, scale, x, y, start, end, function(err, data) {
           if (err) {
             error(err);
           } else {
             success(data);
           }
-          renderer.doneLoading(err);
+          prepared.renderer.doneLoading(err);
         });
       }
       try {
-        renderer.render(function(err) {
+        prepared.renderer.render(function(err) {
           if (err) {
-            console.log(err);
-            res.status(500).send(err);
+            cb(err);
+            done();
             return;
           }
-          canvas.toBuffer(function(err, buffer) {
+          prepared.canvas.toBuffer(function(err, buffer) {
             if (err) {
-              next(err);
+              cb(err);
               done();
               return;
             }
-            
-            res.header('Cache-Control', 'public, max-age=' + (7 *24 * 60 * 60));
-            res.type('image/png');
-            res.send(buffer);
+            cb(undefined, buffer);
             done();
           });
         });
       } catch (err) {
         console.log('Error: ' + err);
         console.log(err.stack);
-        next(err);
+        cb(err);
         done();
       }
     });
+  });
+};
+
+function sendPngWithCache(res, buffer, seconds) {
+  res.header('Cache-Control', 'public, max-age=' + seconds);
+  res.type('image/png');
+  res.send(buffer);
+}
+
+module.exports.getMapPng = function(req, res, next) {
+  var boat = req.params.boat;
+  var start = new Date(req.params.timeStart +'Z');
+  var end = new Date(req.params.timeEnd + 'Z');
+  var location = parseLocation(req.params.location);
+  var width = parseInt(req.params.width);
+  var height = parseInt(req.params.height);
+
+  generateMapImage(boat, start, end, location, width, height, 'map',
+                   function(err, buffer) {
+    if (err) {
+      // something went wrong. Try again without the map.
+      generateMapImage(boat, start, end, location, width, height, 'noMap',
+                       function(err, buffer) {
+        if (err || !buffer) {
+          // Does not work without the map :(
+          console.log(err);
+          res.status(500).send(err);
+          return;
+        } else {
+          var minutes = 60;
+          sendPngWithCache(res, buffer, 30 * minutes);
+        }
+      });
+    } else {
+      // First rendering attempt succeeded
+      var day = 24 * 60 * 60;
+      sendPngWithCache(res, buffer, 7 * day);
+    }
   });
 };
