@@ -6,37 +6,37 @@
         <div class="panel panel-default challenge-types">
             <div class="panel-body rewards-container">
 
-                <div class="reward" ng-repeat="challenge in challenges">
-                    <div class="name">
-                        <div class="circle">
-                            <label>{{challenge.name}}</label>
-                            <i class="fa {{challenge.icon}}" aria-hidden="true"></i>
-                        </div>
-                    </div>
-                    <div class="bar-container">
-                        <div class="heading">
-                            <div class="left-side">
-                                {{challenge.desc}} ...
-                            </div>
-                            <div class="right-side">
-                                {{challenge.progress}} {{challenge.unit}}
+                <div class="rewards-list">
+                    <div class="reward" ng-repeat="challenge in challenges">
+                        <div class="name">
+                            <div class="circle">
+                                <label>{{challenge.name}}</label>
+                                <i class="fa {{challenge.icon}} hidden-xs" aria-hidden="true"></i>
+                                <small class="hidden-sm hidden-md hidden-lg">L {{challenge.level}}</small>
                             </div>
                         </div>
-                        <div class="shell">
-                            <div class="level" ng-repeat="level in challenge.displayedLevels">
-                                <span class="caption" ng-class="{'active' : (challenge.level - 1) == level.level}" ng-if="!$last">
-                                    LEVEL {{level.level + 1}}
-                                </span>
-                                <div class="bar" ng-repeat="bar in range(level.bars)">
-                                    &nbsp;
+                        <div class="bar-container hidden-xs">
+                            <div class="heading">
+                                <div class="left-side">
+                                    {{challenge.desc}} ...
+                                </div>
+                                <div class="right-side">
+                                    {{challenge.progress}} {{challenge.unit}}
+                                </div>
+                            </div>
+                            <div class="shell">
+                                <div class="level" ng-repeat="level in challenge.displayedLevels">
+                                    <span class="caption" ng-class="{'active' : (challenge.level - 1) == level.level}" ng-if="!$last">
+                                        LEVEL {{level.level + 1}}
+                                    </span>
+                                    <div class="bar" ng-repeat="bar in range(level.bars)">
+                                        &nbsp;
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                
-
 
                 <div class="other-info">
                     <div class="circle">

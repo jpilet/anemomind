@@ -15,7 +15,7 @@
     color: #fff;
     display: inline-block;
     width: 120px;
-    height: 112px;
+    height: 116px;
     border-radius: 50%;
     padding: 23px;
     text-align: center;
@@ -23,6 +23,12 @@
 }
 .rewards .circle i {
     font-size: 26px;
+    display: block;
+}
+.rewards .circle small {
+    font-size: 26px;
+    line-height: 26px;
+    font-weight: 600;
     display: block;
 }
 .rewards .bar-container .heading {
@@ -96,24 +102,43 @@
 .rewards .level .bar:last-child {
     margin-right: 0;
 }
+@media only screen and (max-width: 767px) {
+    .rewards .rewards-list {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .rewards .reward {
+        width: auto;
+        display: initial;
+        margin: 12px auto;
+    }
+    .rewards .reward .name {
+        width: initial;
+    }
+    .rewards .reward,
+    .rewards .reward label {
+        cursor: pointer
+    }
+}
 
 .rewards .other-info {
     background-color: #d7d4d7;
     display: flex;
+    flex-wrap: wrap;
     width: 100%;
     border-radius: 8px;
     padding: 40px;
     margin-top: 50px;
+    text-align: center;
 }
 .rewards .other-info .circle {
     background-color: #fff;
     color: #d7d4d7;
     width: 224px;
     height: 215px;
-    margin: 0 12px;
+    margin: 0 auto;
     padding: 36px 18px;
     position: relative;
-    cursor: pointer;
 }
 .rewards .other-info label {
     background-color: #fc0f3a;
@@ -134,4 +159,28 @@
 .rewards .other-info .circle.active .description,
 .rewards .other-info .circle.active i {
     color: #fc0f3a;
+}
+@media only screen and (max-width: 1999px) {
+    .rewards .other-info {
+        padding: 28px 40px;
+    }        
+    .rewards .other-info .circle {
+        margin: 12px auto;
+    }
+}
+@media only screen and (max-width: 412px) {
+    .rewards .other-info .circle {
+        width: 148px;
+        height: 144px;
+    }
+    .rewards .other-info label {
+        padding: 3px 8px;
+    }
+    .rewards .other-info .description {
+        display: none;
+    }
+    .rewards .other-info i {
+        bottom: 18px;
+        left: 54px;
+    }
 }
