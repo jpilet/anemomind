@@ -24,8 +24,8 @@
                         </div>
                         <div class="shell">
                             <div class="level" ng-repeat="level in challenge.displayedLevels">
-                                <span class="caption" ng-class="{'active' : challenge.level == level.level}">
-                                    LEVEL {{level.level}}
+                                <span class="caption" ng-class="{'active' : (challenge.level - 1) == level.level}" ng-if="!$last">
+                                    LEVEL {{level.level + 1}}
                                 </span>
                                 <div class="bar" ng-repeat="bar in range(level.bars)">
                                     &nbsp;
@@ -76,9 +76,3 @@
 
 
 </div>
-
-<footer class="footer">
-  <div class="container">
-      <p><a href="http://anemomind.com">Anemomind</a></p>
-  </div>
-</footer>

@@ -78,7 +78,7 @@ angular.module('www2App')
       else if(currentLevel <= 9) {
         min = 7;
       }
-      else if(currentLevel == 10) {
+      else if(currentLevel >= 10) {
         min = 8;
       }
       max = min+2;
@@ -108,7 +108,7 @@ angular.module('www2App')
       var array = [];
       var data = null;
       var levels = displayLevels($scope.challenges[i].level);
-      for(var l = levels.min; l <= levels.max; l++) {
+      for(var l = levels.min - 1; l <= levels.max; l++) {
         data = {
           level: l,
           bars: fillUpWithBars($scope.challenges[i], l)
