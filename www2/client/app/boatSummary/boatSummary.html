@@ -1,4 +1,113 @@
-<div class="panel panel-default">
+<h2>{{::boat.name}} summary</h2>            
+ 
+<div class="card card-horizontal clearfix">
+  <!-- BOAT IMAGE -->
+  <div class="card-image ">
+      <div class="img-responsive img"  boat-main-image="boat" ></div>
+  </div>
+
+  <!-- BOAT INFO -->
+  <div class="card-content  card-content-thin" boat-fix-title-size>
+      <h3>Your boat</h3>
+      <div class="boat-info">
+        <h1 class="fixed-size">{{::boat.name}}</h1>
+        <p ng-show="sessionGetFirstDate(sessions)">Since {{sessionGetFirstDate(sessions)|date:'yyyy'}} </p>
+
+        <div class="boat-info-actions">
+          <a ng-href="/boats/{{::boat._id}}/edit" class="btn btn-action btn-sm btn-block"><i class="fa fa-cogs"></i></a>
+          <a ng-href="/vmgplot/{{::boat._id}}" class="btn btn-action btn-sm btn-block"><i class="fa fa-area-chart"></i></a>
+          <a ng-href="/map/{{ ::boat._id }}" class="btn btn-action btn-sm btn-block " ><i class="fa fa-map"></i></a>
+        </div>
+
+
+      </div>
+      <div class="card-content-bottom">
+        <h3>Recent activity</h3>
+        <div session-plot="sessions" ></div>                  
+      </div>
+  </div>
+
+  <!-- BOAT SESSION RESUME -->
+  <div class="card-content card-content-thin hidden-xs hidden-sm">
+    <div class="card-block">
+      <h3>Total distance</h3>
+      <div class="boat-info small">
+        <h1>{{sessionTotalDistance(sessions)}} nm</h1>
+        <p>On {{::boat.name}}</p>
+      </div>                    
+    </div>
+    <div class="card-block">
+      <h3>Highest boat speed</h3>
+      <div class="boat-info small">
+        <h1 ng-show="globalMaxSpeed"><a
+          href="/map/{{boatId}}?c={{globalMaxSpeedSession._id}}&t={{timeToInt(globalMaxSpeedSession.maxSpeedOverGroundTime)}}"
+          >{{globalMaxSpeed | number: 1}} kn</a></h1>
+        <p>On {{::boat.name}}</p>
+      </div>                    
+    </div>
+    <div class="card-block-bottom hidden-sm">
+      <h3>Recent pictures</h3>
+      <div>
+        <a ng-href="/map/{{boatId}}?c={{img.sid}}&t={{timeToInt(img.when)}}" ng-repeat="img in boat.photos|limitTo:4">
+          <img src="{{photoUrl(boatId,img.src,'80x80')}}" 
+             class="img-rounded" 
+             style="padding: 2px;">
+        </a>
+        <img ng-hide="boat.photos.length" class="img-rounded"  src="//placehold.it/80x80" data-holder-rendered="true" >
+      </div>
+    </div>
+
+  </div>              
+</div>
+
+<!-- RECENT SESSIONS -->
+<h2>{{::boat.name}} Recent navigation</h2>            
+<div class="session-container">
+  <div class="card card-horizontal cursor-pointer" 
+       ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |limitTo:pageSize" >
+    <a ng-href="/map/{{boatId}}?c={{session._id}}&t={{timeToInt(session.maxSpeedOverGroundTime)}}">
+    <div class="card-image">
+      <div class="" thumbnailspng="{{session._id}}" boat-id="{{boatId}}"></div>
+    </div>
+    <div class="card-content" >
+      <h3>{{session.startTime | date: 'd.M.yyyy'}}</h3>
+      <p>
+        max {{session.maxSpeedOverGround | number: 1}} kn, {{ session.trajectoryLength | number : 1 }} nm<br/>
+        <div class="block">
+          <b>{{ twdirToCardinal(session.avgWindDir) }}</b> {{ knotsToBeaufort(session.avgWindSpeed) }} bf, max: {{ session.strongestWindSpeed | number: 1 }} kn
+        </div>
+      </p>                  
+      <div class="card-content-bottom">
+        <i class="fa fa-picture-o red" ng-show="session.hasPhoto"></i>
+        <i class="fa fa-comment-o red" ng-show="session.hasComment"></i>
+        <i class="fa fa-flag red hide"></i>
+      </div>
+      <div class="card-content-mobile">
+        <i class="fa fa-angle-right fa-5x red" aria-hidden="true"></i>
+      </div>
+    </div>
+    </a>
+  </div>
+  <!-- END OF SESSION -->
+  <!-- MORE SESSIONS -->
+  <div class="card card-horizontal " 
+       ng-click="showMoreSessions()" ng-if="sessions.length>pageSize">
+    <div class="card-image">
+      <div class="img-responsive img"  style="background-image:url('/assets/images/boat-session.png');background-size: cover;height:100%" ></div>                  
+    </div>
+    <div class="card-content">
+      <h3>Load more </h3>
+      <div class="card-content-more">
+        <i class="fa fa-chevron-circle-down fa-3x "></i>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- KEEP THIS UNTIL MERGE -->
+<!--
+<div class="panel panel-default hide ">
   <div class="panel-heading">
     <h3 class="panel-title"><a ng-href="/boats/{{boat._id}}">{{boat.name}} [details]</a>
     <a ng-href="/vmgplot/{{boat._id}}">[vmg]</a>
@@ -10,7 +119,7 @@
       <tr ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |  limitTo:pageSize">
         <td>
           <a href="/map/{{boatId}}?c={{session._id}}">{{session.startTime | date: 'd.M.yyyy H:mm'}} ({{[session.startTime, session.endTime] | timeSpan}})</a>
-        (<a href="/map/{{boatId}}?c={{session._id}}">max {{session.maxSpeedOverGround | number: 1}} kn</a>,
+        (<a href="/map/{{boatId}}?c={{session._id}}&t={{timeToInt(session.maxSpeedOverGroundTime)}}">max {{session.maxSpeedOverGround | number: 1}} kn</a>,
         distance: {{ session.trajectoryLength | number : 1 }} nm)
         ({{ twdirToCardinal(session.avgWindDir) }}
          {{ knotsToBeaufort(session.avgWindSpeed) }} bf, 
@@ -31,3 +140,4 @@
     </p>
   </div>
 </div>
+-->

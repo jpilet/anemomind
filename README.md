@@ -53,6 +53,18 @@ The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
   * gnuplot (only necessary if you want to plot)
   * libprotobuf-dev
   * protobuf-compiler
+  * cairo
+
+
+Summary:
+
+On debian/ubuntu:
+
+    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcsparse3.1.2 libcxsparse3.1.2 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev libcairo2-dev
+
+On macOS with macports:
+
+    sudo port install cairo cmake eigen3
 
 ### For the web server
   * **node** and **npm**. Find packages here: ```https://nodejs.org/en/download/package-manager/```

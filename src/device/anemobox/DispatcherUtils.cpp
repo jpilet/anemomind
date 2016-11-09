@@ -5,7 +5,9 @@
 
 #include <device/anemobox/DispatcherUtils.h>
 
+#include <assert.h>
 #include <device/anemobox/logger/Logger.h>
+#include <server/common/MultiMerge.h>
 #include <server/common/logging.h>
 #include <server/nautical/AbsoluteOrientation.h>
 #include <fstream>
@@ -657,69 +659,72 @@ std::set<DataCode> listDataCodesWithDifferences(
 
 
 namespace {
-  struct ChannelInfo {
-   ChannelInfo(const std::string &n, DataCode c) : name(n), code(c) {}
 
-   std::string name;
-   DataCode code;
+template <typename T>
+class DispatcherStream : public SortedStream<TimeStamp> {
+ public:
+  DispatcherStream(TypedDispatchData<T> *dispatchData,
+                   ReplayDispatcher *destination)
+    : _dispatchData(dispatchData),
+    _it(dispatchData->dispatcher()->values().samples().begin()),
+    _destination(destination) { }
 
-   typedef std::shared_ptr<ChannelInfo> Ptr;
-  };
-
-  class ValueToPublish {
-   public:
-    virtual TimeStamp time() = 0;
-    virtual void publish(ReplayDispatcher *dst) = 0;
-    virtual ~ValueToPublish() {}
-
-    virtual const ChannelInfo::Ptr &info() const = 0;
-
-    typedef std::shared_ptr<ValueToPublish> Ptr;
-  };
-
-  bool before(const ValueToPublish::Ptr &a, const ValueToPublish::Ptr &b) {
-    return a->time() < b->time();
+  virtual TimeStamp value() const { return _it->time; }
+  virtual bool next() {
+    assert(!end());
+    _destination->publishTimedValue<T>(_dispatchData->dataCode(),
+                                       _dispatchData->source(),
+                                       *_it);
+    ++_it;
+    return end();
+  }
+  virtual bool end() const {
+    return _it == _dispatchData->dispatcher()->values().samples().end();
   }
 
-  template <typename T>
-  class ValueToPublishT : public ValueToPublish {
-   public:
-    ValueToPublishT(
-        const ChannelInfo::Ptr &info,
-        const TimedValue<T> &x) : _info(info), _x(x) {}
+ private:
+  TypedDispatchData<T> *_dispatchData;
+  typename TimedSampleCollection<T>::TimedVector::const_iterator _it;
+  ReplayDispatcher *_destination;
+};
 
-    TimeStamp time() override {return _x.time;}
+class DispatchDataMerger : public DispatchDataVisitor {
+ public:
+  DispatchDataMerger(ReplayDispatcher *destination)
+    : _destination(destination) { }
+  template<typename T>
+  void addStream(TypedDispatchData<T> *d) {
+    auto s = std::make_shared<DispatcherStream<T>>(d, _destination);
+    _streams.push_back(s);
+  }
 
-    virtual void publish(ReplayDispatcher *dst) override {
-      dst->publishTimedValue<T>(_info->code, _info->name, _x);
+  virtual void run(DispatchAngleData *d) { addStream(d); }
+  virtual void run(DispatchVelocityData *d) { addStream(d); }
+  virtual void run(DispatchLengthData *d) { addStream(d); }
+  virtual void run(DispatchGeoPosData *d) { addStream(d); }
+  virtual void run(DispatchTimeStampData *d) { addStream(d); }
+  virtual void run(DispatchAbsoluteOrientationData *d) { addStream(d); }
+
+  void merge() {
+    MultiMerge<TimeStamp> merger;
+    for (auto s : _streams) {
+      merger.addStream(s.get());
     }
-
-    const ChannelInfo::Ptr &info() const override {return _info;}
-   private:
-    ChannelInfo::Ptr _info;
-    TimedValue<T> _x;
-  };
-
-  class ValueCollector {
-   public:
-    ValueCollector(std::vector<ValueToPublish::Ptr> *dst) : _dst(dst) {}
-
-    template <DataCode Code, typename T>
-    void visit(const char *shortName, const std::string &sourceName,
-      const std::shared_ptr<DispatchData> &raw,
-      const TimedSampleCollection<T> &coll) {
-
-      auto info = std::make_shared<ChannelInfo>(sourceName, Code);
-
-      for (auto x: coll.samples()) {
-        _dst->push_back(std::make_shared<ValueToPublishT<T> >(info, x));
-      }
+    while (!merger.end()) {
+      // Publish occurs in the "next" method of DispatcherStream,
+      // called in the right order by _merger.
+      merger.next();
     }
+  }
+ private:
+  // This vector is used to delete all the allocated SortedStreams
+  // when destructing the DispatchDataMerger object.
+  std::vector<std::shared_ptr<SortedStream<TimeStamp>>> _streams;
 
-   private:
-   std::vector<ValueToPublish::Ptr> *_dst;
-  };
-}
+  ReplayDispatcher *_destination;
+};
+
+}  // namespace 
 
 ReplayDispatcher::ReplayDispatcher() : _counter(0) {}
 
@@ -730,13 +735,16 @@ void ReplayDispatcher::replay(const Dispatcher *src) {
 
   copyPriorities(src, this);
 
-  std::vector<ValueToPublish::Ptr> allValues;
-  ValueCollector collector(&allValues);
-  visitDispatcherChannelsConst(src, &collector);
-  std::sort(allValues.begin(), allValues.end(), before);
-  for (auto x: allValues) {
-    x->publish(this);
+  DispatchDataMerger merger(this);
+
+  for (auto code : src->allSources()) {
+    for (auto source : code.second) {
+      source.second->visit(&merger);
+    }
   }
+
+  merger.merge();
+
   finishTimeouts();
 }
 

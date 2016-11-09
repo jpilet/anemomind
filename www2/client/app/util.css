@@ -1,0 +1,101 @@
+
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak{
+  display: none!important;
+}
+
+
+/* typo */
+h1,h2,h3,h4{
+  color: #ff0033;
+}
+
+h2,h3{
+  font-size: 13px;
+  text-transform: uppercase;
+  font-weight: 900;
+  border-bottom: 2px solid #ff0033;
+  margin-top: 0;  
+}
+
+h2{
+  padding-top: 10px;  
+  font-size: 18px;  
+}
+
+
+.nomargin{
+  margin: 0px!important;
+}
+
+.nopadding{
+  padding: 0px!important;
+}
+
+.nopadding-lr{
+  padding: 10px 0!important ;
+}
+
+
+.round-corner{
+  border-radius:5px;
+}
+
+.border-bottom{
+  border-bottom:1px solid #eee;
+}
+
+.noscroll {
+    overflow: hidden !important;
+}
+
+.strike{
+  text-decoration:line-through;
+}
+
+.bold{
+  font-weight:bold;
+}
+
+.small {
+  font-size: 88%;
+}
+
+.red{
+  color:#ff0033!important;
+}
+
+.link{
+  border-bottom: 1px dotted;
+  text-decoration: none!important;
+}
+
+.text-ellipsis{
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.opacity{
+  opacity:0.3;
+  filter:alpha(opacity=30);
+}
+
+
+@media (max-width: 768px) {
+  .nopadding-xs{
+    padding: 0px!important;
+  }
+
+}
+
+@media all {
+  .page-break {  }
+}
+
+@media print {
+  .page-break { 
+    display: block; 
+    bresk-before:always;
+    page-break-before: always; 
+  }
+}

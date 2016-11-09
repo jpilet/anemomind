@@ -10,7 +10,8 @@ var userCanRead = access.userCanRead;
 var userCanWrite = access.userCanWrite;
 
 var winston = require('winston');
-var transporter = require('../../components/mailer').transporter;
+var mailer = require('../../components/mailer');
+var transporter = mailer.transporter;
 
 var validateBoatForUser = function(user, boat) {
   // Make sure the following arrays contain unique values.
@@ -27,29 +28,33 @@ var validateBoatForUser = function(user, boat) {
   }
 }
 
-var sendInvitationEmail = function(email, boat, hasAnAccount) {
+var sendInvitationEmail = function(inviter, email, boat, hasAnAccount) {
   var messageBody;
   if (hasAnAccount) {
-    messageBody = 'Hello!\nYou have been invited to see the navigation data ' +
+    messageBody = 'Hello!\n'
+     + inviter.name + ' invites you to see the navigation data ' +
     'of the boat ' + boat.name + '.\nPlease go to anemolab.com and log in ' +
     'with this email address: ' + email + '\n\nBest regards,\nAnemobot';
   } else {
-    messageBody = 'Hello!\nYou have been invited to see the navigation data ' +
+    messageBody = 'Hello!\n'
+     + inviter.name + ' invites you to see the navigation data ' +
     'of the boat ' + boat.name + '.\n'
     + 'Please create your account here: http://anemolab.com/signup?email=' + email
     + '\n\nBest regards,\nAnemobot';
   }
   transporter.sendMail({
-    from: 'anemobot@gmail.com',
+    from: mailer.from,
     to: email,
     subject: 'You have been invited to see ' + boat.name + ' navigation data ' +
     'on anemolab.com',
     text: messageBody
   }, function(err, info) {
     if (err) {
-      return winston.log('error', 'Failed to send invitation sent to: ' + email);
+      // TODO: update the info page and notify the inviter
+      return winston.log('error', 'Failed to send invitation to: '+ email
+                         + (err.stack ? '\n' + err.stack : '.'));
     }
-    winston.log('info', 'Invitation sent to: ' + email);
+    winston.log('info', inviter.name + '<' + inviter.email +'> sent an Invitation sent to: ' + email);
   });
 }
 
@@ -174,7 +179,7 @@ exports.inviteUser = function(req, res) {
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
 
-          sendInvitationEmail(req.body.email, boat, false);
+          sendInvitationEmail(req.user, req.body.email, boat, false);
 
           return res.status(200).json({
              message: 'user invited at address: ' + req.body.email,
@@ -201,7 +206,7 @@ exports.inviteUser = function(req, res) {
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
 
-          sendInvitationEmail(req.body.email, boat, true);
+          sendInvitationEmail(req.user, req.body.email, boat, true);
 
           return res.status(200).json({
             message: 'user ' + users[0].name + ' added as ' + (invitedAdmin ? 'admin' : 'reader'),

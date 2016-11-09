@@ -1,0 +1,23 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<!-- DISPLAY ONE BOAT BY ACTIVITY -->
+<div ng-if="isLoggedIn" class="container">
+    <boat-summary boat-id="boatId" 
+    							class="boat-summary">    							
+		</boat-summary>
+</div>
+
+<!-- IF ANONYMOUS -->
+<div ng-if="!isLoggedIn" class="welcome-boat" >
+	<div class="container">
+			<h1>Welcome! </h1>
+			<h2>
+				<a href="/login" class="btn btn-welcome btn-lg"> 
+					<i class="fa fa-sign-in"></i>
+					&nbsp;Please login anemolab</a>
+			</h2>
+	</div>
+</div>
+
+<div ng-include="'components/footer/footer.html'"></div>
+

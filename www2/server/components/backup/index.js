@@ -46,7 +46,7 @@ function pushLogFilesToProcessingServer(cb) {
   pushRunning = true;
 
   runRsync([
-    '--remove-source-files',
+    // '--remove-source-files',
     '"' + config.uploadDir + '/anemologs"',
     ],
     function(err, stdout, stderr) {

@@ -26,8 +26,15 @@ function CanvasTilesRenderer(params) {
   this.params.height = this.params.height || 1;
   this.params.minScale = this.params.minScale || 0;
   
-  this.params.downgradeIfSlowerFPS = params.downgradeIfSlowerFPS || 15;
+  this.params.downgradeIfSlowerFPS = params.downgradeIfSlowerFPS || 20;
+  
+  if(!this.params.url){
+    this.params.url=CanvasTilesRenderer.mapboxUrlBuilder;
+  }
+
   this.params.downsampleDuringMotion = false;
+
+  this.pixelRatio = params.forceDevicePixelRatio || 1;
 
   this.layers = [
     new TileLayer(params, this)
@@ -61,7 +68,9 @@ function CanvasTilesRenderer(params) {
     t.refresh();
   },
   this.params.width,
-  this.params.height);
+  this.params.height, this.params.disabledZoom);
+
+
   this.pinchZoom.minScale = this.params.minScale;
 
   ['maxScale', 'maxX', 'maxY', 'minX', 'minY'].forEach(function(key) {
@@ -72,8 +81,15 @@ function CanvasTilesRenderer(params) {
 
   // We are ready, let's allow drawing.  
   this.inDraw = false;
+
+  t.clicHandlers = [];
+  t.pinchZoom.onClic = function(pos) {
+    for(var i=0; i<t.clicHandlers.length; i++) {
+      if(t.clicHandlers[i](pos))
+        return false;
+    }
+  }
   
-  this.pinchZoom.onClic = function(pos) { };
 
   var location = params.initialLocation || {
     x: (this.params.width || 1) / 2,
@@ -83,9 +99,33 @@ function CanvasTilesRenderer(params) {
   this.setLocation(location);
 }
 
+//
+// default mapbox URL builder 
+CanvasTilesRenderer.mapboxUrlBuilder=function (scale, x, y) {
+  // The token corresponds to account anemojp on mapbox.
+  // return "http://a.tiles.wmflabs.org/bw-mapnik/"
+  //   + scale + "/" + x + "/" + y + ".png";
+  // */
+
+  //
+  // TODO this should not be there!
+  var token=".png32?access_token="+
+            "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
+  var url=[
+    "//api.tiles.mapbox.com/v4/anemojp.d4524095",
+    scale,x,y
+  ].join('/');
+
+  return url+token;
+}
+
 CanvasTilesRenderer.prototype.addLayer = function(layer) {
   this.layers.push(layer);
   this.refreshIfNotMoving();
+};
+
+CanvasTilesRenderer.prototype.addClicHandler = function(func) {
+  this.clicHandlers.push(func);
 };
 
 /** Get the current view location.
@@ -112,7 +152,7 @@ CanvasTilesRenderer.prototype.getLocation = function() {
  */
 CanvasTilesRenderer.prototype.setLocation = function(location) {
   if (isNaN(location.x) || isNaN(location.y) || isNaN(location.scale)) {
-    throw('invalid location');
+    throw(new Error('invalid location'));
   }
   var canvas = this.canvas;
   var ratio = [
@@ -305,3 +345,18 @@ CanvasTilesRenderer.prototype.refreshIfNotMoving = function() {
     this.refresh();
   }
 }
+
+// loadImage might be overloaded when rendering outside of a browser,
+// for example with node-canvas.
+CanvasTilesRenderer.prototype.loadImage = function(url, success, failure) {
+  var image = new Image();
+  image.src = url;
+  image.onload = function() {
+    success(image);
+  };
+  if (failure) {
+    image.onerror = function(err) {
+      failure(err);
+    };
+  }
+};

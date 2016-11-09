@@ -31,10 +31,11 @@ namespace {
   Array<TimeStamp> buildSampleTimes(
       const Array<TimeStamp> &positionTimes,
       const Array<TimeStamp> &motionTimes, Duration<double> period) {
-    Array<TimeStamp> all(positionTimes.size() + motionTimes.size());
-    CHECK(std::merge(positionTimes.begin(), positionTimes.end(),
-        motionTimes.begin(), motionTimes.end(), all.begin()) == all.end());
-    return Resampler::resample(all, period);
+    // we actually do not care about motionTimes:
+    // we need to know the position. We'll compute the motion later if
+    // it is missing.
+    // If we have only the motion, then we cut out.
+    return Resampler::resample(positionTimes, period);
   }
 
   Array<CeresTrajectoryFilter::Types<2>::TimedPosition> getLocalPositions(
@@ -82,16 +83,19 @@ namespace {
   }
 }
 
-TimedSampleCollection<HorizontalMotion<double> >::TimedVector GpsFilterResults::getGpsMotions() const {
+TimedSampleCollection<HorizontalMotion<double> >::TimedVector
+  GpsFilterResults::getGpsMotions(Duration<double> maxTimeDiff) const {
   int n = filteredLocalPositions.size() - 1;
   TimedSampleCollection<HorizontalMotion<double> >::TimedVector samples;
   for (int i = 0; i < n; i++) {
     const auto &left = filteredLocalPositions[i];
     const auto &right = filteredLocalPositions[i+1];
     Duration<double> timeDiff = right.time - left.time;
-    TimeStamp middleTime = left.time + 0.5*timeDiff;
-    HorizontalMotion<double> motion = computeHorizontalMotion(left.value, right.value, timeDiff);
-    samples.push_back(TimedValue<HorizontalMotion<double> >(middleTime, motion));
+    if (timeDiff < maxTimeDiff) {
+      TimeStamp middleTime = left.time + 0.5*timeDiff;
+      HorizontalMotion<double> motion = computeHorizontalMotion(left.value, right.value, timeDiff);
+      samples.push_back(TimedValue<HorizontalMotion<double> >(middleTime, motion));
+    }
   }
   return samples;
 }

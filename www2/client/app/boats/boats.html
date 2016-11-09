@@ -11,13 +11,9 @@
 <br />
 <h4>Boat list</h4>
 <ul class="nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6" ng-repeat="boat in boats">
-  <li><a href="/boats/{{ boat._id }}">{{ boat.name }}</a></li>
+  <li><a href="/boats/{{ ::boat._id }}">{{ ::boat.name||'Unknown' }}</a></li>
 </ul>
 
 </div>
 
-<footer class="footer">
-  <div class="container">
-      <p>&copy; 2014 <a href="http://anemomind.com">Anemomind</a></p>
-  </div>
-</footer>
+<div ng-include="'components/footer/footer.html'"></div>

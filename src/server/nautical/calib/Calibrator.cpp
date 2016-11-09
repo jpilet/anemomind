@@ -59,9 +59,10 @@ namespace {
 
 class TackCost {
   public:
-    TackCost(NavDataset before, NavDataset after, double weight_)
+    TackCost(NavDataset before, NavDataset after, double weight_, TimeStamp time)
       : _before(makeFilter(before)), _after(makeFilter(after)),
-      _beforeNav(before), _afterNav(after), _weight(weight_) { }
+      _beforeNav(before), _afterNav(after), _weight(weight_),
+      _time(time) { }
 
     template<typename T>
     bool operator()(const T* const x, T* residual) const {
@@ -135,6 +136,8 @@ class TackCost {
     double weight() const {
       return _weight;
     }
+
+    TimeStamp time() const { return _time; }
   private:
     ServerFilter _before;
     ServerFilter _after;
@@ -143,6 +146,7 @@ class TackCost {
     NavDataset _beforeNav;
     NavDataset _afterNav;
     double _weight;
+    TimeStamp _time;
 };
 
 void Calibrator::addTack(int pos, double weight) {
@@ -161,11 +165,17 @@ void Calibrator::addTack(int pos, double weight) {
 
   if ((tackTime < beginning + length + delta)
        || (tackTime > end - length - delta)) {
-    LOG(WARNING) << "Ignoring maneuver too close to beginning or end of recording";
+    LOG_IF(INFO, _verbose)
+      << "Ignoring maneuver too close to beginning or end of recording";
     return;
   }
 
-  //LOG(INFO) << "maneuver at: " << tackTime << " with weight " << weight;
+  if (_allnavs.samples<GPS_SPEED>().evaluate(tackTime).get().value < .5_kn) {
+    LOG_IF(INFO, _verbose) << "Ignoring maneuver with speed below .5 knot.";
+    return;
+  }
+  LOG_IF(INFO, _verbose)
+    << "maneuver at: " << tackTime << " with weight " << weight;
 
   const Duration<> largeMargin = Duration<>::minutes(3);
   NavDataset beforeds = _allnavs.slice(maxDefined(beginning, tackTime - delta - largeMargin),
@@ -174,7 +184,9 @@ void Calibrator::addTack(int pos, double weight) {
                                     tackTime + delta + length);
 
   if (getNavSize(afterds) == 0 || getNavSize(beforeds) == 0) {
-    LOG(WARNING) << "Ignoring invalid manoeuver: got empty nav array.";
+    if (_verbose) {
+      LOG_IF(INFO, _verbose) << "Ignoring invalid manoeuver: got empty nav array.";
+    }
     return;
   }
 
@@ -190,7 +202,8 @@ void Calibrator::addTack(int pos, double weight) {
   */
 
   const Velocity<double> minWindSpeed = Velocity<double>::knots(2.0);
-  if (after.aws() < minWindSpeed || before.aws() < minWindSpeed) {
+  if (after.bestTwsEstimate() < minWindSpeed
+      || before.bestTwsEstimate() < minWindSpeed) {
     // less than 2 knots of wind is not a useful measure.
     return;
   }
@@ -210,7 +223,7 @@ void Calibrator::addTack(int pos, double weight) {
   }
   */
 
-  TackCost *cost = new TackCost(beforeds, afterds, weight);
+  TackCost *cost = new TackCost(beforeds, afterds, weight, tackTime);
   _maneuvers.push_back(cost);
   CostFunction* cost_function =
       new AutoDiffCostFunction<
@@ -438,12 +451,13 @@ bool Calibrator::saveResultsAsMat(const char *filename) const {
                               &angleError, &normError,
                               &externalAngleError, &externalNormError);
 
-    fprintf(file, "%e\t%e\t%e\t%e\t%e\n",
+    fprintf(file, "%e\t%e\t%e\t%e\t%e\t%ld\n",
             maneuver->weight(),
             angleError,
             normError,
             externalAngleError,
-            externalNormError
+            externalNormError,
+            long(maneuver->time().toSecondsSince1970())
             );
   }
   fclose(file);

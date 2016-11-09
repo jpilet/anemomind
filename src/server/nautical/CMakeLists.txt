@@ -126,6 +126,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       plot_gnuplot
                       common_ScopedLog
                       logimport_LogLoader
+                      tiles_ChartTiles
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)
@@ -309,15 +310,6 @@ cxx_test(nautical_InvWGS84Test
          nautical_InvWGS84
         )
 
-add_library(nautical_Visualize
-  Visualize.h
-  Visualize.cpp
-  )
-
-target_link_libraries(nautical_Visualize
-  plot_Plot
-  )
-
 add_library(nautical_downsamplegps
             DownsampleGps.h
             DownsampleGps.cpp
@@ -325,3 +317,14 @@ add_library(nautical_downsamplegps
 target_link_libraries(nautical_downsamplegps
                       nautical_NavDataset
                       )
+
+add_library(nautical_MaxSpeed
+            MaxSpeed.h
+            MaxSpeed.cpp
+           )
+
+target_link_libraries(nautical_MaxSpeed
+                      nautical_NavDataset
+                      common_TimeStamp
+                      )
+

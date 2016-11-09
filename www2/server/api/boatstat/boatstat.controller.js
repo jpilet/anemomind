@@ -15,19 +15,10 @@ var access = require('../boat/access.js');
 
 // Get a single boat
 exports.show = function(req, res) {
-    console.warn(req.user);
-  access.userCanReadBoatId(req.user._id, req.params.id)
-  .then(function() {
-        console.log('auth ok');
-      Boatstat.findById(req.params.id, function (err, boatstat) {
-        if(err) { return handleError(res, err); }
-        if(!boatstat) { return res.sendStatus(404); }
-        return res.json(boatstat);
-      });
-    })
-  .catch(function(err) {
-        console.log('auth failed');
-    res.sendStatus(404);
-  });
+    Boatstat.findById(req.params.boatId, function (err, boatstat) {
+      if(err) { return handleError(res, err); }
+      if(!boatstat) { return res.sendStatus(404); }
+      return res.json(boatstat);
+    });
 };
 

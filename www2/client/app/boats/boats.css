@@ -1,0 +1,59 @@
+
+/* Boat styles
+ -------------------------------------- */
+
+.btn-action{
+  color: #ff0033;
+  background-color: #fff;
+  border-color: #ccc;
+  border-radius: 25px;  
+}
+
+.btn-action-inv{
+  color: #fff;
+  background-color: #ff0033;
+  border-color: #ccc;
+  border-radius: 25px;  
+}
+
+.form-control-inline {
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    -border-bottom: 1px solid #ccc;
+}
+
+.form-control-inline {
+    display: inline;
+    width: calc(100% - 40px);
+}
+
+.list-group-item button.close{
+  padding: 7px;
+}
+
+.welcome-boat{
+		width: 100%;
+    height: 80%;
+    background-image: url("/assets/images/01-landing.jpg");
+    background-color: transparent;
+    background-size: cover;
+    background-position: 50% 20%;	
+}
+.welcome-boat>div{
+	padding-top: 150px;
+}
+
+.welcome-boat h1, .welcome-boat h2, .welcome-boat a{
+	color:  white;
+  border: none;	
+}
+
+.welcome-boat .btn-welcome{
+    color: #fff;
+    background-color: rgba(255, 0, 51, 0.44);
+    border-color: #ccc;
+    border-radius: 10px;
+    font-weight: 800;
+    padding: 20px;	
+}

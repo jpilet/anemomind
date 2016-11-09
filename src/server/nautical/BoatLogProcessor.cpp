@@ -26,6 +26,7 @@
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
 
@@ -41,6 +42,8 @@ using namespace sail;
 using namespace std;
 
 namespace {
+
+bool debugVmgSamples = false;
 
 void collectSpeedSamplesGrammar(
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
@@ -61,15 +64,37 @@ void collectSpeedSamplesGrammar(
 
       TimedSampleRange<Velocity<double>> twsLeg = leg.samples<TWS>();
       TimedSampleRange<Velocity<double>> vmgLeg = leg.samples<VMG>();
+      TimedSampleRange<Angle<double>> twaLeg = leg.samples<TWA>();
+      TimedSampleRange<Angle<double>> awaLeg = leg.samples<AWA>();
 
       for (TimeStamp time(it.first); time < it.second; time += Duration<>::seconds(1)) {
         Optional<TimedValue<Velocity<>>> tws = twsLeg.evaluate(time);
         Optional<TimedValue<Velocity<>>> vmg = vmgLeg.evaluate(time);
+
         if (tws.defined() && vmg.defined()) {
-          twsArray.add(tws.get().value);
-          // vmg is negative for downwind sailing, but the TargetSpeed logic
-          // only handles positive values. Therefore, take the abs value.
-          vmgArray.add(fabs(vmg.get().value));
+          // We ignore samples with low VMG.
+          // This is because the grammar labels as "upwind-leg" startionary
+          // episodes.
+          if (vmg.get().value.fabs() > .5_kn) {
+            twsArray.add(tws.get().value);
+            // vmg is negative for downwind sailing, but the TargetSpeed logic
+            // only handles positive values. Therefore, take the abs value.
+            vmgArray.add(fabs(vmg.get().value));
+            if (debugVmgSamples) {
+            LOG(INFO) << "At " << time.fullPrecisionString() << ": "
+              << "vmg: " << vmg.get().value.knots()
+              << " gpsSpeed: " << leg.samples<GPS_SPEED>().evaluate(time).get().value.knots()
+              << " tws: " << tws.get().value.knots()
+              << " twa: " << twaLeg.evaluate(time).get().value.degrees()
+              << " awa: " << awaLeg.evaluate(time).get().value.degrees()
+              << " aws: " << leg.samples<AWS>().evaluate(time).get().value.knots();
+            }
+          } else {
+            if (debugVmgSamples) {
+              LOG(INFO) << "At " << time.fullPrecisionString()
+                << ": ignoring sample with VMG " << vmg.get().value.knots();
+            }
+          }
         }
       }
     }
@@ -255,18 +280,40 @@ Poco::Path getDstPath(ArgMap &amap) {
 bool BoatLogProcessor::process(ArgMap* amap) {
   TimeStamp start = TimeStamp::now();
 
-  readArgs(amap);
+  if (!prepare(amap)) {
+    return false;
+  }
 
-  NavDataset raw = loadNavs(*amap, _boatid);
+  NavDataset resampled;
 
-  NavDataset resampled = downSampleGpsTo1Hz(raw);
+  if (_resumeAfterPrepare.size() > 0) {
+    resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
+  } else {
+    NavDataset raw = loadNavs(*amap, _boatid);
+    resampled = downSampleGpsTo1Hz(raw);
+
+    if (_gpsFilter) {
+      resampled = filterNavs(resampled, _gpsFilterSettings);
+    }
+  }
+
+  if (_savePreparedData.size() != 0) {
+    saveDispatcher(_savePreparedData.c_str(), *(resampled.dispatcher()));
+  }
 
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
   std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
 
+  if (!fulltree) {
+    LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
+    return false;
+  }
+
   Calibrator calibrator(_grammar.grammar);
-  std::ofstream boatDatFile(_dstPath.toString() + "/boat.dat");
+  if (_verboseCalibrator) { calibrator.setVerbose(); }
+  std::string boatDatPath = _dstPath.toString() + "/boat.dat";
+  std::ofstream boatDatFile(boatDatPath);
 
   // Calibrate. TODO: use filtered data instead of resampled.
   if (calibrator.calibrate(resampled, fulltree, _boatid)) {
@@ -275,6 +322,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     LOG(WARNING) << "Calibration failed. Using default calib values.";
     calibrator.clear();
   }
+
+  // First simulation pass: adds true wind
   NavDataset simulated = calibrator.simulate(resampled);
 
   /*
@@ -288,8 +337,6 @@ slice that produce. This saves us a lot of memory. If we decide to refactor
 this code some time, we should think carefully how we want to do the merging.
    */
   simulated.mergeAll();
-
-
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
@@ -305,20 +352,27 @@ this code some time, we should think carefully how we want to do the merging.
   // write calibration and target speed to disk
   boatDatFile.close();
 
+  // Second simulation path to apply target speed.
+  // Todo: simply lookup the target speed instead of recomputing true wind.
+  simulated = SimulateBox(boatDatPath, simulated);
+
   if (_debug) {
     visualizeBoatDat(_dstPath);
   }
 
   if (_generateTiles) {
-    Array<NavDataset> rawSessions =
+    Array<NavDataset> sessions =
       extractAll("Sailing", simulated, _grammar.grammar, fulltree);
 
-    // GPS filtering: eliminates bad speed surprises
-    Array<NavDataset> filteredSessions =
-      (_gpsFilter ? filterSessions(rawSessions) : rawSessions);
-
-    if (!generateAndUploadTiles(_boatid, filteredSessions, _tileParams)) {
+    if (!generateAndUploadTiles(_boatid, sessions, &db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
+      return false;
+    }
+  }
+
+  if (_generateChartTiles) {
+    if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)) {
+      LOG(ERROR) << "Failed to upload chart tiles!";
       return false;
     }
   }
@@ -333,6 +387,7 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _boatid = getBoatId(*amap);
   _dstPath = getDstPath(*amap);
   _generateTiles = amap->optionProvided("-t");
+  _generateChartTiles = amap->optionProvided("-c");
   _vmgSampleSelection = (amap->optionProvided("--vmg:blind") ?
     VMG_SAMPLES_BLIND : VMG_SAMPLES_FROM_GRAMMAR);
 
@@ -340,6 +395,7 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
 
   _tileParams.fullClean = amap->optionProvided("--clean");
 
+  _chartTileSettings.dbName = _tileParams.dbName;
   if (_debug) {
     LOG(INFO) << "BoatLogProcessor:\n"
       << "boat: " << _boatid << "\n"
@@ -348,6 +404,25 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
       << (_vmgSampleSelection == VMG_SAMPLES_FROM_GRAMMAR ?
           "grammar vmg samples" : "blind vmg samples");
   }
+
+
+  _tileParams.curveCutThreshold = _gpsFilterSettings.subProblemThreshold;
+}
+
+bool BoatLogProcessor::prepare(ArgMap* amap) {
+  readArgs(amap);
+
+  if (_generateTiles || _generateChartTiles) {
+    if (!mongoConnect(_tileParams.dbHost,
+                      _tileParams.dbName,
+                      _tileParams.user,
+                      _tileParams.passwd,
+                      &db)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 int mainProcessBoatLogs(int argc, const char **argv) {
@@ -389,6 +464,10 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("-t", "Generate vector tiles and upload to mongodb")
     .setArgCount(0);
+
+  amap.registerOption("-c", "Generate chart tiles and upload to mongodb")
+    .setArgCount(0);
+
   amap.registerOption("--host", "MongoDB hostname").store(&params->dbHost);
   amap.registerOption("--scale", "max scale level").store(&params->maxScale);
   amap.registerOption("--maxpoints",
@@ -400,15 +479,29 @@ int mainProcessBoatLogs(int argc, const char **argv) {
       .store(&params->dbName);
 
   amap.registerOption("-u", "username for db connection")
-      .setArgCount(1)
       .store(&params->user);
 
   amap.registerOption("-p", "password for db connection")
-      .setArgCount(1)
       .store(&params->passwd);
 
   amap.registerOption("--clean", "Clean all tiles for this boat before starting");
 
+  amap.registerOption(
+      "--debug-vmg",
+      "Print detailed information about samples used for VMG target speed tables")
+    .store(&debugVmgSamples);
+
+  amap.registerOption(
+      "--save-prepared",
+      "Save after downsampling and early filtering, see --continue-prepared")
+    .store(&processor._savePreparedData);
+
+  amap.registerOption("--continue-prepared",
+                      "continue processing on a file saved with --save-prepared")
+    .store(&processor._resumeAfterPrepare);
+
+  amap.registerOption("--verbose-calib", "Enable debug output for calibration")
+    .store(&processor._verboseCalibrator);
 
   auto status = amap.parse(argc, argv);
   switch (status) {

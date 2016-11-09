@@ -8,14 +8,34 @@ angular.module('www2App', [
   'ui.router',
   'ui.bootstrap',
   'angularFileUpload',
-  'nvd3'
+  'nvd3',
+  'bootstrapLightbox',
+  'rzModule',
+  'angularModalService'
 ])
-  .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
+  .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, LightboxProvider) {
     $urlRouterProvider
       .otherwise('/');
 
+    // IE Caching issue for $http
+    // - http://benjii.me/2014/07/ie-is-caching-my-angular-requests-to-asp-net-mvc/
+    // - http://stackoverflow.com/questions/16098430/angular-ie-caching-issue-for-http
+    //
+    // Initialize get if not there
+    if (!$httpProvider.defaults.headers.get) {
+        $httpProvider.defaults.headers.get = {};
+    }
+
+    // Enables Request.IsAjaxRequest() in ASP.NET MVC
+    $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
+
+    // Disable IE ajax request caching
+    $httpProvider.defaults.headers.get['If-Modified-Since'] = '0';
+
     $locationProvider.html5Mode(true);
     $httpProvider.interceptors.push('authInterceptor');
+
+    LightboxProvider.fullScreenMode = true;
   })
 
   .factory('authInterceptor', function ($rootScope, $q, $cookieStore, $location) {
@@ -23,8 +43,10 @@ angular.module('www2App', [
       // Add authorization token to headers
       request: function (config) {
         config.headers = config.headers || {};
-        if ($cookieStore.get('token')) {
-          config.headers.Authorization = 'Bearer ' + $cookieStore.get('token');
+        var token=$cookieStore.get('token');
+
+        if (token) {
+          config.headers.Authorization = 'Bearer ' + token;
         }
         return config;
       },
@@ -44,7 +66,12 @@ angular.module('www2App', [
     };
   })
 
-  .run(function ($rootScope, $location, Auth) {
+  .run(function ($rootScope, $location, Auth, boatList,$log) {
+
+    // initial 
+    $log.log('-- app.run');
+    boatList.update();
+
     // Redirect to login if route requires auth and you're not logged in
     $rootScope.$on('$stateChangeStart', function (event, next) {
       Auth.isLoggedInAsync(function(loggedIn) {

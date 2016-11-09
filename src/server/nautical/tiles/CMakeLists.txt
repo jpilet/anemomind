@@ -19,17 +19,23 @@ cxx_test(tiles_NavTileGeneratorTest
 
 if (MongoDB_LIBRARIES)
 
+  add_library(tiles_MongoUtils MongoUtils.h MongoUtils.cpp)
   include_directories(${MongoDB_INCLUDE_DIR})
+  target_link_libraries(tiles_MongoUtils
+                        common_logging
+                        common_TimeStamp
+                        ${MongoDB_LIBRARIES}
+                       )
+
   add_library(tiles_NavTileUploader
               NavTileUploader.cpp
              )
-  add_definitions(-DBOOST_THREAD_USE_LIB=1)
   target_link_libraries(tiles_NavTileUploader
                         tiles_NavTileGenerator
                         common_logging
                         nautical_NavCompatibility
-                        ${MongoDB_LIBRARIES}
-
+                        nautical_MaxSpeed
+                        tiles_MongoUtils
                        )
 
   add_library(nautical_tiles_TileUtils
@@ -48,6 +54,21 @@ if (MongoDB_LIBRARIES)
                         tiles_NavTileUploader
                         ${MongoDB_LIBRARIES}
                        )
+
+
+  add_library(tiles_ChartTiles ChartTiles.h ChartTiles.cpp)
+  target_link_libraries(tiles_ChartTiles
+                        nautical_NavDataset
+                        tiles_MongoUtils
+                        common_MeanAndVar
+                       )
+
+  cxx_test(tiles_ChartTilesTest
+           ChartTilesTest.cpp
+           gtest_main
+           gmock
+           tiles_ChartTiles
+          )
 
 
 endif (MongoDB_LIBRARIES)
