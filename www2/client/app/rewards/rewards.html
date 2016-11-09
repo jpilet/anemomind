@@ -2,7 +2,7 @@
 
 <div class="container rewards">
 <div class="record">
-    <div class="col-md-12">
+    <div class="col-md-12 main-container">
         <div class="panel panel-default challenge-types">
             <div class="panel-heading">
                 <h3 class="panel-title">
@@ -13,15 +13,15 @@
                 <div class="rewards-list is-slick-slider" breakpoints="breakpoints">
                     <div class="reward" 
                     ng-repeat="reward in rewards">
-                        <div class="name with-popover"
-                            ng-click="fillDesc(reward.progress+' '+reward.unit)"
-                            uib-popover-template="popup.templateUrl" 
-                            popover-title=""
-                            popover-enable="rewardsPopupActive">
+                        <div class="rewards-details hidden-sm hidden-md hidden-lg">
+                            <div>{{reward.desc}}</div>
+                            <div>{{reward.progress}} {{reward.unit}}</div>
+                            <div>Level {{reward.level}}</div>
+                        </div>
+                        <div class="name">
                             <div class="circle">
                                 <label class="noselect">{{reward.name}}</label>
-                                <i class="fa {{reward.icon}} hidden-xs" aria-hidden="true"></i>
-                                <small class="noselect hidden-sm hidden-md hidden-lg">L {{reward.level}}</small>
+                                <i class="fa {{reward.icon}}" aria-hidden="true"></i>
                             </div>
                         </div>
                         <div class="bar-container hidden-xs">

@@ -1,3 +1,8 @@
+@media only screen and (max-width: 368px) {
+    .rewards .main-container {
+        padding: 0;
+    }
+}
 .rewards .panel-heading {
     background: transparent;
     border: none;
@@ -123,15 +128,55 @@
     }
     .rewards .reward {
         width: auto;
-        display: initial;
+        display: flex;
         margin: 12px auto;
+        outline: none !important;
+    }
+    .rewards .reward .rewards-details,
+    .rewards .reward .name {
+        width: 50%;
     }
     .rewards .reward .name {
-        width: initial;
+        text-align: center;
     }
+    .rewards .reward .rewards-details {
+        padding: 6px 0;
+    }
+    .rewards .rewards-details div {
+        padding: 2px 6px;
+    }
+    .rewards .rewards-details div:first-child {
+        border-radius: 6px;
+        padding: 0px 6px;
+        background-color: #eeeeee;
+        display: inline-block;
+    }
+    .rewards .rewards-details div:last-child {
+        color: #fc0f3a;
+        font-size: 24px;
+    }    
     .rewards .reward,
     .rewards .reward label {
         cursor: pointer
+    }
+}
+@media only screen and (max-width: 368px) {
+    .rewards .rewards-details div {
+        font-size: 14px;
+    }
+    .rewards .reward .name {
+        text-align: right;
+    }
+    .rewards .reward .circle {
+        width: 100px;
+        height: 98px;
+        padding: 16px;
+    }
+    .rewards .reward label {
+        font-size: 14px;
+    }
+    .rewards .reward i {
+        font-size: 16px;
     }
 }
 
@@ -190,6 +235,7 @@
     }
     .rewards .other-info label {
         padding: 3px 8px;
+        font-size: 14px;
     }
     .rewards .other-info .description {
         display: none;
@@ -199,6 +245,7 @@
         left: 54px;
     }
 }
+
 
 .rewards .popover {
     max-width: 300px;
@@ -215,4 +262,15 @@
     display: initial;
     font-size: 16px;
     color: #fff !important;
+}
+
+.rewards .slick-arrow {
+    top: -45px;
+}
+.rewards .slick-arrow.slick-prev {
+    right: 55px;
+    left: initial;
+}
+.rewards .slick-arrow.slick-next {
+    right: 10px;
 }

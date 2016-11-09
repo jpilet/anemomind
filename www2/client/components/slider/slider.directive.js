@@ -15,7 +15,7 @@ angular.module('www2App')
             el.slick({
               centerMode: true,
               arrows: true,
-              centerPadding: '40px',
+              centerPadding: '0',
               slidesToShow: 3,
               prevArrow: '<button type="button" class="slick-arrow slick-prev">&nbsp;</button>',
               nextArrow: '<button type="button" class="slick-arrow slick-next">&nbsp;</button>',
@@ -31,7 +31,10 @@ angular.module('www2App')
         // same as document.ready
         $timeout(function() { initSlick(el); }, 100);
         angular.element($window).on('resize', function() {
-          initSlick(el);
+          // placing a timeout here to also
+          // catch resize event when browser is
+          // minimized or maximized
+          $timeout(function() { initSlick(el); }, 100);
         });
       }
     };

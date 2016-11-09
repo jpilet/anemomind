@@ -15,7 +15,7 @@ angular.module('www2App')
         progress: 153,
         goal: 160,
         unit: 'manuevers',
-        desc: 'Number of manuevers',
+        desc: 'No. of manuevers',
         displayedLevels: null
       },
       {
@@ -35,7 +35,7 @@ angular.module('www2App')
         progress: 6,
         goal: 10,
         unit: 'kts avg on a 3sec period',
-        desc: 'Maximum speed reached',
+        desc: 'Max speed reached',
         displayedLevels: null
       },
       {
@@ -45,7 +45,7 @@ angular.module('www2App')
         progress: 15,
         goal: 25,
         unit: 'pictures',
-        desc: 'Numbers of pictures taken',
+        desc: 'No. of pictures taken',
         displayedLevels: null
       },
       {
@@ -165,19 +165,15 @@ angular.module('www2App')
 
     // Only show the pop-ups on stated widths
     // or lesser of it
-    var rewardThreshold = 767;
     var infoThreshold = 412;
-
     var container = angular.element(window);
     var width = function() {
       return container.width();
     };
 
-    $scope.rewardsPopupActive = (width() <= rewardThreshold);
     $scope.infoPopupActive = (width() <= infoThreshold);
     
     container.on('resize', function() {
-      $scope.rewardsPopupActive = (width() <= rewardThreshold);
       $scope.infoPopupActive = (width() <= infoThreshold);
     });
 
@@ -185,7 +181,19 @@ angular.module('www2App')
     // Responsive config for the Slick slider
     $scope.breakpoints = [
       {
-        breakpoint: 768,
+        breakpoint: 770,
+        settings: {
+          slidesToShow: 1
+        }
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 1
+        }
+      },
+      {
+        breakpoint: 380,
         settings: {
           slidesToShow: 1
         }
