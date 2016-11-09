@@ -192,23 +192,12 @@
 }
 
 .challenges .challenge-container .slick-arrow {
-    position: absolute;
     top: 30px;
-    height: 28px;
-    width: 14px;
-    background-color: transparent;
-    border: none;
-    background-size: contain;
-    padding: 0;
-    z-index: 1;
-    outline: none;
 }
 .challenges .challenge-container .slick-arrow.slick-prev {
-    background: url('/assets/images/left_arrow.svg') no-repeat;
     left: 10px;
 }
 .challenges .challenge-container .slick-arrow.slick-next {
-    background: url('/assets/images/right_arrow.svg') no-repeat;
     right: 10px;
 }
 
