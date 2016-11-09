@@ -12,30 +12,30 @@
             <div class="panel-body rewards-container">
                 <div class="rewards-list">
                     <div class="reward" 
-                    ng-repeat="challenge in challenges">
+                    ng-repeat="reward in rewards">
                         <div class="name with-popover"
-                            ng-click="fillDesc(challenge.progress+' '+challenge.unit)"
+                            ng-click="fillDesc(reward.progress+' '+reward.unit)"
                             uib-popover-template="popup.templateUrl" 
                             popover-title=""
                             popover-enable="rewardsPopupActive">
                             <div class="circle">
-                                <label class="noselect">{{challenge.name}}</label>
-                                <i class="fa {{challenge.icon}} hidden-xs" aria-hidden="true"></i>
-                                <small class="noselect hidden-sm hidden-md hidden-lg">L {{challenge.level}}</small>
+                                <label class="noselect">{{reward.name}}</label>
+                                <i class="fa {{reward.icon}} hidden-xs" aria-hidden="true"></i>
+                                <small class="noselect hidden-sm hidden-md hidden-lg">L {{reward.level}}</small>
                             </div>
                         </div>
                         <div class="bar-container hidden-xs">
                             <div class="heading">
                                 <div class="left-side">
-                                    {{challenge.desc}} ...
+                                    {{reward.desc}} ...
                                 </div>
                                 <div class="right-side">
-                                    {{challenge.progress}} {{challenge.unit}}
+                                    {{reward.progress}} {{reward.unit}}
                                 </div>
                             </div>
                             <div class="shell">
-                                <div class="level" ng-repeat="level in challenge.displayedLevels">
-                                    <span class="caption" ng-class="{'active' : (challenge.level - 1) == level.level}" ng-if="!$last">
+                                <div class="level" ng-repeat="level in reward.displayedLevels">
+                                    <span class="caption" ng-class="{'active' : (reward.level - 1) == level.level}" ng-if="!$last">
                                         LEVEL {{level.level + 1}}
                                     </span>
                                     <div class="bar" ng-repeat="bar in range(level.bars)">

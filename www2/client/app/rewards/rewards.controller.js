@@ -7,7 +7,7 @@ angular.module('www2App')
 
     var maxBars = 5;
 
-    $scope.challenges = [
+    $scope.rewards = [
       {
         name: 'Hard workers',
         icon: 'fa-user',
@@ -138,19 +138,19 @@ angular.module('www2App')
     };
     
 
-    for(var i in $scope.challenges) {
+    for(var i in $scope.rewards) {
       var array = [];
       var data = null;
-      var levels = displayLevels($scope.challenges[i].level);
+      var levels = displayLevels($scope.rewards[i].level);
       for(var l = levels.min - 1; l <= levels.max; l++) {
         data = {
           level: l,
-          bars: fillUpWithBars($scope.challenges[i], l)
+          bars: fillUpWithBars($scope.rewards[i], l)
         };
 
         array.push(data);
       }
-      $scope.challenges[i].displayedLevels = array;
+      $scope.rewards[i].displayedLevels = array;
     }
 
 
