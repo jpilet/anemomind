@@ -119,7 +119,7 @@ angular.module('www2App')
         $scope.challengeName = challenge.name;
       }
 
-      $scope.showModal = function(data) {        
+      $scope.showModal = function(data) { 
         ModalService.data = data;
         ModalService.showModal({
           templateUrl: "app/share/share.html",
@@ -130,4 +130,26 @@ angular.module('www2App')
           }
         });
       }
+
+      // Responsive config for the Slick slider
+      $scope.breakpoints = [
+        {
+          breakpoint: 768,
+          settings: {
+            slidesToShow: 3
+          }
+        },
+        {
+          breakpoint: 480,
+          settings: {
+            slidesToShow: 2
+          }
+        },
+        {
+          breakpoint: 380,
+          settings: {
+            slidesToShow: 1
+          }
+        }
+      ];
   });

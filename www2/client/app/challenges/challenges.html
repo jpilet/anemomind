@@ -9,7 +9,7 @@
                     The fastest on ...
                 </h3>
             </div>
-            <div class="panel-body challenge-container">
+            <div class="panel-body challenge-container is-slick-slider" breakpoints="breakpoints">
                 <div class="challenge" ng-repeat="challenge in challenges">
                     <div class="circle {{challenge.classes}}" 
                         ng-class="{'selected' : selectedChallenge == $index}"
@@ -21,7 +21,6 @@
                                 'hours' : challenge.name.indexOf('hours') > -1}">{{challenge.name}}</label>
                     </div>
                 </div>
-                
             </div>
         </div>
         

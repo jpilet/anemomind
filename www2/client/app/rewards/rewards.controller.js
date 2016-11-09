@@ -180,4 +180,27 @@ angular.module('www2App')
       $scope.rewardsPopupActive = (width() <= rewardThreshold);
       $scope.infoPopupActive = (width() <= infoThreshold);
     });
+
+
+    // Responsive config for the Slick slider
+    $scope.breakpoints = [
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 3
+        }
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 2
+        }
+      },
+      {
+        breakpoint: 380,
+        settings: {
+          slidesToShow: 1
+        }
+      }
+    ];
   });
