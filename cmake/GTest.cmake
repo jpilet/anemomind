@@ -3,38 +3,23 @@
 
 include(ExternalProject)
 
-option(USE_GMOCK "If ON, not only gtest, but also gmock will be installed." ON)
+ExternalProject_Add(gtest_ext
+        URL "https://github.com/google/googletest/archive/release-1.8.0.zip"
+        BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/gmock-build"
+        SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/gmock-src"
+        CMAKE_ARGS "${gtest_cmake_args}"
+          "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+        INSTALL_COMMAND ""
+            )
+set(GTEST_INCLUDE_DIRS
+    "${CMAKE_BINARY_DIR}/third-party/gmock-src/googlemock/include"
+    "${CMAKE_BINARY_DIR}/third-party/gmock-src/googletest/include"
+   )
+link_directories(
+    "${CMAKE_BINARY_DIR}/third-party/gmock-build/googlemock"
+    "${CMAKE_BINARY_DIR}/third-party/gmock-build/googlemock/gtest"
+    )
 
-if (USE_GMOCK)
-  ExternalProject_Add(gtest_ext
-          URL "https://googlemock.googlecode.com/files/gmock-1.7.0.zip"
-          BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/gmock-build"
-          SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/gmock-src"
-          CMAKE_ARGS "${gtest_cmake_args}"
-            "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-          INSTALL_COMMAND ""
-              )
-  set(GTEST_INCLUDE_DIRS
-                   "${CMAKE_BINARY_DIR}/third-party/gmock-src/gtest/include"
-                   "${CMAKE_BINARY_DIR}/third-party/gmock-src/include"
-     )
-  link_directories(
-      "${CMAKE_BINARY_DIR}/third-party/gmock-build"
-      "${CMAKE_BINARY_DIR}/third-party/gmock-build/gtest"
-      )
-else (USE_GMOCK)
-  ExternalProject_Add(gtest_ext
-          SVN_REPOSITORY "http://googletest.googlecode.com/svn/tags/release-1.7.0"
-          BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/gtest-build"
-          SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/gtest-src"
-          INSTALL_COMMAND ""
-          CMAKE_ARGS "${gtest_cmake_args}"
-            "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-          )
-  set(GTEST_INCLUDE_DIRS
-          "${CMAKE_BINARY_DIR}/third-party/gtest-src/include"
-     )
-endif (USE_GMOCK)
 
 enable_testing()
 

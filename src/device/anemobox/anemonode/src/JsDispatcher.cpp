@@ -28,6 +28,7 @@ Local<FunctionTemplate> JsDispatcher::functionTemplate() {
 
   NODE_SET_METHOD(proto, "setSourcePriority", JsDispatcher::setSourcePriority);
   NODE_SET_METHOD(proto, "sourcePriority", JsDispatcher::sourcePriority);
+  NODE_SET_METHOD(proto, "allSources", JsDispatcher::allSources);
   return t;
 }
    
@@ -35,15 +36,13 @@ void JsDispatcher::setDispatcher(Handle<Object> object, Dispatcher* dispatcher) 
   JsDispatcher* zis = obj(object);
   zis->_dispatcher = dispatcher;
 
-  static Persistent<FunctionTemplate> persistentConstructor;
-
   Local<FunctionTemplate> constructor = JsDispatchData::functionTemplate();
-  NanAssignPersistent(persistentConstructor, constructor);
+  NanAssignPersistent(zis->persistentConstructor, constructor);
 
   Handle<Object> entries = NanNew<Object>();
   for (auto entry : dispatcher->dispatchers()) {
     Handle<Object> jsentry = constructor->GetFunction()->NewInstance();
-    JsDispatchData::setDispatchData(jsentry, entry.second.get(), dispatcher);
+    JsDispatchData::setDispatchData(jsentry, entry.second, dispatcher);
 
     entries->Set(NanNew<String>(entry.second->wordIdentifier().c_str()), jsentry);
   }
@@ -87,3 +86,25 @@ NAN_METHOD(JsDispatcher::sourcePriority) {
   NanReturnValue(NanNew(dispatcher->sourcePriority(*source)));
 }
 
+NAN_METHOD(JsDispatcher::allSources) {
+  NanScope();
+  JsDispatcher* me = obj(args.This());
+  Dispatcher* dispatcher = me->_dispatcher;
+
+  Local<Object> sources = NanNew<Object>();
+  const auto& sourceMap = dispatcher->allSources();
+
+  Local<FunctionTemplate> constructor = NanNew(me->persistentConstructor);
+
+  for (auto channel : sourceMap) {
+    Local<Object> sourceDict = NanNew<Object>();
+    for (auto source : channel.second) {
+      Handle<Object> jsentry = constructor->GetFunction()->NewInstance();
+      JsDispatchData::setDispatchData(jsentry, source.second, dispatcher);
+      sourceDict->Set(NanNew(source.first.c_str()), jsentry);
+    }
+    sources->Set(NanNew(wordIdentifierForCode(channel.first)), sourceDict);
+  }
+
+  NanReturnValue(sources);
+}

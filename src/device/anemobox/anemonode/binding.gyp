@@ -11,9 +11,9 @@
             '../logger/logger.proto'
           ],
           'outputs': [
-            "<(SHARED_INTERMEDIATE_DIR)/logger.pb.cc"
+            "<(SHARED_INTERMEDIATE_DIR)/device/anemobox/logger/logger.pb.cc"
           ],
-          'action': ['protoc','-I..', '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/','../logger/logger.proto']
+          'action': ['protoc','-I..', '--cpp_out=<(SHARED_INTERMEDIATE_DIR)/device/anemobox/','../logger/logger.proto']
         }
       ]
     },
@@ -25,6 +25,8 @@
         "src/JsDispatcher.cpp",
         "src/JsNmea0183Source.h",
         "src/JsNmea0183Source.cpp",
+        "src/JsNmea2000Source.h",
+        "src/JsNmea2000Source.cpp",
         "src/JsDispatchData.h",
         "src/JsDispatchData.cpp",
         "src/JsLogger.h",
@@ -33,15 +35,26 @@
         "src/JsEstimator.cpp",
         "../Dispatcher.cpp",
         "../Dispatcher.h",
+        "../TimedSampleCollection.h",
         "../DispatcherFilter.cpp",
         "../DispatcherFilter.h",
         "../DispatcherTrueWindEstimator.h",
         "../DispatcherTrueWindEstimator.cpp",
         "../Nmea0183Source.cpp",
         "../Nmea0183Source.h",
+        "../Nmea2000Source.cpp",
+        "../Nmea2000Source.h",
         "../ValueDispatcher.h",
         "../logger/Logger.h",
         "../logger/Logger.cpp",
+        "../n2k/BitStream.cpp",
+        "../n2k/BitStream.h",
+        "../n2k/FastPacket.cpp",
+        "../n2k/FastPacket.h",
+        "../n2k/N2kField.cpp",
+        "../n2k/N2kField.h",
+        "../n2k/PgnClasses.cpp",
+        "../n2k/PgnClasses.h",
         "../../Arduino/libraries/ChunkFile/ChunkFile.cpp",
         "../../Arduino/libraries/ChunkFile/ChunkFile.h",
         "../../Arduino/libraries/NmeaParser/NmeaParser.cpp",
@@ -54,14 +67,14 @@
         "../../../server/common/string.cpp",
         "../../../server/common/logging.h",
         "../../../server/common/logging.cpp",
-        "<(SHARED_INTERMEDIATE_DIR)/logger/logger.pb.cc"
+        "<(SHARED_INTERMEDIATE_DIR)/device/anemobox/logger/logger.pb.cc"
       ],
       "include_dirs": [
         "<!(node -e \"require('nan')\")",
         "../../..",
         "../../../../build/third-party/poco-install/include",
         "<(SHARED_INTERMEDIATE_DIR)",
-        "<(SHARED_INTERMEDIATE_DIR)/logger",
+        "<(SHARED_INTERMEDIATE_DIR)/device/anemobox",
       ], 
       'cflags_cc!': [ '-fno-rtti' ],
       "cflags_cc": [
@@ -79,10 +92,11 @@
           '<!@(pkg-config protobuf --cflags)'
         ]
       },
-      "defines": [ "ON_SERVER" ],
+      "defines": [ "ON_SERVER", "HAVE_CLOCK_GETTIME" ],
       "libraries" : [
         "<!@(pkg-config protobuf --libs-only-L)",
         "-lprotobuf",
+        "-lrt",
 	"-L/usr/lib",
 	"-lboost_iostreams",
 	"-lboost_iostreams-mt"

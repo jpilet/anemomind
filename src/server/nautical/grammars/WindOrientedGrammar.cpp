@@ -10,12 +10,13 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/HNodeGroup.h>
 #include <server/common/logging.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/nautical/grammars/StaticCostFactory.h>
 #include <server/nautical/grammars/HintedStateAssignFactory.h>
 #include <server/common/SharedPtrUtils.h>
 
-
 namespace sail {
+
 
 WindOrientedGrammarSettings::WindOrientedGrammarSettings() {
 /*
@@ -172,7 +173,7 @@ namespace {
 
 
   double getG001StateTransitionCost(const WindOrientedGrammarSettings &s,
-      int from, int to, int at, Array<Nav> navs) {
+      int from, int to, int at, const Array<Nav> &navs) {
     if (isOff(from) || isOff(to)) {
       return s.onOffCost*majorStateTransitionCost(from, to);
     } else {
@@ -218,7 +219,7 @@ namespace {
 
 
   int mapToRawMinorState(double twaDegs) {
-    if (std::isnan(twaDegs)) {
+    if (!std::isfinite(twaDegs)) {
       return -1;
     }
     double atMost360 = positiveMod(twaDegs, 360.0);
@@ -226,9 +227,7 @@ namespace {
   }
 
   int mapToRawMinorState(const Nav &nav) {
-    return mapToRawMinorState(
-        toFinite(nav.twaFromTrueWindOverGround().degrees(),
-            nav.externalTwa().degrees()));
+    return mapToRawMinorState(nav.bestTwaEstimate().degrees());
   }
 }
 
@@ -252,21 +251,26 @@ class G001SA : public StateAssign {
 };
 
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
-  Nav &nav = _navs[timeIndex];
+  Nav nav = _navs[timeIndex];
   if (isOff(stateIndex)) {
-    return _settings.majorStateCost;
-  } else if (std::isnan(nav.awa().degrees())) {
+    if (nav.gpsSpeed() < .5_kn) {
+      return 0;
+    }
     return _settings.majorStateCost;
   } else {
-    int i0 = getMinorState(stateIndex);
-    int i1 = mapToRawMinorState(nav);
+    int iQueried = getMinorState(stateIndex);
+    int iRawObserved = mapToRawMinorState(nav);
 
     // Constant cost for being in this state
     double stateCost = _settings.majorStateCost*_minorStateCostFactors[stateIndex];
 
     // Penalty for this minor state index not matching the input
-    double matchCost = (i0 == i1? 0 : 1);
+    double matchCost =
+        (iQueried == iRawObserved || iRawObserved == -1)? 0 : 1;
 
+    if (nav.gpsSpeed() < .5_kn) {
+      matchCost += .5;
+    }
     return stateCost + matchCost;
   }
 }
@@ -335,8 +339,10 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
   return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);
 }
 
-std::shared_ptr<HTree> WindOrientedGrammar::parse(Array<Nav> navs,
+std::shared_ptr<HTree> WindOrientedGrammar::parse(NavDataset navs0,
     Array<UserHint> hints) {
+  auto navs = NavCompat::makeArray(navs0);
+  LOG(INFO) << "Sampled " << navs.size() << " navs";
   if (navs.empty()) {
     return std::shared_ptr<HTree>();
   }

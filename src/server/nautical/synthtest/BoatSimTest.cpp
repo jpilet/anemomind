@@ -29,8 +29,8 @@ TEST(BoatSimTest, SimLimit) {
                                   Angle<double>::degrees(90));
 
   auto fun = BoatSim::makePiecewiseTwaFunction(
-      Array<Duration<double> >::args(Duration<double>::hours(3.0)),
-      Array<Angle<double> >::args(Angle<double>::degrees(129)));
+      Array<Duration<double> >{Duration<double>::hours(3.0)},
+      Array<Angle<double> >{Angle<double>::degrees(129)});
   BoatSim simulator(windfun, currentfun, ch, fun);
 
   Array<BoatSim::FullState> states = simulator.simulate(Duration<double>::seconds(30.0),
@@ -49,9 +49,9 @@ TEST(BoatSimTest, SimDirectionChange) {
 
   auto fun = BoatSim::makePiecewiseTwaFunction(
     Array<Duration<double> >::fill(2, Duration<double>::minutes(2.0)),
-        Array<Angle<double> >::args(
+        Array<Angle<double> >{
             Angle<double>::degrees(129),
-            Angle<double>::degrees(199)));
+            Angle<double>::degrees(199)});
 
   BoatSim simulator(windfun, currentfun, ch, fun);
 
@@ -78,8 +78,8 @@ TEST(BoatSimTest, CheckAllValues) {
 
   // We sail north, so the true wind angle is 90 degrees.
   auto fun = BoatSim::makePiecewiseTwaFunction(
-      Array<Duration<double> >::args(Duration<double>::hours(3.0)),
-      Array<Angle<double> >::args(Angle<double>::degrees(90)));
+      Array<Duration<double> >{Duration<double>::hours(3.0)},
+      Array<Angle<double> >{Angle<double>::degrees(90)});
 
   BoatSim simulator(windfun, currentfun, ch, fun);
 

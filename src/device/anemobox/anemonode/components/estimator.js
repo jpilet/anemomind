@@ -15,6 +15,7 @@ function loadCalib(path) {
 }
 
 function start() {
+  // This list should match the one in SimulateBox.cpp
   var triggeringFields =
     ['awa', 'aws', 'gpsSpeed', 'gpsBearing', 'watSpeed', 'magHdg'];
 

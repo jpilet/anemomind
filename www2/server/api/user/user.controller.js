@@ -8,20 +8,26 @@ var config = require('../../config/environment');
 var jwt = require('jsonwebtoken');
 var winston = require('winston');
 var generatePassword = require('password-generator');
-var transporter = require('../../components/mailer').transporter;
+var mailer = require('../../components/mailer');
+var transporter = mailer.transporter;
 
 var validationError = function(res, err) {
   return res.status(422).json(err);
 };
 
+function canonicalizeEmail(email) {
+  return ('' + email).trim().toLowerCase();
+}
+
 var checkForInvite = function(user) {
-  Boat.find({invited: {$elemMatch: {email: user.email}}}, function (err, boats) {
+  var email = canonicalizeEmail(user.email);
+  Boat.find({invited: {$elemMatch: {email: email}}}, function (err, boats) {
     for (var i in boats) {
       for (var j in boats[i].invited) {
-        if (boats[i].invited[j].email === user.email) {
+        if (boats[i].invited[j].email == email) {
 
           var pushAction = boats[i].invited[j].admin ? {"admins": user._id} : {"readers": user._id};
-          var action = {$push: pushAction, $pull: {"invited": {"email": user.email}}};
+          var action = {$push: pushAction, $pull: {"invited": {"email": email}}};
           Boat.findByIdAndUpdate(
             boats[i]._id,
             action,
@@ -43,7 +49,7 @@ var checkForInvite = function(user) {
 exports.index = function(req, res) {
   User.find({}, '-salt -hashedPassword', function (err, users) {
     if(err) return res.status(500).send(err);
-    res.statis(200).json(users);
+    res.status(200).json(users);
   });
 };
 
@@ -71,7 +77,16 @@ exports.show = function (req, res, next) {
   User.findById(userId, function (err, user) {
     if (err) return next(err);
     if (!user) return res.sendStatus(401);
-    res.json(user.profile);
+    if (!req.user) {
+      // client not authenticated, serving a restricted object for
+      // a public page.
+      res.json({
+               '_id': user.profile._id,
+               'name': user.profile.name
+               });
+    } else {
+      res.json(user.profile);
+    }
   });
 };
 
@@ -121,7 +136,7 @@ exports.resetPassword = function(req, res, next) {
       return validationError(res, err);
     }
     transporter.sendMail({
-      from: 'anemobot@gmail.com',
+      from: mailer.from,
       to: req.body.email,
       subject: 'Your new password for anemolab.com',
       text: 'A new password has been generated for you: ' + newPass +
@@ -161,3 +176,4 @@ exports.me = function(req, res, next) {
 exports.authCallback = function(req, res, next) {
   res.redirect('/');
 };
+exports.canonicalizeEmail = canonicalizeEmail;

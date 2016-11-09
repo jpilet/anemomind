@@ -9,6 +9,8 @@
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
 #include <server/math/nonlinear/DataFit.h>
+#include <Eigen/Core>
+#include <server/math/irlsFixedDenseBlock.h>
 
 typedef Eigen::Triplet<double> Triplet;
 
@@ -103,7 +105,7 @@ TEST(IrlsTest, SignalFit) {
   };
 
   auto X = irls::solve(A, B,
-      strategies, settings);
+      strategies, settings).X;
   for (int i = 0; i < 30; i++) {
     EXPECT_NEAR(X(i), gt[i], 0.02);
   }
@@ -133,7 +135,7 @@ TEST(IrlsTest, NonNegCst1Active) {
   Settings settings;
   settings.iters = 30;
   Eigen::VectorXd X = solve(A, B,
-      WeightingStrategies{NonNegativeConstraint::make(1)}, settings);
+      WeightingStrategies{NonNegativeConstraint::make(1)}, settings).X;
   std::cout << EXPR_AND_VAL_AS_STRING(X[0]) << std::endl;
   EXPECT_NEAR(X[0], 0.3, 1.0e-2);
 }
@@ -151,7 +153,7 @@ TEST(IrlsTest, NonNegCst2Passive) {
   Settings settings;
   settings.iters = 12;
   Eigen::VectorXd X = solve(A, B,
-      WeightingStrategies{NonNegativeConstraint::make(1)}, settings);
+      WeightingStrategies{NonNegativeConstraint::make(1)}, settings).X;
   EXPECT_NEAR(X[0], 2.0, 1.0e-3);
 }
 
@@ -172,7 +174,7 @@ TEST(IrlsTest, NonNegCorner) {
   B(3) = -0.6;
   Settings settings;
   Eigen::VectorXd X = solve(A, B,
-      WeightingStrategies{NonNegativeConstraint::make(2), NonNegativeConstraint::make(3)}, settings);
+      WeightingStrategies{NonNegativeConstraint::make(2), NonNegativeConstraint::make(3)}, settings).X;
   EXPECT_NEAR(X[0], 0.4, 1.0e-3);
   EXPECT_NEAR(X[1], 0.6, 1.0e-3);
 }
@@ -194,7 +196,7 @@ TEST(IrlsTest, NonNegCorner2) {
   B(3) = -0.6;
   Settings settings;
   Eigen::VectorXd X = solve(A, B,
-      WeightingStrategies{NonNegativeConstraint::make(2), NonNegativeConstraint::make(3)}, settings);
+      WeightingStrategies{NonNegativeConstraint::make(2), NonNegativeConstraint::make(3)}, settings).X;
   EXPECT_NEAR(X[0], 0.4, 1.0e-3);
   EXPECT_NEAR(X[1], 0.1, 1.0e-3);
 }
@@ -212,7 +214,7 @@ TEST(IrlsTest, NonNegSlope) {
   B(2) = 1.0;
   Settings settings;
   Eigen::VectorXd X = solve(A, B,
-      WeightingStrategies{NonNegativeConstraint::make(2)}, settings);
+      WeightingStrategies{NonNegativeConstraint::make(2)}, settings).X;
   EXPECT_NEAR(X[0], 0.0, 1.0e-3);
   EXPECT_NEAR(X[1], 1.0, 1.0e-3);
 }
@@ -256,7 +258,7 @@ TEST(IrlsTest, NonNegWithBinary) {
         WeightingStrategies{
           ConstraintGroup::make(Array<Spani>{Spani(2, 3), Spani(3, 4)}, 1),
           NonNegativeConstraint::make(4),
-          NonNegativeConstraint::make(5)}, settings);
+          NonNegativeConstraint::make(5)}, settings).X;
   EXPECT_NEAR(X(0), 0.6, 0.0001);
   EXPECT_NEAR(X(1), 1.0, 0.0001);
 }
@@ -271,7 +273,7 @@ TEST(IrlsTest, Constant) {
   Settings settings;
   auto X = solve(A, B,
       WeightingStrategies{Constant::make(0, MajQuad::fit(2.3))},
-      settings);
+      settings).X;
   EXPECT_NEAR(X[0], 2.3, 1.0e-6);
 }
 
@@ -463,7 +465,7 @@ void targetSpeedPrototype(bool visualize, int iters) {
 
   irls::Settings settings;
   settings.iters = iters;
-  auto results = irls::solveFull(A, B, irls::WeightingStrategies{
+  auto results = irls::solve(A, B, irls::WeightingStrategies{
     gravityWeighting, supportConstraints,
     inlierWeighting,
     monotonyConstraints
@@ -492,10 +494,314 @@ void targetSpeedPrototype(bool visualize, int iters) {
   }
 }
 
-
-
 TEST(IrlsTest, TargetSpeedPrototype) {
   bool visualize = false;
   targetSpeedPrototype(visualize, 30);
 }
+
+TEST(IrlsTest, ArrayView) {
+  MDArray2d A(9, 2);
+  int counter = 0;
+  for (int i = 0; i < 9; i++) {
+    for (int j = 0; j < 2; j++) {
+      counter++;
+      A(i, j) = counter;
+    }
+  }
+
+  auto view = irls::arrayView(&A, 3, 2, 4);
+  EXPECT_EQ(view.rows(), 3);
+  EXPECT_EQ(view.cols(), 2);
+
+  EXPECT_EQ(view(0, 0), 9);
+  EXPECT_EQ(view(1, 1), 12);
+  EXPECT_EQ(view(2, 0), 13);
+
+  view(2, 1) += 20;
+
+  EXPECT_EQ(A(6, 1), 34);
+}
+
+TEST(IrlsTest, BandMatrixView) {
+  auto mat = BandMatrix<double>::zero(5, 5, 1, 1);
+
+  mat(2, 2) = 1.0;
+  mat(2, 3) = 2.0;
+  mat(3, 2) = 3.0;
+  mat(3, 3) = 4.0;
+
+  auto view = irls::bandMatrixView(&mat, 2, 2);
+
+  EXPECT_EQ(view.rows(), 2);
+  EXPECT_EQ(view.cols(), 2);
+
+  EXPECT_EQ(1.0, view(0, 0));
+  EXPECT_EQ(2.0, view(0, 1));
+  EXPECT_EQ(3.0, view(1, 0));
+  EXPECT_EQ(4.0, view(1, 1));
+
+  view += 3.0*Eigen::MatrixXd::Identity(2, 2);
+
+  EXPECT_NEAR(view(1, 1), 7.0, 1.0e-6);
+}
+
+TEST(IrlsTest, FixedDenseBlock) {
+  typedef irls::FixedDenseBlock<3, 2, 1> Block;
+  Block::AType A;
+  A << 1, 2,
+       3, 4,
+       5, 6;
+  Block::BType B;
+  B << 3,
+       -1,
+       4;
+
+  Eigen::VectorXd weights(11);
+  weights << 8,
+             6,
+             1,
+             6,
+             3,
+             2,
+             8,
+             1,
+             6,
+             1,
+             7;
+
+  Eigen::VectorXd X(5);
+  X << 9,
+       6,
+       9,
+       6,
+       4;
+
+  Block block(A, B, 2/*row*/, 1/*col*/);
+
+  EXPECT_EQ(block.lhsCols(), 2);
+  EXPECT_EQ(block.rhsCols(), 1);
+
+  //// Test eval
+
+  Eigen::VectorXd residuals = Eigen::VectorXd::Zero(11);
+
+  // The subvector of X that we use starts at 1.
+  block.eval(X, &residuals);
+
+  // row = 2, so thats where we offset
+  EXPECT_EQ(residuals(1), 0);
+  EXPECT_EQ(residuals(2), 21);
+  EXPECT_EQ(residuals(3), 55);
+  EXPECT_EQ(residuals(4), 80);
+  EXPECT_EQ(residuals(5), 0);
+
+
+
+  //// TEST accumulate
+  BandMatrix<double> AtA(5, 5, 1, 1);
+  AtA.setAll(2.4);
+
+  MDArray2d AtB(5, 1);
+  AtB.setAll(3.0);
+
+  // (the weighting vector is (1, 6, 3) which is the slice starting from row=2.
+  block.accumulateWeighted(weights, &AtA, &AtB);
+
+  EXPECT_NEAR(AtA(0, 0), 2.4, 1.0e-6);
+  EXPECT_NEAR(AtA(1, 0), 2.4, 1.0e-6);
+  EXPECT_NEAR(AtA(0, 1), 2.4, 1.0e-6);
+  EXPECT_NEAR(AtA(1, 1), 552.40, 1.0e-6);
+  EXPECT_NEAR(AtA(2, 2), 906.40, 1.0e-6);
+  EXPECT_NEAR(AtA(1, 2), 706.40, 1.0e-6);
+  EXPECT_NEAR(AtA(2, 1), 706.40, 1.0e-6);
+  EXPECT_NEAR(AtA(3, 3), 2.4, 1.0e-6);
+  EXPECT_NEAR(AtA(3, 4), 2.4, 1.0e-6);
+  EXPECT_NEAR(AtA(4, 3), 2.4, 1.0e-6);
+
+}
+
+
+TEST(IrlsTest, FixedDenseBlockMultiRHS) {
+  typedef irls::FixedDenseBlock<3, 2, 2> Block;
+  Block::AType A;
+  A << 1, 2,
+       3, 4,
+       5, 6;
+  Block::BType B;
+  B << 3, 2,
+       -1, 1,
+       4, 2;
+
+  Eigen::VectorXd weights(11);
+  weights << 8,
+             6,
+             1,
+             6,
+             3,
+             2,
+             8,
+             1,
+             6,
+             1,
+             7;
+
+  Eigen::MatrixXd X(5, 2);
+  X << 9, 1,
+       6, 1,
+       9, 2,
+       6, 3,
+       4, 4;
+
+  Block block(A, B, 2/*row*/, 1/*col*/);
+
+  EXPECT_EQ(block.lhsCols(), 2);
+  EXPECT_EQ(block.rhsCols(), 2);
+  EXPECT_EQ(block.minDiagWidth(), 1);
+  EXPECT_EQ(block.requiredRows(), 2 + 3);
+  EXPECT_EQ(block.requiredCols(), 1 + 2);
+
+  //// Test eval
+
+  Eigen::VectorXd residuals = Eigen::VectorXd::Zero(11);
+
+  // The subvector of X that we use starts at 1, that is (6, 9)
+  block.eval(X, &residuals);
+
+  // row = 2, so thats where we offset
+  EXPECT_EQ(residuals(1), 0);
+  EXPECT_NEAR(residuals(2), 21.213, 0.01);
+  EXPECT_NEAR(residuals(3), 55.902, 0.01);
+  EXPECT_NEAR(residuals(4), 81.394, 0.01);
+  EXPECT_EQ(residuals(5), 0);
+
+
+
+
+  //// TEST accumulate
+  BandMatrix<double> AtA(5, 5, 1, 1);
+  AtA.setAll(2.4);
+
+  MDArray2d AtB(5, 2);
+  AtB.setAll(3.0);
+
+  // (the weighting vector is (1, 6, 3) which is the slice starting from row=2.
+  block.accumulateWeighted(weights, &AtA, &AtB);
+
+  EXPECT_NEAR(AtA(0, 0), 2.4, 1.0e-6);
+  EXPECT_NEAR(AtA(1, 0), 2.4, 1.0e-6);
+  EXPECT_NEAR(AtA(0, 1), 2.4, 1.0e-6);
+
+  EXPECT_NEAR(AtA(1, 1), 552.40, 1.0e-6);
+  EXPECT_NEAR(AtA(2, 2), 906.40, 1.0e-6);
+  EXPECT_NEAR(AtA(1, 2), 706.40, 1.0e-6);
+  EXPECT_NEAR(AtA(2, 1), 706.40, 1.0e-6);
+
+  EXPECT_NEAR(AtA(3, 3), 2.4, 1.0e-6);
+  EXPECT_NEAR(AtA(3, 4), 2.4, 1.0e-6);
+  EXPECT_NEAR(AtA(4, 3), 2.4, 1.0e-6);
+
+  EXPECT_NEAR(AtB(1, 0), 78.0, 1.0e-6);
+  EXPECT_NEAR(AtB(1, 1), 203.0, 1.0e-6);
+}
+
+namespace {
+  typedef irls::FixedDenseBlock<1, 1, 1> Block111;
+
+  irls::DenseBlock::Ptr blk111(int row, int col, double a, double b) {
+    Block111::AType A;
+    A(0, 0) = a;
+    Block111::BType B;
+    B(0, 0) = b;
+    return irls::DenseBlock::Ptr(new Block111(A, B, row, col));
+  }
+}
+
+TEST(IrlsTest, MiniSolveTest) {
+  int rows = 3;
+  int cols = 3;
+  Array<irls::DenseBlock::Ptr> blocks{
+    blk111(0, 0, 1, 4), blk111(1, 1, 2, 3), blk111(2, 2, 3, 2)
+  };
+
+  irls::Settings settings;
+  irls::ResultsMat solution = irls::solveBanded(rows, cols, blocks,
+      Array<irls::WeightingStrategy::Ptr>(), settings);
+
+  EXPECT_EQ(solution.X.rows(), 3);
+  EXPECT_EQ(solution.X.cols(), 1);
+
+  EXPECT_NEAR(solution.X(0, 0), 4.0, 1.0e-6);
+  EXPECT_NEAR(solution.X(1, 0), 1.5, 1.0e-6);
+  EXPECT_NEAR(solution.X(2, 0), 2.0/3, 1.0e-6);
+
+}
+
+
+namespace {
+  typedef irls::FixedDenseBlock<1, 1, 2> Block112;
+
+  irls::DenseBlock::Ptr blk112(int row, int col, double a, double b0, double b1) {
+    Block112::AType A;
+    A(0, 0) = a;
+    Block112::BType B;
+    B(0, 0) = b0;
+    B(0, 1) = b1;
+    return irls::DenseBlock::Ptr(new Block112(A, B, row, col));
+  }
+
+  class WeighBy0 : public irls::WeightingStrategy {
+  public:
+    WeighBy0(int index) : _index(index) {}
+
+    void apply(
+        double constraintWeight,
+        const Arrayd &residuals, irls::QuadCompiler *dst) {
+      dst->setWeight(_index, 0.0);
+    }
+
+    void initialize(const irls::Settings &s, irls::QuadCompiler *dst) {
+      dst->setWeight(_index, 0.0);
+    }
+  private:
+    int _index;
+  };
+}
+
+TEST(IrlsTest, MiniSolveTest2) {
+  int rows = 4;
+  int cols = 3;
+
+  Array<irls::DenseBlock::Ptr> blocks{
+    blk112(0, 0, 1, 4.0, 5.0),
+    blk112(1, 1, 2, 3.0, 7.0),
+    blk112(2, 2, 3, 2.0, 1.0),
+    blk112(3, 2, 1013, 32443.44, 132.34)
+  };
+
+  BandMatrix<double> AtA(3, 3, 2, 2);
+  AtA.setAll(0.0);
+  MDArray2d AtB(3, 2);
+  AtB.setAll(0.0);
+
+  Eigen::VectorXd weights = Eigen::VectorXd::Ones(3);
+
+  irls::Settings settings;
+  irls::ResultsMat solution = irls::solveBanded(rows, cols, blocks,
+      Array<irls::WeightingStrategy::Ptr>{
+    irls::WeightingStrategy::Ptr(new WeighBy0(3))
+  }, settings);
+
+  EXPECT_EQ(solution.X.rows(), 3);
+  EXPECT_EQ(solution.X.cols(), 2);
+
+  EXPECT_NEAR(solution.X(0, 0), 4.0, 1.0e-6);
+  EXPECT_NEAR(solution.X(1, 0), 1.5, 1.0e-6);
+  EXPECT_NEAR(solution.X(2, 0), 2.0/3, 1.0e-6);
+
+  EXPECT_NEAR(solution.X(0, 1), 5.0, 1.0e-6);
+  EXPECT_NEAR(solution.X(1, 1), 3.5, 1.0e-6);
+  EXPECT_NEAR(solution.X(2, 1), 1.0/3, 1.0e-6);
+}
+
+
 

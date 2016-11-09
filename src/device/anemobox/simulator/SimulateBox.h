@@ -5,11 +5,12 @@
 #include <iostream>
 #include <server/common/Array.h>
 #include <server/nautical/Nav.h>
+#include <server/nautical/NavDataset.h>
 
 namespace sail {
 
-bool SimulateBox(const std::string& boatDat, Array<Nav> *navs);
-bool SimulateBox(std::istream& boatDat, Array<Nav> *navs);
+NavDataset SimulateBox(const std::string& boatDat, const NavDataset &ds);
+NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds);
 
 }  // namespace sail
 

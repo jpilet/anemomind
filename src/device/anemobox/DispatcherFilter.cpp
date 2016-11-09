@@ -9,17 +9,17 @@ Angle<double> DispatcherFilter::filterAngle(
 
   TimeStamp now = _dispatcher->currentTime();
 
-  const std::deque<TimedValue<Angle<double>>>& angleValues =
+  const TimedSampleCollection<Angle<double>>& angleValues =
     angles->dispatcher()->values();
 
-  for (int i = 0; i < angleValues.size(); ++i) {
-    Duration<> delta = now - angleValues[i].time;
+  for (size_t i = 0; i < angleValues.size(); ++i) {
+    Duration<> delta = now - angleValues.back(i).time;
     if (delta > window) {
       break;
     }
     double factor = 1 - delta.seconds() / window.seconds(); 
     accumulator = accumulator + HorizontalMotion<double>::polar(
-        Velocity<double>::knots(factor), angleValues[i].value);
+        Velocity<double>::knots(factor), angleValues.back(i).value);
     accumulatedWeight += factor;
   }
 
@@ -34,12 +34,13 @@ Velocity<double> DispatcherFilter::filterVelocity(
     DispatchVelocityData *velocities, Duration<> window) const {
   TimeStamp now = _dispatcher->currentTime();
 
-  const std::deque<TimedValue<Velocity<double>>>& velocityValues =
+  const TimedSampleCollection<Velocity<double>>& velocityValues =
     velocities->dispatcher()->values();
   Velocity<double> velocityAccumulator = Velocity<double>::knots(0);
 
   double velocityAccumulatedWeight = 0;
-  for (const TimedValue<Velocity<double>>& timedValue : velocityValues) {
+  for (size_t i = 0; i < velocityValues.size(); ++i) {
+    const TimedValue<Velocity<double>>& timedValue = velocityValues.back(i);
     Duration<> delta = now - timedValue.time;
     if (delta > window) {
       break;

@@ -7,10 +7,11 @@
 #define CALIBRATEDNAV_H_
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
-#include <server/common/Optional.h>
 #include <cassert>
 #include <functional>
-#include <server/nautical/Nav.h>
+#include <server/common/Optional.h>
+#include <server/common/numerics.h>
+#include <server/nautical/NavCompatibility.h>
 
 namespace sail {
 
@@ -50,21 +51,21 @@ class CalibratedNav {
   // InstrumentAbstraction can for instance be a Nav.
   template <typename InstrumentAbstraction>
   CalibratedNav(const InstrumentAbstraction &x) :
+    gpsMotion(HorizontalMotion<T>::polar(x.gpsSpeed(), x.gpsBearing())),
     rawAwa(x.awa()), rawMagHdg(x.magHdg()),
     rawAws(x.aws()), rawWatSpeed(x.watSpeed()),
-    gpsMotion(HorizontalMotion<T>::polar(x.gpsSpeed(), x.gpsBearing())),
     driftAngle(Angle<T>::degrees(T(0))) {}
 
   bool hasNan() const {
-    return rawAwa.isNan() ||
-        rawAws.isNan() ||
-        rawMagHdg.isNan() ||
-        rawWatSpeed.isNan() ||
-        driftAngle.isNan() ||
-        calibWatSpeed.isNan() ||
-        calibAws.isNan() ||
-        calibAwa.isNan() ||
-        boatOrientation.isNan();
+    return isNaN(rawAwa) ||
+        isNaN(rawAws) ||
+        isNaN(rawMagHdg) ||
+        isNaN(rawWatSpeed) ||
+        isNaN(driftAngle) ||
+        isNaN(calibWatSpeed) ||
+        isNaN(calibAws) ||
+        isNaN(calibAwa) ||
+        isNaN(boatOrientation);
   }
 
   /*
@@ -129,7 +130,7 @@ class CalibratedNav {
 // An abstract class used for evaluation of calibration algorithms.
 class CorrectorFunction {
  public:
-  virtual Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const = 0;
+  virtual Array<CalibratedNav<double> > operator()(const NavDataset &navs) const = 0;
   virtual std::string toString() const = 0;
   virtual ~CorrectorFunction() {}
 

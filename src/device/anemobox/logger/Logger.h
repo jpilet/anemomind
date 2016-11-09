@@ -1,9 +1,9 @@
 #ifndef ANEMOBOX_LOGGER_H
 #define ANEMOBOX_LOGGER_H
 
+#include <cstdint>
 #include <device/anemobox/Dispatcher.h>
-#include <logger.pb.h>
-
+#include <device/anemobox/logger/logger.pb.h>
 #include <boost/signals2/connection.hpp>
 #include <map>
 #include <memory>
@@ -13,6 +13,14 @@
 namespace sail {
 
 class Logger;
+
+void addTimeStampToRepeatedFields(
+    std::int64_t *base,
+    google::protobuf::RepeatedField<std::int64_t> *dst,
+    TimeStamp);
+
+Optional<int64_t> readIntegerFromTextFile(const std::string &filename);
+
 
 // Listen and save a single stream of values.
 class LoggerValueListener:
@@ -47,14 +55,8 @@ public:
   }
 
   void addTimestamp(const TimeStamp& timestamp) {
-    int64_t ts = timestamp.toMilliSecondsSince1970();
-    int64_t value = ts;
-
-    if (_valueSet.timestamps_size() > 0) {
-      value -= timestampBase;
-    }
-    timestampBase = ts;
-    _valueSet.add_timestamps(value);
+    addTimeStampToRepeatedFields(&timestampBase,
+        _valueSet.mutable_timestampssinceboot(), timestamp);
   }
 
   static void accumulateAngle(const Angle<> &angle, int *base, AngleValueSet* set) {
@@ -104,7 +106,11 @@ public:
     pos->set_lon(v.lastValue().lon().degrees());
   }
 
-  virtual void onNewValue(const ValueDispatcher<TimeStamp> &) { }
+  virtual void onNewValue(const ValueDispatcher<TimeStamp> &v) {
+    addTimestamp(v.lastTimeStamp());
+    TimeStamp t = v.lastValue();
+    addTimeStampToRepeatedFields(&extTimesBase, _valueSet.mutable_exttimes(), t);
+  }
 
   virtual void onNewValue(const ValueDispatcher<AbsoluteOrientation> &v) {
     addTimestamp(v.lastTimeStamp());
@@ -119,8 +125,8 @@ public:
                     _valueSet.mutable_orient()->mutable_pitch());
   }
 
-  void addText(const std::string& text) {
-    addTimestamp(TimeStamp::now());
+  void addText(TimeStamp t, const std::string& text) {
+    addTimestamp(t);
     _valueSet.add_text(text);
   }
 
@@ -130,7 +136,8 @@ private:
   int intBase;
   int intBaseRoll;
   int intBasePitch;
-  int64_t timestampBase;
+  std::int64_t timestampBase;
+  std::int64_t extTimesBase;
   std::string _sourceName;
   std::string _shortName;
 };
@@ -144,10 +151,7 @@ class Logger {
   void flushTo(LogFile* container);
 
   // Convenience function to call flushTo, nextFilename and save.
-  bool flushAndSave(const std::string& folder, std::string *savedFilename = 0);
-
-  // Generate a new filename to save the next logfile to.
-  static std::string nextFilename(const std::string& folder);
+  bool flushAndSaveToFile(const std::string& filename);
 
   void logText(const std::string& streamName, const std::string& content);
 
@@ -170,6 +174,9 @@ class Logger {
   static void unpack(const AbsOrientValueSet& values,
                      std::vector<AbsoluteOrientation>* result);
 
+  static void unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
+                      std::vector<TimeStamp>* result);
+
   static void unpackTime(const ValueSet& valueSet,
                          std::vector<TimeStamp>* result);
 
@@ -184,6 +191,52 @@ class Logger {
   std::vector<std::shared_ptr<LoggerValueListener>> _listeners;
   std::map<std::string, LoggerValueListener> _textLoggers;
   boost::signals2::scoped_connection _newDispatchDataListener;
+};
+
+template <typename T>
+struct ValueSetToTypedVector {
+};
+
+template <>
+struct ValueSetToTypedVector<Angle<double> > {
+  static void extract(const ValueSet &x, std::vector<Angle<double> > *dst) {
+    Logger::unpack(x.angles(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<Velocity<double> > {
+  static void extract(const ValueSet &x, std::vector<Velocity<double> > *dst) {
+    Logger::unpack(x.velocity(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<Length<double> > {
+  static void extract(const ValueSet &x, std::vector<Length<double> > *dst) {
+    Logger::unpack(x.length(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<GeographicPosition<double> > {
+  static void extract(const ValueSet &x, std::vector<GeographicPosition<double> > *dst) {
+    Logger::unpack(x.pos(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<AbsoluteOrientation> {
+  static void extract(const ValueSet &x, std::vector<AbsoluteOrientation> *dst) {
+    Logger::unpack(x.orient(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<TimeStamp> {
+  static void extract(const ValueSet &x, std::vector<TimeStamp> *dst) {
+    Logger::unpackTime(x, dst);
+  }
 };
 
 }  // namespace sail

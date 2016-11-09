@@ -24,7 +24,6 @@ TEST(HistgramTest, BasicMapping) {
 }
 
 TEST(HistgramTest, Counting) {
-  const double marg = 1.0e-6;
   HistogramMap<double, false> h(2, 1.0, 3.0);
   const int xn = 3;
   double xdata[xn] = {1.2, 1.3, 2.9};
@@ -53,41 +52,40 @@ TEST(HistogramTest, Undefined) {
 }
 
  TEST(HistogramTest, BasicTest) {
-  HistogramMap<Angle<double>, true> map = makePolarHistogramMap<double>(3);
-  EXPECT_FALSE(map.undefined());
-  EXPECT_TRUE(map.defined());
-  EXPECT_EQ(map.toBin(Angle<double>::degrees(1)), 0);
-  EXPECT_EQ(map.toBin(Angle<double>::degrees(121)), 1);
-  EXPECT_EQ(map.toBin(Angle<double>::degrees(241)), 2);
-  EXPECT_EQ(map.toBin(Angle<double>::degrees(361)), 0);
-  EXPECT_NEAR(map.binToValue(0.00001).degrees(), 0, 1.0);
-  EXPECT_NEAR(map.binToValue(2.99999999).degrees(), 360.0, 1.0);
-  EXPECT_NEAR(map.toRightBound(0).radians(), map.toLeftBound(1).radians(), 1.0e-6);
-  EXPECT_NEAR(map.toRightBound(1).radians(), map.toLeftBound(2).radians(), 1.0e-6);
-  EXPECT_NEAR(map.toRightBound(2).radians(), 2.0*M_PI, 1.0e-6);
-  EXPECT_NEAR(map.toCenter(2).degrees(), 300, 1.0e-6);
+  HistogramMap<Angle<double>, true> hmap = makePolarHistogramMap<double>(3);
+  EXPECT_FALSE(hmap.undefined());
+  EXPECT_TRUE(hmap.defined());
+  EXPECT_EQ(hmap.toBin(Angle<double>::degrees(1)), 0);
+  EXPECT_EQ(hmap.toBin(Angle<double>::degrees(121)), 1);
+  EXPECT_EQ(hmap.toBin(Angle<double>::degrees(241)), 2);
+  EXPECT_EQ(hmap.toBin(Angle<double>::degrees(361)), 0);
+  EXPECT_NEAR(hmap.binToValue(0.00001).degrees(), 0, 1.0);
+  EXPECT_NEAR(hmap.binToValue(2.99999999).degrees(), 360.0, 1.0);
+  EXPECT_NEAR(hmap.toRightBound(0).radians(), hmap.toLeftBound(1).radians(), 1.0e-6);
+  EXPECT_NEAR(hmap.toRightBound(1).radians(), hmap.toLeftBound(2).radians(), 1.0e-6);
+  EXPECT_NEAR(hmap.toRightBound(2).radians(), 2.0*M_PI, 1.0e-6);
+  EXPECT_NEAR(hmap.toCenter(2).degrees(), 300, 1.0e-6);
 
   const int count = 7;
   double anglesDeg[count] = {576.2019, 102.1582, 303.6681, 659.3296, 570.3893, 690.8345, 472.1333};
-  Array<Angle<double> > angles = Arrayd(count, anglesDeg)
-      .map<Angle<double> >([&](double x) {return Angle<double>::degrees(x);});
+  Array<Angle<double> > angles = toArray(sail::map(Arrayd(count, anglesDeg), [&](double x) {return Angle<double>::degrees(x);}));
 
   int bins[count] = {1, 0, 2, 2, 1, 2, 0};
-  Arrayi estBins = map.assignBins(angles);
+  Arrayi estBins = hmap.assignBins(angles);
   for (int i = 0; i < count; i++) {
     EXPECT_EQ(bins[i], estBins[i]);
   }
 
-  Arrayi hist = Arrayi::args(2, 2, 3);
-  EXPECT_EQ(hist, map.countPerBin(angles));
+  Arrayi hist = Arrayi{2, 2, 3};
+  EXPECT_EQ(hist, hmap.countPerBin(angles));
 
-  EXPECT_NEAR(map.binSpan(1).minv().degrees(), 120.0, 1.0e-6);
-  EXPECT_NEAR(map.binSpan(1).maxv().degrees(), 240.0, 1.0e-6);
-  EXPECT_EQ(map.periodicIndex(3), 0);
-  EXPECT_EQ(map.periodicIndex(-1), 2);
-  EXPECT_EQ(map.periodicIndex(-4), 2);
+  EXPECT_NEAR(hmap.binSpan(1).minv().degrees(), 120.0, 1.0e-6);
+  EXPECT_NEAR(hmap.binSpan(1).maxv().degrees(), 240.0, 1.0e-6);
+  EXPECT_EQ(hmap.periodicIndex(3), 0);
+  EXPECT_EQ(hmap.periodicIndex(-1), 2);
+  EXPECT_EQ(hmap.periodicIndex(-4), 2);
 
-  MDArray2d plotdata = map.makePolarPlotData(hist.map<double>([&](int x) {return double(x);}), true);
+  MDArray2d plotdata = hmap.makePolarPlotData(toArray(sail::map(hist, [&](int x) {return double(x);})), true);
   LineKM rowmap(0, 360, 0.0, plotdata.rows());
   MDArray2d A = plotdata.sliceRow(int(round(rowmap(60))));
   MDArray2d B = plotdata.sliceRow(int(round(rowmap(300))));

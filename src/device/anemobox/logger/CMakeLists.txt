@@ -14,26 +14,19 @@ target_link_libraries(anemobox_logcat
                       common_ArgMap
                       common_logging)
 
-add_library(anemobox_LogToNav LogToNav.h LogToNav.cpp)
-target_link_libraries(anemobox_LogToNav
-                      anemobox_DispatcherTrueWindEstimator
-                      anemobox_Logger
-                      nautical_nav
-                     )
-cxx_test(anemobox_LogToNavTest LogToNavTest.cpp
-         anemobox_Dispatcher
-         anemobox_LogToNav
-         anemobox_Logger
-         gtest_main
-        )
-
 add_executable(anemobox_logToNmea LogToNmea.cpp)
 target_link_libraries(anemobox_logToNmea
-                      anemobox_LogToNav
                       anemobox_Logger
                       common_ArgMap
                       common_logging
                       device_NmeaParser
                       nautical_NavToNmea
+                      logimport_LogLoader
                      )
+
+add_executable(anemobox_changeTwaToTwdir changeTwaToTwdir.cpp)
+target_link_libraries(anemobox_changeTwaToTwdir
+                      anemobox_Logger
+                      common_ArgMap
+                      common_logging)
 

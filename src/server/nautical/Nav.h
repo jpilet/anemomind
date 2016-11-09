@@ -18,12 +18,6 @@
 
 namespace sail {
 
-// Helper functions to convert from the format of
-// NmeaParser
-namespace NavDataConversion {
-  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double month, double day, double hour, double minute, double second);
-}
-
 // Represents a single recording of data from the devices onboard.
 class Nav {
  public:
@@ -33,8 +27,6 @@ class Nav {
 
   Nav();
   Nav(TimeStamp ts) : _flags(0), _cwd(-1), _wd(-1), _time(ts) { }
-  Nav(MDArray2d row);
-  virtual ~Nav();
 
   // For sorting
   bool operator< (const Nav &other) const {
@@ -49,21 +41,21 @@ class Nav {
   GeographicPosition<double> &geographicPosition() {return _pos;}
   Angle<double> awa() const {return _awa;}
   Velocity<double> aws() const {return _aws;}
-  bool hasApparentWind() const { return !isnan(_awa) && !isnan(_aws); }
+  bool hasApparentWind() const { return !isNaN(_awa) && !isNaN(_aws); }
 
   Angle<double> magHdg() const {return _magHdg;}
-  bool hasMagHdg() const { return !isnan(_magHdg); }
+  bool hasMagHdg() const { return !isNaN(_magHdg); }
 
   Angle<double> gpsBearing() const {return _gpsBearing;}
   Velocity<double> gpsSpeed() const {return _gpsSpeed;}
 
   Velocity<double> watSpeed() const {return _watSpeed;}
-  bool hasWatSpeed() const { return !isnan(_watSpeed); }
+  bool hasWatSpeed() const { return !isNaN(_watSpeed); }
 
   Angle<double> externalTwa() const {return _externalTwa;}
   Velocity<double> externalTws() const {return _externalTws;}
   bool hasExternalTrueWind() const {
-    return !isnan(_externalTwa) && !isnan(_externalTws)
+    return !isNaN(_externalTwa) && !isNaN(_externalTws)
       && _externalTws >= Velocity<double>::knots(0);
   }
 
@@ -71,7 +63,7 @@ class Nav {
 
   // As computed by the calibrated model. Not always available.
   HorizontalMotion<double> trueWindOverGround() const { return _trueWind; }
-  bool hasTrueWindOverGround() const { return !isnan(_trueWind[0]); }
+  bool hasTrueWindOverGround() const { return !isNaN(_trueWind[0]); }
 
   Angle<double> twdir() const {
     return Angle<double>::degrees(180) + trueWindOverGround().angle();
@@ -136,6 +128,15 @@ class Nav {
   Angle<double> deviceTwa() const { return _deviceTwa; }
   void setDeviceTwa(Angle<double> p) { _deviceTwa = p; _flags |= DEVICE_TWA; }
 
+  Angle<double> rudderAngle() const {return _rudderAngle;}
+  void setRudderAngle(const Angle<double> &x) {_rudderAngle = x;}
+
+  // Estimate true wind without calibration. The result will probably not be
+  // very accurate.
+  HorizontalMotion<double> estimateTrueWind() const;
+  Angle<double> bestTwaEstimate() const;
+  Velocity<double> bestTwsEstimate() const;
+
  private:
   enum {
     DEVICE_SCREEN = 1,
@@ -182,33 +183,13 @@ class Nav {
   Velocity<double> _deviceTws;
   Angle<double> _deviceTwa;
   Angle<double> _deviceTwdir;
+  Angle<double> _rudderAngle;
 };
 
-
-Array<Velocity<double> > getExternalTws(Array<Nav> navs);
-Array<Angle<double> > getExternalTwa(Array<Nav> navs);
 Array<Velocity<double> > getGpsSpeed(Array<Nav> navs);
-Array<Angle<double> > getGpsBearing(Array<Nav> navs);
-Array<Velocity<double> > getWatSpeed(Array<Nav> navs);
-Array<Angle<double> > getMagHdg(Array<Nav> navs);
-Array<Velocity<double> > getAws(Array<Nav> navs);
-Array<Angle<double> > getAwa(Array<Nav> navs);
-
-Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
-bool areSortedNavs(Array<Nav> navs);
-void plotNavTimeVsIndex(Array<Nav> navs);
-void dispNavTimeIntervals(Array<Nav> navs);
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur);
-MDArray2d calcNavsEcefTrajectory(Array<Nav> navs);
-Array<MDArray2d> calcNavsEcefTrajectories(Array<Array<Nav> > navs);
-void plotNavsEcefTrajectory(Array<Nav> navs);
-void plotNavsEcefTrajectories(Array<Array<Nav> > navs);
-int countNavs(Array<Array<Nav> > navs);
 
 std::ostream &operator<<(std::ostream &s, const Nav &x);
 
-Length<double> computeTrajectoryLength(Array<Nav> navs);
-int findMaxSpeedOverGround(Array<Nav> navs);
 
 } /* namespace sail */
 

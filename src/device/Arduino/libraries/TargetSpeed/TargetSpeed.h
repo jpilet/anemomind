@@ -35,6 +35,12 @@ Velocity<> getVmgTarget(const TargetSpeedTable& table,
 //  structure. Returns true on success, false on failure.
 bool loadTargetSpeedTable(const char *filename, TargetSpeedTable *table);
 
+//! Output the given target speed as JSON on stdout.
+//  invalid values are ignored.
+void printTargetSpeedAsJson(const TargetSpeedTable& table);
+
+void printTargetSpeedAsCsv(const TargetSpeedTable& table);
+
 #endif
 
 }  // namespace sail

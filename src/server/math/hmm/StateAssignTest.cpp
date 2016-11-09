@@ -117,7 +117,7 @@ void NoisyStep::useGrammar() {
   // lets us model a grammar. An alternative way to achieve this would
   // be to let getTransitionCost(1, 0) return a prohibitively large cost, e.g. 1.0e12,
   // but that could mean a considerable inefficiency if there are many states.
-  _preds[0] = Arrayi::args(0);
+  _preds[0] = Arrayi{0};
 }
 }
 

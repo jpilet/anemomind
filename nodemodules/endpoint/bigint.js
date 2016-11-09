@@ -7,6 +7,7 @@
 
 
 var assert = require('assert');
+var timesrc = require('./timesrc.js');
 
 // Since the integers are just strings
 // that are sorted lexically by the characters,
@@ -75,7 +76,7 @@ function padWith0(x, w) {
 // Make an integer based on the current time,
 // that is the number of milliseconds since 1970.
 function makeFromTime(width) {
-    var x = (new Date()).getTime().toString(16);
+    var x = timesrc.now().getTime().toString(16);
     return padWith0(x, withDefaultWidth(width));
 }
 

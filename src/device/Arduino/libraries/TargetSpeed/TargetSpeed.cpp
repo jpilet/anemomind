@@ -100,6 +100,65 @@ bool loadTargetSpeedTable(const char *filename, TargetSpeedTable *table) {
   }
 }
 
+void printTargetSpeedAsJson(const TargetSpeedTable& table) {
+  Angle<> upwindTwa = Angle<>::degrees(30);
+  Angle<> downwindTwa = Angle<>::degrees(160);
+
+  printf("[\n");
+
+  auto delta = Velocity<>::knots(.2);
+  auto end = Velocity<>::knots(32);
+  bool first = true;
+
+  for (Velocity<> tws = Velocity<>::knots(0);
+       tws < end;
+       tws += delta) {
+    Velocity<> upwind = getVmgTarget(table, upwindTwa, tws);
+    Velocity<> downwind = getVmgTarget(table, downwindTwa, tws);
+    if (upwind.knots() >= 0 || downwind.knots() >= 0) {
+      printf("%s{\"tws\": %.2f", (first ? "" : ","), tws.knots());
+      first = false;
+      if (upwind.knots() >=0) {
+        printf(", \"up\": %.2f", upwind.knots());
+      }
+      if (downwind.knots() >= 0) {
+        printf(", \"down\": %.2f", downwind.knots());
+      }
+      printf(" }\n");
+    }
+  }
+  printf("]\n");
+}
+
+void printTargetSpeedAsCsv(const TargetSpeedTable& table) {
+  Angle<> upwindTwa = Angle<>::degrees(30);
+  Angle<> downwindTwa = Angle<>::degrees(160);
+
+  printf("\"TWS\", \"Upwind VMG\", \"Downwind VMG\"\n");
+
+  auto delta = Velocity<>::knots(.2);
+  auto end = Velocity<>::knots(32);
+
+  for (Velocity<> tws = Velocity<>::knots(0);
+       tws < end;
+       tws += delta) {
+    Velocity<> upwind = getVmgTarget(table, upwindTwa, tws);
+    Velocity<> downwind = getVmgTarget(table, downwindTwa, tws);
+
+    printf("%.2f, ", tws.knots());
+    if (upwind.knots() > 0) {
+      printf("%.2f, ", upwind.knots());
+    } else {
+      printf("\"\", ");
+    }
+    if (downwind.knots() > 0) {
+      printf("%.2f\n", downwind.knots());
+    } else {
+      printf("\"\"\n");
+    }
+  }
+}
+
 }  // namespace sail
 
 #endif

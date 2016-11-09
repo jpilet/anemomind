@@ -10,7 +10,7 @@
 #define TARGETSPEED_H_
 
 #include <ostream>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 
 namespace sail {
 
@@ -42,22 +42,22 @@ Array<Velocity<double> > makeBoundsFromBinCenters(int binCount,
 
 
 // Function used by getUpwindVmg and getDownwindVmg.
-Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind);
+Array<Velocity<double> > calcVmg(NavDataset navs, bool isUpwind);
 
 // Using the TWA from file
-Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind);
+Array<Velocity<double> > calcExternalVmg(NavDataset navs, bool isUpwind);
 
 // All navs are collected from upwind legs
-Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs);
+Array<Velocity<double> > calcUpwindVmg(NavDataset navs);
 
 // All navs are collected from downwind legs
-Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs);
+Array<Velocity<double> > calcDownwindVmg(NavDataset navs);
 
 // Tws
-Array<Velocity<double> > estimateTws(Array<Nav> navs);
+Array<Velocity<double> > estimateTws(NavDataset navs);
 
 // Tws from file, reliable.
-Array<Velocity<double> > estimateExternalTws(Array<Nav> navs);
+Array<Velocity<double> > estimateExternalTws(NavDataset navs);
 
 void saveTargetSpeedTableChunk(
     ostream *stream,

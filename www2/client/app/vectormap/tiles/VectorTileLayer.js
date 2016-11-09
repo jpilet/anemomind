@@ -16,10 +16,41 @@ function curveStartTime(curveId) {
   return new Date(curveStartTimeStr(curveId) + "Z");
 }
 
+function zeroPad2(nr){
+  var  len = (2 - String(nr).length)+1;
+  return len > 0? new Array(len).join('0')+nr : nr;
+}
+
+function encodeTime(time) {
+  return time.getUTCFullYear() + '-'
+    + zeroPad2(time.getUTCMonth() + 1) + '-'
+    + zeroPad2(time.getUTCDate())
+    + 'T' + zeroPad2(time.getUTCHours())
+    + ':' + zeroPad2(time.getUTCMinutes())
+    + ':' + zeroPad2(time.getUTCSeconds());
+}
+
+function makeCurveId(boat, startTime, endTime) {
+  return boat + encodeTime(startTime) + encodeTime(endTime);
+}
+
 function VectorTileLayer(params, renderer) {
   this.params = params;
 
   this.renderer = renderer;
+
+  var t = this;
+  var loadIcon = function(url, name, w, h) {
+    renderer.loadImage(url, function(image) {
+      t[name] = image;
+      if (w) { image.width = w; }
+      if (h) { image.height = h; }
+    });
+  };
+  // URL have to be absolute because imgmin will change the name
+  loadIcon('/assets/images/boat.svg', 'boatIcon', 12, 34);
+  loadIcon('/assets/images/truewind.svg', 'trueWindIcon', 14, 28);
+  loadIcon('/assets/images/appwind.svg', 'appWindIcon', 14, 28);
 
   this.tiles = {};
   this.numLoading = 0;
@@ -28,6 +59,22 @@ function VectorTileLayer(params, renderer) {
   this.numCachedTiles = 0;
   this.visibleCurves = {};
   this.curvesFlat = {};
+  this.maxUpLevel = this.params.maxUpLevel || 4;
+
+  this.queueSeconds = undefined;
+  this.currentTime = undefined;
+  this.tailColor = undefined;
+  this.allTrack = undefined;
+  this.outOfTailColor = '#888888';
+  this.outOfTailWidth = .3;
+
+  this.startPoint = 0;
+  this.tailWidth = 3;
+  this.vmgPerf = [0, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110];
+  this.colorSpectrum = ['#B5B5B5','#BAA7AA','#C099A0','#C68B96','#CC7D8C',
+                        '#D26F81','#D86277','#DE546D','#E44663','#EA3858',
+                        '#F02A4E','#F61C44','#FC0F3A','#DE0B66','#C10792',
+                        '#A403BF'];
 
   if (!("tileSize" in this.params)) this.params.tileSize = 256;
   if ("vectorurl" in this.params) {
@@ -44,6 +91,20 @@ function VectorTileLayer(params, renderer) {
   if (!this.params.maxSimultaneousLoads) this.params.maxSimultaneousLoads = 3;
 
 
+}
+
+VectorTileLayer.prototype.buildUrl = function(boatId,starts,end) {
+  var params=[boatId], url;
+  if(starts){
+    params=params.concat(starts,end);
+  }
+  //
+  // nice way to build url
+  url=function(scale,x,y) {
+    return ["/api/tiles/raw",scale,x,y].concat(params).join('/')
+  };
+
+  this.setUrl(url);
 }
 
 VectorTileLayer.prototype.setUrl = function(url) {
@@ -77,8 +138,8 @@ VectorTileLayer.prototype.draw = function(canvas, pinchZoom,
   
   var firstTileX = getTileX(Math.max(0, bboxTopLeft.x));
   var firstTileY = getTileY(Math.max(0, bboxTopLeft.y));
-  var lastTileX = getTileX(Math.min(this.params.width, bboxBottomRight.x));
-  var lastTileY = getTileY(Math.min(this.params.height, bboxBottomRight.y));
+  var lastTileX = getTileX(Math.min(this.renderer.params.width, bboxBottomRight.x));
+  var lastTileY = getTileY(Math.min(this.renderer.params.height, bboxBottomRight.y));
 
   Utils.assert(firstTileY != undefined);
 
@@ -129,7 +190,7 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
     return;
   }
 
-  for (var upLevel = 0; upLevel <= scale && upLevel < 4; ++upLevel) {
+  for (var upLevel = 0; upLevel <= scale && upLevel < this.maxUpLevel; ++upLevel) {
     var upTileX = tileX >> upLevel;
     var upTileY = tileY >> upLevel;
     
@@ -253,8 +314,8 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
 
   var elementsAsArray = [];
   for (var e in curveElements) {
-    if (e != "length") {
-      var element = curveElements[e];
+    var element = curveElements[e];
+    if (typeof(element) == 'object' && element.curveId) { 
       if (curveOverlap(element.curveId, curveId)) {
         elementsAsArray.push(element.points);
       }
@@ -279,40 +340,109 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   return points;
 }
 
-VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
-  // prepare the Cavas path
 
-  if (this.isHighlighted(curveId)) {
-    context.strokeStyle="#FF0033";
-    context.lineWidth = 3;
-  } else {
-    if (this.highlight) {
-      // Another curve is hightlighted
-      context.strokeStyle="#777777";
-      context.lineWidth = 1;
-    } else {
-      // Nothing is highlighted
-      context.strokeStyle="#333333";
-      context.lineWidth = 2;
-    }
+VectorTileLayer.prototype.checkIfTail = function(point) {
+  if (this.queueSeconds == undefined) {
+    return false;
   }
 
+  var queueTime = Math.abs(this.currentTime.getTime() - (this.queueSeconds * 1000));
+  var pointTime = point.time;
+
+  return (pointTime.getTime() >= queueTime && pointTime.getTime() <= this.currentTime.getTime());
+};
+
+VectorTileLayer.prototype.colorForVmgPerf = function(point) {
+  var currentPerf = perfAtPoint(point);
+
+  if (isNaN(currentPerf)) {
+    return this.colorSpectrum[0];
+  }
+  for(var i=0; i<this.vmgPerf.length; i++) {
+    if (currentPerf <= this.vmgPerf[i]) {
+      return this.colorSpectrum[i];
+    }
+  }
+  return this.colorSpectrum[this.colorSpectrum.length - 1];
+}
+
+VectorTileLayer.prototype.colorForPoint = function(point) {
+  if (this.queueSeconds) {
+    if (this.checkIfTail(point)) {
+      if (this.tailColor) {
+        return this.tailColor;
+      }
+      return this.colorForVmgPerf(point);
+    } else {
+      return this.outOfTailColor;
+    }
+  } else {
+    // VMG Perf color for the whole trajectory
+    if(this.allTrack)
+      return this.colorForVmgPerf(point);
+
+    // default color when no tail is displayed
+    return '#FF0033';
+  }
+};
+
+VectorTileLayer.prototype.widthForPoint = function(point) {
+  if (this.queueSeconds) {
+    return (this.checkIfTail(point) ? this.tailWidth : this.outOfTailWidth);
+  }
+  return 3;
+};
+
+VectorTileLayer.prototype.drawSegment = function(context, p1, col1, width1,
+                                                 p2, col2, width2) {
+  if (col1 == undefined && col2 == undefined) {
+    // undefined color = no draw.
+    return;
+  }
+  context.beginPath();
+
+  if (col1 == col2 || width1 != width2) {
+    // If the width changed, it means we transitioned from tail to out-of-tail
+    // or vice-versa. No need to interpolate the color.
+    context.strokeStyle = col2;
+  } else {
+    var grd = context.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+    grd.addColorStop(0, col1);
+    grd.addColorStop(1, col2);
+    context.strokeStyle = grd;
+  }
+  context.lineWidth = width2;
+
+  context.moveTo(p1.x, p1.y);
+  context.lineTo(p2.x, p2.y);
+  context.stroke();
+}
+
+VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
     return;
   }
 
   // Draw.
-  context.beginPath();
-  var first = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
-                                              points[0].pos[1]);
-  context.moveTo(first.x, first.y);
+  var prevPos = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
+                                                points[0].pos[1]);
+  var prevColor = this.colorForPoint(points[0]);
+  var prevWidth = this.widthForPoint(points[0]);
+
   for (var i = 1; i < points.length; ++i) {
-    var point = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
-                                                points[i].pos[1]);
-    context.lineTo(point.x, point.y);
+    var currentColor = this.colorForPoint(points[i]);
+    var currentWidth = this.widthForPoint(points[i]);
+    var currentPos = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
+                                                     points[i].pos[1]);
+
+    this.drawSegment(context, prevPos, prevColor, prevWidth,
+                     currentPos, currentColor, currentWidth);
+
+    var prevPos = currentPos;
+    var prevColor = currentColor;
+    var prevWidth = currentWidth;
   }
-  context.stroke();
   /*
   console.log('Curve ' + curveId + ' span: ' + points[0].time + ' to '
               + points[points.length - 1].time);
@@ -333,6 +463,21 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   }
 
   var pixelRatio = this.renderer.pixelRatio;
+  var circleRadius = 45 * pixelRatio;
+
+  var rotateAndDrawIcon = function(angle, icon) {
+    if (angle == undefined) {
+      return;
+    }
+    context.save();
+    context.rotate(angle * toRadians);
+
+    var d = circleRadius;
+    var l = icon.height * pixelRatio;
+    var w = icon.width * pixelRatio;
+    context.drawImage(icon, -w/2, - d - l/2, w, l);
+    context.restore();
+  }
 
   var windArrow = function(angle, color) {
     if (angle == undefined) {
@@ -354,6 +499,9 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   }
 
   var getTwdir = function(nav) {
+    if (nav.twdir) {
+      return nav.twdir;
+    }
     if (nav.deviceTwdir) {
       return nav.deviceTwdir;
     }
@@ -372,21 +520,56 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   context.save();
   context.translate(pos.x, pos.y);
 
-  windArrow(getTwdir(p), '#7744ff');
-
+  
+  context.save();
   context.rotate(p.gpsBearing * toRadians);
 
-  var l = 30 * pixelRatio;
-  var w = 8 * pixelRatio;
-  context.beginPath();
-  context.moveTo(0, -l/2);
-  context.lineTo(w/2, l/2);
-  context.lineTo(-w/2, l/2);
-  context.closePath();
-  context.fillStyle = '#662200';
-  context.fill();
+  if (this.boatIcon && this.boatIcon.complete) {
+    var r = circleRadius * 1.1;
+    var n = 32;
+    context.beginPath();
+    for (var i = 0; i < n; ++i) {
+      var angle = (i / n) * 2 * Math.PI;
+      var t = ((i % 4) == 0 ? 10 : 6) * pixelRatio;
+      var cos = Math.cos(angle);
+      var sin = Math.sin(angle);
+      context.moveTo(cos * r, sin * r);
+      context.lineTo(cos * (r - t), sin * (r - t));
+    }
+    context.strokeStyle = '#ff0033';
+    context.stroke();
 
-  windArrow(p.awa, '#774400');
+    var l = this.boatIcon.height * pixelRatio;
+    var w = this.boatIcon.width * pixelRatio;
+    context.drawImage(this.boatIcon,
+                      - w/2,
+                      - l/2,
+                      w, l);
+  } else {
+    // Icon not loaded yet. Fall back on a rough triangle.
+    context.beginPath();
+    context.moveTo(0, -l/2);
+    context.lineTo(w/2, l/2);
+    context.lineTo(-w/2, l/2);
+    context.closePath();
+    context.fillStyle = '#662200';
+    context.fill();
+  }
+
+  if (this.appWindIcon.complete) {
+    rotateAndDrawIcon(p.awa, this.appWindIcon);
+  } else {
+    windArrow(p.awa, '#774400');
+  }
+
+  context.restore();
+
+  var twdir = getTwdir(p);
+  if (this.trueWindIcon.complete) {
+    rotateAndDrawIcon(twdir, this.trueWindIcon);
+  } else {
+    windArrow(twdir, '#7744ff');
+  }
 
   context.restore();
 
@@ -462,10 +645,9 @@ VectorTileLayer.prototype.processQueue = function() {
       // Force the creation of a new scope to make sure
       // a new closure is created for every "query" object. 
       var f = (function(t, query) {
-        $.ajax({
-          url: query.url,
-          dataType: "json",
-          success: function(data) {
+        t.fetchTile(
+          query.url,
+          function(data) {
             t.numLoading--;
             t.numCachedTiles++;
             if (data.length > 0) {
@@ -486,14 +668,12 @@ VectorTileLayer.prototype.processQueue = function() {
               query.tile.state = "empty";
             }
           },
-          error: function() {
+          function() {
             t.numLoading--;
             query.tile.state = "failed";
             console.log('Failed to load: ' + query.url);
             t.processQueue();
-          },
-          timeout: 2000
-        });  
+          });  
       })(this, query);
       
     } else {
@@ -587,51 +767,83 @@ VectorTileLayer.prototype.isHighlighted = function(curveId) {
     && this.highlight.endTime <= endTime;
 };
 
-VectorTileLayer.prototype.findPointAt = function(x, y) {
-  var p = {x: x, y: y};
+VectorTileLayer.prototype._closestPointInTile = function(x, y, key) {
+  if (!(key in this.tiles)) {
+    return undefined;
+  }
+
+  var tile = this.tiles[key];
+
+  if (tile.state != 'loaded') {
+    return undefined;
+  }
 
   if (this.selectedCurve) {
     var selectedTimeStart = curveStartTime(this.selectedCurve);
     var selectedTimeEnd = curveEndTime(this.selectedCurve);
   }
 
-  for (var scale = 20; scale >= 0; --scale) {
-    var xAtScale = Math.floor(x * (1 << scale));
-    var yAtScale = Math.floor(y * (1 << scale));
-    var key = scale + "," + xAtScale + "," + yAtScale;
+  var bestDist = 1e8;
+  var bestPoint = false;
+  var bestCurve;
+  var p = {x: x, y: y};
 
-    if (key in this.tiles && this.tiles[key].state == "loaded") {
-      var tile = this.tiles[key];
-      var bestDist = .25 / (1 << scale);
-      var bestPoint = false;
-      var bestCurve;
 
-      for (var curve in tile.data) {
-        for (var c in tile.data[curve].curves) {
-          var curveId = tile.data[curve].curves[c].curveId;
-          if (this.selectedCurve && !curveOverlap(this.selectedCurve, curveId)) {
-            continue;
-          }
-            var points = tile.data[curve].curves[c].points;
-          for (var i in points) {
-            if (this.selectedCurve
-                && (points[i].time < selectedTimeStart
-                    || points[i].time > selectedTimeEnd)) {
-              continue;
-            }
-            var dist = Utils.distance(p, {x: points[i].pos[0], y: points[i].pos[1]});
-            if (dist < bestDist) {
-              bestDist = dist;
-              bestPoint = points[i];
-              bestCurve = curveId;
-            }
-          }
+  for (var curve in tile.data) {
+    for (var c in tile.data[curve].curves) {
+      var curveId = tile.data[curve].curves[c].curveId;
+      if (this.selectedCurve && !curveOverlap(this.selectedCurve, curveId)) {
+        continue;
+      }
+        var points = tile.data[curve].curves[c].points;
+      for (var i in points) {
+        if (this.selectedCurve
+            && (points[i].time < selectedTimeStart
+                || points[i].time > selectedTimeEnd)) {
+          continue;
+        }
+        var dist = Utils.distance(p, {x: points[i].pos[0], y: points[i].pos[1]});
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestPoint = points[i];
+          bestCurve = curveId;
         }
       }
-      if (bestPoint) {
-        return { point: bestPoint, curveId: bestCurve };
-      }
-      return undefined;
     }
   }
+  if (bestPoint) {
+    return { point: bestPoint, curveId: bestCurve, dist: bestDist };
+  }
 }
+
+VectorTileLayer.prototype.findPointAt = function(x, y) {
+  var bestPoint;
+  // This exhaustive search could be optimized by searching nearest tiles
+  // first and skipping tiles far away.
+  // But since this function is called only when the user clics,
+  // speed does not matter. Result correctness is more important.
+  for (var key in this.tiles) {
+    var candidate = this._closestPointInTile(x, y, key);
+    if (candidate && (!bestPoint || bestPoint.dist > candidate.dist)) {
+      bestPoint = candidate;
+    }
+  }
+  return bestPoint;
+}
+
+VectorTileLayer.prototype.fetchTile = function(url, success, error) {
+  var me = this;
+  $.ajax({
+    url: url,
+    dataType: "json",
+    success: success,
+    error: error,
+    timeout: 2000,
+    beforeSend: function(xhr) {
+      if (me.params.token) {
+        xhr.setRequestHeader('Authorization','Bearer ' + me.params.token);
+      }
+    }
+  });  
+};
+

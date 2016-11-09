@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
+#include <device/anemobox/FakeClockDispatcher.h>
+#include <cstdio>
+#include <fstream>
 
 using namespace sail;
 
@@ -15,14 +18,14 @@ TEST(LoggerTest, SmokeTest) {
   for (int i = 0; i < num_values; ++i) {
     dispatcher.publishValue(AWA, "test", Angle<double>::degrees(values[i]));
   }
-  std::string filename;
-  EXPECT_TRUE(logger.flushAndSave("./", &filename));
+  const char filename[] = "./00000000576A5F3F.log";
+  EXPECT_TRUE(logger.flushAndSaveToFile(filename));
 
   LogFile loaded;
   EXPECT_TRUE(Logger::read(filename, &loaded));
   EXPECT_EQ(1, loaded.stream_size());
 
-  EXPECT_EQ(num_values, loaded.stream(0).timestamps_size());
+  EXPECT_EQ(num_values, loaded.stream(0).timestampssinceboot_size());
   EXPECT_EQ(num_values, loaded.stream(0).angles().deltaangle_size());
 
   std::vector<Angle<double>> angles;
@@ -46,19 +49,21 @@ TEST(LoggerTest, LogText) {
   LogFile data;
   logger.flushTo(&data);
 
+  EXPECT_FALSE(data.has_bootcount());
+
   EXPECT_EQ(2, data.text_size());
 
   for (int i = 0; i < 2; ++i) {
     auto stream = data.text(i);
     if (stream.source() == "source A") {
       EXPECT_EQ(2, stream.text_size());
-      EXPECT_EQ(2, stream.timestamps_size());
+      EXPECT_EQ(2, stream.timestampssinceboot_size());
       EXPECT_EQ("sentence A1", stream.text(0));
       EXPECT_EQ("sentence A2", stream.text(1));
     } else {
       EXPECT_EQ("source B", stream.source());
       EXPECT_EQ(1, stream.text_size());
-      EXPECT_EQ(1, stream.timestamps_size());
+      EXPECT_EQ(1, stream.timestampssinceboot_size());
       EXPECT_EQ("sentence B1", stream.text(0));
     }
   }
@@ -127,4 +132,71 @@ TEST(LoggerTest, LogOrientation) {
   EXPECT_EQ(4, unpacked[1].heading.degrees());
   EXPECT_EQ(5, unpacked[1].roll.degrees());
   EXPECT_EQ(6, unpacked[1].pitch.degrees());
+}
+
+TEST(LoggerTest, LogTime) {
+  FakeClockDispatcher dispatcher;
+  Logger logger(&dispatcher);
+
+  auto laterInTheMorning = TimeStamp::UTC(2016, 5, 27, 8, 15, 0);
+  auto inTheMorning = TimeStamp::UTC(2016, 5, 27, 8, 0, 0);
+
+  dispatcher.setTime(inTheMorning);
+
+  auto today = TimeStamp::UTC(2016, 5, 27, 14, 6, 0);
+  auto stillToday = TimeStamp::UTC(2016, 5, 27, 14, 7, 0);
+
+  AbsoluteOrientation orient;
+  dispatcher.publishValue(DATE_TIME, "test", today);
+  dispatcher.setTime(laterInTheMorning);
+  dispatcher.publishValue(DATE_TIME, "test", stillToday);
+
+  LogFile saved;
+  logger.flushTo(&saved);
+
+  std::vector<TimeStamp> externalTimes;
+  Logger::unpack(saved.stream(0).exttimes(), &externalTimes);
+  EXPECT_EQ(2, externalTimes.size());
+  EXPECT_EQ(today, externalTimes[0]);
+  EXPECT_EQ(stillToday, externalTimes[1]);
+
+  std::vector<TimeStamp> systemTimes;
+  Logger::unpackTime(saved.stream(0), &systemTimes);
+  EXPECT_EQ(2, systemTimes.size());
+  EXPECT_TRUE(systemTimes[0].defined());
+  EXPECT_EQ(systemTimes[0], inTheMorning);
+  EXPECT_TRUE(systemTimes[1].defined());
+  EXPECT_EQ(systemTimes[1], laterInTheMorning);
+  EXPECT_EQ(saved.stream(0).shortname(), "dateTime");
+}
+
+TEST(LoggerTest, ReadInteger0) {
+  const char filename[] = "/tmp/this_file_should_not_exist.txt";
+  std::remove(filename);
+  auto value = readIntegerFromTextFile(filename);
+  EXPECT_FALSE(value.defined());
+}
+
+TEST(LoggerTest, ReadInteger1) {
+  const char filename[] = "/tmp/here_there_is_an_integer_i_hope.txt";
+  {
+    std::ofstream file(filename, std::ios_base::trunc);
+    file << 119;
+  }
+  auto value = readIntegerFromTextFile(filename);
+  EXPECT_TRUE(value.defined());
+  EXPECT_EQ(value.get(), 119);
+  std::remove(filename);
+}
+
+TEST(LoggerTest, ReadInteger2) {
+  const char filename[] = "/tmp/here_there_is_an_integer_i_hope_with_whitespace.txt";
+  {
+    std::ofstream file(filename, std::ios_base::trunc);
+    file << "  " << 119 << "\n ";
+  }
+  auto value = readIntegerFromTextFile(filename);
+  EXPECT_TRUE(value.defined());
+  EXPECT_EQ(value.get(), 119);
+  std::remove(filename);
 }

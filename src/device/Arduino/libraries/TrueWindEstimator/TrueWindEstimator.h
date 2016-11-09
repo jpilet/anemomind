@@ -8,6 +8,7 @@
 #endif
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
+#include <algorithm>
 
 namespace sail {
 
@@ -57,11 +58,16 @@ template <class T, class InstrumentAbstraction>
 HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
         const T* params, const InstrumentAbstraction& measures) {
     typedef typename InstrumentAbstraction::type WorkType;
-    WorkType awa = measures.awa().normalizedAt0().degrees();
+    auto awa = measures.awa().normalizedAt0();
+    WorkType awad = awa.degrees();
 
-    bool upwind = (awa > WorkType(-90)) && (awa < WorkType(90));
-    bool starboard = awa > WorkType(0);
-    T aws(measures.aws().knots()); 
+    bool upwind = (awad > WorkType(-90)) && (awad < WorkType(90));
+    bool starboard = awad > WorkType(0);
+    auto aws = measures.aws();
+
+    // Due to a bug in NKE stuff and to an overflow in NmeaParser,
+    // we sometime have negative values for aws that should be considered as 0.
+    T awsk(std::max(0.0, double(aws.knots()))); 
 
     T awa_offset(params[PARAM_AWA_OFFSET]);
     T aws_bias(1.0);
@@ -69,11 +75,11 @@ HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
 
     T sideFactor(starboard ? 1 : -1);
     if (upwind) {
-      awa_offset += sideFactor * ((aws * aws) * params[PARAM_UPWIND0]);
+      awa_offset += sideFactor * ((awsk * awsk) * params[PARAM_UPWIND0]);
     } else {
       aws_offset = params[PARAM_DOWNWIND0];
-      aws_bias += params[PARAM_DOWNWIND1] * aws;
-      awa_offset += sideFactor * ((aws * aws) * params[PARAM_DOWNWIND2]
+      aws_bias += params[PARAM_DOWNWIND1] * awsk;
+      awa_offset += sideFactor * ((awsk * awsk) * params[PARAM_DOWNWIND2]
                                   +params[PARAM_DOWNWIND3]);
     }
 
@@ -84,8 +90,8 @@ HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
         // For some reason yet to be investigated, the following line
         // produces a larger code than the line after.
         // Velocity<T>::knots(aws_offset) + static_cast<Velocity<T> >(measures.aws()).scaled(aws_bias),
-        Velocity<T>::knots(aws_offset + measures.aws().knots() * aws_bias),
-        static_cast<Angle<T> >(measures.gpsBearing() + measures.awa() + Angle<WorkType>::degrees(180))
+        Velocity<T>::knots(aws_offset + awsk * aws_bias),
+        static_cast<Angle<T> >(measures.gpsBearing() + awa + Angle<WorkType>::degrees(180))
             + Angle<T>::degrees(awa_offset));
 
     // True wind - boat motion = apparent wind.
@@ -121,6 +127,11 @@ Angle<T> calcTwdir(HorizontalMotion<T> calibratedTW) {
 template <typename T>
 Velocity<T> calcTws(HorizontalMotion<T> calibratedTW) {
   return calibratedTW.norm();
+}
+
+template <typename T>
+Velocity<T> calcVmg(Angle<> twa, Velocity<T> speed) {
+  return cos(twa) * speed;
 }
 
 template <typename T>

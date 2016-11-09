@@ -4,6 +4,7 @@
  */
 
 #include <server/nautical/FlowErrors.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -59,17 +60,17 @@ std::ostream &operator<< (std::ostream &s, const WindCurrentErrors &e) {
 
 WindCurrentErrors compareCorrectors(
     const CorrectorFunction &a, const CorrectorFunction &b,
-    Array<Nav> navs) {
+    NavDataset navs) {
   auto aNavs = a(navs);
   auto bNavs = b(navs);
   auto getWind = [&](const CalibratedNav<double> &x) {return x.trueWindOverGround();};
   auto getCurrent = [&](const CalibratedNav<double> &x) {return x.trueCurrentOverGround();};
   return WindCurrentErrors{
-    FlowErrors(aNavs.map<HorizontalMotion<double> >(getWind),
-               bNavs.map<HorizontalMotion<double> >(getWind)),
-    FlowErrors(aNavs.map<HorizontalMotion<double> >(getCurrent),
-               bNavs.map<HorizontalMotion<double> >(getCurrent)),
-    navs.size()
+    FlowErrors(toArray(map(aNavs, getWind)),
+               toArray(map(bNavs, getWind))),
+    FlowErrors(toArray(map(aNavs, getCurrent)),
+               toArray(map(bNavs, getCurrent))),
+    NavCompat::getNavSize(navs)
   };
 }
 

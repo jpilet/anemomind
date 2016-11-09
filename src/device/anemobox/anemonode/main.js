@@ -1,12 +1,15 @@
 var dispatcher = require('./build/Release/anemonode').dispatcher;
+var version = require('./version');
+
+console.log('Anemobox firmware version ' + version.string);
 
 var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
-var btrpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
 var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
+var withTimeEstimator = true;
 var withSetTime = true;
 var withBT = false;
 var echoGpsOnNmea = false;
@@ -15,9 +18,20 @@ var logInternalGpsNmea = false;
 var logExternalNmea = true;
 var withHttp = true;
 var withIMU = true;
-var withCUPS = true;
+var withCUPS = false;
+var withNMEA2000 = true;
+var withWatchdog = !process.env['NO_WATCHDOG'];
+var withNmea0183Udp = true;
+
+var spiBugDetected = false;
 
 var config = require('./components/config');
+var reboot = require('./components/reboot').reboot;
+
+var btrpcFuncTable = {};
+if (withBT) {
+  btrpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
+}
 
 if (withHttp) {
   var http = require('./components/http');
@@ -65,6 +79,9 @@ dispatcher.setSourcePriority("Internal GPS", -2);
 // The CUPS sensor has less priority than NMEA.
 dispatcher.setSourcePriority("CUPS", -2);
 
+// NMEA2000 unknown devices, with id=0, have a very low priority.
+dispatcher.setSourcePriority("NMEA2000/0", -10);
+
 // Internal GPS with output to NMEA0183
 var gps = (withGps ?  require('./components/gps') : {readGps:function(){}});
 function gpsData(data) {
@@ -105,8 +122,12 @@ if (withSetTime) {
   require('./components/settime.js');
 }
 
-if (withLogger) {
-  logger.startLogging(logRoot, logInterval, function(path) {
+var getCurrentTime = withTimeEstimator? 
+    require('./components/timeest.js').estimateTimeFromDispatcher 
+    : function() {return new Date();};
+
+function startLogging() {
+  logger.startLogging(logRoot, logInterval, getCurrentTime, function(path) {
     if (withLocalEndpoint) {
       localEndpoint.postLogFile(path, function(err, remaining) {
         if (err) {
@@ -115,9 +136,16 @@ if (withLogger) {
           console.log('Posted this log file: ' + path + ". Triggering phone sync.");
           sync.triggerSync(function() {});
         }
+        if (spiBugDetected) {
+          reboot();
+        }
       });
     }
   });
+}
+
+if (withLogger) {
+  startLogging();
 }
 
 require('./components/RpcAssignBoat').register(btrpcFuncTable);
@@ -135,4 +163,47 @@ if (withEstimator) {
 
 if (withCUPS) {
   require('./components/cups.js');
+}
+
+if (withNMEA2000) {
+  require('./components/nmea2000.js').detectSPIBug(function() {
+    var message = 'SPI bug detected, rebooting!';
+    console.log(message);
+    spiBugDetected = true;
+    if (withLogger) {
+      logger.logText("syslog", message);
+      logger.flush();
+    }
+  });
+}
+
+if (withWatchdog) {
+  require('./components/watchdog.js').startWatchdog();
+}
+
+var wifi = require('./components/wifi.js');
+config.events.on('change', wifi.applyNetworkConfig);
+
+var callrpc = require('./components/callrpc.js');
+callrpc.WITH_BT = withBT;
+callrpc.WITH_HTTP = withHttp;
+
+if (withNmea0183Udp) {
+  var nmea0183udp = require('./components/nmea0183udp.js');
+  function listenUdpPort() {
+    config.get(function(err, cfg) {
+      // default port: Box WiFi NKE
+      var port = cfg.nmea0183UdpPort || 50000;
+      nmea0183udp.listenToUdpPort(
+          port,
+          function(source, data) { 
+            if (withLogger && logExternalNmea) {
+              logger.logText(source, data.toString('ascii'));
+            }
+          }
+      );
+    });
+  }
+  listenUdpPort();
+  config.events.on('change', listenUdpPort);
 }

@@ -3,8 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/NavNmea.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/Env.h>
 #include <server/common/string.h>
 #include <server/common/HierarchyJson.h>
@@ -20,7 +19,7 @@
 #include <server/common/Json.impl.h>
 
 using namespace sail;
-
+using namespace sail::NavCompat;
 
 
 
@@ -31,9 +30,10 @@ namespace {
         pushDirectory("regates").
         pushDirectory("regate_1_dec_07").get();
 
-
-    Array<Nav> allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
-    Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
+    LogLoader loader;
+    loader.load(dataFolder.toString());
+    Array<NavDataset> navs = splitNavsByDuration(loader.makeNavDataset(),
+        Duration<double>::minutes(10));
   }
 
   void loadAndDispTree() {
@@ -43,7 +43,9 @@ namespace {
         pushDirectory("regate_1_dec_07").get();
 
     cout << "Load navs" << endl;
-    Array<Nav> allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
+    LogLoader loader;
+    loader.load(dataFolder.toString());
+    NavDataset allnavs = loader.makeNavDataset();
     cout << "loaded" << endl;
 
     WindOrientedGrammarSettings settings;
@@ -60,14 +62,14 @@ namespace {
     // Create a smaller tree with fewer children.
     std::shared_ptr<HTree> tree(new HInner(fulltree->index(), fulltree->child(0)));
 
-    Array<Nav> navs = allnavs.slice(tree->left(), tree->right());
+    NavDataset navs = slice(allnavs, tree->left(), tree->right());
 
     {
       ofstream file(prefix + "_tree.js");
       Poco::JSON::Stringifier::stringify(json::serializeMapped(tree, navs, g.nodeInfo()), file, 0, 0);
     }{
       ofstream file(prefix + "_navs.js");
-      Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
+      Poco::JSON::Stringifier::stringify(json::serialize(makeArray(navs)), file, 0, 0);
     }{
       ofstream file(prefix + "_tree_node_info.js");
       Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);

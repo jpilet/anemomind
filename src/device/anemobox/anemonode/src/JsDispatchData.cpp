@@ -21,7 +21,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = angle->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       value_ = NanNew(val.value.degrees());
       timestamp_ = val.time;
     }
@@ -30,7 +30,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       value_ = NanNew(val.value.knots());
       timestamp_ = val.time;
     }
@@ -39,7 +39,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       value_ = NanNew(val.value.nauticalMiles());
       timestamp_ = val.time;
     }
@@ -49,7 +49,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = pos->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       Local<Object> obj = NanNew<Object>();
       obj->Set(NanNew("lon"), NanNew(val.value.lon().degrees()));
       obj->Set(NanNew("lat"), NanNew(val.value.lat().degrees()));
@@ -62,7 +62,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = dateTime->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       value_ = NanNew<Date>(double(val.value.toMilliSecondsSince1970()));
       timestamp_ = val.time;
     }
@@ -72,7 +72,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = orient->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       Local<Object> obj = NanNew<Object>();
       obj->Set(NanNew("heading"), NanNew(val.value.heading.degrees()));
       obj->Set(NanNew("roll"), NanNew(val.value.roll.degrees()));
@@ -154,9 +154,18 @@ class SetValueVisitor : public DispatchDataVisitor {
     error_ = "set GeoPos from javascript is not implemented yet in " __FILE__;
     success_ = false;
   }
-  virtual void run(DispatchTimeStampData *) {
-    error_ = "set TimeStamp from javascript is not implemented yet in " __FILE__;
-    success_ = false;
+  virtual void run(DispatchTimeStampData *dateTime) {
+    if (!value_->IsDate()) {
+      error_ = "Expecting a Date object";
+      success_ = false;
+    } else {
+      double millisSinceEpoch = value_->ToNumber()->Value();
+      dispatcher_->publishValue(
+          dateTime->dataCode(),
+          source_.c_str(),
+          TimeStamp::fromMilliSecondsSince1970(millisSinceEpoch));
+      success_ = true;
+    }
   }
 
   virtual void run(DispatchAbsoluteOrientationData *orientDispatch) {
@@ -217,7 +226,7 @@ class JsListener:
   public Listener<TimeStamp>,
   public Listener<AbsoluteOrientation> {
  public:
-  JsListener(DispatchData *dispatchData,
+  JsListener(std::shared_ptr<DispatchData> dispatchData,
              Local<Function> callback,
              Duration<> minInterval)
     : Listener<Angle<double>>(minInterval),
@@ -244,7 +253,7 @@ class JsListener:
   }
 
  private:
-  DispatchData *dispatchData_;
+  std::shared_ptr<DispatchData> dispatchData_;
   Persistent<Function> callback_;
 };
 
@@ -301,7 +310,8 @@ Local<FunctionTemplate> JsDispatchData::functionTemplate() {
 }
    
 void JsDispatchData::setDispatchData(
-    Handle<Object> object, DispatchData* data, Dispatcher* dispatcher) {
+    Handle<Object> object, std::shared_ptr<DispatchData> data,
+    Dispatcher* dispatcher) {
   JsDispatchData* zis = obj(object);
 
   zis->_dispatchData = data;
@@ -326,7 +336,7 @@ NAN_METHOD(JsDispatchData::New) {
 
 NAN_METHOD(JsDispatchData::length) {
   NanScope();
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
 
   CountValuesVisitor countValues;
   dispatchData->visit(&countValues);
@@ -337,7 +347,7 @@ NAN_METHOD(JsDispatchData::length) {
 NAN_METHOD(JsDispatchData::value) {
   NanScope();
 
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
 
   unsigned index = 0;
   if (args.Length() >= 1) {
@@ -361,7 +371,8 @@ NAN_METHOD(JsDispatchData::value) {
 NAN_METHOD(JsDispatchData::time) {
   NanScope();
 
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
+
   unsigned index = 0;
   if (args.Length() >= 1) {
     if (!args[0]->IsNumber() || args[0]->ToInteger()->Value() < 0) {
@@ -385,7 +396,7 @@ NAN_METHOD(JsDispatchData::time) {
 NAN_METHOD(JsDispatchData::setValue) {
   NanScope();
   JsDispatchData* zis = obj(args.This());
-  DispatchData* dispatchData = zis->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = zis->_dispatchData;
 
   if (args.Length() != 2) {
     return NanThrowTypeError("setValue expects 2 argument: source name and value");
@@ -429,7 +440,8 @@ NAN_METHOD(JsDispatchData::unsubscribe) {
 NAN_METHOD(JsDispatchData::subscribe) {
   NanScope();
 
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
+
   if (args.Length() < 1 || !args[0]->IsFunction()) {
     return NanThrowTypeError("First argument must be a function");
   }
@@ -453,7 +465,7 @@ NAN_METHOD(JsDispatchData::subscribe) {
 NAN_METHOD(JsDispatchData::source) {
   NanScope();
 
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
   NanReturnValue(NanNew<String>(dispatchData->source()));
 }
 

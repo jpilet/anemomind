@@ -9,15 +9,15 @@
 #include <server/common/Array.h>
 #include <Poco/JSON/Array.h>
 #include <Poco/JSON/Object.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/common/Hierarchy.h>
 #include <server/common/Json.h>
 
 namespace sail {
 namespace json {
 
-Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, Array<Nav> navs, Array<HNode> nodeInfo);
-Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, Array<Nav> navs, Array<HNode> nodeInfo);
+Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, NavDataset navs, Array<HNode> nodeInfo);
+Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, NavDataset navs, Array<HNode> nodeInfo);
 
 }
 } /* namespace sail */

@@ -12,6 +12,7 @@
     </table>
 
     <p style="text-align:center;"><a href="3d.html">3D view</a></p>
+    <p style="text-align:center;"><a href="allSources.html">all sources</a></p>
 
     <script src="jquery.min.js"></script>
     <script>
@@ -68,9 +69,9 @@
         orient: JSON.stringify
       };
       if (entry in fmt) {
-        return fmt[entry](data[entry])
+        return fmt[entry](data[entry].v)
       } else {
-        return JSON.stringify(data[entry]);
+        return JSON.stringify(data[entry].v);
       }
     };
 
@@ -84,7 +85,8 @@
           for (var entry in data) {
             var row = $('<tr></tr>');
             row.append('<td style="width:30%">' + getTitle(entry) + '</td>');
-            row.append('<td>' + getValue(data, entry) + '</td>');
+            row.append('<td>' + getValue(data, entry) 
+                       + ' (' + data[entry].s + ')</td>');
             table.append(row);
           }
         },

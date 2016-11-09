@@ -1,4 +1,4 @@
-<div class="navbar navbar-default navbar-static-top" ng-controller="NavbarCtrl">
+<div class="navbar navbar-anemomind navbar-static-top" ng-controller="NavbarCtrl">
   <div class="container">
     <div class="navbar-header">
       <button class="navbar-toggle" type="button" ng-click="isCollapsed = !isCollapsed">
@@ -7,30 +7,46 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a href="/" class="navbar-logo"><img src="assets/images/header.logo.png" height="37" width="60"></a>
+      <a href="/" class="navbar-logo hide"><img src="assets/images/header.logo.png" height="37" width="60"></a>
+      <a class="navbar-brand" href="/">anemolab</a>
+
     </div>
-    <div collapse="isCollapsed" class="navbar-collapse collapse" id="navbar-main">
+    <div uib-collapse="isCollapsed" class="navbar-collapse collapse" id="navbar-main">
       <ul class="nav navbar-nav">
         <li ng-repeat="item in menu" ng-class="{active: isActive(item.link)}">
             <a ng-href="{{item.link}}">{{item.title}}</a>
         </li>
         <li ng-show="isAdmin()" ng-class="{active: isActive('/admin')}"><a href="/admin">Admin</a></li>
+        <li ng-show="isAdmin()" ng-class="{active: isActive('/boatadmin')}"><a href="/boatadmin">Boat admin</a></li>
         <li class="dropdown" ng-show="isLoggedIn()" ng-class="{active: isActive('/boats')}">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">My Boats <span class="caret"></span></a>
+        <li class="dropdown" ng-show="isLoggedIn()" ng-class="{active: isActive('/boats')}">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">My Boats <span class="fa fa-caret-down"></span></a>
           <ul class="dropdown-menu" role="menu">
-            <li ng-repeat="boat in boats"><a href="/boats/{{ boat._id }}">{{ boat.name }}</a></li>
+            <li ng-repeat="boat in boats|limitTo:limit:offset" ng-class="{'active':(boatId===boat._id)}"><a href="/boats/{{ boat._id }}">{{ ::boat.name }}</a></li>
             <li class="divider"></li>
             <li><a href="/boats">Add a new boat</a></li>
           </ul>
         </li>
+
+        <li ng-show="isLoggedIn() && showLinks" ng-class="{active: isActive('/challenges') || isActive('/challenge/list') || isActive('/challenge/details')}"><a href="/challenges">Challenges</a></li>
+        <li ng-show="isLoggedIn() && showLinks" ng-class="{active: isActive('/rewards')}"><a href="/rewards">Rewards</a></li>
+        <li ng-show="isLoggedIn() && showLinks" ng-class="{active: isActive('/multiboat')}"><a href="/multiboat">Multi-boat</a></li>
       </ul>
 
       <ul class="nav navbar-nav navbar-right">
         <li ng-hide="isLoggedIn()" ng-class="{active: isActive('/signup')}"><a href="/signup">Sign up</a></li>
         <li ng-hide="isLoggedIn()" ng-class="{active: isActive('/login')}"><a href="/login">Login</a></li>
-        <li ng-show="isLoggedIn()"><p class="navbar-text">Hello {{ getCurrentUser().name }}</p> </li>
-        <li ng-show="isLoggedIn()" ng-class="{active: isActive('/settings')}"><a href="/settings"><span class="glyphicon glyphicon-cog"></span></a></li>
-        <li ng-show="isLoggedIn()" ng-class="{active: isActive('/logout')}"><a href="" ng-click="logout()">Logout</a></li>
+        <li ng-show="isLoggedIn()">
+          <a href="#" class="dropdown-toggle navbar-user" data-toggle="dropdown" role="button" aria-expanded="false">{{ getCurrentUser().name }} <span class="fa fa-caret-down"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li ng-class="{active: isActive('/settings')}"><a href="/settings">Settings <span class="pull-right glyphicon glyphicon-cog"></span></a></li>
+            <li ng-class="{active: isActive('/logout')}"><a href="" ng-click="logout()">Logout</a></li>
+<!--             <li class="divider"></li>
+            <li><a href="">Fr</a></li>
+            <li><a href="">En</a></li>
+ -->          </ul>
+
+        </li>
       </ul>
     </div>
   </div>

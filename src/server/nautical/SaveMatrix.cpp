@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/TestdataNavs.h>
+#include <server/nautical/logimport/TestdataNavs.h>
 #include <server/common/ArrayBuilder.h>
 #include <iostream>
 #include <fstream>
@@ -11,6 +11,7 @@
 
 namespace {
   using namespace sail;
+  using namespace sail::NavCompat;
 
   std::string getOutname(ArgMap &amap) {
     if (amap.optionProvided("--out")) {
@@ -60,12 +61,12 @@ namespace {
     return builder.get();
   }
 
-  MDArray2d extractValues(Array<ValueExtractor> extractors, Array<Nav> data) {
-    int rows = data.size();
+  MDArray2d extractValues(Array<ValueExtractor> extractors, NavDataset data) {
+    int rows = getNavSize(data);
     int cols = extractors.size();
     MDArray2d dst(rows, cols);
     for (int i = 0; i < rows; i++) {
-      const Nav &nav = data[i];
+      Nav nav = getNav(data, i);
       for (int j = 0; j < cols; j++) {
         dst(i, j) = extractors[j].extract(nav);
       }
@@ -94,7 +95,7 @@ namespace {
     }
   }
 
-  int saveNavsToMatrix(Array<Nav> navs, std::string filename) {
+  int saveNavsToMatrix(NavDataset navs, std::string filename) {
     Array<ValueExtractor> extractors = makeExtractors();
     MDArray2d data = extractValues(extractors, navs);
 
@@ -118,13 +119,13 @@ int main(int argc, const char **argv) {
   amap.registerOption("--out", "A filename for the output. Defaults to outnavs.txt.").setArgCount(1);
   if (amap.parse(argc, argv) != ArgMap::Error) {
     std::cout << "Loading navs..." << std::endl;
-    sail::Array<sail::Nav> data = sail::getTestdataNavs(amap);
-    if (data.empty()) {
+    sail::NavDataset data = sail::getTestdataNavs(amap);
+    if (isEmpty(data)) {
       amap.dispHelp(&std::cout);
       return -1;
     }
     std::string outname = getOutname(amap);
-    std::cout << "Save matrix of " << data.size() << " navs to " << outname << "..." << std::endl;
+    std::cout << "Save matrix of " << getNavSize(data) << " navs to " << outname << "..." << std::endl;
     return saveNavsToMatrix(data, outname);
   }
   return -1;

@@ -67,9 +67,17 @@ Word parseNc(char *a, int n) {
   return r;
 }
 
+bool parseDouble(const char* str, double *result) {
+  char *endptr = 0;
+  *result = strtod(str, &endptr);
+  // man page says:
+  // If no conversion is performed, zero is returned and the value of nptr is
+  // stored in the location referenced by endptr.
+  return endptr != str;
+}
 
-DWord parseInt(char *s, int *n) {
-  DWord r=0;
+int parseInt(char *s, int *n) {
+  int r=0;
   int i=0;
   if (n) *n=0;
   if (!s) return 0;
@@ -81,10 +89,10 @@ DWord parseInt(char *s, int *n) {
   return r;
 }
 
-DWord parseSpeed(char *speed, char *unit) {
+int parseSpeed(char *speed, char *unit) {
   int i,j;
-  DWord frac;
-  DWord r = parseInt(speed,&i) << 8;
+  int frac;
+  int r = parseInt(speed,&i) << 8;
   if (speed[i]=='.') {
     i++;
     frac = parseInt(speed+i, &j);
@@ -96,6 +104,11 @@ DWord parseSpeed(char *speed, char *unit) {
   }
   //assert(unit[0] == 'N');
   return r;
+}
+
+// speed is a 24:8 fixed point
+bool isSpeedRealistic(int s) {
+  return (s < (100 << 8)) && (s >= 0);
 }
 
 }  // namespace
@@ -313,6 +326,8 @@ NmeaParser::NmeaSentence NmeaParser::processCommand() {
     return processZDA();
   } else if (strcmp(c, "VTG") == 0) {
     return processVTG();
+  } else if (strcmp(c, "XDR") == 0) {
+    return processXDR();
   }
 
   return NMEA_UNKNOWN;
@@ -350,7 +365,12 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
 NmeaParser::NmeaSentence NmeaParser::processMWV() {
   if (argc_<=5 || argv_[5][0] != 'A') return NMEA_NONE;
 
-  DWord s = parseSpeed(argv_[3], argv_[4]);
+  int s = parseSpeed(argv_[3], argv_[4]);
+
+  if (!isSpeedRealistic(s)) {
+    // sometimes NKE system sends very irrealistic wind
+    return NMEA_NONE;
+  }
 
   if (argv_[2][0] == 'R') {
     aws_ = s;
@@ -381,13 +401,19 @@ $--VWR,x.x,a,x.x,N,x.x,M,x.x,K*hh
 */
 NmeaParser::NmeaSentence NmeaParser::processVWR() {
   if (argc_<8) return NMEA_NONE;
+  int s = parseSpeed(argv_[3], argv_[4]);
+
+  if (!isSpeedRealistic(s)) {
+    // sometimes NKE system sends very irrealistic wind
+    return NMEA_NONE;
+  }
+
   awa_ = parseInt(argv_[1], 0);
 
   if (argv_[2][0] == 'L') {
     awa_ = - awa_;
   }
 
-  DWord s = parseSpeed(argv_[3], argv_[4]);
   aws_ = s;
 
   return NMEA_AW;
@@ -423,6 +449,11 @@ NmeaParser::NmeaSentence NmeaParser::processVWT() {
   }
 
   tws_ = parseSpeed(argv_[3], argv_[4]);
+
+  if (!isSpeedRealistic(tws_)) {
+    // sometimes NKE system sends very irrealistic wind
+    return NMEA_NONE;
+  }
 
   return NMEA_TW;
 }
@@ -462,29 +493,33 @@ $--GLL,llll.ll,a,yyyyy.yy,a,hhmmss.ss,A*hh
 */
 NmeaParser::NmeaSentence NmeaParser::processGLL() {
   if (argc_<7) return NMEA_NONE;
-  if (strlen(argv_[5]) < 6) return NMEA_NONE;
   if (argv_[6][0] != 'A') return NMEA_NONE;
-  if (strlen(argv_[1]) != 8 || strlen(argv_[2]) != 1
-      || strlen(argv_[3]) != 9 || strlen(argv_[4]) != 1) {
+  if (strlen(argv_[1]) < 8 || strlen(argv_[2]) != 1
+      || strlen(argv_[3]) < 9 || strlen(argv_[4]) != 1) {
     return NMEA_NONE;
   }
 
-  hour_ = parse2c(argv_[5]);
-  min_ = parse2c(argv_[5]+2);
-  sec_ = parse2c(argv_[5]+4);
+  // Some funny systems do not send the time.
+  if (strlen(argv_[5]) == 6) {
+    hour_ = parse2c(argv_[5]);
+    min_ = parse2c(argv_[5]+2);
+    sec_ = parse2c(argv_[5]+4);
+  }
 
-  pos_.lat.set(
-    parse2c(argv_[1]),
-    parse2c(argv_[1]+2),
-    parseNc(argv_[1]+5,3));
+  double latMinutes;
+  if (!parseDouble(argv_[1] + 2, &latMinutes)) {
+    return NMEA_NONE;
+  }
+  pos_.lat.set(parse2c(argv_[1]), latMinutes);
   if (argv_[2][0] == 'S') {
     pos_.lat.flip();
   }
 
-  pos_.lon.set(
-    parseNc(argv_[3],3),
-    parse2c(argv_[3]+3),
-    parseNc(argv_[3]+6,3));
+  double lonMinutes;
+  if (!parseDouble(argv_[3] + 3, &lonMinutes)) {
+    return NMEA_NONE;
+  }
+  pos_.lon.set(parseNc(argv_[3],3), lonMinutes);
 
   if (argv_[4][0] == 'W') {
     pos_.lon.flip();
@@ -561,6 +596,21 @@ NmeaParser::NmeaSentence NmeaParser::processVTG() {
   return NMEA_VTG;
 }
 
+NmeaParser::NmeaSentence NmeaParser::processXDR() {
+  if (argc_ < 5 || strcmp("RUDDER", argv_[4]) != 0) {
+    return NMEA_NONE;
+  }
+
+  double angle;
+  if (sscanf(argv_[2], "%lf", &angle) != 1) {
+    return NMEA_NONE;
+  }
+
+  onXDRRudder(argv_[0], argv_[1][0] == 'A',
+              Angle<double>::degrees(angle),
+              argv_[3]);
+  return NMEA_RUDDER;
+}
 
 void AccAngle::flip() {
   _angle = -_angle;

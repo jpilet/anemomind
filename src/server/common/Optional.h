@@ -15,13 +15,17 @@ class Optional {
   Optional() : _defined(false) {}
   Optional(T x) : _defined(true), _value(x) {}
 
+  T get() const {
+    assert(_defined); // <-- only active in debug mode.
+    return _value;
+  }
+
   // If a there is a public field
   // in a class of type DefinedValue,
   // calling this operator on that field
   // gives the feel of calling an accessor of the class.
   T operator()() const {
-    assert(_defined); // <-- only active in debug mode.
-    return _value;
+    return get();
   }
 
   T get(T defaultValue) const {
@@ -31,6 +35,10 @@ class Optional {
   void set(T x) {
     _defined = true;
     _value = x;
+  }
+
+  void operator=(T x) {
+    set(x);
   }
 
   void setOnce(T x) {
@@ -72,16 +80,27 @@ class Optional {
     return other;
   }
 
-  bool isNan() const {
+  template <typename Other>
+  Optional<Other> cast() const {
     if (_defined) {
-      return genericIsNan(_value);
+      return Optional<Other>(Other(get()));
     }
-    return true;
+    return Optional<Other>();
   }
  private:
   bool _defined;
   T _value;
 };
+
+namespace sail {
+  template <typename T>
+  bool isNaN(const Optional<T> &x) {
+    if (x.defined()) {
+      return isNaN(x.get());
+    }
+    return true;
+  }
+}
 
 
 #endif /* SERVER_COMMON_OPTIONAL_H_ */

@@ -12,20 +12,14 @@
 #include <cassert>
 #include <limits>
 #include <server/common/MDArray.h>
+#include <server/common/numerics.h>
+#include <server/common/PositiveMod.h>
 
 namespace sail {
 
-template <int a, int b>
-class StaticPower {
- public:
-  static const int result = a*StaticPower<a, b-1>::result;
-};
-
-template <int a>
-class StaticPower<a, 0> {
- public:
-  static const int result = 1;
-};
+inline constexpr int staticPower(int a, int b) {
+  return (b == 0? 1 : a*staticPower(a, b - 1));
+}
 
 template <typename T>
 constexpr T sqr(T x) {
@@ -93,8 +87,8 @@ T normdif(T *a, T *b) {
 // Otherwise, nan == nan will evaluate to false.
 template <typename T>
 bool strictEquality(T a, T b) {
-  if (std::isnan(a)) {
-    return std::isnan(b);
+  if (isNaN(a)) {
+    return isNaN(b);
   } else if (std::isinf(a)) {
     if (std::isinf(b)) {
       return (a > 0) == (b > 0);
@@ -102,30 +96,6 @@ bool strictEquality(T a, T b) {
     return false;
   } else {
     return a == b;
-  }
-}
-
-/*
- * Please see PhysicalQuantity.h
- * These functions may soon be deprecated.
- */
-#define MAKE_UNIT2OTHERUNIT_CONVERTER(fwdName, invName, factor) template <typename T> T fwdName(T x) {return (factor)*x;} template <typename T> T invName(T x) {return (1.0/(factor))*x;}
-MAKE_UNIT2OTHERUNIT_CONVERTER(deg2rad, rad2deg, M_PI/180.0);
-MAKE_UNIT2OTHERUNIT_CONVERTER(nm2m, m2nm, 1852.0);
-MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
-#undef MAKE_UNIT2OTHERUNIT_CONVERTER
-
-// Always returns a number in [0, b[
-template <typename T>
-T positiveMod(T a, T b) {
-  assert(b > T(0));
-  T aOverB = std::floor(a/b);
-  if (a >= T(0)) {
-    return a - aOverB*b;
-  } else {
-    T a2 = a - (aOverB - 1)*b;
-    assert(a2 >= T(0));
-    return a2 - std::floor(a2/b)*b;
   }
 }
 
@@ -158,8 +128,8 @@ bool near(T a, T b, T marg) {
 
 template <typename T>
 bool nearWithNan(T a, T b, T marg) {
-  if (std::isnan(a)) {
-    return std::isnan(b);
+  if (isNaN(a)) {
+    return isNaN(b);
   }
   return near(a, b, marg);
 }
@@ -318,33 +288,48 @@ inline double thresholdCloseTo0(double x, double lb) {
   return x;
 }
 
-template <typename T> // Should work for AD types too.
-bool genericIsNan(T x) {
-  return !(x == x);
-}
-
 inline bool implies(bool a, bool b) {
   return !a || b;
 }
 
+
+
 template <typename T, int dims>
 bool isFinite(MDArray<T, dims> X) {
   for (int i = 0; i < X.numel(); i++) {
-    if (!std::isfinite(X[i])) {
+    if (!isFinite(X[i])) {
       return false;
     }
   }
   return true;
+}
+template <typename T, int dims>
+bool isNaN(MDArray<T, dims> X) {
+  for (int i = 0; i < X.numel(); i++) {
+    if (isNaN(X[i])) {
+      return true;
+    }
+  }
+  return false;
 }
 
 template <typename T>
 bool isFinite(Array<T> X) {
   for (int i = 0; i < X.size(); i++) {
-    if (!std::isfinite(X[i])) {
+    if (!isFinite(X[i])) {
       return false;
     }
   }
   return true;
+}
+template <typename T>
+bool isNaN(Array<T> X) {
+  for (int i = 0; i < X.size(); i++) {
+    if (isNaN(X[i])) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /*
@@ -356,7 +341,7 @@ bool isFinite(Array<T> X) {
  */
 template <typename T>
 bool saneCalculation(T result, Array<T> arguments) {
-  if (std::isfinite(result)) {
+  if (isFinite(result)) {
     return true;
   } else {
     return !isFinite(arguments);
@@ -365,7 +350,7 @@ bool saneCalculation(T result, Array<T> arguments) {
 
 template <typename T>
 T toFinite(T x, T defaultValue) {
-  return (std::isfinite(x)? x : defaultValue);
+  return (isFinite(x)? x : defaultValue);
 }
 
 template <typename T>

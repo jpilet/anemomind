@@ -13,6 +13,8 @@
 #include <server/common/Span.h>
 #include <Eigen/Sparse>
 #include <vector>
+#include <server/common/Functional.h>
+#include <algorithm>
 
 namespace sail {
 namespace DataFit {
@@ -92,9 +94,9 @@ class CoordIndexer {
   }
 
   Array<Spani> makeSpans() const {
-    return coordinateSpan().map<Spani>([&](int index) {
+    return toArray(map(coordinateSpan(), [&](int index) {
       return span(index);
-    });
+    }));
   }
 
   bool sameSizeAs(CoordIndexer other) const {
@@ -125,7 +127,6 @@ void makeDataFromObservations(Array<Observation<Dim> > observations,
   assert(observations.size() == dataRows.count());
   assert(dataRows.dim() == Dim);
   assert(sampleCols.dim() == Dim);
-  int count = observations.size();
   for (auto i: dataRows.coordinateSpan()) {
     const Observation<Dim> &obs = observations[i];
     auto rowSpan = dataRows.span(i);
@@ -214,11 +215,17 @@ Results quadraticFitWithInliers(
   // Put it together and solve it
   Eigen::SparseMatrix<double> A(rows.count(), cols.count());
   A.setFromTriplets(triplets.begin(), triplets.end());
-  auto solution = irls::solveFull(A, B, irls::WeightingStrategies{strategy}, irlsSettings);
+  auto solution = irls::solve(A, B, irls::WeightingStrategies{strategy}, irlsSettings);
 
   return assembleResults(solution, inlierSlackRows, sampleCols, inlierThreshold);
 }
 
+template <int Dim>
+Arrayi countObservationsPerBin(int sampleCount,
+    const Array<Observation<Dim> > &observations) {
+  auto dst = Arrayi::fill(sampleCount, 0);
+
+}
 
 }
 }

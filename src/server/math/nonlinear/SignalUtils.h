@@ -8,10 +8,8 @@
 
 #include <server/common/LineKM.h>
 #include <server/common/MDArray.h>
-#include <server/math/BandMat.h>
 #include <server/common/math.h>
 #include <server/math/Majorize.h>
-
 #include <iostream>
 #include <server/common/string.h>
 
@@ -40,12 +38,6 @@ class Sampling {
 
    int upperIndex() const {
      return lowerIndex + 1;
-   }
-
-   void accumulateAtA(double squaredWeight, BandMat<double> *dst) const {
-     int inds[2] = {lowerIndex, upperIndex()};
-     double weights[2] = {lowerWeight, upperWeight};
-     (*dst).addNormalEq(squaredWeight, 2, inds, weights);
    }
 
    template <typename T>
@@ -151,19 +143,7 @@ struct Observation {
     }
     return sqrt(squaredDist);
   }
-
-  void accumulateNormalEqs(double squaredWeight,
-      BandMat<double> *dstAtA, MDArray2d *dstAtB) const {
-    assert(std::isfinite(squaredWeight));
-    weights.accumulateAtA(squaredWeight, dstAtA);
-    for (int i = 0; i < N; i++) {
-      assert(std::isfinite(data[i]));
-      (*dstAtB)(weights.lowerIndex, i) += squaredWeight*weights.lowerWeight*data[i];
-      (*dstAtB)(weights.upperIndex(), i) += squaredWeight*weights.upperWeight*data[i];
-    }
-  }
 };
-
 
 
 /*
@@ -203,7 +183,6 @@ class AbsCost {
     return (x < 0? -1 : 1);
   }
  private:
-  double _tao;
 };
 
 class SquareCost {

@@ -8,6 +8,8 @@ var assert = require('assert');
 var eq = require('deep-equal-ident');
 var schema = require('./endpoint-schema.js');
 var Q = require('q');
+var largepacket = require('./largepacket.js');
+var Path = require('path');
 
 function isSrcDstPair(x) {
   if (typeof x == 'object') {
@@ -191,8 +193,11 @@ function Endpoint(filename, name, db) {
   this.db = db;
   this.dbFilename = filename;
   this.name = name;
-  this.packetHandlers = [];
+  this.packetHandlers = [largepacket.largePacketHandler];
   this.isLeaf = true;
+  this.settings = {
+    mtu: 100000 // in bytes
+  };
 }
 
 function tryMakeEndpoint(filename, name, cb) {
@@ -201,6 +206,7 @@ function tryMakeEndpoint(filename, name, cb) {
   } else {
     openDBWithFilename(filename, function(err, db) {
       if (err) {
+        console.log(filename + ': error: ' + err);
         cb(err);
       } else {
         cb(null, new Endpoint(filename, name, db));
@@ -378,32 +384,129 @@ Endpoint.prototype.getNextSeqNumber = function(src, dst, cb) {
   getNextSeqNumber(this.db, src, dst, cb);
 }
 
+function storePacket(T, packet, cb) {
+  T.run(
+    'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
+    packet.src, packet.dst, packet.seqNumber, 
+    packet.label, packet.data, cb);
+}
 
-Endpoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
-  var self = this;
-  var src = self.name;
-  withTransaction(this.db, function(T, cb) {
-    getNextSeqNumber(T, src, dst, function(err, seqNumber) {
-      T.run(
-        'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
-        src, dst, seqNumber, label, data, function(err) {
-          if (err) {
-            cb(err);
-          } else {
-            cb(null, {
-              src: src,
-              dst: dst,
-              label: label,
-              seqNumber: seqNumber,
-              data: data
+// Used by Endpoint.prototype.sendSimplePacketBatch
+function sendSimplePacketBatch(T, src, sent, array, generator, cb) {
+  if (array.length == 0) {
+    cb(null, sent);
+  } else {
+    var nextPacket = generator(sent, array[0])
+    if (nextPacket.dst == null || nextPacket.label == null || nextPacket.data == null) {
+      cb(new Error('Incomplete packet information returned from generator'));
+    } else {
+      getNextSeqNumber(T, src, nextPacket.dst, function(err, seqNumber) {
+        if (err) {
+          cb(err);
+        } else {
+          nextPacket.seqNumber = seqNumber;
+          nextPacket.src = src;
+          storePacket(T, nextPacket,
+            function(err) {
+              if (err) {
+                cb(err, sent);
+              } else {
+                sent.push(nextPacket);
+                sendSimplePacketBatch(
+                  T, src, sent, array.slice(1), generator, cb);
+              }
             });
-          }
-        });
-    });
+        }
+      });
+    }
+  }
+}
+
+/*
+
+Send multiple packets in one transaction, with contiguous
+sequence numbers:
+
+Explanation:
+
+  * 'array' is any type of array over which we iterator
+  * 'generator' is a function with arguments
+    (sent, e), where 'sent' is an array of all packets
+    sent so far,  and 'e' is the next element in the array over which
+    we are iterating. The generator returns a map with entries 
+    (dst, label, data) for the packet to be sent next.
+  * 'cb' is called once everything is done, with the first argument
+    being an error, or the first argument being null and the second
+    argument being all the packets that were sent.
+
+*/
+Endpoint.prototype.sendSimplePacketBatch = function(array, generator, cb) {
+  assert(typeof cb == 'function');
+  if (!(array instanceof Array)) {
+    cb(new Error('Not an array'));
+  }
+  if (!(typeof generator == 'function')) {
+    cb(new Error('Generator is not a function'));
+  }
+  var self = this;
+  withTransaction(this.db, function(T, cb) {
+    sendSimplePacketBatch(T, self.name, [], array, generator, cb);
   }, cb);
+};
+
+Endpoint.prototype.sendSimplePacketAndReturn = function(dst, label, data, cb) {
+  this.sendSimplePacketBatch([null], function() {
+    return {
+      dst: dst,
+      label: label,
+      data: data
+    };
+  }, function(err, sent) {
+    if (err) {
+      cb(err);
+    } else if (!(sent instanceof Array)) {
+      cb(new Error('sent is not an array'));
+    } else if (sent.length != 1) {
+      cb(new Error('sent is not exactly one element'));
+    } else {
+      cb(null, sent[0]);
+    }
+  });
+}
+
+
+// Usually we always pass data to
+function tryToConvertToBuffer(x) {
+  if (x instanceof Buffer) {
+    return x;
+  }
+  try {
+    if (x.data && x.type == 'Buffer') {
+      return new Buffer(x.data);
+    }
+  } catch (e) {}
+  return x;
+}
+
+Endpoint.prototype.sendPacketAndReturn = function(dst, label, data0, cb) {
+  var data = tryToConvertToBuffer(data0);
+  assert(this.settings);
+  if (data instanceof Buffer) {
+    if (data.length <= this.settings.mtu) {
+      this.sendSimplePacketAndReturn(dst, label, data, cb);
+    } else {
+      largepacket.sendPacket(this, dst, label, data, this.settings, cb);
+    }
+  } else {
+    console.log('THIS IS NOT A BUFFER: %j', data);
+    console.log(data);
+    console.log('Is it a buffer? ' + (data instanceof Buffer? 'YES' : 'NO'));
+    cb(new Error('Expected a buffer, but got of type ' + typeof data + ': '  + data));
+  }
 }
 
 Endpoint.prototype.sendPacket = function(dst, label, data, cb) {
+  assert(this.settings);
   this.sendPacketAndReturn(dst, label, data, function(err, p) {
     cb(err);
   });
@@ -415,9 +518,18 @@ function setLowerBoundInTable(db, src, dst, lowerBound, cb) {
     src, dst, lowerBound, cb);          
 }
 
-function removeObsoletePackets(db, src, dst, lowerBound, cb) {
+var packetsToKeep = [common.firstPacket, common.remainingPacket];
+
+var protectPacketSqlCmd = packetsToKeep
+    .map(function(label) {
+      assert(typeof label == 'number');
+      return ' AND label <> ' + label;
+    }).join('');
+
+function removeObsoletePackets(ep, db, src, dst, lowerBound, cb) {
   db.run(
-    'DELETE FROM packets WHERE src = ? AND dst = ? AND seqNumber < ?',
+    'DELETE FROM packets WHERE src = ? AND dst = ? AND seqNumber < ?'
+      + (ep.name == dst? protectPacketSqlCmd : ''),
     src, dst, lowerBound, cb);
 }
 
@@ -433,7 +545,7 @@ Endpoint.prototype.getTotalPacketCount = function(cb) {
     });
 }
 
-function updateLowerBound(db, src, dst, lowerBound, cb) {
+function updateLowerBound(ep, db, src, dst, lowerBound, cb) {
   getLowerBound(db, src, dst, function(err, currentLowerBound) {
     if (err) {
       cb(err);
@@ -446,7 +558,7 @@ function updateLowerBound(db, src, dst, lowerBound, cb) {
             if (err) {
               cb(err);
             } else {
-              removeObsoletePackets(db, src, dst, lowerBound, function(err) {
+              removeObsoletePackets(ep, db, src, dst, lowerBound, function(err) {
                 if (err) {
                   cb(err);
                 } else {
@@ -463,15 +575,16 @@ function updateLowerBound(db, src, dst, lowerBound, cb) {
   });
 }
 
-function setLowerBound(db, src, dst, lowerBound, cb) {
-  updateLowerBound(db, src, dst, lowerBound, function(err, lb) {
+function setLowerBound(ep, db, src, dst, lowerBound, cb) {
+  updateLowerBound(ep, db, src, dst, lowerBound, function(err, lb) {
     cb(err);
   });
 }
 
 Endpoint.prototype.updateLowerBound = function(src, dst, lb, cb) {
+  var self = this;
   withTransaction(this.db, function(T, cb) {
-    updateLowerBound(T, src, dst, lb, cb);
+    updateLowerBound(self, T, src, dst, lb, cb);
   }, function(err, lb) {
     if (err) {
       cb(err);
@@ -559,7 +672,7 @@ Endpoint.prototype.putPacket = function(packet, cb) {
         if (self.name == packet.dst) {
           try {
             self.callPacketHandlers(packet);
-            setLowerBound(T, packet.src, packet.dst, bigint.inc(packet.seqNumber), cb);
+            setLowerBound(self, T, packet.src, packet.dst, bigint.inc(packet.seqNumber), cb);
           } catch (e) {
             console.log('Catched an exception in packetHandler: ');
             console.log(e.message);
@@ -578,9 +691,7 @@ Endpoint.prototype.putPacket = function(packet, cb) {
                   cb(new Error('A different packet has already been delivered'));
                 }
               } else {
-                T.run(
-                  'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
-                  packet.src, packet.dst, packet.seqNumber, packet.label, packet.data, cb);
+                storePacket(T, packet, cb);
               }
             }
           });
@@ -687,3 +798,5 @@ module.exports.srcDstPairDifference = srcDstPairDifference;
 module.exports.filterByName = filterByName;
 module.exports.tryMakeEndpointFromFilename = tryMakeEndpointFromFilename;
 module.exports.withEP = withEP;
+module.exports.storePacket = storePacket;
+module.exports.withTransaction = withTransaction;

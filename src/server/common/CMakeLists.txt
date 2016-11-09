@@ -64,6 +64,23 @@ add_library(common_ScopedLog
             ScopedLog.cpp)
 target_link_libraries(common_ScopedLog common_logging)
 
+
+# clock_gettime is linux-specific and might be in libc or librt.
+include(CheckFunctionExists)
+include(CheckLibraryExists)
+check_library_exists(rt clock_gettime "time.h" HAVE_CLOCK_GETTIME)
+set(CLOCK_GETTIME_LIB "")
+if (HAVE_CLOCK_GETTIME)
+    set(CLOCK_GETTIME_LIB "rt")
+else()
+    # might also be in libc
+    check_library_exists(c clock_gettime "" HAVE_CLOCK_GETTIME)
+endif()
+
+if (HAVE_CLOCK_GETTIME)
+  add_definitions(-DHAVE_CLOCK_GETTIME)
+endif()
+
 add_library(common_TimeStamp
             TimeStamp.h
             TimeStamp.cpp
@@ -71,6 +88,7 @@ add_library(common_TimeStamp
 target_link_libraries(common_TimeStamp
                       common_logging
                       common_string
+                      ${CLOCK_GETTIME_LIB}
                      )           
 cxx_test(common_TimeStampTest
          TimeStampTest.cpp
@@ -225,19 +243,6 @@ cxx_test(common_pocoTest
 target_depends_on_poco_json(common_pocoTest) 
 endif ()
 
-add_library(common_ConcatFunction
-            ConcatFunction.h
-            ConcatFunction.cpp
-           )
-target_link_libraries(common_ConcatFunction
-                      common_Function
-                     )                
-cxx_test(common_ConcatFunctionTest
-         ConcatFunctionTest.cpp
-         common_ConcatFunction
-         gtest_main
-        )
-
 add_library(common_Histogram
             Histogram.cpp
             Histogram.h
@@ -368,3 +373,47 @@ cxx_test(common_CsvParserTest
          common_CsvParser
          gtest_main
         )                      
+        
+cxx_test(common_FunctionalTest
+         FunctionalTest.cpp
+         gtest_main
+        )
+        
+cxx_test(common_numericsTest
+         numericsTest.cpp
+         gtest_main
+        )        
+
+cxx_test(common_TimedValuePairsTest
+         TimedValuePairsTest.cpp
+         gtest_main
+         common_TimeStamp
+         common_logging
+        )
+
+cxx_test(common_AbstractArray
+         AbstractArrayTest.cpp
+         gtest_main
+        )
+
+cxx_test(common_PositiveModTest
+         PositiveModTest.cpp
+         gtest_main
+        )
+
+cxx_test(common_MultiMergeTest
+         MultiMergeTest.cpp
+         gtest_main
+        )
+
+add_library(common_DOMUtils
+  DOMUtils.h
+  DOMUtils.cpp
+  )
+
+target_depends_on_poco_foundation(common_DOMUtils)
+target_depends_on_poco_xml(common_DOMUtils)
+
+target_link_libraries(common_DOMUtils
+  common_PathBuilder
+  )

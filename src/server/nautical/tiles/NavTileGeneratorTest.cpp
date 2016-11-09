@@ -4,8 +4,11 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 #include <gtest/gtest.h>
+#include <iostream>
 
 namespace sail {
+
+using namespace NavCompat;
 
 TEST(NavTileGenerator, SmokeTest) {
   Array<Nav> navs(100);
@@ -25,7 +28,7 @@ TEST(NavTileGenerator, SmokeTest) {
   TileKey tile(1, 1, 0);
   Array<Array<Nav>> result = generateTiles(
       tile, // A quarter of the world
-      navs, 5);
+      navs, 5, 1.0_minutes);
 
   EXPECT_EQ(1, result.size());
   EXPECT_EQ(5, result[0].size());
@@ -46,7 +49,9 @@ TEST(NavTileGenerator, SmokeTest) {
 
 TEST(NavTileGenerator, SplitTest) {
   Array<Nav> navs(32);
+  auto start = TimeStamp::UTC(2016, 02, 19, 16, 23, 0);
   for (int i = 0; i < navs.size(); ++i) {
+    navs[i].setTime(start + Duration<double>::seconds(i));
     navs[i].setGeographicPosition(
         GeographicPosition<double>(
             Angle<double>::degrees((i/32.0 * 10 + 1)),
@@ -63,7 +68,7 @@ TEST(NavTileGenerator, SplitTest) {
   TileKey tile(1, 1, 0);
   Array<Array<Nav>> result = generateTiles(
       tile, // A quarter of the world
-      navs, 5);
+      navs, 5, 1.0_minutes);
 
   EXPECT_EQ(2, result.size());
   EXPECT_EQ(5, result[0].size());

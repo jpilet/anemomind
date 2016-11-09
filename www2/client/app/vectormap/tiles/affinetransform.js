@@ -14,14 +14,11 @@ AffineTransform.prototype.transform = function (x_, y_) {
   
   return {
     x: this.matrix[0] * x + this.matrix[1] * y + this.matrix[2],
-    y: this.matrix[3] * x + this.matrix[4] * y + this.matrix[5],
+    y: this.matrix[3] * x + this.matrix[4] * y + this.matrix[5]
   };
 };
 
-AffineTransform.prototype.inverseTransform = function (x_, y_) {
-  var x = (typeof(x_) == "object" ? x_.x : x_);
-  var y = (typeof(x_) == "object" ? x_.y : y_);
-
+AffineTransform.prototype.getInverse = function() {
   // We want u,v where
   // a b * u + e = x
   // c d   v   f = y
@@ -31,12 +28,19 @@ AffineTransform.prototype.inverseTransform = function (x_, y_) {
   var d = this.matrix[4];
 
   var invdet = 1 / (a * d - b * c);
-  var u = x - this.matrix[2];
-  var v = y - this.matrix[5];
-  return {
-    x: (d * u - b * v) * invdet,
-    y: (-c * u + a * v) * invdet, 
-  };  
+
+  return new AffineTransform([
+    d * invdet,
+    - b * invdet,
+    - b * this.matrix[5] * invdet - d * this.matrix[2] * invdet,
+    -c * invdet,
+    a * invdet,
+    - a * this.matrix[5] * invdet + c * this.matrix[2] * invdet
+  ]);
+};  
+
+AffineTransform.prototype.inverseTransform = function (x_, y_) {
+  return this.getInverse().transform(x_, y_);
 };
 
 AffineTransform.prototype.scale = function (scaleFactor) {

@@ -6,7 +6,7 @@ add_library(tiles_NavTileGenerator
 
 target_link_libraries(tiles_NavTileGenerator
                       common_Array
-                      nautical_nav
+                      nautical_NavCompatibility
                       geometry_SimplifyCurve
                      )
 
@@ -19,26 +19,23 @@ cxx_test(tiles_NavTileGeneratorTest
 
 if (MongoDB_LIBRARIES)
 
+  add_library(tiles_MongoUtils MongoUtils.h MongoUtils.cpp)
   include_directories(${MongoDB_INCLUDE_DIR})
+  target_link_libraries(tiles_MongoUtils
+                        common_logging
+                        common_TimeStamp
+                        ${MongoDB_LIBRARIES}
+                       )
+
   add_library(tiles_NavTileUploader
               NavTileUploader.cpp
              )
-  add_definitions(-DBOOST_THREAD_USE_LIB=1)
   target_link_libraries(tiles_NavTileUploader
                         tiles_NavTileGenerator
                         common_logging
-                        nautical_nav
-                        ${MongoDB_LIBRARIES}
-
-                       )
-
-  add_executable(tiles_generateAndUpload
-                 generateAndUpload.cpp
-                )
-  target_link_libraries(tiles_generateAndUpload
-                        common_ArgMap
-                        common_logging
-                        nautical_tiles_TileUtils
+                        nautical_NavCompatibility
+                        nautical_MaxSpeed
+                        tiles_MongoUtils
                        )
 
   add_library(nautical_tiles_TileUtils
@@ -47,15 +44,31 @@ if (MongoDB_LIBRARIES)
              )
   target_link_libraries(nautical_tiles_TileUtils
                         anemobox_SimulateBox
-                        tiles_NavTileUploader
                         common_ArgMap
                         common_logging
+                        filters_SmoothGpsFilter
+                        logimport_LogLoader
                         math_hmm_StateAssign
-                        nautical_NavNmeaScan
+                        nautical_downsamplegps
                         nautical_grammars_WindOrientedGrammar
+                        tiles_NavTileUploader
                         ${MongoDB_LIBRARIES}
-                        nautical_GpsFilter
                        )
+
+
+  add_library(tiles_ChartTiles ChartTiles.h ChartTiles.cpp)
+  target_link_libraries(tiles_ChartTiles
+                        nautical_NavDataset
+                        tiles_MongoUtils
+                        common_MeanAndVar
+                       )
+
+  cxx_test(tiles_ChartTilesTest
+           ChartTilesTest.cpp
+           gtest_main
+           gmock
+           tiles_ChartTiles
+          )
 
 
 endif (MongoDB_LIBRARIES)

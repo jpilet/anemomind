@@ -22,7 +22,85 @@ angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
 
+    var defaultColor = '#FF0033';
+    var defaultTaillength = 300;
+
+    $scope.tailLength = defaultTaillength;
+    $scope.toggleVMG = ($location.search().queue && !$location.search().tailColor) || $location.search().allTrack ? true : false;
+    $scope.toggleTail = $location.search().queue ? true : false;
+    $scope.sections = {
+      showPerfSpeed: false,
+      showWind: false,
+      showDetails: false
+    };
+    $scope.containers = {
+      showInfoGroup: false,
+      showSidebar: true,
+      showGraph: true
+    };
     $scope.boat = { _id: $stateParams.boatId, name: 'loading' };
+
+    $scope.slider = {
+      options: {
+        floor: 30,
+        ceil: 10800,
+        step: 1,
+        minLimit: 30,
+        maxLimit: 10800,
+      }
+    };
+
+    // url is not used yet.
+    // I think this will be used if someone will code for the social media sharing?
+    $scope.iconList = [
+      {
+        name: 'linkedin',
+        url: '#'
+      },
+      {
+        name: 'facebook',
+        url: '#'
+      },
+      {
+        name: 'pinterest',
+        url: '#'
+      },
+      {
+        name: 'twitter',
+        url: '#'
+      },
+      {
+        name: 'google',
+        url: '#'
+      },
+      {
+        name: 'mail',
+        url: '#'
+      }
+    ];
+
+    $scope.tabs = [
+      {
+        name: 'res-graph',
+        icon: 'fa-area-chart'
+      },
+      {
+        name: 'res-perf',
+        icon: 'fa-dashboard'
+      },
+      {
+        name: 'res-wind',
+        icon: 'fa-flag'
+      },
+      {
+        name: 'res-details',
+        icon: 'fa-list'
+      },
+      {
+        name: 'res-photos',
+        icon: 'fa-photo'
+      }
+    ];
 
     var setLocationTimeout;
     function setLocation() {
@@ -37,6 +115,26 @@ angular.module('www2App')
         if ($scope.selectedCurve) {
           search += '&c=' + $scope.selectedCurve;
         }
+        if ($location.search().queue) {
+          search += '&queue=' + $location.search().queue;
+        }
+        if ($location.search().showLinks) {
+          search += '&showLinks=' + $location.search().showLinks;
+        }
+        if ($location.search().tailColor) {
+          search += '&tailColor=' + $location.search().tailColor;
+        }
+        if ($location.search().allTrack) {
+          search += '&allTrack=' + $location.search().allTrack;
+        }
+        if (typeof $scope.currentTime !== 'undefined' && !isNaN($scope.currentTime)) {
+          search += '&t=' + $scope.currentTime.getTime();
+        }
+        if (typeof $scope.currentTime === 'undefined' && $location.search().t != null) {
+          search += '&t=' + $location.search().t;
+          $scope.currentTime = new Date(parseInt($location.search().t));
+        }
+        
         $location.search(search).replace();
       }
 
@@ -51,25 +149,71 @@ angular.module('www2App')
       $scope.endTime = curveEndTime($scope.selectedCurve);
     }
 
-    if ($stateParams.c) {
-      $scope.selectedCurve = $stateParams.c;
-      setSelectTime();
+    function parseParams() {
+      if ($location.search().c) {
+        $scope.selectedCurve = $location.search().c;
+        setSelectTime();
+      }
+
+      if ($location.search().l) {
+        var entries = $location.search().l.split(',');
+        $scope.mapLocation = {
+          x: parseFloat(entries[0]),
+          y: parseFloat(entries[1]),
+          scale: parseFloat(entries[2])
+        };
+      }
+
+      if($location.search().queue) {
+        $scope.tailLength = $location.search().queue;
+      }
     }
 
-    if ($stateParams.l) {
-      var entries = $stateParams.l.split(',');
-      $scope.mapLocation = {
-        x: parseFloat(entries[0]),
-        y: parseFloat(entries[1]),
-        scale: parseFloat(entries[2])
-      };
-    }
+    parseParams();
+    // Catches browser history navigation events (back,..)
+    $scope.$on('$locationChangeSuccess', parseParams);
 
     $http.get('/api/boats/' + $stateParams.boatId)
     .success(function(data, status, headers, config) {
       $scope.boat = data;
 
+      var aveSpeedText = '32 Kts';
+      var windBlowedText = '22 Kts';
+      var performanceText = '91%';
+      $scope.shareText = $scope.boat.name+' and her team made a great performance with an average speed of '+aveSpeedText+'. The wind blowed at '+windBlowedText+'. Anemomind calculated a global performance of '+performanceText+'.';
+      $scope.shareText += '\n\nAdd text ...'
     });
+
+    $scope.eventList = [];
+    $scope.users = {};
+    $http.get('/api/events', { params: {
+        b: $scope.boat._id,
+        A: ($scope.startTime ? $scope.startTime.toISOString() : undefined),
+        B: ($scope.endTime ? $scope.endTime.toISOString() : undefined)
+      }})
+      .success(function(data, status, headers, config) {
+        if (status == 200) {
+          var times= {};
+          for (var i in data) {
+            var event = data[i];
+            
+            // Parse date
+            event.when = new Date(event.when);
+
+            // Fetch user details
+            userDB.resolveUser(event.author, function(user) {
+              $scope.users[user._id] = user;
+            });
+
+            // Remove duplicates
+            var key = "" + event.when.getTime();
+            if (!(key in times)) {
+              times[key] = 1;
+              $scope.eventList.push(event);
+            }
+          }
+        }
+      });
 
     $scope.plotField = 'devicePerf';
 
@@ -77,7 +221,7 @@ angular.module('www2App')
       'gpsSpeed' : 'Speed over ground (GPS)',
       'devicePerf' : 'VMG performance',
       'aws' : 'Apparent wind speed',
-      'deviceTws' : 'True wind speed (Anemomind)',
+      'tws' : 'True wind speed (Anemomind)',
       'externalTws' : 'True wind speed (onboard instruments)',
       'watSpeed': 'Water speed',
       'deviceVmg': 'VMG',
@@ -103,6 +247,47 @@ angular.module('www2App')
         } else {
           $interval.cancel(animationTimer);
         }
+      }
+    });
+
+    $scope.$watch('toggleVMG', function(newVal, oldVal) {
+      if (newVal != oldVal) {        
+        if(newVal) {
+          $location.search('tailColor',null);
+          $location.search('allTrack',1);
+        }          
+        else {
+          $location.search('tailColor',defaultColor);
+          $location.search('allTrack',0);
+        }          
+
+        refreshMap();
+      }
+    });
+    
+    $scope.$watch('toggleTail', function(newVal, oldVal) {
+      if (newVal != oldVal) {
+        var queueVal = !newVal ? null : ($scope.tailLength ? $scope.tailLength : defaultTaillength);
+        $location.search('queue', queueVal);
+                
+        if(queueVal && !$scope.toggleVMG)
+          $location.search('tailColor',defaultColor);
+
+        refreshMap();
+      }
+    });
+
+    $scope.$watch('tailLength', function(newVal, oldVal) {
+      if (newVal != oldVal) {
+        var queueVal = !newVal ? null : newVal;
+        $scope.toggleTail = !newVal ? false : true;
+        
+        $location.search('queue', queueVal);
+
+        if(queueVal && !$scope.toggleVMG)
+          $location.search('tailColor',defaultColor);
+
+        refreshMap();
       }
     });
 
@@ -138,6 +323,12 @@ angular.module('www2App')
       }
       lastPositionUpdate = now;
     }
+
+    // Refreshes the map by triggering the $watch of currentTime
+    var refreshMap = function() {
+      if($scope.currentTime)
+        $scope.currentTime = new Date($scope.currentTime.getTime());
+    };
 
     $scope.$watch('mapLocation', setLocation);
     $scope.$watch('selectedCurve', setLocation);
@@ -206,21 +397,52 @@ angular.module('www2App')
       $scope.currentPoint = pointAtTime(time);
 
       $scope.vmgPerf = perfAtPoint($scope.currentPoint);
+      $scope.awa = getPointValue(['awa']);
+      $scope.aws =  getPointValue(['aws']);
       $scope.twa = getPointValue(['twa', 'externalTwa']);
-      $scope.tws =  getPointValue(['twa', 'externalTws']);
+      $scope.tws =  getPointValue(['tws', 'externalTws']);
       $scope.gpsSpeed = getPointValue(['gpsSpeed']);
       $scope.twdir = twdir();
       $scope.gpsBearing = getPointValue(['gpsBearing']);
-      $scope.deviceVmg = getPointValue(['deviceVmg']);
+      $scope.deviceVmg = getPointValue(['vmg', 'deviceVmg']);
       if ($scope.deviceVmg) {
         $scope.deviceVmg = Math.abs($scope.deviceVmg);
       }
       $scope.deviceTargetVmg = getPointValue(['deviceTargetVmg']);
+
+      setLocation();
     });
 
     $scope.replaySpeed = 8;
     $scope.slower = function() { $scope.replaySpeed /= 2; }
-    $scope.faster = function() { $scope.replaySpeed *= 2; }
+    $scope.faster = function() {
+      var speed = $scope.replaySpeed * 2;  
+      if(speed > 512)
+        return false;
+
+      $scope.replaySpeed = speed;
+    }
+    $scope.cutBefore = function() {
+      if ($scope.selectedCurve && $scope.currentTime) {
+        $scope.selectedCurve = makeCurveId(
+            $scope.boat._id,
+            $scope.currentTime,
+            $scope.endTime);
+        setSelectTime();
+        $location.search('c', $scope.selectedCurve);
+      }
+    };
+    $scope.cutAfter = function() {
+      if ($scope.selectedCurve && $scope.currentTime) {
+        $scope.selectedCurve = makeCurveId(
+            $scope.boat._id,
+            $scope.startTime,
+            $scope.currentTime);
+        setSelectTime();
+        $location.search('c', $scope.selectedCurve);
+      }
+    };
+
 
     $scope.mapActive = true;
     $scope.graphActive = true;
@@ -240,6 +462,23 @@ angular.module('www2App')
       return mapScreenContainer.height();
     };
 
+
+    // Angular Tabs only toggles by switching from 1 tab to another
+    // This will allow to toggle the current tab by hiding it or not.
+    // Why? For the map to have more viewable space.
+    $scope.currentTab = null;
+    $scope.showTabContent = true;
+    $scope.selectTab = function(selectedIndex) {
+      if ($scope.currentTab !== selectedIndex) {
+        $scope.currentTab = selectedIndex;
+        $scope.showTabContent = true;
+      } else {
+        $scope.showTabContent = !$scope.showTabContent;
+      }
+      delayedApply();
+    }
+
+
     // Toggling the visibility of components change their size.
     // However, in HTML, there is no way to bind to a div resize event.
     // To avoid having to poll for size changes in a timer, when we
@@ -249,6 +488,9 @@ angular.module('www2App')
     var delayedApply = function() {
       setTimeout(function() { $scope.$apply(); }, 10);
     };
+    $scope.refreshGraph = function() {
+      delayedApply();
+    }
     $scope.activateMap = function() {
       $scope.mapActive = true;
       $scope.graphActive = (height() >= verticalSizeThreshold);
@@ -276,11 +518,17 @@ angular.module('www2App')
        return { width: width(), height: height() };
     }, function(value) {
        if (value.width < horizontalThreshold) {
-         if ($scope.mapActive && $scope.sideBarActive) {
-           // If the screen becomes to small for both
-           // the side bar and the map/graph container,
-           // we hide the side bar.
-           $scope.sideBarActive = false;
+         if (!$scope.containers.showGraph) {
+           // If in desktop, the Graph is hidden
+           // then when switching to mobile,
+           // the Graph should be visible at start
+           $scope.containers.showGraph = true;
+         }
+         if (!$scope.showTabContent) {
+           // If in mobile, the Tab contents are hidden
+           // then switch to desktop,
+           // then switch again to mobile, it should be visible
+           $scope.showTabContent = true;
          }
        } else {
          // If the screen got large enough, show the sidebar,
@@ -294,7 +542,7 @@ angular.module('www2App')
 
       if (value.height < verticalSizeThreshold) {
         if ($scope.mapActive && $scope.graphActive) {
-          $scope.graphActive = false;
+          //$scope.graphActive = false;
         }
       } else {
         if ($scope.mapActive || $scope.graphActive) {

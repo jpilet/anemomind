@@ -6,6 +6,8 @@
 #
 cmake_minimum_required(VERSION 2.8.11)
 
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 include("cmake/FindCXXFeatures.cmake")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_COMPILER_FLAGS}")
 
@@ -20,10 +22,20 @@ if (${FULL_BUILD})
   include("cmake/FindMongoDB.cmake")
   include("cmake/FindF2C.cmake")
 
+  find_package(Cairo REQUIRED)
+  include_directories(${CAIRO_INCLUDE_DIRS})
+
+  find_package(Eigen3 REQUIRED)
+  include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
+
+  find_package(LAPACK REQUIRED)
+  find_package(BLAS REQUIRED)
   find_package(Armadillo REQUIRED)
+  add_definitions(-DARMA_DONT_USE_WRAPPER)
+  add_definitions(-DARMA_USE_LAPACK)
 
   function(target_depends_on_armadillo target)
-      target_link_libraries(${target} ${ARMADILLO_LIBRARY})
+      target_link_libraries(${target} ${ARMADILLO_LIBRARY} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
   endfunction()
 
   function(target_depends_on_f2c target)
@@ -52,6 +64,10 @@ find_package(Boost REQUIRED COMPONENTS system iostreams filesystem)
 
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
+
+# For protocol-buffer generated .h files, we need to have build dir as include
+# path, too.
+include_directories(${CMAKE_BINARY_DIR}/src)
 
 add_definitions("-DON_SERVER")
 

@@ -47,11 +47,20 @@ class BBox {
     }
   }
 
-  const Span<T> &getSpan(int index) {
+  const Span<T> &getSpan(int index) const {
     return _span[index];
   }
 
   ~BBox() {}
+
+  bool operator==(const ThisType &other) const {
+    for (int i = 0; i < N; i++) {
+      if (!(_span[i] == other._span[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
  private:
   Span<T> _span[N];
 };

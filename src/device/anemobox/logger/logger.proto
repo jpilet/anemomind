@@ -40,18 +40,26 @@ message AbsOrientValueSet {
   required AngleValueSet pitch = 3;
 }
 
-
 message ValueSet {
   required string shortName = 1;
   optional string source = 8;
   optional int32 priority = 9;
 
+  // Time associated with every value
+  
+  // Deprecated, will be empty:
   repeated int64 timestamps = 2 [packed = true];
+  
+  repeated int64 timestampssinceboot = 12 [packed = true];
+  
+  // Exactly one of the following
   optional AngleValueSet angles = 3;
   optional VelocityValueSet velocity = 4;
   optional LengthValueSet length = 5;
   optional GeoPosValueSet pos = 6;
   optional AbsOrientValueSet orient = 10;
+  repeated int64 exttimes = 11 [packed = true];
+  
   repeated string text = 7;
 }
 
@@ -64,4 +72,6 @@ message LogFile {
   // those streams do not directly come from the dispatcher.
   // They can contain raw nmea or text logs.
   repeated ValueSet text = 5;
+  
+  optional int64 bootcount = 6;
 }

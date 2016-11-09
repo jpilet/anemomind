@@ -4,8 +4,6 @@
 
 namespace sail {
 
-Dispatcher *Dispatcher::_globalInstance = 0;
-
 const char* descriptionForCode(DataCode code) {
   switch (code) {
 #define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
@@ -14,6 +12,7 @@ const char* descriptionForCode(DataCode code) {
   FOREACH_CHANNEL(CASE_ENTRY)
 #undef CASE_ENTRY
   }
+  return nullptr;
 }
 
 const char* wordIdentifierForCode(DataCode code) {
@@ -24,6 +23,7 @@ const char* wordIdentifierForCode(DataCode code) {
   FOREACH_CHANNEL(CASE_ENTRY)
 #undef CASE_ENTRY
   }
+  return nullptr;
 }
 
 Dispatcher::Dispatcher() {
@@ -35,18 +35,15 @@ Dispatcher::Dispatcher() {
 #undef REGISTER_PROXY
 }
 
-Dispatcher *Dispatcher::global() {
-  if (!_globalInstance) {
-    _globalInstance = new Dispatcher();
-  }
-  return _globalInstance;
-}
+  std::shared_ptr<DispatchData> Dispatcher::dispatchDataForSource(DataCode code, const std::string& source) const {
+    auto sourcesForCode = _data.find(code);
+    if (sourcesForCode == _data.end()) {
+      return std::shared_ptr<DispatchData>();
+    }
 
-  DispatchData *Dispatcher::dispatchDataForSource(DataCode code, const std::string& source) {
-    auto sourcesForCode = _data[code];
-    auto sourceIt = sourcesForCode.find(source);
-    if (sourceIt == sourcesForCode.end()) {
-      return nullptr;
+    auto sourceIt = sourcesForCode->second.find(source);
+    if (sourceIt == sourcesForCode->second.end()) {
+      return std::shared_ptr<DispatchData>();
     }
     return sourceIt->second;
   }
@@ -64,12 +61,16 @@ Dispatcher *Dispatcher::global() {
     return sourcePriority(a->source()) > sourcePriority(b->source());
   }
 
-  int Dispatcher::sourcePriority(const std::string& source) {
-    auto it = _sourcePriority.find(source);
-    if (it != _sourcePriority.end()) {
+  int getSourcePriority(const std::map<std::string, int> &sourcePriority, const std::string &source) {
+    auto it = sourcePriority.find(source);
+    if (it != sourcePriority.end()) {
       return it->second;
     }
-    return 0;
+    return Dispatcher::defaultPriority;
+  }
+
+  int Dispatcher::sourcePriority(const std::string& source) const {
+    return getSourcePriority(_sourcePriority, source);
   }
 
   void Dispatcher::setSourcePriority(const std::string& source, int priority) {
@@ -79,4 +80,18 @@ Dispatcher *Dispatcher::global() {
       _sourcePriority[source] = priority;
     }
   }
+
+  void Dispatcher::set(DataCode code, const std::string &srcName,
+      const std::shared_ptr<DispatchData> &d) {
+    _data[code][srcName] = d;
+  }
+
+  int Dispatcher::maxPriority() const {
+    int m = Dispatcher::defaultPriority;
+    for (auto kv: _sourcePriority) {
+      m = std::max(m, kv.second);
+    }
+    return m;
+  }
+
 }  // namespace sail

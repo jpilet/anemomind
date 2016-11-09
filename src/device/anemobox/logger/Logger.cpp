@@ -9,7 +9,11 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
+#include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/gzip_stream.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <server/common/Optional.h>
 
 using namespace google::protobuf::io;
 using namespace boost::iostreams;
@@ -17,6 +21,51 @@ using namespace boost::iostreams::gzip;
 using namespace std;
 
 namespace sail {
+
+Optional<int64_t> readIntegerFromTextFile(const std::string &filename) {
+  std::ifstream file(filename);
+  try {
+    int64_t value = -1;
+    file >> value;
+
+    if (value >= 0) { // We cannot have negative boot count, right?
+      // Everything went well
+      return value;
+    }
+
+  } catch (const std::exception &e) {}
+
+  // Whenever there is no valid value available.
+  return Optional<int64_t>();
+}
+
+namespace {
+  Optional<int64_t> getBootCount() {
+    // See anemonode/run.sh:
+    const char bootCountFilename[] = "/home/anemobox/bootcount";
+
+    static Optional<int64_t> value =
+        readIntegerFromTextFile(bootCountFilename);
+
+    return value;
+  }
+}
+
+
+void addTimeStampToRepeatedFields(
+    std::int64_t *base,
+    google::protobuf::RepeatedField<std::int64_t> *dst,
+    TimeStamp timestamp) {
+  std::int64_t ts = timestamp.toMilliSecondsSince1970();
+  std::int64_t value = ts;
+
+  if (dst->size() > 0) {
+    value -= *base;
+  }
+  *base = ts;
+  dst->Add(value);
+}
+
 
 Logger::Logger(Dispatcher* dispatcher) :
     _dispatcher(dispatcher) {
@@ -26,12 +75,34 @@ Logger::Logger(Dispatcher* dispatcher) :
   subscribe();
 }
 
+namespace {
+
+  const google::protobuf::RepeatedField<std::int64_t> &getBestKnownTimeStamps(
+      const ValueSet &x) {
+    return x.timestamps().size() > x.timestampssinceboot().size()?
+      x.timestamps()
+      : x.timestampssinceboot();
+  }
+
+  bool hasTimeStamps(const ValueSet &x) {
+    return getBestKnownTimeStamps(x).size() > 0;
+  }
+}
+
+
 void Logger::flushTo(LogFile* container) {
   // Clear content.
   *container = LogFile();
+
+  {
+    auto bc = getBootCount();
+    if (bc.defined()) {
+      container->set_bootcount(bc.get());
+    }
+  }
  
   for (auto ptr : _listeners) {
-    if (ptr->valueSet().timestamps_size() > 0) {
+    if (hasTimeStamps(ptr->valueSet())) {
       // the priority is set every time flushTo is called, since the 
       // priority in the dispatcher can change.
       // We do not log exactly when the priority changed, though.
@@ -42,19 +113,15 @@ void Logger::flushTo(LogFile* container) {
     ptr->clear();
   }
   for (auto it = _textLoggers.begin();  it != _textLoggers.end(); ++it) {
-    if (it->second.valueSet().timestamps_size() > 0) {
+    if (hasTimeStamps(it->second.valueSet())) {
       container->add_text()->Swap(it->second.mutable_valueSet());
     }
     it->second.clear();
   }
 }
 
-std::string Logger::nextFilename(const std::string& folder) {
-  return folder + int64ToHex(TimeStamp::now().toSecondsSince1970()) + ".log";
-}
 
-bool Logger::flushAndSave(const std::string& folder,
-                          std::string *savedFilename) {
+bool Logger::flushAndSaveToFile(const std::string& filename) {
   LogFile container;
 
   flushTo(&container);
@@ -64,14 +131,9 @@ bool Logger::flushAndSave(const std::string& folder,
     return false;
   }
 
-  std::string filename = nextFilename(folder);
-
   if (!save(filename, container)) {
     LOG(ERROR) << "Failed to save log file.";
     return false;
-  }
-  if (savedFilename) {
-    *savedFilename = filename;
   }
   return true;
 }
@@ -80,20 +142,13 @@ void Logger::subscribe() {
   _listeners.clear();
 
   for (auto sourcesForCode : _dispatcher->allSources()) {
-    if (sourcesForCode.first == DATE_TIME) {
-      continue;
-    }
     for (auto sourceAndDispatcher : sourcesForCode.second) {
-      subscribeToDispatcher(sourceAndDispatcher.second);
+      subscribeToDispatcher(sourceAndDispatcher.second.get());
     }
   }
 }
 
 void Logger::subscribeToDispatcher(DispatchData *d) {
-  if (d->dataCode() == DATE_TIME) {
-    return;
-  }
-
   LoggerValueListener* listener =
     new LoggerValueListener(d->wordIdentifier(), d->source());
   SubscribeVisitor<LoggerValueListener> subscriber(listener);
@@ -108,7 +163,8 @@ void Logger::logText(const std::string& streamName, const std::string& content) 
     it = _textLoggers.insert(
         make_pair(streamName, LoggerValueListener("text", streamName))).first;
   }
-  it->second.addText(content);
+  it->second.addText(
+      _dispatcher->currentTime(), content);
 }
 
 bool Logger::save(const std::string& filename, const LogFile& data) {
@@ -123,8 +179,15 @@ bool Logger::read(const std::string& filename, LogFile *dst) {
     filtering_istream in;
     in.push(gzip_decompressor());
     in.push(file);
-    dst->Clear();
-    return dst->ParseFromIstream(&in);
+    google::protobuf::io::IstreamInputStream zero_copy_input(&in);
+    google::protobuf::io::CodedInputStream decoder(&zero_copy_input);
+    // By default, google protobufs have a limit of about 60MB.
+    // If we save the full boat history in a single protobug, it will
+    // easily exceed this size. Of course, we should split it into
+    // multiple smaller files... but for now we simply increase the limit
+    // to 500MB, with a warning at 400.
+    decoder.SetTotalBytesLimit(500 * 1024 * 1024, 400 * 1024 * 1024);
+    return dst->ParseFromCodedStream(&decoder);
 }
 
 void Logger::unpack(const AngleValueSet& values, std::vector<Angle<double>>* angles) {
@@ -195,16 +258,28 @@ void Logger::unpack(const AbsOrientValueSet& values,
   }
 }
 
+namespace {
+  void unpackTimeSub(const google::protobuf::RepeatedField<std::int64_t> &times,
+                     std::vector<TimeStamp>* result) {
+    result->clear();
+    result->reserve(times.size());
+
+    std::int64_t time = 0;
+    for (int i = 0; i < times.size(); ++i) {
+      time += times.Get(i);
+      result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
+    }
+  }
+}
+
+void Logger::unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
+                    std::vector<TimeStamp>* result) {
+  unpackTimeSub(times, result);
+}
+
 void Logger::unpackTime(const ValueSet& valueSet,
                         std::vector<TimeStamp>* result) {
-  result->clear();
-  result->reserve(valueSet.timestamps_size());
-
-  int64_t time = 0;
-  for (int i = 0; i < valueSet.timestamps_size(); ++i) {
-    time += valueSet.timestamps(i);
-    result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
-  }
+  unpackTimeSub(getBestKnownTimeStamps(valueSet), result);
 }
 
 

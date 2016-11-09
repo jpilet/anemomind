@@ -3,7 +3,7 @@
 
 #include <server/common/Array.h>
 #include <server/nautical/GeographicPosition.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 #include <set>
 #include <tuple>
 
@@ -45,14 +45,15 @@ double posToTileX(int scale, const GeographicPosition<double>& pos);
 double posToTileY(int scale, const GeographicPosition<double>& pos);
 
 Array<Array<Nav>> generateTiles(TileKey tileKey,
-                                const Array<Nav>& nav,
-                                int maxNumNavs);
+                                const Array<Nav>& navs,
+                                int maxNumNavs,
+                                Duration<> curveCutThreshold);
 
 // Return a set of tiles on which "navs" should appear.
 std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale);
 
 // Generate a unique identifier for this Nav curve.
-std::string tileCurveId(std::string boatId, const Array<Nav>& navs);
+std::string tileCurveId(std::string boatId, const NavDataset& navs);
 
 }  // namespace sail
 

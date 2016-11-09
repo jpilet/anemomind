@@ -26,6 +26,8 @@ Poco::Dynamic::Var readVar(std::stringstream &ss) {
 
 }
 
+using namespace sail::NavCompat;
+
 TEST(NavalSimulationJsonTest, SerializeDeserialize) {
   using namespace sail;
   NavalSimulation sim = makeNavSimConstantFlow();
@@ -40,10 +42,10 @@ TEST(NavalSimulationJsonTest, SerializeDeserialize) {
     EXPECT_TRUE(json::deserialize(readVar(file), &sim2));
 
     // Compare a couple of values
-    EXPECT_EQ(sim.boatData(0).navs()[30],
-              sim2.boatData(0).navs()[30]);
-    EXPECT_EQ(sim.boatData(1).navs()[39],
-              sim2.boatData(1).navs()[39]);
+    EXPECT_EQ(getNav(sim.boatData(0).navs(), 30),
+              getNav(sim2.boatData(0).navs(), 30));
+    EXPECT_EQ(getNav(sim.boatData(1).navs(), 39),
+              getNav(sim2.boatData(1).navs(), 39));
     EXPECT_EQ(sim.boatData(0).specs().samplingPeriod(),
               sim2.boatData(0).specs().samplingPeriod());
     EXPECT_EQ(sim.boatData(0).states()[3].trueState().boatSpeedThroughWater,

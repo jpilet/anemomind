@@ -5,19 +5,36 @@ var app = require('../../app');
 var request = require('supertest');
 var User = require('../user/user.model');
 var Boat = require('./boat.model');
+var testUtils = require('../testUtils.spec');
+var Q = require('q');
 
 describe('GET /api/boats', function() {
+
+  var testUser;
+  var readableBoat, writableBoat, publicBoat;
+
   before(function(done) {
-    var testUser = new User({
-      "provider" : "local",
-      "name" : "test",
-      "email" : "test@anemomind.com",
-      "hashedPassword" : "bj0zHvlC/YIzEFOU7nKwr+OHEzSzfdFA9PMmsPGnWITGHp1zlL+29oa049o6FvuR2ofd8wOx2nBc5e2n2FIIsg==",
-      "salt" : "bGwuseqg/L/do6vLH2sPVA==",
-      "role" : "user"
+    testUtils.addTestUser('test')
+    .then(function(user) {
+        testUser = user;
+        return Q.all([
+              testUtils.addTestBoat({name: "writable boat", admins: [ user.id ]}),
+              testUtils.addTestBoat({name: "readable boat", readers: [ user.id ]}),
+              testUtils.addTestBoat({name: "public boat", publicAccess: true})
+        ])
+      })
+    .spread(function (boat1_, boat2_, publicBoat_) {
+         writableBoat = boat1_;
+         readableBoat = boat2_;
+         publicBoat = publicBoat_;
+         done();
+     })
+    .catch(function (err) {
+      console.warn(err);
+      done(err);
     });
-    testUser.save(done);
   });
+
 
   var server = request(app);
   var token;
@@ -25,7 +42,7 @@ describe('GET /api/boats', function() {
   it('should give the test user an auth token', function(done) {
         server
             .post('/auth/local')
-            .send({ email: 'test@anemomind.com', password: 'anemoTest' })
+            .send({ email: 'test@test.anemomind.com', password: 'anemoTest' })
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function (err, res) {
@@ -35,7 +52,7 @@ describe('GET /api/boats', function() {
              });
         });
 
-  it('should respond with an empty array', function(done) {
+  it('should list 2 boats', function(done) {
     request(app)
       .get('/api/boats')
       .set('Authorization', 'Bearer ' + token)
@@ -43,84 +60,73 @@ describe('GET /api/boats', function() {
       .end(function(err, res) {
         if (err) return done(err);
         res.body.should.be.instanceof(Array);
-        res.body.should.have.length(0);
-        done();
-      });
-  });
-
-  it('should add a TestBoat', function(done) {
-    request(app)
-      .post('/api/boats')
-      .set('Authorization', 'Bearer ' + token)
-      .send({ name: 'TestBoat' })
-      .expect(201)
-      .end(function(err, res) {
-        if (err) return done(err);
-        done();
-     });
-   });
-
-  it('should respond with an array containing TestBoat', function(done) {
-    request(app)
-      .get('/api/boats')
-      .set('Authorization', 'Bearer ' + token)
-      .expect(200)
-      .end(function(err, res) {
-        if (err) return done(err);
-        res.body.should.be.instanceof(Array);
-        res.body.should.have.length(1);
+        res.body.should.have.length(2);
         res.body[0].should.have.property('name');
-        res.body[0].name.should.equal('TestBoat');
+        res.body[0].name.should.equal('writable boat');
+        res.body[1].should.have.property('name');
+        res.body[1].name.should.equal('readable boat');
         done();
       });
   });
 
-  var id ="123456789012345678901234";
-  it('should add a TestBoat2 with a given _id', function(done) {
+  it('should respond with an array containing also the public boat', function(done) {
     request(app)
-      .post('/api/boats')
+      .get('/api/boats?public=1')
       .set('Authorization', 'Bearer ' + token)
-      .send({ _id: id, name: 'TestBoat2' })
-      .expect(201)
+      .expect(200)
       .end(function(err, res) {
         if (err) return done(err);
-        res.body.should.have.property('_id');
-        res.body._id.should.equal(id);
+        res.body.should.be.instanceof(Array);
+        res.body.should.have.length(3);
+        res.body[2].should.have.property('name');
+        res.body[2].name.should.equal('public boat');
         done();
-     });
-   });
+      });
+  });
 
-  it('should respond with the details of TestBoat2', function(done) {
+  it('should respond with the details of the writable boat', function(done) {
     request(app)
-      .get('/api/boats/' + id)
+      .get('/api/boats/' + writableBoat._id)
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .end(function(err, res) {
         if (err) return done(err);
         res.body.should.have.property('name');
-        res.body.name.should.equal('TestBoat2');
+        res.body.name.should.equal(writableBoat.name);
         res.body.should.have.property('_id');
-        res.body._id.should.equal(id);
+        res.body._id.should.equal(writableBoat._id + '');
         done();
       });
   });
 
-  var id ="123456789012345678901234";
   it('should refuse to add a boat with an existing id', function(done) {
     request(app)
       .post('/api/boats')
       .set('Authorization', 'Bearer ' + token)
-      .send({ _id: id, name: 'TestBoat3' })
+      .send({ _id: readableBoat._id, name: 'TestBoat3' })
       .expect(400)
       .end(done);
+   });
+
+  it('should list the public boat without auth', function(done) {
+     request(app)
+     .get('/api/boats?public=1')
+     .expect(200)
+     .end(function(err, res) {
+        if (err) return done(err);
+        res.body.should.be.instanceof(Array);
+        res.body.should.have.length(1);
+        res.body[0].should.have.property('name');
+        res.body[0].name.should.equal('public boat');
+        done();
+      });
    });
 
 
 
   after(function(done) {
-    Boat.remove({name: "TestBoat"}).exec();
-    Boat.remove({name: "TestBoat2"}).exec();
-    User.remove({email: "test@anemomind.com"}, done);
+    testUtils.cleanup();
+    done();
   });
 });
 

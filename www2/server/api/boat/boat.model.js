@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var Q = require('q');
 
 var BoatSchema = new Schema({
   name: String,
@@ -16,7 +17,79 @@ var BoatSchema = new Schema({
     email: String,
     admin: Boolean
   }],
-  anemobox: String
+  anemobox: String,
+  firmwareVersion: String,
+
+  // if set, no authentication is required to read this boat data.
+  // everybody is a reader.
+  publicAccess: Boolean
 });
+
+
+//
+// load boat with photos and comments 
+BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
+  var Events=mongoose.model('Event');
+  var promise=new mongoose.Promise;
+  var results=[];
+  var filteredEvents=[];
+
+  if(callback){promise.addBack(callback);}
+
+  this.find(query, function (err, boats){
+    if(err){
+      return promise.reject(err);
+    }
+    if(!boats.length){
+      return promise.resolve(null,[]);
+    }
+
+    //
+    // prepare query for events
+    var boats_id=boats.map(function(b) {
+      return b._id;
+    });
+
+    Events.collectSocialDataByBoat(boats_id,function(err,eventsByBoat) {
+      if(err){
+        return promise.reject(err);
+      }
+      boats.forEach(function(boat) {
+
+        // get plain js object
+        var singleBoat=boat.toObject();
+
+        //
+        // get social data for this boat 
+        var event=eventsByBoat.filter(function(event) {
+          return event._id.equals(boat._id);
+        })[0];
+
+        //
+        // if no data, 
+        if(!event){ return results.push(singleBoat);}
+
+        //
+        // keep all photos to access from session widget
+        singleBoat.photos=event.photos;
+
+        //
+        // keep all comments to access from session widget
+        singleBoat.comments=event.comments;
+        results.push(singleBoat);
+      });
+
+
+
+      // new API coldrun 10-20 ms hotrun 5-10ms
+      // old API coldrun 80-90 ms hotrun 60-80ms
+      // console.log('----------------- collect',(Date.now()-time)/1000);
+      promise.resolve(null,results);
+    });
+
+  });
+
+  return promise;
+}
 
 module.exports = mongoose.model('Boat', BoatSchema);

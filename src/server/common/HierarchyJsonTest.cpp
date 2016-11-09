@@ -27,7 +27,7 @@ TEST(HierarchyJsonTest, TestSimple) {
 
 TEST(HierarchyJsonTest, TestSimpleArray) {
   HNode x(1, 2, "m", "testnode");
-  Array<HNode> X = Array<HNode>::args(x);
+  Array<HNode> X = Array<HNode>{x};
   Poco::Dynamic::Var obj = json::serialize(X);
   Array<HNode> Y;
   json::deserialize(obj, &Y);

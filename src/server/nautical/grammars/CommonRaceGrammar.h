@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <server/nautical/Nav.h>
 #include <server/nautical/grammars/Grammar.h>
 #include <server/nautical/grammars/AngleCost.h>
 
@@ -46,7 +47,7 @@ class CommonRaceGrammar : public Grammar {
  public:
   CommonRaceGrammar(CommonRaceGrammarSettings settings);
 
-  std::shared_ptr<HTree> parse(Array<Nav> navs,
+  std::shared_ptr<HTree> parse(NavDataset navs,
       Array<UserHint> hints = Array<UserHint>());
   virtual Array<HNode> nodeInfo() const;
   MDArray2b startOfRaceTransitions() const {return _startOfRaceTransitions;}

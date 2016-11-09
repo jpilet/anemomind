@@ -1,0 +1,14 @@
+{
+  "name": "codegen",
+  "version": "1.0.0",
+  "description": "Generate NMEA2000 parsing C++ code from a list of PGN specifications",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jonas Östlund <uppfinnarjonas@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "xml2js": "^0.4.16"
+  }
+}

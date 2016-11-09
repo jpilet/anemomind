@@ -273,7 +273,7 @@ class MDArray {
     return _data[_index.calcIndex(inds)];
   }
 
-  int calcIndex(int *inds) {
+  int calcIndex(int *inds) const {
     return _index.calcIndex(inds);
   }
 
@@ -398,13 +398,13 @@ class MDArray {
     return dst;
   }
 
-  ThisType sliceBlock(int dim, int index, int blockSize) {
+  ThisType sliceBlock(int dim, int index, int blockSize) const {
     int from = index*blockSize;
     int to = from + blockSize;
     return sliceAlongDim(dim, from, to);
   }
 
-  ThisType sliceRows(int from, int to) {
+  ThisType sliceRows(int from, int to) const {
     return sliceAlongDim(0, from, to);
   }
 
@@ -413,19 +413,19 @@ class MDArray {
     return sliceAlongDim(1, from, to);
   }
 
-  ThisType sliceColsFrom(int from) {
+  ThisType sliceColsFrom(int from) const {
     return sliceCols(from, cols());
   }
 
-  ThisType sliceColsTo(int to) {
+  ThisType sliceColsTo(int to) const {
     return sliceCols(0, to);
   }
 
-  ThisType sliceRowsFrom(int from) {
+  ThisType sliceRowsFrom(int from) const {
     return sliceRows(from, rows());
   }
 
-  ThisType sliceRowsTo(int to) {
+  ThisType sliceRowsTo(int to) const {
     return sliceRows(0, to);
   }
 
@@ -433,15 +433,15 @@ class MDArray {
     return sliceCols(index, index + 1);
   }
 
-  ThisType sliceRow(int index) {
+  ThisType sliceRow(int index) const {
     return sliceRows(index, index + 1);
   }
 
-  ThisType sliceRowBlock(int index, int blockSize) {
+  ThisType sliceRowBlock(int index, int blockSize) const {
     return sliceBlock(0, index, blockSize);
   }
 
-  ThisType sliceColBlock(int index, int blockSize) {
+  ThisType sliceColBlock(int index, int blockSize) const {
     static_assert(dims >= 2, "Dimension should be at least 2");
     return sliceBlock(1, index, blockSize);
   }
@@ -502,12 +502,12 @@ class MDArray {
     return dst;
   }
 
-  int getStep() {
+  int getStep() const {
     static_assert(dims == 2, "Only applicable to 2d arrays");
     return _index[0];
   }
 
-  int getByteStep() {
+  int getByteStep() const {
     return sizeof(T)*getStep();
   }
 
@@ -515,7 +515,7 @@ class MDArray {
     _index.set(index, s);
   }
 
-  int getInternalSize(int index) {
+  int getInternalSize(int index) const {
     return _index[index];
   }
 

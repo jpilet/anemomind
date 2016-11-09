@@ -5,22 +5,23 @@
   "dependencies": {
     "async": "^1.4.2",
     "bleno": "^0.2.0",
-    "bluetooth-hci-socket": "^0.3.3",
     "body-parser": "^1.13.3",
     "debug": "^2.2.0",
     "endpoint": "file:../../../../nodemodules/endpoint",
     "express": "^4.13.3",
+    "j1939socket": "git+https://github.com/jpilet/j1939socket.git",
     "mkdirp": "^0.5.0",
-    "mraa": "^0.7.0",
+    "mraa": "^0.9.5",
     "msgpack-js": "^0.3.0",
     "nan": "^1.7.0",
     "noble": "^1.1.0",
+    "node-pre-gyp": "^0.6.0",
     "q": "^1.4.1",
     "serialport": "^1.6.3"
   },
   "devDependencies": {
     "mocha": "^2.2.5",
-    "should": "^7.0.4",
-    "supertest": "^1.1.0"
+    "should": "^11.0.0",
+    "supertest": "^2.0.0"
   }
 }

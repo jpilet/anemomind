@@ -79,8 +79,7 @@ class FlowErrors {
   FlowErrors(const Error<Velocity<double> > &ne,
       const Error<Velocity<double> > &me,
       const Error<Angle<double> > &ae) :
-      _normError(ne), _angleError(ae),
-      _magnitudeError(me) {}
+      _normError(ne), _magnitudeError(me), _angleError(ae) { }
   Error<Velocity<double> > _normError, _magnitudeError;
   Error<Angle<double> > _angleError;
   static double nanIfEmpty(const MeanAndVar &mv, double x) {
@@ -107,7 +106,7 @@ std::ostream &operator<< (std::ostream &s, const WindCurrentErrors &e);
 WindCurrentErrors compareCorrectors(
     const CorrectorFunction &a,
     const CorrectorFunction &b,
-    Array<Nav> navs);
+    NavDataset navs);
 
 }
 

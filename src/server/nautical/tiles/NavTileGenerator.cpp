@@ -4,8 +4,11 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/string.h>
 #include <server/math/geometry/SimplifyCurve.h>
+#include <server/common/Functional.h>
 
 namespace sail {
+
+using namespace NavCompat;
 
 namespace {
 
@@ -61,16 +64,18 @@ std::string TileKey::stringKey() const {
 
 Array<Array<Nav>> generateTiles(TileKey tileKey,
                                 const Array<Nav>& navs,
-                                int maxNumNavs) {
-  Array<bool> inOrOut = navs.map<bool>(
+                                int maxNumNavs,
+                                Duration<> curveCutThreshold) {
+  Array<bool> inOrOut = toArray(map(navs,
       [&] (const Nav& nav) -> bool {
           return tileKey.contains(nav.geographicPosition());
-      });
+      }));
   ArrayBuilder<Array<Nav>> result;
 
   // The curve might enter and leave the tile multiple times.
   // Group together consecutive points that are in the tile.
-  for (int i = 0; i < navs.size(); ) {
+  int n = navs.size();
+  for (int i = 0; i < n; /*The missing inc here is not a bug!*/) {
     int first = inOrOut.sliceFrom(i).find(true);
     if (first == -1) {
       break;  // nothing more in this tile.
@@ -78,6 +83,13 @@ Array<Array<Nav>> generateTiles(TileKey tileKey,
     first += i;
 
     int end = inOrOut.sliceFrom(first).find(false);
+
+    for (int j = first + 1; j < end; ++j) {
+      if ((navs[j].time() - navs[j-1].time()) > curveCutThreshold) {
+          end = j - 1;
+      }
+    }
+
     if (end == -1) {
       end = inOrOut.size();
     } else {
@@ -102,9 +114,9 @@ std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale) {
   return result;
 }
 
-std::string tileCurveId(std::string boatId, const Array<Nav>& navs) {
+std::string tileCurveId(std::string boatId, const NavDataset& navs) {
   // TODO: hash this string.
-  return boatId + navs.first().time().toString() + navs.last().time().toString();
+  return boatId + getFirst(navs).time().toString() + getLast(navs).time().toString();
 }
 
 }  // namespace sail

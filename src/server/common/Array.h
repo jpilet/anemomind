@@ -42,81 +42,6 @@ class Array {
     return dst;
   }
 
-  static ThisType args(T a) {
-    ThisType dst(1);
-    dst[0] = a;
-    return dst;
-  }
-
-  static ThisType args(T a, T b) {
-    ThisType dst(2);
-    dst[0] = a;
-    dst[1] = b;
-    return dst;
-  }
-
-  static ThisType args(T a, T b, T c) {
-    ThisType dst(3);
-    dst[0] = a;
-    dst[1] = b;
-    dst[2] = c;
-    return dst;
-  }
-
-  static ThisType args(T a, T b, T c, T d) {
-    ThisType dst(4);
-    dst[0] = a;
-    dst[1] = b;
-    dst[2] = c;
-    dst[3] = d;
-    return dst;
-  }
-
-  static ThisType args(T a, T b, T c, T d, T e) {
-    ThisType dst(5);
-    dst[0] = a;
-    dst[1] = b;
-    dst[2] = c;
-    dst[3] = d;
-    dst[4] = e;
-    return dst;
-  }
-
-  static ThisType args(T a, T b, T c, T d, T e, T f) {
-    ThisType dst(6);
-    dst[0] = a;
-    dst[1] = b;
-    dst[2] = c;
-    dst[3] = d;
-    dst[4] = e;
-    dst[5] = f;
-    return dst;
-  }
-
-  void destructure(T &a) {
-    a = get(0);
-  }
-
-  void destructure(T &a, T &b) {
-    a = get(0);
-    b = get(1);
-  }
-
-  void destructure(T &a, T &b, T &c) {
-    a = get(0);
-    b = get(1);
-    c = get(2);
-  }
-
-  void destructure(T &a, T &b, T &c, T &d) {
-    a = get(0);
-    b = get(1);
-    c = get(2);
-    d = get(3);
-  }
-
-
-
   // Only if T is an array
   T join() {
     int elemCount = 0;
@@ -141,12 +66,6 @@ class Array {
     for (int i = 0; i < size; i++) {
       dst.set(i, value);
     }
-    return dst;
-  }
-
-  static ThisType single(T x) {
-    ThisType dst(1);
-    dst.set(0, x);
     return dst;
   }
 
@@ -588,38 +507,6 @@ class Array {
     return dst;
   }
 
-  template <typename S>
-  S reduce(S init, std::function<S(S, T)> red) const {
-    S x = init;
-    for (int i = 0; i < _size; i++) {
-      x = red(x, _data[i]);
-    }
-    return x;
-  }
-
-  template <typename S>
-  Array<S> map(std::function<S(T)> mapper) const {
-    Array<S> dst(_size);
-    for (int i = 0; i < _size; i++) {
-      dst[i] = mapper(_data[i]);
-    }
-    return dst;
-  }
-
-  template <typename S>
-  Array<S> mapi(std::function<S(int, T)> mapper) {
-    Array<S> dst(_size);
-    for (int i = 0; i < _size; i++) {
-      dst[i] = mapper(i, _data[i]);
-    }
-    return dst;
-  }
-
-  template <typename S>
-  Array<S> mapElements(std::function<S(T)> mapper) { // In case of mixup with std::map
-    return map<S>(mapper);
-  }
-
   ThisType slice(std::function<bool(T)> fun) const {
     ThisType dst(_size);
     int counter = 0;
@@ -771,23 +658,6 @@ Arrayb neg(Arrayb X);
 bool all(Arrayb X);
 bool any(Arrayb X);
 Arrayi makeSparseInds(int arraySize, int sampleCount);
-
-template <typename T>
-Array<T> concat(Array<Array<T> > arrays) {
-  int totalCount = 0;
-  for (auto arr: arrays) {
-    totalCount += arr.size();
-  }
-  Array<T> dst(totalCount);
-  int from = 0;
-  for (int i = 0; i < arrays.size(); i++) {
-    int to = from + arrays[i].size();
-    arrays[i].copyToSafe(dst.slice(from, to));
-    from = to;
-  }
-  assert(from == totalCount);
-  return dst;
-}
 
 } /* namespace sail */
 #endif /* ARRAY_H_ */

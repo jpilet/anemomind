@@ -9,6 +9,7 @@ var fs = require('fs');
 var path = require('path');
 var assert = require('assert');
 var DelayedCall = require('./DelayedCall.js');
+var sync = require('./fssync.js').sync;
 
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail2/';
@@ -80,6 +81,9 @@ function handleIncomingFiles(files) {
       estimator.loadCalib(files[i]);
     }
   }
+
+  // flush caches to disk
+  sync();
 }
 
 function openNewEndpoint(endpointName, cb) {
@@ -94,7 +98,7 @@ function openNewEndpoint(endpointName, cb) {
           if (err) {
             cb(err);
           } else {
-            schema.makeVerbose(endpoint);
+            //schema.makeVerbose(endpoint);
             endpoint.addPacketHandler(
               script.makeScriptRequestHandler(triggerSync));
             endpoint.addPacketHandler(
@@ -179,6 +183,8 @@ function moveLogFileToSent(logfile, cb) {
 function postLogFilesSub(endpoint, dst, paths, cb) {
   assert(typeof cb == 'function');
   if (paths.length == 0) {
+    // flush posted files to disk
+    sync();
     cb();
   } else {
     var logFilename = paths[0];

@@ -12,6 +12,8 @@ var mkdirp = require('mkdirp');
 var boatAccess = require('../boat/access.js');
 var backup = require('../../components/backup');
 
+var tiles = require('../tiles/tiles.controller.js');
+
 // Encoding hex mongoid in urls is too long.
 // we should switch to https://www.npmjs.com/package/hashids
 // at some point.
@@ -30,7 +32,8 @@ var canRead = function(req, event) {
 
   // Otherwise, the user needs read access to the boat the note is
   // attached to.
-  return boatAccess.userCanReadBoatId(req.user.id, event.boat);
+  return boatAccess.userCanReadBoatId((req.user ? req.user.id : undefined),
+                                      event.boat);
 }
 
 var canWrite = function(req, event) {
@@ -40,17 +43,19 @@ var canWrite = function(req, event) {
 function sendEventsWithQuery(res, query) {
   Event.find(query, function (err, events) {
     if(err) { return handleError(res, err); }
-    return res.status(200).json(events);
+  
+    res.status(200).json(events);
   });
 }
 
 // Get the latest readable events
+//
+// Because there might be a large number of public events,
+// listing them all would be too much.
+// Only events attached to boats associated with a user are listed
+// We should add a way for users to "subscribe" to public boats.
 exports.index = function(req, res) {
   try {
-    if (!req.user) {
-      return res.sendStatus(401);
-    }
-
     var query = { };
 
     var handleDateParam = function(param, operator) {
@@ -70,14 +75,15 @@ exports.index = function(req, res) {
     handleDateParam('A', '$gte');
 
     if (req.query.b) {
-      boatAccess.userCanReadBoatId(req.user.id, req.query.b)
+      boatAccess.userCanReadBoatId((req.user ? req.user.id : undefined),
+                                   req.query.b)
       .then(function() {
          query.boat = req.query.b;
          sendEventsWithQuery(res, query);
       })
       .catch(function(err) { res.sendStatus(403); });
     } else {
-      boatAccess.readableBoats(req.user.id)
+      boatAccess.readableBoats(req)
         .then(function(boats) {
           if (boats.length == 0) {
             return res.status(200).json([]);
@@ -101,8 +107,16 @@ exports.show = function(req, res) {
     if(!event) { return res.sendStatus(404); }
 
     canRead(req, event)
-    .then(function() { res.json(event); })
-    .catch(function(err) { res.sendStatus(403); });
+    .then(function() {
+      return extendEventWithBoatData(event);
+    })
+    .then(function(event) {
+      res.json(event);
+    })
+    .catch(function(err) {
+      console.log(err + (err.stack ? err.stack : ''));
+      res.sendStatus(403);
+    });
   });
 };
 
@@ -172,29 +186,6 @@ function handleError(res, err) {
   return res.sendStatus(500, err);
 }
 
-var checkAccess = function(checkFunc, req, res, next) {
-  if (!req.user || !req.user.id) {
-    return res.sendStatus(401);
-  }
-
-  if (!req.params.boatId) {
-    return res.sendStatus(400);
-  }
-
-  checkFunc(req.user.id, req.params.boatId)
-    .then(next)
-    .catch(function() {
-      return res.sendStatus(403);
-    });
-};
-
-exports.boatWriteAccess = function(req, res, next) {
-  return checkAccess(boatAccess.userCanWriteBoatId, req, res, next);
-}
-
-exports.boatReadAccess = function(req, res, next) {
-  return checkAccess(boatAccess.userCanReadBoatId, req, res, next);
-};
 
 var photoUploadPath = fs.realpathSync(config.uploadDir) + '/photos/';
 console.log('Uploading photos to: ' + photoUploadPath);
@@ -229,10 +220,9 @@ exports.postPhoto = multer({
         console.log('photoHandler: accepting file: ' + file.originalname);
         return true;
       } else {
-        console.log('photoHandler: rejecting existing photo: '
+        console.log('photoHandler: replacing existing photo: '
                     + file.originalname);
-        res.sendStatus(403);
-        return false;
+        return true;
       }
     }
     console.log('photoHandler: rejecting bad filename: '

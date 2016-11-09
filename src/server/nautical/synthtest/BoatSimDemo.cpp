@@ -30,8 +30,8 @@ int main(int argc, const char **argv) {
                                   Angle<double>::degrees(90));
 
 
-  auto fun = BoatSim::makePiecewiseTwaFunction(Array<Duration<double> >::args(dur, dur),
-      Array<Angle<double> >::args(Angle<double>::degrees(129), Angle<double>::degrees(199)));
+  auto fun = BoatSim::makePiecewiseTwaFunction(Array<Duration<double> >{dur, dur},
+      Array<Angle<double> >{Angle<double>::degrees(129), Angle<double>::degrees(199)});
 
   BoatSim simulator(windfun, currentfun, ch, fun);
 

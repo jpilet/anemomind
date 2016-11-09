@@ -17,6 +17,7 @@
 
 #include <server/common/ExpLine.h>
 #include "../CalibratedNav/CalibratedNav.h"
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -32,7 +33,7 @@ namespace sail {
     AngleCorrector() : value(0) {}
     Angle<T> correct(Angle<T> raw) const {
       auto x = raw + Angle<T>::degrees(T(value));
-      assert(!genericIsNan(x));
+      assert(!isNaN(x));
       return x;
     }
   };
@@ -40,7 +41,7 @@ namespace sail {
   template <typename T>
   class SpeedCorrector {
    public:
-    SpeedCorrector(T k_, T m_, T c_, T alpha_) : k(k_), c(c_), m(m_), alpha(alpha_) {}
+    SpeedCorrector(T k_, T m_, T c_, T alpha_) : k(k_), m(m_), c(c_), alpha(alpha_) {}
     T k, m, c, alpha;
 
     SpeedCorrector() :
@@ -56,7 +57,7 @@ namespace sail {
 
     Velocity<T> correct(Velocity<T> raw) const {
       auto x = make().eval(raw);
-      assert(!genericIsNan(x));
+      assert(!isNaN(x));
       return x;
     }
   };
@@ -74,7 +75,7 @@ namespace sail {
 
     Angle<T> correct(const CalibratedNav<T> &c) const {
       T awa0rads = c.calibAwa().normalizedAt0().radians();
-      assert(!genericIsNan(awa0rads));
+      assert(!isNaN(awa0rads));
 
 
       //I am not sure we need 'ToDouble': bool upwind = 2.0*std::abs(ToDouble(awa0rads)) < M_PI;
@@ -84,7 +85,7 @@ namespace sail {
       // For awa angles closer to 0 than 90 degrees,
       // scale by sinus of that angle. Otherwise, just use 0.
       T awaFactor = amp*(upwind? T(sin(2.0*awa0rads)) : T(0));
-      assert(!genericIsNan(awaFactor));
+      assert(!isNaN(awaFactor));
 
       auto caws = c.calibAws().metersPerSecond();
       if (caws < T(0)) {
@@ -94,10 +95,10 @@ namespace sail {
       // Scale it in a way that decays exponentially as
       // aws increases. The decay is controlled by params[1].
       T awsFactor = exp(-expline(coef)*caws);
-      assert(!genericIsNan(awsFactor));
+      assert(!isNaN(awsFactor));
 
       auto v = Angle<T>::radians(awaFactor*awsFactor);
-      assert(!genericIsNan(v));
+      assert(!isNaN(v));
       return v;
     }
   };
@@ -197,8 +198,8 @@ class CorrectorObject : public CorrectorFunction {
  public:
   CorrectorObject(Corrector<double> c) : _c(c) {}
 
-  Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const {
-    return navs.map<CalibratedNav<double> >([&](const Nav &x) {return _c.correct(x);});
+  Array<CalibratedNav<double> > operator()(const NavDataset &navs) const {
+    return toArray(map(NavCompat::Range(navs), [&](const Nav &x) {return _c.correct(x);}));
   }
 
   std::string toString() const {

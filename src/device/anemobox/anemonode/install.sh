@@ -1,30 +1,37 @@
 #!/bin/bash
 set -e
 
-rm -fR node_modules/mail node_modules/endpoint || true
-export NODE_ENV=production
-npm install
-npm prune --production
+# TODO: get the IP from the command line
+HOST=192.168.2.1
+DEST=root@${HOST}:/anemonode
 
-node-gyp configure
-node-gyp build
+#DEST=/mnt/anemonode
 
-if [ -f ~/.ssh/id_rsa ]; then
-  echo "SSH Key already installed"
-else
-  echo "installing SSH Key"
-  mkdir -p ~/.ssh
-  cp id_rsa* ~/.ssh
-  chmod 600 ~/.ssh/id_rsa
-  cat known_hosts >> ~/.ssh/known_hosts
+# avoid rebuilding, because rebuilding will make npm updates the dependencies
+# in node_modules, which in turn will lead to a large patch
+if false; then
+
+  rm -fR node_modules/mail node_modules/endpoint || true
+  export NODE_ENV=production
+  npm install --production
+
+  node-gyp configure
+  node-gyp build
+
+  npm prune --production
+  npm dedupe
+
+  ../canutils/compile-can-utils.sh
+  ../canutils/compile-iproute2.sh
 fi
 
-[ -e /anemonode ] || git clone git+ssh://anemobox@vtiger.anemomind.com/home/anemobox/anemobox.git /anemonode
+EXCLUDE='--exclude=*.log --exclude=.*.sw[po] --exclude=src --exclude=*\.[oadh] --exclude=binding.gyp --exclude=README.md --exclude=install.sh --exclude=build/Release/obj --exclude=obj.target --exclude=*.target.mk --exclude=Makefile --exclude=*.tar.gz --exclude=*.gypi'
 
-rm -fR /anemonode/*
-rsync -ar --exclude="src/*" --exclude=id_rsa --exclude=install.sh . /anemonode
+git rev-parse HEAD > commit
 
-git rev-parse HEAD > /anemonode/commit
+ssh root@${HOST} rm -fR "/anemonode/*"
+#rm -fR "${DEST}/anemonode/*"
+rsync -ar ${EXCLUDE} . ${DEST}
 
 echo "Installed. After testing, please validate the release files with: "
 echo "  cd /anemonode ; git add . ; git commit ; git push"

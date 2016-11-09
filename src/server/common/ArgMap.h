@@ -156,6 +156,13 @@ class ArgMap {
        return *this;
      }
 
+     Option &store(bool *destination) {
+       setArgCount(0);
+       *destination = false;
+       callback([=](const Array<Arg*>& args) { *destination = true; });
+       return *this;
+     }
+
      Option &store(std::string* destination) {
        setArgCount(1);
        callback([=](const Array<Arg*>& args) { *destination = args[0]->value(); });

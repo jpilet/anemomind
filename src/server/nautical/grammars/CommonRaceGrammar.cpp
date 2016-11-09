@@ -4,13 +4,16 @@
  */
 
 #include "CommonRaceGrammar.h"
-#include <server/nautical/grammars/StaticCostFactory.h>
 #include <server/common/HNodeGroup.h>
-#include <server/math/hmm/StateAssign.h>
 #include <server/common/SharedPtrUtils.h>
+#include <server/math/hmm/StateAssign.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/nautical/grammars/HintedStateAssignFactory.h>
+#include <server/nautical/grammars/StaticCostFactory.h>
 
 namespace sail {
+
+using namespace NavCompat;
 
 double OnOffCost::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
   if (fromStateIndex == _offStateIndex || toStateIndex == _offStateIndex) {
@@ -144,12 +147,14 @@ namespace {
   };
 }
 
-std::shared_ptr<HTree> CommonRaceGrammar::parse(Array<Nav> navs,
+std::shared_ptr<HTree> CommonRaceGrammar::parse(NavDataset navs0,
     Array<UserHint> hints) {
+  auto navs = makeArray(navs0);
   OnOffCost onOffCost(navs, 0, _settings.perSecondCost);
   CommonRaceStateAssign sa(navs, _angleCost, _staticTransitionCosts,
       _staticStateCosts, _preds, onOffCost);
-  return _h.parse(makeHintedStateAssign(*this, makeSharedPtrToStack(sa), hints, navs).solve());
+  auto inds = makeHintedStateAssign(*this, makeSharedPtrToStack(sa), hints, navs).solve();
+  return _h.parse(inds);
 }
 
 Array<HNode> CommonRaceGrammar::nodeInfo() const {

@@ -14,6 +14,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/string.h>
 #include <server/common/LineKM.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -54,7 +55,7 @@ namespace {
   }
 
   int lookUp(Array<Velocity<double> > bounds, Velocity<double> tws) {
-    if (tws < bounds.first() || bounds.last() <= tws || tws.isNaN()) {
+    if (tws < bounds.first() || bounds.last() <= tws || isNaN(tws)) {
       return -1;
     }
     Array<Velocity<double> >::Iterator i = std::upper_bound(bounds.begin(), bounds.end(), tws);
@@ -65,7 +66,7 @@ namespace {
   }
 
   Arrayi lookUp(Array<Velocity<double> > bounds, Array<Velocity<double> > tws) {
-    return tws.map<int>([&](Velocity<double> x) {return lookUp(bounds, x);});
+    return toArray(map(tws, [&](Velocity<double> x) {return lookUp(bounds, x);}));
   }
 
   Array<Array<Velocity<double> > > groupVmg(int binCount, Arrayi bins, Array<Velocity<double> > vmg) {
@@ -77,19 +78,23 @@ namespace {
         builders[bin].add(vmg[i]);
       }
     }
-    Array<Array<Velocity<double> > > groups = builders.map<Array<Velocity<double> > >([=](ArrayBuilder<Velocity<double> > x) {return x.get();});
+    Array<Array<Velocity<double> > > groups = toArray(
+        map(builders, [=](ArrayBuilder<Velocity<double> > x) {return x.get();}));
     for (int i = 0; i < binCount; i++) {
       std::sort(groups[i].begin(), groups[i].end());
     }
     return groups;
   }
 
-  void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles, int index, Array<Array<Velocity<double> > > out) {
+  void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles,
+                          int index, int minDataSize,
+                          Array<Array<Velocity<double> > > out) {
     int qCount = quantiles.size();
-    LineKM map(0, 1.0, 0, data.size() - 1);
+    LineKM map(0, 1.0, 0, data.size());
     for (int i = 0; i < qCount; i++) {
-      int i2 = int(round(map(quantiles[i])));
-      if (0 <= i2 && i2 < data.size()) {
+      if (data.size() >= minDataSize) {
+        int i2 = int(floor(map(quantiles[i])));
+        assert(0 <= i2 && i2 < data.size());
         out[i][index] = data[i2];
       } else {
         out[i][index] = Velocity<double>::knots(NAN);
@@ -126,7 +131,10 @@ TargetSpeed::TargetSpeed(bool isUpwind_, Array<Velocity<double> > tws,
   medianValues = Array<Array<Velocity<double> > >::fill(qCount, [=](int i) {return Array<Velocity<double> >(binCount);});
   for (int i = 0; i < binCount; i++) {
     binCenters[i] = (bounds[i] + bounds[i + 1]).scaled(0.5);
-    outputMedianValues(groups[i], quantiles, i, medianValues);
+    outputMedianValues(
+        groups[i], quantiles, i,
+        15 * 60, // we need at least 15 minutes of measurement at this wind speed
+        medianValues);
   }
 }
 
@@ -138,7 +146,7 @@ void TargetSpeed::plot() {
   plot.set_title((isUpwind? "Upwind" : "Downwind"));
   auto mapper = [](Velocity<double> x) {return x.knots();};
   for (int i = 0; i < medianValues.size(); i++) {
-    plot.plot_xy(binCenters.map<double>(mapper), medianValues[i].map<double>(mapper), stringFormat("Quantile %.3g", quantiles[i]));
+    plot.plot_xy(map(binCenters, mapper), map(medianValues[i], mapper), stringFormat("Quantile %.3g", quantiles[i]));
   }
   plot.show();
 }
@@ -163,37 +171,37 @@ Arrayd TargetSpeed::makeDefaultQuantiles() {
   return Arrayd(count, data);
 }
 
-Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
+Array<Velocity<double> > calcVmg(NavDataset navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
-  return navs.map<Velocity<double> >([&](const Nav &n) {
+  return toArray(map(NavCompat::Range(navs), [&](const Nav &n) {
     double factor = sign*cos(estimateRawTwa(n));
     return n.gpsSpeed().scaled(factor);
-  });
+  }));
 }
 
-Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
+Array<Velocity<double> > calcExternalVmg(NavDataset navs, bool isUpwind) {
   int sign = isUpwind? 1 : -1;
-  return navs.map<Velocity<double> >([&](const Nav &n) {
+  return toArray(map(NavCompat::Range(navs), [&](const Nav &n) {
     double factor = sign*cos(n.externalTwa());
     return n.gpsSpeed().scaled(factor);
-  });
+  }));
 }
 
 
-Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs) {
+Array<Velocity<double> > calcUpwindVmg(NavDataset navs) {
   return calcVmg(navs, true);
 }
 
-Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs) {
+Array<Velocity<double> > calcDownwindVmg(NavDataset navs) {
   return calcVmg(navs, false);
 }
 
-Array<Velocity<double> > estimateTws(Array<Nav> navs) {
-  return navs.map<Velocity<double> >([&](const Nav &n) {return estimateRawTws(n);});
+Array<Velocity<double> > estimateTws(NavDataset navs) {
+  return toArray(map(NavCompat::Range(navs), [&](const Nav &n) {return estimateRawTws(n);}));
 }
 
-Array<Velocity<double> > estimateExternalTws(Array<Nav> navs) {
-  return navs.map<Velocity<double> >([&](const Nav &n) {return n.externalTws();});
+Array<Velocity<double> > estimateExternalTws(NavDataset navs) {
+  return toArray(map(NavCompat::Range(navs), [&](const Nav &n) {return n.externalTws();}));
 }
 
 

@@ -48,3 +48,101 @@
     width: 100%;
     height: 100%;
   }
+
+
+/* NEW CSS VERSION */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  background-color: #fff;
+  font-size: 16px;
+  height: 100%;
+  /* https://www.google.com/fonts#UsePlace:use/Collection:Muli */
+  font-family: 'Muli', "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-weight: 400;
+  letter-spacing:-.1px;
+}
+
+
+
+html:not(.app-loading) #app-loading-wrapper{
+  display: none!important;
+}
+
+html.app-loading #app-loading-wrapper {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,.7);
+    z-index: 99999;
+}
+
+#app-loading-wrapper .app-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    opacity: .8;
+    content: '';
+    border-radius: 50%;
+    font-size: 3em;
+    width: 1em;
+    height: 1em;
+    margin: -.5em 0 0 -.5em;
+    color: white;
+}
+
+
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+
+body>div>div.container {
+  margin-top: 60px;
+  padding: 0px 15px 0;
+}
+
+/*h1, h2, h3, h4 {
+  font-weight: normal !important;
+  font-family: 'Boing', "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+*/
+p {
+  font-family: 'Muli', "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-weight: 400 !important;
+}
+
+
+.main-view{
+  width: 100%;
+  clear: both;
+  background-color: #fff;
+}
+
+/* moving main.css here 
+ -------------------------------------------------- */
+
+#banner {
+    border-bottom: none;
+    margin-top: -20px;
+}
+
+#banner h1 {
+    font-size: 60px;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.navbar-static-top{
+  position: fixed;
+  top: 0;
+  right: 0;
+  left:0;
+}
+
+

@@ -3,29 +3,92 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/tiles/TileUtils.h>
 #include <device/anemobox/simulator/SimulateBox.h>
-#include <server/nautical/tiles/NavTileUploader.h>
-#include <server/nautical/grammars/WindOrientedGrammar.h>
-#include <server/nautical/NavNmeaScan.h>
-#include <server/nautical/GpsFilter.h>
 #include <server/common/ArrayBuilder.h>
+#include <server/common/Functional.h>
 #include <server/common/logging.h>
-
+#include <server/nautical/DownsampleGps.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
+#include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/tiles/NavTileUploader.h>
+#include <server/nautical/tiles/TileUtils.h>
 
 namespace sail {
 
-Array<Nav> filterNavs(Array<Nav> navs) {
-  GpsFilter::Settings settings;
+using namespace sail::NavCompat;
 
-  ArrayBuilder<Nav> withoutNulls;
-  withoutNulls.addIf(navs, [=](const Nav &nav) {
-    auto pos = nav.geographicPosition();
-    return abs(pos.lat().degrees()) > 0.01
-      && abs(pos.lon().degrees()) > 0.01;
-  });
-  auto results = GpsFilter::filter(withoutNulls.get(), settings);
-  return results.filteredNavs().slice(results.inlierMask());
+namespace {
+
+
+void splitMotionsIntoAnglesAndNorms(
+    const TimedSampleCollection<HorizontalMotion<double>>
+      ::TimedVector &src,
+    TimedSampleCollection<Angle<double>>
+      ::TimedVector *gpsBearings,
+    TimedSampleCollection<Velocity<double>>
+      ::TimedVector *gpsSpeeds) {
+  int n = src.size();
+  for (const auto &m: src) {
+    auto a = m.value.angle();
+    auto s = m.value.norm();
+    gpsSpeeds->push_back(TimedValue<Velocity<double>>(
+        m.time, s));
+    if (Velocity<double>::knots(0.1) < s && isFinite(a)) {
+      gpsBearings->push_back(TimedValue<Angle<double>>(
+          m.time, a));
+    }
+  }
+}
+
+template <DataCode code>
+std::string makeFilteredGpsName(const NavDataset &src) {
+  auto d = src.dispatcher();
+  if (d->has(code)) {
+    auto x = src.dispatcher()->get<code>();
+    if (x != nullptr) {
+      return x->source() + " merged+filtered";
+    }
+  }
+  return "merged+filtered";
+}
+
+}  // namespace
+
+NavDataset filterNavs(const NavDataset& navs, const GpsFilterSettings& settings) {
+  auto results = filterGpsData(navs, settings);
+  if (results.empty()) {
+    LOG(ERROR) << "GPS filtering failed";
+    return NavDataset();
+  }
+
+  auto motions = results.getGpsMotions(
+      settings.subProblemThreshold);
+  TimedSampleCollection<Angle<double>>::TimedVector gpsBearings;
+  TimedSampleCollection<Velocity<double>>::TimedVector gpsSpeeds;
+  splitMotionsIntoAnglesAndNorms(motions,
+      &gpsBearings,
+      &gpsSpeeds);
+  CHECK(motions.size() == gpsSpeeds.size());
+
+  // TODO: See issue https://github.com/jpilet/anemomind/issues/793#issuecomment-239423894.
+  // In short, we need to make sure that NavDataset::stripChannel doesn't
+  // throw away valid data that has already been merged.
+  NavDataset cleanGps = navs
+    .replaceChannel<GeographicPosition<double> >(
+      GPS_POS,
+      makeFilteredGpsName<GPS_POS>(navs),
+      results.getGlobalPositions())
+    .replaceChannel<Velocity<double> >(
+      GPS_SPEED,
+      makeFilteredGpsName<GPS_SPEED>(navs),
+      gpsSpeeds)
+    .replaceChannel<Angle<double> >(
+      GPS_BEARING,
+      makeFilteredGpsName<GPS_BEARING>(navs),
+      gpsBearings);
+
+  return cleanGps;
 }
 
 // Convenience method to extract the description of a tree.
@@ -39,21 +102,22 @@ std::string treeDescription(const shared_ptr<HTree>& tree,
 
 // Recursively traverse the tree to find all sub-tree with a given
 // description. Extract the corresponding navs.
-Array<Array<Nav>> extractAll(std::string description, Array<Nav> rawNavs,
+Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
                              const WindOrientedGrammar& grammar,
                              const std::shared_ptr<HTree>& tree) {
   if (!tree) {
-    return Array<Array<Nav>>();
+    LOG(FATAL) << "No tree";
+    return Array<NavDataset>();
   }
 
   if (description == treeDescription(tree, grammar)) {
-    Array<Nav> navSpan = rawNavs.slice(tree->left(), tree->right());
-    return Array<Array<Nav>>::args(navSpan);
+    NavDataset navSpan = slice(rawNavs, tree->left(), tree->right());
+    return Array<NavDataset>{navSpan};
   }
 
-  ArrayBuilder<Array<Nav>> result;
+  ArrayBuilder<NavDataset> result;
   for (auto child : tree->children()) {
-    Array<Array<Nav>> fromChild = extractAll(description, rawNavs,
+    Array<NavDataset> fromChild = extractAll(description, rawNavs,
                                              grammar, child);
     for (auto navs : fromChild) {
       result.add(navs);
@@ -62,37 +126,4 @@ Array<Array<Nav>> extractAll(std::string description, Array<Nav> rawNavs,
   return result.get();
 }
 
-void processTiles(const TileGeneratorParameters &params,
-    std::string boatId, std::string navPath,
-    std::string boatDat, std::string polarDat) {
-    Array<Nav> rawNavs = scanNmeaFolder(navPath, boatId);
-
-    if (boatDat != "") {
-      if (SimulateBox(boatDat, &rawNavs)) {
-        LOG(INFO) << "Simulated anemobox over " << rawNavs.size() << " navs.";
-      } else {
-        LOG(WARNING) << "failed to simulate anemobox using " << boatDat;
-      }
-    }
-
-    if (rawNavs.size() == 0) {
-      LOG(FATAL) << "No NMEA data in " << navPath;
-    }
-
-    WindOrientedGrammarSettings settings;
-    WindOrientedGrammar grammar(settings);
-    std::shared_ptr<HTree> fulltree = grammar.parse(rawNavs);
-
-    Array<Array<Nav>> sessions =
-      extractAll("Sailing", rawNavs, grammar, fulltree)
-        .map<Array<Nav> >(filterNavs);
-
-    if (!generateAndUploadTiles(boatId, sessions, params)) {
-      LOG(FATAL) << "When processing: " << navPath;
-    }
-
-    LOG(INFO) << "Done.";
-
-  }
-
-}
+}  // namespace sail

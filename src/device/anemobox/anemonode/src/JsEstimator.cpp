@@ -1,5 +1,7 @@
 #include <device/anemobox/anemonode/src/JsEstimator.h>
 
+#include <device/anemobox/anemonode/src/anemonode.h>
+
 using namespace v8;
 
 namespace sail {
@@ -11,7 +13,7 @@ v8::Persistent<v8::FunctionTemplate> estimator_constructor;
 }  // namespace
 
 JsEstimator::JsEstimator()
-  : _estimator(Dispatcher::global()) {
+  : _estimator(globalAnemonodeDispatcher) {
 }
 
 void JsEstimator::Init(v8::Handle<v8::Object> target) {

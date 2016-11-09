@@ -1,4 +1,5 @@
 add_subdirectory(logger)
+add_subdirectory(n2k)
 add_subdirectory(playnmea)
 add_subdirectory(simulator)
 
@@ -20,6 +21,7 @@ target_link_libraries(anemobox_Dispatcher
 cxx_test(anemobox_DispatcherTest DispatcherTest.cpp
          anemobox_Dispatcher
          gtest_main
+         gmock
         )
 
 add_library(anemobox_Nmea0183Source
@@ -30,6 +32,28 @@ target_link_libraries(anemobox_Nmea0183Source
                       anemobox_Dispatcher
                       device_NmeaParser
                      )
+
+
+
+# The Nmea2000Source is actually compiled using
+# the script anemobox/anemonode/install.sh, but
+# for the conveniency of catching compilation errors on
+# a regular basis when we perform a cmake build, compile it here too.
+# And probably, we will want to link a testcase to it later.
+add_library(anemobox_Nmea2000Source
+            Nmea2000Source.h
+            Nmea2000Source.cpp
+           )
+target_link_libraries(anemobox_Nmea2000Source
+                      anemobox_Dispatcher
+                      n2k_PgnClasses
+                     )
+
+cxx_test(anemobox_Nmea2000SourceTest
+         Nmea2000SourceTest
+         anemobox_Nmea2000Source
+         gtest_main)
+
 
 add_executable(anemobox main.cpp)
 target_link_libraries(anemobox
@@ -63,6 +87,43 @@ cxx_test(anemobox_DispatcherTrueWindEstimatorTest
          DispatcherTrueWindEstimatorTest.cpp
          anemobox_DispatcherTrueWindEstimator
          common_Env
+         gtest_main
+        )
+
+cxx_test(anemobox_TimedSampleCollectionTest TimedSampleCollectionTest.cpp
+         common_TimeStamp
+         gtest_main
+         )
+
+
+add_library(anemobox_DispatcherUtils
+            DispatcherUtils.h
+            DispatcherUtils.cpp
+           )
+           
+target_link_libraries(anemobox_DispatcherUtils
+                      anemobox_Dispatcher
+                      nautical_AbsoluteOrientation
+                      anemobox_Logger
+                     )
+
+cxx_test(anemobox_DispatcherUtilsTest
+         DispatcherUtilsTest.cpp
+         anemobox_DispatcherUtils
+         gtest_main
+        )        
+
+add_library(anemobox_Sources
+            Sources.h
+            Sources.cpp
+           )
+target_link_libraries(anemobox_Sources
+                      common_logging
+                     )
+
+cxx_test(anemobox_SourcesTest
+         SourcesTest.cpp
+         anemobox_Sources
          gtest_main
         )
 
