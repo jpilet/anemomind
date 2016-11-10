@@ -469,3 +469,9 @@ add_library(common_TimedValueUtils
 target_link_libraries(common_TimedValueUtils
   common_TimeStamp
   )
+
+cxx_test(common_TimedValueUtilsTest
+  TimedValueUtilsTest.cpp
+  gtest_main
+  common_TimedValueUtils
+  )

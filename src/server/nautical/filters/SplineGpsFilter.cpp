@@ -734,7 +734,8 @@ Array<EcefCurve> filterAndSegment(
   auto cleanMotions = filterMotions(allMotionData, settings);
 
   auto times = listAllTimes(cleanPositions, cleanMotions);
-  auto timeSpans = listTimeSpans(times, settings.maxGap);
+  auto timeSpans = listTimeSpans(
+      times, settings.maxGap, false);
 
   //visitTimesAndSpans(allPositionData, );
 

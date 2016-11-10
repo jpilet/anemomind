@@ -18,9 +18,10 @@ Array<int> listAllBounds(
     const Array<TimeStamp> &times,
     Duration<double> dur);
 
-Array<TimeStamp> listTimeSpans(
+Array<Span<TimeStamp>> listTimeSpans(
     const Array<TimeStamp> &times,
-    const Duration<double> dur);
+    const Duration<double> dur,
+    bool includeEmpty);
 
 } /* namespace sail */
 

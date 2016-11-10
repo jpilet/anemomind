@@ -100,10 +100,12 @@ target_link_libraries(filters_SplineGpsFilter
   lapack_BandWrappers
   common_DiscreteOutlierFilter
   math_SplineUtils
+  common_TimedValueUtils
   )
 
 cxx_test(filters_SplineGpsFilterTest
   SplineGpsFilterTest.cpp
   gtest_main
   filters_SplineGpsFilter
+  common_TimedValueUtils
   )
