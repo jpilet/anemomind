@@ -3,7 +3,7 @@
   <div class="mapAndGraphAndSidebar">
     <div ng-show="mapActive || graphActive" class="mapAndGraph">
       <div class="map" ng-show="mapActive">
-        <i class="anemomind-icon close-btn" onclick="window.location='/'">&nbsp;</i>
+        <a ng-href="/boats/{{boat._id}}" href="#" class="anemomind-icon close-btn"></a>
         <div class="mainControl">
           <div class="section heading">
             <div class="boat-name">
