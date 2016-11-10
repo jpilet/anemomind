@@ -23,9 +23,23 @@ TEST(TimedValueUtils, TestIt) {
   EXPECT_EQ((Array<int>{0, 4, 5}), bds);
   EXPECT_EQ((Array<int>{0}), (listAllBounds({}, 2.0_s)));
 
-  auto spans = listTimeSpans({t(0), t(1), t(4), t(5)}, 2.0_s, true);
-  EXPECT_EQ(spans, (Array<Span<TimeStamp>>{
-    Span<TimeStamp>(t(0), t(1)),
-    Span<TimeStamp>(t(4), t(5))
-  }));
+  {
+    auto spans = listTimeSpans({t(0), t(1), t(4), t(5)}, 2.0_s, true);
+    EXPECT_EQ(spans, (Array<Span<TimeStamp>>{
+      Span<TimeStamp>(t(0), t(1)),
+      Span<TimeStamp>(t(4), t(5))
+    }));
+  }{
+    auto spans = listTimeSpans({t(0), t(1), t(4)}, 2.0_s, false);
+
+    std::cout << "Got these spans: " << std::endl;
+    for (auto sp: spans) {
+      std::cout << "  From " << sp.minv()
+          << " to " << sp.maxv() << std::endl;
+    }
+
+    EXPECT_EQ(spans, (Array<Span<TimeStamp>>{
+      Span<TimeStamp>(t(0), t(1))
+    }));
+  }
 }
