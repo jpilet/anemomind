@@ -107,7 +107,7 @@ angular.module('www2App')
           sailNumber: data.sailNumber,
           length: data.length,
         };
-      }
+      };
 
       $scope.sortBy = function(sort) {
         $scope.reverse = ($scope.defaultOrder === sort) ? !$scope.reverse : false;
@@ -117,7 +117,7 @@ angular.module('www2App')
       $scope.selectChallenge = function(index, challenge) {
         $scope.selectedChallenge = index;
         $scope.challengeName = challenge.name;
-      }
+      };
 
       // Selects the first data to
       // automatically display the table too
@@ -126,7 +126,7 @@ angular.module('www2App')
           return false;
 
         $scope.selectChallenge(0, challenge);
-      }
+      };
 
       $scope.showModal = function(data) { 
         ModalService.data = data;
@@ -138,7 +138,7 @@ angular.module('www2App')
             year: 3001
           }
         });
-      }
+      };
 
       // Responsive config for the Slick slider
       $scope.breakpoints = [
