@@ -15,7 +15,7 @@ angular.module('www2App')
             canvas: element.children()[0],
             token: Auth.getToken(),
             url: function(scale, x, y) { 
-              return '/assets/leman/'
+              return '/osm/'
                 + scale + "/" + x + "/" + y
                 + '.png';
               /*

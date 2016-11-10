@@ -66,10 +66,15 @@ function getCanvas(width, height, name, cb) {
       canvas: canvas,
       forceDevicePixelRatio: 1,
       url: function(scale, x, y) { 
-              return localImagePath + '/assets/leman/'
+        // let the query go through our proxy
+        return 'http://localhost:9000/osm/'
                 + scale + "/" + x + "/" + y
                 + '.png';
-        /*
+
+        // direct file access is also possible
+        //return localImagePath + '/assets/leman/'
+
+        /* or direct internet access
         var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
         return "http://stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
           + scale + "/" + x + "/" + y + ".png";
