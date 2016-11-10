@@ -15,14 +15,15 @@ Array<int> listAllBounds(const Array<TimeStamp> &times,
   ArrayBuilder<int> gaps;
   gaps.add(0);
 
+  int n = times.size();
   for (int i = 0; i < times.size() - 1; i++) {
     if (times[i+1] - times[i] > thresh) {
       gaps.add(i+1);
     }
   }
 
-  if (gaps.last() != gaps.size()) {
-    gaps.add(gaps.size());
+  if (gaps.last() != n) {
+    gaps.add(n);
   }
   return gaps.get();
 }

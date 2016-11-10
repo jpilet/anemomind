@@ -7,6 +7,7 @@
 
 #include <server/common/TimedValueUtils.h>
 #include <gtest/gtest.h>
+#include <server/common/ArrayIO.h>
 
 using namespace sail;
 
@@ -19,6 +20,8 @@ namespace {
 }
 
 TEST(TimedValueUtils, TestIt) {
-  EXPECT_EQ((Array<int>{0, 3, 4}),
-      listAllBounds({t(0), t(1), t(2), t(3), t(9)}, 2.0_s));
+  auto bds = listAllBounds({t(0), t(1), t(2), t(3), t(9)}, 2.0_s);
+  std::cout << "Got these bounds: " << bds << std::endl;
+  EXPECT_EQ((Array<int>{0, 4, 5}),
+      bds);
 }
