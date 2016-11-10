@@ -21,7 +21,6 @@ namespace {
 
 TEST(TimedValueUtils, TestIt) {
   auto bds = listAllBounds({t(0), t(1), t(2), t(3), t(9)}, 2.0_s);
-  std::cout << "Got these bounds: " << bds << std::endl;
-  EXPECT_EQ((Array<int>{0, 4, 5}),
-      bds);
+  EXPECT_EQ((Array<int>{0, 4, 5}), bds);
+  EXPECT_EQ((Array<int>{0}), (listAllBounds({}, 2.0_s)));
 }
