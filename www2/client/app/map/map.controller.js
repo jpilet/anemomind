@@ -19,7 +19,7 @@ function vmgAtPoint(p) {
 }
 
 angular.module('www2App')
-  .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
+  .controller('MapCtrl', function ($scope, $stateParams, userDB, boatList, $timeout,
                                    $http, $interval, $state, $location) {
 
     var defaultColor = '#FF0033';
@@ -54,30 +54,41 @@ angular.module('www2App')
     // I think this will be used if someone will code for the social media sharing?
     $scope.iconList = [
       {
-        name: 'linkedin',
-        url: '#'
+        name:'facebook',
+        icon:'fa-facebook',
+        url: 'https://www.facebook.com/sharer/sharer.php?u=',
+        use:true
       },
       {
-        name: 'facebook',
-        url: '#'
+        name: 'linkedin',
+        icon:'fa-linkedin',
+        url: 'https://www.linkedin.com/shareArticle?mini=true&url=',//&title=_TITLE_&summary=_TXT_'
+        use:false
       },
       {
         name: 'pinterest',
-        url: '#'
+        url: '#',
+        use:false
       },
       {
         name: 'twitter',
-        url: '#'
+        icon:'fa-twitter',
+        url: 'https://twitter.com/home?status=',
+        use:true
       },
       {
         name: 'google',
-        url: '#'
+        icon:'fa-google-plus',
+        url: 'https://plus.google.com/share?url=',
+        use:true
       },
       {
         name: 'mail',
-        url: '#'
+        url: '#',
+        use:false
       }
     ];
+    $scope.selectedIcon=$scope.iconList[0];
 
     $scope.tabs = [
       {
@@ -173,16 +184,30 @@ angular.module('www2App')
     // Catches browser history navigation events (back,..)
     $scope.$on('$locationChangeSuccess', parseParams);
 
-    $http.get('/api/boats/' + $stateParams.boatId)
-    .success(function(data, status, headers, config) {
-      $scope.boat = data;
-
+    boatList.boats().then(function (boats) {
       var aveSpeedText = '32 Kts';
       var windBlowedText = '22 Kts';
       var performanceText = '91%';
-      $scope.shareText = $scope.boat.name+' and her team made a great performance with an average speed of '+aveSpeedText+'. The wind blowed at '+windBlowedText+'. Anemomind calculated a global performance of '+performanceText+'.';
-      $scope.shareText += '\n\nAdd text ...'
+      $scope.boat=boatList.boat($stateParams.boatId);
+      $scope.sharedLink=$location.absUrl();
+      $scope.shareText = 'Share '+$scope.boat.name+' and her team performance';
     });
+
+    $scope.changePublicAccess=function() {
+      $scope.boat.publicAccess = ! $scope.boat.publicAccess;      
+      boatList.save($stateParams.boatId, $scope.boat)
+        .success(function(boat) { 
+          $scope.boat = boat; 
+        });
+    };
+
+    $scope.goShare=function(icon){
+      window.open(icon.url+$scope.sharedLink, "_new");
+    };
+
+    $scope.selecteIcon=function(icon){
+      $scope.selectedIcon=icon;
+    }
 
     $scope.eventList = [];
     $scope.users = {};

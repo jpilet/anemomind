@@ -38,17 +38,26 @@
     padding: 0.2em 0;
 }
 
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Chrome/Safari/Opera */
+     -khtml-user-select: none; /* Konqueror */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  not supported by any browser */
+}
+
 /**
  * Anemomind-specific styles
  */
 
- html, body, .angular-leaflet-map {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-  }
-
+html, body, .angular-leaflet-map {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
 
 /* NEW CSS VERSION */
 html {
@@ -144,5 +153,3 @@ p {
   right: 0;
   left:0;
 }
-
-

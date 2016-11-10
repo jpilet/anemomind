@@ -107,7 +107,7 @@ angular.module('www2App')
           sailNumber: data.sailNumber,
           length: data.length,
         };
-      }
+      };
 
       $scope.sortBy = function(sort) {
         $scope.reverse = ($scope.defaultOrder === sort) ? !$scope.reverse : false;
@@ -117,9 +117,18 @@ angular.module('www2App')
       $scope.selectChallenge = function(index, challenge) {
         $scope.selectedChallenge = index;
         $scope.challengeName = challenge.name;
-      }
+      };
 
-      $scope.showModal = function(data) {        
+      // Selects the first data to
+      // automatically display the table too
+      $scope.defaultChallenge = function(first, challenge) {
+        if(!first)
+          return false;
+
+        $scope.selectChallenge(0, challenge);
+      };
+
+      $scope.showModal = function(data) { 
         ModalService.data = data;
         ModalService.showModal({
           templateUrl: "app/share/share.html",
@@ -129,5 +138,27 @@ angular.module('www2App')
             year: 3001
           }
         });
-      }
+      };
+
+      // Responsive config for the Slick slider
+      $scope.breakpoints = [
+        {
+          breakpoint: 768,
+          settings: {
+            slidesToShow: 3
+          }
+        },
+        {
+          breakpoint: 480,
+          settings: {
+            slidesToShow: 2
+          }
+        },
+        {
+          breakpoint: 380,
+          settings: {
+            slidesToShow: 1
+          }
+        }
+      ];
   });
