@@ -84,8 +84,8 @@ module.exports = function(app) {
 	  	// TODO make this information more accurate
 		  var model={
 		    url:hostname+req.url,
-		    title:'New session for '+boat.name,
-		    description:"From "+new Date(start).toDateString(),
+		    title:'Boat '+boat.name+' navigation on '+new Date(start).toDateString(),
+		    description:'Boat '+boat.name+' navigation on '+new Date(start).toDateString(),
 		    img:hostname+ogImg,
 		    w:width,
 		    h:height
