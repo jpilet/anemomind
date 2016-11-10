@@ -708,12 +708,33 @@ Array<TimedValue<HorizontalMotion<double>>> filterMotions(
   return motions.slice(mask);
 }
 
+template <typename T>
+void accumulateTimeStamps(ArrayBuilder<TimeStamp> *dst,
+    const Array<TimedValue<T>> &src) {
+  for (auto x: src) {
+    dst->add(x.time);
+  }
+}
+
+Array<int> listGaps()
+
+Array<TimeStamp> listAllTimes(
+    const Array<TimedValue<GeographicPosition<double>>> &positions,
+    const Array<TimedValue<HorizontalMotion<double>>> &motions) {
+  ArrayBuilder<TimeStamp> dst(positions.size() + motions.size());
+  accumulateTimeStamps(&dst, positions);
+  accumulateTimeStamps(&dst, motions);
+  return dst.get();
+}
+
 Array<EcefCurve> filterAndSegment(
     const Array<TimedValue<GeographicPosition<double>>> &allPositionData,
     const Array<TimedValue<HorizontalMotion<double>>> &allMotionData,
     Settings settings) {
   auto cleanPositions = filterPositions(allPositionData, settings);
   auto cleanMotions = filterMotions(allMotionData, settings);
+
+  auto times = listAllTimes(cleanPositions, cleanMotions);
 
   // Split into smaller curves
 
