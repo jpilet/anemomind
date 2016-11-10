@@ -690,12 +690,30 @@ Array<TimedValue<GeographicPosition<double>>> filterPositions(
   return positions.slice(mask);
 }
 
+Array<TimedValue<HorizontalMotion<double>>> filterMotions(
+    const Array<TimedValue<HorizontalMotion<double>>> &motions,
+    const Settings &settings) {
+  auto mps2 = 1.0_m/(1.0_s*1.0_s);
+
+  Duration<double> timeReg =
+      settings.maxVelocityQuantizationError/settings.maxAcceleration;
+  Array<bool> mask = DiscreteOutlierFilter::identifyOutliers<
+      HorizontalMotion<double>>(
+          motions,
+          [&](const TimedValue<HorizontalMotion<double>> &a,
+              const TimedValue<HorizontalMotion<double>> &b) {
+    return double(HorizontalMotion<double>(a.value - b.value).norm().metersPerSecond()
+            /(fabs(a.time - b.time) + timeReg).seconds());
+  }, settings.timeBackSteps, double(settings.maxAcceleration/mps2));
+  return motions.slice(mask);
+}
+
 Array<EcefCurve> filterAndSegment(
     const Array<TimedValue<GeographicPosition<double>>> &allPositionData,
     const Array<TimedValue<HorizontalMotion<double>>> &allMotionData,
     Settings settings) {
   auto cleanPositions = filterPositions(allPositionData, settings);
-  //auto cleanMotions = filterMotions(allMotionData, settings);
+  auto cleanMotions = filterMotions(allMotionData, settings);
 
   // Split into smaller curves
 
