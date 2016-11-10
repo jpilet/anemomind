@@ -142,6 +142,7 @@ height:100%;
 .mainControl .boat-name label,
 .mainControl .share-boat-holder span {
   color: #ed1a28;
+  vertical-align:sub;
 }
 .mainControl .boat-name label {
   margin-bottom: 0;
