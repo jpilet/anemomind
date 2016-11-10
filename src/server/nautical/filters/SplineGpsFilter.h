@@ -31,6 +31,8 @@ struct Settings {
 
   Duration<double> outlierCutThreshold = 1.0_minutes;
 
+  Duration<double> maxGap = 1.0_minutes;
+
   Velocity<double> maxSpeed = 100.0_kn;
   QuantityPerQuantity<Velocity<double>, Duration<double>>
     maxAcceleration = 100.0_kn/1.0_s;

@@ -14,6 +14,7 @@
 #include <server/common/DiscreteOutlierFilter.h>
 #include <server/math/nonlinear/SpatialMedian.h>
 #include <server/math/SplineUtils.h>
+#include <server/common/TimedValueUtils.h>
 
 namespace sail {
 namespace SplineGpsFilter {
@@ -716,8 +717,6 @@ void accumulateTimeStamps(ArrayBuilder<TimeStamp> *dst,
   }
 }
 
-Array<int> listGaps()
-
 Array<TimeStamp> listAllTimes(
     const Array<TimedValue<GeographicPosition<double>>> &positions,
     const Array<TimedValue<HorizontalMotion<double>>> &motions) {
@@ -735,8 +734,12 @@ Array<EcefCurve> filterAndSegment(
   auto cleanMotions = filterMotions(allMotionData, settings);
 
   auto times = listAllTimes(cleanPositions, cleanMotions);
+  auto timeSpans = listTimeSpans(times, settings.maxGap);
 
-  // Split into smaller curves
+  //visitTimesAndSpans(allPositionData, );
+
+  // Finn sammanhänande kurvor.
+  // Droppa kurvor utan GPS-data
 
   // Filter all curves, together, in closed form.
 

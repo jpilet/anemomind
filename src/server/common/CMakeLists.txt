@@ -461,3 +461,11 @@ cxx_test(common_DiscreteOutlierFilterTest
   common_DiscreteOutlierFilter
   common_TimeStamp
   )
+
+add_library(common_TimedValueUtils
+  TimedValueUtils.h
+  TimedValueUtils.cpp
+  )
+target_link_libraries(common_TimedValueUtils
+  common_TimeStamp
+  )
