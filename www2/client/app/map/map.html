@@ -5,9 +5,9 @@
       <div class="map" ng-show="mapActive">
         <i class="anemomind-icon close-btn" onclick="window.location='/'">&nbsp;</i>
         <div class="mainControl">
-          <div class="section heading">
-            <div class="boat-name">
-              <label>{{boat.name}}</label>
+          <div class="section heading" >
+            <div class="boat-name" boat-fix-title-size>
+              <label class="fixed-size">{{boat.name}}</label>
             </div>
             <div class="share-boat">
               <div class="share-boat-holder">
@@ -26,9 +26,9 @@
                 <i class="anemomind-icon">&nbsp;</i>
               </button>
             </div>
-            <i class="anemomind-icon cut-before" ng-click="cutBefore()" title="Cut Before">&nbsp;</i>
-            <i class="anemomind-icon cut-after" ng-click="cutAfter()" title="Cut After">&nbsp;</i>
-            <i class="anemomind-icon split" ng-click="" title="Split"></i>
+            <i class="anemomind-icon cut-before" ng-click="cutBefore()" title="Cut Before" show-if="admin" show-boat="boat">&nbsp;</i>
+            <i class="anemomind-icon cut-after" ng-click="cutAfter()" title="Cut After" show-if="admin" show-boat="boat">&nbsp;</i>
+            <i class="anemomind-icon split" ng-click="" title="Split" show-if="admin" show-boat="boat"></i>
             <i class="anemomind-icon jump-prev" ng-click="" title="Jump Previous">&nbsp;</i>
             <i class="anemomind-icon jump-next" ng-click="" title="Jump Next">&nbsp;</i>
           </div>
@@ -126,7 +126,6 @@
           </div>
         </div>
 
-        
         <div class="vectorMapContainer" vectormap></div>
       </div>
 
