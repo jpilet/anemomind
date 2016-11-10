@@ -7,7 +7,6 @@
 
 #include <server/common/TimedValueUtils.h>
 #include <gtest/gtest.h>
-#include <server/common/ArrayIO.h>
 
 using namespace sail;
 
@@ -23,4 +22,10 @@ TEST(TimedValueUtils, TestIt) {
   auto bds = listAllBounds({t(0), t(1), t(2), t(3), t(9)}, 2.0_s);
   EXPECT_EQ((Array<int>{0, 4, 5}), bds);
   EXPECT_EQ((Array<int>{0}), (listAllBounds({}, 2.0_s)));
+
+  auto spans = listTimeSpans({t(0), t(1), t(4), t(5)}, 2.0_s, true);
+  EXPECT_EQ(spans, (Array<Span<TimeStamp>>{
+    Span<TimeStamp>(t(0), t(1)),
+    Span<TimeStamp>(t(4), t(5))
+  }));
 }
