@@ -319,7 +319,7 @@ class Array {
     return dst;
   }
 
-  ThisType slice(Array<bool> incl) {
+  ThisType slice(Array<bool> incl) const {
     assert(incl.size() == _size);
     ThisType Y(_size);
     int counter = 0;

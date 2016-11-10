@@ -671,6 +671,40 @@ Array<EcefCurve> filter(
   return resultCurves;
 }
 
+Array<TimedValue<GeographicPosition<double>>> filterPositions(
+    const Array<TimedValue<GeographicPosition<double>>> &positions,
+    const Settings &settings) {
+
+  Duration<double> timeReg =
+      settings.maxLengthQuantizationError/settings.maxSpeed;
+
+  Array<bool> mask = DiscreteOutlierFilter::identifyOutliers<
+      GeographicPosition<double>>(
+      positions,
+      [&](const TimedValue<GeographicPosition<double>> &a,
+          const TimedValue<GeographicPosition<double>> &b) {
+        return (distance<double>(a.value, b.value)
+            /(fabs(a.time - b.time) + timeReg))
+            .metersPerSecond();
+      }, settings.timeBackSteps, settings.maxSpeed.metersPerSecond());
+  return positions.slice(mask);
+}
+
+Array<EcefCurve> filterAndSegment(
+    const Array<TimedValue<GeographicPosition<double>>> &allPositionData,
+    const Array<TimedValue<HorizontalMotion<double>>> &allMotionData,
+    Settings settings) {
+  auto cleanPositions = filterPositions(allPositionData, settings);
+  //auto cleanMotions = filterMotions(allMotionData, settings);
+
+  // Split into smaller curves
+
+  // Filter all curves, together, in closed form.
+
+  // Return
+
+}
+
 
 
 }

@@ -35,7 +35,15 @@ struct Settings {
   QuantityPerQuantity<Velocity<double>, Duration<double>>
     maxAcceleration = 100.0_kn/1.0_s;
 
+  Length<double> maxLengthQuantizationError = 100.0_m;
+  Velocity<double> maxVelocityQuantizationError = 2.0_kn;
+
   OutlierRejector::Settings positionSettings() const;
+
+  Array<Duration<double>> timeBackSteps = {
+      1.0_s, 2.0_s, 4.0_s, 8.0_s, 15.0_s, 30.0_s, 1.0_minutes,
+      2.0_minutes, 4.0_minutes, 8.0_minutes, 16.0_minutes
+  };
 };
 
 class EcefCurve {
@@ -63,6 +71,11 @@ Array<EcefCurve> filter(
     const Array<TimedValue<GeographicPosition<double>>> &positionData,
     const Array<TimedValue<HorizontalMotion<double>>> &motionData,
     const Array<TimeMapper> &segments,
+    Settings settings);
+
+Array<EcefCurve> filterAndSegment(
+    const Array<TimedValue<GeographicPosition<double>>> &allPositionData,
+    const Array<TimedValue<HorizontalMotion<double>>> &allMotionData,
     Settings settings);
 
 }
