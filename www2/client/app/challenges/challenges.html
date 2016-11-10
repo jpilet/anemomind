@@ -12,7 +12,8 @@
             <div class="panel-body challenge-container is-slick-slider" breakpoints="breakpoints">
                 <div class="challenge" ng-repeat="challenge in challenges">
                     <div class="circle {{challenge.classes}}" 
-                        ng-class="{'selected' : selectedChallenge == $index}"
+                        ng-class="{'selected' : selectedChallenge == $index, 'default-challenge' : $first }"
+                        ng-init="defaultChallenge($first, challenge)"
                         ng-click="selectChallenge($index, challenge)">
                         <label 
                         ng-class="{'km' : challenge.name.indexOf('km') > -1, 

@@ -119,6 +119,15 @@ angular.module('www2App')
         $scope.challengeName = challenge.name;
       }
 
+      // Selects the first data to
+      // automatically display the table too
+      $scope.defaultChallenge = function(first, challenge) {
+        if(!first)
+          return false;
+
+        $scope.selectChallenge(0, challenge);
+      }
+
       $scope.showModal = function(data) { 
         ModalService.data = data;
         ModalService.showModal({
