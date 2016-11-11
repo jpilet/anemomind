@@ -247,6 +247,7 @@ TEST(SplineGpsFilter, TestIt4) {
   EXPECT_EQ(1, curves.size());
   testGpsPos(curves[0], makeTPos(0.0, 0.0, 9.0), 1.0);
   testGpsPos(curves[0], makeTPos(1.0, 0.0, 11.0), 1.0);
+  testGpsPos(curves[0], makeTPos(0.5, 0.0, 10.0), 1.0);
   auto motion = curves[0].evaluateHorizontalMotion(offset + 0.5_s);
   //EXPECT_NEAR(motion[0].metersPerSecond(), 0.0, 1.0e-2);
   //EXPECT_NEAR(motion[1].metersPerSecond(), 2.0, 1.0e-2);
