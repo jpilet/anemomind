@@ -860,6 +860,8 @@ void addPositionTerms2d(
   for (auto p: pos) {
     auto u = geoRef.map(p.value);
     double xy[2] = {u[0].meters(), u[1].meters()};
+    std::cout << "Add position at " <<
+        xy[0] << ", " << xy[1] << std::endl;
     dst->addCost(0, 1.0, p.time, xy);
   }
 }
@@ -889,18 +891,31 @@ EcefCurve make3dCurve(const TimeMapper &m,
       getCol(XYcoefs, 0),
       getCol(XYcoefs, 1)
   };
+
+  for (int i = 0; i < 2; i++) {
+    std::cout << "XY(" << i << ") = " << XY[i] << std::endl;
+  }
+
+  std::cout << "EVALUATE IT NOW!!!" << std::endl;
+
   MDArray2d dst(rows, 3);
   for (int i = 0; i < rows; i++) {
+    auto weights = basis.build(i);
+    std::cout << "Weights = " << weights << std::endl;
     double xy[2] = {
-        basis.evaluate(XY[0].ptr(), i),
-        basis.evaluate(XY[1].ptr(), i),
+        weights.evaluate(XY[0].ptr()),
+        weights.evaluate(XY[1].ptr()),
     };
+    std::cout << "xy(" << i << ") = "
+        << xy[0] << ", " << xy[1] << std::endl;
     auto xyz = ECEF::convert(geoRef.unmap({xy[0]*1.0_m, xy[1]*1.0_m}));
     for (int j = 0; j < 3; j++) {
-      dst(i, j) = xyz.xyz[j].meters();
+      auto v = xyz.xyz[j].meters();
+      dst(i, j) = v;
     }
   }
-  return EcefCurve(m, basis, dst);
+
+  return EcefCurve(m, basis, computeSplineCoefs(dst));
 }
 
 EcefCurve filterOneCurve2d(const CurveData &data,
@@ -912,10 +927,16 @@ EcefCurve filterOneCurve2d(const CurveData &data,
 
   problem.addRegularization(1, settings.wellPosednessReg);
   problem.addRegularization(2, settings.regWeight);
-  addPositionTerms2d(&problem, ref, data.positions);
   addMotionTerms2d(&problem, data.motions);
+  std::cout << "Now the problem is \n";
+  problem.disp();
+  std::cout << "--------Add positions: " << std::endl;
+  addPositionTerms2d(&problem, ref, data.positions);
 
   auto XY = problem.solve();
+
+  std::cout << "XY = \n" << XY << std::endl;
+
   if (XY.empty()) {
     return EcefCurve();
   }

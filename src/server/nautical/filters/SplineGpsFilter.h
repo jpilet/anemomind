@@ -27,7 +27,7 @@ struct Settings {
   // Old stuff
   Length<double> inlierThreshold = 12.0_m;
   double regWeight = 1; //10.0;
-  double stabilizerWeight = 1.0e-12;
+  double stabilizerWeight = 1.0e-9;
   BandedLevMar::Settings lmSettings;
 
 

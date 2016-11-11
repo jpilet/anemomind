@@ -14,6 +14,9 @@
 
 namespace sail {
 
+std::ostream &operator<<(std::ostream &s,
+    SmoothBoundarySplineBasis<double, 3>::Weights w);
+
 Arrayd fitSplineCoefs(
     const SmoothBoundarySplineBasis<double, 3> &basis,
     std::function<double(int)> sampleFun);
@@ -42,6 +45,9 @@ public:
   SplineFittingProblem(
       const TimeMapper &mapper,
       int dim);
+
+  SplineFittingProblem(int n, int dim);
+
   void addCost(
       int order,
       double weight,
@@ -56,6 +62,8 @@ public:
   MDArray2d solve();
 
   Basis basis(int i = 0) const;
+
+  void disp() const;
 private:
   static const int N = 4;
   TimeMapper _mapper;
@@ -64,7 +72,11 @@ private:
 
   SymmetricBandMatrixL<double> _A;
   MDArray2d _B;
+
+  void initialize(int n, int dim, double k);
 };
+
+MDArray2d computeSplineCoefs(const MDArray2d &splineSamples);
 
 }
 

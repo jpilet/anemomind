@@ -11,34 +11,47 @@
 
 namespace sail {
 
+std::ostream &operator<<(std::ostream &s,
+    SmoothBoundarySplineBasis<double, 3>::Weights w) {
+  s << "Weights(";
+  for (int i = 0; i < w.dim; i++) {
+    s << " i=" << w.inds[i] << " w=" << w.weights[i] << ", ";
+  }
+  s << ")";
+  return s;
+}
+
 void accumulateNormalEqs(
+    double weight,
     const SmoothBoundarySplineBasis<double, 3>::Weights &w,
     int dim,
     const double *y,
     SymmetricBandMatrixL<double> *lhs,
     MDArray2d *rhs) {
+  double w2 = sqr(weight);
   for (int i = 0; i < w.dim; i++) {
     if (w.isSet(i)) {
       for (int j = 0; j < w.dim; j++) {
         if (w.isSet(j)) {
           int I = w.inds[i];
           int J = w.inds[j];
-          lhs->add(I, J, w.weights[i]*w.weights[j]);
+          lhs->add(I, J, w2*w.weights[i]*w.weights[j]);
         }
       }
       for (int j = 0; j < dim; j++) {
-        (*rhs)(w.inds[i], j) += w.weights[i]*y[j];
+        (*rhs)(w.inds[i], j) += w2*w.weights[i]*y[j];
       }
     }
   }
 }
 
 void accumulateNormalEqs(
+    double weight,
     const SmoothBoundarySplineBasis<double, 3>::Weights &w,
     double y,
     SymmetricBandMatrixL<double> *lhs,
     MDArray2d *rhs) {
-  accumulateNormalEqs(w, 1, &y, lhs, rhs);
+  accumulateNormalEqs(weight, w, 1, &y, lhs, rhs);
 }
 
 Arrayd fitSplineCoefs(
@@ -49,7 +62,7 @@ Arrayd fitSplineCoefs(
       n, SmoothBoundarySplineBasis<double, 3>::Weights::dim);
   auto rhs = MDArray2d(n, 1);
   for (int i = 0; i < n; i++) {
-    accumulateNormalEqs(basis.build(i), sampleFun(i), &lhs, &rhs);
+    accumulateNormalEqs(1.0, basis.build(i), sampleFun(i), &lhs, &rhs);
   }
   Pbsv<double>::apply(&lhs, &rhs);
   return rhs.getStorage();
@@ -78,7 +91,7 @@ TemporalSplineCurve::TemporalSplineCurve(
     double x = toLocal(src[k]);
     double y = dst[k];
     auto w = _basis.build(x);
-    accumulateNormalEqs(w, y, &lhs, &rhs);
+    accumulateNormalEqs(1.0, w, y, &lhs, &rhs);
   }
   Pbsv<double>::apply(&lhs, &rhs);
   _coefs = rhs.getStorage();
@@ -92,25 +105,40 @@ double TemporalSplineCurve::evaluate(TimeStamp t) const {
   return _basis.evaluate(_coefs.ptr(), toLocal(t));
 }
 
-SplineFittingProblem::SplineFittingProblem(
-    const TimeMapper &mapper, int dim) : _mapper(mapper),
-        _A(SymmetricBandMatrixL<double>::zero(
-            mapper.sampleCount,
-            Basis::Weights::dim)),
-        _B(mapper.sampleCount, dim) {
-  _bases[0] = SmoothBoundarySplineBasis<double, 3>(mapper.sampleCount);
+void SplineFittingProblem::initialize(int n, int dim, double k) {
+  _A = SymmetricBandMatrixL<double>::zero(
+                         n,
+                         Basis::Weights::dim);
+  _B = MDArray2d(n, dim);
+  _B.setAll(0.0);
+  _bases[0] = SmoothBoundarySplineBasis<double, 3>(n);
   _factors[0] = 1.0;
   for (int i = 1; i < 4; i++) {
     _bases[i] = _bases[i-1].derivative();
-    _factors[i] = (1.0/mapper.period.seconds())*_factors[i-1];
+    _factors[i] = k*_factors[i-1];
   }
+}
+
+SplineFittingProblem::SplineFittingProblem(
+    const TimeMapper &mapper, int dim) : _mapper(mapper) {
+  initialize(mapper.sampleCount, dim, 1.0/_mapper.period.seconds());
+}
+
+SplineFittingProblem::SplineFittingProblem(int n, int dim) {
+  initialize(n, dim, 1.0);
 }
 
 void SplineFittingProblem::addCost(int order,
     double weight,
     double x, double *y) {
+  std::cout << "Add cost at " << x << ": ";
+  for (int i = 0; i < _B.cols(); i++) {
+    std::cout << " " << y[i];
+  }
+  std::cout << std::endl;
+
   auto w = _bases[order].build(x);
-  accumulateNormalEqs(w, _B.cols(), y, &_A, &_B);
+  accumulateNormalEqs(weight, w, _B.cols(), y, &_A, &_B);
 }
 
 void SplineFittingProblem::addRegularization(int order, double weight) {
@@ -147,5 +175,33 @@ void SplineFittingProblem::addCost(
 SplineFittingProblem::Basis SplineFittingProblem::basis(int i) const {
   return _bases[i];
 }
+
+void SplineFittingProblem::disp() const {
+  std:cout << "Spline fitting problem:\n";
+  std::cout << " A = \n" << _A.makeDense() << std::endl;
+  std::cout << " B = \n" << _B << std::endl;
+}
+
+MDArray2d computeSplineCoefs(const MDArray2d &splineSamples) {
+  int rows = splineSamples.rows();
+  int cols = splineSamples.cols();
+  SplineFittingProblem problem(
+      rows, splineSamples.cols());
+  int dim = splineSamples.cols();
+  auto tmp = Array<double>::fill(cols, 0.0);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      tmp[j] = splineSamples(i, j);
+    }
+    problem.addCost(0, 1.0, i, tmp.ptr());
+  }
+  auto dst = problem.solve();
+
+  std::cout << "src: \n" << splineSamples << std::endl;
+  std::cout << "dst: \n" << dst << std::endl;
+
+  return dst;
+}
+
 
 } /* namespace sail */

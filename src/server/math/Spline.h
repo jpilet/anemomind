@@ -129,6 +129,16 @@ public:
       return weights[i] != T(0.0);
     }
 
+    T evaluate(const T *data) const {
+      T sum = T(0.0);
+      for (int i = 0; i < dim; i++) {
+        if (isSet(i)) {
+          sum += weights[i]*data[inds[i]];
+        }
+      }
+      return sum;
+    }
+
     bool add(int index, T value) {
       if (value == T(0.0)) {
         return true;
