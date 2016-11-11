@@ -254,10 +254,12 @@ TEST(SplineGpsFilter, TestIt4) {
 TEST(SplineGpsFilter, TestIt5) {
   Array<TimedValue<GeographicPosition<double>>> pos{
     makeTPos(0.0, 1.0, 0.0),
-    makeTPos(1.0, 3.0, 0.0)
+    makeTPos(1.0, 3.0, 0.0),
+    makeTPos(2.0, 5.0, 0.0)
   };
 
   SplineGpsFilter::Settings settings;
+  settings.samplingPeriod = 0.5_s;
   auto curves = segmentAndFilter(pos, {}, settings);
   auto k = curves[0].evaluateHorizontalMotion(offset + 0.5_s);
   std::cout << "k = " << k[0].metersPerSecond()

@@ -101,6 +101,7 @@ target_link_libraries(filters_SplineGpsFilter
   common_DiscreteOutlierFilter
   math_SplineUtils
   common_TimedValueUtils
+  nautical_GeographicReference
   )
 
 cxx_test(filters_SplineGpsFilterTest

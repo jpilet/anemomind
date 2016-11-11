@@ -7,6 +7,7 @@
 
 #include <server/math/SplineUtils.h>
 #include <server/math/lapack/BandWrappers.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -109,7 +110,7 @@ void SplineFittingProblem::addCost(int order,
     double weight,
     double x, double *y) {
   auto w = _bases[order].build(x);
-  accumulateNormalEqs(w, 3, y, &_A, &_B);
+  accumulateNormalEqs(w, _B.cols(), y, &_A, &_B);
 }
 
 void SplineFittingProblem::addRegularization(int order, double weight) {
@@ -120,6 +121,10 @@ void SplineFittingProblem::addRegularization(int order, double weight) {
 }
 
 MDArray2d SplineFittingProblem::solve() {
+
+  std::cout << "_A = \n" << _A.makeDense() << std::endl;
+  std::cout << "_B = \n" << _B << std::endl;
+
   MDArray2d result = _B;
   if (Pbsv<double>::apply(&_A, &_B)) {
     _A = SymmetricBandMatrixL<double>();
@@ -134,8 +139,9 @@ void SplineFittingProblem::addCost(
     int order,
     double weight,
     TimeStamp t, double *y) {
+  double x = _mapper.mapToReal(t);
   addCost(order, weight*_factors[order],
-      _mapper.mapToReal(t), y);
+      x, y);
 }
 
 SplineFittingProblem::Basis SplineFittingProblem::basis(int i) const {

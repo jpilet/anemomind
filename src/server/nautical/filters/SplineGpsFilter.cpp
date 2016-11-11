@@ -15,6 +15,7 @@
 #include <server/math/nonlinear/SpatialMedian.h>
 #include <server/math/SplineUtils.h>
 #include <server/common/TimedValueUtils.h>
+#include <server/nautical/GeographicReference.h>
 
 namespace sail {
 namespace SplineGpsFilter {
@@ -824,13 +825,19 @@ void addMotionTerms(SplineFittingProblem *dst,
   }
 }
 
-EcefCurve filterOneCurve(const CurveData &src,
+TimeMapper makeTimeMapper(const CurveData &src,
+    Duration<double> period) {
+  int n = int(ceil((src.timeSpan.maxv() - src.timeSpan.minv())
+      /period));
+  return TimeMapper(src.timeSpan.minv(),
+      period, n);
+}
+
+
+EcefCurve filterOneCurve3d(const CurveData &src,
     const Settings &settings) {
   CHECK(!src.positions.empty());
-
-  int n = int(ceil((src.timeSpan.maxv() - src.timeSpan.minv())
-      /settings.samplingPeriod));
-  TimeMapper mapper(src.timeSpan.minv(), settings.samplingPeriod, n);
+  auto mapper = makeTimeMapper(src, settings.samplingPeriod);
   SplineFittingProblem problem(mapper, 3);
 
   // No regularization for 0th order, because there is at l
@@ -846,13 +853,82 @@ EcefCurve filterOneCurve(const CurveData &src,
       solution);
 }
 
+void addPositionTerms2d(
+    SplineFittingProblem *dst,
+    const GeographicReference &geoRef,
+    const Array<TimedValue<GeographicPosition<double>>> &pos) {
+  for (auto p: pos) {
+    auto u = geoRef.map(p.value);
+    double xy[2] = {u[0].meters(), u[1].meters()};
+    dst->addCost(0, 1.0, p.time, xy);
+  }
+}
+
+void addMotionTerms2d(
+    SplineFittingProblem *dst,
+    const Array<TimedValue<HorizontalMotion<double>>> &motions) {
+  for (auto m: motions) {
+    double xy[2] = {
+        m.value[0].metersPerSecond(),
+        m.value[1].metersPerSecond()
+    };
+    dst->addCost(1, 1.0, m.time, xy);
+  }
+}
+
+Array<double> getCol(const MDArray2d &src, int i) {
+  return src.sliceCol(i).getStorage().sliceTo(src.rows());
+}
+
+EcefCurve make3dCurve(const TimeMapper &m,
+    const GeographicReference &geoRef,
+    const MDArray2d &XYcoefs) {
+  SmoothBoundarySplineBasis<double, 3> basis(m.sampleCount);
+  int rows = XYcoefs.rows();
+  Array<double> XY[2] = {
+      getCol(XYcoefs, 0),
+      getCol(XYcoefs, 1)
+  };
+  MDArray2d dst(rows, 3);
+  for (int i = 0; i < rows; i++) {
+    double xy[2] = {
+        basis.evaluate(XY[0].ptr(), i),
+        basis.evaluate(XY[1].ptr(), i),
+    };
+    auto xyz = ECEF::convert(geoRef.unmap({xy[0]*1.0_m, xy[1]*1.0_m}));
+    for (int j = 0; j < 3; j++) {
+      dst(i, j) = xyz.xyz[j].meters();
+    }
+  }
+  return EcefCurve(m, basis, dst);
+}
+
+EcefCurve filterOneCurve2d(const CurveData &data,
+    const Settings &settings) {
+  auto ref = GeographicReference(
+      data.positions[data.positions.middle()].value);
+  auto mapper = makeTimeMapper(data, settings.samplingPeriod);
+  SplineFittingProblem problem(mapper, 2);
+
+  problem.addRegularization(1, settings.wellPosednessReg);
+  problem.addRegularization(2, settings.regWeight);
+  addPositionTerms2d(&problem, ref, data.positions);
+  addMotionTerms2d(&problem, data.motions);
+
+  auto XY = problem.solve();
+  if (XY.empty()) {
+    return EcefCurve();
+  }
+  return make3dCurve(mapper, ref, XY);
+}
+
 Array<EcefCurve> filterEveryCurve(
     const Array<CurveData> &curveData,
     const Settings &settings) {
   int n = curveData.size();
   Array<EcefCurve> dst(n);
   for (int i = 0; i < n; i++) {
-    dst[i] = filterOneCurve(curveData[i], settings);
+    dst[i] = filterOneCurve2d(curveData[i], settings);
   }
   return dst;
 }
