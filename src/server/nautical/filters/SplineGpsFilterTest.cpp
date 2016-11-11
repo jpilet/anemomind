@@ -147,3 +147,17 @@ TEST(SplineGpsFilter, TestIt6) {
       0.0, offset + 2.0*middle), 0.001);
 }
 
+TEST(SplineGpsFilter, TestIt7) {
+  Array<TimedValue<GeographicPosition<double>>> pos{
+    makeTPos(0.0, 3.0, 4.0)
+  };
+  ArrayBuilder<TimedValue<HorizontalMotion<double>>> mot;
+  for (int i = 0; i < 9; i++) {
+    mot.add(makeTMot(i, 0.5, 1.0));
+  }
+
+  SplineGpsFilter::Settings settings;
+  auto curves = segmentAndFilter(pos, mot.get(), settings);
+  EXPECT_EQ(1, curves.size());
+}
+
