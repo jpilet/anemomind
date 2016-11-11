@@ -949,7 +949,7 @@ Array<EcefCurve> filterEveryCurve(
   int n = curveData.size();
   Array<EcefCurve> dst(n);
   for (int i = 0; i < n; i++) {
-    dst[i] = filterOneCurve2d(curveData[i], settings);
+    dst[i] = filterOneCurve3d(curveData[i], settings);
   }
   return dst;
 }

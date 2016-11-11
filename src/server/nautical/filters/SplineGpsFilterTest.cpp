@@ -265,8 +265,6 @@ TEST(SplineGpsFilter, TestIt5) {
   auto k = curves[0].evaluateHorizontalMotion(offset + 0.5_s);
   std::cout << "k = " << k[0].metersPerSecond()
       << ", " << k[1].metersPerSecond() << std::endl;
-  testGpsPos(curves[0], makeTPos(15.0, 0.0, 39.0), 10.0);
-
   testGpsPos(curve, makeTPos(0.0, 1.0, 0.0), 10.0);
   testGpsPos(curve, makeTPos(1.0, 3.0, 0.0), 10.0);
 
