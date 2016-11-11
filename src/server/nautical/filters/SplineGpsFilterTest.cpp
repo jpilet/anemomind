@@ -235,7 +235,7 @@ TEST(SplineGpsFilter, TestIt3) {
 TEST(SplineGpsFilter, TestIt4) {
   ArrayBuilder<TimedValue<GeographicPosition<double>>> pos0;
   for (int i = 0; i < 30; i++) {
-    pos0.add(makeTPos(i, 0.0, 2.0*i));
+    pos0.add(makeTPos(i, 0.0, 9.0 + 2.0*i));
   }
 
   auto pos = pos0.get();
@@ -244,7 +244,7 @@ TEST(SplineGpsFilter, TestIt4) {
   SplineGpsFilter::Settings settings;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(1, curves.size());
-  testGpsPos(curves[0], makeTPos(15.0, 0.0, 39.0), 10.0);
+  testGpsPos(curves[0], makeTPos(15.0, 0.0, 39.0), 0.01);
 
   auto motion = curves[0].evaluateHorizontalMotion(offset + 15.0_s);
   EXPECT_NEAR(motion[0].metersPerSecond(), 0.0, 0.05);
@@ -272,8 +272,9 @@ TEST(SplineGpsFilter, TestIt5) {
 TEST(SplineGpsFilter, TestIt6) {
   ArrayBuilder<TimedValue<GeographicPosition<double>>> pos0;
   int n = 30;
+  double offset = 9.0;
   for (int i = 0; i < n; i++) {
-    pos0.add(makeTPos(i, 0.0, 1.0 + 2*i));
+    pos0.add(makeTPos(i, 0.0, offset + 2*i));
   }
 
   auto pos = pos0.get();
@@ -284,6 +285,6 @@ TEST(SplineGpsFilter, TestIt6) {
   EXPECT_EQ(1, curves.size());
 
   int middle = double(n)/2.0;
-  testGpsPos(curves[0], makeTPos(middle, 0.0, 1.0 + 2.0*middle), 1.0);
+  testGpsPos(curves[0], makeTPos(middle, 0.0, offset + 2.0*middle), 1.0);
 }
 
