@@ -54,6 +54,16 @@ struct ECEF {
   }
 
   template <typename T>
+  static LLACoords<T, 0> geo2lla(
+      const GeographicPosition<T> &src) {
+    return LLACoords<T, 0>{
+      src.lon(),
+      src.lat(),
+      src.alt()
+    };
+  }
+
+  template <typename T>
   static ECEFCoords<T> convert(const LLACoords<T> &src) {
     T x, y, z;
     lla2ecef<T>(src.lon.radians(),
@@ -200,8 +210,6 @@ struct ECEF {
       Velocity<T>::metersPerSecond(xyz(2))
     };
   }
-
-
 };
 
 

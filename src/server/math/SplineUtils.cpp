@@ -119,12 +119,27 @@ void SplineFittingProblem::addRegularization(int order, double weight) {
   }
 }
 
+MDArray2d SplineFittingProblem::solve() {
+  MDArray2d result = _B;
+  if (Pbsv<double>::apply(&_A, &_B)) {
+    _A = SymmetricBandMatrixL<double>();
+    _B = MDArray2d();
+    return result;
+  }
+  LOG(ERROR) << "Failed to solve spline fitting problem";
+  return MDArray2d();
+}
+
 void SplineFittingProblem::addCost(
     int order,
     double weight,
     TimeStamp t, double *y) {
   addCost(order, weight*_factors[order],
       _mapper.mapToReal(t), y);
+}
+
+SplineFittingProblem::Basis SplineFittingProblem::basis(int i) const {
+  return _bases[i];
 }
 
 } /* namespace sail */

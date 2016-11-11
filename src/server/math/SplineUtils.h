@@ -52,6 +52,10 @@ public:
       TimeStamp t, double *y);
 
   void addRegularization(int order, double weight);
+
+  MDArray2d solve();
+
+  Basis basis(int i = 0) const;
 private:
   static const int N = 4;
   TimeMapper _mapper;

@@ -58,6 +58,10 @@ public:
       const TimeMapper &mapper,
       const SmoothBoundarySplineBasis<double, 3> &b,
       const double *coefs, int stride);
+  EcefCurve(
+        const TimeMapper &mapper,
+        const SmoothBoundarySplineBasis<double, 3> &b,
+        const MDArray2d &coefs);
 
   TimeStamp lower() const;
   TimeStamp upper() const;

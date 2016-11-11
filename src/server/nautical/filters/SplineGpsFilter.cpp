@@ -72,6 +72,17 @@ EcefCurve::EcefCurve(
   }
 }
 
+EcefCurve::EcefCurve(
+      const TimeMapper &mapper,
+      const SmoothBoundarySplineBasis<double, 3> &basis,
+      const MDArray2d &coefs) : _mapper(mapper),
+          _basis(basis) {
+  int rows = coefs.rows();
+  for (int i = 0; i < 3; i++) {
+    _coefs[i] = coefs.sliceCol(i).getStorage().sliceTo(rows);
+  }
+}
+
 TimeStamp EcefCurve::lower() const {
   return _mapper.unmap(_basis.raw().lowerDataBound());
 }
@@ -779,7 +790,34 @@ void addPositionTerms(
   }
 }
 
-EcefCurve filterOneCurve(const CurveData &src, const Settings &settings) {
+void addMotionTerm(
+    SplineFittingProblem *dst,
+    const TimedValue<HorizontalMotion<double>> &motion,
+    const TimedValue<GeographicPosition<double>> &position) {
+  auto xyz = ECEF::hMotionToXYZ<double>(
+      ECEF::geo2lla(position.value),
+      motion.value);
+}
+
+void addMotionTerms(SplineFittingProblem *dst,
+    const CurveData &data) {
+  auto positionTimes = getTimes(data.positions);
+  CHECK(!positionTimes.empty());
+  auto motionTimes = getTimes(data.motions);
+  auto closestPositions = findNearestTimePerTime(
+      motionTimes, positionTimes);
+  for (int i = 0; i < data.motions.size(); i++) {
+    addMotionTerm(
+        dst,
+        data.motions[i],
+        data.positions[closestPositions[i]]);
+  }
+}
+
+EcefCurve filterOneCurve(const CurveData &src,
+    const Settings &settings) {
+  CHECK(!src.positions.empty());
+
   int n = int(ceil((src.timeSpan.maxv() - src.timeSpan.minv())
       /settings.samplingPeriod));
   TimeMapper mapper(src.timeSpan.minv(), settings.samplingPeriod, n);
@@ -790,8 +828,12 @@ EcefCurve filterOneCurve(const CurveData &src, const Settings &settings) {
   problem.addRegularization(1, settings.wellPosednessReg);
   problem.addRegularization(2, settings.regWeight);
   addPositionTerms(&problem, src.positions);
-  //SmoothBoundarySplineBasis<double, 3> basis0(n);
-  //auto basis1 = basis0.derivative();
+  addMotionTerms(&problem, src);
+  auto solution = problem.solve();
+  return EcefCurve(
+      mapper,
+      problem.basis(),
+      solution);
 }
 
 Array<EcefCurve> filterEveryCurve(
