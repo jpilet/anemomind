@@ -171,6 +171,15 @@ namespace {
         offset + t*1.0_s,
         makePos(x, y));
   }
+
+  void testGpsPos(
+      const SplineGpsFilter::EcefCurve &curve,
+      const TimedValue<GeographicPosition<double>> &pos) {
+    auto p = curve.evaluateGeographicPosition(pos.time);
+    EXPECT_NEAR(p.lat().degrees(), pos.value.lat().degrees(), 1.0e-4);
+    EXPECT_NEAR(p.lon().degrees(), pos.value.lon().degrees(), 1.0e-4);
+    EXPECT_NEAR(p.alt().meters(), pos.value.alt().meters(), 0.01);
+  }
 }
 
 TEST(SplineGpsFilter, TestIt) {
@@ -183,5 +192,6 @@ TEST(SplineGpsFilter, TestIt) {
   SplineGpsFilter::Settings settings;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(1, curves.size());
+  testGpsPos(curves[0], makeTPos(2.0, 2.0, 0.0));
 }
 
