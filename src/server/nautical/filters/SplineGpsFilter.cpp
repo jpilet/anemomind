@@ -738,7 +738,9 @@ Array<Span<TimeStamp>> segmentRelevantTimeSpans(
       timeSpans, positionTimes);
   auto spanMask = Array<bool>::fill(timeSpans.size(), false);
   for (auto i: spanPerPosition) {
-    spanMask[i] = true;
+    if (i != -1) {
+      spanMask[i] = true;
+    }
   }
   return timeSpans.slice(spanMask);
 }
