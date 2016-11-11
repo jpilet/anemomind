@@ -51,15 +51,16 @@ Settings::Settings() {
   lmSettings.iters = 8;
 }
 
+void EcefCurve::initializeMotionBasis() {
+  _motionBasis = _basis.derivative().scale(
+      1.0/_mapper.period.seconds());
+}
+
 EcefCurve::EcefCurve(
     const TimeMapper &mapper,
     const SmoothBoundarySplineBasis<double, 3> &b,
-    const double *coefs, int stride) : _mapper(mapper), _basis(b),
-
-        // f(x) = g(x/T);
-        // f'(x) = g'(x/T)*(1/T)
-        _motionBasis(b.derivative().scale(1.0/mapper.period.seconds())) {
-
+    const double *coefs, int stride) : _mapper(mapper), _basis(b) {
+  initializeMotionBasis();
   int n = _mapper.sampleCount;
   for (int i = 0; i < 3; i++) {
     _coefs[i] = Array<double>::fill(n, 0.0);
@@ -77,6 +78,7 @@ EcefCurve::EcefCurve(
       const SmoothBoundarySplineBasis<double, 3> &basis,
       const MDArray2d &coefs) : _mapper(mapper),
           _basis(basis) {
+  initializeMotionBasis();
   int rows = coefs.rows();
   for (int i = 0; i < 3; i++) {
     _coefs[i] = coefs.sliceCol(i).getStorage().sliceTo(rows);

@@ -74,6 +74,8 @@ private:
   TimeMapper _mapper;
   SmoothBoundarySplineBasis<double, 3> _basis, _motionBasis;
   Array<double> _coefs[3];
+
+  void initializeMotionBasis();
 };
 
 Array<EcefCurve> filter(
