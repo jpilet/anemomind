@@ -267,6 +267,23 @@ TEST(SplineGpsFilter, TestIt5) {
       << ", " << k[1].metersPerSecond() << std::endl;
   testGpsPos(curve, makeTPos(0.0, 1.0, 0.0), 0.001);
   testGpsPos(curve, makeTPos(1.0, 3.0, 0.0), 0.001);
+}
 
+TEST(SplineGpsFilter, TestIt6) {
+  ArrayBuilder<TimedValue<GeographicPosition<double>>> pos0;
+  int n = 30;
+  for (int i = 0; i < n; i++) {
+    pos0.add(makeTPos(i, 0.0, 1.0 + 2*i));
+  }
+
+  auto pos = pos0.get();
+
+  //auto mot = mot0.get();
+  SplineGpsFilter::Settings settings;
+  auto curves = segmentAndFilter(pos, {}, settings);
+  EXPECT_EQ(1, curves.size());
+
+  int middle = double(n)/2.0;
+  testGpsPos(curves[0], makeTPos(middle, 0.0, 1.0 + 2.0*middle), 1.0);
 }
 
