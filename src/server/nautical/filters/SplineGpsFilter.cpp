@@ -709,43 +709,109 @@ Array<TimedValue<HorizontalMotion<double>>> filterMotions(
   return motions.slice(mask);
 }
 
-template <typename T>
-void accumulateTimeStamps(ArrayBuilder<TimeStamp> *dst,
-    const Array<TimedValue<T>> &src) {
-  for (auto x: src) {
-    dst->add(x.time);
+struct CurveData {
+  Array<TimedValue<GeographicPosition<double>>> positions;
+  Array<TimedValue<HorizontalMotion<double>>> motions;
+  Span<TimeStamp> timeSpan;
+};
+
+Array<Span<TimeStamp>> segmentRelevantTimeSpans(
+    const Array<TimeStamp> &positionTimes,
+    const Array<TimeStamp> &motionTimes,
+    Duration<double> maxGap) {
+  auto times = merge(positionTimes, motionTimes);
+  auto timeSpans = listTimeSpans(
+      times, maxGap, false);
+
+  auto spanPerPosition = getTimeSpanPerTimeStamp(
+      timeSpans, positionTimes);
+  auto spanMask = Array<bool>::fill(timeSpans.size(), false);
+  for (auto i: spanPerPosition) {
+    spanMask[i] = true;
+  }
+  return timeSpans.slice(spanMask);
+}
+
+
+Array<CurveData> segmentCurveData(const Array<TimedValue<GeographicPosition<double>>> &allPositionData,
+    const Array<TimedValue<HorizontalMotion<double>>> &allMotionData,
+    const Settings &settings) {
+  auto cleanPositions = filterPositions(allPositionData, settings);
+  auto cleanMotions = filterMotions(allMotionData, settings);
+  auto spans = segmentRelevantTimeSpans(
+      getTimes(cleanPositions),
+      getTimes(cleanMotions), settings.maxGap);
+  auto cutPositions = cutTimedValues(
+      cleanPositions.begin(), cleanPositions.end(),
+      spans);
+  auto cutMotions = cutTimedValues(
+      cleanMotions.begin(), cleanMotions.end(),
+      spans);
+  int spanCount = spans.size();
+  CHECK(cutPositions.size() == spanCount);
+  CHECK(cutMotions.size() == spanCount);
+  CHECK(cutPositions.size() == spanCount);
+  ArrayBuilder<CurveData> dst(spanCount);
+  for (int i = 0; i < spanCount; i++) {
+    auto p = cutPositions[i];
+    if (!p.empty()) {
+      dst.add(CurveData{
+        p,
+        cutMotions[i],
+        spans[i]
+      });
+    }
+  }
+  return dst.get();
+}
+
+void addPositionTerms(
+    SplineFittingProblem *problem,
+    const Array<TimedValue<GeographicPosition<double>>> &positions) {
+  for (auto p: positions) {
+    auto y = ECEF::convert(p.value);
+    double xyz[3] = {
+       y.xyz[0].meters(),
+       y.xyz[1].meters(),
+       y.xyz[2].meters()
+    };
+    problem->addCost(0, 1.0, p.time, xyz);
   }
 }
 
-Array<TimeStamp> listAllTimes(
-    const Array<TimedValue<GeographicPosition<double>>> &positions,
-    const Array<TimedValue<HorizontalMotion<double>>> &motions) {
-  ArrayBuilder<TimeStamp> dst(positions.size() + motions.size());
-  accumulateTimeStamps(&dst, positions);
-  accumulateTimeStamps(&dst, motions);
-  return dst.get();
+EcefCurve filterOneCurve(const CurveData &src, const Settings &settings) {
+  int n = int(ceil((src.timeSpan.maxv() - src.timeSpan.minv())
+      /settings.samplingPeriod));
+  TimeMapper mapper(src.timeSpan.minv(), settings.samplingPeriod, n);
+  SplineFittingProblem problem(mapper, 3);
+
+  // No regularization for 0th order, because there is at l
+  // least one position.
+  problem.addRegularization(1, settings.wellPosednessReg);
+  problem.addRegularization(2, settings.regWeight);
+  addPositionTerms(&problem, src.positions);
+  //SmoothBoundarySplineBasis<double, 3> basis0(n);
+  //auto basis1 = basis0.derivative();
+}
+
+Array<EcefCurve> filterEveryCurve(
+    const Array<CurveData> &curveData,
+    const Settings &settings) {
+  int n = curveData.size();
+  Array<EcefCurve> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = filterOneCurve(curveData[i], settings);
+  }
+  return dst;
 }
 
 Array<EcefCurve> filterAndSegment(
     const Array<TimedValue<GeographicPosition<double>>> &allPositionData,
-    const Array<TimedValue<HorizontalMotion<double>>> &allMotionData,
-    Settings settings) {
-  auto cleanPositions = filterPositions(allPositionData, settings);
-  auto cleanMotions = filterMotions(allMotionData, settings);
-
-  auto times = listAllTimes(cleanPositions, cleanMotions);
-  auto timeSpans = listTimeSpans(
-      times, settings.maxGap, false);
-
-  //visitTimesAndSpans(allPositionData, );
-
-  // Finn sammanhänande kurvor.
-  // Droppa kurvor utan GPS-data
-
-  // Filter all curves, together, in closed form.
-
-  // Return
-
+        const Array<TimedValue<HorizontalMotion<double>>> &allMotionData,
+        Settings settings) {
+  auto curveData = segmentCurveData(allPositionData, allMotionData,
+      settings);
+  return filterEveryCurve(curveData, settings);
 }
 
 

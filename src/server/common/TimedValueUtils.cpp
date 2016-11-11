@@ -76,4 +76,46 @@ Array<int> getTimeSpanPerTimeStamp(
   return dst;
 }
 
+Array<TimeStamp> merge(
+    const Array<TimeStamp> &a,
+    const Array<TimeStamp> &b) {
+  Array<TimeStamp> dst(a.size() + b.size());
+  std::merge(a.begin(), a.end(), b.begin(), b.end(), dst.begin());
+  return dst;
+}
+
+struct Cand {
+  int index;
+  TimeStamp time;
+
+  bool operator<(const Cand &other) const {
+    return time < other.time;
+  }
+};
+
+Array<int> findNearestTimePerTime(
+    const Array<TimeStamp> &src,
+    const Array<TimeStamp> &dst) {
+  if (dst.empty()) {
+    return Array<int>();
+  } else if (dst.size() == 1) {
+    return Array<int>::fill(src.size(), 0);
+  }
+
+  int spanCount = dst.size()-1;
+  int spanIndex = 0;
+  Array<int> result(src.size());
+  for (int i = 0; i < src.size(); i++) {
+    while (spanIndex < spanCount && dst[spanIndex+1] < src[i]) {
+      spanIndex++;
+    }
+    if (spanCount <= spanIndex) {
+      result.sliceFrom(i).setTo(spanCount);
+      break;
+    }
+    result[i] = std::min(Cand{i, dst[i]}, Cand{i+1, dst[i+1]}).index;
+  }
+  return result;
+}
+
 } /* namespace sail */

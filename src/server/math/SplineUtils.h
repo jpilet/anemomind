@@ -9,7 +9,8 @@
 #define SERVER_MATH_SPLINEUTILS_H_
 
 #include <server/math/Spline.h>
-#include <server/common/TimeStamp.h>
+#include <server/common/TimeMapper.h>
+#include <server/math/lapack/BandMatrix.h>
 
 namespace sail {
 
@@ -32,6 +33,33 @@ private:
   Duration<double> _period;
   SmoothBoundarySplineBasis<double, 3> _basis;
   Array<double> _coefs;
+};
+
+class SplineFittingProblem {
+public:
+  typedef SmoothBoundarySplineBasis<double, 3> Basis;
+
+  SplineFittingProblem(
+      const TimeMapper &mapper,
+      int dim);
+  void addCost(
+      int order,
+      double weight,
+      double x, double *y);
+  void addCost(
+      int order,
+      double weight,
+      TimeStamp t, double *y);
+
+  void addRegularization(int order, double weight);
+private:
+  static const int N = 4;
+  TimeMapper _mapper;
+  Basis _bases[N];
+  double _factors[N];
+
+  SymmetricBandMatrixL<double> _A;
+  MDArray2d _B;
 };
 
 }

@@ -11,7 +11,9 @@
 namespace sail {
 
 void accumulateNormalEqs(
-    const SmoothBoundarySplineBasis<double, 3>::Weights &w, double y,
+    const SmoothBoundarySplineBasis<double, 3>::Weights &w,
+    int dim,
+    const double *y,
     SymmetricBandMatrixL<double> *lhs,
     MDArray2d *rhs) {
   for (int i = 0; i < w.dim; i++) {
@@ -23,9 +25,19 @@ void accumulateNormalEqs(
           lhs->add(I, J, w.weights[i]*w.weights[j]);
         }
       }
-      (*rhs)(w.inds[i], 0) += w.weights[i]*y;
+      for (int j = 0; j < dim; j++) {
+        (*rhs)(w.inds[i], j) += w.weights[i]*y[j];
+      }
     }
   }
+}
+
+void accumulateNormalEqs(
+    const SmoothBoundarySplineBasis<double, 3>::Weights &w,
+    double y,
+    SymmetricBandMatrixL<double> *lhs,
+    MDArray2d *rhs) {
+  accumulateNormalEqs(w, 1, &y, lhs, rhs);
 }
 
 Arrayd fitSplineCoefs(
@@ -77,6 +89,42 @@ double TemporalSplineCurve::toLocal(TimeStamp x) const {
 
 double TemporalSplineCurve::evaluate(TimeStamp t) const {
   return _basis.evaluate(_coefs.ptr(), toLocal(t));
+}
+
+SplineFittingProblem::SplineFittingProblem(
+    const TimeMapper &mapper, int dim) : _mapper(mapper),
+        _A(SymmetricBandMatrixL<double>::zero(
+            mapper.sampleCount,
+            Basis::Weights::dim)),
+        _B(mapper.sampleCount, dim) {
+  _bases[0] = SmoothBoundarySplineBasis<double, 3>(mapper.sampleCount);
+  _factors[0] = 1.0;
+  for (int i = 1; i < 4; i++) {
+    _bases[i] = _bases[i-1].derivative();
+    _factors[i] = (1.0/mapper.period.seconds())*_factors[i-1];
+  }
+}
+
+void SplineFittingProblem::addCost(int order,
+    double weight,
+    double x, double *y) {
+  auto w = _bases[order].build(x);
+  accumulateNormalEqs(w, 3, y, &_A, &_B);
+}
+
+void SplineFittingProblem::addRegularization(int order, double weight) {
+  auto y = Array<double>::fill(_B.cols(), 0.0);
+  for (int i = 0; i < _mapper.sampleCount; i++) {
+    addCost(order, weight, i, y.ptr());
+  }
+}
+
+void SplineFittingProblem::addCost(
+    int order,
+    double weight,
+    TimeStamp t, double *y) {
+  addCost(order, weight*_factors[order],
+      _mapper.mapToReal(t), y);
 }
 
 } /* namespace sail */
