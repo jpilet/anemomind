@@ -285,6 +285,6 @@ TEST(SplineGpsFilter, TestIt6) {
   EXPECT_EQ(1, curves.size());
 
   int middle = double(n)/2.0;
-  testGpsPos(curves[0], makeTPos(middle, 0.0, offset + 2.0*middle), 1.0);
+  testGpsPos(curves[0], makeTPos(middle, 0.0, offset + 2.0*middle), 0.001);
 }
 
