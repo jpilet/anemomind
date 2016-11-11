@@ -171,6 +171,18 @@ class Array {
     return arr;
   }
 
+  template <typename Iterator>
+  static ThisType fromRange(Iterator begin, Iterator end) {
+    int n = std::distance(begin, end);
+    ThisType dst(n);
+    auto iter = begin;
+    for (int i = 0; i < n; i++) {
+      dst[i] = *iter;
+      iter++;
+    }
+    return dst;
+  }
+
   template <typename S>
   static ThisType makeArrayCopy(S &X) {
     int count = X.size();

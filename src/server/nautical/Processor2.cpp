@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <server/nautical/calib/Reconstructor.h>
 #include <server/html/HtmlDispatcher.h>
+#include <server/nautical/filters/SplineGpsFilter.h>
 
 namespace sail {
 namespace Processor2 {
@@ -262,6 +263,18 @@ std::set<DataCode> usefulChannels{
   ORIENT
 };
 
+
+Array<SplineGpsFilter::EcefCurve> getFilteredGpsCurves(
+    const NavDataset &ds,
+    const SplineGpsFilter::Settings &settings) {
+  auto posSamples = ds.samples<GPS_POS>();
+  auto positions = Array<TimedValue<GeographicPosition<double>>>
+      ::fromRange(posSamples.begin(), posSamples.end());
+  auto motions = GpsUtils::getGpsMotions(ds);
+  return SplineGpsFilter::segmentAndFilter(
+      positions, motions, settings);
+}
+
 bool process(
     const Settings &settings,
     NavDataset dataset) {
@@ -285,6 +298,8 @@ bool process(
   auto filteredTimeStamps = getTimeStamps(
       allFilteredPositions.begin(),
       allFilteredPositions.end());
+
+  auto curves = getFilteredGpsCurves(dataset, settings.gpsSettings);
 
   auto smallSessions = Processor2::segmentSubSessions(
       filteredTimeStamps, settings.subSessionCut);

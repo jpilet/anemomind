@@ -14,6 +14,7 @@
 #include <device/anemobox/Dispatcher.h>
 #include <server/nautical/calib/Reconstructor.h>
 #include <server/common/DOMUtils.h>
+#include <server/nautical/filters/SplineGpsFilter.h>
 
 namespace sail {
 
@@ -29,6 +30,8 @@ struct Settings {
   Duration<double> mainSessionCut;
   Duration<double> subSessionCut;
   Duration<double> minCalibDur;
+
+  SplineGpsFilter::Settings gpsSettings;
 
   SessionCut::Settings sessionCutSettings;
 

@@ -334,6 +334,7 @@ target_link_libraries(nautical_Processor2
   common_Span
   filters_SmoothGpsFilter
   calib_Reconstructor
+  filters_SplineGpsFilter
   )
 
 cxx_test(nautical_Processor2Test
