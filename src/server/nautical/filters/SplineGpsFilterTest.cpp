@@ -201,7 +201,7 @@ TEST(SplineGpsFilter, TestIt) {
   SplineGpsFilter::Settings settings;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(1, curves.size());
-  testGpsPos(curves[0], makeTPos(1.0, 1.0, 0.0), 0.1);
+  testGpsPos(curves[0], makeTPos(1.0, 1.0, 0.0), 0.01);
 }
 
 TEST(SplineGpsFilter, TestIt2) {
