@@ -131,12 +131,6 @@ SplineFittingProblem::SplineFittingProblem(int n, int dim) {
 void SplineFittingProblem::addCost(int order,
     double weight,
     double x, double *y) {
-  std::cout << "Add cost at " << x << ": ";
-  for (int i = 0; i < _B.cols(); i++) {
-    std::cout << " " << y[i];
-  }
-  std::cout << std::endl;
-
   auto w = _bases[order].build(x);
   accumulateNormalEqs(weight, w, _B.cols(), y, &_A, &_B);
 }
@@ -149,9 +143,6 @@ void SplineFittingProblem::addRegularization(int order, double weight) {
 }
 
 MDArray2d SplineFittingProblem::solve() {
-
-  std::cout << "_A = \n" << _A.makeDense() << std::endl;
-  std::cout << "_B = \n" << _B << std::endl;
 
   MDArray2d result = _B;
   if (Pbsv<double>::apply(&_A, &_B)) {
@@ -196,10 +187,6 @@ MDArray2d computeSplineCoefs(const MDArray2d &splineSamples) {
     problem.addCost(0, 1.0, i, tmp.ptr());
   }
   auto dst = problem.solve();
-
-  std::cout << "src: \n" << splineSamples << std::endl;
-  std::cout << "dst: \n" << dst << std::endl;
-
   return dst;
 }
 
