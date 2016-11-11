@@ -151,3 +151,37 @@ TEST(SplineTest, Test3) {
   }
 }
 
+
+
+
+
+
+
+
+
+namespace {
+  GeographicPosition<double> makePos(double x, double y) {
+    auto step = (1.0/(60*1852))*1.0_deg;
+    return GeographicPosition<double>(45.0_deg + x*step, y*step, 0.0_m);
+  }
+
+  TimedValue<GeographicPosition<double>> makeTPos(
+    double t, double x, double y) {
+    return TimedValue<GeographicPosition<double>>(
+        offset + t*1.0_s,
+        makePos(x, y));
+  }
+}
+
+TEST(SplineGpsFilter, TestIt) {
+  Array<TimedValue<GeographicPosition<double>>> pos{
+    makeTPos(0.0, 0.0, 0.0),
+    makeTPos(1.0, 1.0, 0.0),
+    makeTPos(2.0, 2.0, 0.0)
+  };
+
+  SplineGpsFilter::Settings settings;
+  auto curves = segmentAndFilter(pos, {}, settings);
+  EXPECT_EQ(1, curves.size());
+}
+

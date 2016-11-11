@@ -82,7 +82,7 @@ Array<EcefCurve> filter(
     const Array<TimeMapper> &segments,
     Settings settings);
 
-Array<EcefCurve> filterAndSegment(
+Array<EcefCurve> segmentAndFilter(
     const Array<TimedValue<GeographicPosition<double>>> &allPositionData,
     const Array<TimedValue<HorizontalMotion<double>>> &allMotionData,
     Settings settings);

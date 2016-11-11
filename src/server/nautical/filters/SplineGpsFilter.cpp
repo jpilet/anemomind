@@ -847,7 +847,7 @@ Array<EcefCurve> filterEveryCurve(
   return dst;
 }
 
-Array<EcefCurve> filterAndSegment(
+Array<EcefCurve> segmentAndFilter(
     const Array<TimedValue<GeographicPosition<double>>> &allPositionData,
         const Array<TimedValue<HorizontalMotion<double>>> &allMotionData,
         Settings settings) {
