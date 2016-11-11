@@ -216,7 +216,7 @@ TEST(SplineGpsFilter, TestIt2) {
   SplineGpsFilter::Settings settings;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(1, curves.size());
-  testGpsPos(curves[0], makeTPos(2.0, 2.0, 0.0), 1.0);
+  testGpsPos(curves[0], makeTPos(2.0, 2.0, 0.0), 0.001);
 }
 
 TEST(SplineGpsFilter, TestIt3) {
@@ -247,8 +247,8 @@ TEST(SplineGpsFilter, TestIt4) {
   testGpsPos(curves[0], makeTPos(15.0, 0.0, 39.0), 0.01);
 
   auto motion = curves[0].evaluateHorizontalMotion(offset + 15.0_s);
-  EXPECT_NEAR(motion[0].metersPerSecond(), 0.0, 0.05);
-  EXPECT_NEAR(motion[1].metersPerSecond(), 2.0, 0.05);
+  EXPECT_NEAR(motion[0].metersPerSecond(), 0.0, 0.001);
+  EXPECT_NEAR(motion[1].metersPerSecond(), 2.0, 0.001);
 }
 
 TEST(SplineGpsFilter, TestIt5) {
