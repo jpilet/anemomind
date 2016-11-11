@@ -796,9 +796,15 @@ void addMotionTerm(
     SplineFittingProblem *dst,
     const TimedValue<HorizontalMotion<double>> &motion,
     const TimedValue<GeographicPosition<double>> &position) {
-  auto xyz = ECEF::hMotionToXYZ<double>(
+  ECEFCoords<double, 1> k = ECEF::hMotionToXYZ<double>(
       ECEF::geo2lla(position.value),
       motion.value);
+  double xyz[3] = {
+      k.xyz[0].metersPerSecond(),
+      k.xyz[1].metersPerSecond(),
+      k.xyz[2].metersPerSecond()
+  };
+  dst->addCost(1, 1.0, motion.time, xyz);
 }
 
 void addMotionTerms(SplineFittingProblem *dst,
