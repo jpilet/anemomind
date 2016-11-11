@@ -68,10 +68,5 @@ TEST(TimedValueUtils, FindNearest) {
   };
 
   auto inds = findNearestTimePerTime(a, b);
-
-  for (auto i: inds) {
-    std::cout << "ELEMENT " << i << std::endl;
-  }
-
   EXPECT_EQ(inds, (Array<int>{0, 0, 1, 1}));
 }
