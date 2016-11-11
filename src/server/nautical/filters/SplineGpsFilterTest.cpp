@@ -122,12 +122,12 @@ TEST(SplineGpsFilter, TestIt5) {
   settings.samplingPeriod = 0.5_s;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(curves.size(), 1);
-  /*auto curve = curves[0];
+  auto curve = curves[0];
   auto k = curves[0].evaluateHorizontalMotion(offset + 0.5_s);
   std::cout << "k = " << k[0].metersPerSecond()
       << ", " << k[1].metersPerSecond() << std::endl;
   testGpsPos(curve, makeTPos(0.0, 1.0, 0.0), 0.001);
-  testGpsPos(curve, makeTPos(1.0, 3.0, 0.0), 0.001);*/
+  testGpsPos(curve, makeTPos(1.0, 3.0, 0.0), 0.001);
 }
 
 TEST(SplineGpsFilter, TestIt6) {
