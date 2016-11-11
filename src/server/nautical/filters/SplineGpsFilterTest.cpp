@@ -233,35 +233,24 @@ TEST(SplineGpsFilter, TestIt3) {
 }
 
 TEST(SplineGpsFilter, TestIt4) {
-  Array<TimedValue<GeographicPosition<double>>> pos{
-    makeTPos(0.0, 0.0, 9.0),
-    makeTPos(1.0, 0.0, 11.0),
-    makeTPos(2.0, 0.0, 13.0),
-    makeTPos(3.0, 0.0, 15.0),
-    makeTPos(4.0, 0.0, 17.0)
-  };
-  /*ArrayBuilder<TimedValue<HorizontalMotion<double>>> mot0;
+  ArrayBuilder<TimedValue<GeographicPosition<double>>> pos0;
   for (int i = 0; i < 30; i++) {
-    mot0.add(makeTMot(i, 0.0, 2.0));
+    pos0.add(makeTPos(i, 0.0, 2.0*i));
   }
-  auto mot = mot0.get();*/
+
+  auto pos = pos0.get();
+
+  //auto mot = mot0.get();
   SplineGpsFilter::Settings settings;
-  settings.regWeight = 0.0;
-  settings.stabilizerWeight = 0.0;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(1, curves.size());
-  testGpsPos(curves[0], makeTPos(2.0, 0.0, 13.0), 1.0);
+  testGpsPos(curves[0], makeTPos(15.0, 0.0, 39.0), 10.0);
 
   ECEFCoords<double, 1> ecefMotion
-    = curves[0].evaluateEcefMotion(offset + 2.0_s);
-  for (int i = 0; i < 3; i++) {
-    std::cout << "pos " << i << ": " <<
-        ecefMotion.xyz[i].metersPerSecond() << std::endl;
-  }
+    = curves[0].evaluateEcefMotion(offset + 15.0_s);
 
-  /*auto motion = curves[0].evaluateHorizontalMotion(offset + 0.5_s);
-  EXPECT_NEAR(motion[0].metersPerSecond(), 0.0, 1.0e-2);
-  EXPECT_NEAR(motion[1].metersPerSecond(), 2.0, 1.0e-2);*/
-  //testGpsPos(curves[0], makeTPos(3.0, 0.0, 15.0), 4.0);
+  auto motion = curves[0].evaluateHorizontalMotion(offset + 15.0_s);
+  EXPECT_NEAR(motion[0].metersPerSecond(), 0.0, 0.05);
+  EXPECT_NEAR(motion[1].metersPerSecond(), 2.0, 0.05);
 }
 
