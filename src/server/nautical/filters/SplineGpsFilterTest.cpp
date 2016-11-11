@@ -246,11 +246,21 @@ TEST(SplineGpsFilter, TestIt4) {
   EXPECT_EQ(1, curves.size());
   testGpsPos(curves[0], makeTPos(15.0, 0.0, 39.0), 10.0);
 
-  ECEFCoords<double, 1> ecefMotion
-    = curves[0].evaluateEcefMotion(offset + 15.0_s);
-
   auto motion = curves[0].evaluateHorizontalMotion(offset + 15.0_s);
   EXPECT_NEAR(motion[0].metersPerSecond(), 0.0, 0.05);
   EXPECT_NEAR(motion[1].metersPerSecond(), 2.0, 0.05);
+}
+
+TEST(SplineGpsFilter, TestIt5) {
+  Array<TimedValue<GeographicPosition<double>>> pos{
+    makeTPos(0.0, 1.0, 0.0),
+    makeTPos(1.0, 3.0, 0.0)
+  };
+
+  SplineGpsFilter::Settings settings;
+  auto curves = segmentAndFilter(pos, {}, settings);
+  auto k = curves[0].evaluateHorizontalMotion(offset + 0.5_s);
+  std::cout << "k = " << k[0].metersPerSecond()
+      << ", " << k[1].metersPerSecond() << std::endl;
 }
 
