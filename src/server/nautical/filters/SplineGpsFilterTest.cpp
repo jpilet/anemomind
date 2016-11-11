@@ -174,12 +174,13 @@ namespace {
 
   void testGpsPos(
       const SplineGpsFilter::EcefCurve &curve,
-      const TimedValue<GeographicPosition<double>> &pos) {
+      const TimedValue<GeographicPosition<double>> &pos,
+      double tolMeters) {
     auto p = curve.evaluateGeographicPosition(pos.time);
-    double tol = 1.0/(60.0*1852);
+    double tol = tolMeters/(60.0*1852);
     EXPECT_NEAR(p.lat().degrees(), pos.value.lat().degrees(), tol);
     EXPECT_NEAR(p.lon().degrees(), pos.value.lon().degrees(), tol);
-    EXPECT_NEAR(p.alt().meters(), pos.value.alt().meters(), 0.01);
+    EXPECT_NEAR(p.alt().meters(), pos.value.alt().meters(), tolMeters);
   }
 }
 
@@ -193,6 +194,34 @@ TEST(SplineGpsFilter, TestIt) {
   SplineGpsFilter::Settings settings;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(1, curves.size());
-  testGpsPos(curves[0], makeTPos(1.0, 1.0, 0.0));
+  testGpsPos(curves[0], makeTPos(1.0, 1.0, 0.0), 1.0);
+}
+
+TEST(SplineGpsFilter, TestIt2) {
+  Array<TimedValue<GeographicPosition<double>>> pos{
+    makeTPos(0.0, 0.0, 0.0),
+    makeTPos(1.0, 1.0, 0.0),
+    makeTPos(2.0, 302344.0, 0.0),
+    makeTPos(3.0, 3.0, 0.0),
+    makeTPos(4.0, 4.0, 0.0),
+  };
+
+  SplineGpsFilter::Settings settings;
+  auto curves = segmentAndFilter(pos, {}, settings);
+  EXPECT_EQ(1, curves.size());
+  testGpsPos(curves[0], makeTPos(2.0, 2.0, 0.0), 1.0);
+}
+
+TEST(SplineGpsFilter, TestIt3) {
+  ArrayBuilder<TimedValue<GeographicPosition<double>>> dst0;
+  for (int i = 0; i < 31; i++) {
+    dst0.add(makeTPos(i, i == 15? 1234234.034 : i, 0));
+  }
+  auto pos = dst0.get();
+
+  SplineGpsFilter::Settings settings;
+  auto curves = segmentAndFilter(pos, {}, settings);
+  EXPECT_EQ(1, curves.size());
+  testGpsPos(curves[0], makeTPos(15.0, 15.0, 0.0), 0.01);
 }
 
