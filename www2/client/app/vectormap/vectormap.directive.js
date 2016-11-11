@@ -238,6 +238,11 @@ angular.module('www2App')
 
             if(scope.eventList.length > 0) {
               for(var i in scope.eventList) {
+                //
+                // avoid crash when data are inconsistent 
+                if(!scope.eventList[i].dataAtEventTime){
+                  continue;
+                }
                 var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
                 var diffTime = Math.abs(eventTime.getTime() - time.getTime());
 

@@ -1,6 +1,22 @@
 'use strict';
 
 angular.module('www2App')
+  .directive('inputSelectText', ['$window', function ($window) {
+      return {
+          restrict: 'A',
+          link: function (scope, element, attrs) {
+          		element.keypress(function( event ) {
+					     event.preventDefault();
+					   	});
+              element.on('click', function () {
+                  if (!$window.getSelection().toString()) {
+                      // Required for mobile Safari
+                      this.setSelectionRange(0, this.value.length)
+                  }
+              });
+          }
+      };
+  }])
   .directive('checkHeight', function ($window, Lightbox) {
     return {
       restrict: 'C',
@@ -59,7 +75,7 @@ angular.module('www2App')
 
           var oldTemplate = Lightbox.templateUrl;
 
-          Lightbox.templateUrl = 'app/map/sharePopup.html';
+          Lightbox.templateUrl = 'app/map/map.social.html';
           Lightbox.openModal(images,0);
 
           Lightbox.templateUrl = oldTemplate;
