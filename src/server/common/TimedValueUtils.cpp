@@ -7,6 +7,7 @@
 
 #include "TimedValueUtils.h"
 #include <server/common/ArrayBuilder.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -49,6 +50,30 @@ Array<Span<TimeStamp>> listTimeSpans(
     bool includeEmpty) {
   auto bds = listAllBounds(times, dur);
   return listTimeSpans(times, bds, includeEmpty);
+}
+
+Array<int> getTimeSpanPerTimeStamp(
+    const Array<Span<TimeStamp>> &timeSpans,
+    const Array<TimeStamp> &timeStamps) {
+  CHECK(std::is_sorted(timeStamps.begin(), timeStamps.end()));
+
+  int currentSpanIndex = 0;
+  int n = timeStamps.size();
+  Array<int> dst = Array<int>::fill(n, -1);
+  for (int i = 0; i < n; i++) {
+    auto x = timeStamps[i];
+    while (currentSpanIndex < timeSpans.size() &&
+        timeSpans[currentSpanIndex].maxv() < x) {
+      currentSpanIndex++;
+    }
+    if (timeSpans.size() <= currentSpanIndex) {
+      break;
+    }
+    if (timeSpans[currentSpanIndex].minv() <= x) {
+      dst[i] = currentSpanIndex;
+    }
+  }
+  return dst;
 }
 
 } /* namespace sail */

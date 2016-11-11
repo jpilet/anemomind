@@ -468,6 +468,7 @@ add_library(common_TimedValueUtils
   )
 target_link_libraries(common_TimedValueUtils
   common_TimeStamp
+  common_logging
   )
 
 cxx_test(common_TimedValueUtilsTest

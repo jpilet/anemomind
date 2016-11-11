@@ -23,6 +23,10 @@ Array<Span<TimeStamp>> listTimeSpans(
     const Duration<double> dur,
     bool includeEmpty);
 
+Array<int> getTimeSpanPerTimeStamp(
+    const Array<Span<TimeStamp>> &timeSpans,
+    const Array<TimeStamp> &timeStamps);
+
 } /* namespace sail */
 
 #endif /* SERVER_COMMON_TIMEDVALUEUTILS_H_ */

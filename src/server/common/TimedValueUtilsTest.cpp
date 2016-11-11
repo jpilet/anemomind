@@ -31,15 +31,25 @@ TEST(TimedValueUtils, TestIt) {
     }));
   }{
     auto spans = listTimeSpans({t(0), t(1), t(4)}, 2.0_s, false);
-
-    std::cout << "Got these spans: " << std::endl;
-    for (auto sp: spans) {
-      std::cout << "  From " << sp.minv()
-          << " to " << sp.maxv() << std::endl;
-    }
-
     EXPECT_EQ(spans, (Array<Span<TimeStamp>>{
       Span<TimeStamp>(t(0), t(1))
     }));
   }
+}
+
+TEST(TimedValueUtils, AssignSpan) {
+  auto spans = Array<Span<TimeStamp>>{
+    Span<TimeStamp>{offset, offset + 2.0_s},
+    Span<TimeStamp>{offset + 2.0_s, offset + 4.0_s}
+  };
+
+  auto times = Array<TimeStamp>{
+    offset - 1.0_s,
+    offset + 1.0_s,
+    offset + 3.0_s,
+    offset + 5.0_s
+  };
+
+  auto inds = getTimeSpanPerTimeStamp(spans, times);
+  EXPECT_EQ(inds, (Array<int>{-1, 0, 1, -1}));
 }
