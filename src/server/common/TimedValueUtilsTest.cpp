@@ -53,3 +53,25 @@ TEST(TimedValueUtils, AssignSpan) {
   auto inds = getTimeSpanPerTimeStamp(spans, times);
   EXPECT_EQ(inds, (Array<int>{-1, 0, 1, -1}));
 }
+
+TEST(TimedValueUtils, FindNearest) {
+  auto a = Array<TimeStamp>{
+    offset - 1.0_s,
+    offset + 1.0_s,
+    offset + 3.0_s,
+    offset + 9.0_s
+  };
+
+  auto b = Array<TimeStamp>{
+    offset + 1.5_s,
+    offset + 4.0_s
+  };
+
+  auto inds = findNearestTimePerTime(a, b);
+
+  for (auto i: inds) {
+    std::cout << "ELEMENT " << i << std::endl;
+  }
+
+  EXPECT_EQ(inds, (Array<int>{0, 0, 1, 1}));
+}

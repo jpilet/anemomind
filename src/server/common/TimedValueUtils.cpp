@@ -86,7 +86,7 @@ Array<TimeStamp> merge(
 
 struct Cand {
   int index;
-  TimeStamp time;
+  Duration<double> time;
 
   bool operator<(const Cand &other) const {
     return time < other.time;
@@ -106,14 +106,18 @@ Array<int> findNearestTimePerTime(
   int spanIndex = 0;
   Array<int> result(src.size());
   for (int i = 0; i < src.size(); i++) {
-    while (spanIndex < spanCount && dst[spanIndex+1] < src[i]) {
+    auto x = src[i];
+    while (spanIndex < spanCount && dst[spanIndex+1] < x) {
       spanIndex++;
     }
     if (spanCount <= spanIndex) {
       result.sliceFrom(i).setTo(spanCount);
       break;
     }
-    result[i] = std::min(Cand{i, dst[i]}, Cand{i+1, dst[i+1]}).index;
+
+    result[i] = std::min(
+        Cand{spanIndex, x - dst[spanIndex]},
+        Cand{spanIndex+1, dst[spanIndex+1] - x}).index;
   }
   return result;
 }
