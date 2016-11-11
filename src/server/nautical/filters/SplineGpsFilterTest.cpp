@@ -253,7 +253,7 @@ TEST(SplineGpsFilter, TestIt4) {
   testGpsPos(curves[0], makeTPos(2.0, 0.0, 13.0), 1.0);
 
   ECEFCoords<double, 1> ecefMotion
-    = curves[0].evaluateEcefMotion(offset + 0.5_s);
+    = curves[0].evaluateEcefMotion(offset + 2.0_s);
   for (int i = 0; i < 3; i++) {
     std::cout << "pos " << i << ": " <<
         ecefMotion.xyz[i].metersPerSecond() << std::endl;
