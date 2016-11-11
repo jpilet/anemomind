@@ -26,7 +26,6 @@ struct Settings {
 
   // Old stuff
   Length<double> inlierThreshold = 12.0_m;
-  double regWeight = 1; //10.0;
   double stabilizerWeight = 1.0e-9;
   BandedLevMar::Settings lmSettings;
 
@@ -35,7 +34,8 @@ struct Settings {
 
 
 
-  double wellPosednessReg = 1.0e-12;
+  double regWeight = 1; //10.0;
+  double wellPosednessReg = 1.0e-5;
   Duration<double> samplingPeriod = 2.0_s;
   Duration<double> outlierCutThreshold = 1.0_minutes;
   Duration<double> maxGap = 1.0_minutes;
