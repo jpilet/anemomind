@@ -215,6 +215,9 @@ auto concat(ArrayOfArrays arrayOfArrays) -> Array<decltype(copyOf(std::declval<A
   return dst.get();
 }
 
+#define AUTO_FUNCTION_1(name, arg_expr, expr) \
+  auto name(arg_expr) -> decltype(expr) {return expr;}
+
 }
 
 #undef ADD_METHODS_FOR_MAPPED

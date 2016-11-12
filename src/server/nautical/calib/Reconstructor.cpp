@@ -231,9 +231,13 @@ bool areValidChunks(const Array<CalibDataChunk> &chunks) {
 }
 
 void outputOtherSignals(DOM::Node *dst,
-    Array<CalibDataChunk> &chunks) {
-  for (auto chunk: indexed(chunks)) {
-
+    const Array<CalibDataChunk> &chunks) {
+  DOM::addSubTextNode(dst, "h2",
+      stringFormat("Calib data chunks: %d", chunks.size()));
+  for (auto kv: indexed(chunks)) {
+    DOM::addSubTextNode(dst, "h2",
+        stringFormat("Calib data chunk %d/%d", kv.first,
+            chunks.size()));
   }
 }
 
