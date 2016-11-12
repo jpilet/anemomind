@@ -55,10 +55,13 @@ TEST(SplineUtilsTest, RobustSplineFitTest) {
   auto settings = RobustSplineFit<1>::Settings();
   RobustSplineFit<1> fit(mapper, settings);
   int order = 0;
+
   fit.addObservation(t(0), order,
       v1(3), 1.0);
+
   fit.addObservation(t(1), order,
       v1(4), 1.0);
+
   auto coefs = fit.solve();
   auto basis = fit.basis();
   {
@@ -67,5 +70,8 @@ TEST(SplineUtilsTest, RobustSplineFitTest) {
   }{
     auto x = evaluateSpline<1>(basis.build(1), coefs);
     EXPECT_NEAR(x(0), 4.0, 1.0e-6);
+  }{
+    auto x = evaluateSpline<1>(basis.build(6.0), coefs);
+    EXPECT_NEAR(x(0), 9.0, 1.0e-6);
   }
 }
