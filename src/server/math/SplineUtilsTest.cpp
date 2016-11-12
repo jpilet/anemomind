@@ -110,5 +110,22 @@ TEST(SplineUtilsTest, RobustSplineFitDerivative) {
 
   auto y = evaluateSpline<1>(fit.basis().build(1.0), coefs);
   EXPECT_NEAR(y(0), 11.4, 1.0e-6);
+}
 
+TEST(SplineUtilsTest, RobustSplineFitDerivativeVariable) {
+  TimeMapper mapper(offset, 4.0_s, 9);
+
+  auto settings = RobustSplineFit<1>::Settings();
+  RobustSplineFit<1> fit(mapper, settings);
+  int order = 0;
+
+  fit.addObservation(t(0.0), order+0, v1(3.4), 1.0);
+  fit.addObservation(t(1.0), order+1, v1(0.0), 1.0,
+      [=](const Eigen::Matrix<double, 1, 1> &) {
+    return v1(2.0);
+  });
+  auto coefs = fit.solve();
+
+  auto y = evaluateSpline<1>(fit.basis().build(1.0), coefs);
+  EXPECT_NEAR(y(0), 11.4, 1.0e-6);
 }
