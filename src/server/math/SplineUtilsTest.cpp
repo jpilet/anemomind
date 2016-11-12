@@ -10,12 +10,13 @@
 #include <fstream>
 #include <server/common/LineKM.h>
 #include <server/common/MDArray.h>
+#include <server/common/ArrayIO.h>
 
 using namespace sail;
 
+auto offset = TimeStamp::UTC(2016, 5, 4, 3, 3, 4);
 
 TEST(SplineUtilsTest, TemporalTest) {
-  auto offset = TimeStamp::UTC(2016, 5, 4, 3, 3, 4);
 
   Array<TimeStamp> src{
     offset + 0.0_s,
@@ -36,18 +37,23 @@ TEST(SplineUtilsTest, TemporalTest) {
   EXPECT_NEAR(c.evaluate(offset + 2.0_s), 4.0, 1.0e-4);
   EXPECT_NEAR(c.evaluate(offset + 3.0_s), 17.0, 1.0e-4);
   EXPECT_NEAR(c.evaluate(offset + 4.3_s), -3.4, 1.0e-4);
+}
 
-  /*const int n = 300;
-  MDArray2d v(n, 2);
-  auto km = LineKM(0, n, -4.0, 4.0);
-  for (int i = 0; i < n; i++) {
-    auto x = km(i);
-    auto y = c.evaluate(offset + x*1.0_s);
-    v(i, 0) = x;
-    v(i, 1) = y;
-  }
-  GnuplotExtra plot;
-  plot.set_style("lines");
-  plot.plot(v);
-  plot.showonscreen();*/
+Eigen::Matrix<double, 1, 1> v1(double x) {
+  Eigen::Matrix<double, 1, 1> dst;
+  dst(0) = x;
+  return dst;
+}
+
+TEST(SplineUtilsTest, RobustSplineFitTest) {
+  TimeMapper mapper(offset, 1.0_s, 9);
+
+  auto settings = RobustSplineFit<1>::Settings();
+  RobustSplineFit<1> fit(mapper, settings);
+  fit.addObservation(offset + 0.0_s, 0,
+      v1(3), 1.0);
+  fit.addObservation(offset + 1.0_s, 0,
+      v1(4), 1.0);
+  auto coefs = fit.solve();
+  std::cout << "Coefs: \n" << coefs << std::endl;
 }

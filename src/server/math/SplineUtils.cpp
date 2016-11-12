@@ -291,7 +291,7 @@ MDArray2d solveForObservations(
     LOG(ERROR) << "Failed to solve";
     return MDArray2d();
   }
-  return MDArray2d();
+  return B;
 }
 
 template <int Dims>
