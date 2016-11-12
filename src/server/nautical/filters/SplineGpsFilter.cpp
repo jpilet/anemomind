@@ -794,35 +794,35 @@ Array<CurveData> segmentCurveData(const Array<TimedValue<GeographicPosition<doub
 }
 
 void addPositionTerms(
-    SplineFittingProblem *problem,
+    RobustSplineFit<3> *problem,
     const Array<TimedValue<GeographicPosition<double>>> &positions) {
   for (auto p: positions) {
     auto y = ECEF::convert(p.value);
-    double xyz[3] = {
+    Eigen::Vector3d xyz(
        y.xyz[0].meters(),
        y.xyz[1].meters(),
        y.xyz[2].meters()
-    };
-    problem->addCost(0, 1.0, p.time, xyz);
+    );
+    problem->addObservation(p.time, 0, xyz, 100.0);
   }
 }
 
 void addMotionTerm(
-    SplineFittingProblem *dst,
+    RobustSplineFit<3> *dst,
     const TimedValue<HorizontalMotion<double>> &motion,
     const TimedValue<GeographicPosition<double>> &position) {
   ECEFCoords<double, 1> k = ECEF::hMotionToXYZ<double>(
       ECEF::geo2lla(position.value),
       motion.value);
-  double xyz[3] = {
+  Eigen::Vector3d xyz(
       k.xyz[0].metersPerSecond(),
       k.xyz[1].metersPerSecond(),
-      k.xyz[2].metersPerSecond()
-  };
-  dst->addCost(1, 1.0, motion.time, xyz);
+      k.xyz[2].metersPerSecond());
+  //dst->addCost(1, 1.0, motion.time, xyz);
+  dst->addObservation(motion.time, 1, xyz, 100.0);
 }
 
-void addMotionTerms(SplineFittingProblem *dst,
+void addMotionTerms(RobustSplineFit<3> *dst,
     const CurveData &data) {
   auto positionTimes = getTimes(data.positions);
   CHECK(!positionTimes.empty());
@@ -850,12 +850,15 @@ EcefCurve filterOneCurve3d(const CurveData &src,
     const Settings &settings) {
   CHECK(!src.positions.empty());
   auto mapper = makeTimeMapper(src, settings.samplingPeriod);
-  SplineFittingProblem problem(mapper, 3);
+  RobustSplineFit<3>::Settings fitSettings;
+  fitSettings.wellPosednessOrder = 1;
+  fitSettings.wellPosednessReg = settings.wellPosednessReg;
+  fitSettings.regOrder = 2;
+  fitSettings.regWeight = settings.regWeight;
+  RobustSplineFit<3> problem(mapper, fitSettings);
 
   // No regularization for 0th order, because there is at l
   // least one position.
-  problem.addRegularization(1, settings.wellPosednessReg);
-  problem.addRegularization(2, settings.regWeight);
   addPositionTerms(&problem, src.positions);
   addMotionTerms(&problem, src);
   auto solution = problem.solve();
