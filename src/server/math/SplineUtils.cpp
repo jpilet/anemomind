@@ -211,9 +211,12 @@ void RobustSplineFit<Dims>::addObservation(TimeStamp t,
     const Vec &value,
     double sigma,
     const VecFun &valueFun) {
-  auto x = _mapper.map(t);
+  auto x = _mapper.mapToReal(t);
+  std::cout << "Sample count " << _mapper.sampleCount << std::endl;
+  std::cout << "Add observation at " << x << " of order " << order << std::endl;
   auto weights = _bases[order].build(x);
   double dstScale = _factors[order];
+  std::cout << "Dst scale is " << dstScale << std::endl;
   OutlierRejector::Settings os;
   os.initialAlpha = _settings.minWeight;
   os.initialBeta = _settings.minWeight;
@@ -331,7 +334,9 @@ void updateWeights(double weight,
     const MDArray2d &coefs,
     std::vector<typename RobustSplineFit<Dims>::Observation> *obs) {
   for (auto &x: *obs) {
-    x.rejector.update(weight, x.computeResidual(coefs));
+    auto residual = x.computeResidual(coefs);
+    std::cout << "  residual = " << residual << std::endl;
+    x.rejector.update(weight, residual);
   }
 }
 

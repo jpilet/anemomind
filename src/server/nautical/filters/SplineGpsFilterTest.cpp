@@ -64,6 +64,7 @@ TEST(SplineGpsFilter, TestIt) {
   };
 
   SplineGpsFilter::Settings settings;
+  settings.samplingPeriod = 1.0_s;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(1, curves.size());
   testGpsPos(curves[0], makeTPos(0.0, 0.0, 0.0), 0.001);
