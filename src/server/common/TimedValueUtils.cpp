@@ -52,10 +52,21 @@ Array<Span<TimeStamp>> listTimeSpans(
   return listTimeSpans(times, bds, includeEmpty);
 }
 
+bool areOverlapping(const Array<Span<TimeStamp>> &timeSpans) {
+  int n = timeSpans.size() - 1;
+  for (int i = 0; i < n; i++) {
+    if (timeSpans[i].maxv() > timeSpans[i+1].minv()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Array<int> getTimeSpanPerTimeStamp(
     const Array<Span<TimeStamp>> &timeSpans,
     const Array<TimeStamp> &timeStamps) {
   CHECK(std::is_sorted(timeStamps.begin(), timeStamps.end()));
+  CHECK(!areOverlapping(timeSpans));
 
   int currentSpanIndex = 0;
   int n = timeStamps.size();
