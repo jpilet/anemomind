@@ -245,7 +245,10 @@ void addObservation(
     const MDArray2d &coefs,
     const typename RobustSplineFit<Dims>::Observation &obs,
     SymmetricBandMatrixL<double> *A,
-    MDArray2d *B) {
+    MDArray2d *B, bool ignoreConstantIfVariable) {
+  if (coefs.empty() && ignoreConstantIfVariable && bool(obs.dstFun)) {
+    return;
+  }
   auto dst = obs.computeDst(coefs);
   accumulateNormalEqs(
       obs.rejector.computeWeight(),
@@ -259,9 +262,10 @@ void addObservations(
     const std::vector<
       typename RobustSplineFit<Dims>::Observation> &obs,
       SymmetricBandMatrixL<double> *A,
-      MDArray2d *B) {
+      MDArray2d *B, bool ignoreConstantIfVariable) {
   for (auto x: obs) {
-    addObservation<Dims>(coefs, x, A, B);
+    addObservation<Dims>(coefs, x, A, B,
+        ignoreConstantIfVariable);
   }
 }
 
@@ -285,7 +289,8 @@ MDArray2d solveForObservations(
       bases[settings.regOrder],
       settings.regWeight);
 
-  addObservations<Dims>(coefs, observations, &A, &B);
+  addObservations<Dims>(coefs, observations, &A, &B,
+      settings.ignoreConstantIfVariable);
 
   if (!Pbsv<double>::apply(&A, &B)) {
     LOG(ERROR) << "Failed to solve";

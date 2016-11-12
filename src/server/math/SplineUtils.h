@@ -129,6 +129,8 @@ public:
 
     int wellPosednessOrder = 1;
     double wellPosednessReg = 1.0e-5;
+
+    bool ignoreConstantIfVariable = true;
   };
 
   RobustSplineFit(
