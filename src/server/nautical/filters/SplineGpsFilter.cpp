@@ -795,7 +795,8 @@ Array<CurveData> segmentCurveData(const Array<TimedValue<GeographicPosition<doub
 
 void addPositionTerms(
     RobustSplineFit<3> *problem,
-    const Array<TimedValue<GeographicPosition<double>>> &positions) {
+    const Array<TimedValue<GeographicPosition<double>>> &positions,
+    Length<double> sigma) {
   for (auto p: positions) {
     auto y = ECEF::convert(p.value);
     Eigen::Vector3d xyz(
@@ -803,14 +804,15 @@ void addPositionTerms(
        y.xyz[1].meters(),
        y.xyz[2].meters()
     );
-    problem->addObservation(p.time, 0, xyz, 100.0);
+    problem->addObservation(p.time, 0, xyz, sigma.meters());
   }
 }
 
 void addMotionTerm(
     RobustSplineFit<3> *dst,
     const TimedValue<HorizontalMotion<double>> &motion,
-    const TimedValue<GeographicPosition<double>> &position) {
+    const TimedValue<GeographicPosition<double>> &position,
+    Length<double> sigma) {
   ECEFCoords<double, 1> k = ECEF::hMotionToXYZ<double>(
       ECEF::geo2lla(position.value),
       motion.value);
@@ -819,11 +821,12 @@ void addMotionTerm(
       k.xyz[1].metersPerSecond(),
       k.xyz[2].metersPerSecond());
   //dst->addCost(1, 1.0, motion.time, xyz);
-  dst->addObservation(motion.time, 1, xyz, 100.0);
+  dst->addObservation(motion.time, 1, xyz, sigma.meters());
 }
 
 void addMotionTerms(RobustSplineFit<3> *dst,
-    const CurveData &data) {
+    const CurveData &data,
+    Length<double> sigma) {
   auto positionTimes = getTimes(data.positions);
   CHECK(!positionTimes.empty());
   auto motionTimes = getTimes(data.motions);
@@ -833,7 +836,8 @@ void addMotionTerms(RobustSplineFit<3> *dst,
     addMotionTerm(
         dst,
         data.motions[i],
-        data.positions[closestPositions[i]]);
+        data.positions[closestPositions[i]],
+        sigma);
   }
 }
 
@@ -860,8 +864,8 @@ EcefCurve filterOneCurve3d(const CurveData &src,
 
   // No regularization for 0th order, because there is at l
   // least one position.
-  addPositionTerms(&problem, src.positions);
-  addMotionTerms(&problem, src);
+  addPositionTerms(&problem, src.positions, settings.inlierThreshold);
+  addMotionTerms(&problem, src, settings.inlierThreshold);
   auto solution = problem.solve();
   return EcefCurve(
       mapper,
