@@ -249,9 +249,14 @@ void addObservation(
   if (coefs.empty() && ignoreConstantIfVariable && bool(obs.dstFun)) {
     return;
   }
+  auto weight = obs.rejector.computeWeight();
   auto dst = obs.computeDst(coefs);
+
+  std::cout << "  Fit to \n" << dst << " with weight "
+      << weight << std::endl;
+
   accumulateNormalEqs(
-      obs.rejector.computeWeight(),
+      weight,
       obs.weights, Dims,
       dst.data(), A, B);
 }
@@ -337,6 +342,7 @@ MDArray2d RobustSplineFit<Dims>::solve() {
       log(_settings.maxWeight));
   MDArray2d coefs;
   for (int i = 0; i < _settings.iters; i++) {
+    std::cout << "--------------Iteration " << i << std::endl;
     coefs = solveForObservations<Dims>(
         coefs,
         _mapper.sampleCount, _bases,

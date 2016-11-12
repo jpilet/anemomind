@@ -9,6 +9,7 @@
 #include <server/nautical/filters/SplineGpsFilter.h>
 #include <gtest/gtest.h>
 #include <server/common/ArrayBuilder.h>
+#include <server/nautical/WGS84.h>
 
 
 using namespace sail;
@@ -34,11 +35,17 @@ namespace {
       const SplineGpsFilter::EcefCurve &curve,
       const TimedValue<GeographicPosition<double>> &pos,
       double tolMeters) {
+
     auto p = curve.evaluateGeographicPosition(pos.time);
+    auto d = distance(p, pos.value);
+    std::cout << "The distance is " << d.meters() << std::endl;
+    EXPECT_NEAR(d.meters(), 0.0, tolMeters);
+/*
+
     double tol = tolMeters/(60.0*1852);
     EXPECT_NEAR(p.lat().degrees(), pos.value.lat().degrees(), tol);
     EXPECT_NEAR(p.lon().degrees(), pos.value.lon().degrees(), tol);
-    EXPECT_NEAR(p.alt().meters(), pos.value.alt().meters(), tolMeters);
+    EXPECT_NEAR(p.alt().meters(), pos.value.alt().meters(), tolMeters);*/
   }
 
   TimedValue<HorizontalMotion<double>> makeTMot(
@@ -59,7 +66,9 @@ TEST(SplineGpsFilter, TestIt) {
   SplineGpsFilter::Settings settings;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(1, curves.size());
+  testGpsPos(curves[0], makeTPos(0.0, 0.0, 0.0), 0.001);
   testGpsPos(curves[0], makeTPos(1.0, 1.0, 0.0), 0.001);
+  testGpsPos(curves[0], makeTPos(2.0, 2.0, 0.0), 0.001);
 }
 
 TEST(SplineGpsFilter, TestIt2) {
@@ -140,12 +149,14 @@ TEST(SplineGpsFilter, TestIt6) {
 
   //auto mot = mot0.get();
   SplineGpsFilter::Settings settings;
+  settings.regWeight = 1.0;
+  settings.wellPosednessReg = 1.0e-6;
   auto curves = segmentAndFilter(pos, {}, settings);
   EXPECT_EQ(1, curves.size());
 
   int middle = double(n)/2.0;
   testGpsPos(curves[0], makeTPos(middle,
-      0.0, offset + 2.0*middle), 0.001);
+      0.0, offset + 2.0*middle), 0.01);
 }
 
 TEST(SplineGpsFilter, TestIt7) {
