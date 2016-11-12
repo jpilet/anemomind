@@ -39,7 +39,6 @@ void OutlierRejector::update(
   auto ar = std::abs(a);
   auto br = std::abs(b);
   auto f = (2.0*weight)/(ar + br);
-  std::cout << "  a=" << a << "  b=" << b << "  f=" << f << std::endl;
   _alpha = f*br;
   _beta = f*ar;
 }

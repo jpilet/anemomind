@@ -8,6 +8,7 @@
 #include <server/math/SplineUtils.h>
 #include <server/math/lapack/BandWrappers.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
@@ -210,20 +211,135 @@ void RobustSplineFit<Dims>::addObservation(TimeStamp t,
     const Vec &value,
     double sigma,
     const VecFun &valueFun) {
-  auto weights = _bases[order].build(_mapper.map(t));
+  auto x = _mapper.map(t);
+  auto weights = _bases[order].build(x);
   double dstScale = _factors[order];
   OutlierRejector::Settings os;
   os.initialAlpha = _settings.minWeight;
   os.initialBeta = _settings.minWeight;
   os.sigma = sigma;
-  _observations.push_back(Observation(weights,
+  _observations.push_back(Observation(
+      _bases[0].build(x),
+      weights,
       dstScale, value,
       valueFun, os));
 }
 
-template <int Dims>
-Array<Arrayd> RobustSplineFit<Dims>::solve() {
+void applyRegularization(
+    SymmetricBandMatrixL<double> *A,
+    MDArray2d *B,
+    const SmoothBoundarySplineBasis<double, 3> &basis,
+    double w) {
+  auto z = Arrayd::fill(B->cols(), 0.0);
+  int n = B->rows();
+  for (int i = 0; i < n; i++) {
+    auto weights = basis.build(i);
+    accumulateNormalEqs(
+        w, weights, z.size(),
+        z.ptr(), A, B);
+  }
+}
 
+template <int Dims>
+void addObservation(
+    const MDArray2d &coefs,
+    const typename RobustSplineFit<Dims>::Observation &obs,
+    SymmetricBandMatrixL<double> *A,
+    MDArray2d *B) {
+  auto dst = obs.computeDst(coefs);
+  accumulateNormalEqs(
+      obs.rejector.computeWeight(),
+      obs.weights, Dims,
+      dst.data(), A, B);
+}
+
+template <int Dims>
+void addObservations(
+    const MDArray2d &coefs,
+    const std::vector<
+      typename RobustSplineFit<Dims>::Observation> &obs,
+      SymmetricBandMatrixL<double> *A,
+      MDArray2d *B) {
+  for (auto x: obs) {
+    addObservation<Dims>(coefs, x, A, B);
+  }
+}
+
+template <int Dims>
+MDArray2d solveForObservations(
+    const MDArray2d &coefs,
+    int n,
+    const Array<SmoothBoundarySplineBasis<double, 3>> &bases,
+    const typename RobustSplineFit<Dims>::Settings
+      &settings,
+    const std::vector<typename RobustSplineFit<Dims>::Observation>
+      &observations) {
+  auto A = SymmetricBandMatrixL<double>::zero(
+      n, RobustSplineFit<Dims>::Weights::dim);
+  auto B = MDArray2d(n, Dims);
+  B.setAll(0.0);
+  applyRegularization(&A, &B,
+      bases[settings.wellPosednessOrder],
+      settings.wellPosednessReg);
+  applyRegularization(&A, &B,
+      bases[settings.regOrder],
+      settings.regWeight);
+
+  addObservations<Dims>(coefs, observations, &A, &B);
+
+  if (!Pbsv<double>::apply(&A, &B)) {
+    LOG(ERROR) << "Failed to solve";
+    return MDArray2d();
+  }
+  return MDArray2d();
+}
+
+template <int Dims>
+Eigen::Matrix<double, Dims, 1> evaluateSpline(
+    const SmoothBoundarySplineBasis<double, 3>::Weights &weights,
+        const MDArray2d &coefs) {
+  assert(Dims == coefs.cols());
+  Eigen::Matrix<double, Dims, 1> dst;
+  for (int i = 0; i < Dims; i++) {
+    dst(i) = weights.evaluate(coefs.getPtrAt(0, i));
+  }
+  return dst;
+}
+
+template Eigen::Matrix<double, 1, 1> evaluateSpline<1>(
+    const SmoothBoundarySplineBasis<double, 3>::Weights &weights,
+        const MDArray2d &coefs);
+template Eigen::Matrix<double, 2, 1> evaluateSpline<2>(
+    const SmoothBoundarySplineBasis<double, 3>::Weights &weights,
+        const MDArray2d &coefs);
+template Eigen::Matrix<double, 3, 1> evaluateSpline<3>(
+    const SmoothBoundarySplineBasis<double, 3>::Weights &weights,
+        const MDArray2d &coefs);
+
+template <int Dims>
+void updateWeights(double weight,
+    const MDArray2d &coefs,
+    std::vector<typename RobustSplineFit<Dims>::Observation> *obs) {
+  for (auto &x: *obs) {
+    x.rejector.update(weight, x.computeResidual(coefs));
+  }
+}
+
+template <int Dims>
+MDArray2d RobustSplineFit<Dims>::solve() {
+  LineKM logWeights(0, _settings.iters-1,
+      log(_settings.minWeight),
+      log(_settings.maxWeight));
+  MDArray2d coefs;
+  for (int i = 0; i < _settings.iters; i++) {
+    coefs = solveForObservations<Dims>(
+        coefs,
+        _mapper.sampleCount, _bases,
+        _settings, _observations);
+    updateWeights<Dims>(exp(logWeights(i+1)), coefs,
+        &_observations);
+  }
+  return coefs;
 }
 
 template class RobustSplineFit<1>;

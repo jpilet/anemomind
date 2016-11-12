@@ -80,6 +80,11 @@ private:
 MDArray2d computeSplineCoefs(const MDArray2d &splineSamples);
 
 template <int Dims>
+Eigen::Matrix<double, Dims, 1> evaluateSpline(
+    const SmoothBoundarySplineBasis<double, 3>::Weights &weights,
+        const MDArray2d &coefs);
+
+template <int Dims>
 class RobustSplineFit {
 public:
   typedef SmoothBoundarySplineBasis<double, 3> Basis;
@@ -89,15 +94,27 @@ public:
 
   struct Observation {
     OutlierRejector rejector;
-    Weights weights;
+    Weights weights0, weights;
     double dstScale = 1.0;
     Vec dst = Vec::Zero();
     VecFun dstFun;
 
+    Vec computeDst(const MDArray2d &coefs) const {
+      return dstScale*((!coefs.empty() && bool(dstFun))?
+        dstFun(evaluateSpline<Dims>(weights0, coefs))
+            : dst);
+    }
+
+    double computeResidual(const MDArray2d &coefs) const {
+      return (computeDst(coefs)
+          - evaluateSpline<Dims>(weights, coefs)).norm();
+    }
+
     Observation() {}
-    Observation(const Weights &w, double ds, const Vec &v,
+    Observation(const Weights &w0, const Weights &w,
+        double ds, const Vec &v,
         const VecFun &vf, const OutlierRejector::Settings &os) :
-          weights(w), dstScale(ds),
+          weights0(w0), weights(w), dstScale(ds),
             dst(v), dstFun(vf),
             rejector(os) {}
   };
@@ -124,7 +141,7 @@ public:
       double sigma,
       const VecFun &valueFun = VecFun());
 
-  Array<Arrayd> solve();
+  MDArray2d solve();
 private:
   TimeMapper _mapper;
   std::vector<Observation> _observations;
