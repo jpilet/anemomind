@@ -111,12 +111,17 @@ void SplineFittingProblem::initialize(int n, int dim, double k) {
                          Basis::Weights::dim);
   _B = MDArray2d(n, dim);
   _B.setAll(0.0);
-  _bases[0] = SmoothBoundarySplineBasis<double, 3>(n);
-  _factors[0] = 1.0;
-  for (int i = 1; i < 4; i++) {
-    _bases[i] = _bases[i-1].derivative();
-    _factors[i] = k*_factors[i-1];
+  _bases = SmoothBoundarySplineBasis<double, 3>(n).makeDerivatives();
+  _factors = makePowers(n, k);
+}
+
+Array<double> makePowers(int n, double f) {
+  Array<double> dst = Array<double>::fill(n, 1.0);
+  dst[0] = 1.0;
+  for (int i = 1; i < n; i++) {
+    dst[i] = f*dst[i-1];
   }
+  return dst;
 }
 
 SplineFittingProblem::SplineFittingProblem(
@@ -190,5 +195,27 @@ MDArray2d computeSplineCoefs(const MDArray2d &splineSamples) {
   return dst;
 }
 
+template <int Dims>
+RobustSplineFit<Dims>::RobustSplineFit(const TimeMapper &mapper) {
+
+}
+
+template <int Dims>
+void RobustSplineFit<Dims>::addObservation(TimeStamp t,
+    int order,
+    const Vec &value,
+    double sigma,
+    const VecFun &valueFun) {
+
+}
+
+template <int Dims>
+Array<Arrayd> RobustSplineFit<Dims>::solve() {
+
+}
+
+template class RobustSplineFit<1>;
+template class RobustSplineFit<2>;
+template class RobustSplineFit<3>;
 
 } /* namespace sail */

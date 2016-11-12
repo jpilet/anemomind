@@ -456,6 +456,16 @@ public:
   ThisType scale(T s) const {
     return ThisType(_left, _right, _basis.scale(s));
   }
+
+  Array<ThisType> makeDerivatives() const {
+    const int n = Degree+1;
+    Array<ThisType> dst(n);
+    dst[0] = *this;
+    for (int i = 1; i < n; i++) {
+      dst[i] = dst[i-1].derivative();
+    }
+    return dst;
+  }
 private:
   SmoothBoundarySplineBasis(const Eigen::MatrixXd &l, const Eigen::MatrixXd &r,
       const RawType &rt) : _left(l), _right(r), _basis(rt) {}
