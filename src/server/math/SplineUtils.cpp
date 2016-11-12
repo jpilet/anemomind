@@ -342,6 +342,13 @@ MDArray2d RobustSplineFit<Dims>::solve() {
   return coefs;
 }
 
+template <int Dims>
+SmoothBoundarySplineBasis<double, 3>
+  RobustSplineFit<Dims>::basis(int i) const {
+  return _bases[i];
+}
+
+
 template class RobustSplineFit<1>;
 template class RobustSplineFit<2>;
 template class RobustSplineFit<3>;

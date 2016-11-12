@@ -142,6 +142,7 @@ public:
       const VecFun &valueFun = VecFun());
 
   MDArray2d solve();
+  Basis basis(int i = 0) const;
 private:
   TimeMapper _mapper;
   std::vector<Observation> _observations;

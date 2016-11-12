@@ -45,15 +45,27 @@ Eigen::Matrix<double, 1, 1> v1(double x) {
   return dst;
 }
 
+TimeStamp t(double s) {
+  return offset + s*1.0_s;
+}
+
 TEST(SplineUtilsTest, RobustSplineFitTest) {
   TimeMapper mapper(offset, 1.0_s, 9);
 
   auto settings = RobustSplineFit<1>::Settings();
   RobustSplineFit<1> fit(mapper, settings);
-  fit.addObservation(offset + 0.0_s, 0,
+  int order = 0;
+  fit.addObservation(t(0), order,
       v1(3), 1.0);
-  fit.addObservation(offset + 1.0_s, 0,
+  fit.addObservation(t(1), order,
       v1(4), 1.0);
   auto coefs = fit.solve();
-  std::cout << "Coefs: \n" << coefs << std::endl;
+  auto basis = fit.basis();
+  {
+    auto x = evaluateSpline<1>(basis.build(0), coefs);
+    EXPECT_NEAR(x(0), 3.0, 1.0e-6);
+  }{
+    auto x = evaluateSpline<1>(basis.build(1), coefs);
+    EXPECT_NEAR(x(0), 4.0, 1.0e-6);
+  }
 }
