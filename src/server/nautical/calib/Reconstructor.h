@@ -18,6 +18,7 @@
 #include <server/nautical/calib/BoatParameters.h>
 #include <server/common/DOMUtils.h>
 #include <server/common/TimeMapper.h>
+#include <server/nautical/filters/SplineGpsFilter.h>
 
 namespace sail {
 
@@ -26,10 +27,7 @@ namespace sail {
 // A CalibDataChunk are measurements that are grouped together
 // They are dense without any big gaps.
 struct CalibDataChunk {
-  Array<TimedValue<GeographicPosition<double>>> filteredPositions;
-  Array<BoatState<double>> initialStates;
-  TimeMapper timeMapper;
-
+  SplineGpsFilter::EcefCurve trajectory;
 #define MAKE_DATA_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   std::map<std::string, Array<TimedValue<TYPE>>> HANDLE;
 FOREACH_CHANNEL(MAKE_DATA_MAP)

@@ -88,118 +88,39 @@ FOREACH_CHANNEL(DISP_CHANNELS)
   return stream;
 }
 
-//const Array<TimedValue<GeographicPosition<double>>> &filteredPositions,
-/**/
-
-bool isValidChunk(const CalibDataChunk &chunk) {
-  return !chunk.timeMapper.empty() && !chunk.initialStates.empty() &&
-      (chunk.initialStates.size() == chunk.timeMapper.sampleCount);
-}
-
-Array<HorizontalMotion<double>> computeMotionPerPosition(
-    const Array<TimedValue<GeographicPosition<double>>> &pos) {
-  int n = pos.size();
-  assert(2 <= n);
-  Array<HorizontalMotion<double>> dst(n);
-  dst[0] = GpsUtils::computeHorizontalMotion(pos[0], pos[1]);
-  for (int i = 1; i < n-1; i++) {
-    dst[i] = GpsUtils::computeHorizontalMotion(pos[i-1], pos[i+1]);
-  }
-  dst[n-1] = GpsUtils::computeHorizontalMotion(pos[n-2], pos[n-1]);
-  return dst;
-}
-
-Array<BoatState<double> > makeInitialStates(
-    const TimeMapper &mapper,
-    const Array<TimedValue<GeographicPosition<double>>> &positions) {
-  int n = positions.size();
-  auto motions = computeMotionPerPosition(positions);
-  Array<BoatState<double>> states(n);
-  for (int i = 0; i < n; i++) {
-    states[i] = BoatState<double>{positions[i].value, motions[i]};
-  }
-  return states;
-}
-
-/*void outputChunkSummary(
-    const Array<CalibDataChunk> &chunks,
-    HtmlNode::Ptr log0) {
-  auto table = DOM::makeSubNode(&log0, "table");
-  {
-    auto tr = DOM::makeSubNode(&table, "tr");
-    DOM::addSubTextNode(&tr, "th", "Index");
-    DOM::addSubTextNode(&tr, "th", "Sample count");
-  }
-  for (int i = 0; i < chunks.size(); i++) {
-    auto tr = DOM::makeSubNode(&table, "tr");
-    DOM::addSubTextNode(&tr, "td", stringFormat("%d", i));
-    DOM::addSubTextNode(&tr, "td",
-        stringFormat("%d", chunks[i].timeMapper.sampleCount));
-  }
-}*/
-
 Array<CalibDataChunk> makeCalibChunks(
-    const Array<Span<TimeStamp>> &timeSpans,
     const Dispatcher *d,
-    const Array<TimedValue<
-      GeographicPosition<double>>> &filteredPositions,
-      std::function<bool(DataCode, std::string)> sensorFilter) {
-
-  auto cutGpsPositions = cutTimedValues(
-      filteredPositions.begin(),
-      filteredPositions.end(),
-      timeSpans);
-
-
-  int n = timeSpans.size();
-  /*DOM::addSubTextNode(&log, "p",
-      stringFormat("Number of time spans: %d", n));*/
+    const Array<SplineGpsFilter::EcefCurve> &curves,
+    std::function<bool(DataCode, std::string)> sensorFilter) {
+  int n = curves.size();
+  auto timeSpans = sail::map(curves,
+      [](const SplineGpsFilter::EcefCurve &data) {
+    return data.span();
+  });
   Array<CalibDataChunk> chunks(n);
   {
     CutVisitor v(&chunks, timeSpans, sensorFilter);
     visitDispatcherChannelsConst(d, &v);
-  }{
-    for (int i = 0; i < n; i++) {
-      auto pos = cutGpsPositions[i];
-      int stateCount = pos.size();
-      if (2 <= stateCount) {
-        TimeMapper mapper(
-            pos.first().time,
-            (1.0/stateCount)*(pos.last().time - pos.first().time),
-            stateCount);
-        chunks[i].filteredPositions = pos;
-        chunks[i].initialStates = makeInitialStates(mapper, pos);
-        chunks[i].timeMapper = mapper;
-        CHECK(chunks[i].initialStates.size()
-            == chunks[i].timeMapper.sampleCount);
-      } else {
-        /*DOM::addSubTextNode(&log, "p",
-            stringFormat(
-                "Potential problem: Too few states %d for chunk %d",
-                stateCount, i));*/
-      }
-    }
   }
-  //if (log) {
-    //outputChunkSummary(chunks, log);
-  //}
+  for (int i = 0; i < n; i++) {
+    chunks[i].trajectory = curves[i];
+  }
   return chunks;
 }
 
 Array<ReconstructionResults> reconstructAllGroups(
     const Array<Spani> &calibGroups, // Indices to to the sessions
-    const Array<Span<TimeStamp>> &smallSessions,
-    const Array<TimedValue<GeographicPosition<double>>> &positions,
+    const Array<SplineGpsFilter::EcefCurve> &curves,
     const Dispatcher *d,
     const Settings &settings,
     DOM::Node *log) {
   DOM::addSubTextNode(log, "h2", "Reconstruction of all groups");
 
   Array<CalibDataChunk> chunks
-    = makeCalibChunks(smallSessions,
-        d, positions, settings.sensorFilter);
+    = makeCalibChunks(
+        d, curves, settings.sensorFilter);
 
-  assert(chunks.size() == smallSessions.size());
+  assert(chunks.size() == curves.size());
 
   DOM::addSubTextNode(log, "h3", "Reconstruction per group");
   ReconstructionSettings recSettings;
@@ -288,21 +209,13 @@ bool process(
 
   DOM::addSubTextNode(&dbOutput, "p",
       "First of all, we are going to filter all the GPS data");
-  Array<TimedValue<GeographicPosition<double> > >
-    allFilteredPositions = Processor2::filterAllGpsData(
-        dataset, settings, &dbOutput);
-
-  DOM::addSubTextNode(&dbOutput, "p",
-      "Based on the timestamps of the filtered GPS data, "
-      "we will build short sessions of data.");
-  auto filteredTimeStamps = getTimeStamps(
-      allFilteredPositions.begin(),
-      allFilteredPositions.end());
 
   auto curves = getFilteredGpsCurves(dataset, settings.gpsSettings);
 
-  auto smallSessions = Processor2::segmentSubSessions(
-      filteredTimeStamps, settings.subSessionCut);
+  auto smallSessions = sail::map(curves,
+      [](const SplineGpsFilter::EcefCurve &data) {
+    return data.span();
+  });
 
     if (dbOutput) {
       DOM::addSubTextNode(&dbOutput, "h2", "Small sessions");
@@ -325,8 +238,8 @@ bool process(
 
   auto reconstructions
     = reconstructAllGroups(
-        calibGroups, smallSessions,
-        allFilteredPositions, d, settings,
+        calibGroups,
+        curves, d, settings,
         &dbOutput);
 
   //if (logBody) {

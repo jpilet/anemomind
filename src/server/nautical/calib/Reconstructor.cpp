@@ -181,6 +181,25 @@ void outputTrajectoryPlots(
   }
 }
 
+Array<TimedValue<Eigen::Vector2d>> sample2dPositions(
+    const SplineGpsFilter::EcefCurve &curve) {
+  CHECK(curve.defined());
+  CHECK(curve.lower().defined());
+  CHECK(curve.upper().defined());
+  auto middleTime = curve.lower() + 0.5*(curve.upper() - curve.lower());
+  auto middlePos = curve.evaluateGeographicPosition(middleTime);
+  GeographicReference geoRef(middlePos);
+  auto timeMapper = curve.timeMapper();
+  Array<TimedValue<Eigen::Vector2d>> dst(timeMapper.sampleCount);
+  for (int i = 0; i < timeMapper.sampleCount; i++) {
+    auto t = timeMapper.unmap(i);
+    auto xy = geoRef.map(curve.evaluateGeographicPosition(t));
+    dst[i] = TimedValue<Eigen::Vector2d>(t,
+        Eigen::Vector2d(xy[0].meters(), xy[1].meters()));
+  }
+  return dst;
+}
+
 void outputFilteredPositionsPlots(
     const Array<CalibDataChunk> &chunks,
     DOM::Node *dst) {
@@ -189,7 +208,7 @@ void outputFilteredPositionsPlots(
   DOM::addSubTextNode(&row, "th", "Filtered positions");
   for (auto chunk: chunks) {
     auto td = DOM::makeSubNode(&row, "td");
-    auto traj = gpsPosToTrajectory(chunk.filteredPositions);
+    auto traj = sample2dPositions(chunk.trajectory);
     outputMagHeadingPlot("meters", traj, &td);
   }
 }
@@ -201,10 +220,20 @@ bool precalibrateMagHdg(
   return true;
 }
 
+bool areValidChunks(const Array<CalibDataChunk> &chunks) {
+  for (auto c: chunks) {
+    if (!c.trajectory.defined()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
     DOM::Node *dst) {
+  CHECK(areValidChunks(chunks));
   DOM::addSubTextNode(dst, "h2", "Magnetic headings");
   outputTrajectoryPlots<MAG_HEADING>(
       chunks, "unit", &headingsToTrajectory, dst);
@@ -212,13 +241,14 @@ ReconstructionResults reconstruct(
   DOM::addSubTextNode(dst, "h2", "Raw GPS trajectories");
   outputTrajectoryPlots<GPS_POS>(
       chunks, "meters", &gpsPosToTrajectory, dst);
+
   DOM::addSubTextNode(dst, "h2", "Filtered GPS trajectories");
   outputFilteredPositionsPlots(chunks, dst);
-
+  /*
   auto magHdgPage = DOM::linkToSubPage(
       dst, "Magnetic heading precalibration");
   auto magHdg = precalibrateMagHdg(chunks, settings, &magHdgPage);
-
+*/
   return ReconstructionResults();
 }
 

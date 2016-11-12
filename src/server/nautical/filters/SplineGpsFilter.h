@@ -67,9 +67,12 @@ public:
   TimeStamp upper() const;
   ECEFCoords<double> evaluateEcefPosition(TimeStamp t) const;
   ECEFCoords<double, 1> evaluateEcefMotion(TimeStamp t) const;
+  Span<TimeStamp> span() const;
 
   GeographicPosition<double> evaluateGeographicPosition(TimeStamp t) const;
   HorizontalMotion<double> evaluateHorizontalMotion(TimeStamp t) const;
+  const TimeMapper &timeMapper() const;
+  bool defined() const;
 private:
   TimeMapper _mapper;
   SmoothBoundarySplineBasis<double, 3> _basis, _motionBasis;

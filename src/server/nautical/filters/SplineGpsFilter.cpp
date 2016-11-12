@@ -114,6 +114,10 @@ ECEFCoords<double, 1> EcefCurve::evaluateEcefMotion(TimeStamp t) const {
   };
 }
 
+Span<TimeStamp> EcefCurve::span() const {
+  return Span<TimeStamp>(lower(), upper());
+}
+
 GeographicPosition<double> EcefCurve::evaluateGeographicPosition(
     TimeStamp t) const {
   auto pos = evaluateEcefPosition(t);
@@ -126,6 +130,14 @@ HorizontalMotion<double> EcefCurve::evaluateHorizontalMotion(
   auto pos = evaluateEcefPosition(t);
   auto m = evaluateEcefMotion(t);
   return ECEF::computeEcefToHMotion(pos, m);
+}
+
+const TimeMapper &EcefCurve::timeMapper() const {
+  return _mapper;
+}
+
+bool EcefCurve::defined() const {
+  return _mapper.offset.defined();
 }
 
 Array<Curve> allocateCurves(const Array<TimeMapper> &mappers) {
