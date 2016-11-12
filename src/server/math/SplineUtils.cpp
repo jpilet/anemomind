@@ -212,11 +212,8 @@ void RobustSplineFit<Dims>::addObservation(TimeStamp t,
     double sigma,
     const VecFun &valueFun) {
   auto x = _mapper.mapToReal(t);
-  std::cout << "Sample count " << _mapper.sampleCount << std::endl;
-  std::cout << "Add observation at " << x << " of order " << order << std::endl;
   auto weights = _bases[order].build(x);
   double dstScale = _factors[order];
-  std::cout << "Dst scale is " << dstScale << std::endl;
   OutlierRejector::Settings os;
   os.initialAlpha = _settings.minWeight;
   os.initialBeta = _settings.minWeight;
@@ -254,9 +251,6 @@ void addObservation(
   }
   auto weight = obs.rejector.computeWeight();
   auto dst = obs.computeDst(coefs);
-
-  std::cout << "  Fit to \n" << dst << " with weight "
-      << weight << std::endl;
 
   accumulateNormalEqs(
       weight,
@@ -335,7 +329,6 @@ void updateWeights(double weight,
     std::vector<typename RobustSplineFit<Dims>::Observation> *obs) {
   for (auto &x: *obs) {
     auto residual = x.computeResidual(coefs);
-    std::cout << "  residual = " << residual << std::endl;
     x.rejector.update(weight, residual);
   }
 }
@@ -347,7 +340,6 @@ MDArray2d RobustSplineFit<Dims>::solve() {
       log(_settings.maxWeight));
   MDArray2d coefs;
   for (int i = 0; i < _settings.iters; i++) {
-    std::cout << "--------------Iteration " << i << std::endl;
     coefs = solveForObservations<Dims>(
         coefs,
         _mapper.sampleCount, _bases,

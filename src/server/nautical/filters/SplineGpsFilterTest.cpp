@@ -38,14 +38,7 @@ namespace {
 
     auto p = curve.evaluateGeographicPosition(pos.time);
     auto d = distance(p, pos.value);
-    std::cout << "The distance is " << d.meters() << std::endl;
     EXPECT_NEAR(d.meters(), 0.0, tolMeters);
-/*
-
-    double tol = tolMeters/(60.0*1852);
-    EXPECT_NEAR(p.lat().degrees(), pos.value.lat().degrees(), tol);
-    EXPECT_NEAR(p.lon().degrees(), pos.value.lon().degrees(), tol);
-    EXPECT_NEAR(p.alt().meters(), pos.value.alt().meters(), tolMeters);*/
   }
 
   TimedValue<HorizontalMotion<double>> makeTMot(
