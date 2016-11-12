@@ -14,6 +14,7 @@
 #include <server/common/string.h>
 #include <server/plot/ColorMap.h>
 #include <server/nautical/GeographicReference.h>
+#include <server/common/indexed.h>
 
 namespace sail {
 
@@ -229,6 +230,13 @@ bool areValidChunks(const Array<CalibDataChunk> &chunks) {
   return true;
 }
 
+void outputOtherSignals(DOM::Node *dst,
+    Array<CalibDataChunk> &chunks) {
+  for (auto chunk: indexed(chunks)) {
+
+  }
+}
+
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
@@ -244,6 +252,9 @@ ReconstructionResults reconstruct(
 
   DOM::addSubTextNode(dst, "h2", "Filtered GPS trajectories");
   outputFilteredPositionsPlots(chunks, dst);
+
+  DOM::addSubTextNode(dst, "h2", "Other signals");
+  outputOtherSignals(dst, chunks);
   /*
   auto magHdgPage = DOM::linkToSubPage(
       dst, "Magnetic heading precalibration");
