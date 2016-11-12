@@ -196,9 +196,13 @@ MDArray2d computeSplineCoefs(const MDArray2d &splineSamples) {
 }
 
 template <int Dims>
-RobustSplineFit<Dims>::RobustSplineFit(const TimeMapper &mapper) {
-
-}
+RobustSplineFit<Dims>::RobustSplineFit(const TimeMapper &mapper,
+    const Settings &settings)
+  : _mapper(mapper),
+    _factors(makePowers(
+      mapper.sampleCount, mapper.period.seconds())),
+      _bases(Basis(mapper.sampleCount).makeDerivatives()),
+      _settings(settings) {}
 
 template <int Dims>
 void RobustSplineFit<Dims>::addObservation(TimeStamp t,
@@ -206,7 +210,15 @@ void RobustSplineFit<Dims>::addObservation(TimeStamp t,
     const Vec &value,
     double sigma,
     const VecFun &valueFun) {
-
+  auto weights = _bases[order].build(_mapper.map(t));
+  double dstScale = _factors[order];
+  OutlierRejector::Settings os;
+  os.initialAlpha = _settings.minWeight;
+  os.initialBeta = _settings.minWeight;
+  os.sigma = sigma;
+  _observations.push_back(Observation(weights,
+      dstScale, value,
+      valueFun, os));
 }
 
 template <int Dims>

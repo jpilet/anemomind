@@ -89,10 +89,17 @@ public:
 
   struct Observation {
     OutlierRejector rejector;
-    double weight = 1.0;
-    Weights param;
+    Weights weights;
+    double dstScale = 1.0;
     Vec dst = Vec::Zero();
-    Vec dstFun;
+    VecFun dstFun;
+
+    Observation() {}
+    Observation(const Weights &w, double ds, const Vec &v,
+        const VecFun &vf, const OutlierRejector::Settings &os) :
+          weights(w), dstScale(ds),
+            dst(v), dstFun(vf),
+            rejector(os) {}
   };
 
   struct Settings {
@@ -107,7 +114,9 @@ public:
     double wellPosednessReg = 1.0e-5;
   };
 
-  RobustSplineFit(const TimeMapper &mapper);
+  RobustSplineFit(
+      const TimeMapper &mapper,
+      const Settings &settings = Settings());
 
   void addObservation(TimeStamp t,
       int order,
@@ -117,6 +126,7 @@ public:
 
   Array<Arrayd> solve();
 private:
+  TimeMapper _mapper;
   std::vector<Observation> _observations;
   Array<Basis> _bases;
   Array<double> _factors;

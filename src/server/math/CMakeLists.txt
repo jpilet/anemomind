@@ -205,6 +205,7 @@ target_link_libraries(math_SplineUtils
   lapack_BandWrappers
   math_Spline
   common_TimeStamp
+  math_OutlierRejector
   )
 
 cxx_test(math_SplineUtilsTest
