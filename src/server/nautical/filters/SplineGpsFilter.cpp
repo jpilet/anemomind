@@ -30,9 +30,6 @@ OutlierRejector::Settings Settings::positionSettings() const {
   return settings;
 }
 
-Settings::Settings() {
-  lmSettings.iters = 8;
-}
 
 void EcefCurve::initializeMotionBasis() {
   _motionBasis = _basis.derivative().scale(
@@ -306,14 +303,16 @@ EcefCurve filterOneCurve3d(const CurveData &src,
   fitSettings.regOrder = 2;
   fitSettings.regWeight = settings.regWeight;
   fitSettings.ignoreConstantIfVariable = false;
-  fitSettings.iters = 30;
+  fitSettings.iters = settings.iters;
   RobustSplineFit<3> problem(mapper, fitSettings);
 
   // No regularization for 0th order, because there is at l
   // least one position.
   addPositionTerms(&problem, src.positions, settings.inlierThreshold);
   addMotionTerms(&problem, src, settings.inlierThreshold);
+  LOG(INFO) << "Solving GPS filtering problem...";
   auto solution = problem.solve();
+  LOG(INFO) << "Solved!";
   return EcefCurve(
       mapper,
       problem.basis(),

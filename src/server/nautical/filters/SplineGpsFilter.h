@@ -22,19 +22,9 @@ namespace sail {
 namespace SplineGpsFilter {
 
 struct Settings {
-  Settings();
-
-  // Old stuff
+  int iters = 8;
   Length<double> inlierThreshold = 12.0_m;
-  double stabilizerWeight = 1.0e-9;
-  BandedLevMar::Settings lmSettings;
-
-
-
-
-
-
-  double regWeight = 1; //10.0;
+  double regWeight = 10; //10.0;
   double wellPosednessReg = 1.0e-5;
   Duration<double> samplingPeriod = 2.0_s;
   Duration<double> outlierCutThreshold = 1.0_minutes;
