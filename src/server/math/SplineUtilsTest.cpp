@@ -85,7 +85,6 @@ TEST(SplineUtilsTest, RobustSplineFitTestWithOutlier) {
 
   for (int i = 0; i < 9; i++) {
     auto y = i == 5? 300000000 : 4.0 + 0.5*i;
-    std::cout << "Add observation at " << y << std::endl;
     fit.addObservation(t(i), order, v1(y), 1.0);
   }
 
@@ -95,4 +94,21 @@ TEST(SplineUtilsTest, RobustSplineFitTestWithOutlier) {
     auto y = evaluateSpline<1>(basis.build(i), coefs);
     EXPECT_NEAR(y(0), 4.0 + 0.5*i, 1.0e-6);
   }
+}
+
+TEST(SplineUtilsTest, RobustSplineFitDerivative) {
+  TimeMapper mapper(offset, 4.0_s, 9);
+
+  auto settings = RobustSplineFit<1>::Settings();
+  RobustSplineFit<1> fit(mapper, settings);
+  int order = 0;
+
+  fit.addObservation(t(0.0), order+0, v1(3.4), 1.0);
+  fit.addObservation(t(1.0), order+1, v1(2.0), 1.0);
+
+  auto coefs = fit.solve();
+
+  auto y = evaluateSpline<1>(fit.basis().build(1.0), coefs);
+  EXPECT_NEAR(y(0), 11.4, 1.0e-6);
+
 }
