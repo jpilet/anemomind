@@ -203,7 +203,6 @@ void renderPlot(
     std::function<void(BBox3d, cairo_t*)> contextRenderer,
     cairo_t *dst) {
 
-  std::cout << "First pass" << std::endl;
   auto surface = sharedPtrWrap(
       cairo_recording_surface_create(
           CAIRO_CONTENT_COLOR_ALPHA, nullptr));
@@ -220,7 +219,6 @@ void renderPlot(
       goodBbox, settings);
 
   // Render to the real surface
-  std::cout << "Second pass" << std::endl;
   WithLocalContext wlc(dst);
   auto mat = toCairo(proj);
   cairo_transform(dst, &mat);
@@ -305,12 +303,6 @@ void renderPlot(
     auto yTicks = computeAxisTicks<Iter>(
             box.getSpan(1).minv(),
             box.getSpan(1).maxv(), Iter());
-
-    for (int i = 0; i < 2; i++) {
-      auto sp = box.getSpan(i);
-      std::cout << "DIM " << i << " data: " << sp.minv() << " to "
-          << sp.maxv() << std::endl;
-    }
 
     renderAxis(0, xTicks, xLabel,
         getAxisPosition(yTicks), dst);
