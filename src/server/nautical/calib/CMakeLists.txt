@@ -137,6 +137,8 @@ add_library(calib_MagHdgCalib
 
 target_link_libraries(calib_MagHdgCalib
   common_DOMUtils
+  plot_CairoUtils
+  plot_PlotUtils
   )
 
 target_depends_on_ceres(calib_MagHdgCalib)

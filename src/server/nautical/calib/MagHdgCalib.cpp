@@ -9,6 +9,9 @@
 #include <server/common/TimedValueUtils.h>
 #include <ceres/ceres.h>
 #include <server/common/string.h>
+#include <server/plot/CairoUtils.h>
+#include <server/plot/PlotUtils.h>
+#include <cairo/cairo-svg.h>
 
 namespace sail {
 namespace MagHdgCalib {
@@ -55,6 +58,7 @@ namespace {
   struct MagHdgFitness {
     Angle<double> heading;
     HorizontalMotion<double> gpsMotion;
+    Optional<Angle<double>> overrideCorrection;
 
     template <typename T>
     bool operator()(
@@ -62,7 +66,9 @@ namespace {
         const T *current2,
         T *residuals) const {
       auto current = toHMotion<T>(current2);
-      auto correction = toAngle<T>(*correction1);
+      auto correction = overrideCorrection.defined()?
+          overrideCorrection.get().cast<T>() :
+          toAngle<T>(*correction1);
 
       HorizontalMotion<T> speedOverWater(
           gpsMotion.cast<T>() - current);
@@ -82,7 +88,44 @@ namespace {
   };
 }
 
-Array<TimedValue<Angle<double>>>
+void outputCurrentSpread(DOM::Node *output,
+    const Array<Vec<double>> &currents) {
+  if (output != nullptr) {
+    using namespace Cairo;
+    auto image = DOM::makeGeneratedImageNode(output, ".svg");
+    PlotUtils::Settings2d settings;
+    auto surface = sharedPtrWrap(cairo_svg_surface_create(
+        image.toString().c_str(), settings.width,
+        settings.height));
+    auto cr = sharedPtrWrap(cairo_create(surface.get()));
+
+    settings.pixelsPerUnit = 1000;
+    settings.orthogonal = true;
+
+    Spand range(-3, 3);
+    renderPlot(settings, [&](cairo_t *dst) {
+      Cairo::WithLocalContext wc0(dst);
+      Cairo::setSourceColor(dst,
+          PlotUtils::HSV::fromHue(215.0_deg));
+      for (auto c: currents) {
+        auto motion = toHMotion<double>(c.data());
+
+        auto x = motion[0].knots();
+        auto y = motion[1].knots();
+        if (range.contains(x) && range.contains(y)) {
+          Cairo::WithLocalContext wc(dst);
+          cairo_translate(dst, x, y);
+          Cairo::WithLocalDeviceScale wlds(dst,
+              WithLocalDeviceScale::Identity);
+          cairo_arc(dst, 0, 0, 3, 0.0, 2.0*M_PI);
+          cairo_fill(dst);
+        }
+      }
+    }, "Current X knots", "Current y knots", cr.get());
+  }
+}
+
+Results
   calibrateSingleChannel(
     SplineGpsFilter::EcefCurve curve,
     const Array<TimedValue<Angle<double>>> &headings,
@@ -91,7 +134,7 @@ Array<TimedValue<Angle<double>>>
   if (headings.size() < 2) {
     DOM::addSubTextNode(output, "p",
         "Not enough data to calibrate magnetic heading");
-    return Array<TimedValue<Angle<double>>>();
+    return Results();
   }
 
   IndexedWindows windows = allocateWindows(
@@ -106,7 +149,9 @@ Array<TimedValue<Angle<double>>>
   auto localCurrents = Array<Eigen::Vector2d>::fill(
       windows.size(), Eigen::Vector2d::Zero());
 
-  double angleCorrectionRadians = 0.0;
+  double angleCorrectionRadians =
+      settings.overrideCorrection.defined()?
+          settings.overrideCorrection.get().radians() : 0.0;
   problem.AddParameterBlock(&angleCorrectionRadians, 1);
 
 
@@ -121,7 +166,8 @@ Array<TimedValue<Angle<double>>>
         problem.AddResidualBlock(
             new ceres::AutoDiffCostFunction<
               MagHdgFitness, 2, 1, 2>(new MagHdgFitness{
-                  x.value, gpsMotion}),
+                  x.value, gpsMotion,
+                  settings.overrideCorrection}),
             nullptr,
             &angleCorrectionRadians,
             localCurrents[windowIndex].data());
@@ -159,17 +205,20 @@ Array<TimedValue<Angle<double>>>
   ceres::Solver::Options options;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
-  {
-    addSubTextNode(output, "pre", summary.BriefReport());
-  }
+
+  outputCurrentSpread(output, localCurrents);
+
+  addSubTextNode(output, "pre", summary.BriefReport());
 
   auto correction = toAngle<double>(angleCorrectionRadians);
 
   DOM::addSubTextNode(output, "p",
       stringFormat("Angle correction: %.3g deg",
           correction.degrees()));
-
-  return Array<TimedValue<Angle<double>>>();
+  return Results{
+    summary.final_cost,
+    correction
+  };
 }
 
 }

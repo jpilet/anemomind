@@ -16,11 +16,20 @@ namespace sail {
 namespace MagHdgCalib {
 
 struct Settings {
-  Duration<double> windowSize = 4.0_minutes;
+  Duration<double> windowSize = 2.0_minutes;
+  Optional<Angle<double>> overrideCorrection;
 };
 
+struct Results {
+  double objfValue = NAN;
+  Angle<double> correction = 0.0_rad;
 
-Array<TimedValue<Angle<double>>>
+  Results() {}
+  Results(double r, Angle<double> c) : objfValue(r),
+      correction(c) {}
+};
+
+Results
   calibrateSingleChannel(
     SplineGpsFilter::EcefCurve curve,
     const Array<TimedValue<Angle<double>>> &headings,
