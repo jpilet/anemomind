@@ -16,7 +16,7 @@ namespace sail {
 namespace MagHdgCalib {
 
 struct Settings {
-  Duration<double> windowSize = 2.0_minutes;
+  Duration<double> windowSize = 4.0_minutes;
 };
 
 
@@ -24,8 +24,8 @@ Array<TimedValue<Angle<double>>>
   calibrateSingleChannel(
     SplineGpsFilter::EcefCurve curve,
     const Array<TimedValue<Angle<double>>> &headings,
-    const Settings &settings,
-    DOM::Node *output);
+    const Settings &settings = Settings(),
+    DOM::Node *output = nullptr);
 
 
 }

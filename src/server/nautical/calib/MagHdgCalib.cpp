@@ -8,6 +8,7 @@
 #include <server/nautical/calib/MagHdgCalib.h>
 #include <server/common/TimedValueUtils.h>
 #include <ceres/ceres.h>
+#include <server/common/string.h>
 
 namespace sail {
 namespace MagHdgCalib {
@@ -96,25 +97,27 @@ Array<TimedValue<Angle<double>>>
   IndexedWindows windows = allocateWindows(
       headings, settings.windowSize);
 
+  DOM::addSubTextNode(output, "p",
+      stringFormat("Number of windows: %d", windows.size()));
+
   ceres::Problem problem;
 
   // Allocate the variables to optimize
   auto localCurrents = Array<Eigen::Vector2d>::fill(
       windows.size(), Eigen::Vector2d::Zero());
-  for (auto &x: localCurrents) {
-    problem.AddParameterBlock(x.data(), 2);
-  }
 
   double angleCorrectionRadians = 0.0;
   problem.AddParameterBlock(&angleCorrectionRadians, 1);
 
 
+  Array<int> checked = Array<int>::fill(windows.size(), 0);
   // Populate the objective function.
   for (auto x: headings) {
     if (curve.covers(x.time)) {
       auto gpsMotion = curve.evaluateHorizontalMotion(x.time);
       auto windowSpan = windows.getWindowIndexSpan(x.time);
       for (auto windowIndex: windowSpan) {
+        checked[windowIndex]++;
         problem.AddResidualBlock(
             new ceres::AutoDiffCostFunction<
               MagHdgFitness, 2, 1, 2>(new MagHdgFitness{
@@ -126,6 +129,47 @@ Array<TimedValue<Angle<double>>>
     }
   }
 
+
+  std::vector<int> missing;
+  Span<int> v;
+  for (int i = 0; i < localCurrents.size(); i++) {
+    int n = checked[i];
+    v.extend(n);
+    if (0 < n) {
+      problem.AddParameterBlock(localCurrents[i].data(), 2);
+    } else {
+      missing.push_back(i);
+    }
+  }{
+    DOM::addSubTextNode(output, "p",
+        stringFormat("Minimum samples per window: %d",
+            v.minv()));
+    DOM::addSubTextNode(output, "p",
+        stringFormat("Maximum samples per window: %d", v.maxv()));
+    if (!missing.empty()) {
+      std::stringstream ss;
+      ss << "The following windows were not covered: ";
+      for (auto i: missing) {
+        ss << i << " ";
+      }
+      DOM::addSubTextNode(output, "p", ss.str());
+    }
+  }
+
+  ceres::Solver::Options options;
+  ceres::Solver::Summary summary;
+  ceres::Solve(options, &problem, &summary);
+  {
+    addSubTextNode(output, "pre", summary.BriefReport());
+  }
+
+  auto correction = toAngle<double>(angleCorrectionRadians);
+
+  DOM::addSubTextNode(output, "p",
+      stringFormat("Angle correction: %.3g deg",
+          correction.degrees()));
+
+  return Array<TimedValue<Angle<double>>>();
 }
 
 }

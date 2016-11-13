@@ -15,6 +15,7 @@
 #include <server/plot/ColorMap.h>
 #include <server/nautical/GeographicReference.h>
 #include <server/common/indexed.h>
+#include <server/nautical/calib/MagHdgCalib.h>
 
 namespace sail {
 
@@ -257,13 +258,22 @@ ReconstructionResults reconstruct(
   DOM::addSubTextNode(dst, "h2", "Filtered GPS trajectories");
   outputFilteredPositionsPlots(chunks, dst);
 
-  DOM::addSubTextNode(dst, "h2", "Other signals");
-  outputOtherSignals(dst, chunks);
-  /*
-  auto magHdgPage = DOM::linkToSubPage(
-      dst, "Magnetic heading precalibration");
-  auto magHdg = precalibrateMagHdg(chunks, settings, &magHdgPage);
-*/
+  DOM::addSubTextNode(dst, "h2", "Magnetic headings");
+  for (auto chunk: indexed(chunks)) {
+    DOM::addSubTextNode(dst, "h3",
+        stringFormat("Chunk %d/%d",
+            chunk.first + 1, chunks.size()));
+    for (auto signal: chunk.second.MAG_HEADING) {
+      DOM::addSubTextNode(dst, "h4",
+          stringFormat("For mag heading '%s'",
+              signal.first.c_str()));
+      MagHdgCalib::Settings settings;
+      MagHdgCalib::calibrateSingleChannel(
+          chunk.second.trajectory,
+          signal.second, settings, dst);
+    }
+  }
+
   return ReconstructionResults();
 }
 
