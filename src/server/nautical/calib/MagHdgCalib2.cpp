@@ -13,6 +13,7 @@
 #include <server/plot/PlotUtils.h>
 #include <cairo/cairo-svg.h>
 #include <server/common/DomUtils.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 namespace MagHdgCalib2 {
@@ -90,14 +91,34 @@ Array<Vec<double>> makeCurveToPlot(
     const SplineGpsFilter::EcefCurve &gpsCurve,
         const Array<TimedValue<Angle<double>>> &headings,
         const Settings &settings) {
+  LOG(INFO) << "Make curve to plot for window size "
+      << settings.windowSize;
   LineKM m(0, settings.plotSampleCount-1, -M_PI, M_PI);
-  Array<Vec<double>> dst(settings.plotSampleCount);
+  Array<std::pair<Angle<double>, double>>
+    dst(settings.plotSampleCount);
   for (int i = 0; i < settings.plotSampleCount; i++) {
     auto angle = m(i)*1.0_rad;
-    dst[i] = Vec<double>(angle.degrees(),
-        evaluateFit<double>(
-        gpsCurve, headings, settings,
-        angle));
+    auto objfValue = evaluateFit<double>(
+            gpsCurve, headings, settings,
+            angle);
+    dst[i] = std::make_pair(angle, objfValue);
+  }
+  return sail::map(dst,
+      [](const std::pair<Angle<double>, double> &xy) {
+    return Vec<double>(xy.first.degrees(), xy.second);
+  });
+}
+
+Array<Vec<double>> normalizeYByMax(
+    const Array<Vec<double>> &src) {
+  double maxv = 0.0;
+  for (auto v: src) {
+    maxv = std::max(
+        double(maxv), double(v(1)));
+  }
+  Array<Vec<double>> dst = src.dup();
+  for (auto &x: dst) {
+    x(1) /= maxv;
   }
   return dst;
 }
@@ -109,8 +130,8 @@ Array<Array<Vec<double>>> makeCurvesToPlot(
   int n = settings.size();
   Array<Array<Vec<double>>> dst(n);
   for (int i = 0; i < n; i++) {
-    dst[i] = makeCurveToPlot(gpsCurve, headings,
-        settings[i]);
+    dst[i] = normalizeYByMax(makeCurveToPlot(gpsCurve, headings,
+        settings[i]));
   }
   return dst;
 }
@@ -132,7 +153,7 @@ void makeAngleFitnessPlot(
   auto cr = Cairo::sharedPtrWrap(cairo_create(surface.get()));
   plotSettings.orthogonal = false;
 
-  LineKM hueMap(0, settings.size()-1, 0.0, 360.0);
+  LineKM hueMap(0, settings.size()-1, 0.0, 240.0);
   Cairo::renderPlot(plotSettings, [&](cairo_t *dst) {
     for (int i = 0; i < settings.size(); i++) {
       auto curve = curvesToPlot[i];

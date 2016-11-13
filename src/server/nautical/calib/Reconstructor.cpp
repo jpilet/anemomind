@@ -280,7 +280,11 @@ ReconstructionResults reconstruct(
             signal.second, dst);
       }
       if (true) {
-        Array<MagHdgCalib2::Settings> settings(2);
+        Array<MagHdgCalib2::Settings> settings(8);
+        settings[0].windowSize = 4;
+        for (int i = 1; i < settings.size(); i++) {
+          settings[i].windowSize = settings[i-1].windowSize*2;
+        }
         MagHdgCalib2::makeAngleFitnessPlot(
             chunk.second.trajectory,
             signal.second, settings,
