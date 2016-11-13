@@ -100,3 +100,12 @@ TEST(TimedValueUtils, WindowIndexer2) {
     EXPECT_EQ(span.maxv(), 2);
   }
 }
+
+TEST(TimedValueUtils, IndexedWindows) {
+  IndexedWindows win(Span<TimeStamp>(offset, offset + 1.0_s),
+      1.0_minutes);
+  EXPECT_EQ(win.size(), 2);
+  auto sp = win.getWindowIndexSpan(offset);
+  EXPECT_EQ(sp.minv(), 0);
+  EXPECT_EQ(sp.maxv(), 2);
+}

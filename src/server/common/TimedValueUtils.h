@@ -61,6 +61,7 @@ private:
 class IndexedWindows {
 public:
   struct Settings {
+    Settings() {}
     double overlap = 0.5;
     Duration<double> marg = 1.0_s;
   };
@@ -68,7 +69,7 @@ public:
   IndexedWindows(
       Span<TimeStamp> timeSpan,
       Duration<double> windowSize,
-      const Settings &settings);
+      const Settings &settings = Settings());
   int size() const;
   Span<int> getWindowIndexSpan(TimeStamp t) const;
 private:
