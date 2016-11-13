@@ -58,6 +58,25 @@ private:
   Duration<double> _shift, _windowSize;
 };
 
+class IndexedWindows {
+public:
+  struct Settings {
+    double overlap = 0.5;
+    Duration<double> marg = 1.0_s;
+  };
+
+  IndexedWindows(
+      Span<TimeStamp> timeSpan,
+      Duration<double> windowSize,
+      const Settings &settings);
+  int size() const;
+  Span<int> getWindowIndexSpan(TimeStamp t) const;
+private:
+  int _indexOffset, _count;
+  TimeWindowIndexer _indexer;
+
+};
+
 } /* namespace sail */
 
 #endif /* SERVER_COMMON_TIMEDVALUEUTILS_H_ */

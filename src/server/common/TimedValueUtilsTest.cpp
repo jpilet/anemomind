@@ -76,15 +76,15 @@ TEST(TimedValueUtils, WindowIndexer1) {
   {
     auto span = indexer.getWindowIndexSpan(offset + 1.0_s);
     EXPECT_EQ(span.minv(), -1);
-    EXPECT_EQ(span.maxv(), 0);
+    EXPECT_EQ(span.maxv(), 1);
   }{
     auto span = indexer.getWindowIndexSpan(offset + 29.0_s);
     EXPECT_EQ(span.minv(), -1);
-    EXPECT_EQ(span.maxv(), 0);
+    EXPECT_EQ(span.maxv(), 1);
   }{
     auto span = indexer.getWindowIndexSpan(offset + 31.0_s);
     EXPECT_EQ(span.minv(), 0);
-    EXPECT_EQ(span.maxv(), 1);
+    EXPECT_EQ(span.maxv(), 2);
   }
 }
 
@@ -93,10 +93,10 @@ TEST(TimedValueUtils, WindowIndexer2) {
   {
     auto span = indexer.getWindowIndexSpan(offset + 1.0_s);
     EXPECT_EQ(span.minv(), -3);
-    EXPECT_EQ(span.maxv(), 0);
+    EXPECT_EQ(span.maxv(), 1);
   }{
     auto span = indexer.getWindowIndexSpan(offset + 16.0_s);
     EXPECT_EQ(span.minv(), -2);
-    EXPECT_EQ(span.maxv(), 1);
+    EXPECT_EQ(span.maxv(), 2);
   }
 }

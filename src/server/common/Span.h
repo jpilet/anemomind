@@ -198,6 +198,16 @@ Span<T> operator+(T s, Span<T> x) {
 }
 
 template <typename T>
+Span<T> operator-(Span<T> x, T s) {
+  return x + (-s);
+}
+
+template <typename T>
+Span<T> operator-(T s, Span<T> x) {
+  return s + ((-1)*x);
+}
+
+template <typename T>
 Span<T> operator+(Span<T> x, T s) {
   return s + x;
 }

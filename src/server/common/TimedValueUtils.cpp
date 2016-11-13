@@ -146,11 +146,30 @@ Span<int> TimeWindowIndexer
   ::getWindowIndexSpan(TimeStamp t) const {
   int upper = int(floor((t - _offset)/_shift));
   int lower = int(ceil(((t - _offset) - _windowSize)/_shift));
-  return Span<int>(lower, upper);
+  return Span<int>(lower, upper + 1); // +1 because non-inclusive
 }
-/*private:
-TimeStamp _offset;
-Duration<double> _shift, _windowSize;
-int _count;*/
+
+IndexedWindows::IndexedWindows(
+    Span<TimeStamp> timeSpan,
+    Duration<double> windowSize,
+    const Settings &settings) :
+    _indexer(timeSpan.minv() - settings.marg,
+        windowSize, settings.overlap) {
+  int lower = _indexer.getWindowIndexSpan(
+      timeSpan.minv()).minv();
+  int upper = _indexer.getWindowIndexSpan(
+      timeSpan.maxv()).maxv();
+  _indexOffset = lower;
+  _count = upper - lower;
+}
+
+int IndexedWindows::size() const {
+  return _count;
+}
+
+Span<int> IndexedWindows::getWindowIndexSpan(
+    TimeStamp t) const {
+  return _indexer.getWindowIndexSpan(t) - _indexOffset;
+}
 
 } /* namespace sail */
