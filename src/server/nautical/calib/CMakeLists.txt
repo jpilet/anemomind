@@ -128,3 +128,12 @@ target_link_libraries(calib_Reconstructor
   plot_CairoUtils
   plot_ColorMap
   )
+
+add_library(calib_MagHdgCalib
+  MagHdgCalib.h
+  MagHdgCalib.cpp
+  )
+
+target_link_libraries(calib_MagHdgCalib
+  common_DOMUtils
+  )
