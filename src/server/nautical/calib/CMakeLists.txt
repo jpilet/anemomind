@@ -142,3 +142,14 @@ target_link_libraries(calib_MagHdgCalib
   )
 
 target_depends_on_ceres(calib_MagHdgCalib)
+
+add_library(calib_MagHdgCalib2
+  MagHdgCalib2.h
+  MagHdgCalib2.cpp
+  )
+
+target_link_libraries(calib_MagHdgCalib2
+  common_DOMUtils
+  plot_CairoUtils
+  plot_PlotUtils
+  )

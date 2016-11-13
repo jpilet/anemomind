@@ -12,6 +12,7 @@
 #include <server/plot/CairoUtils.h>
 #include <server/plot/PlotUtils.h>
 #include <cairo/cairo-svg.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 namespace MagHdgCalib {
@@ -92,6 +93,7 @@ void outputCurrentSpread(DOM::Node *output,
     const Array<Vec<double>> &currents) {
   if (output != nullptr) {
     using namespace Cairo;
+    DOM::addSubTextNode(output, "h5", "Current scatter");
     auto image = DOM::makeGeneratedImageNode(output, ".svg");
     PlotUtils::Settings2d settings;
     auto surface = sharedPtrWrap(cairo_svg_surface_create(
@@ -103,6 +105,7 @@ void outputCurrentSpread(DOM::Node *output,
     settings.orthogonal = true;
 
     Spand range(-3, 3);
+    int notInPlot = 0;
     renderPlot(settings, [&](cairo_t *dst) {
       Cairo::WithLocalContext wc0(dst);
       Cairo::setSourceColor(dst,
@@ -119,9 +122,14 @@ void outputCurrentSpread(DOM::Node *output,
               WithLocalDeviceScale::Identity);
           cairo_arc(dst, 0, 0, 3, 0.0, 2.0*M_PI);
           cairo_fill(dst);
+        } else {
+          notInPlot++;
         }
       }
     }, "Current X knots", "Current y knots", cr.get());
+    DOM::addSubTextNode(output, "p",
+        stringFormat("Number of points not in plot: %d",
+            notInPlot));
   }
 }
 
@@ -140,6 +148,9 @@ Results
   IndexedWindows windows = allocateWindows(
       headings, settings.windowSize);
 
+  DOM::addSubTextNode(output, "p",
+      stringFormat("Curve duration: %s",
+          curve.duration().str().c_str()));
   DOM::addSubTextNode(output, "p",
       stringFormat("Number of windows: %d", windows.size()));
 
@@ -219,6 +230,44 @@ Results
     summary.final_cost,
     correction
   };
+}
+
+void makeCostPlot(
+    int sampleCount,
+    SplineGpsFilter::EcefCurve curve,
+    const Array<TimedValue<Angle<double>>> &headings,
+    DOM::Node *output,
+    const Settings &settings0) {
+  LineKM m(0.0, sampleCount-1, -M_PI, M_PI);
+  Array<Vec<double>> pts(sampleCount);
+  for (int i = 0; i < sampleCount; i++) {
+    auto settings = settings0;
+    auto corr = m(i)*1.0_rad;
+    settings.overrideCorrection = corr;
+    auto r = calibrateSingleChannel(curve, headings, settings,
+        nullptr);
+    pts[i] = Vec<double>(corr.degrees(), r.objfValue);
+  }
+
+  using namespace Cairo;
+  auto image = DOM::makeGeneratedImageNode(output, ".svg");
+
+  PlotUtils::Settings2d settings;
+  settings.orthogonal = false;
+  auto surface = sharedPtrWrap(cairo_svg_surface_create(
+      image.toString().c_str(), settings.width,
+      settings.height));
+  auto cr = sharedPtrWrap(cairo_create(surface.get()));
+  Cairo::renderPlot(settings, [&](cairo_t *dst) {
+    cairo_move_to(dst, pts[0](0), pts[0](1));
+    for (int i = 1; i < pts.size(); i++) {
+      cairo_line_to(dst, pts[i](0), pts[i](1));
+    }
+    Cairo::WithLocalDeviceScale wlds(
+        cr.get(),
+        WithLocalDeviceScale::Identity);
+    cairo_stroke(dst);
+  }, "Correction (degrees)", "Objective function", cr.get());
 }
 
 }

@@ -64,6 +64,7 @@ public:
   HorizontalMotion<double> evaluateHorizontalMotion(TimeStamp t) const;
   const TimeMapper &timeMapper() const;
   bool defined() const;
+  Duration<double> duration() const;
 private:
   TimeMapper _mapper;
   SmoothBoundarySplineBasis<double, 3> _basis, _motionBasis;

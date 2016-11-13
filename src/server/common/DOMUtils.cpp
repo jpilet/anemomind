@@ -84,8 +84,10 @@ Node makeSubNode(Node *node, const std::string &name) {
 
 void addSubTextNode(Node *node, const std::string &name,
     const std::string &data) {
-  auto x = makeSubNode(node, name);
-  addTextNode(&x, data);
+  if (node != nullptr) {
+    auto x = makeSubNode(node, name);
+    addTextNode(&x, data);
+  }
 }
 
 void addTextNode(Node *node, const std::string &text) {

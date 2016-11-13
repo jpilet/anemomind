@@ -271,6 +271,10 @@ ReconstructionResults reconstruct(
       MagHdgCalib::calibrateSingleChannel(
           chunk.second.trajectory,
           signal.second, settings, dst);
+
+      MagHdgCalib::makeCostPlot(
+          30, chunk.second.trajectory,
+          signal.second, dst);
     }
   }
 

@@ -123,6 +123,10 @@ bool EcefCurve::defined() const {
   return _mapper.offset.defined();
 }
 
+Duration<double> EcefCurve::duration() const {
+  return upper() - lower();
+}
+
 template <typename T>
 Array<bool> computeMask(
     Duration<double> cut,

@@ -31,10 +31,23 @@ struct Results {
 
 Results
   calibrateSingleChannel(
+      SplineGpsFilter::EcefCurve curve,
+      const Array<TimedValue<Angle<double>>> &headings,
+      const Settings &settings = Settings(),
+      DOM::Node *output = nullptr);
+
+void makeCostPlot(
+    int sampleCount,
     SplineGpsFilter::EcefCurve curve,
     const Array<TimedValue<Angle<double>>> &headings,
-    const Settings &settings = Settings(),
-    DOM::Node *output = nullptr);
+    DOM::Node *output,
+    const Settings &settings = Settings());
+
+template <typename T>
+T evaluateFitness(
+    const SplineGpsFilter::EcefCurve &curve,
+    const Array<TimedValue<Angle<double>>> &headings,
+    Angle<T> correction);
 
 
 }
