@@ -137,3 +137,5 @@ add_library(calib_MagHdgCalib
 target_link_libraries(calib_MagHdgCalib
   common_DOMUtils
   )
+
+target_depends_on_ceres(calib_MagHdgCalib)

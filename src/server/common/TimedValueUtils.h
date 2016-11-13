@@ -72,6 +72,8 @@ public:
       const Settings &settings = Settings());
   int size() const;
   Span<int> getWindowIndexSpan(TimeStamp t) const;
+
+  bool valid(Span<int> x) const;
 private:
   int _indexOffset, _count;
   TimeWindowIndexer _indexer;

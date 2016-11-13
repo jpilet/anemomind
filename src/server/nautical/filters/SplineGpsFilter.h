@@ -55,6 +55,7 @@ public:
 
   TimeStamp lower() const;
   TimeStamp upper() const;
+  bool covers(TimeStamp t) const;
   ECEFCoords<double> evaluateEcefPosition(TimeStamp t) const;
   ECEFCoords<double, 1> evaluateEcefMotion(TimeStamp t) const;
   Span<TimeStamp> span() const;

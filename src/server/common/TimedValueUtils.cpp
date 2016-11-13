@@ -169,7 +169,12 @@ int IndexedWindows::size() const {
 
 Span<int> IndexedWindows::getWindowIndexSpan(
     TimeStamp t) const {
-  return _indexer.getWindowIndexSpan(t) - _indexOffset;
+  auto x = _indexer.getWindowIndexSpan(t) - _indexOffset;
+  return valid(x)? x : Span<int>();
+}
+
+bool IndexedWindows::valid(Span<int> x) const {
+  return 0 <= x.minv() && x.maxv() <= _count;
 }
 
 } /* namespace sail */

@@ -73,6 +73,10 @@ TimeStamp EcefCurve::upper() const {
   return _mapper.unmap(_basis.raw().upperDataBound());
 }
 
+bool EcefCurve::covers(TimeStamp t) const {
+  return lower() <= t && t <= upper();
+}
+
 ECEFCoords<double> EcefCurve::evaluateEcefPosition(TimeStamp t) const {
   auto x = _mapper.mapToReal(t);
   auto unit = 1.0_m;
