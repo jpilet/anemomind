@@ -112,6 +112,9 @@ void renderPlot(
     const std::string &yLabel,
     cairo_t *dst);
 
+void moveTo(cairo_t *dst, const Eigen::Vector2d &x);
+void lineTo(cairo_t *dst, const Eigen::Vector2d &x);
+
 }
 }
 

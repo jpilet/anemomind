@@ -9,8 +9,14 @@
 #define SERVER_NAUTICAL_COMMON_H_
 
 #include <server/math/JetUtils.h>
+#include <Eigen/Dense>
 
 namespace sail {
+
+template <typename T>
+Eigen::Matrix<T, 2, 1> makeNauticalUnitVector(Angle<T> x) {
+  return Eigen::Matrix<T, 2, 1>(sin(x), cos(x));
+}
 
 template <typename T>
 T computeCurrentFromBoatMotion(

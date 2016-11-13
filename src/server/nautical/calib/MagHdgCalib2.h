@@ -10,11 +10,15 @@
 
 #include <server/nautical/filters/SplineGpsFilter.h>
 
+
 namespace sail {
+namespace DOM {class Node;}
+
 namespace MagHdgCalib2 {
 
 struct Settings {
-  int windowSize;
+  int windowSize = 100;
+  int plotSampleCount = 30;
 };
 
 void makeAngleFitnessPlot(

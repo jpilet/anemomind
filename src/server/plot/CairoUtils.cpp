@@ -312,5 +312,14 @@ void renderPlot(
   }, dst);
 }
 
+void moveTo(cairo_t *dst, const Eigen::Vector2d &x) {
+  cairo_move_to(dst, x(0), x(1));
+}
+
+void lineTo(cairo_t *dst, const Eigen::Vector2d &x) {
+  cairo_line_to(dst, x(0), x(1));
+}
+
+
 }
 } /* namespace sail */

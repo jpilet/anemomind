@@ -16,6 +16,7 @@
 #include <server/nautical/GeographicReference.h>
 #include <server/common/indexed.h>
 #include <server/nautical/calib/MagHdgCalib.h>
+#include <server/nautical/calib/MagHdgCalib2.h>
 
 namespace sail {
 
@@ -267,14 +268,24 @@ ReconstructionResults reconstruct(
       DOM::addSubTextNode(dst, "h4",
           stringFormat("For mag heading '%s'",
               signal.first.c_str()));
-      MagHdgCalib::Settings settings;
-      MagHdgCalib::calibrateSingleChannel(
-          chunk.second.trajectory,
-          signal.second, settings, dst);
 
-      MagHdgCalib::makeCostPlot(
-          30, chunk.second.trajectory,
-          signal.second, dst);
+      if (false) {
+        MagHdgCalib::Settings settings;
+        MagHdgCalib::calibrateSingleChannel(
+            chunk.second.trajectory,
+            signal.second, settings, dst);
+
+        MagHdgCalib::makeCostPlot(
+            30, chunk.second.trajectory,
+            signal.second, dst);
+      }
+      if (true) {
+        Array<MagHdgCalib2::Settings> settings(2);
+        MagHdgCalib2::makeAngleFitnessPlot(
+            chunk.second.trajectory,
+            signal.second, settings,
+            dst);
+      }
     }
   }
 
