@@ -8,6 +8,7 @@
 #include "TimedValueUtils.h"
 #include <server/common/ArrayBuilder.h>
 #include <server/common/logging.h>
+#include <server/common/indexed.h>
 
 namespace sail {
 
@@ -132,5 +133,24 @@ Array<int> findNearestTimePerTime(
   }
   return result;
 }
+
+TimeWindowIndexer::TimeWindowIndexer(
+    TimeStamp offset,
+    Duration<double> windowSize,
+    double overlap) :
+        _offset(offset),
+        _windowSize(windowSize),
+        _shift((1.0 - overlap)*windowSize) {}
+
+Span<int> TimeWindowIndexer
+  ::getWindowIndexSpan(TimeStamp t) const {
+  int upper = int(floor((t - _offset)/_shift));
+  int lower = int(ceil(((t - _offset) - _windowSize)/_shift));
+  return Span<int>(lower, upper);
+}
+/*private:
+TimeStamp _offset;
+Duration<double> _shift, _windowSize;
+int _count;*/
 
 } /* namespace sail */

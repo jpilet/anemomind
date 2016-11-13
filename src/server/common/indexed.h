@@ -40,7 +40,6 @@ public:
     }
 
     std::pair<int, T> operator*() const {
-      std::cout << "Visiting " << index << std::endl;
       return std::make_pair(index, (*c)[index]);
     }
 

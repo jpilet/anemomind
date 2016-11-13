@@ -46,6 +46,18 @@ Array<int> findNearestTimePerTime(
     const Array<TimeStamp> &src,
     const Array<TimeStamp> &dst);
 
+class TimeWindowIndexer {
+public:
+  TimeWindowIndexer(
+      TimeStamp offset,
+      Duration<double> windowSize,
+      double overlap = 0.5);
+  Span<int> getWindowIndexSpan(TimeStamp t) const;
+private:
+  TimeStamp _offset;
+  Duration<double> _shift, _windowSize;
+};
+
 } /* namespace sail */
 
 #endif /* SERVER_COMMON_TIMEDVALUEUTILS_H_ */

@@ -70,3 +70,20 @@ TEST(TimedValueUtils, FindNearest) {
   auto inds = findNearestTimePerTime(a, b);
   EXPECT_EQ(inds, (Array<int>{0, 0, 1, 1}));
 }
+
+TEST(TimedValueUtils, WindowIndexer) {
+  TimeWindowIndexer indexer(offset, 1.0_minutes);
+  {
+    auto span = indexer.getWindowIndexSpan(offset + 1.0_s);
+    EXPECT_EQ(span.minv(), -1);
+    EXPECT_EQ(span.maxv(), 0);
+  }{
+    auto span = indexer.getWindowIndexSpan(offset + 29.0_s);
+    EXPECT_EQ(span.minv(), -1);
+    EXPECT_EQ(span.maxv(), 0);
+  }{
+    auto span = indexer.getWindowIndexSpan(offset + 31.0_s);
+    EXPECT_EQ(span.minv(), 0);
+    EXPECT_EQ(span.maxv(), 1);
+  }
+}
