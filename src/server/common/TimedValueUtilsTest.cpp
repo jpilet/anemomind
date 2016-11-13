@@ -71,7 +71,7 @@ TEST(TimedValueUtils, FindNearest) {
   EXPECT_EQ(inds, (Array<int>{0, 0, 1, 1}));
 }
 
-TEST(TimedValueUtils, WindowIndexer) {
+TEST(TimedValueUtils, WindowIndexer1) {
   TimeWindowIndexer indexer(offset, 1.0_minutes);
   {
     auto span = indexer.getWindowIndexSpan(offset + 1.0_s);
@@ -84,6 +84,19 @@ TEST(TimedValueUtils, WindowIndexer) {
   }{
     auto span = indexer.getWindowIndexSpan(offset + 31.0_s);
     EXPECT_EQ(span.minv(), 0);
+    EXPECT_EQ(span.maxv(), 1);
+  }
+}
+
+TEST(TimedValueUtils, WindowIndexer2) {
+  TimeWindowIndexer indexer(offset, 1.0_minutes, 0.75);
+  {
+    auto span = indexer.getWindowIndexSpan(offset + 1.0_s);
+    EXPECT_EQ(span.minv(), -3);
+    EXPECT_EQ(span.maxv(), 0);
+  }{
+    auto span = indexer.getWindowIndexSpan(offset + 16.0_s);
+    EXPECT_EQ(span.minv(), -2);
     EXPECT_EQ(span.maxv(), 1);
   }
 }
