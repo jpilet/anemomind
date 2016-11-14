@@ -14,6 +14,7 @@
 #include <cairo/cairo-svg.h>
 #include <server/common/DomUtils.h>
 #include <server/common/Functional.h>
+#include <server/common/string.h>
 
 namespace sail {
 namespace MagHdgCalib2 {
@@ -87,6 +88,29 @@ T evaluateFit(const SplineGpsFilter::EcefCurve &gpsCurve,
   return computeMedian(&costs);
 }
 
+
+// sin(theta + phi)
+// cos(theta)sin(phi) + sin(theta)*cos(phi)
+//
+// sin(phi) = xy[0]
+// cos(phi) = xy[1]
+// phi = atan2(xy[0], xy[1])
+/*Angle<double> computePhase(
+    const Array<std::pair<Angle<double>, double>> &src) {
+  typedef QuadForm<3, 1> QF3;
+  QF3 sum = QF3::makeReg(1.0e-9);
+  for (auto x: src) {
+    double xy[3] = {cos(x.first), sin(x.first), 1.0};
+    double c = x.second;
+    sum += QF3::fit(xy, &c);
+  }
+  auto xy = sum.minimize();
+  if (xy.empty()) {
+    return 0.0_deg;
+  }
+  return atan2(xy(0, 0), xy(1, 0))*1.0_rad;
+}*/
+
 Array<Vec<double>> makeCurveToPlot(
     const SplineGpsFilter::EcefCurve &gpsCurve,
         const Array<TimedValue<Angle<double>>> &headings,
@@ -143,6 +167,10 @@ void makeAngleFitnessPlot(
     DOM::Node *dst) {
   auto curvesToPlot = makeCurvesToPlot(
       gpsCurve, headings, settings);
+
+  DOM::makeSubNode(dst,
+      stringFormat("Number of mag hdg samples: %d",
+          headings.size()));
 
   auto image = DOM::makeGeneratedImageNode(dst, ".svg");
   PlotUtils::Settings2d plotSettings;

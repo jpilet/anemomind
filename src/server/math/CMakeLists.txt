@@ -220,6 +220,17 @@ add_library(math_OutlierRejector
   OutlierRejector.cpp
   )
 
+add_library(math_SineFit
+  SineFit.h
+  SineFit.cpp
+  )
+
+cxx_test(math_SineFitTest
+  SineFitTest.cpp
+  math_SineFit
+  gtest_main
+  )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)

@@ -18,7 +18,7 @@ namespace MagHdgCalib2 {
 
 struct Settings {
   int windowSize = 100;
-  int plotSampleCount = 30;
+  int plotSampleCount = 361;
 };
 
 void makeAngleFitnessPlot(
