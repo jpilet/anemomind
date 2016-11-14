@@ -153,4 +153,5 @@ target_link_libraries(calib_MagHdgCalib2
   common_DOMUtils
   plot_CairoUtils
   plot_PlotUtils
+  math_SineFit
   )

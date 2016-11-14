@@ -36,7 +36,6 @@ public:
   Sine(double C, double omega, Angle<double> phi,
       double D) :
     _C(C), _omega(omega), _phi(phi), _D(D) {}
-
   double C() const {return _C;}
   double omega() const {return _omega;}
   Angle<double> phi() const {return _phi;}

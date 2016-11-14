@@ -15,6 +15,7 @@
 #include <server/common/DomUtils.h>
 #include <server/common/Functional.h>
 #include <server/common/string.h>
+#include <server/math/SineFit.h>
 
 namespace sail {
 namespace MagHdgCalib2 {
@@ -198,7 +199,26 @@ void makeAngleFitnessPlot(
         cairo_stroke(dst);
       }
     }
-  }, "Correction (degrees)", "Objective function", cr.get());
+  }, "Correction (degrees)",
+  "Objective function", cr.get());
+}
+
+void makeFittedSinePlot(
+    const SplineGpsFilter::EcefCurve &gpsCurve,
+    const Array<TimedValue<Angle<double>>> &headings,
+    const Settings &settings,
+    DOM::Node *dst) {
+  auto image = DOM::makeGeneratedImageNode(dst, ".svg");
+  PlotUtils::Settings2d plotSettings;
+  auto surface = Cairo::sharedPtrWrap(
+      cairo_svg_surface_create(
+          image.toString().c_str(), plotSettings.width,
+          plotSettings.height));
+  auto cr = Cairo::sharedPtrWrap(cairo_create(surface.get()));
+  plotSettings.orthogonal = false;
+
+
+
 }
 
 

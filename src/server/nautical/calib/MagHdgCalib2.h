@@ -23,8 +23,14 @@ struct Settings {
 
 void makeAngleFitnessPlot(
     const SplineGpsFilter::EcefCurve &gpsCurve,
+        const Array<TimedValue<Angle<double>>> &headings,
+        const Array<Settings> &settings,
+        DOM::Node *dst);
+
+void makeFittedSinePlot(
+    const SplineGpsFilter::EcefCurve &gpsCurve,
     const Array<TimedValue<Angle<double>>> &headings,
-    const Array<Settings> &settings,
+    const Settings &settings,
     DOM::Node *dst);
 
 }
