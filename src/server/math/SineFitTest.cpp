@@ -31,6 +31,13 @@ void testFor(const Sine &gt) {
   for (auto angle: angles) {
     EXPECT_NEAR(x(angle), gt(angle), 1.0e-6);
   }
+
+  auto optima = minimize(x);
+  for (int i = 0; i < 4; i++) {
+    auto alpha = optima.at(0);
+    EXPECT_LT(x(alpha), x(alpha + 0.1_deg));
+    EXPECT_LT(x(alpha), x(alpha - 0.1_deg));
+  }
 }
 
 TEST(SineFit, FittingTests) {
