@@ -225,6 +225,10 @@ add_library(math_SineFit
   SineFit.cpp
   )
 
+target_link_libraries(math_SineFit
+  math_LUImpl
+  )
+
 cxx_test(math_SineFitTest
   SineFitTest.cpp
   math_SineFit
