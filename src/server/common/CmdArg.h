@@ -69,6 +69,7 @@ public:
   Arg(const std::string &name) : _name(name) {}
   ThisType &describe(const std::string &d);
 
+#pragma warning("THis depends on evaluation order");
   T parseAndProceed(std::string **s) const;
 
   std::string description() const;

@@ -25,7 +25,7 @@ struct Settings2d {
   double width = 640;
   double height = 480;
   bool axisIJ = false;
-  bool orthogonal = true;
+  bool orthonormal = true;
   BBox3d defaultBBox = makeDefaultBBox();
   double pixelsPerUnit = 100.0;
   bool dataOnTop = false;

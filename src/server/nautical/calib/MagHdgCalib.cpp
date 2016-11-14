@@ -102,7 +102,7 @@ void outputCurrentSpread(DOM::Node *output,
     auto cr = sharedPtrWrap(cairo_create(surface.get()));
 
     settings.pixelsPerUnit = 1000;
-    settings.orthogonal = true;
+    settings.orthonormal = true;
 
     Spand range(-3, 3);
     int notInPlot = 0;
@@ -253,7 +253,7 @@ void makeCostPlot(
   auto image = DOM::makeGeneratedImageNode(output, ".svg");
 
   PlotUtils::Settings2d settings;
-  settings.orthogonal = false;
+  settings.orthonormal = false;
   auto surface = sharedPtrWrap(cairo_svg_surface_create(
       image.toString().c_str(), settings.width,
       settings.height));

@@ -13,7 +13,7 @@ int main(int argc, const char **argv) {
           settings.width, settings.height));
   auto cr = sharedPtrWrap(cairo_create(surface.get()));
 
-  settings.orthogonal = false;
+  settings.orthonormal = false;
 
   renderPlot(settings, [&](cairo_t *dst) {
     int n = 300;

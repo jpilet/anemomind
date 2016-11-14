@@ -65,8 +65,25 @@ T computeMedian(Array<T> *src) {
 }
 
 template <typename T>
+T computeLogSum(Array<T> costs) {
+  T sum = T(0.0);
+  int counter = 0;
+  for (auto c: costs) {
+    if (0 < c) {
+      sum += log(c);
+      counter++;
+    }
+  }
+  return (1.0/(counter))*sum;
+}
+
+template <typename T>
 Array<T> evaluateSlidingWindowCosts(
-    const Integral1d<QF<T>> &itg, int windowSize) {
+    const Integral1d<QF<T>> &itg, int windowSize,
+    int relMinWindowCount) {
+  if (itg.size() <= windowSize*relMinWindowCount) {
+    return Array<T>();
+  }
   int n = itg.size() - windowSize + 1;
   Array<T> dst(n);
   auto R = QF<T>::makeReg(1.0e-9);
@@ -78,16 +95,21 @@ Array<T> evaluateSlidingWindowCosts(
 }
 
 template <typename T>
-Sine::Sample evaluateFit(const SplineGpsFilter::EcefCurve &gpsCurve,
+Optional<Sine::Sample> evaluateFit(const SplineGpsFilter::EcefCurve &gpsCurve,
     const Array<TimedValue<Angle<double>>> &headings,
     const Settings &settings, Angle<T> correction) {
   auto forms = makeQuadForms<T>(
       gpsCurve, headings, correction);
   Integral1d<QF<T>> itg(forms, QF<T>::makeReg(1.0e-9));
   auto costs = evaluateSlidingWindowCosts(itg,
-      settings.windowSize);
+      settings.windowSize, settings.relMinSampleCount);
+  if (costs.empty()) {
+    return Optional<Sine::Sample>();
+  }
+  /*return Sine::Sample(correction,
+      computeMedian(&costs), 1.0);*/
   return Sine::Sample(correction,
-      computeMedian(&costs), 1.0);
+      computeLogSum(costs), 1.0);
 }
 
 
@@ -118,14 +140,18 @@ Array<Sine::Sample> makeCurveToPlot(
         const Array<TimedValue<Angle<double>>> &headings,
         const Settings &settings) {
   LOG(INFO) << "Make curve to plot for window size "
-      << settings.windowSize;
+      << settings.windowSize << " and mag hdg samples " << headings.size();
   LineKM m(0, settings.sampleCount-1, -M_PI, M_PI);
   Array<Sine::Sample> dst(settings.sampleCount);
   for (int i = 0; i < settings.sampleCount; i++) {
     auto angle = m(i)*1.0_rad;
-    dst[i] = evaluateFit<double>(
+    auto x = evaluateFit<double>(
         gpsCurve, headings, settings,
         angle);
+    if (!x.defined()) {
+      return Array<Sine::Sample>();
+    }
+    dst[i] = x.get();
   }
   return dst;
 }
@@ -180,7 +206,7 @@ void makeAngleFitnessPlot(
           image.toString().c_str(), plotSettings.width,
           plotSettings.height));
   auto cr = Cairo::sharedPtrWrap(cairo_create(surface.get()));
-  plotSettings.orthogonal = false;
+  plotSettings.orthonormal = false;
 
   LineKM hueMap(0, settings.size()-1, 0.0, 240.0);
   Cairo::renderPlot(plotSettings, [&](cairo_t *dst) {
@@ -215,7 +241,7 @@ void makeFittedSinePlot(
           image.toString().c_str(), plotSettings.width,
           plotSettings.height));
   auto cr = Cairo::sharedPtrWrap(cairo_create(surface.get()));
-  plotSettings.orthogonal = false;
+  plotSettings.orthonormal = false;
 
   auto curve = makeCurveToPlot(gpsCurve, headings,
           settings);
@@ -245,14 +271,91 @@ Optional<Angle<double>> optimizeSineFit(
     const SplineGpsFilter::EcefCurve &gpsCurve,
     const Array<TimedValue<Angle<double>>> &headings,
     const Settings &settings) {
+  std::cout << "Make the curve" << std::endl;
   auto curve = makeCurveToPlot(gpsCurve, headings,
           settings);
+  if (curve.empty()) {
+    return Optional<Angle<double>>();
+  }
+  std::cout << "Fit it" << std::endl;
   auto fittedSine0 = fit(2.0, curve);
+  std::cout << "Move on!" << std::endl;
   if (!fittedSine0.defined()) {
     LOG(ERROR) << "Failed to fit sine";
     return Optional<Angle<double>>();
   }
   return minimize(fittedSine0.get()).smallest();
+}
+
+void makeSpreadPlot(
+    const SplineGpsFilter::EcefCurve &gpsCurve,
+    const Array<TimedValue<Angle<double>>> &headings,
+    const Settings &settings,
+    DOM::Node *dst) {
+  ArrayBuilder<std::pair<Duration<double>, Span<double>>> acc;
+  int counter = 2;
+
+  bool go = true;
+  while (go) {
+    Duration<double> totalDuration = 0.0_s;
+    LineKM split(0, counter, 0, headings.size());
+    Span<double> span;
+    for (int j = 0; j < counter; j++) {
+      int from = int(round(split(j)));
+      int to = int(round(split(j+1)));
+      auto subset = headings.slice(from, to);
+      auto angle = optimizeSineFit(gpsCurve,
+          subset, settings);
+      if (!angle.defined()) {
+        go = false;
+      } else {
+        span.extend(angle.get().degrees());
+        totalDuration +=
+            subset.last().time - subset.first().time;
+      }
+    }
+    if (go) {
+      acc.add({((1.0/counter)*totalDuration), span});
+      counter++;
+    }
+  }
+  auto bounds = acc.get();
+  if (bounds.empty()) {
+    return;
+  }
+
+
+  auto upper = sail::map(bounds,
+      [](const std::pair<Duration<double>, Span<double>> &f) {
+    return Vec<double>(f.first.minutes(), f.second.maxv());
+  });
+  auto lower = sail::map(bounds,
+      [](const std::pair<Duration<double>, Span<double>> &f) {
+    return Vec<double>(f.first.minutes(), f.second.minv());
+  });
+
+  PlotUtils::Settings2d settings2d;
+  double margScale = 3;
+  settings2d.xMargin *= margScale;
+  settings2d.yMargin *= margScale;
+  settings2d.width = 800;
+  settings2d.height = 600;
+  settings2d.orthonormal = false;
+  auto image = Cairo::Setup::svg(
+      DOM::makeGeneratedImageNode(dst, ".svg").toString(),
+      settings2d.width, settings2d.height);
+
+  Cairo::renderPlot(settings2d, [&](cairo_t *dst) {
+    Cairo::plotLineStrip(dst, lower);
+    Cairo::plotLineStrip(dst, upper);
+  },  "Minutes (slice size)", "Bounds (degrees)", image.cr.get());
+
+  auto final = bounds.first();
+  DOM::addSubTextNode(dst, "p",
+      stringFormat("Final error estimate for slice size of %s: %.3g degrees",
+          final.first.str().c_str(),
+          final.second.width()));
+
 }
 
 

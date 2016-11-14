@@ -293,9 +293,9 @@ ReconstructionResults reconstruct(
       if (true) {
         MagHdgCalib2::Settings settings;
         settings.sampleCount = 30;
-        /*MagHdgCalib2::makeFittedSinePlot(
+        MagHdgCalib2::makeFittedSinePlot(
             chunk.second.trajectory,
-            signal.second, settings, dst);*/
+            signal.second, settings, dst);
         auto x = MagHdgCalib2::optimizeSineFit(
             chunk.second.trajectory,
             signal.second, settings);
@@ -306,6 +306,12 @@ ReconstructionResults reconstruct(
         } else {
           DOM::addSubTextNode(dst, "p", "Failed to optimize");
         }
+      }
+      if (true) {
+        MagHdgCalib2::Settings settings;
+        MagHdgCalib2::makeSpreadPlot(
+            chunk.second.trajectory,
+            signal.second, settings, dst);
       }
     }
   }

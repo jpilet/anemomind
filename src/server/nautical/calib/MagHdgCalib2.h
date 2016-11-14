@@ -19,7 +19,7 @@ namespace MagHdgCalib2 {
 struct Settings {
   int windowSize = 100;
   int sampleCount = 12;
-  int maxSplitCount = 10;
+  int relMinSampleCount = 5;
 };
 
 void makeAngleFitnessPlot(
@@ -39,6 +39,11 @@ Optional<Angle<double>> optimizeSineFit(
     const Array<TimedValue<Angle<double>>> &headings,
     const Settings &settings);
 
+void makeSpreadPlot(
+    const SplineGpsFilter::EcefCurve &gpsCurve,
+    const Array<TimedValue<Angle<double>>> &headings,
+    const Settings &settings,
+    DOM::Node *dst);
 
 }
 }
