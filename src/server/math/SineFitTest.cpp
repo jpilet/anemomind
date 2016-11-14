@@ -45,7 +45,7 @@ void testFor(const Sine &gt) {
 TEST(SineFit, FittingTests) {
   testFor(Sine(1.0, 1.0, 0.0_deg, 0.0));
   testFor(Sine(4.0, 1.0, 0.0_deg, 0.0));
-  //testFor(Sine(1.0, 9.0, 0.0_deg, 0.0));
+  testFor(Sine(1.0, 9.0, 0.0_deg, 0.0));
   //testFor(Sine(1.0, 9.0, 34.0_deg, 0.0));
   //testFor(Sine(1.0, 1.0, 0.0_deg, 17.0));
 }
