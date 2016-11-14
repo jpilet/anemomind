@@ -33,7 +33,7 @@ void testFor(const Sine &gt) {
   }
 
   auto optima = minimize(x);
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 8; i++) {
     auto alpha = optima.at(0);
     EXPECT_LT(x(alpha), x(alpha + 0.1_deg));
     EXPECT_LT(x(alpha), x(alpha - 0.1_deg));
@@ -46,6 +46,11 @@ TEST(SineFit, FittingTests) {
   testFor(Sine(1.0, 2.0, 0.0_deg, 0.0));
   testFor(Sine(1.0, 9.0, 34.0_deg, 0.0));
   testFor(Sine(1.0, 1.0, 0.0_deg, 17.0));
+
+  for (int i = 1; i < 30; i++) {
+    testFor(Sine(4.0*sin(34234.0234*i), 3.0*sin(342.45*i),
+        360.0*sin(66.53*i)*1.0_deg, 34.0*sin(778.8*i)));
+  }
 }
 
 
