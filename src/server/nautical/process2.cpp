@@ -59,6 +59,16 @@ int main(int argc, const char **argv) {
       })
   }).describe("Load the alinghi dataset");
 
+  parser.bind({"--irene-demo"}, {
+      inputForm([&]() {
+        loader.load(
+            PathBuilder::makeDirectory(Env::SOURCE_DIR)
+              .pushDirectory("datasets")
+              .pushDirectory("Irene").get());
+        return true;
+      })
+  }).describe("Load the irene dataset");
+
   auto status = parser.parse(argc, argv);
 
   switch (status) {

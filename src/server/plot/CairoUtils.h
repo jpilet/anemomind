@@ -25,6 +25,13 @@ namespace Cairo {
 std::shared_ptr<cairo_surface_t> sharedPtrWrap(cairo_surface_t *x);
 std::shared_ptr<cairo_t> sharedPtrWrap(cairo_t *x);
 
+struct Setup {
+  std::shared_ptr<cairo_surface_t> surface;
+  std::shared_ptr<cairo_t> cr;
+  static Setup svg(const std::string &filename,
+        double width, double height);
+};
+
 template <int rows, int cols>
 cairo_matrix_t toCairo(
     const Eigen::Matrix<double, rows, cols> &mat);
@@ -114,6 +121,8 @@ void renderPlot(
 
 void moveTo(cairo_t *dst, const Eigen::Vector2d &x);
 void lineTo(cairo_t *dst, const Eigen::Vector2d &x);
+void plotLineStrip(cairo_t *dst,
+    const Array<Eigen::Vector2d> &src);
 
 }
 }

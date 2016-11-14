@@ -78,7 +78,7 @@ Array<T> evaluateSlidingWindowCosts(
 }
 
 template <typename T>
-T evaluateFit(const SplineGpsFilter::EcefCurve &gpsCurve,
+Sine::Sample evaluateFit(const SplineGpsFilter::EcefCurve &gpsCurve,
     const Array<TimedValue<Angle<double>>> &headings,
     const Settings &settings, Angle<T> correction) {
   auto forms = makeQuadForms<T>(
@@ -86,7 +86,8 @@ T evaluateFit(const SplineGpsFilter::EcefCurve &gpsCurve,
   Integral1d<QF<T>> itg(forms, QF<T>::makeReg(1.0e-9));
   auto costs = evaluateSlidingWindowCosts(itg,
       settings.windowSize);
-  return computeMedian(&costs);
+  return Sine::Sample(correction,
+      computeMedian(&costs), 1.0);
 }
 
 
@@ -112,40 +113,39 @@ T evaluateFit(const SplineGpsFilter::EcefCurve &gpsCurve,
   return atan2(xy(0, 0), xy(1, 0))*1.0_rad;
 }*/
 
-Array<Vec<double>> makeCurveToPlot(
+Array<Sine::Sample> makeCurveToPlot(
     const SplineGpsFilter::EcefCurve &gpsCurve,
         const Array<TimedValue<Angle<double>>> &headings,
         const Settings &settings) {
   LOG(INFO) << "Make curve to plot for window size "
       << settings.windowSize;
-  LineKM m(0, settings.plotSampleCount-1, -M_PI, M_PI);
-  Array<std::pair<Angle<double>, double>>
-    dst(settings.plotSampleCount);
-  for (int i = 0; i < settings.plotSampleCount; i++) {
+  LineKM m(0, settings.sampleCount-1, -M_PI, M_PI);
+  Array<Sine::Sample> dst(settings.sampleCount);
+  for (int i = 0; i < settings.sampleCount; i++) {
     auto angle = m(i)*1.0_rad;
-    auto objfValue = evaluateFit<double>(
-            gpsCurve, headings, settings,
-            angle);
-    dst[i] = std::make_pair(angle, objfValue);
+    dst[i] = evaluateFit<double>(
+        gpsCurve, headings, settings,
+        angle);
   }
-  return sail::map(dst,
-      [](const std::pair<Angle<double>, double> &xy) {
-    return Vec<double>(xy.first.degrees(), xy.second);
-  });
+  return dst;
 }
 
-Array<Vec<double>> normalizeYByMax(
-    const Array<Vec<double>> &src) {
+Array<Sine::Sample> normalizeYByMax(
+    const Array<Sine::Sample> &src) {
   double maxv = 0.0;
   for (auto v: src) {
     maxv = std::max(
-        double(maxv), double(v(1)));
+        double(maxv), double(v.y));
   }
-  Array<Vec<double>> dst = src.dup();
+  Array<Sine::Sample> dst = src.dup();
   for (auto &x: dst) {
-    x(1) /= maxv;
+    x.y /= maxv;
   }
   return dst;
+}
+
+Vec<double> v2(const Sine::Sample &x) {
+  return Vec<double>(x.angle.degrees(), x.y);
 }
 
 Array<Array<Vec<double>>> makeCurvesToPlot(
@@ -155,8 +155,8 @@ Array<Array<Vec<double>>> makeCurvesToPlot(
   int n = settings.size();
   Array<Array<Vec<double>>> dst(n);
   for (int i = 0; i < n; i++) {
-    dst[i] = normalizeYByMax(makeCurveToPlot(gpsCurve, headings,
-        settings[i]));
+    dst[i] = sail::map(normalizeYByMax(makeCurveToPlot(gpsCurve, headings,
+        settings[i])), &v2);
   }
   return dst;
 }
@@ -217,8 +217,42 @@ void makeFittedSinePlot(
   auto cr = Cairo::sharedPtrWrap(cairo_create(surface.get()));
   plotSettings.orthogonal = false;
 
+  auto curve = makeCurveToPlot(gpsCurve, headings,
+          settings);
+  auto fittedSine0 = fit(2.0, curve);
+  if (!fittedSine0.defined()) {
+    LOG(ERROR) << "failed to fit sine";
+    return;
+  }
+  auto fittedSine = fittedSine0.get();
+  auto fittedSamples = fittedSine.sample(
+      360.0, -180.0_deg, 180.0_deg);
+  auto curvePts = sail::map(curve, &v2);
+  auto fittedPts = sail::map(fittedSamples, &v2);
 
+  Cairo::renderPlot(plotSettings, [&](cairo_t *dst) {
+      Cairo::setSourceColor(
+          dst, PlotUtils::HSV::fromHue(0.0_deg));
+      Cairo::plotLineStrip(dst, curvePts);
+      Cairo::setSourceColor(
+          dst, PlotUtils::HSV::fromHue(240.0_deg));
+      Cairo::plotLineStrip(dst, fittedPts);
+    }, "Correction (degrees)",
+    "Objective function", cr.get());
+}
 
+Optional<Angle<double>> optimizeSineFit(
+    const SplineGpsFilter::EcefCurve &gpsCurve,
+    const Array<TimedValue<Angle<double>>> &headings,
+    const Settings &settings) {
+  auto curve = makeCurveToPlot(gpsCurve, headings,
+          settings);
+  auto fittedSine0 = fit(2.0, curve);
+  if (!fittedSine0.defined()) {
+    LOG(ERROR) << "Failed to fit sine";
+    return Optional<Angle<double>>();
+  }
+  return minimize(fittedSine0.get()).smallest();
 }
 
 

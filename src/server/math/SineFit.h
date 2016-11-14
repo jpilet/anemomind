@@ -17,6 +17,7 @@ struct SpacedAngles {
   Angle<double> offset;
   Angle<double> step;
   Angle<double> at(int n) const;
+  Angle<double> smallest() const;
 };
 
 // f(x) = C*sin(omega*x + phi) + D
@@ -43,6 +44,8 @@ public:
   double operator()(Angle<double> x) const {
     return _C*sin(_omega*x + _phi) + _D;
   }
+  Array<Sample> sample(int n,
+      Angle<double> from, Angle<double> to) const;
 private:
   double _C, _omega, _D;
   Angle<double> _phi;

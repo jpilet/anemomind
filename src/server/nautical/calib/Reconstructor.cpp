@@ -89,9 +89,9 @@ void outputMagHeadingPlotToFile(
   settings.width = 400;
   settings.height = 300;
   auto surface = sharedPtrWrap(
-      cairo_svg_surface_create(
-          filename.c_str(),
-          settings.width, settings.height));
+        cairo_svg_surface_create(
+            filename.c_str(),
+            settings.width, settings.height));
   auto cr = sharedPtrWrap(cairo_create(surface.get()));
 
   if (!traj.empty()) {
@@ -279,7 +279,7 @@ ReconstructionResults reconstruct(
             30, chunk.second.trajectory,
             signal.second, dst);
       }
-      if (true) {
+      if (false) {
         Array<MagHdgCalib2::Settings> settings(8);
         settings[0].windowSize = 4;
         for (int i = 1; i < settings.size(); i++) {
@@ -289,6 +289,23 @@ ReconstructionResults reconstruct(
             chunk.second.trajectory,
             signal.second, settings,
             dst);
+      }
+      if (true) {
+        MagHdgCalib2::Settings settings;
+        settings.sampleCount = 30;
+        /*MagHdgCalib2::makeFittedSinePlot(
+            chunk.second.trajectory,
+            signal.second, settings, dst);*/
+        auto x = MagHdgCalib2::optimizeSineFit(
+            chunk.second.trajectory,
+            signal.second, settings);
+        if (x.defined()) {
+          DOM::addSubTextNode(dst, "p",
+              stringFormat("Optimized correction: %.3g deg",
+              x.get().degrees()));
+        } else {
+          DOM::addSubTextNode(dst, "p", "Failed to optimize");
+        }
       }
     }
   }

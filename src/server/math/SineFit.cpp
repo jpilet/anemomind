@@ -9,6 +9,7 @@
 #include <server/math/QuadForm.h>
 #include <iostream>
 #include <server/common/ArrayIO.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
@@ -16,6 +17,13 @@ typedef QuadForm<3, 1, double> QF;
 
 Angle<double> SpacedAngles::at(int n) const{
   return offset + double(n)*step;
+}
+
+Angle<double> SpacedAngles::smallest() const {
+  double f = -double(offset/step);
+  auto a = offset + floor(f)*step;
+  auto b = offset + ceil(f)*step;
+  return fabs(a) < fabs(b)? a : b;
 }
 
 QF makeQuad(double omega,
@@ -43,6 +51,17 @@ SpacedAngles minimize(const Sine &x) {
   return SpacedAngles{offset, 2.0*e.step};
 }
 
+Array<Sine::Sample> Sine::sample(int n,
+    Angle<double> from, Angle<double> to) const {
+  LineKM m(0, n-1, from.degrees(), to.degrees());
+  Array<Sine::Sample> dst(n);
+  for (int i = 0; i < n; i++) {
+    auto angle = m(i)*1.0_deg;
+    dst[i] = Sine::Sample(angle, (*this)(angle));
+  }
+  return dst;
+}
+
 
 
 Optional<Sine> fit(double omega,
@@ -52,6 +71,11 @@ Optional<Sine> fit(double omega,
     sum += makeQuad(omega, x);
   }
   auto p = sum.minimizeEigen();
+  for (int i = 0; i < 3; i++) {
+    if (!std::isfinite(double(p(i)))) {
+      return Optional<Sine>();
+    }
+  }
   double a = p(0, 0);
   double b = p(1, 0);
   auto C = sqrt(std::max(0.0, a*a + b*b));

@@ -9,12 +9,24 @@
 #include <Eigen/Dense>
 #include <server/plot/AxisTicks.h>
 #include <iostream>
+#include <cairo/cairo-svg.h>
 
 namespace sail {
 namespace Cairo {
 
 std::shared_ptr<cairo_surface_t> sharedPtrWrap(cairo_surface_t *x) {
   return std::shared_ptr<cairo_surface_t>(x, &cairo_surface_destroy);
+}
+
+Setup Setup::svg(const std::string &filename,
+      double width, double height) {
+  Setup dst;
+  dst.surface = sharedPtrWrap(
+        cairo_svg_surface_create(
+            filename.c_str(),
+            width, height));
+  dst.cr = sharedPtrWrap(cairo_create(dst.surface.get()));
+  return dst;
 }
 
 std::shared_ptr<cairo_t> sharedPtrWrap(cairo_t *x) {
@@ -318,6 +330,20 @@ void moveTo(cairo_t *dst, const Eigen::Vector2d &x) {
 
 void lineTo(cairo_t *dst, const Eigen::Vector2d &x) {
   cairo_line_to(dst, x(0), x(1));
+}
+
+void plotLineStrip(cairo_t *dst,
+    const Array<Eigen::Vector2d> &src) {
+  if (src.empty()) {
+    return;
+  }
+  moveTo(dst, src[0]);
+  for (auto x: src.sliceFrom(1)) {
+    lineTo(dst, x);
+  }
+  WithLocalDeviceScale wlds(dst,
+      WithLocalDeviceScale::Identity);
+  cairo_stroke(dst);
 }
 
 
