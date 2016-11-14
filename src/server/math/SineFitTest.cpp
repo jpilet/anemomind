@@ -31,15 +31,6 @@ void testFor(const Sine &gt) {
   for (auto angle: angles) {
     EXPECT_NEAR(x(angle), gt(angle), 1.0e-6);
   }
-
-  std::cout << "Compare C: " << gt.C() << " and "
-      << x.C() << std::endl;
-  std::cout << "Compare D: " << gt.D() << " and "
-      << x.D() << std::endl;
-  std::cout << "Compared cos(phi): " << cos(gt.phi())
-      << " and " << cos(x.phi()) << std::endl;
-  std::cout << "Compare sin(phi): " << sin(gt.phi())
-      << " and " << sin(x.phi()) << std::endl;
 }
 
 TEST(SineFit, FittingTests) {

@@ -38,16 +38,10 @@ Optional<Sine> fit(double omega,
   for (auto x: data) {
     sum += makeQuad(omega, x);
   }
-  //auto p = sum.minimize();
   auto p = sum.minimizeEigen();
-  /*if (p.empty()) {
-    return Optional<Sine>();
-  }*/
   double a = p(0, 0);
   double b = p(1, 0);
-  std::cout << "p = " << p << std::endl;
   auto C = sqrt(std::max(0.0, a*a + b*b));
-  std::cout << "FITTED " << C << std::endl;
   auto phiRad = atan2(a, b);
   auto D = p(2, 0);
   return Sine(C, omega, phiRad*1.0_rad, D);
