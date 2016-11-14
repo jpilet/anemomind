@@ -12,6 +12,7 @@
 #include <server/math/LUImpl.h>
 #include <cassert>
 #include <server/common/LineKM.h>
+#include <Eigen/Dense>
 
 namespace sail {
 
@@ -165,6 +166,16 @@ class QuadForm {
     MDArray<T, 2> dst(lhsDims, rhsDims);
     LUImpl::solveLinearSystemLU(P, Q, &dst);
     return dst;
+  }
+
+  Eigen::Matrix<T, lhsDims, rhsDims> minimizeEigen() const {
+    Eigen::Matrix<T, lhsDims, lhsDims> AtA;
+    Eigen::Matrix<T, lhsDims, rhsDims> AtB;
+    MDArray<T, 2> P(lhsDims, lhsDims, AtA.data());
+    MDArray<T, 2> Q(lhsDims, rhsDims, AtB.data());
+    fillPArray(P);
+    fillQArray(Q);
+    return AtA.lu().solve(AtB);
   }
 
   bool minimize2x1(T *out2) const {

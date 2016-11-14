@@ -7,6 +7,8 @@
 
 #include <server/math/SineFit.h>
 #include <server/math/QuadForm.h>
+#include <iostream>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -22,8 +24,10 @@ SpacedAngles minimize(const Sine &x) {
 
 QF makeQuad(double omega,
     const std::pair<Angle<double>, double> &xy) {
-  double a[3] = {cos(omega*xy.first),
-      sin(omega*xy.first), 1.0};
+  double a[3] = {
+      cos(omega*xy.first),
+      sin(omega*xy.first),
+      1.0};
   double b = xy.second;
   return QF::fit(a, &b);
 }
@@ -34,13 +38,16 @@ Optional<Sine> fit(double omega,
   for (auto x: data) {
     sum += makeQuad(omega, x);
   }
-  auto p = sum.minimize();
-  if (p.empty()) {
+  //auto p = sum.minimize();
+  auto p = sum.minimizeEigen();
+  /*if (p.empty()) {
     return Optional<Sine>();
-  }
-  auto a = p(0, 0);
-  auto b = p(1, 0);
+  }*/
+  double a = p(0, 0);
+  double b = p(1, 0);
+  std::cout << "p = " << p << std::endl;
   auto C = sqrt(std::max(0.0, a*a + b*b));
+  std::cout << "FITTED " << C << std::endl;
   auto phiRad = atan2(a, b);
   auto D = p(2, 0);
   return Sine(C, omega, phiRad*1.0_rad, D);

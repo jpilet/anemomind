@@ -24,7 +24,7 @@ void testFor(const Sine &gt) {
         alpha, gt(alpha));
   }
 
-  auto x0 = fit(1.0, data);
+  auto x0 = fit(gt.omega(), data);
   EXPECT_TRUE(x0.defined());
   auto x = x0.get();
 
@@ -45,9 +45,9 @@ void testFor(const Sine &gt) {
 TEST(SineFit, FittingTests) {
   testFor(Sine(1.0, 1.0, 0.0_deg, 0.0));
   testFor(Sine(4.0, 1.0, 0.0_deg, 0.0));
-  testFor(Sine(1.0, 9.0, 0.0_deg, 0.0));
-  //testFor(Sine(1.0, 9.0, 34.0_deg, 0.0));
-  //testFor(Sine(1.0, 1.0, 0.0_deg, 17.0));
+  testFor(Sine(1.0, 2.0, 0.0_deg, 0.0));
+  testFor(Sine(1.0, 9.0, 34.0_deg, 0.0));
+  testFor(Sine(1.0, 1.0, 0.0_deg, 17.0));
 }
 
 
