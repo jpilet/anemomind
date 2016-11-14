@@ -33,6 +33,7 @@ void testFor(const Sine &gt) {
   }
 
   auto optima = minimize(x);
+  EXPECT_NEAR(optima.step.degrees(), 360.0/x.omega(), 1.0e-5);
   for (int i = 0; i < 8; i++) {
     auto alpha = optima.at(0);
     EXPECT_LT(x(alpha), x(alpha + 0.1_deg));
