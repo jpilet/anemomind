@@ -19,12 +19,12 @@ Angle<double> SpacedAngles::at(int n) const{
 }
 
 QF makeQuad(double omega,
-    const std::pair<Angle<double>, double> &xy) {
+    const Sine::Sample &xy) {
   double a[3] = {
-      cos(omega*xy.first),
-      sin(omega*xy.first),
-      1.0};
-  double b = xy.second;
+      xy.weight*cos(omega*xy.angle),
+      xy.weight*sin(omega*xy.angle),
+      xy.weight*1.0};
+  double b = xy.weight*xy.y;
   return QF::fit(a, &b);
 }
 
@@ -46,7 +46,7 @@ SpacedAngles minimize(const Sine &x) {
 
 
 Optional<Sine> fit(double omega,
-    const Array<std::pair<Angle<double>, double>> &data) {
+    const Array<Sine::Sample> &data) {
   QF sum = QF::makeReg(1.0e-9);
   for (auto x: data) {
     sum += makeQuad(omega, x);

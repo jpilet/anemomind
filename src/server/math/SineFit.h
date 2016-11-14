@@ -22,6 +22,16 @@ struct SpacedAngles {
 // f(x) = C*sin(omega*x + phi) + D
 class Sine {
 public:
+  struct Sample {
+    Angle<double> angle = 0.0_deg;
+    double y = 0;
+    double weight = 1.0;
+    Sample() {}
+    Sample(Angle<double> a, double b,
+        double w = 1.0) : angle(a), y(b),
+            weight(w) {}
+  };
+
   Sine() : _C(0.0), _omega(0.0), _phi(0.0_deg), _D(0.0) {}
   Sine(double C, double omega, Angle<double> phi,
       double D) :
@@ -43,7 +53,7 @@ SpacedAngles minimize(const Sine &x);
 SpacedAngles findExtrema(const Sine &x);
 
 Optional<Sine> fit(double omega,
-    const Array<std::pair<Angle<double>, double>> &data);
+    const Array<Sine::Sample> &data);
 
 } /* namespace sail */
 

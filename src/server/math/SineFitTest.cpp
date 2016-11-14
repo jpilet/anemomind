@@ -17,10 +17,10 @@ void testFor(const Sine &gt) {
     917.0_deg
   };
 
-  Array<std::pair<Angle<double>, double>> data(angles.size());
+  Array<Sine::Sample> data(angles.size());
   for (int i = 0; i < angles.size(); i++) {
     auto alpha = angles[i];
-    data[i] = std::pair<Angle<double>, double>(
+    data[i] = Sine::Sample(
         alpha, gt(alpha));
   }
 
