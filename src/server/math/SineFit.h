@@ -16,7 +16,7 @@ namespace sail {
 struct SpacedAngles {
   Angle<double> offset;
   Angle<double> step;
-  Angle<double> evaluate(int n) const;
+  Angle<double> at(int n) const;
 };
 
 // f(x) = C*sin(omega*x + phi) + D
@@ -40,6 +40,8 @@ private:
 };
 
 SpacedAngles minimize(const Sine &x);
+SpacedAngles findExtrema(const Sine &x);
+
 Optional<Sine> fit(double omega,
     const Array<std::pair<Angle<double>, double>> &data);
 

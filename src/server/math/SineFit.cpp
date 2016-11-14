@@ -14,12 +14,8 @@ namespace sail {
 
 typedef QuadForm<3, 1, double> QF;
 
-Angle<double> SpacedAngles::evaluate(int n) const{
+Angle<double> SpacedAngles::at(int n) const{
   return offset + double(n)*step;
-}
-
-SpacedAngles minimize(const Sine &x) {
-  return SpacedAngles();
 }
 
 QF makeQuad(double omega,
@@ -31,6 +27,23 @@ QF makeQuad(double omega,
   double b = xy.second;
   return QF::fit(a, &b);
 }
+
+SpacedAngles findExtrema(const Sine &x) {
+  double f = 1.0/x.omega();
+  return SpacedAngles{
+    f*(90.0_deg - x.phi()),
+    f*180.0_deg
+  };
+}
+
+SpacedAngles minimize(const Sine &x) {
+  auto e = findExtrema(x);
+  auto offset = e.offset +
+      (x(e.at(0)) < x(e.at(1))? 0.0_deg : e.step);
+  return SpacedAngles{offset, 2.0*e.step};
+}
+
+
 
 Optional<Sine> fit(double omega,
     const Array<std::pair<Angle<double>, double>> &data) {
