@@ -160,6 +160,7 @@ struct AutoRegSettings {
   int maxIters = 5;
   double weight = 1.0;
   int order = 2;
+  double wellPosednessReg = 1.0e-5;
 };
 
 template <int N>

@@ -9,11 +9,22 @@
 #include <server/math/lapack/BandWrappers.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/LineKM.h>
+#include <server/common/indexed.h>
 
 namespace sail {
 
 template <int N>
 using VecObs = std::pair<double, Eigen::Matrix<double, N, 1>>;
+
+template <int N>
+Eigen::Matrix<double, N, 1> getVec(
+    const MDArray2d &src, int i) {
+  Eigen::Matrix<double, N, 1> dst;
+  for (int i = 0; i < N; i++) {
+    dst(i) = src(i, 0);
+  }
+  return dst;
+}
 
 std::ostream &operator<<(std::ostream &s,
     SmoothBoundarySplineBasis<double, 3>::Weights w) {
@@ -375,6 +386,21 @@ MDArray2d initializeCoefs(int coefCount, int dim) {
 
 
 template <int N>
+void addObservations(
+    const CubicBasis &basis,
+    SymmetricBandMatrixL<double> *lhs,
+      MDArray2d *rhs, const Arrayi &inds,
+      const Array<VecObs<N>> &observations) {
+  for (auto i: inds) {
+    auto obs = observations[i];
+    auto w = basis.build(obs.first);
+    accumulateNormalEqs(
+        1.0, w,
+        N, obs.second.data(), lhs, rhs);
+  }
+}
+
+template <int N>
 MDArray2d iterateAutoRegOne(
     const Array<CubicBasis> &bases,
     const MDArray2d &coefs,
@@ -386,10 +412,19 @@ MDArray2d iterateAutoRegOne(
       n, CubicBasis::Weights::dim);
   auto rhs = MDArray2d(n, N);
   rhs.setAll(0.0);
-  for (auto i: inds) {
-
-  }
+  addObservations<N>(bases[0], &lhs, &rhs, inds, observations);
+  applyRegularization(
+        &lhs, &rhs, bases[settings.order], settings.weight);
+  applyRegularization(
+        &lhs, &rhs, bases[0], settings.wellPosednessReg);
   return rhs;
+}
+
+Array<Arrayi> performSplit(const Array<int> &inds) {
+  int m = inds.middle();
+  return Array<Arrayi>{
+    inds, inds.sliceTo(m), inds.sliceFrom(m)
+  };
 }
 
 template <int N>
@@ -397,45 +432,48 @@ Array<MDArray2d> iterateAutoReg(
     const Array<CubicBasis> &bases,
     const MDArray2d &coefs,
     const Array<VecObs<N>> &observations,
-    const Arrayi &inds,
+    const Array<Arrayi> &inds,
     const AutoRegSettings &settings) {
-  Array<MDArray2d> dst(3);
-  int m = inds.middle();
-  dst[0] = iterateAutoRegOne<N>(
-      bases, coefs, observations,
-      inds, settings);
-  dst[1] = iterateAutoRegOne<N>(
-      bases, coefs, observations,
-      inds.sliceTo(m), settings);
-  dst[2] = iterateAutoRegOne<N>(
-      bases, coefs, observations,
-      inds.sliceFrom(m), settings);
+  Array<MDArray2d> dst(inds.size());
+  for (auto k : indexed(inds)) {
+    dst[k.first] = iterateAutoRegOne<N>(
+        bases, coefs, observations,
+        k.second, settings);
+  }
   return dst;
 }
 
-template <int N>
-double evaluateAutoReg(
-    const CubicBasis &bases,
-    const Array<VecObs<N>> &observations,
-    const MDArray2d &coefs,
-    const AutoRegSettings &settings) {
-  for (auto x: observations) {
 
+template <int N>
+double evaluateData(
+    const CubicBasis &basis,
+    const Array<VecObs<N>> &observations,
+    const Array<int> inds,
+    const MDArray2d &coefs) {
+  double sum = 0.0;
+  for (auto i: inds) {
+    auto obs = observations[i];
+    auto w = basis.build(obs.first);
+    sum += (evaluateSpline<N>(w, coefs) - obs.second)
+        .squaredNorm();
   }
+  return sum;
 }
 
 template <int N>
-double evaluateAutoReg(
-    const Array<CubicBasis> &bases,
+double evaluateCrossValidationCost(
+    const CubicBasis &basis,
     const Array<VecObs<N>> &observations,
     const Array<MDArray2d> &coefs,
-    const AutoRegSettings &settings) {
-  double sum = 0.0;
-  for (auto c: coefs) {
-    sum += evaluateAutoReg<N>(bases,
-        observations, c, settings);
-  }
-  return sum;
+    const Array<Array<int>> &splitInds) {
+  CHECK(coefs.size() == 3);
+  CHECK(splitInds.size() == 3);
+  return evaluateData<N>(
+              basis, observations,
+              splitInds[1], coefs[2])
+       + evaluateData<N>(
+              basis, observations,
+              splitInds[2], coefs[1]);
 }
 
 template <int N>
@@ -458,21 +496,25 @@ MDArray2d fitSplineAutoReg(
   auto coefs = initializeCoefs(coefCount, N);
   auto bases = CubicBasis(coefCount).makeDerivatives();
 
+  double lastCrossValidationCost = std::numeric_limits<
+      double>::infinity();
   for (int i = 0; i < settings.maxIters; i++) {
     std::shuffle(inds.begin(), inds.end(), *rng);
+    auto splitInds = performSplit(inds);
     auto nextCoefs = iterateAutoReg<N>(
-        bases,
-        coefs, observations, inds, settings);
-    /*if (2.0*evaluateAutoReg<N>(
-        bases, observations,
-        {coefs}, settings) <
-        evaluateAutoReg<N>(
-            bases, observations,
-            {nextCoefs(2), nextCoefs(1)}, settings)) {
+        bases, coefs, observations,
+        splitInds, settings);
+
+    double crossValidationCost =
+        evaluateCrossValidationCost<N>(bases[0],
+            observations, nextCoefs, splitInds);
+
+    if (lastCrossValidationCost <= crossValidationCost) {
       break;
-    } else {*/
+    } else {
       coefs = nextCoefs[0];
-    //}
+      lastCrossValidationCost = crossValidationCost;
+    }
   }
   return coefs;
 }
