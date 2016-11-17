@@ -14,9 +14,6 @@
 namespace sail {
 
 template <int N>
-using VecObs = std::pair<double, Eigen::Matrix<double, N, 1>>;
-
-template <int N>
 Eigen::Matrix<double, N, 1> getVec(
     const MDArray2d &src, int i) {
   Eigen::Matrix<double, N, 1> dst;
@@ -401,6 +398,24 @@ void addObservations(
 }
 
 template <int N>
+void applyStepRegularization(
+    SymmetricBandMatrixL<double> *lhs,
+    MDArray2d *rhs,
+    const CubicBasis &basis,
+    double weight,
+    const MDArray2d &coefs) {
+  int n = basis.coefCount();
+  CHECK(n == coefs.rows());
+  for (int i = 0; i < n; i++) {
+    auto w = basis.build(i);
+    auto y = evaluateSpline<N>(w, coefs);
+    accumulateNormalEqs(
+        weight, w,
+        N, y.data(), lhs, rhs);
+  }
+}
+
+template <int N>
 MDArray2d iterateAutoRegOne(
     const Array<CubicBasis> &bases,
     const MDArray2d &coefs,
@@ -413,10 +428,14 @@ MDArray2d iterateAutoRegOne(
   auto rhs = MDArray2d(n, N);
   rhs.setAll(0.0);
   addObservations<N>(bases[0], &lhs, &rhs, inds, observations);
-  applyRegularization(
-        &lhs, &rhs, bases[settings.order], settings.weight);
+  applyStepRegularization<N>(
+        &lhs, &rhs, bases[settings.order], settings.weight,
+        coefs);
   applyRegularization(
         &lhs, &rhs, bases[0], settings.wellPosednessReg);
+  if (!Pbsv<double>::apply(&lhs, &rhs)) {
+    return MDArray2d();
+  }
   return rhs;
 }
 
@@ -436,9 +455,13 @@ Array<MDArray2d> iterateAutoReg(
     const AutoRegSettings &settings) {
   Array<MDArray2d> dst(inds.size());
   for (auto k : indexed(inds)) {
-    dst[k.first] = iterateAutoRegOne<N>(
+    auto K = iterateAutoRegOne<N>(
         bases, coefs, observations,
         k.second, settings);
+    if (K.empty()) {
+      return Array<MDArray2d>();
+    }
+    dst[k.first] = K;
   }
   return dst;
 }
@@ -499,15 +522,23 @@ MDArray2d fitSplineAutoReg(
   double lastCrossValidationCost = std::numeric_limits<
       double>::infinity();
   for (int i = 0; i < settings.maxIters; i++) {
+    LOG(INFO) << "Iteration " << i << " with cost " <<
+        lastCrossValidationCost;
     std::shuffle(inds.begin(), inds.end(), *rng);
     auto splitInds = performSplit(inds);
     auto nextCoefs = iterateAutoReg<N>(
         bases, coefs, observations,
         splitInds, settings);
+    if (nextCoefs.empty()) {
+      LOG(ERROR) << "Failed";
+      return coefs;
+    }
 
     double crossValidationCost =
         evaluateCrossValidationCost<N>(bases[0],
             observations, nextCoefs, splitInds);
+    LOG(INFO) << "New cross validation cost: " <<
+        crossValidationCost;
 
     if (lastCrossValidationCost <= crossValidationCost) {
       break;

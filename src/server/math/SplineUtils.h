@@ -158,15 +158,18 @@ private:
 
 struct AutoRegSettings {
   int maxIters = 5;
-  double weight = 1.0;
+  double weight = 100;
   int order = 2;
   double wellPosednessReg = 1.0e-5;
 };
 
 template <int N>
+using VecObs = std::pair<double, Eigen::Matrix<double, N, 1>>;
+
+template <int N>
 MDArray2d fitSplineAutoReg(
     int coefCount,
-    const Array<std::pair<int, Eigen::Matrix<double, N, 1>>>
+    const Array<VecObs<N>>
       &observations,
       const AutoRegSettings &settings,
       std::default_random_engine *rng);

@@ -129,3 +129,34 @@ TEST(SplineUtilsTest, RobustSplineFitDerivativeVariable) {
   auto y = evaluateSpline<1>(fit.basis().build(1.0), coefs);
   EXPECT_NEAR(y(0), 11.4, 1.0e-6);
 }
+
+TEST(SplineUtilsTest, FitSplineAutoReg) {
+  int n = 30;
+
+  int obsCount = 50;
+
+  LineKM toLine(0, n, -10, 10);
+  LineKM xmap(0, obsCount, 0, n);
+
+
+  Array<std::pair<double,
+    Eigen::Matrix<double, 1, 1>>>
+      gt(obsCount),
+      noisy(obsCount);
+
+  for (int i = 0; i < obsCount; i++) {
+    auto x = xmap(i);
+    auto y = sqr(toLine(x));
+    gt[i].first = x;
+    gt[i].second = v1(y);
+    noisy[i].first = x;
+    noisy[i].second = v1(y + 5.0*sin(34.4*cos(3405.6*i)));
+  }
+
+  std::default_random_engine rng(0);
+  AutoRegSettings settings;
+  settings.maxIters = 300;
+  auto denoised = fitSplineAutoReg<1>(
+      n, noisy, settings, &rng);
+
+}
