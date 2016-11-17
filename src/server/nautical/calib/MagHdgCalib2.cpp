@@ -78,6 +78,15 @@ T computeLogSum(Array<T> costs) {
 }
 
 template <typename T>
+T computeSum(Array<T> costs) {
+  T sum = T(0.0);
+  for (auto c: costs) {
+    sum += c;
+  }
+  return (1.0/(costs.size()))*sum;
+}
+
+template <typename T>
 Array<T> evaluateSlidingWindowCosts(
     const Integral1d<QF<T>> &itg, int windowSize,
     int relMinWindowCount) {
@@ -109,7 +118,7 @@ Optional<Sine::Sample> evaluateFit(const SplineGpsFilter::EcefCurve &gpsCurve,
   /*return Sine::Sample(correction,
       computeMedian(&costs), 1.0);*/
   return Sine::Sample(correction,
-      computeLogSum(costs), 1.0);
+      computeSum(costs), 1.0);
 }
 
 
@@ -295,11 +304,12 @@ void makeSpreadPlot(
   ArrayBuilder<std::pair<Duration<double>, Span<double>>> acc;
   int counter = 2;
 
-  bool go = true;
-  while (go) {
+  int badCounter = 0;
+  while (badCounter < 3) {
     Duration<double> totalDuration = 0.0_s;
     LineKM split(0, counter, 0, headings.size());
     Span<double> span;
+    bool go = true;
     for (int j = 0; j < counter; j++) {
       int from = int(round(split(j)));
       int to = int(round(split(j+1)));
@@ -317,10 +327,13 @@ void makeSpreadPlot(
     if (go) {
       acc.add({((1.0/counter)*totalDuration), span});
       counter++;
+    } else {
+      badCounter++;
     }
   }
   auto bounds = acc.get();
   if (bounds.empty()) {
+    DOM::addSubTextNode(dst, "p", "Didn't generate any bounds");
     return;
   }
 

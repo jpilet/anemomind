@@ -12,8 +12,11 @@
 #include <server/common/TimeMapper.h>
 #include <server/math/lapack/BandMatrix.h>
 #include <server/math/OutlierRejector.h>
+#include <random>
 
 namespace sail {
+
+typedef SmoothBoundarySplineBasis<double, 3> CubicBasis;
 
 std::ostream &operator<<(std::ostream &s,
     SmoothBoundarySplineBasis<double, 3>::Weights w);
@@ -152,6 +155,20 @@ private:
   Array<double> _factors;
   Settings _settings;
 };
+
+struct AutoRegSettings {
+  int maxIters = 5;
+  double weight = 1.0;
+  int order = 2;
+};
+
+template <int N>
+MDArray2d fitSplineAutoReg(
+    int coefCount,
+    const Array<std::pair<int, Eigen::Matrix<double, N, 1>>>
+      &observations,
+      const AutoRegSettings &settings,
+      std::default_random_engine *rng);
 
 }
 

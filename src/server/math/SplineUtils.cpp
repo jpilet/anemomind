@@ -12,6 +12,9 @@
 
 namespace sail {
 
+template <int N>
+using VecObs = std::pair<double, Eigen::Matrix<double, N, 1>>;
+
 std::ostream &operator<<(std::ostream &s,
     SmoothBoundarySplineBasis<double, 3>::Weights w) {
   s << "Weights(";
@@ -355,6 +358,137 @@ SmoothBoundarySplineBasis<double, 3>
   RobustSplineFit<Dims>::basis(int i) const {
   return _bases[i];
 }
+
+Arrayi initializeIndices(int n) {
+  Arrayi dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = i;
+  }
+  return dst;
+}
+
+MDArray2d initializeCoefs(int coefCount, int dim) {
+  MDArray2d dst = MDArray2d(coefCount, dim);
+  dst.setAll(0.0);
+  return dst;
+}
+
+
+template <int N>
+MDArray2d iterateAutoRegOne(
+    const Array<CubicBasis> &bases,
+    const MDArray2d &coefs,
+    const Array<VecObs<N>> &observations,
+    const Array<int> &inds,
+    const AutoRegSettings &settings) {
+  int n = coefs.rows();
+  auto lhs = SymmetricBandMatrixL<double>::zero(
+      n, CubicBasis::Weights::dim);
+  auto rhs = MDArray2d(n, N);
+  rhs.setAll(0.0);
+  for (auto i: inds) {
+
+  }
+  return rhs;
+}
+
+template <int N>
+Array<MDArray2d> iterateAutoReg(
+    const Array<CubicBasis> &bases,
+    const MDArray2d &coefs,
+    const Array<VecObs<N>> &observations,
+    const Arrayi &inds,
+    const AutoRegSettings &settings) {
+  Array<MDArray2d> dst(3);
+  int m = inds.middle();
+  dst[0] = iterateAutoRegOne<N>(
+      bases, coefs, observations,
+      inds, settings);
+  dst[1] = iterateAutoRegOne<N>(
+      bases, coefs, observations,
+      inds.sliceTo(m), settings);
+  dst[2] = iterateAutoRegOne<N>(
+      bases, coefs, observations,
+      inds.sliceFrom(m), settings);
+  return dst;
+}
+
+template <int N>
+double evaluateAutoReg(
+    const CubicBasis &bases,
+    const Array<VecObs<N>> &observations,
+    const MDArray2d &coefs,
+    const AutoRegSettings &settings) {
+  for (auto x: observations) {
+
+  }
+}
+
+template <int N>
+double evaluateAutoReg(
+    const Array<CubicBasis> &bases,
+    const Array<VecObs<N>> &observations,
+    const Array<MDArray2d> &coefs,
+    const AutoRegSettings &settings) {
+  double sum = 0.0;
+  for (auto c: coefs) {
+    sum += evaluateAutoReg<N>(bases,
+        observations, c, settings);
+  }
+  return sum;
+}
+
+template <int N>
+MDArray2d fitSplineAutoReg(
+    int coefCount,
+    const Array<VecObs<N>>
+      &observations,
+      const AutoRegSettings &settings,
+      std::default_random_engine *rng) {
+  if (coefCount < 1) {
+    LOG(ERROR) << "Too few coefficients";
+    return MDArray2d();
+  }
+  if (observations.size() < 2) {
+    LOG(ERROR) << "Too few observations";
+    return MDArray2d();
+  }
+
+  Arrayi inds = initializeIndices(observations.size());
+  auto coefs = initializeCoefs(coefCount, N);
+  auto bases = CubicBasis(coefCount).makeDerivatives();
+
+  for (int i = 0; i < settings.maxIters; i++) {
+    std::shuffle(inds.begin(), inds.end(), *rng);
+    auto nextCoefs = iterateAutoReg<N>(
+        bases,
+        coefs, observations, inds, settings);
+    /*if (2.0*evaluateAutoReg<N>(
+        bases, observations,
+        {coefs}, settings) <
+        evaluateAutoReg<N>(
+            bases, observations,
+            {nextCoefs(2), nextCoefs(1)}, settings)) {
+      break;
+    } else {*/
+      coefs = nextCoefs[0];
+    //}
+  }
+  return coefs;
+}
+
+template MDArray2d fitSplineAutoReg<1>(
+    int coefCount,
+    const Array<VecObs<1>>
+      &observations,
+      const AutoRegSettings &settings,
+      std::default_random_engine *rng);
+template MDArray2d fitSplineAutoReg<2>(
+    int coefCount,
+    const Array<VecObs<2>>
+      &observations,
+      const AutoRegSettings &settings,
+      std::default_random_engine *rng);
 
 
 template class RobustSplineFit<1>;
