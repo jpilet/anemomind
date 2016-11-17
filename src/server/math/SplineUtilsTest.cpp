@@ -160,7 +160,4 @@ TEST(SplineUtilsTest, FitSplineAutoReg) {
   for (int i = 0; i < n; i++) {
     EXPECT_NEAR(denoised(i, 0), sqr(toLine(i)), 3.0);
   }
-
-  std::cout << "COEFS: \n" << denoised << std::endl;
-
 }
