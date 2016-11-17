@@ -158,6 +158,6 @@ TEST(SplineUtilsTest, FitSplineAutoReg) {
   auto denoised = fitSplineAutoReg<1>(
       n, noisy, settings, &rng);
   for (int i = 0; i < n; i++) {
-    EXPECT_NEAR(denoised.coefs(i, 0), sqr(toLine(i)), 3.0);
+    EXPECT_NEAR(denoised.coefs(i, 0), sqr(toLine(i)), 2.0);
   }
 }
