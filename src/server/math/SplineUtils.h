@@ -158,7 +158,7 @@ private:
 
 struct AutoRegSettings {
   int maxIters = 5;
-  double weight = 100;
+  double weight = 10;
   int order = 2;
   double wellPosednessReg = 1.0e-5;
 };

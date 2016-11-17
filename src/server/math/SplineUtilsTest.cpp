@@ -155,8 +155,12 @@ TEST(SplineUtilsTest, FitSplineAutoReg) {
 
   std::default_random_engine rng(0);
   AutoRegSettings settings;
-  settings.maxIters = 300;
   auto denoised = fitSplineAutoReg<1>(
       n, noisy, settings, &rng);
+  for (int i = 0; i < n; i++) {
+    EXPECT_NEAR(denoised(i, 0), sqr(toLine(i)), 3.0);
+  }
+
+  std::cout << "COEFS: \n" << denoised << std::endl;
 
 }
