@@ -166,8 +166,13 @@ struct AutoRegSettings {
 template <int N>
 using VecObs = std::pair<double, Eigen::Matrix<double, N, 1>>;
 
+struct AutoRegResults {
+  Array<double> costs;
+  MDArray2d coefs;
+};
+
 template <int N>
-MDArray2d fitSplineAutoReg(
+AutoRegResults fitSplineAutoReg(
     int coefCount,
     const Array<VecObs<N>>
       &observations,

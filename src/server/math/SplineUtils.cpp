@@ -500,7 +500,7 @@ double evaluateCrossValidationCost(
 }
 
 template <int N>
-MDArray2d fitSplineAutoReg(
+AutoRegResults fitSplineAutoReg(
     int coefCount,
     const Array<VecObs<N>>
       &observations,
@@ -508,11 +508,11 @@ MDArray2d fitSplineAutoReg(
       std::default_random_engine *rng) {
   if (coefCount < 1) {
     LOG(ERROR) << "Too few coefficients";
-    return MDArray2d();
+    return AutoRegResults();
   }
   if (observations.size() < 2) {
     LOG(ERROR) << "Too few observations";
-    return MDArray2d();
+    return AutoRegResults();
   }
 
   Arrayi inds = initializeIndices(observations.size());
@@ -521,9 +521,8 @@ MDArray2d fitSplineAutoReg(
 
   double lastCrossValidationCost = std::numeric_limits<
       double>::infinity();
+  ArrayBuilder<double> costs;
   for (int i = 0; i < settings.maxIters; i++) {
-    LOG(INFO) << "Iteration " << i << " with cost " <<
-        lastCrossValidationCost;
     std::shuffle(inds.begin(), inds.end(), *rng);
     auto splitInds = performSplit(inds);
     auto nextCoefs = iterateAutoReg<N>(
@@ -531,14 +530,13 @@ MDArray2d fitSplineAutoReg(
         splitInds, settings);
     if (nextCoefs.empty()) {
       LOG(ERROR) << "Failed";
-      return coefs;
+      return AutoRegResults();
     }
 
     double crossValidationCost =
         evaluateCrossValidationCost<N>(bases[0],
             observations, nextCoefs, splitInds);
-    LOG(INFO) << "New cross validation cost: " <<
-        crossValidationCost;
+    costs.add(crossValidationCost);
 
     if (lastCrossValidationCost <= crossValidationCost) {
       break;
@@ -547,16 +545,16 @@ MDArray2d fitSplineAutoReg(
       lastCrossValidationCost = crossValidationCost;
     }
   }
-  return coefs;
+  return AutoRegResults{costs.get(), coefs};
 }
 
-template MDArray2d fitSplineAutoReg<1>(
+template AutoRegResults fitSplineAutoReg<1>(
     int coefCount,
     const Array<VecObs<1>>
       &observations,
       const AutoRegSettings &settings,
       std::default_random_engine *rng);
-template MDArray2d fitSplineAutoReg<2>(
+template AutoRegResults fitSplineAutoReg<2>(
     int coefCount,
     const Array<VecObs<2>>
       &observations,
