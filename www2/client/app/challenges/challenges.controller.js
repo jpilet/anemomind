@@ -128,15 +128,12 @@ angular.module('www2App')
         $scope.selectChallenge(0, challenge);
       };
 
-      $scope.showModal = function(data) { 
+      $scope.showModal = function(data) {
+        ModalService.isVisible = true;
         ModalService.data = data;
         ModalService.showModal({
           templateUrl: "app/share/share.html",
-          controller: "ShareCtrl",
-          inputs: {
-            name: "Fry",
-            year: 3001
-          }
+          controller: "ShareCtrl"
         });
       };
 

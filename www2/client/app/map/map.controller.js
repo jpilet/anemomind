@@ -19,8 +19,8 @@ function vmgAtPoint(p) {
 }
 
 angular.module('www2App')
-  .controller('MapCtrl', function ($scope, $stateParams, userDB, boatList, $timeout,
-                                   $http, $interval, $state, $location) {
+  .controller('MapCtrl', function ($scope, $stateParams, userDB, boatList, ModalService, 
+                                    $timeout, $http, $interval, $state, $location) {
 
     var defaultColor = '#FF0033';
     var defaultTaillength = 300;
@@ -49,46 +49,6 @@ angular.module('www2App')
         maxLimit: 10800,
       }
     };
-
-    // url is not used yet.
-    // I think this will be used if someone will code for the social media sharing?
-    $scope.iconList = [
-      {
-        name:'facebook',
-        icon:'fa-facebook',
-        url: 'https://www.facebook.com/sharer/sharer.php?u=',
-        use:true
-      },
-      {
-        name: 'linkedin',
-        icon:'fa-linkedin',
-        url: 'https://www.linkedin.com/shareArticle?mini=true&url=',//&title=_TITLE_&summary=_TXT_'
-        use:false
-      },
-      {
-        name: 'pinterest',
-        url: '#',
-        use:false
-      },
-      {
-        name: 'twitter',
-        icon:'fa-twitter',
-        url: 'https://twitter.com/home?status=',
-        use:true
-      },
-      {
-        name: 'google',
-        icon:'fa-google-plus',
-        url: 'https://plus.google.com/share?url=',
-        use:true
-      },
-      {
-        name: 'mail',
-        url: '#',
-        use:false
-      }
-    ];
-    $scope.selectedIcon=$scope.iconList[0];
 
     $scope.tabs = [
       {
@@ -184,30 +144,14 @@ angular.module('www2App')
     // Catches browser history navigation events (back,..)
     $scope.$on('$locationChangeSuccess', parseParams);
 
-    boatList.boats().then(function (boats) {
-      var aveSpeedText = '32 Kts';
-      var windBlowedText = '22 Kts';
-      var performanceText = '91%';
-      $scope.boat=boatList.boat($stateParams.boatId);
-      $scope.sharedLink=$location.absUrl();
-      $scope.shareText = 'Share '+$scope.boat.name+' and her team performance';
-    });
-
-    $scope.changePublicAccess=function() {
-      $scope.boat.publicAccess = ! $scope.boat.publicAccess;      
-      boatList.save($stateParams.boatId, $scope.boat)
-        .success(function(boat) { 
-          $scope.boat = boat; 
-        });
+    
+    $scope.showModal = function() {
+      ModalService.isVisible = true;
+      ModalService.showModal({
+        templateUrl: "app/share/share.map.social.html",
+        controller: "ShareCtrl"
+      });
     };
-
-    $scope.goShare=function(icon){
-      window.open(icon.url+$scope.sharedLink, "_new");
-    };
-
-    $scope.selecteIcon=function(icon){
-      $scope.selectedIcon=icon;
-    }
 
     $scope.eventList = [];
     $scope.users = {};
