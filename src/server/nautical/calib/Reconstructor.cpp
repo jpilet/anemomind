@@ -307,7 +307,13 @@ void makeVariousMagHdgPlots(
         }
       }
     }
+}
 
+Array<TypedSpline<UnitVecSplineOp>> reconstructMagHeading(
+      const Array<CalibDataChunk> &chunks,
+      const MagHdgSettings &settings,
+      DOM::Node *dst) {
+  return Array<TypedSpline<UnitVecSplineOp>>();
 }
 
 ReconstructionResults reconstruct(
