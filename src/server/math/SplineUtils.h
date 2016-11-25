@@ -16,6 +16,9 @@
 
 namespace sail {
 
+template <typename T>
+struct TimedValue;
+
 typedef SmoothBoundarySplineBasis<double, 3> CubicBasis;
 
 std::ostream &operator<<(std::ostream &s,
@@ -153,6 +156,7 @@ using VecObs = std::pair<double, Eigen::Matrix<double, N, 1>>;
 struct AutoRegResults {
   Array<double> costPerIterationHistory;
   MDArray2d coefs;
+  bool defined() const {return !coefs.empty();}
 };
 
 template <int N>
@@ -177,9 +181,10 @@ template <typename OpType>
 class TypedSpline {
 public:
   TypedSpline(
-      const TimeMapper &mapper,
-      const MDArray2d &coefs,
-      OpType op);
+        const TimeMapper &mapper,
+        const MDArray2d &coefs,
+        OpType op);
+  TypedSpline() {}
 
   TimeStamp lower() const;
   TimeStamp upper() const;
@@ -192,7 +197,12 @@ private:
   MDArray2d _coefs;
 };
 
-
+TypedSpline<UnitVecSplineOp>
+  fitAngleSpline(
+      const TimeMapper &mapper,
+      const Array<TimedValue<Angle<double>>> &angles,
+      const AutoRegSettings &settings,
+      std::default_random_engine *rng);
 
 }
 

@@ -10,6 +10,8 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/LineKM.h>
 #include <server/common/indexed.h>
+#include <server/common/TimedValue.h>
+#include <server/nautical/common.h>
 
 namespace sail {
 
@@ -553,8 +555,34 @@ TimeStamp TypedSpline<OpType>::upper() const {
   return _timeMapper.unmap(_basis.raw().upperDataBound());
 }
 
-template class TypedSpline<UnitVecSplineOp>;
+VecObs<2> makeAngleUVecObs(
+    const TimeMapper &mapper,
+    const TimedValue<Angle<double>> &v) {
+  return VecObs<2>(mapper.map(v.time),
+      makeNauticalUnitVector<double>(v.value));
+}
 
+TypedSpline<UnitVecSplineOp>
+  fitAngleSpline(
+      const TimeMapper &mapper,
+      const Array<TimedValue<Angle<double>>> &angles,
+      const AutoRegSettings &settings,
+      std::default_random_engine *rng) {
+  Array<VecObs<2>> vecObs(angles.size());
+  for (int i = 0; i < angles.size(); i++) {
+    vecObs[i] = makeAngleUVecObs(mapper, angles[i]);
+  }
+  auto fitting = fitSplineAutoReg<2>(mapper.sampleCount,
+      vecObs, settings, rng);
+  if (!fitting.defined()) {
+    LOG(ERROR) << "Fitting failed.";
+    return TypedSpline<UnitVecSplineOp>();
+  }
+  return TypedSpline<UnitVecSplineOp>(
+      mapper, fitting.coefs, UnitVecSplineOp());
+}
+
+template class TypedSpline<UnitVecSplineOp>;
 template class RobustSplineFit<1>;
 template class RobustSplineFit<2>;
 template class RobustSplineFit<3>;
