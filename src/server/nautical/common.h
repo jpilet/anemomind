@@ -19,6 +19,15 @@ Eigen::Matrix<T, 2, 1> makeNauticalUnitVector(Angle<T> x) {
 }
 
 template <typename T>
+Optional<Angle<T>> computeNauticalAngle(
+    const Eigen::Matrix<T, 2, 1> &x) {
+  T y = atan2(x(0), x(1));
+  return isFinite(y)?
+      Optional<Angle<T>>(y)
+      : Optional<Angle<T>>();
+}
+
+template <typename T>
 T computeCurrentFromBoatMotion(
     const T &boatMotionOverWater,
     const T &boatMotionOverGround) {
