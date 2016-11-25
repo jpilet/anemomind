@@ -526,6 +526,35 @@ template AutoRegResults fitSplineAutoReg<2>(
       std::default_random_engine *rng);
 
 
+template <typename OpType>
+TypedSpline<OpType>::TypedSpline(
+    const TimeMapper &mapper,
+    const MDArray2d &coefs,
+    OpType op) : _timeMapper(mapper),
+    _coefs(coefs), _op(op) {}
+
+
+template <typename OpType>
+typename OpType::OutputType
+  TypedSpline<OpType>::evaluate(const TimeStamp &t) const {
+  auto x = _timeMapper.map(t);
+  auto weights = _basis.build(x);
+  auto vec = evaluateSpline<OpType::coefDim>(weights, _coefs);
+  return _op.apply(vec);
+}
+
+template <typename OpType>
+TimeStamp TypedSpline<OpType>::lower() const {
+  return _timeMapper.unmap(_basis.raw().lowerDataBound());
+}
+
+template <typename OpType>
+TimeStamp TypedSpline<OpType>::upper() const {
+  return _timeMapper.unmap(_basis.raw().upperDataBound());
+}
+
+template class TypedSpline<UnitVecSplineOp>;
+
 template class RobustSplineFit<1>;
 template class RobustSplineFit<2>;
 template class RobustSplineFit<3>;

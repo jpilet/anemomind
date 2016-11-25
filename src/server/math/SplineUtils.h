@@ -163,15 +163,36 @@ AutoRegResults fitSplineAutoReg(
       const AutoRegSettings &settings,
       std::default_random_engine *rng);
 
-template <typename T>
+struct UnitVecSplineOp {
+  typedef Eigen::Vector2d Vec;
+  typedef Vec OutputType;
+  static const int coefDim = 2;
+  Vec apply(Vec v) const {
+    auto len = v.norm();
+    return 0 < len? Vec((1.0/len)*v) : Vec(0, 0);
+  }
+};
+
+template <typename OpType>
 class TypedSpline {
 public:
-  TypedSpline();
+  TypedSpline(
+      const TimeMapper &mapper,
+      const MDArray2d &coefs,
+      OpType op);
+
+  TimeStamp lower() const;
+  TimeStamp upper() const;
+  typename OpType::OutputType
+    evaluate(const TimeStamp &t) const;
 private:
+  OpType _op;
   TimeMapper _timeMapper;
   CubicBasis _basis;
   MDArray2d _coefs;
 };
+
+
 
 }
 
