@@ -25,22 +25,6 @@ Arrayd fitSplineCoefs(
     const SmoothBoundarySplineBasis<double, 3> &basis,
     std::function<double(int)> sampleFun);
 
-class TemporalSplineCurve {
-public:
-  TemporalSplineCurve(
-      Span<TimeStamp> timeSpan,
-      Duration<double> period,
-      Array<TimeStamp> src,
-      Array<double> dst);
-
-  double evaluate(TimeStamp t) const;
-private:
-  double toLocal(TimeStamp x) const;
-  TimeStamp _offset;
-  Duration<double> _period;
-  SmoothBoundarySplineBasis<double, 3> _basis;
-  Array<double> _coefs;
-};
 
 Array<double> makePowers(int n, double f);
 
@@ -178,6 +162,16 @@ AutoRegResults fitSplineAutoReg(
       &observations,
       const AutoRegSettings &settings,
       std::default_random_engine *rng);
+
+template <typename T>
+class TypedSpline {
+public:
+  TypedSpline();
+private:
+  TimeMapper _timeMapper;
+  CubicBasis _basis;
+  MDArray2d _coefs;
+};
 
 }
 
