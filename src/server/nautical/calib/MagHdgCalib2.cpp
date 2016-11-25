@@ -15,7 +15,9 @@
 #include <server/common/DomUtils.h>
 #include <server/common/Functional.h>
 #include <server/common/string.h>
+#include <server/common/indexed.h>
 #include <server/math/SineFit.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 namespace MagHdgCalib2 {
@@ -120,29 +122,6 @@ Optional<Sine::Sample> evaluateFit(const SplineGpsFilter::EcefCurve &gpsCurve,
   return Sine::Sample(correction,
       computeSum(costs), 1.0);
 }
-
-
-// sin(theta + phi)
-// cos(theta)sin(phi) + sin(theta)*cos(phi)
-//
-// sin(phi) = xy[0]
-// cos(phi) = xy[1]
-// phi = atan2(xy[0], xy[1])
-/*Angle<double> computePhase(
-    const Array<std::pair<Angle<double>, double>> &src) {
-  typedef QuadForm<3, 1> QF3;
-  QF3 sum = QF3::makeReg(1.0e-9);
-  for (auto x: src) {
-    double xy[3] = {cos(x.first), sin(x.first), 1.0};
-    double c = x.second;
-    sum += QF3::fit(xy, &c);
-  }
-  auto xy = sum.minimize();
-  if (xy.empty()) {
-    return 0.0_deg;
-  }
-  return atan2(xy(0, 0), xy(1, 0))*1.0_rad;
-}*/
 
 Array<Sine::Sample> makeCurveToPlot(
     const SplineGpsFilter::EcefCurve &gpsCurve,
@@ -276,6 +255,20 @@ void makeFittedSinePlot(
     "Objective function", cr.get());
 }
 
+Optional<Angle<double>>
+  computeAngleFromSineSamples(
+      const Array<Sine::Sample> &curve) {
+  if (curve.empty()) {
+    return Optional<Angle<double>>();
+  }
+  auto fittedSine0 = fit(2.0, curve);
+  if (!fittedSine0.defined()) {
+    LOG(ERROR) << "Failed to fit sine";
+    return Optional<Angle<double>>();
+  }
+  return minimize(fittedSine0.get()).smallest();
+}
+
 Optional<Angle<double>> optimizeSineFit(
     const SplineGpsFilter::EcefCurve &gpsCurve,
     const Array<TimedValue<Angle<double>>> &headings,
@@ -283,17 +276,44 @@ Optional<Angle<double>> optimizeSineFit(
   std::cout << "Make the curve" << std::endl;
   auto curve = makeCurveToPlot(gpsCurve, headings,
           settings);
-  if (curve.empty()) {
-    return Optional<Angle<double>>();
+  return computeAngleFromSineSamples(curve);
+}
+
+Optional<Angle<double>> optimizeSineFit(
+    const Array<SplineGpsFilter::EcefCurve> &gpsCurve,
+    const Array<Array<TimedValue<Angle<double>>>> &headings,
+    const Settings &settings) {
+  int n = gpsCurve.size();
+  CHECK(n == headings.size());
+  Array<Array<Sine::Sample>> acc(n);
+  for (int i = 0; i < n; i++) {
+    acc[i] = makeCurveToPlot(
+        gpsCurve[i], headings[i], settings);
   }
-  std::cout << "Fit it" << std::endl;
-  auto fittedSine0 = fit(2.0, curve);
-  std::cout << "Move on!" << std::endl;
-  if (!fittedSine0.defined()) {
-    LOG(ERROR) << "Failed to fit sine";
-    return Optional<Angle<double>>();
+  auto allData = sail::concat(acc);
+  return computeAngleFromSineSamples(allData);
+}
+
+Array<TimedValue<Angle<double>>> applyCorrection1(
+    const Array<TimedValue<Angle<double>>> &src,
+    Angle<double> corr) {
+  int n = src.size();
+  Array<TimedValue<Angle<double>>> dst(n);
+  for (auto x: indexed(src)) {
+    dst[x.first] = TimedValue<Angle<double>>(
+        x.second.time,
+        x.second.value + corr);
   }
-  return minimize(fittedSine0.get()).smallest();
+  return dst;
+}
+
+Array<Array<TimedValue<Angle<double>>>> applyCorrection(
+    const Array<Array<TimedValue<Angle<double>>>> &src,
+    Angle<double> corr) {
+  return sail::map(
+      src, [=](const Array<TimedValue<Angle<double>>> &data) {
+    return applyCorrection1(data, corr);
+  });
 }
 
 void makeSpreadPlot(

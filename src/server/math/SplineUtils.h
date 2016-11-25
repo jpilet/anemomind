@@ -198,11 +198,11 @@ private:
 };
 
 TypedSpline<UnitVecSplineOp>
-  fitAngleSpline(
-      const TimeMapper &mapper,
-      const Array<TimedValue<Angle<double>>> &angles,
-      const AutoRegSettings &settings,
-      std::default_random_engine *rng);
+fitAngleSpline(
+    const TimeMapper &mapper,
+    const Array<TimedValue<Angle<double>>> &angles,
+    const AutoRegSettings &settings,
+    std::default_random_engine *rng);
 
 }
 

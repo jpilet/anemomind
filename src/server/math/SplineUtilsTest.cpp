@@ -11,6 +11,7 @@
 #include <server/common/LineKM.h>
 #include <server/common/MDArray.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/TimedValue.h>
 
 using namespace sail;
 
@@ -136,5 +137,41 @@ TEST(SplineUtilsTest, FitSplineAutoReg) {
       n, noisy, settings, &rng);
   for (int i = 0; i < n; i++) {
     EXPECT_NEAR(denoised.coefs(i, 0), sqr(toLine(i)), 2.0);
+  }
+}
+
+TEST(SplineUtilsTest, FitAngles) {
+  /*pedSpline<UnitVecSplineOp>
+    fitAngleSpline(
+        const TimeMapper &mapper,
+        const Array<TimedValue<Angle<double>>> &angles,
+        const AutoRegSettings &settings,
+        std::default_random_engine *rng);  auto*/
+
+  int n = 30;
+  LineKM mapping(0, n-1, 0.0, 30.0);
+
+  Array<TimedValue<Angle<double>>> angles(n);
+  for (int i = 0; i < n; i++) {
+    angles[i] = TimedValue<Angle<double>>(
+        offset + double(i)*1.0_s,
+        mapping(i)*1.0_deg);
+  }
+
+  std::default_random_engine rng;
+  AutoRegSettings settings;
+  TimeMapper mapper(offset, 1.0_s, n);
+  auto curve = fitAngleSpline(mapper,
+      angles, settings, &rng);
+
+  {
+    auto vec = curve.evaluate(offset);
+    EXPECT_NEAR(vec(0), 0.0, 1.0e-4);
+    EXPECT_NEAR(vec(1), 1.0, 1.0e-4);
+  }{
+    auto vec = curve.evaluate(
+        offset + double(n-1)*1.0_s);
+    EXPECT_NEAR(vec(0), 0.5, 1.0e-4);
+    EXPECT_NEAR(vec(1), 0.5*sqrt(3.0), 1.0e-4);
   }
 }

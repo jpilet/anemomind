@@ -19,6 +19,7 @@
 #include <server/common/DOMUtils.h>
 #include <server/common/TimeMapper.h>
 #include <server/nautical/filters/SplineGpsFilter.h>
+#include <server/math/SplineUtils.h>
 
 namespace sail {
 
@@ -34,7 +35,18 @@ FOREACH_CHANNEL(MAKE_DATA_MAP)
 #undef MAKE_DATA_MAP
 };
 
-struct ReconstructionSettings {};
+struct MagHdgSettings {
+  bool spreadPlot = false;
+  bool fittedSinePlot = false;
+  bool angleFitnessPlot = false;
+  bool costPlot = false;
+
+  AutoRegSettings regSettings;
+};
+
+struct ReconstructionSettings {
+  MagHdgSettings magHdgSettings;
+};
 
 struct ReconstructedChunk {
   TimeMapper mapper;

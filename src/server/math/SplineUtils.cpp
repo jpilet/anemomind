@@ -533,13 +533,14 @@ TypedSpline<OpType>::TypedSpline(
     const TimeMapper &mapper,
     const MDArray2d &coefs,
     OpType op) : _timeMapper(mapper),
-    _coefs(coefs), _op(op) {}
+    _basis(mapper.sampleCount), _coefs(coefs), _op(op) {}
 
 
 template <typename OpType>
 typename OpType::OutputType
   TypedSpline<OpType>::evaluate(const TimeStamp &t) const {
-  auto x = _timeMapper.map(t);
+  auto x = _timeMapper.mapToReal(t);
+  std::cout << "x = " << x << std::endl;
   auto weights = _basis.build(x);
   auto vec = evaluateSpline<OpType::coefDim>(weights, _coefs);
   return _op.apply(vec);

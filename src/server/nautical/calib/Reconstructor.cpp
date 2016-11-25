@@ -17,6 +17,7 @@
 #include <server/common/indexed.h>
 #include <server/nautical/calib/MagHdgCalib.h>
 #include <server/nautical/calib/MagHdgCalib2.h>
+#include <server/math/SplineUtils.h>
 
 namespace sail {
 
@@ -243,6 +244,72 @@ void outputOtherSignals(DOM::Node *dst,
   }
 }
 
+
+void makeVariousMagHdgPlots(
+      const Array<CalibDataChunk> &chunks,
+      const MagHdgSettings &settings,
+      DOM::Node *dst) {
+  DOM::addSubTextNode(dst, "h2", "Magnetic headings");
+    for (auto chunk: indexed(chunks)) {
+
+      DOM::addSubTextNode(dst, "h3",
+          stringFormat("Chunk %d/%d",
+              chunk.first + 1, chunks.size()));
+
+      for (auto signal: chunk.second.MAG_HEADING) {
+        DOM::addSubTextNode(dst, "h4",
+            stringFormat("For mag heading '%s'",
+                signal.first.c_str()));
+
+        if (settings.costPlot) {
+          MagHdgCalib::Settings settings;
+          MagHdgCalib::calibrateSingleChannel(
+              chunk.second.trajectory,
+              signal.second, settings, dst);
+
+          MagHdgCalib::makeCostPlot(
+              30, chunk.second.trajectory,
+              signal.second, dst);
+        }
+        if (settings.angleFitnessPlot) {
+          Array<MagHdgCalib2::Settings> settings(8);
+          settings[0].windowSize = 4;
+          for (int i = 1; i < settings.size(); i++) {
+            settings[i].windowSize = settings[i-1].windowSize*2;
+          }
+          MagHdgCalib2::makeAngleFitnessPlot(
+              chunk.second.trajectory,
+              signal.second, settings,
+              dst);
+        }
+        if (settings.fittedSinePlot) {
+          MagHdgCalib2::Settings settings;
+          settings.sampleCount = 30;
+          MagHdgCalib2::makeFittedSinePlot(
+              chunk.second.trajectory,
+              signal.second, settings, dst);
+          auto x = MagHdgCalib2::optimizeSineFit(
+              chunk.second.trajectory,
+              signal.second, settings);
+          if (x.defined()) {
+            DOM::addSubTextNode(dst, "p",
+                stringFormat("Optimized correction: %.3g deg",
+                x.get().degrees()));
+          } else {
+            DOM::addSubTextNode(dst, "p", "Failed to optimize");
+          }
+        }
+        if (settings.spreadPlot) {
+          MagHdgCalib2::Settings settings;
+          MagHdgCalib2::makeSpreadPlot(
+              chunk.second.trajectory,
+              signal.second, settings, dst);
+        }
+      }
+    }
+
+}
+
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
@@ -259,62 +326,10 @@ ReconstructionResults reconstruct(
   DOM::addSubTextNode(dst, "h2", "Filtered GPS trajectories");
   outputFilteredPositionsPlots(chunks, dst);
 
-  DOM::addSubTextNode(dst, "h2", "Magnetic headings");
-  for (auto chunk: indexed(chunks)) {
-    DOM::addSubTextNode(dst, "h3",
-        stringFormat("Chunk %d/%d",
-            chunk.first + 1, chunks.size()));
-    for (auto signal: chunk.second.MAG_HEADING) {
-      DOM::addSubTextNode(dst, "h4",
-          stringFormat("For mag heading '%s'",
-              signal.first.c_str()));
+  makeVariousMagHdgPlots(
+      chunks, settings.magHdgSettings, dst);
 
-      if (false) {
-        MagHdgCalib::Settings settings;
-        MagHdgCalib::calibrateSingleChannel(
-            chunk.second.trajectory,
-            signal.second, settings, dst);
 
-        MagHdgCalib::makeCostPlot(
-            30, chunk.second.trajectory,
-            signal.second, dst);
-      }
-      if (false) {
-        Array<MagHdgCalib2::Settings> settings(8);
-        settings[0].windowSize = 4;
-        for (int i = 1; i < settings.size(); i++) {
-          settings[i].windowSize = settings[i-1].windowSize*2;
-        }
-        MagHdgCalib2::makeAngleFitnessPlot(
-            chunk.second.trajectory,
-            signal.second, settings,
-            dst);
-      }
-      if (true) {
-        MagHdgCalib2::Settings settings;
-        settings.sampleCount = 30;
-        MagHdgCalib2::makeFittedSinePlot(
-            chunk.second.trajectory,
-            signal.second, settings, dst);
-        auto x = MagHdgCalib2::optimizeSineFit(
-            chunk.second.trajectory,
-            signal.second, settings);
-        if (x.defined()) {
-          DOM::addSubTextNode(dst, "p",
-              stringFormat("Optimized correction: %.3g deg",
-              x.get().degrees()));
-        } else {
-          DOM::addSubTextNode(dst, "p", "Failed to optimize");
-        }
-      }
-      if (true) {
-        MagHdgCalib2::Settings settings;
-        MagHdgCalib2::makeSpreadPlot(
-            chunk.second.trajectory,
-            signal.second, settings, dst);
-      }
-    }
-  }
 
   return ReconstructionResults();
 }

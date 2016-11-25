@@ -39,6 +39,18 @@ Optional<Angle<double>> optimizeSineFit(
     const Array<TimedValue<Angle<double>>> &headings,
     const Settings &settings);
 
+Optional<Angle<double>> optimizeSineFit(
+    const Array<SplineGpsFilter::EcefCurve> &gpsCurve,
+    const Array<Array<TimedValue<Angle<double>>>> &headings,
+    const Settings &settings);
+
+Array<TimedValue<Angle<double>>> applyCorrection(
+    const Array<TimedValue<Angle<double>>> &src,
+    Angle<double> corr);
+Array<Array<TimedValue<Angle<double>>>> applyCorrection(
+    const Array<Array<TimedValue<Angle<double>>>> &src,
+    Angle<double> corr);
+
 void makeSpreadPlot(
     const SplineGpsFilter::EcefCurve &gpsCurve,
     const Array<TimedValue<Angle<double>>> &headings,
