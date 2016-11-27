@@ -37,8 +37,14 @@ angular.module('www2App')
         if ($scope.selectedCurve) {
           search += '&c=' + $scope.selectedCurve;
         }
-        if ($location.search().preview) {
-          search += '&preview=' + $location.search().preview;
+        if ($location.search().queue) {
+          search += '&queue=' + $location.search().queue;
+        }
+        if ($location.search().showLinks) {
+          search += '&showLinks=' + $location.search().showLinks;
+        }
+        if ($location.search().tailColor) {
+          search += '&tailColor=' + $location.search().tailColor;
         }
         if (typeof $scope.currentTime !== 'undefined' && !isNaN($scope.currentTime)) {
           search += '&t=' + $scope.currentTime.getTime();

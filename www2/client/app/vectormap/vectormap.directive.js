@@ -65,25 +65,45 @@ angular.module('www2App')
               "features": []
             };
 
-          if ($location.search().preview) {
-            var poiLayer = new POILayer({
-              renderer: canvas,
-              geojson: geojson,
-              onFeatureClic: function(feature, pos) {
-                selectEvent(feature);
+          var poiLayer = new POILayer({
+            renderer: canvas,
+            geojson: geojson,
+            onFeatureClic: function(feature, pos) {
+              selectEvent(feature);
 
-                if(feature.properties.icon == "image")
-                  Lightbox.openModal(images, feature.index);
+              if(feature.properties.icon == "image") {
+                Lightbox.openModal(images, feature.photoIndex);
               }
-            });
-            var options = {
-              width: 30,
-              height: 30,
-              ratioY: 1
-            };
-            poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
-            poiLayer.loadIcon('image', "/assets/images/image.svg", options);
+            }
+          });
+          var options = {
+            width: 30,
+            height: 30,
+            ratioY: 1
+          };
+          poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
+          poiLayer.loadIcon('image', "/assets/images/image.svg", options);
+
+          function setTailTrack() {
+            if ($location.search().queue) {
+              var lengthTime = new Date(
+                Math.abs(scope.currentTime.getTime() - 
+                (parseInt($location.search().queue) * 1000)));
+
+              var tailId = makeCurveId(
+                scope.boat._id,
+                lengthTime,
+                scope.currentTime);
+
+              var customContext = {
+                lineColor: '#8b27ef',
+                lineWidth: 3
+              };
+
+              
+            }
           }
+          
 
           scope.photoUrl = function(event, size) {
             var url = [
@@ -118,10 +138,9 @@ angular.module('www2App')
                 if (!event.dataAtEventTime || !event.dataAtEventTime.pos) {
                   continue;
                 }
-                geojson.features.push({
+                var feature = {
                   "type": "Feature",
                   "id": scope.eventList[i]._id,
-                  "index": i, 
                   "properties": {
                     textPlacement: 'E',
                     hideIcon: false,
@@ -134,15 +153,19 @@ angular.module('www2App')
                       y: event.dataAtEventTime.pos[1]
                     }                    
                   }
-                });
+                };
 
-                if(typeof scope.eventList[i].photo !== 'undefined' && scope.eventList[i].photo && scope.eventList[i].photo != null) {
+                if (typeof scope.eventList[i].photo !== 'undefined'
+                    && scope.eventList[i].photo
+                    && scope.eventList[i].photo != null) {
                   var image = {
                     'url': scope.photoUrl(scope.eventList[i], ''),
                     'caption': scope.eventList[i].comment
                   };
+                  feature.photoIndex = images.length;
                   images.push(image);
                 }
+                geojson.features.push(feature);
               }
 
               canvas.refreshIfNotMoving();
@@ -257,8 +280,10 @@ angular.module('www2App')
           scope.$watch('currentTime', function(newValue, oldValue) {
             if (newValue != oldValue) {
               scope.pathLayer.setCurrentTime(newValue);
+              scope.pathLayer.queueSeconds = $location.search().queue;
+              scope.pathLayer.tailColor = $location.search().tailColor;
               selectEventByTime(newValue);
-            }            
+            }
           });
 
           updateTileUrl();

@@ -17,9 +17,4 @@ router.get('/geojson/:scale/:x/:y/:boat/:startsAfter?/:endsBefore?',
            access.boatReadAccess,
            controller.retrieveGeoJson);
 
-router.get('/at/:boat/:time',
-           auth.maybeAuthenticated(), 
-           access.boatReadAccess,
-           controller.infoAtTime);
-
 module.exports = router;

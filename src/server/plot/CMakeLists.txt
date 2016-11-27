@@ -15,27 +15,30 @@ target_link_libraries(examples_GnuplotExample
   common_LineKM
   plot_gnuplot) 
 
-add_library(plot_Plot
-  Plot.h
-  Plot.cpp
+add_executable(plot_cairoDemo
+  cairoDemo.cpp
+  )
+target_link_libraries(plot_cairoDemo
+                      ${CAIRO_LIBRARIES})
+
+
+add_library(plot_CairoUtils
+  CairoUtils.h
+  CairoUtils.cpp
   )
 
-target_link_libraries(plot_Plot
-  common_BBox
+target_link_libraries(plot_CairoUtils
+  ${CAIRO_LIBRARIES}
+  )
+  
+add_library(plot_PlotUtils
+  PlotUtils.h
+  PlotUtils.cpp
   )
 
-cxx_test(plot_PlotTest
-  PlotTest.cpp
+cxx_test(plot_PlotUtilsTest
+  PlotUtilsTest.cpp
   gtest_main
-  plot_Plot
-  )
-
-add_library(plot_GnuPlotModel
-  GnuPlotModel.h
-  GnuPlotModel.cpp
-  )
-
-target_link_libraries(plot_GnuPlotModel
-  plot_Plot
-  plot_gnuplot
+  plot_PlotUtils
+  common_Env
   )
