@@ -70,7 +70,6 @@ angular.module('www2App', [
 
     // initial 
     $log.log('-- app.run');
-    boatList.update();
 
     // Redirect to login if route requires auth and you're not logged in
     $rootScope.$on('$stateChangeStart', function (event, next) {
