@@ -300,7 +300,6 @@ class Array {
     assert(to <= _size);
 #endif
     if (empty()) {
-      assert(_data == nullptr);
       return ThisType();
     }
     return Array(_data + from, to - from, _storage);
