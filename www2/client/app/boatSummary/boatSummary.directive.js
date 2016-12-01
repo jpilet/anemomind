@@ -188,12 +188,15 @@ app.directive('boatFixTitleSize',['$timeout',function($timeout) {
   return {
     restrict:'A',
     replace:false,
+    scope:{boatFixTitleSize:'='},
     link:function(scope,element,attrs) {
       //
       // simple way with $timeout 
       // in case of trouble use,             
-      // attrs.$observe('boatFixTitleSize', function(name) {
-      $timeout(function() {
+      scope.$watch('boatFixTitleSize', function(name) {
+        if(name===undefined){
+          return;
+        }
         var marginLeft=40;
         var ourText = element.find('.fixed-size');
         var fontSize = parseInt(window.getComputedStyle(ourText[0], null).getPropertyValue('font-size'));
@@ -203,7 +206,7 @@ app.directive('boatFixTitleSize',['$timeout',function($timeout) {
             ourText.css('font-size', --fontSize);
             textWidth = ourText.width();
         };
-      },500);
+      });
 
     }
   };
