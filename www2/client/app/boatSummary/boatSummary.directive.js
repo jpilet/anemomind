@@ -209,12 +209,13 @@ app.directive('boatFixTitleSize',['$timeout',function($timeout) {
   };
 }]);
 
-app.directive('boatMainImage', ['$parse', function($parse) {
+app.directive('boatMainImage', ['$parse','$location', function($parse,$location) {
   var style={
     'background-size':'cover',
     'background-color':'transparent',
     'background-position': '50% 20%',
-    'height':'100%'
+    'height':'100%',
+    'cursor':'pointer'
   }, defaultImage="/assets/images/boat-sample.jpg";    
 
   return {
@@ -226,8 +227,12 @@ app.directive('boatMainImage', ['$parse', function($parse) {
     link: function(scope, element, attrs, ngModelCtrl) {
       var self=this;
 
+      scope.timeToInt = function(time) {
+        return new Date(time).getTime();
+      };
+
       scope.$watch('boatMainImage', function (boatMainImage) {
-        
+
         //
         // initial value
         style['background-image']='url('+defaultImage+')';
@@ -237,15 +242,18 @@ app.directive('boatMainImage', ['$parse', function($parse) {
            boatMainImage.photos.length){
           // get a random picture in boat summary
           var photoIdx=~~(Math.random()*boatMainImage.photos.length);
-          var path=scope.$parent.photoUrl(boatMainImage._id,boatMainImage.photos[photoIdx].src,'300x400');
+          var photo=boatMainImage.photos[photoIdx];
+          var path=scope.$parent.photoUrl(boatMainImage._id,photo.src,'300x400');
           style['background-image']='url('+path+')';
+          return element.css(style).click(function(){
+            $location.path(`/map/${boatMainImage._id}`).search({c:photo.sid,t:scope.timeToInt(photo.when)});
+            scope.$apply();
+          });
+
         }
         element.css(style);
       });
 
-      scope.timeToInt = function(time) {
-        return new Date(time).getTime();
-      };
     }
   }
 }]);
