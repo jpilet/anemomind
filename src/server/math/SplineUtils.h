@@ -186,10 +186,13 @@ public:
         OpType op);
   TypedSpline() {}
 
+  const TimeMapper &timeMapper() const;
   TimeStamp lower() const;
   TimeStamp upper() const;
   typename OpType::OutputType
     evaluate(const TimeStamp &t) const;
+
+  Duration<double> duration() const;
 private:
   OpType _op;
   TimeMapper _timeMapper;

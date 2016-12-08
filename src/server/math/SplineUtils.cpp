@@ -552,8 +552,18 @@ TimeStamp TypedSpline<OpType>::lower() const {
 }
 
 template <typename OpType>
+const TimeMapper &TypedSpline<OpType>::timeMapper() const {
+  return _timeMapper;
+}
+
+template <typename OpType>
 TimeStamp TypedSpline<OpType>::upper() const {
   return _timeMapper.unmap(_basis.raw().upperDataBound());
+}
+
+template <typename OpType>
+Duration<double> TypedSpline<OpType>::duration() const {
+  return upper() - lower();
 }
 
 VecObs<2> makeAngleUVecObs(

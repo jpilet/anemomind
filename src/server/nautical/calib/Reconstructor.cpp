@@ -357,6 +357,47 @@ void accumulateSamples(
   }
 }
 
+std::pair<
+  Array<Eigen::Vector2d>,
+  Array<Eigen::Vector2d>> samplePts(
+    const TypedSpline<UnitVecSplineOp> &spline,
+    Duration<double> period) {
+  int n = int(ceil(spline.duration()/period)) + 4;
+  ArrayBuilder<Eigen::Vector2d> X(n), Y(n);
+  for (auto t = spline.lower(); t < spline.upper(); t += period) {
+    auto value = spline.evaluate(t);
+    double x = (t - spline.lower()).minutes();
+    X.add(Eigen::Vector2d(x, value(0)));
+    Y.add(Eigen::Vector2d(x, value(1)));
+  }
+  return {X.get(), Y.get()};
+}
+
+void plotAngleSpline(
+    TypedSpline<UnitVecSplineOp> spline,
+    DOM::Node *dst) {
+  auto im = DOM::makeGeneratedImageNode(dst, ".svg");
+
+  PlotUtils::Settings2d settings2d;
+  settings2d.axisIJ = false;
+  settings2d.height = 100;
+  settings2d.width = 300*((spline.upper() - spline.lower())/1.0_h);
+  settings2d.orthonormal = false;
+
+  using namespace Cairo;
+  auto setup = Cairo::Setup::svg(im.toString(),
+      settings2d.width, settings2d.height);
+
+  auto period = 4.0_s;
+  auto xy = samplePts(spline, period);
+
+  Cairo::renderPlot(settings2d, [&](cairo_t *dst) {
+    Cairo::plotLineStrip(dst, xy.first);
+    Cairo::plotLineStrip(dst, xy.second);
+  }, "Time (minutes)", "Component (x or y)",
+    setup.cr.get());
+}
+
 Array<TypedSpline<UnitVecSplineOp>> fitTypedSplines(
     Array<ArrayBuilder<TimedValue<Angle<double>>>> samples,
     const Array<CalibDataChunk> &chunks,
@@ -364,7 +405,6 @@ Array<TypedSpline<UnitVecSplineOp>> fitTypedSplines(
     DOM::Node *out) {
   int n = samples.size();
   Array<TypedSpline<UnitVecSplineOp>> dst(n);
-  std::cout << "FIT " << n << " TYPED SPLINES!!!" << std::endl;
   DOM::addSubTextNode(out, "p", stringFormat("Fit %d splines", n));
   for (int i = 0; i < n; i++) {
     Array<TimedValue<Angle<double>>> sub = samples[i].get();
@@ -377,6 +417,7 @@ Array<TypedSpline<UnitVecSplineOp>> fitTypedSplines(
       DOM::addSubTextNode(out, "p",
           stringFormat("Fitting spline to %d samples",
               sub.size()));
+      plotAngleSpline(dst[i], out);
     }
   }
   return dst;
@@ -398,9 +439,19 @@ Array<TypedSpline<UnitVecSplineOp>> reconstructMagHeadings(
         gpsCurves, samples,
         settings.calibSettings);
     if (corr0.defined()) {
+      auto angle = corr0.get();
+      DOM::addSubTextNode(dst, "p",
+          stringFormat("Use correction %.3g degrees"
+              " for mag headings '%s'", angle.degrees(),
+              src.c_str()));
       auto corrected = MagHdgCalib2::applyCorrection(
-          samples, corr0.get());
+          samples, angle);
       accumulateSamples(corrected, &samplesPerChunk);
+    } else {
+      DOM::addSubTextNode(dst, "p",
+          stringFormat("Failed to compute "
+          "correction for mag headings '%s'",
+          src.c_str()));
     }
   }
   return fitTypedSplines(samplesPerChunk, chunks,
