@@ -113,7 +113,8 @@ Array<ReconstructionResults> reconstructAllGroups(
     const Array<SplineGpsFilter::EcefCurve> &curves,
     const Dispatcher *d,
     const Settings &settings,
-    DOM::Node *log) {
+    DOM::Node *log,
+    RNG *rng) {
   DOM::addSubTextNode(log, "h2", "Reconstruction of all groups");
 
   Array<CalibDataChunk> chunks
@@ -136,7 +137,8 @@ Array<ReconstructionResults> reconstructAllGroups(
     auto subLog = DOM::linkToSubPage(&li, title);
     results[i] = reconstruct(
         chunks.slice(group.minv(), group.maxv()),
-        settings.reconstructionSettings, &subLog);
+        settings.reconstructionSettings, &subLog,
+        rng);
   }
 
   return results;
@@ -199,6 +201,7 @@ Array<SplineGpsFilter::EcefCurve> getFilteredGpsCurves(
 bool process(
     const Settings &settings,
     NavDataset dataset) {
+  RNG rng;
   auto startTime = TimeStamp::now();
   dataset.mergeAll();
 
@@ -240,7 +243,7 @@ bool process(
     = reconstructAllGroups(
         calibGroups,
         curves, d, settings,
-        &dbOutput);
+        &dbOutput, &rng);
 
   //if (logBody) {
     //DOM::addSubTextNode(&logBody, "h2", "Summary");

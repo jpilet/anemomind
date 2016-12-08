@@ -344,31 +344,55 @@ Array<Array<TimedValue<
   });
 }
 
-Array<TypedSpline<UnitVecSplineOp>> reconstructMagHeading(
+void accumulateSamples(
+    const Array<Array<TimedValue<Angle<double>>>> &src,
+    Array<ArrayBuilder<TimedValue<Angle<double>>>> *dst) {
+  CHECK(src.size() == dst->size());
+  for (auto kv: indexed(src)) {
+    for (auto x: kv.second) {
+      (*dst)[kv.first].add(x);
+    }
+  }
+}
+
+Array<TypedSpline<UnitVecSplineOp>> fitTypedSplines(
+    Array<ArrayBuilder<TimedValue<Angle<double>>>> samples,
+    const Array<CalibDataChunk> &chunks,
+    const AutoRegSettings &settings, RNG *rng) {
+  int n = samples.size();
+  Array<TypedSpline<UnitVecSplineOp>> dst(n);
+  for (int i = 0; i < n; i++) {
+    Array<TimedValue<Angle<double>>> sub = samples[i].get();
+    std::sort(sub.begin(), sub.end());
+    dst[i] = fitAngleSpline(
+        chunks[i].trajectory.timeMapper(),
+        sub, settings, rng);
+  }
+  return dst;
+}
+
+Array<TypedSpline<UnitVecSplineOp>> reconstructMagHeadings(
       const Array<CalibDataChunk> &chunks,
       const MagHdgSettings &settings,
-      DOM::Node *dst) {
+      DOM::Node *dst,
+      RNG *rng) {
   auto magSrc = listSourcesForCode<MAG_HEADING>(chunks);
   auto gpsCurves = getGpsCurves(chunks);
   ArrayBuilder<Array<TypedSpline<UnitVecSplineOp>>> acc;
+  Array<ArrayBuilder<TimedValue<Angle<double>>>> samplesPerChunk;
   for (auto src: magSrc) {
     auto samples = getSamples<MAG_HEADING>(src, chunks);
     auto corr0 = MagHdgCalib2::optimizeSineFit(
         gpsCurves, samples,
         settings.calibSettings);
-
-    Angle<double> corr = 0.0_deg;
     if (corr0.defined()) {
-      corr = corr0.get();
-    } else {
-      DOM::addSubTextNode(dst, "p",
-          "Unable to estimate correction for mag headings '"
-          + src + "'");
+      auto corrected = MagHdgCalib2::applyCorrection(
+          samples, corr0.get());
+      accumulateSamples(corrected, &samplesPerChunk);
     }
-    //acc.add(applyCorrection());
   }
-
-  return Array<TypedSpline<UnitVecSplineOp>>();
+  return fitTypedSplines(samplesPerChunk, chunks,
+      settings.regSettings, rng);
 }
 
 
@@ -376,7 +400,8 @@ Array<TypedSpline<UnitVecSplineOp>> reconstructMagHeading(
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
-    DOM::Node *dst) {
+    DOM::Node *dst,
+    RNG *rng) {
   CHECK(areValidChunks(chunks));
   DOM::addSubTextNode(dst, "h2", "Magnetic headings");
   outputTrajectoryPlots<MAG_HEADING>(
@@ -391,7 +416,8 @@ ReconstructionResults reconstruct(
 
   makeVariousMagHdgPlots(
       chunks, settings.magHdgSettings, dst);
-
+  auto headings = reconstructMagHeadings(
+      chunks, settings.magHdgSettings, dst, rng);
 
 
   return ReconstructionResults();

@@ -12,7 +12,7 @@
 #include <server/common/TimeMapper.h>
 #include <server/math/lapack/BandMatrix.h>
 #include <server/math/OutlierRejector.h>
-#include <random>
+#include <server/common/RNG.h>
 
 namespace sail {
 
@@ -165,7 +165,7 @@ AutoRegResults fitSplineAutoReg(
     const Array<VecObs<N>>
       &observations,
       const AutoRegSettings &settings,
-      std::default_random_engine *rng);
+      RNG *rng);
 
 struct UnitVecSplineOp {
   typedef Eigen::Vector2d Vec;
@@ -202,7 +202,7 @@ fitAngleSpline(
     const TimeMapper &mapper,
     const Array<TimedValue<Angle<double>>> &angles,
     const AutoRegSettings &settings,
-    std::default_random_engine *rng);
+    RNG *rng);
 
 }
 

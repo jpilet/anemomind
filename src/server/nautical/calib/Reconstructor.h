@@ -21,6 +21,7 @@
 #include <server/nautical/filters/SplineGpsFilter.h>
 #include <server/math/SplineUtils.h>
 #include <server/nautical/calib/MagHdgCalib2.h>
+#include <server/common/RNG.h>
 
 namespace sail {
 
@@ -62,7 +63,8 @@ struct ReconstructionResults {
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
-    DOM::Node *dst);
+    DOM::Node *dst,
+    RNG *rng);
 
 }
 

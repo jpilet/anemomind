@@ -131,7 +131,7 @@ TEST(SplineUtilsTest, FitSplineAutoReg) {
     noisy[i].second = v1(y + 5.0*sin(34.4*cos(3405.6*i)));
   }
 
-  std::default_random_engine rng(0);
+  RNG rng(0);
   AutoRegSettings settings;
   auto denoised = fitSplineAutoReg<1>(
       n, noisy, settings, &rng);
@@ -158,7 +158,7 @@ TEST(SplineUtilsTest, FitAngles) {
         mapping(i)*1.0_deg);
   }
 
-  std::default_random_engine rng;
+  RNG rng;
   AutoRegSettings settings;
   TimeMapper mapper(offset, 1.0_s, n);
   auto curve = fitAngleSpline(mapper,

@@ -471,7 +471,7 @@ AutoRegResults fitSplineAutoReg(
     const Array<VecObs<N>>
       &observations,
       const AutoRegSettings &settings,
-      std::default_random_engine *rng) {
+      RNG *rng) {
   if (coefCount < 1) {
     LOG(ERROR) << "Too few coefficients";
     return AutoRegResults();
@@ -519,13 +519,13 @@ template AutoRegResults fitSplineAutoReg<1>(
     const Array<VecObs<1>>
       &observations,
       const AutoRegSettings &settings,
-      std::default_random_engine *rng);
+      RNG *rng);
 template AutoRegResults fitSplineAutoReg<2>(
     int coefCount,
     const Array<VecObs<2>>
       &observations,
       const AutoRegSettings &settings,
-      std::default_random_engine *rng);
+      RNG *rng);
 
 
 template <typename OpType>
@@ -568,12 +568,13 @@ TypedSpline<UnitVecSplineOp>
       const TimeMapper &mapper,
       const Array<TimedValue<Angle<double>>> &angles,
       const AutoRegSettings &settings,
-      std::default_random_engine *rng) {
+      RNG *rng) {
   Array<VecObs<2>> vecObs(angles.size());
   for (int i = 0; i < angles.size(); i++) {
     vecObs[i] = makeAngleUVecObs(mapper, angles[i]);
   }
-  auto fitting = fitSplineAutoReg<2>(mapper.sampleCount,
+  auto fitting = fitSplineAutoReg<2>(
+      mapper.sampleCount,
       vecObs, settings, rng);
   if (!fitting.defined()) {
     LOG(ERROR) << "Fitting failed.";
