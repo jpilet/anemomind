@@ -117,6 +117,8 @@ template <> struct IsString<std::string> {static const bool value = true;};
 
 template <typename T>
 T Arg<T>::parseAndProceed(std::string **s) const {
+  std::cout << "THIS FUNCTION MIGHT NOT BE \n"
+      "CALLED IN THE RIGHT ORDER ON SOME PLATFORMS!!!\n";
   auto v = **s;
   if (!_acceptFlags && IsString<T>::value && isFlag(v)) {
     throw FailedToParseArgument(

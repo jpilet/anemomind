@@ -347,6 +347,8 @@ Array<Array<TimedValue<
 void accumulateSamples(
     const Array<Array<TimedValue<Angle<double>>>> &src,
     Array<ArrayBuilder<TimedValue<Angle<double>>>> *dst) {
+  std::cout << "Src size: " << src.size() << std::endl;
+  std::cout << "Dst size: " << dst->size() << std::endl;
   CHECK(src.size() == dst->size());
   for (auto kv: indexed(src)) {
     for (auto x: kv.second) {
@@ -358,15 +360,24 @@ void accumulateSamples(
 Array<TypedSpline<UnitVecSplineOp>> fitTypedSplines(
     Array<ArrayBuilder<TimedValue<Angle<double>>>> samples,
     const Array<CalibDataChunk> &chunks,
-    const AutoRegSettings &settings, RNG *rng) {
+    const AutoRegSettings &settings, RNG *rng,
+    DOM::Node *out) {
   int n = samples.size();
   Array<TypedSpline<UnitVecSplineOp>> dst(n);
+  std::cout << "FIT " << n << " TYPED SPLINES!!!" << std::endl;
+  DOM::addSubTextNode(out, "p", stringFormat("Fit %d splines", n));
   for (int i = 0; i < n; i++) {
     Array<TimedValue<Angle<double>>> sub = samples[i].get();
     std::sort(sub.begin(), sub.end());
     dst[i] = fitAngleSpline(
         chunks[i].trajectory.timeMapper(),
         sub, settings, rng);
+
+    if (out) {
+      DOM::addSubTextNode(out, "p",
+          stringFormat("Fitting spline to %d samples",
+              sub.size()));
+    }
   }
   return dst;
 }
@@ -379,7 +390,8 @@ Array<TypedSpline<UnitVecSplineOp>> reconstructMagHeadings(
   auto magSrc = listSourcesForCode<MAG_HEADING>(chunks);
   auto gpsCurves = getGpsCurves(chunks);
   ArrayBuilder<Array<TypedSpline<UnitVecSplineOp>>> acc;
-  Array<ArrayBuilder<TimedValue<Angle<double>>>> samplesPerChunk;
+  Array<ArrayBuilder<TimedValue<Angle<double>>>>
+    samplesPerChunk(chunks.size());
   for (auto src: magSrc) {
     auto samples = getSamples<MAG_HEADING>(src, chunks);
     auto corr0 = MagHdgCalib2::optimizeSineFit(
@@ -392,7 +404,7 @@ Array<TypedSpline<UnitVecSplineOp>> reconstructMagHeadings(
     }
   }
   return fitTypedSplines(samplesPerChunk, chunks,
-      settings.regSettings, rng);
+      settings.regSettings, rng, dst);
 }
 
 
