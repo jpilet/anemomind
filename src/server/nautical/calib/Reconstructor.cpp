@@ -380,8 +380,8 @@ void plotAngleSpline(
 
   PlotUtils::Settings2d settings2d;
   settings2d.axisIJ = false;
-  settings2d.height = 100;
-  settings2d.width = 300*((spline.upper() - spline.lower())/1.0_h);
+  settings2d.height = 200;
+  settings2d.width = 1800*((spline.upper() - spline.lower())/1.0_h);
   settings2d.orthonormal = false;
 
   using namespace Cairo;
@@ -392,7 +392,9 @@ void plotAngleSpline(
   auto xy = samplePts(spline, period);
 
   Cairo::renderPlot(settings2d, [&](cairo_t *dst) {
+    Cairo::setSourceColor(dst, PlotUtils::HSV::fromHue(120.0_deg));
     Cairo::plotLineStrip(dst, xy.first);
+    Cairo::setSourceColor(dst, PlotUtils::HSV::fromHue(0.0_deg));
     Cairo::plotLineStrip(dst, xy.second);
   }, "Time (minutes)", "Component (x or y)",
     setup.cr.get());
