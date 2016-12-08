@@ -309,12 +309,69 @@ void makeVariousMagHdgPlots(
     }
 }
 
+template <DataCode code>
+std::set<std::string> listSourcesForCode(
+    const Array<CalibDataChunk> &chunks) {
+  std::set<std::string> dst;
+  for (auto chunk: chunks) {
+    auto p = ChannelFieldAccess<code>::template get(chunk);
+    for (auto kv: *p) {
+      dst.insert(kv.first);
+    }
+  }
+  return dst;
+}
+
+Array<SplineGpsFilter::EcefCurve> getGpsCurves(
+    const Array<CalibDataChunk> &chunks) {
+  return sail::map(chunks, [](const CalibDataChunk &c) {
+    return c.trajectory;
+  });
+}
+
+template <DataCode code>
+Array<Array<TimedValue<
+  typename TypeForCode<code>::type>>> getSamples(
+    const std::string &src,
+    const Array<CalibDataChunk> &chunks) {
+  return sail::map(chunks, [&](const CalibDataChunk &chunk) {
+    auto p = ChannelFieldAccess<code>::template get(chunk);
+    auto f = p->find(src);
+    if (f == p->end()) {
+      return Array<TimedValue<typename TypeForCode<code>::type>>();
+    }
+    return f->second;
+  });
+}
+
 Array<TypedSpline<UnitVecSplineOp>> reconstructMagHeading(
       const Array<CalibDataChunk> &chunks,
       const MagHdgSettings &settings,
       DOM::Node *dst) {
+  auto magSrc = listSourcesForCode<MAG_HEADING>(chunks);
+  auto gpsCurves = getGpsCurves(chunks);
+  ArrayBuilder<Array<TypedSpline<UnitVecSplineOp>>> acc;
+  for (auto src: magSrc) {
+    auto samples = getSamples<MAG_HEADING>(src, chunks);
+    auto corr0 = MagHdgCalib2::optimizeSineFit(
+        gpsCurves, samples,
+        settings.calibSettings);
+
+    Angle<double> corr = 0.0_deg;
+    if (corr0.defined()) {
+      corr = corr0.get();
+    } else {
+      DOM::addSubTextNode(dst, "p",
+          "Unable to estimate correction for mag headings '"
+          + src + "'");
+    }
+    //acc.add(applyCorrection());
+  }
+
   return Array<TypedSpline<UnitVecSplineOp>>();
 }
+
+
 
 ReconstructionResults reconstruct(
     const Array<CalibDataChunk> &chunks,

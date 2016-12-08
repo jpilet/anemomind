@@ -20,6 +20,7 @@
 #include <server/common/TimeMapper.h>
 #include <server/nautical/filters/SplineGpsFilter.h>
 #include <server/math/SplineUtils.h>
+#include <server/nautical/calib/MagHdgCalib2.h>
 
 namespace sail {
 
@@ -40,7 +41,7 @@ struct MagHdgSettings {
   bool fittedSinePlot = false;
   bool angleFitnessPlot = false;
   bool costPlot = false;
-
+  MagHdgCalib2::Settings calibSettings;
   AutoRegSettings regSettings;
 };
 
