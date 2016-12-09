@@ -155,3 +155,9 @@ target_link_libraries(calib_MagHdgCalib2
   plot_PlotUtils
   math_SineFit
   )
+
+add_library(calib_WatSpeedCalib
+  WatSpeedCalib.h
+  WatSpeedCalib.cpp
+  )
+
