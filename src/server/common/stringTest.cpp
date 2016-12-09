@@ -46,3 +46,8 @@ TEST(StringTest, Int64TestOrdering) {
   EXPECT_LE(a, b);
   EXPECT_LE(int64ToHex(a), int64ToHex(b));
 }
+
+TEST(StringTetst, joinTest) {
+  EXPECT_EQ("a+b+c", join(std::vector<std::string>{"a", "b", "c"}, "+"));
+  EXPECT_EQ("a", join(std::vector<std::string>{"a"}, "\n"));
+}

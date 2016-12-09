@@ -42,6 +42,7 @@ void indent(std::ostream *s, int count);
 
 std::string readFileToString(const std::string& filename);
 Array<std::string> split(std::string x, char delimiter);
+std::string join(const std::vector<std::string>& array, std::string delimiter);
 
 } /* namespace sail */
 #endif /* TEXT_H_ */
