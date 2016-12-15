@@ -1,5 +1,4 @@
-function iterate_game(objf1, objf2, X, g)
-  n = 10;
+function iterate_game(objf1, objf2, X, g, n)
   values = zeros(2, n);
   values(:, 1) = X;
   for i = 2:n,
