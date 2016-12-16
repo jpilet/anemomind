@@ -42,7 +42,20 @@ void indent(std::ostream *s, int count);
 
 std::string readFileToString(const std::string& filename);
 Array<std::string> split(std::string x, char delimiter);
-std::string join(const std::vector<std::string>& array, std::string delimiter);
 
+template <class StringCollection>
+std::string join(const StringCollection& array, const std::string& delimiter) {
+  std::string result;
+  bool first = true;
+  for (auto s : array) {
+    if (first) {
+      first = false;
+    } else {
+      result += delimiter;
+    }
+    result += s;
+  }
+  return result;
+}
 } /* namespace sail */
 #endif /* TEXT_H_ */

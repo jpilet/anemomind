@@ -217,18 +217,4 @@ Array<std::string> split(std::string x, char delimiter) {
   return builder.get();
 }
 
-std::string join(const std::vector<std::string>& array, std::string delimiter) {
-  std::string result;
-  bool first = true;
-  for (auto s : array) {
-    if (first) {
-      first = false;
-    } else {
-      result += delimiter;
-    }
-    result += s;
-  }
-  return result;
-}
-
 } /* namespace sail */
