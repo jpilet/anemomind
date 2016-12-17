@@ -43,10 +43,9 @@
                 <label>Tail</label>                  
               </div>
               <div class="group tail-length">
-                <!--<i class="fa fa-level-up" aria-hidden="true"></i>
-                <label>Length</label>
-                <input type="text" class="wide" name="tail-length" placeholder="sec" ng-model="tailLength">-->
                 <rzslider
+                  class="remove-extra-bubbles"
+                  ng-class="{'show-bubble' : bubbleState}"
                   rz-slider-model="tailLength"
                   rz-slider-options="slider.options">
                 </rzslider>

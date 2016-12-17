@@ -257,6 +257,7 @@ angular.module('www2App')
           $location.search('tailColor',defaultColor);
 
         refreshMap();
+        changeVisibility();
       }
     });
 
@@ -519,4 +520,20 @@ angular.module('www2App')
         }
       }
     }, true);
+
+    // So by default, the bubble is hidden
+    // If slider is controlled, the bubble is visible
+    // After 3 seconds, the bubble is hidden again
+    var visibilityTimeout;
+    var changeVisibility = function() {
+      $scope.bubbleState = true;
+      function hideBubble() {
+        $scope.bubbleState = false;
+        visibilityTimeout = undefined;
+      }
+      if (visibilityTimeout) {
+        $timeout.cancel(visibilityTimeout);
+      }
+      visibilityTimeout = $timeout(hideBubble, 3000);
+    };
 });

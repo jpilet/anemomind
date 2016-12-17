@@ -113,4 +113,19 @@ angular.module('www2App')
         });
       }
     };
+  })
+  .directive('removeExtraBubbles', function ($window, $timeout) {
+    return {
+      restrict: 'C',
+      link: function (scope, element, attrs) {
+        // We still need to load the slider first
+        $timeout(function() {
+          var slider = angular.element(element);
+          // I wouldn't have to do this part if only :nth-child was working in the CSS file
+          // So this is a work around of the problem
+          slider.find('.rz-bubble:not(".rzlimit"):last').remove(); // 4th bubble
+          slider.find('.rz-bubble:not(".rzlimit"):last').remove(); // 5th bubble
+        }, 100);
+      }
+    };
   });
