@@ -7,9 +7,17 @@ describe('Directive: gaugeIndicator', function () {
   beforeEach(module('app/gaugeIndicator/gaugeIndicator.html'));
 
   var element, scope;
+  var $httpBackend;
 
-  beforeEach(inject(function ($rootScope) {
+  beforeEach(inject(function ($rootScope, $injector) {
     scope = $rootScope.$new();
+
+    // Set up the mock http service responses
+    $httpBackend = $injector.get('$httpBackend');
+
+    // I do not understand why angular is fetching home.html.
+    // But it does.
+    $httpBackend.when('GET', 'app/home/home.html').respond('');
   }));
 
   it('should change the value on the gauge', inject(function ($compile) {

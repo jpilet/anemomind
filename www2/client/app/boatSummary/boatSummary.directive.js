@@ -88,7 +88,8 @@ var app = angular.module('www2App')
         // TODO make this a directive or an API available on top controller
         scope.photoUrl = function(bid,photo, size) {
           return '/api/events/photo/' + bid + '/' + photo
-            + '?' + (size? 's=' + size + '&' : '') + 'access_token=' + Auth.getToken() ;
+            + '?' + (size? 's=' + size + '&' : '')
+            + (Auth.isLoggedIn() ? 'access_token=' + Auth.getToken() : '') ;
         };
 
         //
