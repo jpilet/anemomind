@@ -72,11 +72,12 @@ exports.create = function (req, res, next) {
  * Get a single user
  */
 exports.show = function (req, res, next) {
-  var userId = req.params.id;
+  // For security reasons, ensure userId is a string.
+  var userId = '' + req.params.id;
 
   User.findById(userId, function (err, user) {
     if (err) return next(err);
-    if (!user) return res.sendStatus(401);
+    if (!user) return res.sendStatus(404);
     if (!req.user) {
       // client not authenticated, serving a restricted object for
       // a public page.
