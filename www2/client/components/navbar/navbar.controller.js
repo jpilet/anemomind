@@ -13,6 +13,7 @@ angular.module('www2App')
       $scope.boats = boats;
       $scope.limit = Math.min(displayNavbarBoats,boats.length);
       $scope.offset= Math.max(boats.length-displayNavbarBoats, 0);
+      $scope.trucated = boats.length > displayNavbarBoats;
     });
 
     $scope.isCollapsed = true;
