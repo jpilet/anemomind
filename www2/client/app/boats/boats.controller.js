@@ -19,14 +19,6 @@ angular.module('www2App')
 
       // display selected boat
       $scope.boatId=$stateParams.boatId;
-
-      // If there is no selection, redirect to the default boat.
-      if (!$scope.boatId) {
-        var boat = (boatList.getDefaultBoat() || {})._id;
-        if (boat) {
-          $location.path('/boats/' + boat);
-        }
-      }
     });
 
 
