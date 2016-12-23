@@ -3,7 +3,7 @@
   <div class="mapAndGraphAndSidebar">
     <div ng-show="mapActive || graphActive" class="mapAndGraph">
       <div class="map" ng-show="mapActive">
-        <i class="anemomind-icon close-btn" onclick="window.location='/'">&nbsp;</i>
+        <a ng-href="/boats/{{boat._id}}" href="#" class="anemomind-icon close-btn"></a>
         <div class="mainControl">
           <div class="section heading" >
             <div class="boat-name" boat-fix-title-size>
@@ -11,7 +11,7 @@
             </div>
             <div class="share-boat">
               <div class="share-boat-holder">
-                <i class="anemomind-icon share-lightbox">&nbsp;</i>
+                <i class="anemomind-icon" ng-click="showModal();">&nbsp;</i>
               </div>
             </div>
           </div>
@@ -43,10 +43,9 @@
                 <label>Tail</label>                  
               </div>
               <div class="group tail-length">
-                <!--<i class="fa fa-level-up" aria-hidden="true"></i>
-                <label>Length</label>
-                <input type="text" class="wide" name="tail-length" placeholder="sec" ng-model="tailLength">-->
                 <rzslider
+                  class="remove-extra-bubbles"
+                  ng-class="{'show-bubble' : bubbleState}"
                   rz-slider-model="tailLength"
                   rz-slider-options="slider.options">
                 </rzslider>

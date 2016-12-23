@@ -160,26 +160,26 @@
         cursor: pointer
     }
 }
-@media only screen and (max-width: 368px) {
+@media only screen and (max-width: 700px) {
+    .rewards .circle {
+        width: 100px;
+        height: 98px;
+        padding: 20px 12px 0px;
+        font-size: 14px;
+    }
+    .rewards .reward i {
+        font-size: 20px;
+    }
     .rewards .rewards-details div {
         font-size: 14px;
     }
     .rewards .reward .name {
         text-align: right;
     }
-    .rewards .reward .circle {
-        width: 100px;
-        height: 98px;
-        padding: 16px;
-    }
     .rewards .reward label {
         font-size: 14px;
     }
-    .rewards .reward i {
-        font-size: 16px;
-    }
 }
-
 .rewards .other-info {
     background-color: #d7d4d7;
     display: flex;

@@ -321,6 +321,12 @@ height:100%;
   padding-top: 4px;
   text-align: center;
 }
+.mainControl .group.tail-length .rzslider .rz-bubble {
+  visibility: hidden !important;
+}
+.mainControl .group.tail-length .rzslider.show-bubble .rz-bubble {
+  visibility: visible !important;
+}
 .mainControl .group.tail-length .rzslider .rz-bar {
   height: 2px;
   background: #898888;

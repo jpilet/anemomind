@@ -19,7 +19,7 @@ module.exports = function(config) {
       'client/bower_components/angular-sanitize/angular-sanitize.js',
       'client/bower_components/angular-route/angular-route.js',
       'client/bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
-      'client/bower_components/lodash/dist/lodash.compat.js',
+      'client/bower_components/lodash/lodash.js',
       'client/bower_components/angular-socket-io/socket.js',
       'client/bower_components/angular-ui-router/release/angular-ui-router.js',
       'client/bower_components/ng-file-upload/angular-file-upload.js',
@@ -29,9 +29,11 @@ module.exports = function(config) {
       'client/bower_components/sidebar-v2/css/ol3-sidebar.js',
       'client/bower_components/sidebar-v2/js/jquery-sidebar.js',
       'client/bower_components/d3/d3.js',
-      'client/bower_components/nvd3/build/nv.d3.js',
       'client/bower_components/angular-nvd3/dist/angular-nvd3.js',
       'client/bower_components/angular-bootstrap-lightbox/dist/angular-bootstrap-lightbox.js',
+      'client/bower_components/angularjs-slider/dist/rzslider.js',
+      'client/bower_components/angular-modal-service/dst/angular-modal-service.js',
+      'client/bower_components/nvd3/build/nv.d3.js',
       'node_modules/socket.io-client/socket.io.js',
       'client/app/app.js',
       'client/app/app.coffee',
@@ -87,7 +89,7 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: ['PhantomJS', 'Safari', 'Chrome', 'Firefox'],
+    browsers: ['Chrome', 'Firefox'],
 
 
     // Continuous Integration mode
