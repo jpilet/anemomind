@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('BoatsCtrl', function ($scope, $http, $stateParams,$location, socket, boatList,Auth,$log) {
+  .controller('BoatsCtrl', function ($scope, $http, $stateParams,$location, socket, boatList,Auth,$log,$timeout) {
     $scope.isLoggedIn = Auth.isLoggedIn();
 
     $scope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
@@ -19,10 +19,13 @@ angular.module('www2App')
 
       // display selected boat
       $scope.boatId=$stateParams.boatId;
-      if(!$scope.boatId && $location.path()==='/'){
-        //
-        // display default boat
-        $scope.boatId=(boatList.getDefaultBoat() || {})._id;        
+
+      // If there is no selection, redirect to the default boat.
+      if (!$scope.boatId) {
+        var boat = (boatList.getDefaultBoat() || {})._id;
+        if (boat) {
+          $location.path('/boats/' + boat);
+        }
       }
     });
 
