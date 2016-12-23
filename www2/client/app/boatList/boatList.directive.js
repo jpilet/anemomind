@@ -19,7 +19,7 @@ angular.module('www2App')
           showIf=attrs.showIf;
           boat=$parse('boat')(scope);
           scope.user=Auth.getCurrentUser();
-          admin=(boat.admins.indexOf(scope.user._id)>-1);
+          admin=(boat.admins && boat.admins.indexOf(scope.user._id)>-1);
 
           switch (attrs.showIf){
           case 'admin':
