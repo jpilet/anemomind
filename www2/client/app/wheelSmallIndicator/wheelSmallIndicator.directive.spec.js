@@ -12,12 +12,16 @@ describe('Directive: wheelSmallIndicator', function () {
     scope = $rootScope.$new();
   }));
 
-  it('should change the value of angle, boat, north and northtext on the small wheel', inject(function ($compile) {
+  it('should change the value of angle, boat, north and northtext on the small wheel', inject(function ($compile, $httpBackend) {
     // Instanciate with a value of 63 degree and north value of 89 degree.
     element = angular.element(
         '<wheel-small-indicator arrow="77" boat="42" north="24" label="\'deg\'" description="\"small wheel\"">'
         + '</wheel-small-indicator>');
     element = $compile(element)(scope);
+
+    // I do not understand why angular is fetching home.html.
+    // But it does.
+    $httpBackend.when('GET', 'app/home/home.html').respond('');
     scope.$apply();
 
     // wheel-indicator loads an svg asynchronously. Let's wait for the loading
