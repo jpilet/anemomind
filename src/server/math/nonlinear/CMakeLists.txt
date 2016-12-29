@@ -84,3 +84,9 @@ add_library(nonlinear_GameSolver
   )
 
 target_depends_on_adolc(nonlinear_GameSolver)
+
+cxx_test(nonlinear_GameSolverTest
+  GameSolverTest.cpp
+  gtest_main
+  nonlinear_GameSolver
+  )

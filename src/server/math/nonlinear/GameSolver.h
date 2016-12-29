@@ -38,6 +38,12 @@ struct Settings {
   short tapeIndex = 0;
 };
 
+void evaluatePartialGradient(
+    int i, Function f,
+    const Array<Array<double>> &X,
+    const Settings &settings,
+    double *Y);
+
 Array<Array<double>> optimize(
     Array<Function> objectives,
     Array<Array<double>> initialEstimate,
