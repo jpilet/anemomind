@@ -35,6 +35,7 @@ struct Settings {
   int iterationCount = 120;
   double stepSize = 0.01;
   IterationCallback iterationCallback;
+  short tapeIndex = 0;
 };
 
 Array<Array<double>> optimize(
