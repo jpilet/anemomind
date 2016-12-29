@@ -77,3 +77,10 @@ cxx_test(nonlinear_CeresTrajectoryFilterTest
          nonlinear_CeresTrajectoryFilter
          gtest_main
         )
+
+add_library(nonlinear_GameSolver
+  GameSolver.h
+  GameSolver.cpp
+  )
+
+target_depends_on_adolc(nonlinear_GameSolver)
