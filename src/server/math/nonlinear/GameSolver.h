@@ -21,6 +21,9 @@
 Use Armijo Rule?
 https://en.wikipedia.org/wiki/Wolfe_conditions
 
+This seems easier:
+http://www.onmyphd.com/?p=gradient.descent#h4_barzilaiborwein
+
  */
 
 #ifndef SERVER_MATH_NONLINEAR_GAMESOLVER_H_
@@ -42,7 +45,7 @@ struct Settings {
   short tapeIndex = 0;
 };
 
-void evaluatePartialGradient(
+double evaluatePartialGradient(
     int i, Function f,
     const Array<Array<double>> &X,
     const Settings &settings,
