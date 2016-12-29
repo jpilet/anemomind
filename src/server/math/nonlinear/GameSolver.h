@@ -17,6 +17,10 @@
   pages = {917--924},
   file = {RatliffCharacterization2013.pdf:/Users/jonas/Library/Application Support/Firefox/Profiles/71ax27z9.default/zotero/storage/EHBGD8G4/RatliffCharacterization2013.pdf:application/pdf}
 }
+
+Use Armijo Rule?
+https://en.wikipedia.org/wiki/Wolfe_conditions
+
  */
 
 #ifndef SERVER_MATH_NONLINEAR_GAMESOLVER_H_
