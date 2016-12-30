@@ -129,6 +129,7 @@ target_link_libraries(calib_Reconstructor
   plot_ColorMap
   calib_MagHdgCalib
   calib_MagHdgCalib2
+  calib_GameCalib
   )
 
 add_library(calib_MagHdgCalib
@@ -161,3 +162,12 @@ add_library(calib_WatSpeedCalib
   WatSpeedCalib.cpp
   )
 
+add_library(calib_GameCalib
+  GameCalib.h
+  GameCalib.cpp
+  )
+
+target_link_libraries(calib_GameCalib
+  nonlinear_GameSolver
+  common_DOMUtils
+  )

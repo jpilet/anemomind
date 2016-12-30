@@ -33,12 +33,16 @@ void RandomStepManager::report(
       const Array<double> &X,
       double y,
       const Array<double> &grad) {
-  _rawObjfValues.push_back(y);
-  if (2 <= _rawObjfValues.size() && _logLastStep.defined()) {
-    int n = _rawObjfValues.size();
-    double change =
-        log(_rawObjfValues[n-1]) - log(_rawObjfValues[n-2]);
-    _values.push_back({_logLastStep.get(), change});
+  CHECK(0 <= y); // This is a requirement for it to work. E.g. least-squares problems.
+
+  if (0 < y) {  // If it is 0, the probably it is degenerate.
+    _rawObjfValues.push_back(y);
+    if (2 <= _rawObjfValues.size() && _logLastStep.defined()) {
+      int n = _rawObjfValues.size();
+      double change =
+          log(_rawObjfValues[n-1]) - log(_rawObjfValues[n-2]);
+      _values.push_back({_logLastStep.get(), change});
+    }
   }
 }
 

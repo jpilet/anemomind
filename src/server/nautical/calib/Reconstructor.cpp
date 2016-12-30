@@ -18,6 +18,7 @@
 #include <server/nautical/calib/MagHdgCalib.h>
 #include <server/nautical/calib/MagHdgCalib2.h>
 #include <server/math/SplineUtils.h>
+#include <server/nautical/calib/GameCalib.h>
 
 namespace sail {
 
@@ -460,9 +461,7 @@ Array<TypedSpline<UnitVecSplineOp>> reconstructMagHeadings(
       settings.regSettings, rng, dst);
 }
 
-
-
-ReconstructionResults reconstruct(
+ReconstructionResults reconstructOld(
     const Array<CalibDataChunk> &chunks,
     const ReconstructionSettings &settings,
     DOM::Node *dst,
@@ -485,6 +484,19 @@ ReconstructionResults reconstruct(
       chunks, settings.magHdgSettings, dst, rng);
 
 
+  return ReconstructionResults();
+}
+
+
+ReconstructionResults reconstruct(
+    const Array<CalibDataChunk> &chunks,
+    const ReconstructionSettings &settings,
+    DOM::Node *dst,
+    RNG *rng) {
+  CHECK(areValidChunks(chunks));
+
+  GameCalib::Settings gcs;
+  GameCalib::optimize(chunks, gcs, dst);
   return ReconstructionResults();
 }
 

@@ -24,6 +24,27 @@ https://en.wikipedia.org/wiki/Wolfe_conditions
 This seems easier:
 http://www.onmyphd.com/?p=gradient.descent#h4_barzilaiborwein
 
+
+HERE IS A GOOD STRATEGY, MAYBE:
+  For every iteration:
+    * For every player,
+      determine his or her own ideal step,
+      keeping all other stragegies fixed.
+    * As long as the Nikaido-Isoda function
+      does not improve, reduce the size of the total step
+      by some factor.
+
+NOTE ON NONCOOPERATIVE  CONVEX  GAMES
+HϋKUKANE NlKAIDO AND KAZUO ISODA
+http://projecteuclid.org/download/pdf_1/euclid.pjm/1171984836
+
+The Nikaido-Isoda function N(x, y) measures how y improves over x.
+But simply choosing a sequence points so that every next point
+improves over the previous one is not necessarily going to result in a Nash
+Equilibrium. So we can only use it to ensure that every step brings
+us closer to our goal. Possibly weigh the functions by the
+learnt step sizes.
+
  */
 
 #ifndef SERVER_MATH_NONLINEAR_GAMESOLVER_H_

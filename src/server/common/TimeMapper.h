@@ -22,6 +22,10 @@ public:
     return 0 == sampleCount;
   }
 
+  Duration<double> totalDuration() const {
+    return double(sampleCount)*period;
+  }
+
   TimeMapper() : sampleCount(0) {}
   TimeMapper(TimeStamp offs, Duration<double> per,
       int n) : offset(offs), period(per), sampleCount(n) {}

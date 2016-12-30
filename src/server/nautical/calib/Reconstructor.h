@@ -22,20 +22,9 @@
 #include <server/math/SplineUtils.h>
 #include <server/nautical/calib/MagHdgCalib2.h>
 #include <server/common/RNG.h>
+#include <server/nautical/calib/CalibDataChunk.h>
 
 namespace sail {
-
-
-
-// A CalibDataChunk are measurements that are grouped together
-// They are dense without any big gaps.
-struct CalibDataChunk {
-  SplineGpsFilter::EcefCurve trajectory;
-#define MAKE_DATA_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, Array<TimedValue<TYPE>>> HANDLE;
-FOREACH_CHANNEL(MAKE_DATA_MAP)
-#undef MAKE_DATA_MAP
-};
 
 struct MagHdgSettings {
   bool spreadPlot = false;
