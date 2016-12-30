@@ -110,7 +110,9 @@ double RandomStepManager::currentStep() {
   std::normal_distribution<double> distrib(
       acc.mean(), acc.standardDeviation());
   _logLastStep = distrib(*(_settings.rng));
-  return exp(_logLastStep.get());
+  double y = exp(_logLastStep.get());
+  std::cout << "  propose step " << y << std::endl;
+  return y;
 }
 
 StepManager::Ptr RandomStepManager::dup() {
