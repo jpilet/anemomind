@@ -77,6 +77,10 @@ Velocity<adouble> LinearVelocitySensor::corrupt(
 struct SplineParam {
   CubicBasis basis;
   TimeMapper mapper;
+
+  CubicBasis::Weights computeWeights(TimeStamp t) const {
+    return basis.build(mapper.mapToReal(t));
+  }
 };
 
 SplineParam allocateSpline(const CalibDataChunk &chunk,
@@ -217,24 +221,64 @@ struct OptData {
   }
 };
 
-adouble evaluateHeadingFitness(
-    const OptData &data) {
-  adouble sum = 0.0;
+template <DataCode code>
+void forEveryChunkAndChannel(
+    const OptData &data,
+    const std::unordered_map<std::string,
+      DataFit::CoordIndexer> &coordIndexers,
+    std::function<void(
+        int chunkIndex,
+        std::pair<std::string,DataFit::CoordIndexer>,
+        Array<TimedValue<typename TypeForCode<code>::type>>)> f) {
   for (auto chunkKV: indexed(data.chunks)) {
     int chunkIndex = chunkKV.first;
-    auto chunk = chunkKV.second;
     for (auto sensorKV: data.setup.magHdgParameterBlocks) {
-      auto obsf = chunk.MAG_HEADING.find(sensorKV.first);
-      if (obsf != chunk.MAG_HEADING.end()) {
-        auto observations = obsf->second;
-        for (auto obs: observations) {
-          auto boatOverGround =
-              chunk.trajectory.evaluateHorizontalMotion(obs.time);
-
-        }
+      auto field = ChannelFieldAccess<code>::template get(chunkKV.second);
+      auto obsf = field->find(sensorKV.first);
+      if (obsf != field->end()) {
+        f(chunkKV.first, sensorKV, obsf->second);
       }
     }
   }
+}
+
+Array<adouble> perDimension(Array<adouble> parameters,
+    const DataFit::CoordIndexer &indexer, int dim) {
+  auto span = indexer.span(dim);
+  return parameters.slice(span.minv(), span.maxv());
+}
+
+template <typename T>
+Velocity<T> vu() {
+  return Velocity<T>::metersPerSecond(1.0);
+}
+
+adouble evaluateHeadingFitness(
+    const OptData &data) {
+  adouble sum = 0.0;
+  auto cp = data.currentParameters();
+  forEveryChunkAndChannel<MAG_HEADING>(
+      data, data.setup.magHdgParameterBlocks,
+      [&](int i, const std::pair<std::string,
+          DataFit::CoordIndexer> &blk,
+          const Array<TimedValue<Angle<double>>> &samples) {
+    auto splineParam = data.setup.currentSplines[i];
+    auto currentIndexer = data.setup.currentIndexers[i];
+    auto Xc = perDimension(cp, currentIndexer, 0);
+    auto Yc = perDimension(cp, currentIndexer, 0);
+    for (auto obs: samples) {
+      auto boatMotion = data.chunks[i].trajectory
+          .evaluateHorizontalMotion(obs.time).cast<adouble>();
+      auto w = splineParam.computeWeights(obs.time);
+      auto currentX = w.evaluateGeneric<adouble>(Xc.getData());
+      auto currentY = w.evaluateGeneric<adouble>(Yc.getData());
+      HorizontalMotion<adouble> bow(boatMotion
+          - HorizontalMotion<adouble>{
+        currentX*vu<adouble>(),
+        currentY*vu<adouble>()
+      });
+    }
+  });
   return sum;
 }
 
