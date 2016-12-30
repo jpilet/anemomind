@@ -65,8 +65,17 @@ TEST(GameSolverTest, TwoPlayers) {
   // For a value which is too high it might not converge.
   //settings.stepSize = 0.001;
 
+  //settings.stepManagerPrototype = GameSolver::StepManager::Ptr(
+  //    new GameSolver::ConstantStepManager(0.001));
+
+  sail::RNG rng;
+
+  GameSolver::RandomStepManager::Settings rs;
+  rs.rng = &rng;
+  rs.logInitialStepMu = log(0.001);
+
   settings.stepManagerPrototype = GameSolver::StepManager::Ptr(
-      new GameSolver::ConstantStepManager(0.001));
+      new GameSolver::RandomStepManager(rs));
 
   settings.iterationCallback = &disp;
 
