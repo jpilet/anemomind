@@ -130,27 +130,43 @@ struct CurrentSetup {
     watSpeedparameterBlocks;
 };
 
+std::string toString(const DataFit::CoordIndexer &src) {
+  std::stringstream ss;
+  ss << "Parameter " << src.from() << " to "
+      << src.to() << " with groups of size " << src.dim();
+  return ss.str();
+}
+
 CurrentSetup makeCurrentSetup(
     const Array<SplineParam> &splineParams,
     const std::set<std::string> &magHdgSources,
     const std::set<std::string> &watSpeedSources,
-    const Settings &settings) {
+    const Settings &settings,
+    DOM::Node *out) {
+
+  DOM::addSubTextNode(out, "h2", "Current setup");
 
   CurrentSetup dst;
   dst.currentSplines = splineParams;
   DataFit::CoordIndexer::Factory params;
 
   Array<DataFit::CoordIndexer> indexers(splineParams.size());
+  DOM::addSubTextNode(out, "h3", "Current optimization variables");
+  auto olC = DOM::makeSubNode(out, "ol");
   for (auto kv: indexed(splineParams)) {
-    indexers[kv.first] = params.make(
+    auto p = params.make(
         kv.second.mapper.sampleCount, 2);
+    indexers[kv.first] = p;
+    DOM::addSubTextNode(&olC,
+        "li", toString(p));
   }
 
+  int k = params.count();
+
   for (auto src: magHdgSources) {
+    auto p = params.make(1, settings.magHeadingSensor->parameterCount());
     dst.magHdgParameterBlocks.insert({
-      src,
-      params.make(1,
-          settings.magHeadingSensor->parameterCount())});
+      src, p});
   }
   for (auto src: watSpeedSources) {
     dst.watSpeedparameterBlocks.insert({
@@ -160,7 +176,17 @@ CurrentSetup makeCurrentSetup(
     });
   }
 
+
   dst.totalParamCount = params.count();
+  DOM::addSubTextNode(out, "h3", "Sensor parameters");
+  DOM::addSubTextNode(out, "p",
+      stringFormat("Sensor parameters from %d "
+          "to %d. Number of sensor parameters %d", k,
+          dst.totalParamCount, dst.totalParamCount - k));
+  DOM::addSubTextNode(out, "h3", "Summary");
+  DOM::addSubTextNode(out, "p", stringFormat("Totally %d parameters"
+      " to optimize", dst.totalParamCount));
+
   return dst;
 }
 
@@ -184,7 +210,7 @@ void optimize(
 
   auto currentSetup = makeCurrentSetup(
       windSplines, magHdgSources, watSpeedSources,
-      settings);
+      settings, dst);
 
 }
 
