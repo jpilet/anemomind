@@ -91,6 +91,7 @@ inline Velocity<adouble> identityVelocity(Velocity<adouble> x) {
 }
 
 struct Settings {
+  Settings();
   Duration<double> currentSamplingPeriod = 1.0_minutes;
   Duration<double> windSamplingPeriod = 1.0_minutes;
 

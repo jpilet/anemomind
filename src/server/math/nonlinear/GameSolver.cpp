@@ -263,7 +263,9 @@ Array<Array<double>> optimize(
   auto X = initialEstimate;
   callCallback(settings.iterationCallback, 0, X);
   for (int i = 0; i < settings.iterationCount; i++) {
+    std::cout << "Take a step..." << std::endl;
     X = takeStep(objectives, X, managers, settings);
+    std::cout << "Took a step" << std::endl;
     callCallback(settings.iterationCallback, i, X);
   }
   return X;

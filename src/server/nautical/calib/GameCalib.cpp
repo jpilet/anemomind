@@ -12,6 +12,7 @@
 #include <server/math/nonlinear/DataFit.h>
 #include <unordered_map>
 #include <server/math/SplineUtils.h>
+#include <server/nautical/common.h>
 
 namespace sail {
 namespace GameCalib {
@@ -133,6 +134,10 @@ struct CurrentSetup {
     magHdgParameterBlocks;
   std::unordered_map<std::string, DataFit::CoordIndexer>
     watSpeedparameterBlocks;
+
+  Array<double> makeInitialParameters() const {
+    return Array<double>::fill(totalParamCount, 0.0);
+  }
 };
 
 std::string toString(const DataFit::CoordIndexer &src) {
@@ -165,6 +170,7 @@ CurrentSetup makeCurrentSetup(
     DOM::addSubTextNode(&olC,
         "li", toString(p));
   }
+  dst.currentIndexers = indexers;
 
   int k = params.count();
 
@@ -262,11 +268,27 @@ adouble evaluateHeadingFitness(
       [&](int i, const std::pair<std::string,
           DataFit::CoordIndexer> &blk,
           const Array<TimedValue<Angle<double>>> &samples) {
+
+    std::cout << "Evaluate it for some chunk and channel" << std::endl;
+
+    std::cout << " i = " << i << std::endl;
+
+    std::cout << "Number of current splines: " <<
+        data.setup.currentSplines.size() << std::endl;
+
+    std::cout << "Number of indexers: "
+        << data.setup.currentIndexers.size() << std::endl;
+
     auto splineParam = data.setup.currentSplines[i];
     auto currentIndexer = data.setup.currentIndexers[i];
+
+    std::cout << "Now, take the slices..." << std::endl;
     auto Xc = perDimension(cp, currentIndexer, 0);
     auto Yc = perDimension(cp, currentIndexer, 0);
     for (auto obs: samples) {
+
+      std::cout << "Consider a sample" << std::endl;
+
       auto boatMotion = data.chunks[i].trajectory
           .evaluateHorizontalMotion(obs.time).cast<adouble>();
       auto w = splineParam.computeWeights(obs.time);
@@ -277,7 +299,28 @@ adouble evaluateHeadingFitness(
         currentX*vu<adouble>(),
         currentY*vu<adouble>()
       });
+
+      std::cout << "Compute bow" << std::endl;
+
+      Eigen::Matrix<adouble, 2, 1> bowv(
+          bow[0]/vu<adouble>(),
+          bow[1]/vu<adouble>());
+
+      auto correctedHeading = data.settings.magHeadingSensor->correct(
+          cp.ptr(blk.second.from()),
+          obs.value.cast<adouble>());
+
+      auto headingVector = makeNauticalUnitVector<adouble>(
+          correctedHeading);
+
+      auto d = std::max(adouble(0.0), adouble(headingVector.dot(bowv)));
+      adouble error = (d*headingVector - bowv).squaredNorm();
+      sum += error;
+      std::cout << "Considered it" << std::endl;
     }
+
+    std::cout << "Evaluated." << std::endl;
+
   });
   return sum;
 }
@@ -296,6 +339,50 @@ GameSolver::Function makeCurrentPlayer(
     return evaluateCurrentPlayer(
         OptData{chunks, setup, playerSet, settings, parameters});
   };
+}
+
+std::string toString(PlayerType t) {
+  switch (t) {
+  case PlayerType::Current:
+    return "Current";
+  case PlayerType::IMU:
+    return "IMU";
+  case PlayerType::Leeway:
+    return "Leeway";
+  case PlayerType::Wind:
+    return "Wind";
+  default:
+    return "";
+  };
+}
+
+void dispProblemInfo(DOM::Node *dst,
+    const std::set<PlayerType> &playerSet) {
+  DOM::addSubTextNode(dst, "h2", "Solving the problem");
+  {
+    DOM::addSubTextNode(dst, "p", "With these types of players");
+    auto playerList = DOM::makeSubNode(dst, "ol");
+    for (auto pl: playerSet) {
+      DOM::addSubTextNode(&playerList, "li", toString(pl));
+    }
+  }
+}
+
+
+Settings::Settings() {
+  static RNG rng;
+
+  GameSolver::RandomStepManager::Settings rs;
+
+  rs.logInitialStepMu = log(100.0);
+  rs.verbose = true;
+  rs.rng = &rng;
+
+  solverSettings.stepManagerPrototype
+    = GameSolver::StepManager::Ptr(
+        new GameSolver::RandomStepManager(rs));
+
+  solverSettings.verbose = true;
 }
 
 void optimize(
@@ -322,10 +409,18 @@ void optimize(
 
   std::set<PlayerType> playerSet{PlayerType::Current};
   Array<GameSolver::Function> objectives(playerSet.size());
+  Array<Array<double>> initialParameters(playerSet.size());
   if (0 < playerSet.count(PlayerType::Current)) {
-    objectives[getPlayerIndex(playerSet, PlayerType::Current)] =
-        makeCurrentPlayer(chunks, currentSetup, playerSet, settings);
+    int index = getPlayerIndex(playerSet, PlayerType::Current);
+    objectives[index] =
+        makeCurrentPlayer(
+            chunks, currentSetup, playerSet, settings);
+    initialParameters[index] =  currentSetup.makeInitialParameters();
   }
+  dispProblemInfo(dst, playerSet);
+
+  GameSolver::optimize(objectives, initialParameters,
+      settings.solverSettings);
 }
 
 }
