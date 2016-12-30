@@ -11,6 +11,7 @@
 #include <server/common/indexed.h>
 #include <server/math/nonlinear/DataFit.h>
 #include <unordered_map>
+#include <server/math/SplineUtils.h>
 
 namespace sail {
 namespace GameCalib {
@@ -155,7 +156,7 @@ CurrentSetup makeCurrentSetup(
   auto olC = DOM::makeSubNode(out, "ol");
   for (auto kv: indexed(splineParams)) {
     auto p = params.make(
-        kv.second.mapper.sampleCount, 2);
+        2, kv.second.mapper.sampleCount); // x1.....xN, y1......yN
     indexers[kv.first] = p;
     DOM::addSubTextNode(&olC,
         "li", toString(p));
@@ -218,7 +219,23 @@ struct OptData {
 
 adouble evaluateHeadingFitness(
     const OptData &data) {
-  return 0.0;
+  adouble sum = 0.0;
+  for (auto chunkKV: indexed(data.chunks)) {
+    int chunkIndex = chunkKV.first;
+    auto chunk = chunkKV.second;
+    for (auto sensorKV: data.setup.magHdgParameterBlocks) {
+      auto obsf = chunk.MAG_HEADING.find(sensorKV.first);
+      if (obsf != chunk.MAG_HEADING.end()) {
+        auto observations = obsf->second;
+        for (auto obs: observations) {
+          auto boatOverGround =
+              chunk.trajectory.evaluateHorizontalMotion(obs.time);
+
+        }
+      }
+    }
+  }
+  return sum;
 }
 
 adouble evaluateCurrentPlayer(
