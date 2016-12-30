@@ -45,10 +45,31 @@ public:
         const Array<double> &X,
         double y,
         const Array<double> &grad) = 0;
+  virtual StepManager::Ptr dup() = 0;
   virtual double currentStep() = 0;
   virtual ~StepManager() {}
-  virtual StepManager::Ptr dup() = 0;
 };
+
+class ConstantStepManager : public StepManager {
+public:
+  ConstantStepManager(double s) : _stepSize(s) {}
+
+  void report(
+        const Array<double> &X,
+        double y,
+        const Array<double> &grad) override {}
+
+  double currentStep() override {
+    return _stepSize;
+  }
+
+  StepManager::Ptr dup() override {
+    return StepManager::Ptr(new ConstantStepManager(_stepSize));
+  }
+private:
+  double _stepSize;
+};
+
 
 class RandomStepManager : public StepManager {
 public:
@@ -92,7 +113,7 @@ typedef std::function<void(int, Array<Array<double>>)> IterationCallback;
 
 struct Settings {
   int iterationCount = 120;
-  double stepSize = 0.01;
+  StepManager::Ptr stepManagerPrototype;
   IterationCallback iterationCallback;
   short tapeIndex = 0;
 };

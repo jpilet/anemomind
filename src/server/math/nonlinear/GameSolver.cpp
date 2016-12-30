@@ -18,6 +18,7 @@ namespace GameSolver {
 RandomStepManager::RandomStepManager(
     const RandomStepManager::Settings &s)
   : _settings(s) {
+  CHECK(s.rng);
   std::normal_distribution<double> Xd(
       s.logInitialStepMu, s.logInitialStepSigma);
   std::normal_distribution<double> Yd(0.0, 1.0e-4);
@@ -117,26 +118,6 @@ StepManager::Ptr RandomStepManager::dup() {
 }
 
 
-class ConstantStepManager : public StepManager {
-public:
-  ConstantStepManager(double s) : _stepSize(s) {}
-
-  void report(
-        const Array<double> &X,
-        double y,
-        const Array<double> &grad) override {}
-
-  double currentStep() override {
-    return _stepSize;
-  }
-
-  StepManager::Ptr dup() override {
-    return StepManager::Ptr(new ConstantStepManager(_stepSize));
-  }
-private:
-  double _stepSize;
-};
-
 void callCallback(IterationCallback cb,
     int iter, const Array<Array<double>> &X) {
   if (cb) {
@@ -229,8 +210,7 @@ Array<StepManager::Ptr> initializeStepManagers(int n,
     const Settings &settings) {
   Array<StepManager::Ptr> dst(n);
   for (int i = 0; i < n; i++) {
-    dst[i] = StepManager::Ptr(new ConstantStepManager(
-        settings.stepSize));
+    dst[i] = settings.stepManagerPrototype->dup();
   }
   return dst;
 }

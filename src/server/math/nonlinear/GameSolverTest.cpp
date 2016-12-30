@@ -63,7 +63,10 @@ TEST(GameSolverTest, TwoPlayers) {
   // This parameter needs to be tuned.
   // The smaller, the more stable convergence but slower.
   // For a value which is too high it might not converge.
-  settings.stepSize = 0.001;
+  //settings.stepSize = 0.001;
+
+  settings.stepManagerPrototype = GameSolver::StepManager::Ptr(
+      new GameSolver::ConstantStepManager(0.001));
 
   settings.iterationCallback = &disp;
 
