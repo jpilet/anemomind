@@ -190,6 +190,30 @@ CurrentSetup makeCurrentSetup(
   return dst;
 }
 
+int getPlayerIndex(
+    const std::set<PlayerType> &players,
+    PlayerType type) {
+  return std::distance(players.begin(), players.find(type));
+}
+
+adouble evaluateCurrentPlayer(
+    const CurrentSetup &setup,
+    const std::set<PlayerType> &playerSet,
+    const Settings &settings,
+    const Array<Array<adouble>> &parameters) {
+  return 0.0;
+}
+
+GameSolver::Function makeCurrentPlayer(
+    const CurrentSetup &setup,
+        const std::set<PlayerType> &playerSet,
+        const Settings &settings) {
+  return [=](const Array<Array<adouble>> &parameters) {
+    return evaluateCurrentPlayer(
+        setup, playerSet, settings, parameters);
+  };
+}
+
 void optimize(
     const Array<CalibDataChunk> &chunks,
     const Settings &settings,
@@ -212,6 +236,12 @@ void optimize(
       windSplines, magHdgSources, watSpeedSources,
       settings, dst);
 
+  std::set<PlayerType> playerSet{PlayerType::Current};
+  Array<GameSolver::Function> objectives(playerSet.size());
+  if (0 < playerSet.count(PlayerType::Current)) {
+    objectives[getPlayerIndex(playerSet, PlayerType::Current)] =
+        makeCurrentPlayer(currentSetup, playerSet, settings);
+  }
 }
 
 }
