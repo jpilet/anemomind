@@ -193,24 +193,47 @@ CurrentSetup makeCurrentSetup(
 int getPlayerIndex(
     const std::set<PlayerType> &players,
     PlayerType type) {
-  return std::distance(players.begin(), players.find(type));
+  auto f = players.find(type);
+  if (f == players.end()) {
+    return -1;
+  }
+  return std::distance(players.begin(), f);
 }
 
-adouble evaluateCurrentPlayer(
-    const CurrentSetup &setup,
-    const std::set<PlayerType> &playerSet,
-    const Settings &settings,
-    const Array<Array<adouble>> &parameters) {
+struct OptData {
+  Array<CalibDataChunk> chunks;
+  CurrentSetup setup;
+  std::set<PlayerType> playerSet;
+  Settings settings;
+  Array<Array<adouble>> parameters;
+
+  Array<adouble> parametersOfType(PlayerType t) const {
+    return parameters[getPlayerIndex(playerSet, t)];
+  }
+
+  Array<adouble> currentParameters() const {
+    return parametersOfType(PlayerType::Current);
+  }
+};
+
+adouble evaluateHeadingFitness(
+    const OptData &data) {
   return 0.0;
 }
 
+adouble evaluateCurrentPlayer(
+    const OptData &data) {
+  return evaluateHeadingFitness(data);
+}
+
 GameSolver::Function makeCurrentPlayer(
+    const Array<CalibDataChunk> &chunks,
     const CurrentSetup &setup,
         const std::set<PlayerType> &playerSet,
         const Settings &settings) {
   return [=](const Array<Array<adouble>> &parameters) {
     return evaluateCurrentPlayer(
-        setup, playerSet, settings, parameters);
+        OptData{chunks, setup, playerSet, settings, parameters});
   };
 }
 
@@ -240,7 +263,7 @@ void optimize(
   Array<GameSolver::Function> objectives(playerSet.size());
   if (0 < playerSet.count(PlayerType::Current)) {
     objectives[getPlayerIndex(playerSet, PlayerType::Current)] =
-        makeCurrentPlayer(currentSetup, playerSet, settings);
+        makeCurrentPlayer(chunks, currentSetup, playerSet, settings);
   }
 }
 
