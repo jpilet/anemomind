@@ -31,9 +31,61 @@ http://www.onmyphd.com/?p=gradient.descent#h4_barzilaiborwein
 
 #include <server/common/Array.h>
 #include <adolc/adouble.h>
+#include <server/common/RNG.h>
+#include <server/common/Optional.h>
 
 namespace sail {
 namespace GameSolver {
+
+class StepManager {
+public:
+  typedef std::shared_ptr<StepManager> Ptr;
+
+  virtual void report(
+        const Array<double> &X,
+        double y,
+        const Array<double> &grad) = 0;
+  virtual double currentStep() = 0;
+  virtual ~StepManager() {}
+  virtual StepManager::Ptr dup() = 0;
+};
+
+class RandomStepManager : public StepManager {
+public:
+  struct Settings {
+    int initialSampleCount = 12;
+    int subSampleSize = 3;
+    double filterSharpness = 0.1;
+    int filterIterations = 1;
+    double logInitialStepMu = 0.0;
+    double logInitialStepSigma = 1.0;
+    sail::RNG *rng = nullptr;
+  };
+
+  struct StepAndValue {
+    StepAndValue() {}
+    StepAndValue(double x, double y) : logStep(x), logValue(y) {}
+    double logStep = 0.0;
+    double logValue = 0.0;
+    bool operator<(const StepAndValue &other) const {
+      return logValue < other.logValue;
+    }
+  };
+
+  RandomStepManager(const Settings &s);
+  void report(
+        const Array<double> &X,
+        double y,
+        const Array<double> &grad) override;
+  double currentStep() override;
+  StepManager::Ptr dup() override;
+private:
+  Settings _settings;
+  Optional<double> _logLastStep;
+  std::vector<StepAndValue> _values;
+  std::vector<double> _rawObjfValues;
+};
+
 
 typedef std::function<adouble(Array<Array<adouble>>)> Function;
 typedef std::function<void(int, Array<Array<double>>)> IterationCallback;

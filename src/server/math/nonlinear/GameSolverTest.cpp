@@ -65,7 +65,7 @@ TEST(GameSolverTest, TwoPlayers) {
   // For a value which is too high it might not converge.
   settings.stepSize = 0.001;
 
-  //settings.iterationCallback = &disp;
+  settings.iterationCallback = &disp;
 
   Array<Array<double>> Xinit{{0}, {0}};
 
