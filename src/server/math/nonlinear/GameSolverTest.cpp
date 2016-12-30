@@ -72,7 +72,7 @@ TEST(GameSolverTest, TwoPlayers) {
 
   GameSolver::RandomStepManager::Settings rs;
   rs.rng = &rng;
-  rs.logInitialStepMu = log(0.1);
+  rs.logInitialStepMu = log(1.0);
   rs.subSampleSize = 5;
 
   settings.stepManagerPrototype = GameSolver::StepManager::Ptr(
