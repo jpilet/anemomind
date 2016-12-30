@@ -48,6 +48,7 @@ public:
   virtual StepManager::Ptr dup() = 0;
   virtual double currentStep() = 0;
   virtual ~StepManager() {}
+  virtual void usedStep(double step) = 0;
 };
 
 class ConstantStepManager : public StepManager {
@@ -66,6 +67,8 @@ public:
   StepManager::Ptr dup() override {
     return StepManager::Ptr(new ConstantStepManager(_stepSize));
   }
+
+  void usedStep(double) override {}
 private:
   double _stepSize;
 };
@@ -99,6 +102,7 @@ public:
         double y,
         const Array<double> &grad) override;
   double currentStep() override;
+  void usedStep(double stepSize) override;
   StepManager::Ptr dup() override;
 private:
   Settings _settings;

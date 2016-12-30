@@ -110,9 +110,14 @@ double RandomStepManager::currentStep() {
   std::normal_distribution<double> distrib(
       acc.mean(), acc.standardDeviation());
   _logLastStep = distrib(*(_settings.rng));
+
   double y = exp(_logLastStep.get());
   std::cout << "  propose step " << y << std::endl;
   return y;
+}
+
+void RandomStepManager::usedStep(double stepSize) {
+  _logLastStep = log(stepSize);
 }
 
 StepManager::Ptr RandomStepManager::dup() {
@@ -162,35 +167,59 @@ double evaluatePartialGradient(
     int i, Function f,
     const Array<Array<double>> &X,
     const Settings &settings,
-    double *Y) {
+    double *Y = nullptr) {
   auto Xdep = X[i];
   int dim = Xdep.size();
-  trace_on(settings.tapeIndex);
+
+  if (Y != nullptr) {trace_on(settings.tapeIndex);}
     auto adX = makePartialADX(i, X);
     auto ady = f(adX);
     double y = 0;
     ady >>= y;
-  trace_off();
-  gradient(settings.tapeIndex, dim, Xdep.getData(), Y);
+  if (Y != nullptr) {
+    trace_off();
+    gradient(settings.tapeIndex, dim, Xdep.getData(), Y);
+  }
   return y;
 }
+
+Array<double> applyStep(const Array<double> &X, double h,
+    const Array<double> &grad) {
+  int n = X.size();
+  Array<double> Y(n);
+  for (int i = 0; i < n; i++) {
+    Y[i] = X[i] - h*grad[i];
+  }
+  return Y;
+}
+
+
 
 
 Array<double> takePartialStep(
     int i, Function f,
-    Array<Array<double>> X,
-    const Settings &settings,
-    StepManager *manager) {
+        Array<Array<double>> X,
+        const Settings &settings,
+        StepManager *manager) {
   auto Xdep = X[i];
   int dim = Xdep.size();
-  Array<double> Y(dim);
-  double y = evaluatePartialGradient(
-      i, f, X, settings, Y.getData());
-  manager->report(Xdep, y, Y);
-  for (int i = 0; i < dim; i++) {
-    Y[i] = Xdep[i] - manager->currentStep()*Y[i];
+  Array<double> grad(dim);
+  double current = evaluatePartialGradient(
+      i, f, X, settings, grad.getData());
+  manager->report(Xdep, current, grad);
+  auto Xtrial = X.dup();
+  auto h = manager->currentStep();
+  while (true) {
+    Xtrial[i] = applyStep(Xdep, h, grad);
+    auto next = evaluatePartialGradient(i, f, Xtrial, settings);
+    std::cout << "  current=" << current << " next=" << next << " h=" << h << std::endl;
+    if (next <= current) {
+      break;
+    }
+    h *= 0.5;
   }
-  return Y;
+  manager->usedStep(h);
+  return Xtrial[i];
 }
 
 Array<Array<double>> takeStep(
