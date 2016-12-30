@@ -71,12 +71,14 @@ TEST(GameSolverTest, TwoPlayers) {
   sail::RNG rng;
 
   GameSolver::RandomStepManager::Settings rs;
+  rs.verbose = true;
   rs.rng = &rng;
   rs.logInitialStepMu = log(100.0);
   rs.subSampleSize = 5;
 
   settings.stepManagerPrototype = GameSolver::StepManager::Ptr(
       new GameSolver::RandomStepManager(rs));
+  settings.verbose = true;
 
   settings.iterationCallback = &disp;
 
