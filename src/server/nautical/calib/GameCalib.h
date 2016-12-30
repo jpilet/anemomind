@@ -15,11 +15,19 @@
 namespace sail {
 namespace GameCalib {
 
+enum class PlayerType {
+  Wind,
+  Current,
+  IMU,
+  Leeway
+};
+
 struct Settings {
   Duration<double> currentSamplingPeriod = 1.0_minutes;
   Duration<double> windSamplingPeriod = 1.0_minutes;
 
   GameSolver::Settings solverSettings;
+  std::set<PlayerType> playerTypesToConsider = {PlayerType::Current};
 };
 
 void optimize(

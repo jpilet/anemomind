@@ -60,6 +60,9 @@ void optimize(
   DOM::addSubTextNode(dst, "h2", "Allocate current splines");
   auto currentSplines = allocateSplines(chunks,
       settings.currentSamplingPeriod, dst);
+
+
+
 }
 
 }
