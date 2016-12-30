@@ -77,6 +77,7 @@ private:
 class RandomStepManager : public StepManager {
 public:
   struct Settings {
+    bool verbose = false;
     int initialSampleCount = 12;
     int subSampleSize = 3;
     double filterSharpness = 0.1;
@@ -116,6 +117,7 @@ typedef std::function<adouble(Array<Array<adouble>>)> Function;
 typedef std::function<void(int, Array<Array<double>>)> IterationCallback;
 
 struct Settings {
+  bool verbose = false;
   int iterationCount = 120;
   StepManager::Ptr stepManagerPrototype;
   IterationCallback iterationCallback;

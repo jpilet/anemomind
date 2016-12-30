@@ -112,7 +112,9 @@ double RandomStepManager::currentStep() {
   _logLastStep = distrib(*(_settings.rng));
 
   double y = exp(_logLastStep.get());
-  std::cout << "  propose step " << y << std::endl;
+  if (_settings.verbose) {
+    std::cout << "  propose step " << y << std::endl;
+  }
   return y;
 }
 
@@ -212,7 +214,9 @@ Array<double> takePartialStep(
   while (true) {
     Xtrial[i] = applyStep(Xdep, h, grad);
     auto next = evaluatePartialGradient(i, f, Xtrial, settings);
-    std::cout << "  current=" << current << " next=" << next << " h=" << h << std::endl;
+    if (settings.verbose) {
+      std::cout << "  current=" << current << " next=" << next << " h=" << h << std::endl;
+    }
     if (next <= current) {
       break;
     }
