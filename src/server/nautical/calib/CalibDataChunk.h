@@ -11,6 +11,7 @@
 #include <device/anemobox/Channels.h>
 #include <server/common/TimedValue.h>
 #include <server/nautical/filters/SplineGpsFilter.h>
+#include <set>
 
 namespace sail {
 
@@ -25,6 +26,19 @@ struct CalibDataChunk {
 FOREACH_CHANNEL(MAKE_DATA_MAP)
 #undef MAKE_DATA_MAP
 };
+
+template <DataCode code>
+std::set<std::string> listSourcesForCode(
+    const Array<CalibDataChunk> &chunks) {
+  std::set<std::string> dst;
+  for (auto chunk: chunks) {
+    auto p = ChannelFieldAccess<code>::template get(chunk);
+    for (auto kv: *p) {
+      dst.insert(kv.first);
+    }
+  }
+  return dst;
+}
 
 }
 

@@ -310,19 +310,6 @@ void makeVariousMagHdgPlots(
     }
 }
 
-template <DataCode code>
-std::set<std::string> listSourcesForCode(
-    const Array<CalibDataChunk> &chunks) {
-  std::set<std::string> dst;
-  for (auto chunk: chunks) {
-    auto p = ChannelFieldAccess<code>::template get(chunk);
-    for (auto kv: *p) {
-      dst.insert(kv.first);
-    }
-  }
-  return dst;
-}
-
 Array<SplineGpsFilter::EcefCurve> getGpsCurves(
     const Array<CalibDataChunk> &chunks) {
   return sail::map(chunks, [](const CalibDataChunk &c) {

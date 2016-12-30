@@ -8,9 +8,70 @@
 #include <server/nautical/calib/GameCalib.h>
 #include <server/math/SplineUtils.h>
 #include <server/common/string.h>
+#include <server/common/indexed.h>
+#include <server/math/nonlinear/DataFit.h>
+#include <unordered_map>
 
 namespace sail {
 namespace GameCalib {
+
+void BasicAngleSensor::initialize(double *dst) {
+  dst[0] = 0.0;
+}
+
+int BasicAngleSensor::parameterCount() const {
+  return 1;
+}
+
+namespace {
+  Angle<adouble> getOffset(adouble *x) {
+    return Angle<adouble>::radians(x[0]);
+  }
+}
+
+
+Angle<adouble> BasicAngleSensor::correct(
+    adouble *parameters,
+    Angle<adouble> x) {
+  return x - getOffset(parameters);
+}
+
+Angle<adouble> BasicAngleSensor::corrupt(
+    adouble *parameters,
+    Angle<adouble> x) {
+  return x + getOffset(parameters);
+}
+
+LinearVelocitySensor::LinearVelocitySensor(
+    const Array<BasisFunction> &basis) :
+      _basis(basis) {}
+
+void LinearVelocitySensor::initialize(double *dst) {
+  for (int i = 0; i < _basis.size(); i++) {
+    dst[i] = 0.0;
+  }
+}
+
+int LinearVelocitySensor::parameterCount() const {
+  return _basis.size();
+}
+
+Velocity<adouble> LinearVelocitySensor::correct(
+    adouble *parameters,
+    const Velocity<adouble> &x) {
+  Velocity<adouble> sum = Velocity<adouble>::metersPerSecond(0.0);
+  for (auto kv: indexed(_basis)) {
+    sum += parameters[kv.first]*kv.second(x);
+  }
+  return sum;
+}
+
+Velocity<adouble> LinearVelocitySensor::corrupt(
+    adouble *parameters,
+    const Velocity<adouble> &x) {
+  LOG(FATAL) << "This operation is not supported";
+  return Velocity<adouble>::metersPerSecond(0.0);
+}
 
 struct SplineParam {
   CubicBasis basis;
@@ -49,6 +110,60 @@ Array<SplineParam> allocateSplines(
   return params;
 }
 
+void dispSources(const std::string &title,
+    const std::set<std::string> &codes,
+    DOM::Node *dst) {
+  DOM::addSubTextNode(dst, "h2", title);
+  auto ul = DOM::makeSubNode(dst, "ul");
+  for (auto x: codes) {
+    DOM::addSubTextNode(&ul, "li", x);
+  }
+}
+
+struct CurrentSetup {
+  int totalParamCount = 0;
+  Array<SplineParam> currentSplines;
+  Array<DataFit::CoordIndexer> currentIndexers;
+  std::unordered_map<std::string, DataFit::CoordIndexer>
+    magHdgParameterBlocks;
+  std::unordered_map<std::string, DataFit::CoordIndexer>
+    watSpeedparameterBlocks;
+};
+
+CurrentSetup makeCurrentSetup(
+    const Array<SplineParam> &splineParams,
+    const std::set<std::string> &magHdgSources,
+    const std::set<std::string> &watSpeedSources,
+    const Settings &settings) {
+
+  CurrentSetup dst;
+  dst.currentSplines = splineParams;
+  DataFit::CoordIndexer::Factory params;
+
+  Array<DataFit::CoordIndexer> indexers(splineParams.size());
+  for (auto kv: indexed(splineParams)) {
+    indexers[kv.first] = params.make(
+        kv.second.mapper.sampleCount, 2);
+  }
+
+  for (auto src: magHdgSources) {
+    dst.magHdgParameterBlocks.insert({
+      src,
+      params.make(1,
+          settings.magHeadingSensor->parameterCount())});
+  }
+  for (auto src: watSpeedSources) {
+    dst.watSpeedparameterBlocks.insert({
+      src,
+      params.make(1,
+          settings.watSpeedSensor->parameterCount())
+    });
+  }
+
+  dst.totalParamCount = params.count();
+  return dst;
+}
+
 void optimize(
     const Array<CalibDataChunk> &chunks,
     const Settings &settings,
@@ -61,7 +176,15 @@ void optimize(
   auto currentSplines = allocateSplines(chunks,
       settings.currentSamplingPeriod, dst);
 
+  auto magHdgSources = listSourcesForCode<MAG_HEADING>(chunks);
+  auto watSpeedSources = listSourcesForCode<WAT_SPEED>(chunks);
 
+  dispSources("Magnetic heading sources", magHdgSources, dst);
+  dispSources("Water speed sources", magHdgSources, dst);
+
+  auto currentSetup = makeCurrentSetup(
+      windSplines, magHdgSources, watSpeedSources,
+      settings);
 
 }
 

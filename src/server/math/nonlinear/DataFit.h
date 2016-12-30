@@ -107,6 +107,8 @@ class CoordIndexer {
     assert(_dim == 1);
     return _offset + i;
   }
+
+  CoordIndexer() : _offset(0), _dim(0), _count(0) {}
  private:
   int _offset, _dim, _count;
 };
