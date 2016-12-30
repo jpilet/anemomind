@@ -19,6 +19,7 @@ class Sensor {
 public:
   virtual void initialize(double *dst) = 0;
   virtual int parameterCount() const = 0;
+  virtual std::string explain(double *parameter) = 0;
   virtual ~Sensor() {}
 };
 
@@ -56,6 +57,7 @@ public:
   Angle<adouble> corrupt(
       adouble *parameters,
       Angle<adouble> x);
+  std::string explain(double *parameter) override;
 };
 
 class LinearVelocitySensor : public VelocitySensor {
@@ -71,6 +73,8 @@ public:
   virtual Velocity<adouble> corrupt(
       adouble *parameters,
       const Velocity<adouble> &x);
+
+  std::string explain(double *parameters) override;
 private:
   Array<BasisFunction> _basis;
 };

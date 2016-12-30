@@ -26,8 +26,9 @@ int BasicAngleSensor::parameterCount() const {
 }
 
 namespace {
-  Angle<adouble> getOffset(adouble *x) {
-    return Angle<adouble>::radians(x[0]);
+  template <typename T>
+  Angle<T> getOffset(T *x) {
+    return Angle<T>::radians(x[0]);
   }
 }
 
@@ -42,6 +43,11 @@ Angle<adouble> BasicAngleSensor::corrupt(
     adouble *parameters,
     Angle<adouble> x) {
   return x + getOffset(parameters);
+}
+
+std::string BasicAngleSensor::explain(double *parameters) {
+  auto offset = getOffset(parameters);
+  return stringFormat("Offset(%.3g degrees)", offset.degrees());
 }
 
 LinearVelocitySensor::LinearVelocitySensor(
@@ -73,6 +79,16 @@ Velocity<adouble> LinearVelocitySensor::corrupt(
     const Velocity<adouble> &x) {
   LOG(FATAL) << "This operation is not supported";
   return Velocity<adouble>::metersPerSecond(0.0);
+}
+
+std::string LinearVelocitySensor::explain(double *parameters) {
+  std::stringstream ss;
+  ss << "Weights (";
+  for (int i = 0; i < _basis.size(); i++) {
+    ss << parameters[i] << std::endl;
+  }
+  ss << ")";
+  return ss.str();
 }
 
 struct SplineParam {
@@ -268,27 +284,12 @@ adouble evaluateHeadingFitness(
       [&](int i, const std::pair<std::string,
           DataFit::CoordIndexer> &blk,
           const Array<TimedValue<Angle<double>>> &samples) {
-
-    std::cout << "Evaluate it for some chunk and channel" << std::endl;
-
-    std::cout << " i = " << i << std::endl;
-
-    std::cout << "Number of current splines: " <<
-        data.setup.currentSplines.size() << std::endl;
-
-    std::cout << "Number of indexers: "
-        << data.setup.currentIndexers.size() << std::endl;
-
     auto splineParam = data.setup.currentSplines[i];
     auto currentIndexer = data.setup.currentIndexers[i];
 
-    std::cout << "Now, take the slices..." << std::endl;
     auto Xc = perDimension(cp, currentIndexer, 0);
     auto Yc = perDimension(cp, currentIndexer, 0);
     for (auto obs: samples) {
-
-      std::cout << "Consider a sample" << std::endl;
-
       auto boatMotion = data.chunks[i].trajectory
           .evaluateHorizontalMotion(obs.time).cast<adouble>();
       auto w = splineParam.computeWeights(obs.time);
@@ -299,8 +300,6 @@ adouble evaluateHeadingFitness(
         currentX*vu<adouble>(),
         currentY*vu<adouble>()
       });
-
-      std::cout << "Compute bow" << std::endl;
 
       Eigen::Matrix<adouble, 2, 1> bowv(
           bow[0]/vu<adouble>(),
@@ -316,11 +315,7 @@ adouble evaluateHeadingFitness(
       auto d = std::max(adouble(0.0), adouble(headingVector.dot(bowv)));
       adouble error = (d*headingVector - bowv).squaredNorm();
       sum += error;
-      std::cout << "Considered it" << std::endl;
     }
-
-    std::cout << "Evaluated." << std::endl;
-
   });
   return sum;
 }
@@ -383,6 +378,23 @@ Settings::Settings() {
         new GameSolver::RandomStepManager(rs));
 
   solverSettings.verbose = true;
+  solverSettings.iterationCount = 30;
+}
+
+void outputSolutionSummary(DOM::Node *dst,
+      const Array<CalibDataChunk> &chunks,
+      const CurrentSetup &currentSetup,
+      const std::set<PlayerType> &playerSet,
+      const Settings &settings,
+      const Array<Array<double>> &parameters) {
+  auto currentParameters = parameters[getPlayerIndex(playerSet,
+      PlayerType::Current)];
+  auto ul = DOM::makeSubNode(dst, "ul");
+  for (auto kv: currentSetup.magHdgParameterBlocks) {
+    DOM::addSubTextNode(&ul, "li",
+        kv.first + ": " + settings.magHeadingSensor->explain(
+            currentParameters.ptr(kv.second.from())));
+  }
 }
 
 void optimize(
@@ -419,8 +431,13 @@ void optimize(
   }
   dispProblemInfo(dst, playerSet);
 
-  GameSolver::optimize(objectives, initialParameters,
+  auto parameters = GameSolver::optimize(objectives, initialParameters,
       settings.solverSettings);
+
+  outputSolutionSummary(dst,
+        chunks, currentSetup, playerSet, settings,
+        parameters);
+
 }
 
 }
