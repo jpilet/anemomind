@@ -29,6 +29,8 @@ function CanvasTilesRenderer(params) {
   this.params.downgradeIfSlowerFPS = params.downgradeIfSlowerFPS || 15;
   this.params.downsampleDuringMotion = false;
 
+  this.pixelRatio = params.forceDevicePixelRatio || 1;
+
   this.layers = [
     new TileLayer(params, this)
   ];
@@ -123,7 +125,7 @@ CanvasTilesRenderer.prototype.getLocation = function() {
  */
 CanvasTilesRenderer.prototype.setLocation = function(location) {
   if (isNaN(location.x) || isNaN(location.y) || isNaN(location.scale)) {
-    throw('invalid location');
+    throw(new Error('invalid location'));
   }
   var canvas = this.canvas;
   var ratio = [
@@ -316,3 +318,18 @@ CanvasTilesRenderer.prototype.refreshIfNotMoving = function() {
     this.refresh();
   }
 }
+
+// loadImage might be overloaded when rendering outside of a browser,
+// for example with node-canvas.
+CanvasTilesRenderer.prototype.loadImage = function(url, success, failure) {
+  var image = new Image();
+  image.src = url;
+  image.onload = function() {
+    success(image);
+  };
+  if (failure) {
+    image.onerror = function(err) {
+      failure(err);
+    };
+  }
+};
