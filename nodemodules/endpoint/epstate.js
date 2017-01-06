@@ -63,13 +63,13 @@ function summarizePackets(packets) {
   var groups = groupSimilar(packets, function(packet) {
     return [packet.src, packet.dst, packet.label];
   });
-  var p = packets[0];
   return groups.map(function(group) {
+    var p = group.key;
     var seqNums = group.values.map(getSeqNumber);
     return {
-      src: p.src,
-      dst: p.dst,
-      label: p.label,
+      src: p[0],
+      dst: p[1],
+      label: p[2],
       count: group.values.length,
       minSeqNumber: seqNums.reduce(minv),
       maxSeqNumber: seqNums.reduce(maxv),
