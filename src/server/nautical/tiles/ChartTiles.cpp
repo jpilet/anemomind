@@ -122,15 +122,12 @@ void downSampleData(int64_t tileno, int zoom,
 }
 
 template<class T>
-bool uploadChartTile(const ChartTile<T> tile,
-                     const DispatchData* data,
+bool chartTileToBson(const ChartTile<T> tile,
                      const std::string& boatId,
-                     const ChartTileSettings& settings,
-                     DBClientConnection *db) {
+                     const DispatchData* data,
+                     BSONObj *obj) {
   if (tile.samples.size() == 0) {
-    // Uploading an empty tile does not make sense.
-    // But it is not an error.
-    return true;
+    return false;
   }
 
   BSONObjBuilder result;
@@ -148,8 +145,8 @@ bool uploadChartTile(const ChartTile<T> tile,
   // and tileno.
   BSONObjBuilder key;
 
-
   key.append("boat", mongo::OID(boatId));
+
   key.append("zoom", tile.zoom);
   key.append("tileno", (long long) tile.tileno);
   key.append("what", data->wordIdentifier());
@@ -166,7 +163,22 @@ bool uploadChartTile(const ChartTile<T> tile,
 
   result.append("samples", samples.arr());
 
-  auto obj = result.obj();
+  *obj = result.obj();
+  return true;
+}
+
+template<class T>
+bool uploadChartTile(const ChartTile<T> tile,
+                     const DispatchData* data,
+                     const std::string& boatId,
+                     const ChartTileSettings& settings,
+                     DBClientConnection *db) {
+  BSONObj obj;
+  if (!chartTileToBson(tile, boatId, data, &obj)) {
+    // Uploading an empty tile does not make sense.
+    // But it is not an error.
+    return true;
+  }
   return safeMongoOps(
       "Inserting a chart tile", db,
       [=](DBClientConnection *db) {
