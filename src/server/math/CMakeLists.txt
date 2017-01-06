@@ -1,31 +1,7 @@
-add_library(math_armaadolc
-            armaadolc.cpp
-            armaadolc.h
-           )
-target_link_libraries(math_armaadolc
-                      common_Array
-                     )
-target_depends_on_armadillo(math_armaadolc)
-target_depends_on_adolc(math_armaadolc)
-
-
 add_library(math_LUImpl
             LUImpl.h
             LUImpl.cpp
            )
-add_library(math_LU
-            LU.h
-            LU.cpp
-           )
-target_link_libraries(math_LU
-                      math_armaadolc
-                      math_LUImpl
-                     )
-cxx_test(math_LUTest
-         LUTest.cpp
-         math_LU
-         gtest_main
-        )                           
 
 add_library(math_Grid
             Grid.cpp
@@ -114,7 +90,7 @@ cxx_test(math_GridSearchTest
 cxx_test(math_PiecewisePolynomialsTest
          PiecewisePolynomialsTest.cpp
          gtest_main
-         math_LU
+         math_LUImpl
         )
 
 add_library(math_irls
