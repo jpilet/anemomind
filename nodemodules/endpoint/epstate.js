@@ -51,6 +51,14 @@ function getSeqNumber(x) {
   return x.seqNumber;
 }
 
+function getBytes(x) {
+  return x.data.length;
+}
+
+function add(a, b) {
+  return a + b;
+}
+
 function summarizePackets(packets) {
   var groups = groupSimilar(packets, function(packet) {
     return [packet.src, packet.dst, packet.label];
@@ -64,7 +72,8 @@ function summarizePackets(packets) {
       label: p.label,
       count: group.values.length,
       minSeqNumber: seqNums.reduce(minv),
-      maxSeqNumber: seqNums.reduce(maxv)
+      maxSeqNumber: seqNums.reduce(maxv),
+      totalBytes: packets.map(getBytes).reduce(add)
     };
   });
 }
@@ -88,12 +97,23 @@ function getAllEndpointData(endpoint, cb) {
   });
 }
 
+function getTotalBytes(x) {
+  return x.totalBytes;
+}
+
+function getCount(x) {
+  return x.count;
+}
+
 function summarizeEndpointData(data) {
   assert(data.packets);
   assert(data.lowerBounds);
+  var packetSummary = summarizePackets(data.packets);
   return {
-    packets: summarizePackets(data.packets),
-    lowerBounds: data.lowerBounds
+    packets: packetSummary,
+    lowerBounds: data.lowerBounds,
+    totalBytes: packetSummary.map(getTotalBytes).reduce(add, 0),
+    totalPacketCount: packetSummary.map(getCount).reduce(add, 0)
   };
 }
 

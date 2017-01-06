@@ -19,7 +19,7 @@ describe('epstate', function() {
       epstate.getAllEndpointData(ep, function(err, data) {
         epstate.dispStateOp(ep, function(cb) {
           console.log('sendPacket');
-          ep.sendPacket('B', 3, new Buffer(1), cb);
+          ep.sendPacket('B', 3, new Buffer(119), cb);
         }, done);
       });
     });
