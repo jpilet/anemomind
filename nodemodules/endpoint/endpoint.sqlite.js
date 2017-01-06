@@ -787,7 +787,7 @@ function withEP(ep, epOperation, done) {
   });
 }
 
-
+module.exports.getAllFromTable = getAllFromTable;
 module.exports.Endpoint = Endpoint;
 module.exports.isEndpoint = isEndpoint;
 module.exports.tryMakeEndpoint = tryMakeEndpoint;
