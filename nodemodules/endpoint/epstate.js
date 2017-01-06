@@ -64,16 +64,16 @@ function summarizePackets(packets) {
     return [packet.src, packet.dst, packet.label];
   });
   return groups.map(function(group) {
-    var p = group.key;
+    var p = group.values[0];
     var seqNums = group.values.map(getSeqNumber);
     return {
-      src: p[0],
-      dst: p[1],
-      label: p[2],
+      src: p.src,
+      dst: p.dst,
+      label: p.label,
       count: group.values.length,
       minSeqNumber: seqNums.reduce(minv),
       maxSeqNumber: seqNums.reduce(maxv),
-      totalBytes: packets.map(getBytes).reduce(add)
+      totalBytes: group.values.map(getBytes).reduce(add)
     };
   });
 }
