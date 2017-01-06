@@ -118,16 +118,17 @@ function summarizeEndpointData(data) {
 }
 
 function dispStateOp(endpoint, op, cb) {
+  console.log('================ Operation on endpoint');
   getAllEndpointData(endpoint, function(err, data) {
     if (err) {return cb(err);}
-    console.log('\n== Endpoint state before operation:\n  %j', 
-                summarizeEndpointData(data));
+    console.log('== Endpoint state before operation:\n  ' + 
+                JSON.stringify(summarizeEndpointData(data), null, 2));
     op(function(err, result) {
       if (err) {return cb(err);}
       getAllEndpointData(endpoint, function(err, data) {
         if (err) {return cb(err);}
-        console.log('== Endpoint state after operation:\n  %j\n', 
-                    summarizeEndpointData(data));
+        console.log('== Endpoint state after operation:\n  ' + 
+                    JSON.stringify(summarizeEndpointData(data), null, 2));
         cb(null, result);
       });
     });
