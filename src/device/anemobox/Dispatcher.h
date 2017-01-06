@@ -65,6 +65,8 @@ enum DataCode {
 
 template <DataCode Code> struct TypeForCode { };
 
+const std::vector<DataCode>& allDataCode();
+
 #define DECL_TYPE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
 template<> struct TypeForCode<HANDLE> { typedef TYPE type; };
 FOREACH_CHANNEL(DECL_TYPE)
@@ -242,7 +244,7 @@ class Dispatcher : public Clock {
   template <DataCode Code>
   TypedDispatchData<typename TypeForCode<Code>::type>* get(
       const std::string& source) const {
-    return toTypedDispatchData<Code>(dispatchDataForSource(Code, source));
+    return toTypedDispatchData<Code>(dispatchDataForSource(Code, source).get());
   }
 
 
@@ -357,6 +359,24 @@ class Dispatcher : public Clock {
   }
 
   int maxPriority() const;
+
+  std::vector<std::string> sourcesForChannel(DataCode code) const {
+    std::vector<std::string> sources;
+    auto it = _data.find(code);
+    if ((it == _data.end()) || (it->second.size() == 0)) {
+      return sources;
+    }
+    for (auto s : it->second) {
+      sources.push_back(s.first);
+    }
+    return sources;
+  }
+
+  bool hasSource(DataCode code, const std::string& source) const {
+    auto it = _data.find(code);
+    return (it != _data.end()
+            && it->second.find(source) != it->second.end());
+  }
 
  private:
   static Dispatcher *_globalInstance;

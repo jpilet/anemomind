@@ -89,7 +89,7 @@ namespace {
 #define ADD_DATA_CODE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
         dst.insert(HANDLE);
     FOREACH_CHANNEL(ADD_DATA_CODE)
-#undef ADD_DATA_CODE;
+#undef ADD_DATA_CODE
     return dst;
   }
 
