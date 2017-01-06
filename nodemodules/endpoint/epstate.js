@@ -97,5 +97,23 @@ function summarizeEndpointData(data) {
   };
 }
 
+function dispStateOp(endpoint, op, cb) {
+  getAllEndpointData(endpoint, function(err, data) {
+    if (err) {return cb(err);}
+    console.log('\n== Endpoint state before operation:\n  %j', 
+                summarizeEndpointData(data));
+    op(function(err, result) {
+      if (err) {return cb(err);}
+      getAllEndpointData(endpoint, function(err, data) {
+        if (err) {return cb(err);}
+        console.log('== Endpoint state after operation:\n  %j\n', 
+                    summarizeEndpointData(data));
+        cb(null, result);
+      });
+    });
+  });
+}
+
 module.exports.getAllEndpointData = getAllEndpointData;
 module.exports.summarizeEndpointData = summarizeEndpointData;
+module.exports.dispStateOp = dispStateOp;
