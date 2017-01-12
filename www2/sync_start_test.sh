@@ -3,10 +3,12 @@ set -e # Stop on first error
 killall mongod || true
 killall grunt || true
 killall node || true
-www2_dir=$(pwd)
-cd /tmp && rm -rf endpoints && rm synctest_message.txt || true
+www2_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+echo "www2_dir = $www2_dir"
+rm -rf /tmp/endpoints || true
+rm -r /tmp/synctest_message.txt || true
 cd "$www2_dir" 
-cd uploads/anemologs && rm -rf *
+rm -rf "${www2_dir}/uploads/anemologs/boat57f678e612063872e749d481"
 cd "$www2_dir" 
 echo "Launching the server!"
 cd "$www2_dir"
