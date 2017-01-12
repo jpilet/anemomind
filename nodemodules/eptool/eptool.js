@@ -1,5 +1,5 @@
-var ep = require('./endpoint.sqlite.js');
-var epstate = require('./epstate.js');
+var ep = require('endpoint/endpoint.sqlite.js');
+var epstate = require('endpoint/epstate.js');
 var fs = require('fs');
 
 function openExistingEndpoint(filename, cb) {
