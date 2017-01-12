@@ -156,6 +156,7 @@ public:
   int minInputSize() const;
   int JtJElementCount() const;
   typedef std::shared_ptr<Player> Ptr;
+  Spani strategySpan() const;
 private:
   int _jacobianElementCount = 0;
   int _minInputSize = 0;

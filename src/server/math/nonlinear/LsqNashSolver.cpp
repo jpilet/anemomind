@@ -54,6 +54,10 @@ int Player::JtJElementCount() const {
   return _jacobianElementCount;
 }
 
+Spani Player::strategySpan() const {
+  return _strategySpan;
+}
+
 
 
 }

@@ -103,6 +103,7 @@ add_library(nonlinear_LsqNashSolver
 
 target_link_libraries(nonlinear_LsqNashSolver
   common_logging
+  common_Span
   )
 
 cxx_test(nonlinear_LsqNashSolverTest
