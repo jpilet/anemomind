@@ -31,7 +31,6 @@ We will be referring to a number of interfaces between which you need to switch 
  - **anemomind-ios**: Call ```./prepare_sync_test.sh``` to patch the source code so that the app will connect to the IP address of the Macbook and the database will be reset.
  - **XCode**: Press on the "Play" button to compile the project and run the app on the iOS device connected with the cable.
  - **iOS**: Open the *Home* view and synchronize with the box.
- - **anemomind-ios**: Call ```git stash``` to undo your temporary changes in the source code.
  - **iOS**: Connect to the same local network as the web server from the system settings.
  - **iOS**: Go to the *Home* view and synchronize with the web server
  - **iOS**: Connect to the ```anemobox``` local network again
