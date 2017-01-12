@@ -112,14 +112,6 @@ private:
   double output(const ADType *Ysrc,
       double *JtF,
       std::vector<Eigen::Triplet<double>> *JtJ) const {
-    for (int i = 0; i < F::outputCount; i++) {
-      std::cout << Ysrc[i].a << ": ";
-      for (int j = 0; j < F::inputCount; j++) {
-        std::cout << Ysrc[i].v[j] << " ";
-      }
-      std::cout << std::endl;
-    }
-
     double sum = 0.0;
     for (int i = 0; i < F::outputCount; i++) {
       sum += sqr(Ysrc[i].a);
@@ -136,10 +128,8 @@ private:
       double sum = 0.0;
       for (int j = 0; j < F::outputCount; j++) {
         const auto &x = Ysrc[j];
-        std::cout << "Visit " << x.a << " with di " << x.v[i] << std::endl;
         sum += x.v[i]*x.a;
       }
-      std::cout << "For " << I << " the sum is " << sum << std::endl;
       JtF[I] += sum;
     }
     return sum;
