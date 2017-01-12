@@ -1,7 +1,7 @@
 # This script should be run on the anemobox to test the synchronization
 set -e
 bash /root/disable_watchdog.sh
-cd /media/sdcard/logs && rm -rf *
+rm -rf /media/sdcard/logs/*
 cp /usr/bin/dpkg dpkg.log
 cd /media/sdcard/mail2
 rm -rf *
