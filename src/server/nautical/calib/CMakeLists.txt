@@ -35,26 +35,6 @@ target_link_libraries(calib_BasicCalibrate
                       logimport_LogLoader
                      )
 
-add_executable(calib_EvalCalib
-               EvalCalib.cpp
-              )
-target_link_libraries(calib_EvalCalib
-                      calib_Calibrator
-                      calib_CalibrationBenchmark
-                      common_ArgMap
-                     )              
-
-add_library(calib_CalibrationBenchmark 
-            CalibrationBenchmark.h
-            CalibrationBenchmark.cpp
-           )      
-           
-target_link_libraries(calib_CalibrationBenchmark                         
-                      nautical_synthtest_NavalSimulationPrecomp
-                      common_EnvUtil
-                      logimport_LogLoader
-                     )
-
 cxx_test(calib_SensorSetTest
   SensorSetTest.cpp
   anemobox_Dispatcher

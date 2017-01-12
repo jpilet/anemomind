@@ -3,7 +3,6 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <server/common/EnvUtil.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/common/ArrayIO.h>
