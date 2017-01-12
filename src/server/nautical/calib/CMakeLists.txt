@@ -55,43 +55,6 @@ target_link_libraries(calib_CalibrationBenchmark
                       logimport_LogLoader
                      )
 
-add_library(calib_CornerCalibTestData
-   CornerCalibTestData.h
-   CornerCalibTestData.cpp
-  )
-
-
-cxx_test(calib_CornerCalibTest
-   CornerCalibTest.cpp
-   gtest_main
-   calib_CornerCalibTestData
-   common_logging
-  )
-
-target_depends_on_ceres(calib_CornerCalibTest)
-
-
-add_library(calib_CurrentCalib
-   CurrentCalib.h
-   CurrentCalib.cpp
-  )
-
-target_link_libraries(calib_CurrentCalib  
-                      nautical_NavDataset
-                      filters_TimedAngleIntegrator
-                     )
-
-cxx_test(calib_CurrentCalibTest
-   CurrentCalibTest.cpp
-   gtest_main
-   calib_CurrentCalib
-   calib_CornerCalibTestData
-   common_logging
-  )
-  
-target_depends_on_ceres(calib_CurrentCalibTest)
-
-
 add_library(calib_Fitness
   Fitness.h
   Fitness.cpp
@@ -155,11 +118,6 @@ target_link_libraries(calib_MagHdgCalib2
   plot_CairoUtils
   plot_PlotUtils
   math_SineFit
-  )
-
-add_library(calib_WatSpeedCalib
-  WatSpeedCalib.h
-  WatSpeedCalib.cpp
   )
 
 add_library(calib_GameCalib
