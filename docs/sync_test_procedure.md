@@ -25,8 +25,8 @@ We will be referring to a number of interfaces between which you need to switch 
  - **XCode**, **iOS**: Make sure the app isn't running. If it is, press the stop button in XCode.
 
  - **anemobox**: Make sure that there is no anemonode process running.
- - **anemomind/www2**: Call ```sh sync_start_test.sh``` to put the web server in a clean state and start the web server.
- - **anemobox**: Call ```sh sync_start_test.sh``` to put the anemobox in a clean state and start the service.
+ - **anemomind/www2**: Call ```./sync_start_test.sh``` to put the web server in a clean state and start the web server. (You may have to call ```chmod u+x sync_start_test.sh``` first).
+ - **anemobox**: Call ```./sync_start_test.sh``` to put the anemobox in a clean state and start the service. (You may have to call ```chmod u+x sync_start_test.sh``` first).
  - **iOS**: Connect the iOS device to the ```anemobox``` wifi network from the sysstem settings.
  - **anemomind-ios**: Call ```sh prepare_sync_test.sh``` to patch the source code so that the app will connect to the IP address of the Macbook and the database will be reset.
  - **XCode**: Press on the "Play" button to compile the project and run the app on the iOS device connected with the cable.
