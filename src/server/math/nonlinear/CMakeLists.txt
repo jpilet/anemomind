@@ -95,3 +95,18 @@ cxx_test(nonlinear_GameSolverTest
   gtest_main
   nonlinear_GameSolver
   )
+
+add_library(nonlinear_LsqNashSolver
+  LsqNashSolver.h
+  LsqNashSolver.cpp
+  )
+
+target_link_libraries(nonlinear_LsqNashSolver
+  common_logging
+  )
+
+cxx_test(nonlinear_LsqNashSolverTest
+  LsqNashSolverTest.cpp
+  gtest_main
+  nonlinear_LsqNashSolver
+  )
