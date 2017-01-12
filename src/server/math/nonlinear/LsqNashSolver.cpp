@@ -195,6 +195,17 @@ State evaluateState(
   return State{values, X};
 }
 
+/*
+How to compute rho:
+
+T improvement = currentCost - newCost;
+T denom = step.dot(mu*step + minusJtF);
+T rho = improvement/denom;
+
+But we cannot do that, because we don't have a single cost
+that we are minimizing.
+
+ */
 Results solve(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &Xinit,
@@ -230,11 +241,11 @@ Results solve(
     for (int j = 0; j < settings.subIters; j++) {
       results.X = X;
       if (2 <= settings.verbosity) {
-        LOG(INFO) << "#### Inner iteration " << j;
-        LOG(INFO) << "Damping: " << mu;
+        LOG(INFO) << "   #### Inner iteration " << j;
+        LOG(INFO) << "   Damping: " << mu;
       }
       if (!std::isfinite(mu)) {
-        LOG(INFO) << "Damping is no longer finite, cancel optimization.";
+        LOG(INFO) << "   Damping is no longer finite, cancel optimization.";
         results.type = Results::MuNotFinite;
         return results;
       }
@@ -246,7 +257,7 @@ Results solve(
 
       Eigen::VectorXd step = decomp.solve(-e.JtF);
       if (3 <= settings.verbosity) {
-        LOG(INFO) << "Proposed step: " << step.transpose();
+        LOG(INFO) << "   Proposed step: " << step.transpose();
       }
 
       Eigen::VectorXd Xnew = X + step;
@@ -255,18 +266,18 @@ Results solve(
 
       if (policy->acceptable(players, current, candidate)) {
         if (2 <= settings.verbosity) {
-          LOG(INFO) << "Accept the update";
+          LOG(INFO) << "   Accept the update";
         }
         policy->accept(players, candidate);
         X = Xnew;
-        mu *= 0.5; //acceptedUpdateFactor(rho);
+        mu *= 0.5; //acceptedUpdateFactor(rho); Unfortunately, we cannot compute rho.
         v = 2.0;
 
         found = true;
         break;
       } else {
         if (2 <= settings.verbosity) {
-          LOG(INFO) << "Reject the update";
+          LOG(INFO) << "   Reject the update";
         }
         mu *= v;
         v *= 2.0;

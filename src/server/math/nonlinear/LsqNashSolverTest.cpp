@@ -120,20 +120,10 @@ public:
     T yd = X[1] - _y;
     T len2 = 1.0e-30 + xd*xd + yd*yd;
     T len = sqrt(len2);
-    std::cout << "LEN = " << len << std::endl;
-
-
     T dst = F::template eval<T>(len);
-    std::cout << "dst = " << dst << std::endl;
-
-
     T f = sqrt(dst/len2);
-
-    std::cout << "f = " << f << std::endl;
-
     Y[0] = f*xd;
     Y[1] = f*yd;
-    std::cout << "THE value = " << sqr(Y[0]) + sqr(Y[1]) << std::endl;
   }
 private:
   double _x, _y;
@@ -187,7 +177,7 @@ TEST(LsqNashSolverTest, SquareSolveTest) {
   EXPECT_TRUE(validInput(setup.players, setup.Xinit));
 
   Settings settings;
-  settings.verbosity = 3;
+  settings.verbosity = 0;
   auto results = solve(setup.players, setup.Xinit, &policy, settings);
   EXPECT_NEAR(results.X(0), 1.2, 1.0e-5);
   EXPECT_NEAR(results.X(1), 0.9, 1.0e-5);
@@ -200,12 +190,31 @@ struct PseudoAbs {
   }
 };
 
+const double tol = 0.05;
+
 TEST(LsqNashSolverTest, PseudoAbsTest) {
   BasicSetup<PseudoAbs> setup;
   ApproximatePolicy policy;
   Settings settings;
+  settings.verbosity = 0;
+  auto results = solve(setup.players, setup.Xinit, &policy, settings);
+  EXPECT_NEAR(results.X(0), 1.2, tol);
+  EXPECT_NEAR(results.X(1), 0.9, tol);
+}
+
+struct GemanMcClure {
+  template <typename T>
+  static T eval(T x) {
+    return sqrt(x*x/(x*x + 1.0));
+  }
+};
+
+TEST(LsqNashSolverTest, GemanMcClureTest) {
+  BasicSetup<GemanMcClure> setup;
+  ApproximatePolicy policy;
+  Settings settings;
   settings.verbosity = 3;
   auto results = solve(setup.players, setup.Xinit, &policy, settings);
-  EXPECT_NEAR(results.X(0), 1.2, 1.0e-5);
-  EXPECT_NEAR(results.X(1), 0.9, 1.0e-5);
+  EXPECT_NEAR(results.X(0), 1.2, tol);
+  EXPECT_NEAR(results.X(1), 0.9, tol);
 }

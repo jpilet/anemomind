@@ -236,6 +236,14 @@ State evaluateState(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &X);
 
+// Solves continuous games with least-squares players.
+// I posed a question for this problem on Quora,
+//
+//  https://www.quora.com/How-can-I-numerically-locate-some-local-Nash-equilibrium-in-a-continuous-game-of-nonlinear-least-squares
+//
+// but up to now, I have not received a very detailed answer.
+// So I hacked my own algorithm, based on the Levenberg-Marquardt
+// algorithm.
 Results solve(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &Xinit,
