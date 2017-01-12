@@ -38,7 +38,6 @@ target_link_libraries(nautical_synthtest_NavalSimulation
                       nautical_NavCompatibility
                       common_MeanAndVar
                       nautical_synthtest_Flow
-                      nautical_synthtest_FractalFlow
                       nautical_FlowErrors
                      )
            
@@ -63,24 +62,6 @@ cxx_test(nautical_synthtest_FlowTest
          nautical_synthtest_Flow
         )
         
-                     
-add_library(nautical_synthtest_FractalFlow
-            FractalFlow.h
-            FractalFlow.cpp
-           )
-target_link_libraries(nautical_synthtest_FractalFlow
-                       nautical_synthtest_Flow
-                       math_SubdivFractals
-                      ) 
-                      
-add_executable(nautical_synthtest_FractalFlowDemo
-               FractalFlowDemo.cpp
-              )
-
-target_link_libraries(nautical_synthtest_FractalFlowDemo
-                      nautical_synthtest_FractalFlow
-                     )
-
 add_library(nautical_synthtest_NavalSimulationJson
             NavalSimulationJson.h
             NavalSimulationJson.cpp
