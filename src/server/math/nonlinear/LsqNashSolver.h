@@ -173,6 +173,10 @@ struct Results {
   Eigen::VectorXd X;
 };
 
+bool validInput(
+    const Array<Player::Ptr> &players,
+    const Eigen::VectorXd &Xinit);
+
 Results solve(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &Xinit,

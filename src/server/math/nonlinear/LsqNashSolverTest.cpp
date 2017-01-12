@@ -138,3 +138,18 @@ TEST(LsqNashSolverTest, BasicFunTest) {
     EXPECT_NEAR(sqr(y[0]) + sqr(y[1]), 2*2 + 1*1, 1.0e-4);
   }
 }
+
+TEST(LsqNashSolverTest, BasicFunSolveTest) {
+  auto player1 = std::make_shared<Player>(Spani(0, 1));
+  player1->addADSubFunction(BasicFun<Square>(1, 2), {0, 1});
+  auto player2 = std::make_shared<Player>(Spani(1, 2));
+  player2->addADSubFunction(BasicFun<Square>(2, 1), {0, 1});
+
+  Eigen::VectorXd Xinit(2);
+  Xinit << 2, 2;
+
+  Array<Player::Ptr> players{player1, player2};
+
+  EXPECT_TRUE(validInput(players, Xinit));
+
+}

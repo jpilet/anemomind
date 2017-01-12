@@ -6,6 +6,7 @@
  */
 
 #include "LsqNashSolver.h"
+#include <server/common/indexed.h>
 
 namespace sail {
 namespace LsqNashSolver {
@@ -57,6 +58,49 @@ int Player::JtJElementCount() const {
 Spani Player::strategySpan() const {
   return _strategySpan;
 }
+
+bool validInput(
+    const Array<Player::Ptr> &players,
+    const Eigen::VectorXd &Xinit) {
+
+  if (players.empty()) {
+    LOG(ERROR) << "No players provided";
+    return false;
+  }
+
+  auto mask = Array<int>::fill(Xinit.size(), -1);
+  for (auto p: indexed(players)) {
+    auto sp = p.second->strategySpan();
+    for (auto i: sp) {
+      if (i < 0) {
+        LOG(ERROR) << "Index below 0 for player " << p.first;
+        return false;
+      } else if (!(i < mask.size())) {
+        LOG(ERROR) << "Strategy index "
+            << i << " of player " << p.first
+            << " exceeds dimension " <<
+            mask.size() << " of optimized vector";
+        return false;
+      } else if (mask[i] != -1) {
+        LOG(ERROR) << "Two different players, "
+            << p.first << " and " << mask[i] << ", cannot "
+            << " optimize the same index " << i;
+      }
+      mask[i] = true;
+    }
+  }
+
+  for (auto x: indexed(mask)) {
+    if (x.second == -1) {
+      LOG(ERROR) << "The element with index " << x.first
+          << " is not optimized by any player.";
+      return false;
+    }
+  }
+
+  return true;
+}
+
 
 
 
