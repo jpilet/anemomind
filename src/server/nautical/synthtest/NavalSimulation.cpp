@@ -8,7 +8,6 @@
 #include <server/nautical/synthtest/Flow.h>
 #include <iostream>
 #include <server/common/PhysicalQuantityIO.h>
-#include <server/nautical/synthtest/FractalFlow.h>
 #include <server/common/logging.h>
 #include <server/common/Functional.h>
 
@@ -380,33 +379,6 @@ namespace {
 
 }
 
-
-
-NavalSimulation makeNavSimFractalWindOriented() {
-  auto geoRef = makeGeoRef();
-  TimeStamp simulationStartTime = makeStartTime();
-  auto flowpair = makeWindCurrentPair001();
-  std::default_random_engine e;
-  return NavalSimulation(e, geoRef,
-           simulationStartTime,
-           flowpair.wind,
-           flowpair.current,
-           makeSpecs001(20, makeTwaDirectives001())
-           );
-}
-
-NavalSimulation makeNavSimFractalWindOrientedLong() {
-  auto geoRef = makeGeoRef();
-  TimeStamp simulationStartTime = makeStartTime();
-  auto flowpair = makeWindCurrentPair001();
-  std::default_random_engine e;
-  return NavalSimulation(e, geoRef,
-           simulationStartTime,
-           flowpair.wind,
-           flowpair.current,
-           makeSpecs001(8, makeTwaDirectives002())
-           );
-}
 
 
 
