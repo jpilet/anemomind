@@ -255,8 +255,10 @@ State evaluateState(
 //  https://www.quora.com/How-can-I-numerically-locate-some-local-Nash-equilibrium-in-a-continuous-game-of-nonlinear-least-squares
 //
 // but up to now, I have not received a very detailed answer.
-// So I hacked my own algorithm, based on the Levenberg-Marquardt
-// algorithm: http://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
+// So I hacked my own algorithm, based on the
+// Lourakis version of the Levenberg-Marquardt algorithm
+// explained here:
+// http://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
 Results solve(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &Xinit,
