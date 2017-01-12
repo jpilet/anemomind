@@ -7,6 +7,7 @@
 
 #include "LsqNashSolver.h"
 #include <server/common/indexed.h>
+#include <server/math/EigenUtils.h>
 
 namespace sail {
 namespace LsqNashSolver {
@@ -59,6 +60,25 @@ Spani Player::strategySpan() const {
   return _strategySpan;
 }
 
+bool ApproximatePolicy::acceptable(
+    const Array<Player::Ptr> &players,
+    const State &current,
+    const State &candidate) const {
+  for (int i = 0; i < players.size(); i++) {
+    Eigen::VectorXd tmp = candidate.X;
+    auto player = players[i];
+    auto span = player->strategySpan();
+    tmp.block(span.minv(), 0, span.size(), 1)
+        = current.X.block(span.minv(), 0, span.size(), 1);
+    if (player->eval(tmp.data())
+        < player->eval(candidate.X.data())) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 bool validInput(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &Xinit) {
@@ -71,6 +91,14 @@ bool validInput(
   auto mask = Array<int>::fill(Xinit.size(), -1);
   for (auto p: indexed(players)) {
     auto sp = p.second->strategySpan();
+    if (p.first < players.size()-1) {
+      int u = sp.maxv();
+      int l = players[p.first+1]->strategySpan().minv();
+      if (u != l) {
+        LOG(ERROR) << "The strategies are not contiguous and ordered";
+        return false;
+      }
+    }
     for (auto i: sp) {
       if (i < 0) {
         LOG(ERROR) << "Index below 0 for player " << p.first;
@@ -101,6 +129,152 @@ bool validInput(
   return true;
 }
 
+typedef Eigen::SparseMatrix<double, Eigen::ColMajor> SparseMat;
+typedef Eigen::Triplet<double> Triplet;
+
+int countJtJElements(const Array<Player::Ptr> &p) {
+  int n = 0;
+  for (auto x: p) {
+    n += x->JtJElementCount();
+  }
+  return n;
+}
+
+struct FullPlayerEval {
+  int dim;
+  Array<double> values;
+  Eigen::VectorXd JtF;
+  std::shared_ptr<std::vector<Triplet>> triplets;
+  double maxDiag;
+
+  SparseMat makeJtJ(double mu) const;
+};
+
+SparseMat FullPlayerEval::makeJtJ(double mu) const {
+  int n = triplets->size() + n;
+  std::vector<Triplet> withDiag = *triplets;
+  for (int i = 0; i < n; i++) {
+    withDiag.push_back(Triplet(i, i, mu));
+  }
+  SparseMat m(dim, dim);
+  m.setFromTriplets(withDiag.begin(), withDiag.end());
+  m.makeCompressed();
+  return m;
+}
+
+FullPlayerEval eval(
+    const Array<Player::Ptr> &players,
+    const Eigen::VectorXd &Xinit) {
+  int n = Xinit.size();
+  Eigen::VectorXd JtF = Eigen::VectorXd::Zero(n);
+  auto triplets = std::make_shared<std::vector<Triplet>>();
+  triplets->reserve(countJtJElements(players));
+  Array<double> values(players.size());
+  for (auto p: indexed(players)) {
+    values[p.first] = p.second->eval(
+        Xinit.data(), JtF.data(), triplets.get());
+  }
+  double maxDiag = 0.0;
+  for (auto e: *triplets) {
+    if (e.row() == e.col()) {
+      maxDiag = std::max(maxDiag, e.value());
+    }
+  }
+  return FullPlayerEval{n,
+    values, JtF, triplets, maxDiag};
+}
+
+State evaluateState(
+    const Array<Player::Ptr> &players,
+    const Eigen::VectorXd &X) {
+  Array<double> values(players.size());
+  for (auto x: indexed(players)) {
+    values[x.first] = x.second->eval(X.data());
+  }
+  return State{values, X};
+}
+
+Results solve(
+    const Array<Player::Ptr> &players,
+    const Eigen::VectorXd &Xinit,
+    AcceptancePolicy *policy,
+    const Settings &settings) {
+  CHECK(validInput(players, Xinit));
+  Results results;
+  double v = 2.0;
+  double mu = -1.0;
+
+  Eigen::VectorXd X = Xinit;
+  Eigen::SparseLU<SparseMat> decomp;
+  for (int i = 0; i < settings.iters; i++) {
+    if (1 <= settings.verbosity) {
+      LOG(INFO) << "--------- LevMar Iteration " << i;
+    }
+    double currentCost = 0.0;
+
+    auto e = eval(players, X);
+    State current{e.values, X};
+
+    if (i == 0) {
+      mu = settings.tau*e.maxDiag;
+    }
+
+    bool found = false;
+    for (int j = 0; j < settings.subIters; j++) {
+      if (2 <= settings.verbosity) {
+        LOG(INFO) << "#### Inner iteration " << j;
+        LOG(INFO) << "Damping: " << mu;
+      }
+      if (!std::isfinite(mu)) {
+        LOG(INFO) << "Damping is no longer finite, cancel optimization.";
+        results.type = Results::MuNotFinite;
+        return results;
+      }
+      auto dampedJtJ = e.makeJtJ(mu);
+      if (i == 0 && j == 0) {
+        decomp.analyzePattern(dampedJtJ);
+      }
+      decomp.factorize(dampedJtJ);
+
+      Eigen::VectorXd step = decomp.solve(-e.JtF);
+      Eigen::VectorXd Xnew = X + step;
+
+      State candidate = evaluateState(players, Xnew);
+
+      if (policy->acceptable(players, current, candidate)) {
+        if (2 <= settings.verbosity) {
+          LOG(INFO) << "Accept the update";
+        }
+        policy->accept(players, candidate);
+        X = Xnew;
+        mu *= 0.5; //acceptedUpdateFactor(rho);
+        v = 2.0;
+
+        found = true;
+        break;
+      } else {
+        if (2 <= settings.verbosity) {
+          LOG(INFO) << "Reject the update";
+        }
+        mu *= v;
+        v *= 2.0;
+      }
+    }
+    if (!found) {
+      LOG(ERROR) << "Iterations exceeded";
+      results.type = Results::IterationsExceeded;
+      return results;
+    }
+    results.iterationsCompleted = i+1;
+  }
+
+  if (1 <= settings.verbosity) {
+    LOG(INFO) << "Max iteration count " << settings.iters << " reached";
+  }
+
+  results.type = Results::MaxIterationsReached;
+  return results;
+}
 
 
 

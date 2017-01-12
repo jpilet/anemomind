@@ -144,11 +144,23 @@ TEST(LsqNashSolverTest, BasicFunSolveTest) {
   player1->addADSubFunction(BasicFun<Square>(1, 2), {0, 1});
   auto player2 = std::make_shared<Player>(Spani(1, 2));
   player2->addADSubFunction(BasicFun<Square>(2, 1), {0, 1});
+  Array<Player::Ptr> players{player1, player2};
 
   Eigen::VectorXd Xinit(2);
   Xinit << 2, 2;
 
-  Array<Player::Ptr> players{player1, player2};
+  Eigen::VectorXd Xother = Xinit + 2.0*Eigen::VectorXd::Ones(2, 1);
+
+  auto initState = evaluateState(players, Xinit);
+  auto otherState = evaluateState(players, Xother);
+
+  ApproximatePolicy policy;
+  EXPECT_TRUE(policy.acceptable(players,
+      otherState,
+      initState));
+  EXPECT_FALSE(policy.acceptable(players,
+      initState,
+      otherState));
 
   EXPECT_TRUE(validInput(players, Xinit));
 

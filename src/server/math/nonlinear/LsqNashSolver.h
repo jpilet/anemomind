@@ -166,21 +166,80 @@ private:
 };
 
 struct Settings {
-
+  int verbosity = 0;
+  int iters = 30;
+  int subIters = 300;
+  double tau = 1.0e-3;
+  double e1 = 1.0e-15;
+  double e2 = 1.0e-15;
+  double e3 = 1.0e-15;
 };
 
 struct Results {
+  enum TerminationType {
+    None = 0,
+
+    Converged = 1,
+
+    // Used all iterations
+    MaxIterationsReached = 2,
+
+    // Failures. Probably a bad solution
+    FullEvaluationFailed = 3,
+    ResidualEvaluationFailed = 4,
+    SolveFailed = 5,
+    IterationsExceeded = 6,
+    InnerStepFailed = 7,
+    MuNotFinite = 8
+  };
+
+  TerminationType type = None;
+  int iterationsCompleted = 0;
+
   Eigen::VectorXd X;
+};
+
+struct State {
+  Array<double> values;
+  Eigen::VectorXd X;
+};
+
+class AcceptancePolicy {
+public:
+  virtual bool acceptable(
+      const Array<Player::Ptr> &players,
+      const State &current,
+      const State &candidate) const = 0;
+  virtual void accept(
+      const Array<Player::Ptr> &players,
+      const State &candidate) = 0;
+  virtual ~AcceptancePolicy() {}
+};
+
+class ApproximatePolicy : public AcceptancePolicy {
+public:
+  bool acceptable(
+      const Array<Player::Ptr> &players,
+      const State &current,
+      const State &candidate) const override;
+
+  void accept(
+      const Array<Player::Ptr> &players,
+      const State &candidate) override {}
 };
 
 bool validInput(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &Xinit);
 
+State evaluateState(
+    const Array<Player::Ptr> &players,
+    const Eigen::VectorXd &X);
+
 Results solve(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &Xinit,
-    const Settings &settings);
+    const Settings &settings = Settings());
 
 }
 }
