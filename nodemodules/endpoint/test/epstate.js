@@ -38,6 +38,13 @@ describe('epstate', function() {
               epstate.getAllEndpointData(ep, function(err, data) {
                 if (err) {return done(err);}
                 var sum = epstate.summarizeEndpointData(data);
+                console.log("sum: " + JSON.stringify(sum, null, 2));
+                var packets = sum.packets;
+                for (var i = 0; i < packets.length; i++) {
+                  var p = packets[i];
+                  assert(typeof p.minSeqNumber == "string");
+                  assert(typeof p.maxSeqNumber == "string");
+                }
                 assert(sum.packets.length == 2);
                 assert(sum.lowerBounds.length == 1);
                 done();
