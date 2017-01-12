@@ -239,6 +239,7 @@ State evaluateState(
 Results solve(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &Xinit,
+    AcceptancePolicy *policy,
     const Settings &settings = Settings());
 
 }

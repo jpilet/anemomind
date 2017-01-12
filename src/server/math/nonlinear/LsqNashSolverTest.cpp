@@ -164,4 +164,8 @@ TEST(LsqNashSolverTest, BasicFunSolveTest) {
 
   EXPECT_TRUE(validInput(players, Xinit));
 
+  Settings settings;
+  settings.verbosity = 3;
+  auto results = solve(players, Xinit, &policy, settings);
+
 }
