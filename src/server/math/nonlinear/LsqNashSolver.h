@@ -19,6 +19,8 @@
 namespace sail {
 namespace LsqNashSolver {
 
+int getMaxInputIndex(const Array<int> &inds);
+
 class SubFunction {
 public:
   virtual double eval(const double *X) const = 0;
@@ -26,12 +28,12 @@ public:
         double *JtF,
         std::vector<Eigen::Triplet<double>> *JtJ) const = 0;
 
-  virtual int inputCount() const = 0;
-  virtual int outputCount() const = 0;
-
-  virtual bool hasValidStrategy(Spani strategySpan) const = 0;
+  virtual int maxInputIndex() const = 0;
+  virtual int jacobianElementCount() const = 0;
 
   virtual ~SubFunction() {}
+
+  typedef std::shared_ptr<SubFunction> Ptr;
 };
 
 template <typename F>
@@ -69,21 +71,12 @@ public:
     return output(Y, JtF, JtJ);
   }
 
-  int inputCount() const override {
-    return F::inputCount;
+  int maxInputIndex() const override {
+    return getMaxInputIndex(_inputIndices);
   }
 
-  int outputCount() const override {
-    return F::outputCount;
-  }
-
-  bool hasValidStrategy(Spani strategySpan) const override {
-      for (auto index: _inputIndices) {
-      if (!strategySpan.contains(index)) {
-        return false;
-      }
-    }
-    return true;
+  int jacobianElementCount() const override {
+    return F::inputCount*F::outputCount;
   }
 private:
   void input(const double *src, double *dst) const {
@@ -135,6 +128,38 @@ private:
   Array<int> _inputIndices;
   std::vector<int> _strategyIndexSubset;
   F _f;
+};
+
+
+class Player {
+public:
+  template <typename F>
+  void addADSubFunction(const F &f, const Arrayi &inds) {
+    add(
+        std::static_pointer_cast<SubFunction>(
+            std::make_shared<ADSubFunction<F>>(_strategySpan,
+                inds, f)));
+  }
+
+
+  Player() {}
+
+
+  Player(Spani span);
+  void add(SubFunction::Ptr p);
+  double eval(const double *X) const;
+  double eval(const double *X,
+      double *JtFout,
+      std::vector<Eigen::Triplet<double>> *JtJout);
+  int minInputSize() const;
+  int jacobianElementCount() const;
+  typedef std::shared_ptr<Player> Ptr;
+private:
+  int _jacobianElementCount = 0;
+  int _minInputSize = 0;
+
+  Spani _strategySpan;
+  std::vector<SubFunction::Ptr> _functions;
 };
 
 }
