@@ -34,24 +34,21 @@ public:
   virtual ~SubFunction() {}
 };
 
-template <typename F,
-  int StrategyLowerBound,
-  int StrategyUpperBound>
+template <typename F>
 class ADSubFunction : public SubFunction {
 public:
-  static_assert(StrategyLowerBound < StrategyUpperBound,
-      "An empty strategy is not so interesting");
-  static_assert(0 <= StrategyLowerBound,
-      "Lower bound too low");
-  static_assert(StrategyUpperBound <= F::inputCount,
-      "Upper bound cannot exceed the number of inputs to F");
-
   typedef ceres::Jet<double, F::inputCount> ADType;
 
-  ADSubFunction(const Array<int> inputIndices,
+  ADSubFunction(Span<int> strategyRange,
+      const Array<int> inputIndices,
       const F &f = F()) :
     _f(f), _inputIndices(inputIndices) {
     CHECK(inputIndices.size() == F::inputCount);
+    for (int i = 0; i < F::inputCount; i++) {
+      if (strategyRange.contains(inputIndices[i])) {
+        _strategyIndexSubset.push_back(i);
+      }
+    }
   }
 
   double eval(const double *X) const override {
@@ -116,7 +113,7 @@ private:
     for (int i = 0; i < F::outputCount; i++) {
       sum += sqr(Ysrc[i].a);
     }
-    for (int i = StrategyLowerBound; i < StrategyUpperBound; i++) {
+    for (int i: _strategyIndexSubset) {
       int I = _inputIndices[i];
       for (int j = 0; j < F::inputCount; j++) {
         int J = _inputIndices[j];
@@ -136,6 +133,7 @@ private:
   }
 
   Array<int> _inputIndices;
+  std::vector<int> _strategyIndexSubset;
   F _f;
 };
 
