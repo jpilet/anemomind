@@ -139,33 +139,88 @@ TEST(LsqNashSolverTest, BasicFunTest) {
   }
 }
 
-TEST(LsqNashSolverTest, BasicFunSolveTest) {
-  auto player1 = std::make_shared<Player>(Spani(0, 1));
-  player1->addADSubFunction(BasicFun<Square>(1, 2), {0, 1});
-  auto player2 = std::make_shared<Player>(Spani(1, 2));
-  player2->addADSubFunction(BasicFun<Square>(2, 1), {0, 1});
-  Array<Player::Ptr> players{player1, player2};
+template <typename F>
+struct BasicSetup {
+  Array<Player::Ptr> players;
+  Eigen::Vector2d Xinit;
 
-  Eigen::VectorXd Xinit(2);
-  Xinit << 2, 2;
+  BasicSetup(double a = 1.2, double b = 0.9) {
+    auto player1 = std::make_shared<Player>(Spani(0, 1));
+    player1->addADSubFunction(BasicFun<Square>(a, 2), {0, 1});
+    auto player2 = std::make_shared<Player>(Spani(1, 2));
+    player2->addADSubFunction(BasicFun<Square>(2.0, b), {0, 1});
+    players = Array<Player::Ptr>{player1, player2};
+    Xinit = Eigen::VectorXd(2);
+    Xinit << 4, 4;
+  }
+};
 
-  Eigen::VectorXd Xother = Xinit + 2.0*Eigen::VectorXd::Ones(2, 1);
+TEST(LsqNashSolverTest, SquareSolveTest) {
+  BasicSetup<Square> setup;
 
-  auto initState = evaluateState(players, Xinit);
-  auto otherState = evaluateState(players, Xother);
+  Eigen::VectorXd Xother = setup.Xinit + 2.0*Eigen::VectorXd::Ones(2, 1);
+
+  auto initState = evaluateState(setup.players, setup.Xinit);
+  auto otherState = evaluateState(setup.players, Xother);
 
   ApproximatePolicy policy;
-  EXPECT_TRUE(policy.acceptable(players,
+  EXPECT_TRUE(policy.acceptable(setup.players,
       otherState,
       initState));
-  EXPECT_FALSE(policy.acceptable(players,
+  EXPECT_FALSE(policy.acceptable(setup.players,
       initState,
       otherState));
 
-  EXPECT_TRUE(validInput(players, Xinit));
+  EXPECT_TRUE(validInput(setup.players, setup.Xinit));
 
   Settings settings;
-  settings.verbosity = 3;
-  auto results = solve(players, Xinit, &policy, settings);
-
+  settings.verbosity = 0;
+  auto results = solve(setup.players, setup.Xinit, &policy, settings);
+  EXPECT_NEAR(results.X(0), 1.2, 1.0e-5);
+  EXPECT_NEAR(results.X(1), 0.9, 1.0e-5);
 }
+
+struct PseudoAbs {
+  template <typename T>
+  static T eval(T x) {
+    return sqrt(x*x + 0.1);
+  }
+};
+
+TEST(LsqNashSolverTest, PseudoAbsTest) {
+  BasicSetup<PseudoAbs> setup;
+  ApproximatePolicy policy;
+  Settings settings;
+  settings.verbosity = 3;
+  auto results = solve(setup.players, setup.Xinit, &policy, settings);
+  EXPECT_NEAR(results.X(0), 1.2, 1.0e-5);
+  EXPECT_NEAR(results.X(1), 0.9, 1.0e-5);
+}
+
+struct GemanMcClure {
+  template <typename T>
+  static T eval(T x) {
+    return x*x/(x*x + 0.01);
+  }
+};
+
+TEST(LsqNashSolverTest, GemanMcClureTest) {
+  BasicSetup<GemanMcClure> setup;
+  ApproximatePolicy policy;
+  Settings settings;
+  settings.verbosity = 3;
+  auto results = solve(setup.players, setup.Xinit, &policy, settings);
+  EXPECT_NEAR(results.X(0), 1.2, 1.0e-5);
+  EXPECT_NEAR(results.X(1), 0.9, 1.0e-5);
+}
+
+TEST(LsqNashSolverTest, GemanMcClureTest2) {
+  BasicSetup<GemanMcClure> setup(-7, 8.11);
+  ApproximatePolicy policy;
+  Settings settings;
+  settings.verbosity = 3;
+  auto results = solve(setup.players, setup.Xinit, &policy, settings);
+  EXPECT_NEAR(results.X(0), -7, 1.0e-5);
+  EXPECT_NEAR(results.X(1), 8.11, 1.0e-5);
+}
+

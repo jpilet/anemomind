@@ -151,9 +151,9 @@ struct FullPlayerEval {
 };
 
 SparseMat FullPlayerEval::makeJtJ(double mu) const {
-  int n = triplets->size() + n;
+  int n = triplets->size() + dim;
   std::vector<Triplet> withDiag = *triplets;
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < dim; i++) {
     withDiag.push_back(Triplet(i, i, mu));
   }
   SparseMat m(dim, dim);
@@ -209,6 +209,9 @@ Results solve(
   for (int i = 0; i < settings.iters; i++) {
     if (1 <= settings.verbosity) {
       LOG(INFO) << "--------- LevMar Iteration " << i;
+      if (2 <= settings.verbosity) {
+        LOG(INFO) << " X = " << X.transpose();
+      }
     }
     double currentCost = 0.0;
 
@@ -221,6 +224,7 @@ Results solve(
 
     bool found = false;
     for (int j = 0; j < settings.subIters; j++) {
+      results.X = X;
       if (2 <= settings.verbosity) {
         LOG(INFO) << "#### Inner iteration " << j;
         LOG(INFO) << "Damping: " << mu;
@@ -273,6 +277,7 @@ Results solve(
   }
 
   results.type = Results::MaxIterationsReached;
+  results.X = X;
   return results;
 }
 
