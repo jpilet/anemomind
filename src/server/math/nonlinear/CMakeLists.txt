@@ -78,24 +78,6 @@ cxx_test(nonlinear_CeresTrajectoryFilterTest
          gtest_main
         )
 
-add_library(nonlinear_GameSolver
-  GameSolver.h
-  GameSolver.cpp
-  )
-
-target_depends_on_adolc(nonlinear_GameSolver)
-
-target_link_libraries(nonlinear_GameSolver
-  common_MeanAndVar
-  common_logging
-  )
-
-cxx_test(nonlinear_GameSolverTest
-  GameSolverTest.cpp
-  gtest_main
-  nonlinear_GameSolver
-  )
-
 add_library(nonlinear_LsqNashSolver
   LsqNashSolver.h
   LsqNashSolver.cpp

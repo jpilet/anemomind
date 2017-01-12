@@ -168,6 +168,8 @@ add_library(calib_GameCalib
   )
 
 target_link_libraries(calib_GameCalib
-  nonlinear_GameSolver
+  nonlinear_LsqNashSolver
   common_DOMUtils
   )
+
+target_depends_on_adolc(calib_GameCalib)

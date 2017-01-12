@@ -325,6 +325,7 @@ adouble evaluateCurrentPlayer(
   return evaluateHeadingFitness(data);
 }
 
+/*
 GameSolver::Function makeCurrentPlayer(
     const Array<CalibDataChunk> &chunks,
     const CurrentSetup &setup,
@@ -335,7 +336,7 @@ GameSolver::Function makeCurrentPlayer(
         OptData{chunks, setup, playerSet, settings, parameters});
   };
 }
-
+*/
 std::string toString(PlayerType t) {
   switch (t) {
   case PlayerType::Current:
@@ -366,19 +367,6 @@ void dispProblemInfo(DOM::Node *dst,
 
 Settings::Settings() {
   static RNG rng;
-
-  GameSolver::RandomStepManager::Settings rs;
-
-  rs.logInitialStepMu = log(100.0);
-  rs.verbose = true;
-  rs.rng = &rng;
-
-  solverSettings.stepManagerPrototype
-    = GameSolver::StepManager::Ptr(
-        new GameSolver::RandomStepManager(rs));
-
-  solverSettings.verbose = true;
-  solverSettings.iterationCount = 30;
 }
 
 void outputSolutionSummary(DOM::Node *dst,
@@ -420,23 +408,6 @@ void optimize(
       settings, dst);
 
   std::set<PlayerType> playerSet{PlayerType::Current};
-  Array<GameSolver::Function> objectives(playerSet.size());
-  Array<Array<double>> initialParameters(playerSet.size());
-  if (0 < playerSet.count(PlayerType::Current)) {
-    int index = getPlayerIndex(playerSet, PlayerType::Current);
-    objectives[index] =
-        makeCurrentPlayer(
-            chunks, currentSetup, playerSet, settings);
-    initialParameters[index] =  currentSetup.makeInitialParameters();
-  }
-  dispProblemInfo(dst, playerSet);
-
-  auto parameters = GameSolver::optimize(objectives, initialParameters,
-      settings.solverSettings);
-
-  outputSolutionSummary(dst,
-        chunks, currentSetup, playerSet, settings,
-        parameters);
 
 }
 

@@ -9,8 +9,8 @@
 #define SERVER_NAUTICAL_CALIB_GAMECALIB_H_
 
 #include <server/nautical/calib/CalibDataChunk.h>
-#include <server/math/nonlinear/GameSolver.h>
 #include <server/common/DOMUtils.h>
+#include <adolc/adouble.h>
 
 namespace sail {
 namespace GameCalib {
@@ -99,7 +99,6 @@ struct Settings {
   Duration<double> currentSamplingPeriod = 1.0_minutes;
   Duration<double> windSamplingPeriod = 1.0_minutes;
 
-  GameSolver::Settings solverSettings;
   std::set<PlayerType> playerTypesToConsider = {PlayerType::Current};
 
   AngleSensor::Ptr magHeadingSensor
