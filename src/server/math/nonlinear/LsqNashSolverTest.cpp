@@ -120,10 +120,20 @@ public:
     T yd = X[1] - _y;
     T len2 = 1.0e-30 + xd*xd + yd*yd;
     T len = sqrt(len2);
+    std::cout << "LEN = " << len << std::endl;
+
+
     T dst = F::template eval<T>(len);
-    T f = dst/len2;
+    std::cout << "dst = " << dst << std::endl;
+
+
+    T f = sqrt(dst/len2);
+
+    std::cout << "f = " << f << std::endl;
+
     Y[0] = f*xd;
     Y[1] = f*yd;
+    std::cout << "THE value = " << sqr(Y[0]) + sqr(Y[1]) << std::endl;
   }
 private:
   double _x, _y;
@@ -186,7 +196,7 @@ TEST(LsqNashSolverTest, SquareSolveTest) {
 struct PseudoAbs {
   template <typename T>
   static T eval(T x) {
-    return sqrt(x*x + 1.0); //sqrt(x*x + 1000.0);
+    return sqrt(x*x + 1.0);
   }
 };
 
