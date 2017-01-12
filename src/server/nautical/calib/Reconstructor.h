@@ -15,7 +15,6 @@
 #include <string>
 #include <device/anemobox/Channels.h>
 #include <server/common/TimedValue.h>
-#include <server/nautical/calib/BoatParameters.h>
 #include <server/common/DOMUtils.h>
 #include <server/common/TimeMapper.h>
 #include <server/nautical/filters/SplineGpsFilter.h>
@@ -45,7 +44,6 @@ struct ReconstructedChunk {
 };
 
 struct ReconstructionResults {
-  BoatParameters<double> parameters;
   Array<ReconstructedChunk> chunks;
 };
 
