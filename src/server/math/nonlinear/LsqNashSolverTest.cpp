@@ -213,8 +213,19 @@ TEST(LsqNashSolverTest, GemanMcClureTest) {
   BasicSetup<GemanMcClure> setup;
   ApproximatePolicy policy;
   Settings settings;
-  settings.verbosity = 3;
+  settings.verbosity = 0;
   auto results = solve(setup.players, setup.Xinit, &policy, settings);
   EXPECT_NEAR(results.X(0), 1.2, tol);
   EXPECT_NEAR(results.X(1), 0.9, tol);
+}
+
+TEST(LsqNashSolverTest, GemanMcClureTest2) {
+  BasicSetup<GemanMcClure> setup(-2, -3);
+  ApproximatePolicy policy;
+  Settings settings;
+  settings.iters = 300;
+  settings.verbosity = 0;
+  auto results = solve(setup.players, setup.Xinit, &policy, settings);
+  EXPECT_NEAR(results.X(0), -2, tol);
+  EXPECT_NEAR(results.X(1), -3, tol);
 }
