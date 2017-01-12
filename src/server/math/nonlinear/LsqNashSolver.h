@@ -29,6 +29,8 @@ public:
   virtual int inputCount() const = 0;
   virtual int outputCount() const = 0;
 
+  virtual bool hasValidStrategy(Spani strategySpan) const = 0;
+
   virtual ~SubFunction() {}
 };
 
@@ -76,6 +78,15 @@ public:
 
   int outputCount() const override {
     return F::outputCount;
+  }
+
+  bool hasValidStrategy(Spani strategySpan) const override {
+      for (auto index: _inputIndices) {
+      if (!strategySpan.contains(index)) {
+        return false;
+      }
+    }
+    return true;
   }
 private:
   void input(const double *src, double *dst) const {
