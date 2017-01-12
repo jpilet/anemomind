@@ -201,8 +201,10 @@ function Endpoint(filename, name, db) {
 }
 
 function tryMakeEndpoint(filename, name, cb) {
-  if (!(common.isString(filename) && common.isIdentifier(name))) {
-    cb(new Error('Invalid input to tryMakeEndpoint'));
+  if (!(common.isString(filename))) {
+    cb(new Error('Invalid filename to tryMakeEndpoint: ' + filename));
+  } else if (!common.isIdentifier(name)) {
+    cb(new Error('Invalid name to tryMakeEndpoint: ' + name));
   } else {
     openDBWithFilename(filename, function(err, db) {
       if (err) {
@@ -787,7 +789,7 @@ function withEP(ep, epOperation, done) {
   });
 }
 
-
+module.exports.getAllFromTable = getAllFromTable;
 module.exports.Endpoint = Endpoint;
 module.exports.isEndpoint = isEndpoint;
 module.exports.tryMakeEndpoint = tryMakeEndpoint;
