@@ -13,12 +13,6 @@ angular.module('www2App')
         templateUrl: 'app/boats/boat-display.html',
         controller: 'BoatsCtrl'
       })
-      .state('boat-home', {
-        url: '/',
-        templateUrl: 'app/boats/boat-display.html',
-        controller: 'BoatsCtrl'
-      })
-
       .state('boat-detail', {
         url: '/boats/:boatId/edit',
         templateUrl: 'app/boats/boat-detail.html',

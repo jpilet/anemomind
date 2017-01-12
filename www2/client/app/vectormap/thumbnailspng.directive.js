@@ -30,7 +30,6 @@ angular.module('www2App')
           scope.mapLocation = boatList.locationForCurve(options.curve);
           scope.start = curveStartTimeStr(scope.selectedCurve);
           scope.end = curveEndTimeStr(scope.selectedCurve);            
-          scope.access_token=Auth.getToken();
 
           scope.width=300;
           scope.height=160;
@@ -42,10 +41,11 @@ angular.module('www2App')
 
           // create PNG
           // /api/map/$boatId/$x,$y,$scale/$start/$end/$w-$h.png
-          var path=$interpolate("/api/map/{{boatId}}/{{mapLocation.x}},{{mapLocation.y}},{{mapLocation.scale}}/{{start}}/{{end}}/{{width}}-{{height}}.png?access_token={{access_token}}")(scope);
+          var path=$interpolate("/api/map/{{boatId}}/{{mapLocation.x}},{{mapLocation.y}},{{mapLocation.scale}}/{{start}}/{{end}}/{{width}}-{{height}}.png")(scope);
+          if (Auth.isLoggedIn()) {
+            path += '?access_token=' + Auth.getToken();
+          }
 
-          //
-          //
           style['background-image']='url('+path+')';
           element.css(style); 
         });

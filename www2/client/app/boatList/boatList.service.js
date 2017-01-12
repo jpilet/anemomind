@@ -7,13 +7,14 @@ angular.module('www2App')
     var curves = { };
     var sessionsForBoats = {};
 
-    //
-    // promise for boats methods;
-    var deferred = $q.defer();
-    var promise=deferred.promise;
+    // Either 'anonymous', or a username, or undefined.
+    // Used to cache requests
+    var loadedFor;
+
+    // if defined, contain the currently loading promise for boats()
+    var loading;
 
 
-    //
     // update local dict and array of boats
     function updateBoatRepo(boat) {
       boatDict[boat._id] = boat;
@@ -49,12 +50,10 @@ angular.module('www2App')
     }
 
     function update() {
-      //
-      // if this promise is already deferred
-      if(promise.$$state.status){
-        deferred = $q.defer();  
-        promise=deferred.promise;      
-      }
+      // promise for boats methods;
+      var deferred = $q.defer();
+      var promise=deferred.promise;
+      loading = promise;
 
       // Specifically do not ask for public boats.
       // We could have a user option to show public boats with:
@@ -88,10 +87,29 @@ angular.module('www2App')
           // time to resolve promise
           $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
           $log.log('-- boatList.update',boats.length);
+
+          loadedFor = userOrAnomymous();
+          loading = undefined;
           deferred.resolve(boats);            
         });
 
       return promise;
+    }
+
+    function userOrAnomymous() {
+      return (Auth.isLoggedIn() ? Auth.getCurrentUser() : 'anonymous');
+    }
+
+    function cachedBoats() {
+      if (loading) {
+        return loading;
+      }
+      if (loadedFor == userOrAnomymous()) {
+        var d = $q.defer();
+        d.resolve(boats);
+        return d.promise;
+      }
+      return update();
     }
 
 
@@ -117,17 +135,6 @@ angular.module('www2App')
       return c.location;
     }
 
-    //
-    // init
-    // update();
-    $rootScope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
-      if (newVal && newVal != oldVal) {
-        //
-        // force update boats
-        $log.log('-- boatList.watch.isLoggedIn',newVal);
-        update();    
-      }
-    });
 
     //
     // service result
@@ -135,12 +142,12 @@ angular.module('www2App')
       boat: function(id) { return boatDict[id]; },
       save: save,
       addMember:addMember,
-      boats: function() { return promise; },
+      boats: cachedBoats,
       sessions: function() { return $.extend({}, sessionsForBoats); },
       sessionsForBoat: function(boatId) { return sessionsForBoats[boatId]; },
       getCurveData: function(curveId) { return curves[curveId]; },
       getDefaultBoat: getDefaultBoat,
       locationForCurve: locationForCurve,
-      update: update,
+      update: cachedBoats,
     };
   });
