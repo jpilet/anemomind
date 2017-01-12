@@ -8,6 +8,7 @@
 #include "LsqNashSolver.h"
 #include <server/common/indexed.h>
 #include <server/math/EigenUtils.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 namespace LsqNashSolver {
@@ -207,12 +208,6 @@ Results solve(
   Eigen::VectorXd X = Xinit;
   Eigen::SparseLU<SparseMat> decomp;
   for (int i = 0; i < settings.iters; i++) {
-    if (1 <= settings.verbosity) {
-      LOG(INFO) << "--------- LevMar Iteration " << i;
-      if (2 <= settings.verbosity) {
-        LOG(INFO) << " X = " << X.transpose();
-      }
-    }
     double currentCost = 0.0;
 
     auto e = eval(players, X);
@@ -220,6 +215,15 @@ Results solve(
 
     if (i == 0) {
       mu = settings.tau*e.maxDiag;
+    }
+
+    if (1 <= settings.verbosity) {
+      LOG(INFO) << "--------- LevMar Iteration " << i;
+      if (2 <= settings.verbosity) {
+        LOG(INFO) << " X = " << X.transpose();
+        LOG(INFO) << "Descent direction: " << -e.JtF.transpose();
+        LOG(INFO) << "Current values: " << current.values;
+      }
     }
 
     bool found = false;
@@ -241,6 +245,10 @@ Results solve(
       decomp.factorize(dampedJtJ);
 
       Eigen::VectorXd step = decomp.solve(-e.JtF);
+      if (3 <= settings.verbosity) {
+        LOG(INFO) << "Proposed step: " << step.transpose();
+      }
+
       Eigen::VectorXd Xnew = X + step;
 
       State candidate = evaluateState(players, Xnew);

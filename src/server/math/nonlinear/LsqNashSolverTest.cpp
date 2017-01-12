@@ -142,16 +142,19 @@ TEST(LsqNashSolverTest, BasicFunTest) {
 template <typename F>
 struct BasicSetup {
   Array<Player::Ptr> players;
-  Eigen::Vector2d Xinit;
+  Eigen::Vector2d Xinit, Xab;
 
   BasicSetup(double a = 1.2, double b = 0.9) {
     auto player1 = std::make_shared<Player>(Spani(0, 1));
-    player1->addADSubFunction(BasicFun<Square>(a, 2), {0, 1});
+    player1->addADSubFunction(BasicFun<F>(a, 2), {0, 1});
     auto player2 = std::make_shared<Player>(Spani(1, 2));
-    player2->addADSubFunction(BasicFun<Square>(2.0, b), {0, 1});
+    player2->addADSubFunction(BasicFun<F>(2.0, b), {0, 1});
     players = Array<Player::Ptr>{player1, player2};
     Xinit = Eigen::VectorXd(2);
     Xinit << 4, 4;
+
+    Xab = Eigen::VectorXd(2);
+    Xab << a, b;
   }
 };
 
@@ -174,7 +177,7 @@ TEST(LsqNashSolverTest, SquareSolveTest) {
   EXPECT_TRUE(validInput(setup.players, setup.Xinit));
 
   Settings settings;
-  settings.verbosity = 0;
+  settings.verbosity = 3;
   auto results = solve(setup.players, setup.Xinit, &policy, settings);
   EXPECT_NEAR(results.X(0), 1.2, 1.0e-5);
   EXPECT_NEAR(results.X(1), 0.9, 1.0e-5);
@@ -183,7 +186,7 @@ TEST(LsqNashSolverTest, SquareSolveTest) {
 struct PseudoAbs {
   template <typename T>
   static T eval(T x) {
-    return sqrt(x*x + 0.1);
+    return sqrt(x*x + 1.0); //sqrt(x*x + 1000.0);
   }
 };
 
@@ -196,31 +199,3 @@ TEST(LsqNashSolverTest, PseudoAbsTest) {
   EXPECT_NEAR(results.X(0), 1.2, 1.0e-5);
   EXPECT_NEAR(results.X(1), 0.9, 1.0e-5);
 }
-
-struct GemanMcClure {
-  template <typename T>
-  static T eval(T x) {
-    return x*x/(x*x + 0.01);
-  }
-};
-
-TEST(LsqNashSolverTest, GemanMcClureTest) {
-  BasicSetup<GemanMcClure> setup;
-  ApproximatePolicy policy;
-  Settings settings;
-  settings.verbosity = 3;
-  auto results = solve(setup.players, setup.Xinit, &policy, settings);
-  EXPECT_NEAR(results.X(0), 1.2, 1.0e-5);
-  EXPECT_NEAR(results.X(1), 0.9, 1.0e-5);
-}
-
-TEST(LsqNashSolverTest, GemanMcClureTest2) {
-  BasicSetup<GemanMcClure> setup(-7, 8.11);
-  ApproximatePolicy policy;
-  Settings settings;
-  settings.verbosity = 3;
-  auto results = solve(setup.players, setup.Xinit, &policy, settings);
-  EXPECT_NEAR(results.X(0), -7, 1.0e-5);
-  EXPECT_NEAR(results.X(1), 8.11, 1.0e-5);
-}
-
