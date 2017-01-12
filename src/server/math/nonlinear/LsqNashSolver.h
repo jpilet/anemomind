@@ -204,6 +204,17 @@ struct State {
   Eigen::VectorXd X;
 };
 
+/*
+ * This is the policy used to determine whether
+ * a new proposed solution is good enough to be
+ * accepted. With only one player, it should make
+ * sure that the objective function of that player
+ * is minimized. If that is not the case, then
+ * the policy is flawed.
+ *
+ * We could investigate the use of the Nikaido-Isoda
+ * function for implementing such a policy.
+ */
 class AcceptancePolicy {
 public:
   virtual bool acceptable(
@@ -216,6 +227,8 @@ public:
   virtual ~AcceptancePolicy() {}
 };
 
+// This is a heuristic that seems to work
+// well in practice and is quite efficient to use.
 class ApproximatePolicy : public AcceptancePolicy {
 public:
   bool acceptable(
@@ -243,7 +256,7 @@ State evaluateState(
 //
 // but up to now, I have not received a very detailed answer.
 // So I hacked my own algorithm, based on the Levenberg-Marquardt
-// algorithm.
+// algorithm: http://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
 Results solve(
     const Array<Player::Ptr> &players,
     const Eigen::VectorXd &Xinit,

@@ -285,8 +285,15 @@ Results solve(
           LOG(INFO) << "   Accept the update";
         }
         policy->accept(players, candidate);
+
         X = Xnew;
-        mu *= 0.5; //acceptedUpdateFactor(rho); Unfortunately, we cannot compute rho.
+        // Reduce it by a fixed factor.
+        // Here we would have done something
+        // more fancy if we were implementing the Lourakis version
+        // levmar. But that would have required a single obj fun
+        // which we don't have.
+        mu *= 0.5;
+
         v = 2.0;
 
         found = true;
