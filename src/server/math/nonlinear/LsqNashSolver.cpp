@@ -76,7 +76,7 @@ bool ApproximatePolicy::acceptable(
     const Array<Player::Ptr> &players,
     const State &current,
     const State &candidate) const {
-  /* This is not a good idea in pracice:
+  /* This doesn't work in practice:
   if (dominates(current, candidate)) {
     return false;
   }*/
