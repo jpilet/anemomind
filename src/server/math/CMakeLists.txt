@@ -133,14 +133,6 @@ cxx_test(math_ResamplerTest
   gtest_main
   )        
 
-cxx_test(math_BandedLevMarTest
-  BandedLevMarTest.cpp
-  lapack_BandWrappers
-  common_logging
-  gtest_main
-  common_LineKM
-  )
-
 cxx_test(math_AxisAngleTest
   AxisAngleTest.cpp
   gtest_main

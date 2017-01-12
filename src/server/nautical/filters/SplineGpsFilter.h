@@ -14,7 +14,6 @@
 #include <server/math/Spline.h>
 #include <server/common/TimedValue.h>
 #include <server/nautical/GeographicPosition.h>
-#include <server/math/BandedLevMar.h>
 #include <server/math/OutlierRejector.h>
 #include <server/common/MDArray.h>
 
