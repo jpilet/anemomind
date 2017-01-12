@@ -61,10 +61,26 @@ Spani Player::strategySpan() const {
   return _strategySpan;
 }
 
+bool dominates(const State &a, const State &b) {
+  int n = a.values.size();
+  assert(n == b.values.size());
+  for (int i = 0; i < n; i++) {
+    if (b.values[i] < a.values[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool ApproximatePolicy::acceptable(
     const Array<Player::Ptr> &players,
     const State &current,
     const State &candidate) const {
+  /* This is not a good idea in pracice:
+  if (dominates(current, candidate)) {
+    return false;
+  }*/
+
   for (int i = 0; i < players.size(); i++) {
     Eigen::VectorXd tmp = candidate.X;
     auto player = players[i];
