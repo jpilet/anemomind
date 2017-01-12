@@ -7,11 +7,8 @@ www2_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "www2_dir = $www2_dir"
 rm -rf /tmp/endpoints || true
 rm -r /tmp/synctest_message.txt || true
-cd "$www2_dir" 
 rm -rf "${www2_dir}/uploads/anemologs/boat57f678e612063872e749d481"
-cd "$www2_dir" 
 echo "Launching the server!"
-cd "$www2_dir"
 if sh sync_check.sh; then
   echo "The sync_check.sh should not pass, something is wrong!"
   exit 1
@@ -25,7 +22,6 @@ do
 done    
 
 echo "This data should go on the box!" > /tmp/synctest_message.txt 
-cd utilities 
-node SendBoatData 57f678e612063872e749d481 /tmp/synctest_message.txt /media/sdcard/logs/synctest_message_dst.txt 
+node "${www2_dir}/utilities/SendBoatData" 57f678e612063872e749d481 /tmp/synctest_message.txt /media/sdcard/logs/synctest_message_dst.txt 
 sleep 4s 
 echo "Seems like things went well so far, now apply the AnemomindApp fixes and synchronize the app with the box and the server."
