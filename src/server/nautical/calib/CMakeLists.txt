@@ -55,22 +55,6 @@ target_link_libraries(calib_CalibrationBenchmark
                       logimport_LogLoader
                      )
 
-add_library(calib_Fitness
-  Fitness.h
-  Fitness.cpp
-  )
-
-target_link_libraries(calib_Fitness
-  anemobox_Dispatcher
-  nautical_AbsoluteOrientation
-  )
-
-cxx_test(calib_FitnessTest
-  FitnessTest.cpp
-  calib_Fitness
-  gtest_main
-  )
-  
 cxx_test(calib_SensorSetTest
   SensorSetTest.cpp
   anemobox_Dispatcher
