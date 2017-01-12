@@ -42,7 +42,7 @@ double Player::eval(const double *X,
 
 void Player::add(SubFunction::Ptr p) {
   _functions.push_back(p);
-  _jacobianElementCount += p->jacobianElementCount();
+  _jacobianElementCount += p->JtJElementCount();
   _minInputSize = std::max(_minInputSize, 1 + p->maxInputIndex());
 }
 
@@ -50,7 +50,7 @@ int Player::minInputSize() const {
   return _minInputSize;
 }
 
-int Player::jacobianElementCount() const {
+int Player::JtJElementCount() const {
   return _jacobianElementCount;
 }
 

@@ -29,7 +29,7 @@ public:
         std::vector<Eigen::Triplet<double>> *JtJ) const = 0;
 
   virtual int maxInputIndex() const = 0;
-  virtual int jacobianElementCount() const = 0;
+  virtual int JtJElementCount() const = 0;
 
   virtual ~SubFunction() {}
 
@@ -75,8 +75,8 @@ public:
     return getMaxInputIndex(_inputIndices);
   }
 
-  int jacobianElementCount() const override {
-    return F::inputCount*F::outputCount;
+  int JtJElementCount() const override {
+    return F::inputCount*_strategyIndexSubset.size();
   }
 private:
   void input(const double *src, double *dst) const {
@@ -110,10 +110,12 @@ private:
       int I = _inputIndices[i];
       for (int j = 0; j < F::inputCount; j++) {
         int J = _inputIndices[j];
+        double sum = 0.0;
         for (int k = 0; k < F::outputCount; k++) {
-          JtJ->push_back(Eigen::Triplet<double>(
-              I, J, Ysrc[k].v[i]*Ysrc[k].v[j]));
+          sum += Ysrc[k].v[i]*Ysrc[k].v[j];
         }
+        JtJ->push_back(Eigen::Triplet<double>(
+            I, J, sum));
       }
       double sum = 0.0;
       for (int j = 0; j < F::outputCount; j++) {
@@ -152,7 +154,7 @@ public:
       double *JtFout,
       std::vector<Eigen::Triplet<double>> *JtJout);
   int minInputSize() const;
-  int jacobianElementCount() const;
+  int JtJElementCount() const;
   typedef std::shared_ptr<Player> Ptr;
 private:
   int _jacobianElementCount = 0;
