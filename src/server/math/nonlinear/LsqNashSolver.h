@@ -165,6 +165,19 @@ private:
   std::vector<SubFunction::Ptr> _functions;
 };
 
+struct Settings {
+
+};
+
+struct Results {
+  Eigen::VectorXd X;
+};
+
+Results solve(
+    const Array<Player::Ptr> &players,
+    const Eigen::VectorXd &Xinit,
+    const Settings &settings);
+
 }
 }
 

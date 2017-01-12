@@ -34,7 +34,7 @@ Eigen::Vector2d computeF(double x, double y) {
   return Eigen::Vector2d(sin(x) + y*y, 4*x*x + cos(3*y));
 }
 
-TEST(LsqNashSolverTest, ADSubFunctionTest) {
+TEST(LsqNashSolverTest, PlayerTest) {
 
   double x = 0.9;
   double y = 4.6;
@@ -97,3 +97,44 @@ TEST(LsqNashSolverTest, ADSubFunctionTest) {
 }
 
 
+class Square {
+public:
+  template <typename T>
+  static T eval(T x) {
+    return x*x;
+  }
+};
+
+template <typename F>
+class BasicFun {
+public:
+  BasicFun() : _x(0), _y(0) {}
+  BasicFun(double x, double y) : _x(x), _y(y) {}
+
+  static const int inputCount = 2;
+  static const int outputCount = 2;
+
+  template <typename T>
+  void eval(const T *X, T *Y) const {
+    T xd = X[0] - _x;
+    T yd = X[1] - _y;
+    T len2 = 1.0e-30 + xd*xd + yd*yd;
+    T len = sqrt(len2);
+    T dst = F::template eval<T>(len);
+    T f = dst/len2;
+    Y[0] = f*xd;
+    Y[1] = f*yd;
+  }
+private:
+  double _x, _y;
+};
+
+TEST(LsqNashSolverTest, BasicFunTest) {
+  auto f = BasicFun<Square>(1, 1);
+  {
+    double x[2] = {3, 2};
+    double y[2] = {0, 0};
+    f.eval(x, y);
+    EXPECT_NEAR(sqr(y[0]) + sqr(y[1]), 2*2 + 1*1, 1.0e-4);
+  }
+}
