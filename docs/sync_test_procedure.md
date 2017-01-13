@@ -37,6 +37,7 @@ We will be referring to a number of interfaces between which you need to switch 
  - **iOS**: Go to the *Home* view and synchronize with the anemobox.
  - **anemomind/www2**: Press ```Ctrl+C``` to halt the web server.
  - **anemobox**: Press ```Ctrl+C``` to halt the anemonode server. If the box restarts, just try to log in again once it has restarted.
+ - **XCode**: Press the "Stop" button to close the app.
 
 By now, a file should have been successfully transferred from the box to the server, and another file should have been transferred from the server to the box. Let's check that this is the case.
 
