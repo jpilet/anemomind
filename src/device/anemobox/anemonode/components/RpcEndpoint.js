@@ -41,7 +41,7 @@ function callEndpointMethod(endpointName, methodName, args, cbFinal) {
 	    if (err) {
 	      cb(err);
 	    } else {
-              cb(null, result);
+        cb(null, result);
 	    }
 	  }
 	]));
