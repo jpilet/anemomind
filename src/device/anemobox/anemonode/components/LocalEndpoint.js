@@ -21,7 +21,7 @@ var triggerSync = require('./sync.js').triggerSync;
 var endpoints = {};
 var files = require('endpoint/files.js');
 
-var estimator = require('./estimator.js');
+//var estimator = require('./estimator.js');
 
 function endpointCount() {
   var counter = 0;
@@ -75,12 +75,13 @@ function registerEndpoint(endpointName, endpoint) {
 function handleIncomingFiles(files) {
   console.log('Received files: ' + files.join(', '));
 
-  for (var i in files) {
+  console.log("UNCOMMENT THIS in LocalEndpoint.js");
+  /*for (var i in files) {
     if (path.resolve(files[i]) == path.resolve(estimator.calibFilePath())) {
       console.log('Loading calibration from ' + files[i]);
       estimator.loadCalib(files[i]);
     }
-  }
+  }*/
 
   // flush caches to disk
   sync();
