@@ -191,6 +191,8 @@ public:
     return TimedSampleRange<typename TypeForCode<Code>::type>(lower, upper);
   }
 
+  // returns a one line string describing bounds.
+  std::string boundsAsString() const;
   void outputSummary(std::ostream *dst) const;
 
   bool operator== (const NavDataset &other) const {
