@@ -53,6 +53,7 @@ struct BoatLogProcessor {
   std::string _resumeAfterPrepare;
   std::string _savePreparedData;
   bool _verboseCalibrator = false;
+  bool _exploreGrammar = false;
 
   mongo::DBClientConnection db;
 };

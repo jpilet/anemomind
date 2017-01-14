@@ -25,6 +25,7 @@
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/grammars/TreeExplorer.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
@@ -237,6 +238,12 @@ Nav::Id extractBoatId(Poco::Path path) {
   return path.directory(path.depth()-1);
 }
 
+std::string grammarNodeInfo(const NavDataset& navs, std::shared_ptr<HTree> tree) {
+  Nav right = getNav(navs, tree->right()-1);
+  Nav left = getNav(navs, tree->left());
+  return left.time().toString() + " " + (right.time() - left.time()).str();
+}
+
 }  // namespace
 
 NavDataset loadNavs(ArgMap &amap, std::string boatId) {
@@ -315,10 +322,17 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
+  if (_exploreGrammar) {
+    exploreTree(
+        _grammar.grammar.nodeInfo(), fulltree, &std::cout, 
+        [&](std::shared_ptr<HTree> t) { return grammarNodeInfo(resampled, t); });
+  }
+
   Calibrator calibrator(_grammar.grammar);
   if (_verboseCalibrator) { calibrator.setVerbose(); }
   std::string boatDatPath = _dstPath.toString() + "/boat.dat";
   std::ofstream boatDatFile(boatDatPath);
+  CHECK(boatDatFile.is_open()) << "Error opening " << boatDatPath;
 
   // Calibrate. TODO: use filtered data instead of resampled.
   if (calibrator.calibrate(resampled, fulltree, _boatid)) {
@@ -329,7 +343,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   }
 
   // First simulation pass: adds true wind
-  NavDataset simulated = calibrator.simulate(resampled);
+  NavDataset simulated1 = calibrator.simulate(resampled);
 
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system
@@ -392,6 +406,8 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _gpsFilter = !amap->optionProvided("--no-gps-filter");
 
   _tileParams.fullClean = amap->optionProvided("--clean");
+
+  _exploreGrammar = amap->optionProvided("--explore");
 
   _chartTileSettings.dbName = _tileParams.dbName;
   if (_debug) {
@@ -500,6 +516,9 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--verbose-calib", "Enable debug output for calibration")
     .store(&processor._verboseCalibrator);
+
+  amap.registerOption("--explore", "Explore grammar tree")
+    .store(&processor._exploreGrammar);
 
   auto status = amap.parse(argc, argv);
   switch (status) {
