@@ -208,9 +208,23 @@ NavDataset NavDataset::fitBounds() const {
   return NavDataset(_dispatcher, _merged, visitor.lowerBound(), visitor.upperBound());
 }
 
+std::string NavDataset::boundsAsString() const {
+  BoundVisitor visitor;
+  visitDispatcherChannels(_dispatcher.get(), &visitor);
+  std::string result = visitor.lowerBound().toString()
+    + " - " + visitor.upperBound().toString();
+  if (_lowerBound.defined()) {
+    result += " start selection: " + _lowerBound.toString();
+  }
+  if (_upperBound.defined()) {
+    result += " end selection: " + _upperBound.toString();
+  }
+  return result;
+}
+
 void NavDataset::outputSummary(std::ostream *dst) const {
   std::stringstream ss;
-  *dst << "\n\nNavDataset summary:";
+  *dst << "\n\nNavDataset summary: " << boundsAsString();
   *dst << "\nMerged channels:";
 #define DISP_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   { \

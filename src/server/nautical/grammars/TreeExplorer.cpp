@@ -35,8 +35,8 @@ namespace {
         if (bool(infoFun)) {
           infostr = " (" + infoFun(tree) + ")";
         }
-        outputIndentedLine(stringFormat("%sNode of type %d (%s) with %d children%s",
-            prefix, index, type.c_str(), chn, infostr.c_str()),
+        outputIndentedLine(stringFormat("%s %s (%d children) %s",
+            prefix, type.c_str(), chn, infostr.c_str()),
             depth, out);
         if (shallow) {
           return std::shared_ptr<HTree>();
