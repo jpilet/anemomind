@@ -292,9 +292,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
-  DOM::Node output;
+  DOM::Node htmlReport;
   if (!_htmlReportName.empty()) {
-    output = DOM::makeBasicHtmlPage("Boat log processor",
+    htmlReport = DOM::makeBasicHtmlPage("Boat log processor",
         _dstPath.toString(), _htmlReportName);
   }
 
@@ -304,14 +304,14 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
     NavDataset raw = loadNavs(*amap, _boatid);
-    infoNavDataset("After loading", raw, &output);
+    infoNavDataset("After loading", raw, &htmlReport);
     resampled = downSampleGpsTo1Hz(raw);
 
-    infoNavDataset("After resampling GPS", resampled, &output);
+    infoNavDataset("After resampling GPS", resampled, &htmlReport);
 
     if (_gpsFilter) {
       resampled = filterNavs(resampled,
-          &output,
+          &htmlReport,
           _gpsFilterSettings);
     }
   }
