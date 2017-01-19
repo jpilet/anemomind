@@ -250,7 +250,7 @@ app.directive('boatMainImage', ['$parse','$location', function($parse,$location)
           var path=scope.$parent.photoUrl(boatMainImage._id,photo.src,'300x400');
           style['background-image']='url('+path+')';
           return element.css(style).click(function(){
-            $location.path(`/map/${boatMainImage._id}`).search({c:photo.sid,t:scope.timeToInt(photo.when)});
+            $location.path("/map/" + boatMainImage._id).search({c:photo.sid,t:scope.timeToInt(photo.when)});
             scope.$apply();
           });
 
