@@ -239,6 +239,7 @@ Nav::Id extractBoatId(Poco::Path path) {
 }
 
 std::string grammarNodeInfo(const NavDataset& navs, std::shared_ptr<HTree> tree) {
+  CHECK(tree->left() < tree->right());
   Nav right = getNav(navs, tree->right()-1);
   Nav left = getNav(navs, tree->left());
   return left.time().toString() + " " + (right.time() - left.time()).str();
