@@ -37,6 +37,7 @@ struct BoatLogProcessor {
   bool process(ArgMap* amap);
   void readArgs(ArgMap* amap);
   bool prepare(ArgMap* amap);
+  void infoNavDataset(const std::string& info, const NavDataset& ds);
 
   bool _debug = false;
   Nav::Id _boatid;
@@ -53,6 +54,7 @@ struct BoatLogProcessor {
   std::string _resumeAfterPrepare;
   std::string _savePreparedData;
   bool _verboseCalibrator = false;
+  bool _exploreGrammar = false;
 
   mongo::DBClientConnection db;
 };
