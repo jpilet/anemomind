@@ -1,0 +1,14 @@
+{
+  "name": "lslog",
+  "version": "1.0.0",
+  "description": "list log files with human readable dates",
+  "main": "lslog.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Julien Pilet",
+  "license": "(c) 2016-2017 Anemomind. all rights reserved",
+  "dependencies": {
+    "glob": "^7.1.1"
+  }
+}
