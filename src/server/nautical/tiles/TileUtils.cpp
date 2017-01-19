@@ -65,8 +65,7 @@ NavDataset filterNavs(
     return NavDataset();
   }
 
-  auto motions = results.getGpsMotions(
-      settings.subProblemThreshold);
+  auto motions = results.motions;
   TimedSampleCollection<Angle<double>>::TimedVector gpsBearings;
   TimedSampleCollection<Velocity<double>>::TimedVector gpsSpeeds;
   splitMotionsIntoAnglesAndNorms(motions,
@@ -81,7 +80,7 @@ NavDataset filterNavs(
     .replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       makeFilteredGpsName<GPS_POS>(navs),
-      results.getGlobalPositions())
+      results.positions)
     .replaceChannel<Velocity<double> >(
       GPS_SPEED,
       makeFilteredGpsName<GPS_SPEED>(navs),

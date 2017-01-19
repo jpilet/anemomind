@@ -26,7 +26,7 @@ struct GpsFilterSettings {
   Duration<double> subProblemLength = Duration<double>::hours(4.0);
 };
 
-struct GpsFilterResults {
+struct LocalGpsFilterResults {
   GeographicReference geoRef;
   Array<CeresTrajectoryFilter::Types<2>::TimedPosition>
     rawLocalPositions,
@@ -37,6 +37,12 @@ struct GpsFilterResults {
   TimedSampleCollection<HorizontalMotion<double> >
     ::TimedVector getGpsMotions(
         Duration<double> maxTimeDiff) const;
+};
+
+struct GpsFilterResults {
+  bool empty() const {return positions.empty();}
+  TimedSampleCollection<GeographicPosition<double> >::TimedVector positions;
+  TimedSampleCollection<HorizontalMotion<double> >::TimedVector motions;
 };
 
 Array<TimeStamp> listSplittingTimeStamps(const Array<TimeStamp> &timeStamps,

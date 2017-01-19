@@ -101,7 +101,7 @@ TEST(SmoothGpsFilterTest, TestComputedMotions) {
       timedPos(6, 7, 2)
     };
 
-  GpsFilterResults results{
+  LocalGpsFilterResults results{
     GeographicReference(GeographicPosition<double>(34.4*deg, 344.3*deg)),
     raw, filtered
   };
@@ -139,9 +139,9 @@ TEST(SmoothGpsFilterTest, TestIt) {
   DOM::Node out;
   auto filtered0 = filterGpsData(corrupted, &out);
 
-  EXPECT_FALSE(filtered0.filteredLocalPositions.empty());
+  EXPECT_FALSE(filtered0.positions.empty());
 
-  auto filteredPositions = filtered0.getGlobalPositions();
+  auto filteredPositions = filtered0.positions;
 
 
   int filteredCounter = 0;

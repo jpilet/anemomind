@@ -72,10 +72,7 @@ int performTheFiltering(std::string inputPath, std::string outputPath,
     DOM::Node output;
     auto filtered = filterGpsData(ds, &output);
     LOG(INFO) << "Filtered, save it";
-    outputLocalPositions(pb.makeFile(stringFormat("raw_positions_%d.txt", i)).get().toString(),
-        filtered.rawLocalPositions);
-    outputLocalPositions(pb.makeFile(stringFormat("filtered_positions_%d.txt", i)).get().toString(),
-        filtered.filteredLocalPositions);
+    LOG(FATAL) << "We need to implement output of the positions here";
     LOG(INFO) << "Saved";
   }
   LOG(INFO) << "Filtered all sessions";

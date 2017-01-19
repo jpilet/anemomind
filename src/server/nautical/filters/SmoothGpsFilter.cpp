@@ -61,7 +61,7 @@ namespace {
 
 
 TimedSampleCollection<GeographicPosition<double> >::TimedVector
-  GpsFilterResults::getGlobalPositions() const {
+  LocalGpsFilterResults::getGlobalPositions() const {
   int n = filteredLocalPositions.size();
   TimedSampleCollection<GeographicPosition<double> >::TimedVector dst;
   dst.resize(n);
@@ -85,7 +85,7 @@ namespace {
 }
 
 TimedSampleCollection<HorizontalMotion<double> >::TimedVector
-  GpsFilterResults::getGpsMotions(Duration<double> maxTimeDiff) const {
+  LocalGpsFilterResults::getGpsMotions(Duration<double> maxTimeDiff) const {
   int n = filteredLocalPositions.size() - 1;
   TimedSampleCollection<HorizontalMotion<double> >::TimedVector samples;
   for (int i = 0; i < n; i++) {
@@ -142,7 +142,7 @@ Array<CeresTrajectoryFilter::Types<2>::TimedPosition> removePositionsFarAway(
   return dst.get();
 }
 
-GpsFilterResults solveGpsSubproblem(
+LocalGpsFilterResults solveGpsSubproblem(
     const Array<TimeStamp> &samplingTimes,
     const Array<TimedValue<GeographicPosition<double>>> rawPositions,
     const Array<TimedValue<HorizontalMotion<double>>> &motions,
@@ -201,10 +201,10 @@ GpsFilterResults solveGpsSubproblem(
       DOM::addSubTextNode(
           dst, "p", "Failed to filter GPS data")
         .warning();
-      return GpsFilterResults();
+      return LocalGpsFilterResults();
     }
 
-    return GpsFilterResults{geoRef,
+    return LocalGpsFilterResults{geoRef,
       rawLocalPositions,
       filtered};
 }
@@ -265,18 +265,28 @@ template Array<Array<TimedValue<int> > >
     const Array<TimeStamp> &splits);
 
 GpsFilterResults mergeSubResults(
-    const std::vector<GpsFilterResults> &subResults) {
+    const std::vector<LocalGpsFilterResults> &subResults,
+    Duration<double> thresh) {
   if (subResults.empty()) {
     return GpsFilterResults();
   }
+
+  TimedSampleCollection<GeographicPosition<double> >::TimedVector positions;
+  TimedSampleCollection<HorizontalMotion<double> >::TimedVector motions;
+
+  for (auto x: subResults) {
+    auto pos = x.getGlobalPositions();
+    auto mot = x.getGpsMotions(thresh);
+    for (auto y: pos) {
+      positions.push_back(y);
+    }
+    for (auto y: mot) {
+      motions.push_back(y);
+    }
+  }
+
   return GpsFilterResults{
-    subResults.front().geoRef,
-    concat(sail::map(subResults, [](const GpsFilterResults &r) {
-      return r.rawLocalPositions;
-    })),
-    concat(sail::map(subResults, [](const GpsFilterResults &r) {
-      return r.filteredLocalPositions;
-    })),
+    positions, motions
   };
 }
 
@@ -323,7 +333,7 @@ Array<TimeStamp> listSplittingTimeStampsNotTooLong(
 }
 
 void dispSubResults(
-  const GpsFilterResults &x,
+  const LocalGpsFilterResults &x,
   DOM::Node *dstOL) {
   std::stringstream ss;
   ss << x.filteredLocalPositions.size()
@@ -380,7 +390,7 @@ GpsFilterResults filterGpsData(
   CHECK(expectedSliceCount == timeSlices.size());
   CHECK(expectedSliceCount == positionSlices.size());
   CHECK(expectedSliceCount == motionSlices.size());
-  std::vector<GpsFilterResults> subResults;
+  std::vector<LocalGpsFilterResults> subResults;
 
   DOM::addSubTextNode(dst, "h2", "Producing GPS filter sub results");
   auto ol = DOM::makeSubNode(dst, "ol");
@@ -412,7 +422,7 @@ GpsFilterResults filterGpsData(
         .warning();
     }
   }
-  return mergeSubResults(subResults);
+  return mergeSubResults(subResults, settings.subProblemThreshold);
 }
 
 }
