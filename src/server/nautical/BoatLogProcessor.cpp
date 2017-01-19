@@ -414,11 +414,11 @@ void BoatLogProcessor::infoNavDataset(const std::string& info,
   if (_debug) {
     std::cout << info << ": ";
     ds.outputSummary(&std::cout);
-    DOM::addSubTextNode(dst, "h2", info);
-    std::stringstream ss;
-    ds.outputSummary(&ss);
-    DOM::addSubTextNode(dst, "p", ss.str());
   }
+  DOM::addSubTextNode(dst, "h2", info);
+  std::stringstream ss;
+  ds.outputSummary(&ss);
+  DOM::addSubTextNode(dst, "pre", ss.str());
 }
 
 void BoatLogProcessor::readArgs(ArgMap* amap) {
