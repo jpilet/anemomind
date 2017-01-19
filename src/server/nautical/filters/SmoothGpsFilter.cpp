@@ -15,6 +15,7 @@
 #include <server/common/Progress.h>
 #include <server/common/TimedTypedefs.h>
 #include <server/common/Span.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 
@@ -40,7 +41,7 @@ namespace {
 
   Array<CeresTrajectoryFilter::Types<2>::TimedPosition> getLocalPositions(
       const GeographicReference &geoRef,
-      const TimedSampleRange<GeographicPosition<double> > &positions) {
+      const Array<TimedValue<GeographicPosition<double> >> &positions) {
     int n = positions.size();
     Array<CeresTrajectoryFilter::Types<2>::TimedPosition> dst(n);
     Progress prog(n);
@@ -143,10 +144,17 @@ Array<CeresTrajectoryFilter::Types<2>::TimedPosition> removePositionsFarAway(
 
 GpsFilterResults solveGpsSubproblem(
     const Array<TimeStamp> &samplingTimes,
-    const GeographicReference &geoRef,
-    const Array<CeresTrajectoryFilter::Types<2>::TimedPosition> rawLocalPositions,
+    const Array<TimedValue<GeographicPosition<double>>> rawPositions,
     const Array<TimedValue<HorizontalMotion<double>>> &motions,
-    const GpsFilterSettings &settings) {
+    const GpsFilterSettings &settings,
+    DOM::Node *dst) {
+
+  auto referencePosition = GpsUtils::getReferencePosition(rawPositions);
+  GeographicReference geoRef(referencePosition);
+
+  auto rawLocalPositions = getLocalPositions(geoRef, rawPositions);
+
+
   IndexableWrap<Array<TimeStamp>, TypeMode::ConstRef> times =
         wrapIndexable<TypeMode::ConstRef>(samplingTimes);
 
@@ -159,6 +167,13 @@ GpsFilterResults solveGpsSubproblem(
     // are, we can reject point whose local coordinates are too far away from that. This will
     // probably work in most cases.
     auto filteredRawPositions = removePositionsFarAway(rawLocalPositions, dur*maxSpeed);
+
+    if (filteredRawPositions.empty()) {
+      DOM::addSubTextNode(dst, "p",
+          stringFormat("Duration: %s", dur.str().c_str()));
+      DOM::addSubTextNode(dst, "p",
+          "Filtered raw positions is empty!").warning();
+    }
 
     IndexableWrap<Array<FTypes::TimedPosition>, TypeMode::Value> localPositions
       = wrapIndexable<TypeMode::Value>(filteredRawPositions);
@@ -180,8 +195,12 @@ GpsFilterResults solveGpsSubproblem(
     Types<2>::TimedPositionArray filtered = CeresTrajectoryFilter::filter<2>(
         t, p, m,
         settings.ceresSettings, e);
+
     if (filtered.empty()) {
       LOG(ERROR) << "Failed to filter GPS data";
+      DOM::addSubTextNode(
+          dst, "p", "Failed to filter GPS data")
+        .warning();
       return GpsFilterResults();
     }
 
@@ -242,7 +261,7 @@ Array<Array<T> > applySplits(const Array<T> &src,
 // Force instantiation so that we can unit test this code
 // without having to expose the whole template in the header.
 template Array<Array<TimedValue<int> > >
-  applySplits(const Array<TimedValue<int> > &src,
+  applySplits<TimedValue<int>>(const Array<TimedValue<int> > &src,
     const Array<TimeStamp> &splits);
 
 GpsFilterResults mergeSubResults(
@@ -303,8 +322,29 @@ Array<TimeStamp> listSplittingTimeStampsNotTooLong(
   return splits;
 }
 
+void dispSubResults(
+  const GpsFilterResults &x,
+  DOM::Node *dstOL) {
+  std::stringstream ss;
+  ss << x.filteredLocalPositions.size()
+      << " position samples from " << x.filteredLocalPositions.first().time
+      << " to "<< x.filteredLocalPositions.last().time;
+  DOM::addSubTextNode(dstOL, "p", ss.str()).success();
+}
 
-GpsFilterResults filterGpsData(const NavDataset &ds,
+template <typename T>
+Array<TimedValue<T>> toArray(const TimedSampleRange<T> &src) {
+  int n = src.size();
+  Array<TimedValue<T>> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = src[i];
+  }
+  return dst;
+}
+
+GpsFilterResults filterGpsData(
+    const NavDataset &ds,
+    DOM::Node *dst,
     const GpsFilterSettings &settings) {
 
   if (ds.isDefaultConstructed()) {
@@ -320,8 +360,6 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
     LOG(ERROR) << "No GPS positions in dataset, cannot filter";
     return GpsFilterResults();
   }
-  auto referencePosition = GpsUtils::getReferencePosition(positions);
-  GeographicReference geoRef(referencePosition);
 
   auto positionTimes = getTimeStamps(positions);
   auto motionTimes = getTimeStamps(motions);
@@ -334,28 +372,44 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
 
   CHECK(std::is_sorted(splits.begin(), splits.end()));
 
-  auto rawLocalPositions = getLocalPositions(geoRef, positions);
-
   int expectedSliceCount = splits.size() + 1;
   auto timeSlices = applySplits(samplingTimes, splits);
-  auto positionSlices = applySplits(rawLocalPositions, splits);
+  auto positionSlices = applySplits(
+      toArray(positions), splits);
   auto motionSlices = applySplits(motions, splits);
   CHECK(expectedSliceCount == timeSlices.size());
   CHECK(expectedSliceCount == positionSlices.size());
   CHECK(expectedSliceCount == motionSlices.size());
   std::vector<GpsFilterResults> subResults;
+
+  DOM::addSubTextNode(dst, "h2", "Producing GPS filter sub results");
+  auto ol = DOM::makeSubNode(dst, "ol");
+
   subResults.reserve(expectedSliceCount);
   for (int i = 0; i < expectedSliceCount; i++) {
     auto timeSlice = timeSlices[i];
     auto positionSlice = positionSlices[i];
     auto motionSlice = motionSlices[i];
+    auto li = DOM::makeSubNode(&ol, "li");
+
+    DOM::addSubTextNode(&li, "p",
+        stringFormat("Input: %d times, %d positions, %d motions",
+        timeSlice.size(), positionSlice.size(), motionSlice.size()));
+
     if (2 <= timeSlice.size() && !positionSlice.empty()) {
        auto subResult = solveGpsSubproblem(
-           timeSlice, geoRef, positionSlice,
-           motionSlice, settings);
+           timeSlice, positionSlice,
+           motionSlice, settings, &li);
        if (!subResult.empty()) {
          subResults.push_back(subResult);
+         dispSubResults(subResult, &ol);
+       } else {
+         DOM::addSubTextNode(&li, "p", "Empty results")
+           .warning();
        }
+    } else {
+      DOM::addSubTextNode(&li, "p", "Too few positions or times")
+        .warning();
     }
   }
   return mergeSubResults(subResults);

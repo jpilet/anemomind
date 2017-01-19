@@ -55,8 +55,11 @@ std::string makeFilteredGpsName(const NavDataset &src) {
 
 }  // namespace
 
-NavDataset filterNavs(const NavDataset& navs, const GpsFilterSettings& settings) {
-  auto results = filterGpsData(navs, settings);
+NavDataset filterNavs(
+    const NavDataset& navs,
+    DOM::Node *dst,
+    const GpsFilterSettings& settings) {
+  auto results = filterGpsData(navs, dst, settings);
   if (results.empty()) {
     LOG(ERROR) << "GPS filtering failed";
     return NavDataset();

@@ -64,15 +64,16 @@ target_link_libraries(filters_SmoothGpsFilter
                       nonlinear_CeresTrajectoryFilter
                       math_Resampler
                       common_Progress
+			          common_DOMUtils
                      )
 
 cxx_test(filters_SmoothGpsFilterTest
          SmoothGpsFilterTest.cpp
          gtest_main
-         filters_SmoothGpsFilter
          common_PathBuilder
          logimport_LogLoader
          common_Env
+         filters_SmoothGpsFilter
         )
 
 add_executable(filters_tryNewGpsFilter

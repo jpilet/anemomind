@@ -30,7 +30,7 @@
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
-
+#include <server/common/DOMUtils.h>
 #include <server/common/Json.impl.h> // This one should probably be the last one.
 
 namespace sail {
@@ -292,19 +292,27 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
+  DOM::Node output;
+  if (!_htmlReportName.empty()) {
+    output = DOM::makeBasicHtmlPage("Boat log processor",
+        _dstPath.toString(), _htmlReportName);
+  }
+
   NavDataset resampled;
 
   if (_resumeAfterPrepare.size() > 0) {
     resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
     NavDataset raw = loadNavs(*amap, _boatid);
-    infoNavDataset("After loading", raw);
+    infoNavDataset("After loading", raw, &output);
     resampled = downSampleGpsTo1Hz(raw);
 
-    infoNavDataset("After resampling GPS", resampled);
+    infoNavDataset("After resampling GPS", resampled, &output);
 
     if (_gpsFilter) {
-      resampled = filterNavs(resampled, _gpsFilterSettings);
+      resampled = filterNavs(resampled,
+          &output,
+          _gpsFilterSettings);
     }
   }
 
@@ -401,10 +409,15 @@ this code some time, we should think carefully how we want to do the merging.
 }
 
 void BoatLogProcessor::infoNavDataset(const std::string& info,
-                                      const NavDataset& ds) {
+                                      const NavDataset& ds,
+                                      DOM::Node *dst) {
   if (_debug) {
     std::cout << info << ": ";
     ds.outputSummary(&std::cout);
+    DOM::addSubTextNode(dst, "h2", info);
+    std::stringstream ss;
+    ds.outputSummary(&ss);
+    DOM::addSubTextNode(dst, "p", ss.str());
   }
 }
 
@@ -460,6 +473,10 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--debug", "Display debug information and visualization")
     .setArgCount(0);
+
+  amap.registerOption("--output-html",
+      "Produce a HTML report with the specified name in the output directory")
+    .setArgCount(1).store(&processor._htmlReportName);
 
   amap.registerOption("--saveSimulated <file.log>",
                       "Save dispatcher in the given file after simulation")

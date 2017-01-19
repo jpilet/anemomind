@@ -15,6 +15,8 @@
 
 namespace sail {
 
+namespace DOM {struct Node;}
+
 CeresTrajectoryFilter::Settings makeDefaultOptSettings();
 
 struct GpsFilterSettings {
@@ -40,7 +42,9 @@ struct GpsFilterResults {
 Array<TimeStamp> listSplittingTimeStamps(const Array<TimeStamp> &timeStamps,
     Duration<double> threshold);
 
-GpsFilterResults filterGpsData(const NavDataset &ds,
+GpsFilterResults filterGpsData(
+    const NavDataset &ds,
+    DOM::Node *dst,
     const GpsFilterSettings &settings = GpsFilterSettings());
 
 template <typename T>
