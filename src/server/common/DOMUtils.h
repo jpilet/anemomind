@@ -53,12 +53,30 @@ struct Node {
   Poco::XML::AutoPtr<Poco::XML::Document> document;
   Poco::XML::AutoPtr<Poco::XML::Element> element;
   PageWriter::Ptr writer;
+
+  bool defined() const;
+  void setAttribute(
+      const std::string &key,
+      const std::string &value);
+
+  void setClass(const std::string &s);
+  void success();
+  void warning();
+  void error();
 };
 
+// Even if functions below accept a pointer to a Node,
+// that pointer must never be a null pointer. To represent
+// the absence of a Node, or an undefined Node, use a default
+// constructed one.
+//
+// None of the functions below will crash if we pass
+// a default-constructed Node, they will just do the minimum
+// work possible.
 Node makeRootNode(const std::string &name);
 Node makeSubNode(Node *parent, const std::string &name);
 void addTextNode(Node *parent, const std::string &text);
-void addSubTextNode(Node *node,
+Node addSubTextNode(Node *node,
     const std::string &name,
     const std::string &data);
 
