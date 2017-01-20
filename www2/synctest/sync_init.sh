@@ -4,11 +4,11 @@ cd ..
 killall mongod || true
 killall grunt || true
 killall node || true
-export WWW2_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-echo "WWW2_DIR = $WWW2_DIR"
+WWW2_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+LOGFILE="${WWW2_DIR}/uploads/anemologs/boat57f678e612063872e749d481/dpkg.log"
 rm -rf /tmp/endpoints || true
 rm -r /tmp/synctest_message.txt || true
-rm -rf "${WWW2_DIR}/uploads/anemologs/boat57f678e612063872e749d481"
+rm -rf "${LOGFILE}"
 echo "Launching the server!"
 cd synctest
 if eval "./sync_check${1}.sh"; then
