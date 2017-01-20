@@ -30,7 +30,7 @@
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
-
+#include <server/common/DOMUtils.h>
 #include <server/common/Json.impl.h> // This one should probably be the last one.
 
 namespace sail {
@@ -239,6 +239,7 @@ Nav::Id extractBoatId(Poco::Path path) {
 }
 
 std::string grammarNodeInfo(const NavDataset& navs, std::shared_ptr<HTree> tree) {
+  CHECK(tree->left() < tree->right());
   Nav right = getNav(navs, tree->right()-1);
   Nav left = getNav(navs, tree->left());
   return left.time().toString() + " " + (right.time() - left.time()).str();
@@ -291,19 +292,30 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
+  DOM::Node htmlReport;
+  if (!_htmlReportName.empty()) {
+    htmlReport = DOM::makeBasicHtmlPage("Boat log processor",
+        _dstPath.toString(), _htmlReportName);
+  }
+
   NavDataset resampled;
 
   if (_resumeAfterPrepare.size() > 0) {
     resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
     NavDataset raw = loadNavs(*amap, _boatid);
-    //resampled = downSampleGpsTo1Hz(raw);
+    infoNavDataset("After loading", raw, &htmlReport);
+
     resampled = raw.createMergedChannels(
         std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
         Duration<>::seconds(0.99));
+    infoNavDataset("After resampling GPS", resampled, &htmlReport);
 
     if (_gpsFilter) {
-      resampled = filterNavs(resampled, _gpsFilterSettings);
+      resampled = filterNavs(resampled,
+          &htmlReport,
+          _gpsFilterSettings);
+      infoNavDataset("After filtering", resampled, &htmlReport);
     }
   }
 
@@ -343,7 +355,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   }
 
   // First simulation pass: adds true wind
-  NavDataset simulated1 = calibrator.simulate(resampled);
+  NavDataset simulated = calibrator.simulate(resampled);
 
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system
@@ -392,6 +404,19 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   LOG(INFO) << "Processing time for " << _boatid << ": "
     << (TimeStamp::now() - start).seconds() << " seconds.";
   return true;
+}
+
+void BoatLogProcessor::infoNavDataset(const std::string& info,
+                                      const NavDataset& ds,
+                                      DOM::Node *dst) {
+  if (_debug) {
+    std::cout << info << ": ";
+    ds.outputSummary(&std::cout);
+  }
+  DOM::addSubTextNode(dst, "h2", info);
+  std::stringstream ss;
+  ds.outputSummary(&ss);
+  DOM::addSubTextNode(dst, "pre", ss.str());
 }
 
 void BoatLogProcessor::readArgs(ArgMap* amap) {
@@ -446,6 +471,10 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--debug", "Display debug information and visualization")
     .setArgCount(0);
+
+  amap.registerOption("--output-html",
+      "Produce a HTML report with the specified name in the output directory")
+    .setArgCount(1).store(&processor._htmlReportName);
 
   amap.registerOption("--saveSimulated <file.log>",
                       "Save dispatcher in the given file after simulation")

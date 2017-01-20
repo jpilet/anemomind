@@ -55,15 +55,17 @@ std::string makeFilteredGpsName(const NavDataset &src) {
 
 }  // namespace
 
-NavDataset filterNavs(const NavDataset& navs, const GpsFilterSettings& settings) {
-  auto results = filterGpsData(navs, settings);
+NavDataset filterNavs(
+    const NavDataset& navs,
+    DOM::Node *dst,
+    const GpsFilterSettings& settings) {
+  auto results = filterGpsData(navs, dst, settings);
   if (results.empty()) {
     LOG(ERROR) << "GPS filtering failed";
     return NavDataset();
   }
 
-  auto motions = results.getGpsMotions(
-      settings.subProblemThreshold);
+  auto motions = results.motions;
   TimedSampleCollection<Angle<double>>::TimedVector gpsBearings;
   TimedSampleCollection<Velocity<double>>::TimedVector gpsSpeeds;
   splitMotionsIntoAnglesAndNorms(motions,
@@ -78,7 +80,7 @@ NavDataset filterNavs(const NavDataset& navs, const GpsFilterSettings& settings)
     .replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       makeFilteredGpsName<GPS_POS>(navs),
-      results.getGlobalPositions())
+      results.positions)
     .replaceChannel<Velocity<double> >(
       GPS_SPEED,
       makeFilteredGpsName<GPS_SPEED>(navs),
