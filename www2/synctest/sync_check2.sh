@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
-cd ..
 truth="d7b92cb70c333ff82616ff660799a078"
-result=$(md5 -q uploads/anemologs/boat57f678e612063872e749d481/${1} || true)
+result=$(md5 -q ../uploads/anemologs/boat57f678e612063872e749d481/${1} || true)
 if [ "$result" = "${2}" ]; then
   echo "PASSED :-)"
   exit 0
