@@ -8,7 +8,7 @@ set -e
 rm -rf /media/sdcard/logs/*
 rm -rf /media/sdcard/mail2
 export NO_WATCHDOG=1
-if eval "/anemonode/synctest/sync_check${1}.sh"; then
+if "/anemonode/synctest/sync_check${1}.sh"; then
   echo "sync_check should *not* succeed, something is wrong!"
   exit 1
 fi
