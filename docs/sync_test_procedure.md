@@ -29,8 +29,8 @@ There are currently three tests in place, indexed 1, 2, 3. Replace X by 1, 2 or 
  - **XCode**, **iOS**: Make sure the app isn't running. If it is, press the stop button in XCode.
 
  - **anemobox**: Make sure that there is no anemonode process running.
- - **anemomind/www2**: Call ```bash sync_runX.sh``` to put the web server in a clean state and start the web server.
- - **anemobox**: Call ```bash sync_runX.sh``` to put the anemobox in a clean state and start the service.
+ - **anemomind/www2**: Call ```./sync_runX.sh``` to put the web server in a clean state and start the web server.
+ - **anemobox**: Call ```./sync_runX.sh``` to put the anemobox in a clean state and start the service.
 
 #### Specific steps for test 1 and 2
  - **iOS**: Connect the iOS device to the anemobox wifi network.
@@ -59,5 +59,5 @@ There are currently three tests in place, indexed 1, 2, 3. Replace X by 1, 2 or 
 
 By now, the test should have succeeded. To check that, do the following:
 
- - **anemobox**: Call ```bash sync_checkX.sh```. **You should see the message ** ```Passed :-)``` being printed out.
- - **anemomind/www2**: Call ```bash sync_checkX.sh```. **You should see the message **```Passed :-)``` being printed out.
+ - **anemobox**: Call ```./sync_checkX.sh```. **You should see the message ** ```Passed :-)``` being printed out.
+ - **anemomind/www2**: Call ```./sync_checkX.sh```. **You should see the message **```Passed :-)``` being printed out.
