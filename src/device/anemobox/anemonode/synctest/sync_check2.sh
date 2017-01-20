@@ -12,7 +12,7 @@ else
   echo "Once you have synchronized with the server,"
   echo "please call"
   echo ""
-  echo "  bash sync_check2.sh $result $code"
+  echo "  ./sync_check2.sh $result $code"
   echo ""
   exit 0
 fi
