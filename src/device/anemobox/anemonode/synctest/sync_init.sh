@@ -2,6 +2,7 @@
 ## Provide as argument the index of the test you are running. For instance,
 ## if you run 'sync_run2.sh' with a corresponding check 'sync_check2.sh', then
 ## pass '2' as argument to this program.
+#!/bin/bash
 set -e
 bash /root/disable_watchdog.sh
 rm -rf /media/sdcard/logs/*
