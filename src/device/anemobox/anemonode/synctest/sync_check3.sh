@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 set -e
 result=$(cat /media/sdcard/logs/message.txt || true)
 if [ "$result" = "This was written by a script" ]; then
