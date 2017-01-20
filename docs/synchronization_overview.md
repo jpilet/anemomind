@@ -28,7 +28,7 @@ The code on the server that will receive the logfiles is located in ```www2/serv
 
 As the server receives a packet with a log file, the fact that this file has been received is propagated back towards the box using the lower-bound-mechanism. On the box, it seems like logfiles in the ```sentlogs/``` directory are *not* removed automatically. We might want to fix that.
 
-The above procedure, or the better part of it, should be tested by ```T1```.
+The above procedure, or the better part of it, should be tested by ```T2```.
 
 ## Remote scripts from server to anemobox, and their response.
 The web api for box execution is in ```www2/server/api/boxexec```. A command line utility is found in ```utilites/RunRemoteScript.js```. The result can be seen using ```utilities/ViewRemoteScript.js```.
@@ -39,14 +39,14 @@ On the box, it will execute, and once executed post a response, and then notify 
 
 The incoming script response is currently handled by code in ```www2/server/api/boxexec/packet-callbacks.js```.
 
-This functionality should be tested by ```T2```.
+This functionality should be tested by ```T3```.
 
 ## File transfer from server to anemobox
 This mechanism is used to
   * Post ```boat.dat``` file for the anemobox, with calibration and target speed data.
   * Post git bundles, that are used to remotely update the box.
 
-It should be covered by ```T0``` and ```T3```.
+It should be covered by ```T1``` and ```T4```.
 
 ## Ideas for improvement
   * Support delivery of several packets in parallel
@@ -55,7 +55,7 @@ It should be covered by ```T0``` and ```T3```.
   * Some general refactoring to have less code that is easier to understand.
 
 ## Tests to write
-  * ```T0```: The basic synchronization test that we currently have. It transfers one file from the server to the box, and one file from the box to the server (treating it as a log file). It checks that the files were received at either end. **OK, this test has been written**
-  * ```T1```: Verify log file transfer. *Briefly:* Clean the files to transfer and maybe reset the DB, launch the replay of some NMEA0183 data (see the ```demo``` branch on the anemobox). After a while (5 minutes at least or when it says ```posted log file```), synchronize just as with the previous sync test that we wrote.
-  * ```T2```: Verify script execution. *Briefly:* Clean server, box and phone, post a script on the server for remote execution, propagate it to the box, let the script execute their and post back its response, propagate response to server, verify that the response is what it should be.
-  * ```T3```: Verify calibration parameter transfer: *Briefly:* Clean up the state of the system, let the server post some file with calibration parameters, propagate it to the box, make sure that the box correctly receives it and puts the file where it should be.
+  * ```T1```: The basic synchronization test that we currently have. It transfers one file from the server to the box, and one file from the box to the server (treating it as a log file). It checks that the files were received at either end. **OK, this test has been written**
+  * ```T2```: Verify log file transfer. *Briefly:* Clean the files to transfer and maybe reset the DB, launch the replay of some NMEA0183 data (see the ```demo``` branch on the anemobox). After a while (5 minutes at least or when it says ```posted log file```), synchronize just as with the previous sync test that we wrote.
+  * ```T3```: Verify script execution. *Briefly:* Clean server, box and phone, post a script on the server for remote execution, propagate it to the box, let the script execute their and post back its response, propagate response to server, verify that the response is what it should be.
+  * ```T4```: Verify calibration parameter transfer: *Briefly:* Clean up the state of the system, let the server post some file with calibration parameters, propagate it to the box, make sure that the box correctly receives it and puts the file where it should be.
