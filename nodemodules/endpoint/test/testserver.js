@@ -20,8 +20,8 @@ MockEndpoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
 
 var mock = new MockEndpoint();
 
-function mockAccess(f, cb) {
-  f(mock, cb);
+function mockAccess(f) {
+  f(mock, function(err) {});
 }
 
 app.use('/mockendpoint', httpapi.make(mockAccess));

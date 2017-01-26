@@ -81,7 +81,7 @@ function make(accessEndpoint, errorLogger0) {
       // This will close it.
       console.log("Call the callback");
       cb();
-    }, function(err) {});
+    });
   });
   return router;
 }
