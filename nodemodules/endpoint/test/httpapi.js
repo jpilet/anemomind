@@ -59,23 +59,25 @@ describe('httpapi', function() {
       })
   });
 
-  /*it('real-endpoint', function(done) {
-
-    endpoint.tryMakeEndpoint('/tmp/httpendpoint.db', 'pine', function(err, ep) {
+  it('real-endpoint', function(done) {
+    endpoint.tryMakeAndResetEndpoint('/tmp/httpendpoint.db', 'a', function(err, ep) {
       if (err) {
         done(err);
       } else {
         app.use('/sqlite', httpapi.make(function(f) {
-          f(ep, function(err) {});
+          f(ep, function(err) {/*nothing to cleanup*/});
         }));
-        
-    chai.request(app)
-      .get()
-        
 
+        var testData = new Buffer([3, 5, 8, 13]);
+        
+        ep.sendPacket('b', 119, testData, function(err) {
+          if (err) {
+            done(err);
+          } else {
+            done();
+          }
+        });
       }
     });
-
-    });*/
-  
+  });
 });
