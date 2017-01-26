@@ -60,4 +60,4 @@ There are currently three tests in place, indexed 1, 2, 3. Replace X by 1, 2 or 
 By now, the test should have succeeded. To check that, do the following:
 
  - **anemobox**: Call ```./sync_checkX.sh```. **You should see the message ** ```Passed :-)``` being printed out.
- - **anemomind/www2**: Call ```./sync_checkX.sh```. **You should see the message **```Passed :-)``` being printed out.
+ - **anemomind/www2**: Call ```./sync_checkX.sh```. **NOTE:** For ```sync_check2.sh``` you will need to provide two arguments given by ```sync_check2.sh``` on the anemobox. **You should see the message **```Passed :-)``` being printed out.
