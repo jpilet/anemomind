@@ -54,20 +54,24 @@ describe('httpapi', function() {
     assert(httpapi.encodePacket({data: new Buffer(4)}).failure);
     assert(httpapi.encodePacket({label: 4, data: 'asdfa'}).failure);
   });
-
-  it('real-endpoint', function(done) {
-    endpoint.tryMakeEndpoint('/tmp/httpendpoint.db', 'pine', function(err, ep) {
+/*    endpoint.tryMakeEndpoint('/tmp/httpendpoint.db', 'pine', function(err, ep) {
       if (err) {
         done(err);
       } else {
 
-        app.use('/sqlite', httpapi.make(function(f) {
-          f(ep, function(err) {});
-        }));
+    app.use('/sqlite', httpapi.make(function(f) {
+      f(ep, function(err) {});
+    }));
 
+
+*/
+  it('mock-endpoint', function(done) {
+    chai.request(app)
+      .get('/mockendpoint/getPacket/a/b/deadbeef')
+      .end(function(err, res) {
+        console.log('GOT RESPONSE: %j', res);
+        assert(res.status == 200);
         done();
-
-      }
-    });
+      })
   });
 });

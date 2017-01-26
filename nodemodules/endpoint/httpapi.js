@@ -60,15 +60,15 @@ function make(accessEndpoint, errorLogger0) {
     On failure:
       Responds with an empty buffer.
   */
-  router.get('/getpacket/:src/:dst:/:seqNumber', function(req, res) {
-
+  router.get('/getPacket/:src/:dst/:seqNumber', function(req, res) {
     accessEndpoint(function(endpoint, cb) {
-      endpoint.getPacket(src, dst, seqNumber, function(err, packet) {
+      var p = req.params;
+      endpoint.getPacket(p.src, p.dst, p.seqNumber, function(err, packet) {
         if (err) {
           logError(util.format('getPacket failed with %j', err));
           res.status(internalServerError).send(new Buffer(0));
         } else {
-          var encoded = encodePacketResponse(packet);
+          var encoded = encodePacket(packet);
           if (encoded.failure) {
             logError(util.format('Encoding packet failed: %s', encoded.failure));
             res.status(internalServerError).send(new Buffer(0));
@@ -79,6 +79,7 @@ function make(accessEndpoint, errorLogger0) {
       });
 
       // This will close it.
+      console.log("Call the callback");
       cb();
     }, function(err) {});
   });

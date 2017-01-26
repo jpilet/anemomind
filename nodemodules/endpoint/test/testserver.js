@@ -6,13 +6,15 @@ app.get('/', function(req, res) {
   res.send('Pine needle tea');
 });
 
-function MockEndpoint() {}
+function MockEndpoint() {
+  this.callCounter = 0;
+}
 
 MockEndpoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
   if (src == 'a' && dst == 'b' && seqNumber == 'deadbeef') {
     cb(null, {label: 119, data: new Buffer([13, 21, 34, 55])});
   } else {
-    cb(new Error('No such packet'));
+    cb('No such packet');
   }
 }
 
