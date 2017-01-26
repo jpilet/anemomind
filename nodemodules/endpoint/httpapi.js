@@ -37,15 +37,12 @@ function encodePacket(packet) {
 
 Make a router for accessing an endpoint.
 
-First argument:
-In informal syntax, 
-
-accessEndpoint: (endpoint, (err)->()) -> ()
-
-accessEndpoint is a function that takes as input a function which will be called
-with the endpoint, and a callback that we should call once we have done what
-we want with the endpoint. The purpose of calling that callback is to allow for 
-certain cleanup of the endpoint.
+  * accessEndpoint:
+     arg 1: name of endpoint to access
+     arg 2: callback, with these arguments:
+         arg 1: err (possibly null)
+         arg 2: endpoint (possibly null)
+         arg 3: A callback that we need to call once we are done using the endpoint
 
 */
 function make(accessEndpoint, errorLogger0) {
@@ -60,26 +57,32 @@ function make(accessEndpoint, errorLogger0) {
     On failure:
       Responds with an empty buffer.
   */
-  router.get('/getPacket/:src/:dst/:seqNumber', function(req, res) {
-    accessEndpoint(function(endpoint, cb) {
-      var p = req.params;
-      endpoint.getPacket(p.src, p.dst, p.seqNumber, function(err, packet) {
-        if (err) {
-          logError(util.format('getPacket failed with %j', err));
-          res.status(internalServerError).send(new Buffer(0));
-          cb();
-        } else {
-          var encoded = encodePacket(packet);
-          if (encoded.failure) {
-            logError(util.format('Encoding packet failed: %s', encoded.failure));
+  router.get('/getPacket/:name/:src/:dst/:seqNumber', function(req, res) {
+    var p = req.params;
+    accessEndpoint(p.name, function(err, endpoint, cb) {
+      if (err) {
+        logError("Failed to access endpoint: " + err);
+        res.status(internalServerError).send(new Buffer(0));
+        cb();
+      } else {
+        endpoint.getPacket(p.src, p.dst, p.seqNumber, function(err, packet) {
+          if (err) {
+            logError(util.format('getPacket failed with %j', err));
             res.status(internalServerError).send(new Buffer(0));
             cb();
           } else {
-            res.send(encoded.success);
-            cb();
+            var encoded = encodePacket(packet);
+            if (encoded.failure) {
+              logError(util.format('Encoding packet failed: %s', encoded.failure));
+              res.status(internalServerError).send(new Buffer(0));
+              cb();
+            } else {
+              res.send(encoded.success);
+              cb();
+            }
           }
-        }
-      });
+        });
+      }
     });
   });
   return router;

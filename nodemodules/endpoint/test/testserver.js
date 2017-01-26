@@ -20,8 +20,12 @@ MockEndpoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
 
 var mock = new MockEndpoint();
 
-function mockAccess(f) {
-  f(mock, function(err) {/*nothing to clean up*/});
+function mockAccess(name, f) {
+  if (name == 'mock') {
+    f(null, mock, function(err) {/*nothing to clean up*/});
+  } else {
+    f(new Error('No such endpoint: ' + name));
+  }
 }
 
 app.use('/mockendpoint', httpapi.make(mockAccess));

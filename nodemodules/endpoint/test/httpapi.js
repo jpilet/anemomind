@@ -48,11 +48,11 @@ describe('httpapi', function() {
   
   it('mock-endpoint', function(done) {
     chai.request(app)
-      .get('/mockendpoint/getPacket/a/b/deadbeef')
+      .get('/mockendpoint/getPacket/mock/a/b/deadbeef')
       .end(function(err, res) {
         assert(res.status == 200);
         chai.request(app)
-          .get('/mockendpoint/getPacket/c/d/deadbeef')
+          .get('/mockendpoint/getPacket/mock/c/d/deadbeef')
           .end(function(err, res) {
             assert(res.status == 500);
             done();
@@ -65,8 +65,13 @@ describe('httpapi', function() {
       if (err) {
         done(err);
       } else {
-        app.use('/sqlite', httpapi.make(function(f) {
-          f(ep, function(err) {/*nothing to cleanup*/});
+        var cleanup = function(err) {/*nothing to cleanup*/};
+        app.use('/sqlite', httpapi.make(function(name, f) {
+          if (name == ep.name) {
+            f(null, ep, cleanup);
+          } else {
+            f(new Error('No such endpoint: ' + name), null, cleanup);
+          }
         }));
 
         var testData = new Buffer([3, 5, 8, 13]);
@@ -76,7 +81,7 @@ describe('httpapi', function() {
             done(err);
           } else {
             chai.request(app)
-              .get('/sqlite/getPacket/a/b/' + packet.seqNumber)
+              .get('/sqlite/getPacket/a/a/b/' + packet.seqNumber)
 
 // I really don't know how to get the binary data of a response
 // with Chai.
