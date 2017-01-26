@@ -11,7 +11,7 @@ rm -r /tmp/synctest_message.txt || true
 rm -rf "${LOGFILE}"
 echo "Launching the server!"
 cd synctest
-if eval "./sync_check${1}.sh"; then
+if "${WWW2_DIR}/synctest/sync_check${1}.sh" ; then
   echo "The sync_check.sh should not pass, something is wrong!"
   exit 1
 fi
