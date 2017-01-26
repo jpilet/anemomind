@@ -6,6 +6,6 @@ app.get('/', function(req, res) {
   res.send('Pine needle tea');
 });
 
-app.use('/endpoint', httpapi.make());
+app.use('/mockendpoint', httpapi.make());
 
-module.exports = app;
+module.exports.app = app;
