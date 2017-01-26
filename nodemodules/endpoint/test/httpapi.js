@@ -69,9 +69,7 @@ describe('httpapi', function() {
     chai.request(app)
       .get('/mockendpoint/getPacket/a/b/deadbeef')
       .end(function(err, res) {
-        console.log('GOT RESPONSE: %j', res.body);
         assert(res.status == 200);
-
         done();
       })
   });
