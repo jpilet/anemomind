@@ -83,7 +83,7 @@ describe('httpapi', function() {
               .parse(binaryParser) 
 
               .end(function(err, res) {
-                console.log('GOT: %j', res);
+                console.log('GOT: %j', res.data);
                 assert(res.status == 200);
                 assert(res.header["content-length"] == 5);
                 done();
