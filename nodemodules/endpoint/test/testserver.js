@@ -1,8 +1,11 @@
 var express = require('express');
 var app = express();
+var httpapi = require('../httpapi.js');
 
 app.get('/', function(req, res) {
   res.send('Pine needle tea');
 });
 
-module.exports.app = app;
+app.use('/endpoint', httpapi.make());
+
+module.exports = app;
