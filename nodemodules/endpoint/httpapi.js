@@ -9,17 +9,6 @@ function wrapErrorLogger(errorLogger) {
   } : errorLogger;
 }
 
-/* 
-Make a router for accessing an endpoint.
-In informal syntax, 
-
-accessEndpoint: ((endpoint, (err)->()) -> ()) -> ()
-
-accessEndpoint is a function that takes as input a function which will be called
-with the endpoint, and a callback that we should call once we have done what
-we want with the endpoint.
-*/
-
 function failure(s) {
   return {failure: s};
 }
@@ -44,6 +33,21 @@ function encodePacket(packet) {
   }
 }
 
+/* 
+
+Make a router for accessing an endpoint.
+
+First argument:
+In informal syntax, 
+
+accessEndpoint: (endpoint, (err)->()) -> ()
+
+accessEndpoint is a function that takes as input a function which will be called
+with the endpoint, and a callback that we should call once we have done what
+we want with the endpoint. The purpose of calling that callback is to allow for 
+certain cleanup of the endpoint.
+
+*/
 function make(accessEndpoint, errorLogger0) {
   var logError = wrapErrorLogger(errorLogger0);
   var router = express.Router();

@@ -70,11 +70,16 @@ describe('httpapi', function() {
 
         var testData = new Buffer([3, 5, 8, 13]);
         
-        ep.sendPacket('b', 119, testData, function(err) {
+        ep.sendPacketAndReturn('b', 119, testData, function(err, packet) {
           if (err) {
             done(err);
           } else {
-            done();
+            chai.request(app)
+              .get('/sqlite/getPacket/a/b/' + packet.seqNumber)
+              .end(function(err, res) {
+                assert(res.status == 200);
+                done();
+              });
           }
         });
       }
