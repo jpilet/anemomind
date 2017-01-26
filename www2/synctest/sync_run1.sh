@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 ./sync_init.sh
-./wait_a_moment.sh
+sleep 8s
 echo "This data should go on the box!" > /tmp/synctest_message.txt 
 node "../utilities/SendBoatData" 57f678e612063872e749d481 /tmp/synctest_message.txt /media/sdcard/logs/synctest_message_dst.txt 
 sleep 4s 
