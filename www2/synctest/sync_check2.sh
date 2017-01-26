@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+WWW2_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 result=$(md5 -q ${WWW2_DIR}/uploads/anemologs/boat57f678e612063872e749d481/${1} || true)
 truth="${2}"
 if [ "$result" = "$truth" ]; then

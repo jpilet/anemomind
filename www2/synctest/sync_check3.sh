@@ -1,10 +1,9 @@
 #!/bin/bash
 set -e
-cd ../utilities
-truth="  Pine needle tea"
+WWW2_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+truth="Pine needle tea"
 to_execute=$(cat /tmp/calltmp.txt)
 echo "What to execute: $to_execute"
-cd ../utilities
 if (cd "${WWW2_DIR}/utilities" ; bash /tmp/calltmp.txt ) | grep -q "${truth}" ; then
   echo "PASSED :-)"
   exit 0

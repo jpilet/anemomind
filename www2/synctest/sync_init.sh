@@ -3,7 +3,7 @@ set -e # Stop on first error
 killall mongod || true
 killall grunt || true
 killall node || true
-export WWW2_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+WWW2_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 echo "######################### WWW2_DIR = $WWW2_DIR"
 export LOGFILE="${WWW2_DIR}/uploads/anemologs/boat57f678e612063872e749d481/dpkg.log"
 rm -rf /tmp/endpoints || true

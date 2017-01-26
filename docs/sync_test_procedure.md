@@ -33,9 +33,10 @@ There are currently three tests in place, indexed 1, 2, 3. Replace X by 1, 2 or 
  - **anemobox**: Call ```./sync_runX.sh``` to put the anemobox in a clean state and start the service.
 
 #### Specific steps for test 1 and 2
- - **iOS**: Connect the iOS device to the anemobox wifi network.
+ - **iOS**: **Connect the iOS device to the anemobox wifi network**.
  - **anemomind-ios**: Call ```./prepare_sync_test.sh``` to patch the source code so that the app will connect to the IP address of the Macbook and the database will be reset.
  - **XCode**: Press on the "Play" button to compile the project and run the app on the iOS device connected with the cable.
+ - **iOS**: **Only for test 2:** Wait 5 minutes.
  - **iOS**: Open the *Home* view and synchronize with the box.
  - **iOS**: Connect to the local office network.
  - **iOS**: Go to the *Home* view and synchronize with the web server.
@@ -43,7 +44,7 @@ There are currently three tests in place, indexed 1, 2, 3. Replace X by 1, 2 or 
  - **iOS**: Go to the *Home* view and synchronize with the anemobox.
 
 #### Specific steps for test 3
- - **iOS**: Connect the iOS device to the local office network.
+ - **iOS**: **Connect the iOS device to the local office network**.
  - **anemomind-ios**: Call ```./prepare_sync_test.sh``` to patch the source code so that the app will connect to the IP address of the Macbook and the database will be reset.
  - **XCode**: Press on the "Play" button to compile the project and run the app on the iOS device connected with the cable.
  - **iOS**: Open the *Home* view and synchronize with the web server.
