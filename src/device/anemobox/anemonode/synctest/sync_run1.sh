@@ -1,5 +1,5 @@
-# This script should be run on the anemobox to test the synchronization
 #!/bin/bash
+# This script should be run on the anemobox to test the synchronization
 set -e
 /anemonode/synctest/sync_init.sh 1
 cp /usr/bin/dpkg /media/sdcard/logs/dpkg.log
