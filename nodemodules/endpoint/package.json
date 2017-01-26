@@ -23,6 +23,7 @@
     "sqlite3-transactions": "0.0.5"
   },
   "devDependencies": {
+    "express": "^4.14.0",
     "mocha": "^2.2.1",
     "should": "^7.0.1"
   }
