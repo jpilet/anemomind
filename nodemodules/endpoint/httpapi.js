@@ -63,20 +63,19 @@ function make(accessEndpoint, errorLogger0) {
         if (err) {
           logError(util.format('getPacket failed with %j', err));
           res.status(internalServerError).send(new Buffer(0));
+          cb();
         } else {
           var encoded = encodePacket(packet);
           if (encoded.failure) {
             logError(util.format('Encoding packet failed: %s', encoded.failure));
             res.status(internalServerError).send(new Buffer(0));
+            cb();
           } else {
             res.send(encoded.success);
+            cb();
           }
         }
       });
-
-      // This will close it.
-      console.log("Call the callback");
-      cb();
     });
   });
   return router;
