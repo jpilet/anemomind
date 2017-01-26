@@ -80,7 +80,7 @@ function make(accessEndpoint, errorLogger0) {
 
       // This will close it.
       cb();
-    });
+    }, function(err) {});
   });
   return router;
 }
