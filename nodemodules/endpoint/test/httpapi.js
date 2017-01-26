@@ -4,6 +4,7 @@ var chai = require('chai');
 var chaihttp = require('chai-http');
 var httpapi = require('../httpapi.js');
 var endpoint = require('../endpoint.sqlite.js');
+var binaryParser = require('superagent-binary-parser');
 
 chai.use(chaihttp);
 
@@ -76,8 +77,15 @@ describe('httpapi', function() {
           } else {
             chai.request(app)
               .get('/sqlite/getPacket/a/b/' + packet.seqNumber)
+
+// I really don't know how to get the binary data of a response
+// with Chai.
+              .parse(binaryParser) 
+
               .end(function(err, res) {
+                console.log('GOT: %j', res);
                 assert(res.status == 200);
+                assert(res.header["content-length"] == 5);
                 done();
               });
           }
