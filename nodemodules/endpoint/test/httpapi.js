@@ -24,16 +24,6 @@ describe('httpapi', function() {
       });
   });
 
-  it('should access the endpoint', function(done) {
-    chai.request(app)
-      .get('/mockendpoint/info')
-      .end(function(err, res) {
-        assert(res.status == 200);
-        assert(res.text == 'endpoint');
-        done();
-      });
-  });
-
   it('encode packet', function() {
     var packetData = new Buffer([9, 0, 4]);
     var packet = {
@@ -60,14 +50,12 @@ describe('httpapi', function() {
       .get('/mockendpoint/getPacket/a/b/deadbeef')
       .end(function(err, res) {
         assert(res.status == 200);
-
         chai.request(app)
           .get('/mockendpoint/getPacket/c/d/deadbeef')
           .end(function(err, res) {
             assert(res.status == 500);
             done();
           });
-        
       })
   });
 

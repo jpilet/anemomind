@@ -48,10 +48,6 @@ function make(accessEndpoint, errorLogger0) {
   var logError = wrapErrorLogger(errorLogger0);
   var router = express.Router();
 
-  router.get('/info', function(req, res) {
-    res.send('endpoint');
-  });
-
   /*
     On success:
       Responds with a buffer with at least one byte, where the first byte is the label, 
