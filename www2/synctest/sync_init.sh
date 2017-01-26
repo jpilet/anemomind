@@ -10,10 +10,9 @@ rm -rf /tmp/endpoints || true
 rm -r /tmp/synctest_message.txt || true
 rm -rf "${LOGFILE}"
 echo "Launching the server!"
-cd synctest
 if "${WWW2_DIR}/synctest/sync_check${1}.sh" ; then
   echo "The sync_check.sh should not pass, something is wrong!"
   exit 1
 fi
-grunt serve:dev &
+(cd "${WWW2_DIR}" ; grunt serve:dev) &
 echo "### The server was started"
