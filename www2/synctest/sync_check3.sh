@@ -5,8 +5,7 @@ truth="  Pine needle tea"
 to_execute=$(cat /tmp/calltmp.txt)
 echo "What to execute: $to_execute"
 cd ../utilities
-result="$($to_execute | grep Pine || true)"
-if [ "$result" = "$truth" ]; then
+if (cd "${WWW2_DIR}/utilities" ; bash /tmp/calltmp.txt ) | grep -q "${truth}" ; then
   echo "PASSED :-)"
   exit 0
 else
