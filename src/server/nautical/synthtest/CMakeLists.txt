@@ -39,21 +39,3 @@ cxx_test(nautical_synthtest_FlowTest
          gtest_main
          nautical_synthtest_Flow
         )
-        
-                     
-add_library(nautical_synthtest_FractalFlow
-            FractalFlow.h
-            FractalFlow.cpp
-           )
-target_link_libraries(nautical_synthtest_FractalFlow
-                       nautical_synthtest_Flow
-                       math_SubdivFractals
-                      ) 
-                      
-add_executable(nautical_synthtest_FractalFlowDemo
-               FractalFlowDemo.cpp
-              )
-
-target_link_libraries(nautical_synthtest_FractalFlowDemo
-                      nautical_synthtest_FractalFlow
-                     )
