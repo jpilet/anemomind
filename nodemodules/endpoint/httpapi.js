@@ -1,4 +1,3 @@
-var express = require('express');
 var util = require('util');
 
 var internalServerError = 500;
@@ -45,9 +44,8 @@ Make a router for accessing an endpoint.
          arg 3: A callback that we need to call once we are done using the endpoint
 
 */
-function make(accessEndpoint, errorLogger0) {
+function make(router, accessEndpoint, errorLogger0) {
   var logError = wrapErrorLogger(errorLogger0);
-  var router = express.Router();
 
   /*
     On success:

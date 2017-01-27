@@ -5,6 +5,7 @@ var chaihttp = require('chai-http');
 var httpapi = require('../httpapi.js');
 var endpoint = require('../endpoint.sqlite.js');
 var binaryParser = require('superagent-binary-parser');
+var express = require('express');
 
 chai.use(chaihttp);
 
@@ -66,7 +67,7 @@ describe('httpapi', function() {
         done(err);
       } else {
         var cleanup = function(err) {/*nothing to cleanup*/};
-        app.use('/sqlite', httpapi.make(function(name, f) {
+        app.use('/sqlite', httpapi.make(express.Router(), function(name, f) {
           if (name == ep.name) {
             f(null, ep, cleanup);
           } else {

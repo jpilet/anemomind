@@ -28,6 +28,6 @@ function mockAccess(name, f) {
   }
 }
 
-app.use('/mockendpoint', httpapi.make(mockAccess));
+app.use('/mockendpoint', httpapi.make(express.Router(), mockAccess));
 
 module.exports.app = app;

@@ -12,4 +12,4 @@ function accessLocalEndpoint(name, f) {
   });
 }
 
-module.exports = httpapi.make(accessLocalEndpoint);
+module.exports = httpapi.make(express.Router(), accessLocalEndpoint);
