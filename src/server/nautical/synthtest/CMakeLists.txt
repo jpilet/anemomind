@@ -24,29 +24,6 @@ add_executable(nautical_synthtest_BoatSimDemo
 target_link_libraries(nautical_synthtest_BoatSimDemo
                       nautical_synthtest_BoatSim
                      )
-                     
-add_library(nautical_synthtest_NavalSimulation
-            NavalSimulation.h
-            NavalSimulation.cpp
-           )
-           
-target_link_libraries(nautical_synthtest_NavalSimulation
-                      nautical_GeographicReference
-                      common_ProportionateIndexer
-                      common_TimeStamp
-                      nautical_synthtest_BoatSim
-                      nautical_NavCompatibility
-                      common_MeanAndVar
-                      nautical_synthtest_Flow
-                      nautical_synthtest_FractalFlow
-                      nautical_FlowErrors
-                     )
-           
-cxx_test(nautical_synthtest_NavalSimulationTest
-         NavalSimulationTest.cpp
-         nautical_synthtest_NavalSimulation
-         gtest_main
-        )           
         
 add_library(nautical_synthtest_Flow
             Flow.h
@@ -62,54 +39,3 @@ cxx_test(nautical_synthtest_FlowTest
          gtest_main
          nautical_synthtest_Flow
         )
-        
-                     
-add_library(nautical_synthtest_FractalFlow
-            FractalFlow.h
-            FractalFlow.cpp
-           )
-target_link_libraries(nautical_synthtest_FractalFlow
-                       nautical_synthtest_Flow
-                       math_SubdivFractals
-                      ) 
-                      
-add_executable(nautical_synthtest_FractalFlowDemo
-               FractalFlowDemo.cpp
-              )
-
-target_link_libraries(nautical_synthtest_FractalFlowDemo
-                      nautical_synthtest_FractalFlow
-                     )
-
-add_library(nautical_synthtest_NavalSimulationJson
-            NavalSimulationJson.h
-            NavalSimulationJson.cpp
-           )                     
-target_link_libraries(nautical_synthtest_NavalSimulationJson
-                      nautical_synthtest_NavalSimulation
-                      common_Json
-                      common_TimeStampJson
-                      nautical_GeographicReferenceJson
-                      common_JsonObjDeserializer
-                      nautical_NavJson
-                     )
-target_depends_on_poco_foundation(nautical_synthtest_NavalSimulationJson)  
-target_depends_on_poco_json(nautical_synthtest_NavalSimulationJson)
-
-cxx_test(nautical_synthtest_NavalSimulationJsonTest
-         NavalSimulationJsonTest.cpp
-         gtest_main
-         nautical_synthtest_NavalSimulationJson
-        )                                               
-
-add_library(nautical_synthtest_NavalSimulationPrecomp
-            NavalSimulationPrecomp.h
-            NavalSimulationPrecomp.cpp
-           )
-           
-target_link_libraries(nautical_synthtest_NavalSimulationPrecomp
-                      nautical_synthtest_NavalSimulationJson
-                      common_Env
-                      common_PathBuilder
-                      common_JsonIO
-                     )           
