@@ -94,7 +94,7 @@ Dispatcher::Dispatcher() {
     return m;
   }
 
-const std::vector<DataCode>& allDataCode() {
+const std::vector<DataCode>& allDataCodes() {
   static std::vector<DataCode> codes{
  #define ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
      HANDLE,

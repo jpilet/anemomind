@@ -144,7 +144,7 @@ NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
 
   NavDataset result(std::static_pointer_cast<Dispatcher>(replay));
 
-  for (DataCode code : allDataCode()) {
+  for (DataCode code : allDataCodes()) {
     std::shared_ptr<DispatchData> active(ds.activeChannelOrNull(code));
     if (active) {
       result.preferSource(code, active->source());

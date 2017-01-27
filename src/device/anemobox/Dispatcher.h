@@ -65,7 +65,7 @@ enum DataCode {
 
 template <DataCode Code> struct TypeForCode { };
 
-const std::vector<DataCode>& allDataCode();
+const std::vector<DataCode>& allDataCodes();
 
 #define DECL_TYPE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
 template<> struct TypeForCode<HANDLE> { typedef TYPE type; };
