@@ -598,7 +598,7 @@ TimedSampleCollection<
   return dst;
 }
 
-NavDataset NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
+NavDataset NKEParser::makeNavs(NKEData data) {
   Array<TimeStamp> times = data.timeStamps();
 
   if (!data.hasAllFields({
