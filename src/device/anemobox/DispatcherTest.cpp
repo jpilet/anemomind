@@ -131,3 +131,26 @@ TEST(DispatcherTest, TestValueFromSourceAt) {
   EXPECT_NEAR(r.get().degrees(), 3, 1e-5);
 }
 
+TEST(DispatcherTest, sourcesForChannelTest) {
+  Dispatcher dispatcher;
+  EXPECT_EQ(0, dispatcher.sourcesForChannel(AWA).size());
+  dispatcher.publishValue(AWA, "source 1", Angle<>::degrees(1));
+  dispatcher.publishValue(AWA, "source 2", Angle<>::degrees(2));
+  EXPECT_EQ((std::vector<std::string>{"source 1", "source 2"}),
+            dispatcher.sourcesForChannel(AWA));
+}
+
+TEST(DispatcherTest, hasSourceTest) {
+  Dispatcher dispatcher;
+  EXPECT_FALSE(dispatcher.hasSource(AWA, "source 1"));
+  EXPECT_FALSE(dispatcher.hasSource(AWA, "source 2"));
+
+  dispatcher.publishValue(AWA, "source 1", Angle<>::degrees(1));
+  EXPECT_TRUE(dispatcher.hasSource(AWA, "source 1"));
+  EXPECT_FALSE(dispatcher.hasSource(AWS, "source 1"));
+
+  dispatcher.publishValue(AWA, "source 2", Angle<>::degrees(2));
+  EXPECT_TRUE(dispatcher.hasSource(AWA, "source 2"));
+
+  EXPECT_FALSE(dispatcher.hasSource(AWA, "source 3"));
+}

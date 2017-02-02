@@ -17,6 +17,8 @@ TEST(ProtobufLogTest, LoadAFile) {
       PathBuilder::makeDirectory(Env::SOURCE_DIR)
         .pushDirectory("datasets")
         .pushDirectory("protobuflog").get());
+
+  data.preferSourceAll("NMEA0183 input reparsed");
   EXPECT_LT(0, data.samples<AWA>().size());
   EXPECT_LT(0, data.samples<GPS_POS>().size());
   EXPECT_LT(0, data.samples<GPS_SPEED>().size());

@@ -305,14 +305,17 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   } else {
     NavDataset raw = loadNavs(*amap, _boatid);
     infoNavDataset("After loading", raw, &htmlReport);
-    resampled = downSampleGpsTo1Hz(raw);
 
+    resampled = raw.createMergedChannels(
+        std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
+        Duration<>::seconds(0.99));
     infoNavDataset("After resampling GPS", resampled, &htmlReport);
 
     if (_gpsFilter) {
       resampled = filterNavs(resampled,
           &htmlReport,
           _gpsFilterSettings);
+      infoNavDataset("After filtering", resampled, &htmlReport);
     }
   }
 
@@ -322,6 +325,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
+  resampled = resampled.createMergedChannels(
+      std::set<DataCode>{AWA, AWS}, Duration<>::seconds(.3));
   std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
 
   if (!fulltree) {
@@ -352,17 +357,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   // First simulation pass: adds true wind
   NavDataset simulated = calibrator.simulate(resampled);
 
-  /*
-Why this is needed:
-Whenever the NavDataset::samples<...> method is called, a merge is performed
-for that datacode using all the data of the underlying dispatcher
-(not limited in time). Several NavDatasets will be produced by in the following
-code by slicing up the full NavDataset. Before this slicing takes place,
-we want to merge the data, so that it doesn't have to be merged for every
-slice that produce. This saves us a lot of memory. If we decide to refactor
-this code some time, we should think carefully how we want to do the merging.
-   */
-  simulated.mergeAll();
+  // This choice should be left to the user.
+  // TODO: add a per-boat configuration system
+  simulated.preferSource(std::set<DataCode>{TWS, TWDIR, TWA, VMG},
+                         "Simulated Anemomind estimator");
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
