@@ -15,7 +15,13 @@ angular.module('www2App')
         })
         .then( function() {
           // Logged in, redirect to home
-          $location.path('/');
+          var url = $location.search().d;
+          // TODO: validate url to keep XSS attacks away
+          if (url) {
+            $location.path(url);
+          } else {
+            $location.path('/');
+          }
         })
         .catch( function(err) {
           $scope.errors.other = err.message;

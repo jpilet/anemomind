@@ -7,6 +7,9 @@ module.exports = function(app) {
     var map = require('./map')(app);
     var router = express.Router();
 
-    router.get('/:boatId',auth.maybeAuthenticated(), access.boatReadAccess, map.get);
+    router.get('/:boatId',
+               auth.maybeAuthenticated(),
+               access.boatReadAccessOrRedirect,
+               map.get);
     return router;
 }

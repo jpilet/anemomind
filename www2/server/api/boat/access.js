@@ -115,3 +115,16 @@ exports.boatWriteAccess = function(req, res, next) {
 exports.boatReadAccess = function(req, res, next) {
   return checkAccess(module.exports.userCanReadBoatId, req, res, next);
 };
+
+exports.boatReadAccessOrRedirect = function(req, res, next) {
+  var boat = req.params.boatId || req.params.boat;
+  if (!boat) {
+    return res.sendStatus(400);
+  }
+
+  module.exports.userCanReadBoatId((req.user ? req.user.id : undefined), boat)
+    .then(next)
+    .catch(function() {
+      return res.redirect('/login?d=' + encodeURI(req.originalUrl));
+    });
+};
