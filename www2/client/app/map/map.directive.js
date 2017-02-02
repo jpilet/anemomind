@@ -88,29 +88,28 @@ angular.module('www2App')
       restrict: 'C',
       link: function (scope, element, attrs) {
         var win = angular.element($window);
-        var moveElements = function(element) {
-          angular.element(element).each(function(i, e) {
-            var el = angular.element(e);
-            var parent = $window.innerWidth <= 799 ? el.attr('mobile-parent') : el.attr('desktop-parent');
-            parent = angular.element(parent);
-            
-            el.appendTo(parent);
-
-            $timeout(function() { scope.$apply(); }, 10);
-          });
+        var timeout;
+        var moveElements = function() {
+          if (timeout) {
+            $timeout.cancel(timeout);
+          }
+          timeout = $timeout(function() {
+            timeout = undefined;
+            angular.element(element).each(function(i, e) {
+              var el = angular.element(e);
+              var parent = $window.innerWidth <= 799 ? el.attr('mobile-parent') : el.attr('desktop-parent');
+              parent = angular.element(parent);
+              
+              el.appendTo(parent);
+            });
+          }, 100);
         }
 
         // As observed, SVG's with a definite size does render properly if the containers are too small
         // We have to let the CSS styles kick in first.
-        $timeout(function() {
-          moveElements(element);
-        }, 100);
+        moveElements();
         
-        win.on('resize', function() {
-          $timeout(function() {
-            moveElements(element);
-          }, 100);
-        });
+        win.on('resize', moveElements);
       }
     };
   })
