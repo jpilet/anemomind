@@ -202,9 +202,15 @@ bool process(
     NavDataset dataset) {
 
   //////// TODO: Let the GPS filter use multiple sources by default.
-  dataset.selectSource(DataCode::GPS_POS, "NMEA2000/c07891002fb3645a");
-  dataset.selectSource(DataCode::GPS_BEARING, "NMEA2000/c07891002fb3645a");
-  dataset.selectSource(DataCode::GPS_SPEED, "NMEA2000/c07891002fb3645a");
+  dataset.selectSource(
+      DataCode::GPS_POS,
+      "NMEA2000/c07891002fb3645a");
+  dataset.selectSource(
+      DataCode::GPS_BEARING,
+      "NMEA2000/c07891002fb3645a");
+  dataset.selectSource(
+      DataCode::GPS_SPEED,
+      "NMEA2000/c07891002fb3645a");
 
   RNG rng;
   auto startTime = TimeStamp::now();
