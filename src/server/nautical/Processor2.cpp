@@ -200,6 +200,10 @@ Array<SplineGpsFilter::EcefCurve> getFilteredGpsCurves(
 bool process(
     const Settings &settings,
     NavDataset dataset) {
+  dataset.selectSource(DataCode::GPS_POS, "NMEA2000/c07891002fb3645a");
+  dataset.selectSource(DataCode::GPS_BEARING, "NMEA2000/c07891002fb3645a");
+  dataset.selectSource(DataCode::GPS_SPEED, "NMEA2000/c07891002fb3645a");
+
   RNG rng;
   auto startTime = TimeStamp::now();
 
