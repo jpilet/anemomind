@@ -80,10 +80,25 @@ private:
 };
 
 enum class PlayerType {
+  /*
+   * Fitness, over all sensors
+   *   - Minimizing fitness to wind speed observations
+   *   - Minimizing fitness to wind angle observations
+   *      (in speed domain, weighted by the underlying estimated wind
+   *       speed)
+   * W.r.t, for all sensors
+   *   - Wind speed sensor parameters
+   *   - Wind angle sensor parameters
+   */
   Wind,
-  Current,
-  IMU,
-  Leeway
+
+  /*
+   * Fitness, over all sensors
+   *   -
+   */
+  Current, //
+  IMU,     // Unknowns: Calibration parameters for every IMU
+  Leeway   // Unknown: Leeway parameter for the boat
 };
 
 inline Velocity<adouble> unitVelocity(Velocity<adouble>) {
