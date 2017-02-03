@@ -18,7 +18,7 @@ angular.module('www2App')
           var url = $location.search().d;
           // TODO: validate url to keep XSS attacks away
           if (url) {
-            $location.path(url);
+            $location.url(url);
           } else {
             $location.path('/');
           }

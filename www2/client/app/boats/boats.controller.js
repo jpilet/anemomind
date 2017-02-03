@@ -9,18 +9,19 @@ angular.module('www2App')
     });
 
     
-    $log.log('-- boat.ctrl.0');
+    if ($stateParams.boatId) {
+        $scope.boatId=$stateParams.boatId;
+    } else {
+      boatList.boats().then(function(boats) {
+        $scope.boats = boats;
 
-    // TODO: only load the boat we want, not all boats.
-    boatList.boats().then(function(boats) {
-      $scope.boats = boats;
-
-      $log.log('-- boat.ctrl.1',boats.length);
-
-      // display selected boat
-      $scope.boatId=$stateParams.boatId;
-    });
-
+        $scope.boatId = boatList.getDefaultBoat();
+        if (!$scope.boatId) {
+          // redirect to the create boat page
+          $location.path('/boats');
+        }
+      });
+    }
 
     $scope.addBoat = function() {
       if(!$scope.newBoat||$scope.newBoat === '') {

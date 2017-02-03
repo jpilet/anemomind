@@ -18,10 +18,16 @@ angular.module('www2App')
 
         var boat = (boatList.getDefaultBoat() || {})._id;        
 
-        // The home page for a logged in user with a valid default boat
-        // is the default boat page. The redirection occurs here.
-        if (Auth.isLoggedIn() && boat) {
+        // The home page when not logged in is the invite to log in.
+        // Otherwise, we need to redirect...
+        if (Auth.isLoggedIn()) {
+          if (boat) {
+            // ... to the default boat, if any
             $location.path('/boats/' + boat);
+          } else {
+            // ... or to the boat creation page
+            $location.path('/boats');
+          }
         }
       });
     };

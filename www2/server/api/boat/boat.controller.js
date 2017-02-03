@@ -71,7 +71,7 @@ exports.index = function(req, res) {
 
 // Get a single boat
 exports.show = function(req, res) {
-  Boat.findById(req.params.id, function (err, boat) {
+  Boat.findById(req.params.boatId, function (err, boat) {
     if(err) { return handleError(res, err); }
     if (!userCanRead(req.user, boat)) { return res.sendStatus(403); }
     if(!boat) { return res.sendStatus(404); }

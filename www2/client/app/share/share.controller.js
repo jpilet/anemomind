@@ -54,13 +54,13 @@ angular.module('www2App')
     
     // This is used for the modal template in Map page
     if(typeof $stateParams.boatId !== 'undefined' || $stateParams.boatId != null) {
-      boatList.boats().then(function (boats) {
+      boatList.boat($stateParams.boatId).then(function (boat) {
         var aveSpeedText = '32 Kts';
         var windBlowedText = '22 Kts';
         var performanceText = '91%';
-        $scope.boat=boatList.boat($stateParams.boatId);
-        $scope.sharedLink=$location.absUrl();
-        $scope.shareText = 'Share '+$scope.boat.name+' and her team performance';
+        $scope.boat = boat;
+        $scope.sharedLink = $location.absUrl();
+        $scope.shareText = 'Share ' + boat.name + ' and her team performance';
       });
 
       $scope.changePublicAccess=function() {
