@@ -67,6 +67,32 @@ Poco::Path PageWriter::generatePath(const std::string &suffix) {
     .makeFile(generateName() + suffix).get();
 }
 
+bool Node::defined() const {
+  return bool(element);
+}
+
+void Node::setAttribute(
+    const std::string &key,
+    const std::string &value) {
+  if (defined()) {
+    element->setAttribute(key, value);
+  }
+}
+
+void Node::setClass(const std::string &s) {
+  setAttribute("class", s);
+}
+
+void Node::success() {
+  setClass("success");
+}
+void Node::warning() {
+  setClass("warning");
+}
+void Node::error() {
+  setClass("error");
+}
+
 Node makeRootNode(const std::string &name) {
   Node dst;
   dst.document = new Poco::XML::Document();
@@ -76,21 +102,32 @@ Node makeRootNode(const std::string &name) {
 }
 
 Node makeSubNode(Node *node, const std::string &name) {
+  CHECK(node != nullptr);
+  if (!node->defined()) {
+    return Node();
+  }
   Node dst = *node;
   dst.element = node->document->createElement(name);
   node->element->appendChild(dst.element);
   return dst;
 }
 
-void addSubTextNode(Node *node, const std::string &name,
+Node addSubTextNode(Node *node, const std::string &name,
     const std::string &data) {
-  if (node != nullptr) {
-    auto x = makeSubNode(node, name);
-    addTextNode(&x, data);
+  CHECK(node != nullptr);
+  if (!node->defined()) {
+    return Node();
   }
+  auto x = makeSubNode(node, name);
+  addTextNode(&x, data);
+  return x;
 }
 
 void addTextNode(Node *node, const std::string &text) {
+  CHECK(node != nullptr);
+  if (!node->defined()) {
+    return;
+  }
   auto x = node->document->createTextNode(text);
   node->element->appendChild(x);
 }
@@ -117,6 +154,10 @@ Node makeBasicHtmlPage(const std::string &titleString,
 
 
 Node linkToSubPage(Node *parent, const std::string title) {
+  CHECK(parent != nullptr);
+  if (!parent->defined()) {
+    return Node();
+  }
   auto subPage = makeBasicHtmlPage(title);
   subPage.writer = parent->writer->makeSubPageWriter(subPage.document);
   auto a = makeSubNode(parent, "a");
@@ -128,12 +169,15 @@ Node linkToSubPage(Node *parent, const std::string title) {
 
 Poco::Path makeGeneratedImageNode(Node *node,
     const std::string &filenameSuffix) {
-  CHECK(node->writer);
+  CHECK(node != nullptr);
+  if (!node->defined()) {
+    return Poco::Path();
+  }
   Poco::Path p = node->writer->generatePath(filenameSuffix);
   auto img = DOM::makeSubNode(node, "img");
-    img.element->setAttribute(
-        Poco::XML::toXMLString("src"),
-        Poco::XML::toXMLString(p.getFileName()));
+  img.element->setAttribute(
+      Poco::XML::toXMLString("src"),
+      Poco::XML::toXMLString(p.getFileName()));
   return p;
 }
 

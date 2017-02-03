@@ -72,4 +72,15 @@ Dispatcher::Dispatcher() {
     return m;
   }
 
+const std::vector<DataCode>& allDataCodes() {
+  static std::vector<DataCode> codes{
+ #define ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+     HANDLE,
+   FOREACH_CHANNEL(ENTRY)
+ #undef ENTRY
+  };
+
+  return codes;
+}
+
 }  // namespace sail

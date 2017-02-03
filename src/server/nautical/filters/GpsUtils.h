@@ -21,8 +21,13 @@ HorizontalMotion<double> computeHorizontalMotion(
 
 Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(const NavDataset &ds);
 
-GeographicPosition<double> getReferencePosition(
-    const TimedSampleRange<GeographicPosition<double> > &positions);
+GeographicPosition<double>
+  getReferencePosition(
+      const Array<TimedValue<GeographicPosition<double>>> &src);
+
+GeographicPosition<double>
+  getReferencePosition(
+      const TimedSampleRange<GeographicPosition<double>> &src);
 
 TimeStamp getReferenceTime(
     const TimedSampleRange<GeographicPosition<double> > &positions);

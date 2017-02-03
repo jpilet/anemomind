@@ -15,7 +15,6 @@
 #include <fstream>
 #include <server/common/ReduceTree.h>
 #include <server/common/logging.h>
-#include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/BoatState.h>
 #include <server/common/TimedValueCutter.h>
@@ -203,7 +202,6 @@ bool process(
     NavDataset dataset) {
   RNG rng;
   auto startTime = TimeStamp::now();
-  dataset.mergeAll();
 
   auto d = dataset.dispatcher().get();
 
@@ -334,7 +332,7 @@ Array<Span<TimeStamp> > segmentSubSessions(
 }
 
 
-Array<TimedValue<GeographicPosition<double> > >
+/*Array<TimedValue<GeographicPosition<double> > >
   filterAllGpsData(const NavDataset &ds, const Settings &settings,
       DOM::Node *log) {
   DOM::addSubTextNode(log, "h2", "GPS filtering");
@@ -400,7 +398,7 @@ Array<TimedValue<GeographicPosition<double> > >
     }
   }
   return dst.get();
-}
+}*/
 
 
 

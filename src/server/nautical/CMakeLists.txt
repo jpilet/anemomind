@@ -121,12 +121,14 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_TargetSpeed
                       nautical_downsamplegps
                       nautical_grammars_WindOrientedGrammar
+                      nautical_grammars_TreeExplorer
                       nautical_tiles_TileUtils
                       common_ArgMap
                       plot_gnuplot
                       common_ScopedLog
                       logimport_LogLoader
                       tiles_ChartTiles
+                      common_DOMUtils
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)

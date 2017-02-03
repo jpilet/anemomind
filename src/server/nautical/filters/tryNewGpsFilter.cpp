@@ -12,6 +12,7 @@
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/segment/SessionCut.h>
+#include <server/common/DOMUtils.h>
 
 using namespace sail;
 
@@ -68,12 +69,10 @@ int performTheFiltering(std::string inputPath, std::string outputPath,
     auto session = sessions[i];
     auto ds = fullDataset.slice(session.minv(), session.maxv());
     LOG(INFO) << "Filtering session from " << session.minv() << " to " << session.maxv();
-    auto filtered = filterGpsData(ds);
+    DOM::Node output;
+    auto filtered = filterGpsData(ds, &output);
     LOG(INFO) << "Filtered, save it";
-    outputLocalPositions(pb.makeFile(stringFormat("raw_positions_%d.txt", i)).get().toString(),
-        filtered.rawLocalPositions);
-    outputLocalPositions(pb.makeFile(stringFormat("filtered_positions_%d.txt", i)).get().toString(),
-        filtered.filteredLocalPositions);
+    LOG(FATAL) << "We need to implement output of the positions here";
     LOG(INFO) << "Saved";
   }
   LOG(INFO) << "Filtered all sessions";

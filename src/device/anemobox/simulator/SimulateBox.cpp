@@ -136,10 +136,22 @@ NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
 
   EstimateOnNewValue listener(&estimator, srcName, replay.get());
 
+  copyPriorities(src.dispatcher().get(), replay.get());
+
   replay.get()->replay(src.dispatcher().get());
 
   replay->setSourcePriority(srcName, replay->sourcePriority(estimator.sourceName()) + 1);
-  return NavDataset(std::static_pointer_cast<Dispatcher>(replay));
+
+  NavDataset result(std::static_pointer_cast<Dispatcher>(replay));
+
+  for (DataCode code : allDataCodes()) {
+    std::shared_ptr<DispatchData> active(ds.activeChannelOrNull(code));
+    if (active) {
+      result.preferSource(code, active->source());
+    }
+  }
+
+  return result;
 }
 
 }  // namespace sail
