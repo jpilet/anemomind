@@ -34,7 +34,7 @@ module.exports = function(config) {
       'client/bower_components/angularjs-slider/dist/rzslider.js',
       'client/bower_components/angular-modal-service/dst/angular-modal-service.js',
       'client/bower_components/nvd3/build/nv.d3.js',
-      'node_modules/socket.io-client/socket.io.js',
+      'node_modules/socket.io-client/dist/socket.io.js',
       'client/app/app.js',
       'client/app/app.coffee',
       'client/app/**/*.js',
