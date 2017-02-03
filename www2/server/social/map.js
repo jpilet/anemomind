@@ -48,17 +48,22 @@ module.exports = function(app) {
 	  	}
 
 	  	// build shared url 
-	  	var hostname=req.protocol + '://' + req.headers.host;
+	  	var hostname = 'https://www.anemolab.com';
+
+                if (req.header('x-forwarded-port') != 443) {
+                  hostname += ':444'; // running beta
+                }
 
 	  	// prepare social data model
 	  	// TODO make this information more accurate
 		  var model={
-		    url:hostname+req.url,
-		    title:'Boat '+boat.name+' navigation on '+new Date(start).toDateString(),
-		    description:'Boat '+boat.name+' navigation on '+new Date(start).toDateString(),
+		    url:hostname+req.originalUrl,
+		    title: boat.name +' sailing '+new Date(start).toDateString(),
+		    description: boat.name +' sailing on '
+                        + new Date(start).toDateString(),
 		    image:hostname+ogImg,
-		    width:width,
-		    height:height
+		    "image:width":width,
+		    "image:height":height
 		  }
 
                   // send content
