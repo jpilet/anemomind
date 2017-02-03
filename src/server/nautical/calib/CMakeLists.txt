@@ -56,7 +56,6 @@ target_link_libraries(calib_Reconstructor
   plot_ColorMap
   calib_MagHdgCalib
   calib_MagHdgCalib2
-  calib_GameCalib
   )
 
 add_library(calib_MagHdgCalib
@@ -83,15 +82,3 @@ target_link_libraries(calib_MagHdgCalib2
   plot_PlotUtils
   math_SineFit
   )
-
-add_library(calib_GameCalib
-  GameCalib.h
-  GameCalib.cpp
-  )
-
-target_link_libraries(calib_GameCalib
-  nonlinear_LsqNashSolver
-  common_DOMUtils
-  )
-
-target_depends_on_adolc(calib_GameCalib)

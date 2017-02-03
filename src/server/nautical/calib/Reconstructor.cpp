@@ -18,7 +18,6 @@
 #include <server/nautical/calib/MagHdgCalib.h>
 #include <server/nautical/calib/MagHdgCalib2.h>
 #include <server/math/SplineUtils.h>
-#include <server/nautical/calib/GameCalib.h>
 
 namespace sail {
 
@@ -482,8 +481,6 @@ ReconstructionResults reconstruct(
     RNG *rng) {
   CHECK(areValidChunks(chunks));
 
-  GameCalib::Settings gcs;
-  GameCalib::optimize(chunks, gcs, dst);
   return ReconstructionResults();
 }
 
