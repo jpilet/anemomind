@@ -21,15 +21,11 @@ var app = angular.module('www2App')
           if(!scope.boatId) return;
 
           scope.pageSize=storedPageSize[scope.boatId]||2;
-          //
-          // be sure that boats are ready
-          $log.log('-- boatSummary.update.0');
-          boatList.boats().then(function (boats) {
-            $log.log('-- boatSummary.update',boats.length);
 
-            scope.boat = boatList.boat(scope.boatId);
+          boatList.boat(scope.boatId).then(function (boat) {
+            scope.boat = boat;
             scope.sessions = boatList.sessionsForBoat(scope.boatId);
-            //
+
             // ensure that sessions is not empty
             scope.sessions=scope.sessions||[];
 

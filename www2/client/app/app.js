@@ -54,7 +54,7 @@ angular.module('www2App', [
       // Intercept 401s and redirect you to login
       responseError: function(response) {
         if(response.status === 401) {
-          $location.path('/login');
+          $location.url('/login?d=' + encodeURI($location.url()));
           // remove any stale tokens
           $cookieStore.remove('token');
           return $q.reject(response);
@@ -62,7 +62,7 @@ angular.module('www2App', [
         else {
           return $q.reject(response);
         }
-      }
+      },
     };
   })
 

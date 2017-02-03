@@ -144,8 +144,8 @@ angular.module('www2App')
     // Catches browser history navigation events (back,..)
     $scope.$on('$locationChangeSuccess', parseParams);
 
-    boatList.boats().then(function (boats) {
-      $scope.boat=boatList.boat($stateParams.boatId);
+    boatList.boat($stateParams.boatId).then(function (boat) {
+      $scope.boat = boat;
     });
     
     $scope.showModal = function() {

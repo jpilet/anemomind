@@ -60,21 +60,19 @@ angular.module('www2App')
       // $http.get('/api/boats?public=1')
       $http.get('/api/boats')
         .then(function(payload) {
-          boats = payload.data;
-          socket.syncUpdates('boat', boats);
 
           for (var i in payload.data) {
             var boat = payload.data[i];
             boatDict[boat._id] = boat;
+            boats.push(boat);
           }
+          socket.syncUpdates('boat', boats);
           $rootScope.$broadcast('boatList:updated', boats);
 
-          //
           // chain session loading
           return $http.get('/api/session');
         })
         .then(function(payload) {
-          sessionsForBoats = [];
           for (var i in payload.data) {
             if (payload.data[i].boat in sessionsForBoats) {
               sessionsForBoats[payload.data[i].boat].push(payload.data[i]);
@@ -86,11 +84,47 @@ angular.module('www2App')
           //
           // time to resolve promise
           $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
-          $log.log('-- boatList.update',boats.length);
 
           loadedFor = userOrAnomymous();
           loading = undefined;
           deferred.resolve(boats);            
+        });
+
+      return promise;
+    }
+
+    function fetchBoat(boatid) {
+      // promise for boats methods;
+      var deferred = $q.defer();
+      var promise=deferred.promise;
+
+      $http.get('/api/boats/' + boatid)
+        .then(function(payload) {
+          var boat = payload.data;
+          if (boat && boat._id && boat.name) {
+            boatDict[boat._id] = boat;
+          }
+          boats.push(boat);
+
+          $rootScope.$broadcast('boatList:updated', boats);
+
+          // chain session loading
+          return $http.get('/api/session/boat/' + boatid);
+        })
+        .then(function(payload) {
+          for (var i in payload.data) {
+            if (payload.data[i].boat in sessionsForBoats) {
+              sessionsForBoats[payload.data[i].boat].push(payload.data[i]);
+            } else {
+              sessionsForBoats[payload.data[i].boat] = [ payload.data[i] ];
+            }
+            curves[payload.data[i]._id] = payload.data[i];
+          }
+          
+          $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
+
+          loading = undefined;
+          deferred.resolve(boatDict[boatid]);            
         });
 
       return promise;
@@ -139,7 +173,13 @@ angular.module('www2App')
     //
     // service result
     return {
-      boat: function(id) { return boatDict[id]; },
+      boat: function(id) {
+              if (id in boatDict && boatDict[id]) {
+                return $q(function(resolve){ resolve(boatDict[id]); });
+              } else {
+                return fetchBoat(id);
+              }
+            },
       save: save,
       addMember:addMember,
       boats: cachedBoats,

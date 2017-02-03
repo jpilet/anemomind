@@ -6,12 +6,10 @@ angular.module('www2App')
     $scope.boatId=$stateParams.boatId;
     $scope.boat = {};
 
-    boatList.boats().then(function(boats) {
-      $scope.boat = boatList.boat($stateParams.boatId);
+    boatList.boat($stateParams.boatId).then(function(boat) {
+      $scope.boat = boat;
+      console.log($stateParams.boatId + ': ' + boat.name);
     });
-    // $scope.$on('boatList:updated', function(event, boats) {
-    //   $scope.boat = boatList.boat($stateParams.boatId);
-    // });
 
     $scope.$on("$destroy",function(){
       $("div.nvtooltip").remove();

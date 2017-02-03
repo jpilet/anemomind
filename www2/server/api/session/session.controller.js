@@ -17,7 +17,7 @@ module.exports.getSessionById = function(req, res, next) {
     if (err) {
       handleError(res, err);
     } else {
-      boatAccess.userCanReadBoatId(req.user.id, session.boat)
+      boatAccess.userCanRead(req.user, session.boat)
       .then(function() {
         res.status(200).json(session);
       })
@@ -27,20 +27,15 @@ module.exports.getSessionById = function(req, res, next) {
 };
 
 module.exports.getSessionsForBoat = function(req, res, next) {
-  boatAccess.userCanReadBoatId(req.user.id, req.params.id)
-    .then(function() {
-      var search = {
-        boat: req.params.id
-      };
-      SailingSession.find(search, function(err, session) {
-        if (err) {
-          res.status(404).end();
-        } else {
-          res.status(200).json(session);
-        }
-      });
-    })
-    .catch(function(err) { res.sendStatus(403); });
+  var boatId = req.params.boatId;
+  var search = { boat: boatId };
+  SailingSession.find(search, function(err, session) {
+    if (err) {
+      res.status(404).end();
+    } else {
+      res.status(200).json(session);
+    }
+  });
 };
 
 module.exports.listSessions = function(req, res, next) {

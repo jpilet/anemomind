@@ -17,11 +17,12 @@ angular.module('www2App')
       });
     };
 
-    boatList.boats().then(function (boats) {
-      var boat=$scope.boat=boatList.boat($stateParams.boatId);
-      boat.admins.forEach(resolveUser);
-      boat.readers.forEach(resolveUser);
-    });
+    boatList.boat($stateParams.boatId)
+      .then(function (boat) {
+        $scope.boat = boat;
+        boat.admins.forEach(resolveUser);
+        boat.readers.forEach(resolveUser);
+      });
 
 
     $scope.saveBoat = function() {
