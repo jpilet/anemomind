@@ -80,4 +80,25 @@ std::shared_ptr<HTree> exploreTree(Array<HNode> nodeinfo, std::shared_ptr<HTree>
   return exploreTreeSub(nodeinfo, tree, 0, false, "", out, infoFun);
 }
 
+void makeLogParseSub(std::ostream *dst,
+    const Array<HNode> &info,
+    const std::shared_ptr<HTree> &tree,
+    std::function<std::string(std::shared_ptr<HTree>)> infoFun,
+    int depth) {
+  outputIndentedLine(info[tree->index()].description()
+      + ": " + infoFun(tree), depth, dst);
+  int deeper = 1 + depth;
+  for (auto c: tree->children()) {
+    makeLogParseSub(dst, info, c, infoFun, deeper);
+  }
+}
+
+void makeLogParse(
+    std::ostream *dst,
+    const Array<HNode> &info,
+        const std::shared_ptr<HTree> &tree,
+        std::function<std::string(std::shared_ptr<HTree>)> infoFun) {
+  makeLogParseSub(dst, info, tree, infoFun, 0);
+}
+
 } /* namespace sail */

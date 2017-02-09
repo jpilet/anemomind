@@ -242,7 +242,9 @@ std::string grammarNodeInfo(const NavDataset& navs, std::shared_ptr<HTree> tree)
   CHECK(tree->left() < tree->right());
   Nav right = getNav(navs, tree->right()-1);
   Nav left = getNav(navs, tree->left());
-  return left.time().toString() + " " + (right.time() - left.time()).str();
+  return left.time().toString() + " to "
+      + right.time().toString()
+      + " with duration of " + (right.time() - left.time()).str();
 }
 
 }  // namespace
@@ -334,10 +336,19 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
+  auto grammarNodeInfoResampled =
+      [&](std::shared_ptr<HTree> t) {
+    return grammarNodeInfo(resampled, t);
+  };
   if (_exploreGrammar) {
     exploreTree(
         _grammar.grammar.nodeInfo(), fulltree, &std::cout, 
-        [&](std::shared_ptr<HTree> t) { return grammarNodeInfo(resampled, t); });
+        grammarNodeInfoResampled);
+  }
+  if (_logParse) {
+    std::ofstream file(_dstPath.toString() + "/logparse.txt");
+    makeLogParse(&file, _grammar.grammar.nodeInfo(),
+        fulltree, grammarNodeInfoResampled);
   }
 
   Calibrator calibrator(_grammar.grammar);
@@ -433,6 +444,7 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _tileParams.fullClean = amap->optionProvided("--clean");
 
   _exploreGrammar = amap->optionProvided("--explore");
+  _logParse = amap->optionProvided("--log-parse");
 
   _chartTileSettings.dbName = _tileParams.dbName;
   if (_debug) {
@@ -548,6 +560,8 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--explore", "Explore grammar tree")
     .store(&processor._exploreGrammar);
+
+  amap.registerOption("--log-parse", "Produce a log file with the parsed result");
 
   auto status = amap.parse(argc, argv);
   switch (status) {
