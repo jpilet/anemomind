@@ -13,7 +13,7 @@ module.exports = function(app) {
         };
 
 	// preload index.html
-	var index=require('fs').readFileSync(app.get('appPath') + '/index.html').toString();  
+	var index=require('fs').readFileSync(app.get('appPath') + '/index.html').toString();
 
 
 	// TODO replace this code with require('VectorTileLayer').curveEndTimeStr
@@ -29,9 +29,9 @@ module.exports = function(app) {
 	// open a shared map
 	controller.get=function (req,res) {
 
-	  var l=req.query.l, 
+	  var l=req.query.l,
 	      boatId=req.params.boatId,
-	      curve=req.query.c, 
+	      curve=req.query.c,
 	      start=curveStartTimeStr(curve),
 	      end=curveEndTimeStr(curve),
 	      width=1024, height=536;
@@ -47,12 +47,12 @@ module.exports = function(app) {
 	  		return res.status(500).send(err);
 	  	}
 
-	  	// build shared url 
+	  	// build shared url
 	  	var hostname = 'https://www.anemolab.com';
-
-                if (req.header('x-forwarded-port') != 443) {
-                  hostname += ':444'; // running beta
-                }
+        var port = req.header('x-forwarded-port');
+        if (port && port != 443) {
+          hostname += ':' + port; // running beta
+        }
 
 	  	// prepare social data model
 	  	// TODO make this information more accurate
@@ -67,7 +67,7 @@ module.exports = function(app) {
 		  }
 
                   // send content
-		  res.send(index.replace('<!-- OPEN GRAPH -->', oghtml(model)));	
+		  res.send(index.replace('<!-- OPEN GRAPH -->', oghtml(model)));
 	  });
 	}
 
