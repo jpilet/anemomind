@@ -14,6 +14,23 @@ angular.module('www2App')
     // if defined, contain the currently loading promise for boats()
     var loading;
 
+    function clear() {
+      boats = [ ];
+      boatDict = { };
+      curves = { };
+      sessionsForBoats = {};
+      loadedFor = undefined;
+      loading = undefined;
+      console.log('Forgetting boat data');
+    }
+
+    // Forget anything loaded (called on logout)
+    $rootScope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
+      if ((oldVal && !newVal) || (!oldVal && newVal)) {
+        // logout or login, forget what we have loaded.
+        clear();
+      }
+    });
 
     // update local dict and array of boats
     function updateBoatRepo(boat) {
@@ -25,7 +42,7 @@ angular.module('www2App')
          }
       }
       boats.push(boat);
-    }    
+    }
 
     // return the default boat to display at home
     function getDefaultBoat() {
@@ -87,7 +104,7 @@ angular.module('www2App')
 
           loadedFor = userOrAnomymous();
           loading = undefined;
-          deferred.resolve(boats);            
+          deferred.resolve(boats);
         });
 
       return promise;
@@ -120,11 +137,11 @@ angular.module('www2App')
             }
             curves[payload.data[i]._id] = payload.data[i];
           }
-          
+
           $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
 
           loading = undefined;
-          deferred.resolve(boatDict[boatid]);            
+          deferred.resolve(boatDict[boatid]);
         });
 
       return promise;
@@ -151,7 +168,7 @@ angular.module('www2App')
       var promise=$http.put('/api/boats/' + id, boat);
       promise.success(updateBoatRepo);
       return promise;
-      
+
     }
 
     function addMember(id,invitation) {
