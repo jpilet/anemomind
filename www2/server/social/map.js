@@ -49,10 +49,10 @@ module.exports = function(app) {
 
 	  	// build shared url
 	  	var hostname = 'https://www.anemolab.com';
-        var port = req.header('x-forwarded-port');
-        if (port && port != 443) {
-          hostname += ':' + port; // running beta
-        }
+	  	var port = req.header('x-forwarded-port');
+	  	if (port && port != 443) {
+	  	  hostname += ':' + port; // running beta
+	  	}
 
 	  	// prepare social data model
 	  	// TODO make this information more accurate
