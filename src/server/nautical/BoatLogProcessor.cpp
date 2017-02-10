@@ -345,9 +345,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
         _grammar.grammar.nodeInfo(), fulltree, &std::cout, 
         grammarNodeInfoResampled);
   }
-  if (_logParse) {
-    std::ofstream file(_dstPath.toString() + "/logparse.txt");
-    makeLogParse(&file, _grammar.grammar.nodeInfo(),
+  if (_logGrammar) {
+    std::ofstream file(_dstPath.toString() + "/loggrammar.txt");
+    outputLogGrammar(&file, _grammar.grammar.nodeInfo(),
         fulltree, grammarNodeInfoResampled);
   }
 
@@ -444,7 +444,7 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _tileParams.fullClean = amap->optionProvided("--clean");
 
   _exploreGrammar = amap->optionProvided("--explore");
-  _logParse = amap->optionProvided("--log-parse");
+  _logGrammar = amap->optionProvided("--log-grammar");
 
   _chartTileSettings.dbName = _tileParams.dbName;
   if (_debug) {
@@ -561,7 +561,8 @@ int mainProcessBoatLogs(int argc, const char **argv) {
   amap.registerOption("--explore", "Explore grammar tree")
     .store(&processor._exploreGrammar);
 
-  amap.registerOption("--log-parse", "Produce a log file with the parsed result");
+  amap.registerOption("--log-grammar",
+      "Produce a log file with the parsed result");
 
   auto status = amap.parse(argc, argv);
   switch (status) {
