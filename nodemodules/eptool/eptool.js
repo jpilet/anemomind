@@ -16,24 +16,14 @@ function report(err) {
   console.log("Got error " + err);
 }
 
-function viewFull(filename, full) {
+function summary(filename) {
   openExistingEndpoint(filename, function(err, ep) {
     if (err) {return report(err);}
-    epstate.getAllEndpointData(ep, function(err, data) {
-      if (err) {return report(err);}
-      data = full? data : epstate.summarizeEndpointData(data);
-      console.log("Endpoint contents:\n"
+    epstate.getEndpointSummary(ep, function(err, data) {
+      console.log('Summary of ' + filename + ":\n" 
                   + JSON.stringify(data, null, 2));
-    })
+    });
   });
-}
-
-function disp(filename) {
-  viewFull(filename, true);
-}
-
-function summary(filename) {
-  viewFull(filename, false);
 }
 
 function reset(filename) {
@@ -56,7 +46,6 @@ filename = args[1]
 
 var ops = {
   summary: summary,
-  disp: disp,
   reset: reset
 };
 

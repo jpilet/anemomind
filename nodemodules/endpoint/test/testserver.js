@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var httpapi = require('../httpapi.js');
+var bodyParser = require('body-parser');
 
 app.get('/', function(req, res) {
   res.send('Pine needle tea');
@@ -28,6 +29,7 @@ function mockAccess(name, f) {
   }
 }
 
+app.use(bodyParser.json());
 app.use('/mockendpoint', httpapi.make(express.Router(), mockAccess));
 
 module.exports.app = app;
