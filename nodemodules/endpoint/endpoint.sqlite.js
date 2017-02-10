@@ -404,14 +404,14 @@ function ensureNumberOr0(x) {
 
 function getSizeOfRange(db, src, dst, lower, upper, cb) {
   db.get(
-    'SELECT sum(length(data)) FROM packets WHERE src=? AND dst=? AND ? <= seqNumber AND seqNumber < ?',
+    'SELECT sum(length(data)) AS size FROM packets WHERE src=? AND dst=? AND ? <= seqNumber AND seqNumber < ?',
     src, dst, lower, upper, function(err, row) {
       if (err) {
         cb(err);
       } else if (row == null) {
         cb(null, 0);
       } else {
-        cb(null, ensureNumberOr0(row['sum(length(data))']));
+        cb(null, ensureNumberOr0(row.size));
       }
     });
 }
