@@ -283,9 +283,7 @@ void BoatLogProcessor::grammarDebug(
     const std::shared_ptr<HTree> &fulltree,
     const NavDataset &resampled) const {
   auto grammarNodeInfoResampled =
-      [&](std::shared_ptr<HTree> t) {
-    return grammarNodeInfo(resampled, t);
-  };
+      [&](std::shared_ptr<HTree> t) {return grammarNodeInfo(resampled, t);};
   if (_exploreGrammar) {
     exploreTree(
         _grammar.grammar.nodeInfo(), fulltree, &std::cout,
