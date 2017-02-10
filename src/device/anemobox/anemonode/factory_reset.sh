@@ -1,3 +1,4 @@
+#!/bin/bash
 ## TODO: Should we just do 'rm -rf /media/sdcard/*' or would it be too much?
 ##       Should we just do 'rm -rf /home/anemobox/*' or would it be too much?
 rm -rf /media/sdcard/mail2/*
