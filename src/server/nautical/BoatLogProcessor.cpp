@@ -279,6 +279,26 @@ Poco::Path getDstPath(ArgMap &amap) {
   }
 }
 
+void BoatLogProcessor::grammarDebug(
+    const std::shared_ptr<HTree> &fulltree,
+    const NavDataset &resampled) const {
+  auto grammarNodeInfoResampled =
+      [&](std::shared_ptr<HTree> t) {
+    return grammarNodeInfo(resampled, t);
+  };
+  if (_exploreGrammar) {
+    exploreTree(
+        _grammar.grammar.nodeInfo(), fulltree, &std::cout,
+        grammarNodeInfoResampled);
+  }
+  if (_logGrammar) {
+    std::ofstream file(_dstPath.toString() + "/loggrammar.txt");
+    outputLogGrammar(&file, _grammar.grammar.nodeInfo(),
+        fulltree, grammarNodeInfoResampled);
+  }
+}
+
+
 //
 // high-level processing logic
 //
@@ -336,20 +356,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
-  auto grammarNodeInfoResampled =
-      [&](std::shared_ptr<HTree> t) {
-    return grammarNodeInfo(resampled, t);
-  };
-  if (_exploreGrammar) {
-    exploreTree(
-        _grammar.grammar.nodeInfo(), fulltree, &std::cout, 
-        grammarNodeInfoResampled);
-  }
-  if (_logGrammar) {
-    std::ofstream file(_dstPath.toString() + "/loggrammar.txt");
-    outputLogGrammar(&file, _grammar.grammar.nodeInfo(),
-        fulltree, grammarNodeInfoResampled);
-  }
+  grammarDebug(fulltree, resampled);
 
   Calibrator calibrator(_grammar.grammar);
   if (_verboseCalibrator) { calibrator.setVerbose(); }

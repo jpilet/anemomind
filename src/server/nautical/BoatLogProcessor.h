@@ -63,6 +63,10 @@ struct BoatLogProcessor {
   bool _logGrammar = false;
 
   mongo::DBClientConnection db;
+private:
+  void grammarDebug(
+      const std::shared_ptr<HTree> &fulltree,
+      const NavDataset &resampled) const;
 };
 
 int mainProcessBoatLogs(int argc, const char **argv);
