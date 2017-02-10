@@ -74,7 +74,6 @@ FOREACH_CHANNEL(DECL_TYPE)
 
 const char* descriptionForCode(DataCode code);
 const char* wordIdentifierForCode(DataCode code);
-Optional<DataCode> codeForWordIdentifier(const std::string &word);
 
 class DispatchDataVisitor;
 class DispatchData {

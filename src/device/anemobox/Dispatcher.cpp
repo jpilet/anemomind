@@ -26,14 +26,6 @@ const char* wordIdentifierForCode(DataCode code) {
   return nullptr;
 }
 
-Optional<DataCode> codeForWordIdentifier(const std::string &word) {
-#define IF_WORD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  if (word == SHORTNAME) {return HANDLE;}
-  FOREACH_CHANNEL(IF_WORD)
-#undef IF_WORD
-  return Optional<DataCode>();
-}
-
 Dispatcher::Dispatcher() {
   // Instanciates a proxy for each channel.
 #define REGISTER_PROXY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
