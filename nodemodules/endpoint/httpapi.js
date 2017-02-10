@@ -1,6 +1,7 @@
 var util = require('util');
 var epstate = require('./epstate.js');
 var jsspec = require('js.spec');
+var bigint = require('./bigint.js');
 var spec = jsspec.spec;
 
 var internalServerError = 500;
@@ -53,7 +54,7 @@ var getPacketSpec = spec.map({
   name: spec.string,
   src: spec.string,
   dst: spec.string,
-  seqNumber: spec.string
+  seqNumber: bigint.isBigIntStrict
 });
 
 var getRangeSizesSpec = spec.collection(spec.map({
