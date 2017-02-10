@@ -1,2 +1,0 @@
-# check network status every other minute
-*/2 * * * * root /anemonode/ifup-userconfig.sh 2>&1 > /tmp/checklog

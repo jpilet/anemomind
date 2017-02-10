@@ -18,7 +18,8 @@
   <body>
     <center><h3>Anemobox configuration</h3></center>
 
-    <div id="mainBlock" class="center-block">
+
+    <div class="center-block">
       <dl class="dl-horizontal">
         <dt> NMEA0183 speed </dt>
         <dd>
@@ -33,62 +34,13 @@
         </dd>
       </dl>
 
-      <dl id="wifiMode" class="dl-horizontal">
-        <dt> Wifi mode </dt>
-        <dd>
-          <select class="form-control">
-            <option value="AP">Access point</option>
-            <option value="WPA">Connect to network (WPA)</option>
-          </select>
-        </dd>
-      </dl>
-
-      <dl id="wifiSSID" class="dl-horizontal">
-        <dt> SSID </dt>
-        <dd>
-          <input type=text class="form-control"/>
-        </dd>
-      </dl>
-      <dl id="wifiPasswd" class="dl-horizontal">
-        <dt> WPA password </dt>
-        <dd>
-          <input type="text" class="form-control"/>
-        </dd>
-      </dl>
-
-      <dl class = "dl-horizontal">
-        <dt>NMEA0183 UDP input port</dt>
-        <dd><input type="number" id="nmea0183UdpPort"/></dd>
-      </dl>
-
-      <dl class ="dl-horizontal">
-        <dd>
-          <button id="saveButton" type="button" class="btn btn-primary">Save</button>
-          <div id="reportError" style="text-align:center;"></div>
-        </dd>
-      </dl>
-
-
       <dl id="dataTable" class="dl-horizontal">
       </dl>
     </div>
 
-    <div id="networkChangedBlock" class="center-block" style="display:none;">
-      <h2>Network configuration changed</h2>
-      <p>The Anemobox will attempt to apply new network settings. It will take a few
-      minutes. In case of failure, for example because of a wrong password,
-      the Anemobox will return to access point mode, creating the wifi network
-      printed on the Anemobox itself.
-      </p>
-      <p>You might need to change the wifi settings of the device showing this page
-      before reconnecting to the Anemobox through its new network settings.</p>
-    </div>
-
-    <footer>
-      <p style="text-align:center;"><a href="/">Input data</a></p>
-      <p style="text-align:center;"><a href="/allSources.html">Detailed input data</a></p>
-      <p style="text-align:center;"><a href="3d.html">3D view</a></p>
-    </footer>
+    <p style="text-align:center;"><a href="/">Input data</a></p>
+    <p style="text-align:center;"><a href="/allSources.html">Detailed input data</a></p>
+    <p style="text-align:center;"><a href="3d.html">3D view</a></p>
 
     <script src="jquery.min.js"></script>
     <script>
@@ -123,27 +75,8 @@
           loadedConfig = data;
           $('#nmea0183Speed option[value=' + data.boxConfig.nmea0183Speed + ']').prop('selected', true);
 
-          var wifi_mode = data.boxConfig.wifi_mode || 'AP';
-          var wpa_ssid = data.boxConfig.wpa_ssid || '';
-          var wpa_password = data.boxConfig.wpa_password || '';
-
-          $('#wifiMode option[value=' + wifi_mode + ']')
-            .prop('selected', true);
-          if (wifi_mode == 'WPA') {
-            $('#wifiSSID').show();
-            $('#wifiPasswd').show();
-          } else {
-            $('#wifiSSID').hide();
-            $('#wifiPasswd').hide();
-          }
-          $('#wifiSSID input').val(wpa_ssid);
-          $('#wifiPasswd input').val(wpa_password);
-
-          $('#nmea0183Speed option[value=' + data.boxConfig.nmea0183Speed + ']').prop('selected', true);
           var table = $('#dataTable');
           table.html('');
-
-          $('#nmea0183UdpPort').val(data.boxConfig.nmea0183UdpPort || 50000);
 
           for (var i in tableEntries) {
             var entry = tableEntries[i];
@@ -158,107 +91,43 @@
             table.append(row);
           }
         }
-    function reportError(err) {
-      $('#reportError').text(err || '');
-    }
 
     function fetchConfig() {
-      reportError();
-
       $.ajax({
         url: "api/config/",
         type: "GET",
         success: readConfig,
-        error: function(jqxhr, status, err) {
-          reportError("Error when reading configuration: " + status + " " + err);
-        },
         dataType: "json",
         timeout: 200
       })
     };
 
-    function changeBoxConfig(newConfig) {
-        var changes = {};
-
-        var same = true;
-        var networkChanged = false;
-        var networkSettings = {wifi_mode: 1, wpa_ssid: 1, wpa_password: 1};
-
-        for (var key in newConfig) {
-          var value = newConfig[key];
-          if (value != loadedConfig.boxConfig[key]) {
-            same = false;
-            changes[key] = value;
-            if (key in networkSettings) {
-              networkChanged = true;
-            }
-          }
-        }
-        if (same) {
+    function changeBoxConfig(key, value) {
+        if (value == loadedConfig.boxConfig[key]) {
           // no need to change identical value
-          reportError('No changes made');
-          return networkChanged;
+          return;
         }
-
-        reportError();
+        var changeObject = {};
+        changeObject[key] = value;
         $.ajax({
           url: "/api/config/",
           type: "PUT",
           dataType: "json",
           headers: { "Content-Type": "application/json"},
-          data: JSON.stringify(changes),
+          data: JSON.stringify(changeObject),
           success: function(data) {
             loadedConfig.boxConfig = data;
             readConfig(loadedConfig);
-            if (networkChanged) {
-              reportNetworkChanged();
-            } else {
-              reportError('Changes saved successfully.');
-            }
-          },
-          error: function(jqxhr, status, err) {
-            reportError('Error when saving: ' + status + ', ' + err);
           }
         });
-        return networkChanged;
-    }
-
-    function saveConfig() {
-      var changes = {
-        nmea0183Speed: $("#nmea0183Speed option:selected").val(),
-        wifi_mode: $("#wifiMode option:selected").val(),
-        wpa_ssid: $('#wifiSSID input').val(),
-        wpa_password: $('#wifiPasswd input').val(),
-        nmea0183UdpPort: $('#nmea0183UdpPort').val()
-      };
-
-      changeBoxConfig(changes);
-    }
-
-    function reportNetworkChanged() {
-      $('#mainBlock').hide();
-      $('footer').hide();
-      $('#networkChangedBlock').show();
     }
 
     $(document).ready(function(){   
       fetchConfig();
       $("#nmea0183Speed").change(function(e){
         var newSpeed = $("#nmea0183Speed option:selected").val();
-        changeBoxConfig({ nmea0183Speed: newSpeed });
+        changeBoxConfig('nmea0183Speed', newSpeed);
       });
-      $('#wifiMode').change(function(e) {
-        var newMode = $("#wifiMode option:selected").val();
-        if (newMode == "WPA" ) {
-          $('#wifiSSID').show();
-          $('#wifiPasswd').show();
-        } else {
-          $('#wifiSSID').hide();
-          $('#wifiPasswd').hide();
-        }
-      });
-
-      $('#saveButton').click(saveConfig);
     });
   </script>
   </body>
