@@ -1,7 +1,6 @@
 var util = require('util');
 var epstate = require('./epstate.js');
 var jsspec = require('js.spec');
-var bigint = require('./bigint.js');
 var spec = jsspec.spec;
 
 var internalServerError = 500;
@@ -50,13 +49,6 @@ Make a router for accessing an endpoint.
 
 */
 
-var getPacketSpec = spec.map({
-  name: spec.string,
-  src: spec.string,
-  dst: spec.string,
-  seqNumber: bigint.isBigIntStrict
-});
-
 var getRangeSizesSpec = spec.collection(spec.map({
   src: spec.string,
   dst: spec.string,
@@ -92,29 +84,23 @@ function make(router, accessEndpoint, errorLogger0) {
   router.get('/getPacket/:name/:src/:dst/:seqNumber', function(req, res) {
     var p = req.params;
     withEndpoint(req, res, emptyBuffer, function(endpoint, cb) {
-      if (!jsspec.valid(getPacketSpec, p)) {
-        res.status(badRequest).send(emptyBuffer);
-        jsspec.explain(getPacketSpec, p);
-        cb();
-      } else {
-        endpoint.getPacket(p.src, p.dst, p.seqNumber, function(err, packet) {
-          if (err) {
-            logError(util.format('getPacket failed with %j', err));
+      endpoint.getPacket(p.src, p.dst, p.seqNumber, function(err, packet) {
+        if (err) {
+          logError(util.format('getPacket failed with %j', err));
+          res.status(internalServerError).send(new Buffer(0));
+          cb();
+        } else {
+          var encoded = encodePacket(packet);
+          if (encoded.failure) {
+            logError(util.format('Encoding packet failed: %s', encoded.failure));
             res.status(internalServerError).send(new Buffer(0));
             cb();
           } else {
-            var encoded = encodePacket(packet);
-            if (encoded.failure) {
-              logError(util.format('Encoding packet failed: %s', encoded.failure));
-              res.status(internalServerError).send(new Buffer(0));
-              cb();
-            } else {
-              res.send(encoded.success);
-              cb();
-            }
+            res.send(encoded.success);
+            cb();
           }
-        });
-      }
+        }
+      });
     });
   });
 
