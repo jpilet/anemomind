@@ -22,6 +22,8 @@ namespace mongo { namespace client { void initialize() { } } }
 namespace sail {
 
 using namespace NavCompat;
+using std::vector;
+using std::map;
 
 namespace {
 BSONObj navToBSON(const Nav& nav) {
@@ -344,12 +346,15 @@ bool generateAndUploadTiles(std::string boatId,
 
     std::string curveId = tileCurveId(boatId, curve);
 
-    std::set<TileKey> tiles = tilesForNav(navs, params.maxScale);
+    map<TileKey, vector<int>> tiles = tilesForNav(navs, params.maxScale);
 
-
-    for (auto tileKey : tiles) {
+    for (auto it : tiles) {
+      const TileKey& tileKey = it.first;
       Array<Array<Nav>> subCurvesInTile = generateTiles(
-          tileKey, navs, params.maxNumNavsPerSubCurve, params.curveCutThreshold);
+          tileKey,
+          navs,
+          it.second, // the vector of nav indices
+          params.maxNumNavsPerSubCurve, params.curveCutThreshold);
 
       if (subCurvesInTile.size() == 0) {
         continue;
