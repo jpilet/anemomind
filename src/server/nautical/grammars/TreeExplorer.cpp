@@ -35,8 +35,8 @@ namespace {
         if (bool(infoFun)) {
           infostr = " (" + infoFun(tree) + ")";
         }
-        outputIndentedLine(stringFormat("%sNode of type %d (%s) with %d children%s",
-            prefix, index, type.c_str(), chn, infostr.c_str()),
+        outputIndentedLine(stringFormat("%s %s (%d children) %s",
+            prefix, type.c_str(), chn, infostr.c_str()),
             depth, out);
         if (shallow) {
           return std::shared_ptr<HTree>();
@@ -78,6 +78,27 @@ std::shared_ptr<HTree> exploreTree(Array<HNode> nodeinfo, std::shared_ptr<HTree>
     out = &(std::cout);
   }
   return exploreTreeSub(nodeinfo, tree, 0, false, "", out, infoFun);
+}
+
+void outputLogGrammarSub(std::ostream *dst,
+    const Array<HNode> &info,
+    const std::shared_ptr<HTree> &tree,
+    std::function<std::string(std::shared_ptr<HTree>)> infoFun,
+    int depth) {
+  outputIndentedLine(info[tree->index()].description()
+      + ": " + infoFun(tree), depth, dst);
+  int deeper = 1 + depth;
+  for (auto c: tree->children()) {
+    outputLogGrammarSub(dst, info, c, infoFun, deeper);
+  }
+}
+
+void outputLogGrammar(
+    std::ostream *dst,
+    const Array<HNode> &info,
+        const std::shared_ptr<HTree> &tree,
+        std::function<std::string(std::shared_ptr<HTree>)> infoFun) {
+  outputLogGrammarSub(dst, info, tree, infoFun, 0);
 }
 
 } /* namespace sail */

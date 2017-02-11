@@ -17,6 +17,8 @@
 
 namespace sail {
 
+namespace DOM {struct Node;}
+
 enum VmgSampleSelection {
   VMG_SAMPLES_FROM_GRAMMAR,
   VMG_SAMPLES_BLIND
@@ -37,10 +39,14 @@ struct BoatLogProcessor {
   bool process(ArgMap* amap);
   void readArgs(ArgMap* amap);
   bool prepare(ArgMap* amap);
+  void infoNavDataset(
+      const std::string& info, const NavDataset& ds,
+      DOM::Node *dst);
 
   bool _debug = false;
   Nav::Id _boatid;
   Poco::Path _dstPath;
+  std::string _htmlReportName;
   TileGeneratorParameters _tileParams;
   ChartTileSettings _chartTileSettings;
   GpsFilterSettings _gpsFilterSettings;
@@ -53,8 +59,14 @@ struct BoatLogProcessor {
   std::string _resumeAfterPrepare;
   std::string _savePreparedData;
   bool _verboseCalibrator = false;
+  bool _exploreGrammar = false;
+  bool _logGrammar = false;
 
   mongo::DBClientConnection db;
+private:
+  void grammarDebug(
+      const std::shared_ptr<HTree> &fulltree,
+      const NavDataset &resampled) const;
 };
 
 int mainProcessBoatLogs(int argc, const char **argv);
