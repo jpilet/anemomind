@@ -5,9 +5,10 @@ module.exports = function(app) {
 	var controller={};
 
 	let oghtml= function(ogdata) {
-          var r = '<!-- OPEN GRAPH -->\n';
+          var r = ' <!-- OPEN GRAPH -->\n'
+                + ' <meta property="fb:app_id" content="1090167944444670" />\n';
           for (var i in ogdata) {
-            r += `<meta property="og:${i}" content="${ogdata[i]}"/>\n`;
+            r += ` <meta property="og:${i}" content="${ogdata[i]}" />\n`;
           }
           return r;
         };
@@ -61,9 +62,11 @@ module.exports = function(app) {
 		    title: boat.name +' sailing '+new Date(start).toDateString(),
 		    description: boat.name +' sailing on '
                         + new Date(start).toDateString(),
-		    image:hostname+ogImg,
-		    "image:width":width,
-		    "image:height":height
+                    "image": hostname+ogImg,
+                    "image:secure_url": hostname+ogImg,
+                    "image:type": "image/png",
+                    "image:width": width,
+                    "image:height": height
 		  }
 
                   // send content
