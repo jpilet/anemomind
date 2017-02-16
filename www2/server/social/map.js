@@ -1,12 +1,15 @@
 'use strict';
 var mongoose = require('mongoose');
+var env = require('../config/environment');
+
 module.exports = function(app) {
 	// exported methods
 	var controller={};
 
 	let oghtml= function(ogdata) {
           var r = ' <!-- OPEN GRAPH -->\n'
-                + ' <meta property="fb:app_id" content="1090167944444670" />\n';
+                + ' <meta property="fb:app_id" content="'
+                + env.facebook.clientID + '" />\n';
           for (var i in ogdata) {
             r += ` <meta property="og:${i}" content="${ogdata[i]}" />\n`;
           }
@@ -58,10 +61,10 @@ module.exports = function(app) {
 	  	// prepare social data model
 	  	// TODO make this information more accurate
 		  var model={
-		    url:hostname+req.originalUrl,
-		    title: boat.name +' sailing '+new Date(start).toDateString(),
-		    description: boat.name +' sailing on '
-                        + new Date(start).toDateString(),
+                    url:hostname + req.originalUrl,
+                    title: boat.name +' sailing ' + new Date(start).toDateString(),
+                    description:
+                      boat.name +' sailing on ' + new Date(start).toDateString(),
                     "image": hostname+ogImg,
                     "image:secure_url": hostname+ogImg,
                     "image:type": "image/png",
