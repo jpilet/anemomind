@@ -1,7 +1,5 @@
 var util = require('util');
 var epstate = require('./epstate.js');
-var jsspec = require('js.spec');
-var spec = jsspec.spec;
 
 var internalServerError = 500;
 var badRequest = 400;
@@ -49,12 +47,34 @@ Make a router for accessing an endpoint.
 
 */
 
-var getRangeSizesSpec = spec.collection(spec.map({
-  src: spec.string,
-  dst: spec.string,
-  lower: spec.string,
-  upper: spec.string
-}));
+function isString(x) {
+  return typeof x == "string";
+}
+
+function isRangeQuery(x) {
+  if (x instanceof Object) {
+    return isString(x.src) && 
+      isString(x.dst) && 
+      isString(x.lower) && 
+      isString(x.upper);
+  }
+  console.log("Not an object: %j", x);
+  return false;
+}
+
+function areRangeQueries(x) {
+  if (x instanceof Array) {
+    for (var i = 0; i < x.length; i++) {
+      if (!isRangeQuery(x[i])) {
+        console.log("Not a range query: %j", x[i]);
+        return false;
+      }
+    }
+    return true;
+  }
+  console.log("Not an array: %j", x);
+  return false;
+}
 
 function make(router, accessEndpoint, errorLogger0) {
   var logError = wrapErrorLogger(errorLogger0);
@@ -124,9 +144,8 @@ function make(router, accessEndpoint, errorLogger0) {
   router.post('/getRangeSizes/:name', function(req, res) {
     withEndpoint(req, res, [], function(endpoint, cb) {
       var queries = req.body.queries;
-      if (!jsspec.valid(getRangeSizesSpec, queries)) {
+      if (!areRangeQueries(queries)) {
         res.status(badRequest).json([]);
-        jsspec.explain(getRangeSizesSpec, queries);
         cb();
       } else {
         endpoint.getRangeSizes(queries, function(err, data) {
