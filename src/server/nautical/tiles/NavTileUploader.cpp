@@ -2,6 +2,7 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 #include <algorithm>
+#include <boost/core/noncopyable.hpp>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <server/common/Optional.h>
 #include <server/common/Span.h>
@@ -91,7 +92,7 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
   return result.arr();
 }
 
-class BulkInserter {
+class BulkInserter : private boost::noncopyable {
  public:
   BulkInserter(const TileGeneratorParameters& params, DBClientConnection* db)
     : _params(params), _db(db), _success(true) { }
