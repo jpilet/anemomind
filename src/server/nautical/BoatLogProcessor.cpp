@@ -323,7 +323,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   if (_resumeAfterPrepare.size() > 0) {
     resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    NavDataset raw = loadNavs(*amap, _boatid);
+    NavDataset raw = removeStrangeGpsPositions(
+        loadNavs(*amap, _boatid));
     infoNavDataset("After loading", raw, &htmlReport);
 
     resampled = raw.createMergedChannels(
