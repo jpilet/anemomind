@@ -15,6 +15,9 @@ include("cmake/GTest.cmake")
 
 set(FULL_BUILD ON CACHE BOOL "enables full build or restrict to minimum")
 
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
 if (${FULL_BUILD})
   include("cmake/ADOLC.cmake")
   include("cmake/POCO.cmake")
