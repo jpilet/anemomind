@@ -5,6 +5,8 @@
 
 namespace sail {
 
+NavDataset removeStrangeGpsPositions(const NavDataset& ds);
+
 // Returns a new NavDataset with a merged and downsampled GPS_POS
 // channel.
 NavDataset downSampleGpsTo1Hz(const NavDataset& navs);
