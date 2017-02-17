@@ -1,0 +1,8 @@
+db.boats.remove({});
+db.boatstats.remove({});
+db.boxexecs.remove({});
+db.events.remove({});
+db.sailingsessions.remove({});
+db.sessions.remove({});
+db.tiles.remove({});
+db.users.remove({});
