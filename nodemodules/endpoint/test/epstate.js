@@ -5,7 +5,7 @@ var assert = require('assert');
 describe('epstate', function() {
   it('Should get the state of an empty endpoint', function(done) {
     ep.tryMakeAndResetEndpoint('/tmp/epstateA.db', 'A', function(err, ep) {
-      epstate.getAllEndpointData(ep, function(err, data) {
+      epstate.getEndpointSummary(ep, function(err, data) {
         assert(data.packets.length == 0);
         assert(data.lowerBounds.length == 0);
         done();
@@ -16,7 +16,7 @@ describe('epstate', function() {
   it('Should show the state of an endpoint before and after an operation', 
      function(done) {
     ep.tryMakeAndResetEndpoint('/tmp/epstateA.db', 'A', function(err, ep) {
-      epstate.getAllEndpointData(ep, function(err, data) {
+      epstate.getEndpointSummary(ep, function(err, data) {
         epstate.dispStateOp(ep, function(cb) {
           console.log('sendPacket');
           ep.sendPacket('B', 3, new Buffer(119), cb);
@@ -35,15 +35,14 @@ describe('epstate', function() {
             if (err) {return done(err);}
             ep.updateLowerBound('C', 'D', "000001597313f7ff", function(err) {
               if (err) {return done(err);}
-              epstate.getAllEndpointData(ep, function(err, data) {
+              epstate.getEndpointSummary(ep, function(err, sum) {
                 if (err) {return done(err);}
-                var sum = epstate.summarizeEndpointData(data);
                 console.log("sum: " + JSON.stringify(sum, null, 2));
                 var packets = sum.packets;
                 for (var i = 0; i < packets.length; i++) {
                   var p = packets[i];
-                  assert(typeof p.minSeqNumber == "string");
-                  assert(typeof p.maxSeqNumber == "string");
+                  assert(typeof p.lower == "string");
+                  assert(typeof p.upper == "string");
                 }
                 assert(sum.packets.length == 2);
                 assert(sum.lowerBounds.length == 1);

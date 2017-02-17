@@ -46,11 +46,14 @@ double posToTileY(int scale, const GeographicPosition<double>& pos);
 
 Array<Array<Nav>> generateTiles(TileKey tileKey,
                                 const Array<Nav>& navs,
+                                const std::vector<int>& navIndices,
                                 int maxNumNavs,
                                 Duration<> curveCutThreshold);
 
-// Return a set of tiles on which "navs" should appear.
-std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale);
+// Return a map of tiles on which "navs" should appear, with the list of
+// corresponding navs index.
+std::map<TileKey, std::vector<int>> tilesForNav(
+    const Array<Nav>& navs, int maxScale);
 
 // Generate a unique identifier for this Nav curve.
 std::string tileCurveId(std::string boatId, const NavDataset& navs);

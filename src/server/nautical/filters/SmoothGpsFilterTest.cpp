@@ -129,10 +129,8 @@ TEST(SmoothGpsFilterTest, TestIt) {
 
   auto srcName = "Test corrupted";
 
-  auto corrupted = original.overrideChannels(
-      srcName,
-      {{GPS_POS, makeDispatchDataFromSamples<GPS_POS>(
-          srcName, corruptedPositions)}});
+  NavDataset corrupted = original.replaceChannel<GeographicPosition<double>>(
+      GPS_POS, srcName, corruptedPositions);
 
   // This test case is broken. An assertion is fired in debug mode.
   // It is fixed by https://github.com/jpilet/anemomind/pull/698
