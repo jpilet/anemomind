@@ -19,7 +19,7 @@ Note the box id: It is the concatenation of the hexadecimal digits printed on th
 ## Test steps
 
 4. Start the replay box by connecting it to power. The box is tagged "Test REPLAY box".
-5. Connect the box that we want to test to the replay box.
+5. Connect the box that we want to test to the replay box using both NMEA2000 or NMEA0183 or whatever is available.
 6. Turn on the app and connect it to the box. You will go through an initialization procedure:
   - Specify on which boat the box is installed
   - Create the test boat with a unique name
