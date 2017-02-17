@@ -30,14 +30,14 @@ Note the box id: It is the concatenation of the hexadecimal digits printed on th
 8. Press the sync button (although we would expect it to happen automatically).
 9. Reconnect app to local network in the office.
 10. Sync with server.
-11. Expect 2 or 3 log files in the directory specified by the server config.
+11. Expect 2 or 3 log files in the directory specified by the server config. In debug mode, it is found under ```www2/uploads/anemologs```. If you did your job correctly cleaning the server, there should only be one directory, prefixed by ```boat``` followed by the **boat id**.
 12. Do a ```logcat -s *``` on those files.
   - Check that there is data from all sources we would expect (**TODO**: add a ```--require-source``` option to logcat so that logcat will return 1 (not 0) if a certain source is not present).
-13. On the web server, call the script ```www2/synctest/ping_run.sh``` with the *box id* as an argument.
+13. On the web server, call the script ```www2/synctest/ping_run.sh``` with the *boat id* as an argument (the code in the folder name of the log uploads). 
 14. Sync app with server.
 15. Sync app with box.
 16. Sync app with server.
-17. Call ```www2/synctest/ping_check.sh``` to check that the files 
+17. Call ```www2/synctest/ping_check.sh``` to check that the files arrived, it should say ```PASSED :-)```. If it failed, try to sync the app with the box again, and then with the server. It could happen that the response did not go through on the first try, for some reason.
 
 ## Clean up
 
