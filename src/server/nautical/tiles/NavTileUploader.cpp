@@ -2,7 +2,7 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 #include <algorithm>
-#include <boost/core/noncopyable.hpp>
+#include <boost/noncopyable.hpp>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <server/common/Optional.h>
 #include <server/common/Span.h>
