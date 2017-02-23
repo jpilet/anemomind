@@ -418,8 +418,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     }
   }
 
-  LOG(INFO) << "Processing time for " << _boatid << ": "
-    << (TimeStamp::now() - start).seconds() << " seconds.";
+  // Logging to cout and not LOG(INFO) because LOG(INFO) is disabled in
+  // production and we want to keep track of processing time.
+  std::cout << "Processing time for " << _boatid << ": "
+    << (TimeStamp::now() - start).seconds() << " seconds." << std::endl;
   return true;
 }
 
