@@ -6,3 +6,4 @@ db.sailingsessions.remove({});
 db.sessions.remove({});
 db.tiles.remove({});
 db.users.remove({});
+db.users.insert({ "_id" : ObjectId("58aeabd177f0d637a9e5c082"), "provider" : "local", "name" : "Pine needle", "email" : "test@anemomind.com", "hashedPassword" : "+mpgzKOOWbdL8bw4zo5rv9c2RCVusFvZ0/74Gm8lJRCdyYVACVQhIO7buR0zvumZ6jmf9sjbd6WuKz1tvIdF4A==", "salt" : "z1OJt0QSCve0YGINVnWQ1w==", "role" : "user", "__v" : 0 });
