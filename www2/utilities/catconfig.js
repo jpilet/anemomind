@@ -1,5 +1,5 @@
 // Example usage:
-// node utilities/catconfig.js development %j x.mongo.uri
+// node utilities/catconfig.js %j x.mongo.uri
 
 var assert = require('assert');
 
@@ -10,23 +10,16 @@ function isValidMode(x) {
       return true;
     }    
   }
+  console.log("Invalid mode: '%s'", x);
+  console.log("Valid modes are %j", validModes);
   return false;
 }
+assert(isValidMode(process.env.NODE_ENV));
 
-var backup = process.env.NODE_ENV;
 var cmdArgs = process.argv.slice(2);
-var mode = cmdArgs[0];
-if (!isValidMode(mode)) {
-  throw new Error("Invalid mode: '" + mode + "'");  
-}
-var fmt = cmdArgs[1];
+var fmt = cmdArgs[0];
 assert(fmt == '%j' || fmt == '%s');
-var expr = cmdArgs[2];
-
-
-process.env.NODE_ENV = mode;
+var expr = cmdArgs[1];
 
 var x = require('../server/config/environment/index.js');
 console.log(fmt, eval(expr));
-
-process.env.NODE_ENV = backup;
