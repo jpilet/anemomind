@@ -4,8 +4,9 @@ killall mongod || true
 killall grunt || true
 killall node || true
 WWW2_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+boatId=$(${WWW2_DIR}/synctest/get_devbox_boatid.sh)
 echo "######################### WWW2_DIR = $WWW2_DIR"
-export LOGFILE="${WWW2_DIR}/uploads/anemologs/boat57f678e612063872e749d481/dpkg.log"
+export LOGFILE="${WWW2_DIR}/uploads/anemologs/boat${boatId}/dpkg.log"
 rm -rf /tmp/endpoints || true
 rm -r /tmp/synctest_message.txt || true
 rm -rf "${LOGFILE}"
