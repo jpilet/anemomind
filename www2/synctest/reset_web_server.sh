@@ -1,7 +1,8 @@
 #!/bin/bash
-#
-# Call this script with no argument for the default 'development' mode,
-# or an  argument specifying the mode: 'development' or 'production'.
+# Make sure that the NODE_ENV environment variable has a meaningful value
+# before calling this script, e.g.
+#   
+#   NODE_ENV=development ./reset_web_server.sh
 #
 set -e # Stop on first error
 if [[ "$NODE_ENV" -eq "" ]];
