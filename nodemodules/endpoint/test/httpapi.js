@@ -9,6 +9,28 @@ var express = require('express');
 
 chai.use(chaihttp);
 
+/*
+
+Crap. Chai does not support posting/putting binary
+buffers. So we cannot test putPacket.
+
+https://github.com/visionmedia/superagent/issues/279
+
+var req = http.request({
+  hostname: '127.0.0.1',
+  port: server.address().port,
+  method: 'POST',
+  path: '/test'
+}, function(res) {
+  assert(res.statusCode == 200);
+  done();
+})
+req.write(buffer);
+req.end();
+
+*/
+
+
 var app = testserver.app;
 
 function encodeAndDecode(packet) {
@@ -80,7 +102,7 @@ describe('httpapi', function() {
   });
 
 // https://github.com/chaijs/chai-http/issues/141
-  it('put-binary-packet-1', function(done) {
+  it('put-binary-packet-0', function(done) {
     chai.request(app)
       .put('/mockendpoint/putPacket/mock/a/b/deadbeef')
 
@@ -88,7 +110,12 @@ describe('httpapi', function() {
     //.set('Content-Type', 'application/octet-stream') // A
     //.field('data', new Buffer([9, 10, 11])) // A
 
+    // So send it just like this... I think Chai will encode it
+    // as a JSON request but not sure. But on the server side
+    // it should look the same as if the fields were encoded
+    // as binary data I think.
     .send({'data': new Buffer([9, 10, 11])}) // B
+
       .end(function(err, res) {
         assert(err);
         done();
@@ -105,6 +132,16 @@ describe('httpapi', function() {
       });
   });
 
+  /*it('put-binary-packet-2', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/x/y/deadbeef')
+      .set('Content-Type', 'application/octet-stream')
+      .write(new Buffer([9, 0]))
+      .end(function(err, res) {
+        assert(!err);
+        done();
+      });
+  });*/
 
   it('bad-request-to-get-range-sizes', function(done) {
     endpoint.tryMakeAndResetEndpoint('/tmp/httpendpoint.db', 'a', function(err, ep) {

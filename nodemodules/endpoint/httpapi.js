@@ -139,7 +139,7 @@ function make(router, accessEndpoint, errorLogger0) {
   });
 
   router.put('/putPacket/:name/:src/:dst/:seqNumber', function(req, res) {
-    var packetData = decodePacket(req.body.data);
+    var packetData = decodePacket(req.body);
     if (packetData.success) {
       withEndpoint(req, res, null, function(endpoint, cb) {
         var packet = packetData.success;
@@ -158,7 +158,8 @@ function make(router, accessEndpoint, errorLogger0) {
         });
       });
     } else {
-      logError("Failed to decode packet in putPacket");
+      console.log("Failed to decode packet in putPacket: %j", 
+                  packetData);
       res.status(badRequest).send();
     }
   });
