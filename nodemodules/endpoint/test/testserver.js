@@ -19,6 +19,15 @@ MockEndpoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
   }
 }
 
+MockEndpoint.prototype.putPacket = function(p) {
+  if (p.src == 'x' && p.dst == 'y' && p.seqNumber == 'deadbeef'
+      && p.label == 119 && p.data.equals([9, 0])) {
+    cb();
+  } else {
+    cb('Failed to put packet');
+  }
+}
+
 var mock = new MockEndpoint();
 
 function mockAccess(name, f) {

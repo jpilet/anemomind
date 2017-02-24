@@ -139,8 +139,28 @@ function make(router, accessEndpoint, errorLogger0) {
   });
 
   router.put('/putPacket/:name/:src/:dst/:seqNumber', function(req, res) {
-    console.log("THIS IS THE REQUEST: %j", req);
-    res.status(200).send();
+    var packetData = decodePacket(req.body.data);
+    if (packetData.success) {
+      withEndpoint(req, res, null, function(endpoint, cb) {
+        var packet = packetData.success;
+        packet.src = req.params.src;
+        packet.dst = req.params.dst;
+        packet.seqNumber = req.params.seqNumber;
+        endpoint.putPacket(packet, function(err) {
+          if (err) {
+            res.status(internalServerError).send();
+            logError("Failed to put packet in endpoint");
+            cb();
+          } else {
+            res.send();
+            cb();
+          }
+        });
+      });
+    } else {
+      logError("Failed to decode packet in putPacket");
+      res.status(badRequest).send();
+    }
   });
 
   // Hesitant if I should call it just 'summary', but 'getSummary' is more clear and

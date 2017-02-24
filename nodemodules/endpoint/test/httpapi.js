@@ -79,13 +79,18 @@ describe('httpapi', function() {
       })
   });
 
-  it('put-binary-packet', function(done) {
+// https://github.com/chaijs/chai-http/issues/141
+  it('put-binary-packet-1', function(done) {
     chai.request(app)
       .put('/mockendpoint/putPacket/mock/a/b/deadbeef')
-      .field('data', new Buffer([9, 10, 11])) // https://github.com/chaijs/chai-http
+
+    // Ideally, but that doesn't work with chai :-(
+    //.set('Content-Type', 'application/octet-stream') // A
+    //.field('data', new Buffer([9, 10, 11])) // A
+
+    .send({'data': new Buffer([9, 10, 11])}) // B
       .end(function(err, res) {
-        console.log("Got err: %j", err);
-        console.log("Got res: %j", res);
+        assert(err);
         done();
       });
   });
