@@ -34,6 +34,19 @@ function encodePacket(packet) {
   }
 }
 
+function decodePacket(data) {
+  if (!(data instanceof Buffer)) {
+    return failure("Not a buffer");
+  } else if (data.length < 1) {
+    return failure("Size of the buffer should be at least 1 (to contain the label)");
+  } else {
+    return success({
+      label: data[0],
+      data: data.slice(1)
+    });
+  }
+}
+
 /* 
 
 Make a router for accessing an endpoint.
@@ -167,3 +180,4 @@ function make(router, accessEndpoint, errorLogger0) {
 
 module.exports.make = make;
 module.exports.encodePacket = encodePacket;
+module.exports.decodePacket = decodePacket;

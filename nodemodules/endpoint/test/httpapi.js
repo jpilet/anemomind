@@ -11,9 +11,22 @@ chai.use(chaihttp);
 
 var app = testserver.app;
 
+function encodeAndDecode(packet) {
+  return httpapi.decodePacket(httpapi.encodePacket(packet).success).success;
+}
+
+function doEncodeAndDecodeWork(packet) {
+  var packet2 = encodeAndDecode(packet);
+  return (packet2.label == packet.label) && (packet2.data.equals(packet.data));
+}
+
 describe('httpapi', function() {
   it('should export an app', function() {
     assert(app);
+  });
+
+  it('test encode and decode', function() {
+    assert(doEncodeAndDecodeWork({label: 3, data: new Buffer([0, 4, 7])}));
   });
 
   it('should have some pine needle tea', function(done) {
