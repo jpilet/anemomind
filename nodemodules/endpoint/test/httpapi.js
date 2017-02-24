@@ -79,6 +79,18 @@ describe('httpapi', function() {
       })
   });
 
+  it('put-binary-packet', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/a/b/deadbeef')
+      .field('data', new Buffer([9, 10, 11])) // https://github.com/chaijs/chai-http
+      .end(function(err, res) {
+        console.log("Got err: %j", err);
+        console.log("Got res: %j", res);
+        done();
+      });
+  });
+
+
   it('bad-request-to-get-range-sizes', function(done) {
     endpoint.tryMakeAndResetEndpoint('/tmp/httpendpoint.db', 'a', function(err, ep) {
       if (err) {

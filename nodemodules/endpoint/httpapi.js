@@ -138,6 +138,10 @@ function make(router, accessEndpoint, errorLogger0) {
     });
   });
 
+  router.put('/putPacket/:name/:src/:dst/:seqNumber', function(req, res) {
+    res.status(200).send();
+  });
+
   // Hesitant if I should call it just 'summary', but 'getSummary' is more clear and
   // consistent with 'getPacket'...
   router.get('/getSummary/:name', function(req, res) { 
