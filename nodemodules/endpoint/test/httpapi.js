@@ -95,6 +95,16 @@ describe('httpapi', function() {
       });
   });
 
+  it('put-binary-packet-1', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/a/b/deadbeef')
+      .send({'data': 'kattskit'})
+      .end(function(err, res) {
+        assert(err);
+        done();
+      });
+  });
+
 
   it('bad-request-to-get-range-sizes', function(done) {
     endpoint.tryMakeAndResetEndpoint('/tmp/httpendpoint.db', 'a', function(err, ep) {
