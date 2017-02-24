@@ -35,6 +35,7 @@ function encodePacket(packet) {
 }
 
 function decodePacket(data) {
+  console.log("INPUT to decode: %j", data);
   if (!(data instanceof Buffer)) {
     return failure("Not a buffer");
   } else if (data.length < 1) {

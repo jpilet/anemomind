@@ -15,9 +15,11 @@ function encodeAndDecode(packet) {
   return httpapi.decodePacket(httpapi.encodePacket(packet).success).success;
 }
 
-function doEncodeAndDecodeWork(packet) {
+function successfulEncodeAndDecode(packet) {
   var packet2 = encodeAndDecode(packet);
-  return (packet2.label == packet.label) && (packet2.data.equals(packet.data));
+  return (packet2 instanceof Object) && 
+    (packet2.label == packet.label) && 
+    (packet2.data.equals(packet.data));
 }
 
 describe('httpapi', function() {
@@ -26,8 +28,10 @@ describe('httpapi', function() {
   });
 
   it('test encode and decode', function() {
-    assert(doEncodeAndDecodeWork({label: 3, data: new Buffer([0, 4, 7])}));
-    assert(!doEncodeAndDecodeWork('braasdfasf'));
+    assert((new Buffer([0, 9]).equals(new Buffer([0, 9]))));
+    assert(!(new Buffer([0, 9]).equals(new Buffer([3, 9]))));
+    assert(successfulEncodeAndDecode({label: 3, data: new Buffer([0, 4, 7])}));
+    assert(!successfulEncodeAndDecode('braasdfasf'));
   });
 
   it('should have some pine needle tea', function(done) {
