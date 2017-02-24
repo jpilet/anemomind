@@ -27,6 +27,7 @@ describe('httpapi', function() {
 
   it('test encode and decode', function() {
     assert(doEncodeAndDecodeWork({label: 3, data: new Buffer([0, 4, 7])}));
+    assert(!doEncodeAndDecodeWork('braasdfasf'));
   });
 
   it('should have some pine needle tea', function(done) {
