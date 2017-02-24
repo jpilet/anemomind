@@ -139,6 +139,7 @@ function make(router, accessEndpoint, errorLogger0) {
   });
 
   router.put('/putPacket/:name/:src/:dst/:seqNumber', function(req, res) {
+    console.log("THIS IS THE REQUEST: %j", req);
     res.status(200).send();
   });
 
