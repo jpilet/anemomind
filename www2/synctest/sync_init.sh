@@ -17,7 +17,6 @@ if [ -z "${boatId}" ]; then
     echo "ERROR: No boat id. Please make sure that the box is associated with a boat and that the server knows that!"
     exit 1
 fi
-export LOGFILE="${WWW2_DIR}/uploads/anemologs/boat${boatId}/dpkg.log"
 rm -rf /tmp/endpoints || true
 rm -rf /tmp/synctest_message.txt || true
-rm -rf "${LOGFILE}"
+rm -rf "${WWW2_DIR}/uploads/anemologs/boat${boatId}/dpkg.log"
