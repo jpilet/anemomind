@@ -11,9 +11,27 @@ chai.use(chaihttp);
 
 var app = testserver.app;
 
+function encodeAndDecode(packet) {
+  return httpapi.decodePacket(httpapi.encodePacket(packet).success).success;
+}
+
+function successfulEncodeAndDecode(packet) {
+  var packet2 = encodeAndDecode(packet);
+  return (packet2 instanceof Object) && 
+    (packet2.label == packet.label) && 
+    (packet2.data.equals(packet.data));
+}
+
 describe('httpapi', function() {
   it('should export an app', function() {
     assert(app);
+  });
+
+  it('test encode and decode', function() {
+    assert((new Buffer([0, 9]).equals(new Buffer([0, 9]))));
+    assert(!(new Buffer([0, 9]).equals(new Buffer([3, 9]))));
+    assert(successfulEncodeAndDecode({label: 3, data: new Buffer([0, 4, 7])}));
+    assert(!successfulEncodeAndDecode('braasdfasf'));
   });
 
   it('should have some pine needle tea', function(done) {
@@ -60,6 +78,52 @@ describe('httpapi', function() {
           });
       })
   });
+
+// https://github.com/chaijs/chai-http/issues/141
+  it('put-binary-packet-0', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/x/y/deadbeef')
+      .set('Content-Type', 'application/octet-stream') // A
+      .send(new Buffer([119, 9, 0])) // B
+      .end(function(err, res) {
+        assert(!err);
+        assert(res.status == 200);
+        done();
+      });
+  });
+
+  it('put-binary-packet-should-fails', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/x/y/deadbeef')
+      .set('Content-Type', 'application/octet-stream') // A
+      .send(new Buffer([119, 9])) // B
+      .end(function(err, res) {
+        assert(err);
+        assert(res.status != 200);
+        done();
+      });
+  });
+
+  it('put-binary-packet-1', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/a/b/deadbeef')
+      .send({'data': 'kattskit'})
+      .end(function(err, res) {
+        assert(err);
+        done();
+      });
+  });
+
+  /*it('put-binary-packet-2', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/x/y/deadbeef')
+      .set('Content-Type', 'application/octet-stream')
+      .write(new Buffer([9, 0]))
+      .end(function(err, res) {
+        assert(!err);
+        done();
+      });
+  });*/
 
   it('bad-request-to-get-range-sizes', function(done) {
     endpoint.tryMakeAndResetEndpoint('/tmp/httpendpoint.db', 'a', function(err, ep) {
