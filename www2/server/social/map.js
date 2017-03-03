@@ -8,10 +8,12 @@ module.exports = function(app) {
 
 	let oghtml= function(ogdata) {
           var r = ' <!-- OPEN GRAPH -->\n'
+                + ' <meta property="op:markup_version" content="v1.0">\n'
+                + ' <link rel="canonical" href="' + ogdata.url + '" >\n'
                 + ' <meta property="fb:app_id" content="'
                 + env.facebook.clientID + '" />\n';
           for (var i in ogdata) {
-            r += ` <meta property="og:${i}" content="${ogdata[i]}" />\n`;
+            r += ` <meta property="og:${i}" content="${ogdata[i]}" >\n`;
           }
           return r;
         };
@@ -61,6 +63,9 @@ module.exports = function(app) {
 	  	// prepare social data model
 	  	// TODO make this information more accurate
 		  var model={
+                    // TODO: decompose and recompose the URL so that parameter
+                    // ordering never change
+                    canonical: hostname + req.originalUrl,
                     url:hostname + req.originalUrl,
                     title: boat.name +' sailing ' + new Date(start).toDateString(),
                     description:
