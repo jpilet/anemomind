@@ -147,7 +147,7 @@ function make(router, accessEndpoint, errorLogger0) {
         packet.seqNumber = req.params.seqNumber;
         endpoint.putPacket(packet, function(err) {
           if (err) {
-            res.status(internalServerError).send();
+            res.status(badRequest).send();
             logError("Failed to put packet in endpoint");
             cb();
           } else {
