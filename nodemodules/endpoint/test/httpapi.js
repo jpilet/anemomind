@@ -114,17 +114,6 @@ describe('httpapi', function() {
       });
   });
 
-  /*it('put-binary-packet-2', function(done) {
-    chai.request(app)
-      .put('/mockendpoint/putPacket/mock/x/y/deadbeef')
-      .set('Content-Type', 'application/octet-stream')
-      .write(new Buffer([9, 0]))
-      .end(function(err, res) {
-        assert(!err);
-        done();
-      });
-  });*/
-
   it('bad-request-to-get-range-sizes', function(done) {
     endpoint.tryMakeAndResetEndpoint('/tmp/httpendpoint.db', 'a', function(err, ep) {
       if (err) {
