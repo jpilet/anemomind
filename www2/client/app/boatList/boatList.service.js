@@ -44,6 +44,33 @@ angular.module('www2App')
       boats.push(boat);
     }
 
+    function firstEntryMatchingField(array, field, value) {
+      for (var i = 0; i < array.length; ++i) {
+        if (array[i][field] === value) {
+          return array[i];
+        }
+      }
+      return null;
+    }
+
+    function updateSessionRepo(newSessions) {
+      for (var i in newSessions) {
+        var newSession = newSessions[i];
+        if (!(newSession.boat in sessionsForBoats)) {
+          sessionsForBoats[newSession.boat] = [ ];
+        }
+        var sessionsForBoat = sessionsForBoats[newSession.boat];
+
+        // make sure we do not duplicate sessions
+        var session = firstEntryMatchingField(
+          sessionsForBoat, '_id', newSession._id);
+        if (!session) {
+          sessionsForBoat.push(newSession);
+          curves[newSession._id] = newSession;
+        }
+      }
+    }
+
     // return the default boat to display at home
     function getDefaultBoat() {
       if(!boats.length){
@@ -79,9 +106,7 @@ angular.module('www2App')
         .then(function(payload) {
 
           for (var i in payload.data) {
-            var boat = payload.data[i];
-            boatDict[boat._id] = boat;
-            boats.push(boat);
+            updateBoatRepo(payload.data[i]);
           }
           socket.syncUpdates('boat', boats);
           $rootScope.$broadcast('boatList:updated', boats);
@@ -90,15 +115,8 @@ angular.module('www2App')
           return $http.get('/api/session');
         })
         .then(function(payload) {
-          for (var i in payload.data) {
-            if (payload.data[i].boat in sessionsForBoats) {
-              sessionsForBoats[payload.data[i].boat].push(payload.data[i]);
-            } else {
-              sessionsForBoats[payload.data[i].boat] = [ payload.data[i] ];
-            }
-            curves[payload.data[i]._id] = payload.data[i];
-          }
-          //
+          updateSessionRepo(payload.data);
+
           // time to resolve promise
           $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
 
@@ -118,10 +136,7 @@ angular.module('www2App')
       $http.get('/api/boats/' + boatid)
         .then(function(payload) {
           var boat = payload.data;
-          if (boat && boat._id && boat.name) {
-            boatDict[boat._id] = boat;
-          }
-          boats.push(boat);
+          updateBoatRepo(boat);
 
           $rootScope.$broadcast('boatList:updated', boats);
 
@@ -129,15 +144,7 @@ angular.module('www2App')
           return $http.get('/api/session/boat/' + boatid);
         })
         .then(function(payload) {
-          for (var i in payload.data) {
-            if (payload.data[i].boat in sessionsForBoats) {
-              sessionsForBoats[payload.data[i].boat].push(payload.data[i]);
-            } else {
-              sessionsForBoats[payload.data[i].boat] = [ payload.data[i] ];
-            }
-            curves[payload.data[i]._id] = payload.data[i];
-          }
-
+          updateSessionRepo(payload.data);
           $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
 
           loading = undefined;
