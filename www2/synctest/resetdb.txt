@@ -1,0 +1,10 @@
+db.boats.remove({});
+db.boatstats.remove({});
+db.boxexecs.remove({});
+db.events.remove({});
+db.sailingsessions.remove({});
+db.sessions.remove({});
+db.tiles.remove({});
+db.users.remove({});
+db.users.insert({name:'Test User','provider' : 'local', 'name' : 'test', 'email' : 'test@anemomind.com', 'hashedPassword' : 'bj0zHvlC/YIzEFOU7nKwr+OHEzSzfdFA9PMmsPGnWITGHp1zlL+29oa049o6FvuR2ofd8wOx2nBc5e2n2FIIsg==', 'salt' : 'bGwuseqg/L/do6vLH2sPVA==', 'role' : 'user' });
+db.users.insert({name:'Test Admin','provider' : 'local', 'name' : 'test admin', 'email' : 'admin@anemomind.com', 'hashedPassword' : 'bj0zHvlC/YIzEFOU7nKwr+OHEzSzfdFA9PMmsPGnWITGHp1zlL+29oa049o6FvuR2ofd8wOx2nBc5e2n2FIIsg==', 'salt' : 'bGwuseqg/L/do6vLH2sPVA==', 'role' : 'admin' });

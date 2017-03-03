@@ -27,8 +27,9 @@ Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(const NavDataset &ds
       speed.begin(), speed.end(), angle.begin(), angle.end(), pairThreshold);
 }
 
-GeographicPosition<double> getReferencePosition(
-    const TimedSampleRange<GeographicPosition<double> > &positions) {
+template <typename Container>
+GeographicPosition<double> getReferencePositionSub(
+    const Container &positions) {
   int n = positions.size();
   Array<Eigen::Vector3d> pos3d(n);
   auto unit = Length<double>::meters(1.0);
@@ -42,6 +43,18 @@ GeographicPosition<double> getReferencePosition(
   auto median = SpatialMedian::compute(pos3d, settings);
   Length<double> xyz[3] = {median(0)*unit, median(1)*unit, median(2)*unit};
   return computeGeographicPositionFromXYZ(xyz);
+}
+
+GeographicPosition<double>
+  getReferencePosition(
+      const Array<TimedValue<GeographicPosition<double>>> &src) {
+  return getReferencePositionSub<Array<TimedValue<GeographicPosition<double>>>>(src);
+}
+
+GeographicPosition<double>
+  getReferencePosition(
+      const TimedSampleRange<GeographicPosition<double>> &src) {
+  return getReferencePositionSub<TimedSampleRange<GeographicPosition<double>>>(src);
 }
 
 TimeStamp getReferenceTime(

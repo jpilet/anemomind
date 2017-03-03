@@ -46,12 +46,12 @@ namespace {
   }
 }
 
-NavDataset::NavDataset(const std::shared_ptr<Dispatcher> &dispatcher,
-    const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData> > > &merged,
-    TimeStamp a, TimeStamp b) :
-  _dispatcher(dispatcher), _lowerBound(a), _upperBound(b),
-  _merged(merged) {
-  assert(merged);
+NavDataset::NavDataset(
+    const std::shared_ptr<Dispatcher> &dispatcher,
+    TimeStamp a, TimeStamp b,
+    std::map<DataCode, std::shared_ptr<DispatchData>> activeSource) :
+      _dispatcher(dispatcher), _lowerBound(a), _upperBound(b),
+      _activeSource(activeSource) {
   assert(dispatcher);
   assert(beforeOrEqual(_lowerBound, _upperBound, true));
 
@@ -67,7 +67,7 @@ NavDataset NavDataset::slice(TimeStamp a, TimeStamp b) const {
   assert(beforeOrEqual(a, b, true));
   assert(beforeOrEqual(_lowerBound, a, true));
   assert(beforeOrEqual(b, _upperBound, true));
-  return NavDataset(_dispatcher, _merged, a, b);
+  return NavDataset(_dispatcher, a, b, _activeSource);
 }
 
 NavDataset NavDataset::sliceFrom(TimeStamp ts) const {
@@ -89,27 +89,6 @@ NavDataset NavDataset::sliceLast(const Duration<double> &dur) const {
 }
 
 namespace {
-  std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>>
-    resetMergedChannels(
-        const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>> &src,
-        const std::set<DataCode> &toReset) {
-    if (!bool(src)) {
-      return std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData>>>();
-    }
-
-    if (toReset.empty()) {
-      return src;
-    }
-
-    auto copy = std::make_shared<std::map<DataCode,
-        std::shared_ptr<DispatchData>>>(*src);
-
-    for (auto x: toReset) {
-      copy->erase(x);
-    }
-    return copy;
-  }
-
   void setSuperiorPriorities(std::shared_ptr<Dispatcher> d,
       const std::map<DataCode, std::map<std::string,
           std::shared_ptr<DispatchData>>> &toAdd) {
@@ -120,33 +99,6 @@ namespace {
       }
     }
   }
-}
-
-NavDataset NavDataset::overrideChannels(const std::map<DataCode, std::map<std::string,
-    std::shared_ptr<DispatchData>>> &toAdd) const {
-  auto init = isDefaultConstructed()?
-      std::make_shared<Dispatcher>()
-             : _dispatcher;
-
-  auto d1 = mergeDispatcherWithDispatchDataMap(
-        init.get(), toAdd);
-
-  setSuperiorPriorities(d1, toAdd);
-
-  auto dirty = listDataCodesWithDifferences(init->allSources(), d1->allSources());
-  return NavDataset(d1, resetMergedChannels(_merged, dirty), _lowerBound, _upperBound);
-}
-
-NavDataset NavDataset::overrideChannels(
-    const std::string &srcName,
-      const std::map<DataCode,
-      std::shared_ptr<DispatchData>> &toAdd) const {
-  std::map<DataCode, std::map<std::string,
-      std::shared_ptr<DispatchData>>> toAdd2;
-  for (auto kv: toAdd) {
-    toAdd2[kv.first][srcName] = kv.second;
-  }
-  return overrideChannels(toAdd2);
 }
 
 bool NavDataset::hasLowerBound() const {
@@ -205,19 +157,40 @@ namespace {
 NavDataset NavDataset::fitBounds() const {
   BoundVisitor visitor;
   visitDispatcherChannels(_dispatcher.get(), &visitor);
-  return NavDataset(_dispatcher, _merged, visitor.lowerBound(), visitor.upperBound());
+  return NavDataset(_dispatcher,
+                    visitor.lowerBound(), visitor.upperBound(),
+                    _activeSource);
+}
+
+std::string NavDataset::boundsAsString() const {
+  BoundVisitor visitor;
+  visitDispatcherChannels(_dispatcher.get(), &visitor);
+  std::string result = visitor.lowerBound().toString()
+    + " - " + visitor.upperBound().toString();
+  if (_lowerBound.defined()) {
+    result += " start selection: " + _lowerBound.toString();
+  }
+  if (_upperBound.defined()) {
+    result += " end selection: " + _upperBound.toString();
+  }
+  return result;
 }
 
 void NavDataset::outputSummary(std::ostream *dst) const {
   std::stringstream ss;
-  *dst << "\n\nNavDataset summary:";
+  *dst << "\n\nNavDataset summary: " << boundsAsString();
   *dst << "\nMerged channels:";
 #define DISP_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   { \
-    auto x = getMergedSamples<HANDLE>(); if (x == nullptr) { \
-      ss << #HANDLE << " "; \
+    std::vector<std::string> sources = sourcesForChannel(HANDLE); \
+    for (std::string& it : sources) { \
+      it += stringFormat("(%d)", \
+              dispatcher()->get<HANDLE>(it)->dispatcher()->values().size()); \
+    } \
+    if (sources.size() == 0) { \
+      ss << SHORTNAME << " "; \
     } else { \
-      *dst << "\n  * Channel " << #HANDLE << " (" << DESCRIPTION << ") with " << x->size() << " values"; \
+      *dst << "\n  * Channel " << SHORTNAME << ": " << join(sources, ", "); \
     } \
   }
   FOREACH_CHANNEL(DISP_CHANNEL)
@@ -227,6 +200,11 @@ void NavDataset::outputSummary(std::ostream *dst) const {
   *dst << _dispatcher;
 
   *dst << "\n\n  * The following channels are not part of this dataset: " << ss.str() << "\n" << std::endl;
+
+  for (auto it : _activeSource) {
+    *dst << "Active source for " << descriptionForCode(it.first)
+      << ": " << it.second->source() << std::endl;
+  }
 }
 
 bool NavDataset::isDefaultConstructed() const {
@@ -238,32 +216,21 @@ std::ostream &operator<<(std::ostream &s, const NavDataset &ds) {
   return s;
 }
 
-const std::shared_ptr<DispatchData> &getMergedDispatchData(
-  DataCode code,
-  const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>> &merged,
-  const std::shared_ptr<Dispatcher> &dispatcher) {
-  assert(bool(merged));
-  {
-    auto found = merged->find(code);
-    if (found != merged->end()) {
-      return found->second;
-    }
+NavDataset NavDataset::clone() const {
+  if (_dispatcher == nullptr) {
+    return NavDataset();
   }
 
-  auto &dst = (*merged)[code];
-  if (!bool(dispatcher)) {
-    return dst;
-  }
-
-  const auto &allSources = dispatcher->allSources();
-  auto found = allSources.find(code);
-
-  if (found != allSources.end()) {
-    dst = mergeChannels(
-        code, "merged", dispatcher->sourcePriority(),
-        found->second);
-  }
-  return dst;
+  NavDataset r(
+      cloneAndfilterDispatcher(
+          _dispatcher.get(),
+          [](DataCode testedCode, const std::string&) {
+            return true;
+          }),
+      _lowerBound,
+      _upperBound);
+  r._activeSource = _activeSource;
+  return r;
 }
 
 NavDataset NavDataset::stripChannel(DataCode code) const {
@@ -271,15 +238,164 @@ NavDataset NavDataset::stripChannel(DataCode code) const {
     return NavDataset();
   }
 
-  return NavDataset(
+  NavDataset r(
       cloneAndfilterDispatcher(
           _dispatcher.get(),
           [code](DataCode testedCode, const std::string&) {
             return testedCode != code;
           }),
-      resetMergedChannels(_merged, std::set<DataCode>{code}),
       _lowerBound,
       _upperBound);
+  r._activeSource = _activeSource;
+  r.clearSourceSelection(code);
+  return r;
 }
 
+std::shared_ptr<DispatchData> NavDataset::activeChannelOrNull(DataCode code) const {
+  if (!_dispatcher) {
+    return std::shared_ptr<DispatchData>();
+  }
+
+  auto it = _activeSource.find(code);
+  if (it != _activeSource.end()) {
+    return it->second;
+  }
+
+  auto codeMapIt = _dispatcher->allSources().find(code);
+  if (codeMapIt ==  _dispatcher->allSources().end()
+      || codeMapIt->second.size() != 1) {
+    return std::shared_ptr<DispatchData>();
+  }
+
+  return codeMapIt->second.begin()->second;
 }
+
+std::shared_ptr<DispatchData> NavDataset::activeChannel(DataCode code) const {
+  std::shared_ptr<DispatchData> r = activeChannelOrNull(code);
+  if (!r) {
+    auto sources = _dispatcher->sourcesForChannel(code);
+    if (sources.size() == 0) {
+      return std::shared_ptr<DispatchData>();
+    } else {
+      LOG(FATAL) << "there are multiple sources for channel "
+        << descriptionForCode(code) << ", but no active source is selected. "
+        << "Sources: " << join(sources, ", ");
+    }
+  }
+  return r;
+}
+
+void NavDataset::selectSource(DataCode code, const std::string& source) {
+  CHECK(_dispatcher) << "can't select a source for an empty NavDataset";
+
+  std::shared_ptr<DispatchData> ptr
+    = _dispatcher->dispatchDataForSource(code, source);
+
+  CHECK(ptr) << "No source " << source << " in channel "
+    << descriptionForCode(code) << ". Valid sources: [ "
+    << join(_dispatcher->sourcesForChannel(code), ", ") << " ]";
+
+  _activeSource[code] = ptr;
+}
+
+void NavDataset::preferSource(std::set<DataCode> codes,
+                              const std::string& source) {
+  for(DataCode code : codes) {
+    preferSource(code, source);
+  }
+}
+
+bool NavDataset::preferSource(DataCode code, const std::string& source) {
+  if (hasSource(code, source)) {
+    selectSource(code, source);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// Activate "source" on all channels for which it is valid
+void NavDataset::preferSourceAll(const std::string& source) {
+#define PREFER_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  preferSource(HANDLE, source);
+  FOREACH_CHANNEL(PREFER_CHANNEL)
+#undef PREFER_CHANNEL
+}
+
+namespace {
+
+  bool selected(DataCode code, const std::set<DataCode>& selection) {
+    return selection.size() == 0 || selection.find(code) != selection.end();
+  }
+
+  template <class T>
+  class PublishListener : public Listener<T> {
+   public:
+    PublishListener<T>(Dispatcher *d, DataCode code, Duration<> interval)
+      : Listener<T>(interval), _dispatcher(d), _code(code) { }
+    virtual void onNewValue(const ValueDispatcher<T> &valueDispatcher) {
+      _values.push_back(TimedValue<T>(valueDispatcher.lastTimeStamp(),
+                                       valueDispatcher.lastValue()));
+      sources.insert(_dispatcher->dispatchData(_code)->source());
+    }
+
+    NavDataset addChannel(const NavDataset& ds) {
+      std::string source;
+      if (sources.size() == 1) {
+        source = *sources.begin();
+      } else {
+        source = "mix (";
+        source += join(sources, ", ") + ")";
+      }
+
+      if (_values.size() > 0) {
+        NavDataset result = ds.addChannel<T>(_code, source, _values);
+        result.selectSource(_code, source);
+        return result;
+      } else {
+        return ds;
+      }
+    }
+
+   private:
+    Dispatcher *_dispatcher;
+    typename TimedSampleCollection<T>::TimedVector _values;
+    DataCode _code;
+    std::set<std::string> sources;
+  };
+
+
+} // namespace
+
+NavDataset NavDataset::createMergedChannels(std::set<DataCode> channelSelection,
+                                            Duration<> minInterval) {
+  if (!_dispatcher) {
+    return NavDataset();
+  }
+
+  NavDataset result{clone()};
+
+  ReplayDispatcher replay;
+
+#define LISTEN_TO(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  PublishListener<TYPE> HANDLE##Listener(&replay, HANDLE, minInterval); \
+  if (selected(HANDLE, channelSelection)) { \
+    replay.get<HANDLE>()->dispatcher()->subscribe(& HANDLE##Listener); \
+  }
+FOREACH_CHANNEL(LISTEN_TO)
+#undef LISTEN_TO
+
+  replay.replay(_dispatcher.get());
+
+#define ADD_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  if (selected(HANDLE, channelSelection)) { \
+    result = HANDLE##Listener . addChannel(result); \
+  }
+FOREACH_CHANNEL(ADD_CHANNEL)
+#undef ADD_CHANNEL
+
+  return result;
+}
+
+}  // namespace sail
+

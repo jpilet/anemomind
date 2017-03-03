@@ -62,7 +62,7 @@ for i in ${boats}; do
     --dir "${boatdir}" \
     --dst "${boatdir}/processed" \
     --clean \
-    --early-filter \
+    --log-parse \
     -t \
     || true
 
