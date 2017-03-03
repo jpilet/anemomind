@@ -15,7 +15,7 @@ namespace Resampler {
 
 
 Array<Endpoint> listEndpoints(const Array<TimeStamp> &samples,
-    Duration<double> period) {
+    Duration<double> margin) {
   int n = samples.size();
   Array<Endpoint> eps(2*n);
   for (int i = 0; i < n; i++) {
@@ -23,8 +23,8 @@ Array<Endpoint> listEndpoints(const Array<TimeStamp> &samples,
     auto at = 2*i;
     // Here we are essentially dilating every sample, by replacing it
     // by an interval of width 2*period
-    eps[at + 0] = Endpoint{x - period, true};
-    eps[at + 1] = Endpoint{x + period, false};
+    eps[at + 0] = Endpoint{x - margin, true};
+    eps[at + 1] = Endpoint{x + margin, false};
   }
   std::sort(eps.begin(), eps.end());
   return eps;
@@ -37,19 +37,36 @@ void addNewSamples(ArrayBuilder<TimeStamp> *dst, TimeStamp from,
   }
 }
 
-Array<TimeStamp> makeNewSamplesFromEndpoints(const Array<Endpoint> &eps,
-    Duration<double> period) {
+Array<Span<TimeStamp>> makeContinuousSpans(const Array<Endpoint> &eps) {
   int sum = 0;
+  ArrayBuilder<Span<TimeStamp>> spans;
   TimeStamp start;
-  ArrayBuilder<TimeStamp> newSamples;
   for (auto ep: eps) {
     sum += (ep.rising? 1 : -1);
     if (sum == 1 && ep.rising) {
       start = ep.pos;
     } else if (sum == 0 && !ep.rising) {
-      // Here we are eroding it, by cutting 'period' from each side
-      addNewSamples(&newSamples, start+period, ep.pos-period, period);
+      spans.add(Span<TimeStamp>(start, ep.pos));
     }
+  }
+  return spans.get();
+}
+
+Array<Span<TimeStamp>> makeContinuousSpans(
+    const Array<TimeStamp> &timeSamples,
+    Duration<double> margin) {
+  return makeContinuousSpans(listEndpoints(timeSamples, margin));
+}
+
+Array<TimeStamp> makeNewSamplesFromEndpoints(const Array<Endpoint> &eps,
+    Duration<double> period) {
+  int sum = 0;
+  TimeStamp start;
+  ArrayBuilder<TimeStamp> newSamples;
+  for (auto span: makeContinuousSpans(eps)) {
+    addNewSamples(&newSamples,
+        span.minv()+period,
+        span.maxv()-period, period);
   }
   return newSamples.get();
 }
