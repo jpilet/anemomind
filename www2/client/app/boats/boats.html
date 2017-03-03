@@ -1,6 +1,7 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
 <div class="container">
+<div ng-if="isLoggedIn">
 <h4>Add boat</h4>
 <p class="input-group">
   <input type="text" class="form-control" placeholder="Boat name" ng-model="newBoat">
@@ -8,6 +9,8 @@
     <button type="submit" class="btn btn-primary" ng-click="addBoat()">Add Boat</button>
   </span>
 </p>
+</div>
+
 <br />
 <h4 ng-if="boats.length">Boat list</h4>
 <ul class="nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6" ng-repeat="boat in boats">
