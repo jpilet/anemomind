@@ -9,6 +9,7 @@
 namespace sail {
 
 using namespace NavCompat;
+using namespace std;
 
 TEST(NavTileGenerator, SmokeTest) {
   Array<Nav> navs(100);
@@ -26,9 +27,12 @@ TEST(NavTileGenerator, SmokeTest) {
   }
 
   TileKey tile(1, 1, 0);
+  map<TileKey, vector<int>> tileIndex = tilesForNav(navs, 2);
   Array<Array<Nav>> result = generateTiles(
       tile, // A quarter of the world
-      navs, 5, 1.0_minutes);
+      navs,
+      tileIndex[tile],
+      5, 1.0_minutes);
 
   EXPECT_EQ(1, result.size());
   EXPECT_EQ(5, result[0].size());
@@ -38,10 +42,12 @@ TEST(NavTileGenerator, SmokeTest) {
     EXPECT_TRUE(tile.contains(nav.geographicPosition()));
   }
 
-  for (const Nav& nav : navs) {
+  for (int i = 0; i < navs.size(); ++i) {
+    const Nav& nav = navs[i];
     if (nav.time() < result[0].first().time()
         || nav.time() > result[0].last().time()) {
-      EXPECT_FALSE(tile.contains(nav.geographicPosition()));
+      EXPECT_FALSE(tile.contains(nav.geographicPosition()))
+        << "at nav[" << i << "]";
     }
   }
 }
@@ -66,9 +72,12 @@ TEST(NavTileGenerator, SplitTest) {
   }
 
   TileKey tile(1, 1, 0);
+  map<TileKey, vector<int>> tileIndex = tilesForNav(navs, 2);
   Array<Array<Nav>> result = generateTiles(
       tile, // A quarter of the world
-      navs, 5, 1.0_minutes);
+      navs,
+      tileIndex[tile],
+      5, 1.0_minutes);
 
   EXPECT_EQ(2, result.size());
   EXPECT_EQ(5, result[0].size());

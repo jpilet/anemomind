@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var httpapi = require('../httpapi.js');
+var bodyParser = require('body-parser');
 
 app.get('/', function(req, res) {
   res.send('Pine needle tea');
@@ -18,6 +19,15 @@ MockEndpoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
   }
 }
 
+MockEndpoint.prototype.putPacket = function(p, cb) {
+  if (p.src == 'x' && p.dst == 'y' && p.seqNumber == 'deadbeef'
+      && p.label == 119 && p.data.equals(new Buffer([9, 0]))) {
+    cb();
+  } else {
+    cb('Failed to put packet');
+  }
+}
+
 var mock = new MockEndpoint();
 
 function mockAccess(name, f) {
@@ -28,6 +38,8 @@ function mockAccess(name, f) {
   }
 }
 
+app.use(bodyParser.json());
+app.use(bodyParser.raw({type: 'application/octet-stream', limit: '10mb'}));
 app.use('/mockendpoint', httpapi.make(express.Router(), mockAccess));
 
 module.exports.app = app;

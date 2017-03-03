@@ -11,9 +11,27 @@ chai.use(chaihttp);
 
 var app = testserver.app;
 
+function encodeAndDecode(packet) {
+  return httpapi.decodePacket(httpapi.encodePacket(packet).success).success;
+}
+
+function successfulEncodeAndDecode(packet) {
+  var packet2 = encodeAndDecode(packet);
+  return (packet2 instanceof Object) && 
+    (packet2.label == packet.label) && 
+    (packet2.data.equals(packet.data));
+}
+
 describe('httpapi', function() {
   it('should export an app', function() {
     assert(app);
+  });
+
+  it('test encode and decode', function() {
+    assert((new Buffer([0, 9]).equals(new Buffer([0, 9]))));
+    assert(!(new Buffer([0, 9]).equals(new Buffer([3, 9]))));
+    assert(successfulEncodeAndDecode({label: 3, data: new Buffer([0, 4, 7])}));
+    assert(!successfulEncodeAndDecode('braasdfasf'));
   });
 
   it('should have some pine needle tea', function(done) {
@@ -61,6 +79,68 @@ describe('httpapi', function() {
       })
   });
 
+// https://github.com/chaijs/chai-http/issues/141
+  it('put-binary-packet-0', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/x/y/deadbeef')
+      .set('Content-Type', 'application/octet-stream') // A
+      .send(new Buffer([119, 9, 0])) // B
+      .end(function(err, res) {
+        assert(!err);
+        assert(res.status == 200);
+        done();
+      });
+  });
+
+  it('put-binary-packet-should-fails', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/x/y/deadbeef')
+      .set('Content-Type', 'application/octet-stream') // A
+      .send(new Buffer([119, 9])) // B
+      .end(function(err, res) {
+        assert(err);
+        assert(res.status != 200);
+        done();
+      });
+  });
+
+  it('put-binary-packet-1', function(done) {
+    chai.request(app)
+      .put('/mockendpoint/putPacket/mock/a/b/deadbeef')
+      .send({'data': 'kattskit'})
+      .end(function(err, res) {
+        assert(err);
+        done();
+      });
+  });
+
+  it('bad-request-to-get-range-sizes', function(done) {
+    endpoint.tryMakeAndResetEndpoint('/tmp/httpendpoint.db', 'a', function(err, ep) {
+      if (err) {
+        done(err);
+      } else {
+
+        var cleanup = function(err) {/*nothing to cleanup*/};
+        app.use('/sqlite', httpapi.make(express.Router(), function(name, f) {
+          if (name == ep.name) {
+            f(null, ep, cleanup);
+          } else {
+            f(new Error('No such endpoint: ' + name), null, cleanup);
+          }
+        }));
+
+        chai.request(app)
+          .post('/sqlite/getRangeSizes/a')
+          .send({'queries': [{src: 9, dst: 10, lower: 'asdfasf', upper: {a: 44}}]})
+          .end(function(err, res) {
+            assert(err);
+            assert(res.status == 400);
+            done();
+          });
+      }
+    });
+  });
+
   it('real-endpoint', function(done) {
     endpoint.tryMakeAndResetEndpoint('/tmp/httpendpoint.db', 'a', function(err, ep) {
       if (err) {
@@ -76,7 +156,7 @@ describe('httpapi', function() {
         }));
 
         var testData = new Buffer([3, 5, 8, 13]);
-        
+
         ep.sendPacketAndReturn('b', 119, testData, function(err, packet) {
           if (err) {
             done(err);
@@ -89,10 +169,51 @@ describe('httpapi', function() {
               .parse(binaryParser) 
 
               .end(function(err, res) {
-                console.log('GOT: %j', res.data);
                 assert(res.status == 200);
                 assert(res.header["content-length"] == 5);
-                done();
+
+
+                chai.request(app)
+                  .get('/sqlite/getSummary/a')
+                  .end(function(err, res) {
+                    assert(res.status == 200);
+                    assert(res.body);
+                    assert(res.body.lowerBounds);
+                    assert(res.body.packets);
+                    assert(res.body.packets.length == 1);
+                    var f = res.body.packets[0];
+                    assert(f.src == 'a');
+                    assert(f.dst == 'b');
+
+                    var queries = res.body.packets;
+                    chai.request(app)
+                      .post('/sqlite/getRangeSizes/a')
+                      .send({'queries': queries})
+                      .end(function(err, res) {
+                        assert(!err);
+                        assert(res);
+                        assert(res.status == 200);
+                        assert(res.body.length == 1);
+                        var x = res.body[0];
+                        var q = queries[0];
+                        assert(x.src == q.src);
+                        assert(x.dst == q.dst);
+                        assert(x.size == 4);
+
+                        queries[0].src = q.dst;
+
+                        chai.request(app)
+                          .post('/sqlite/getRangeSizes/a')
+                          .send({'queries': queries})
+                          .end(function(err, res) {
+                            assert(!err);
+                            var x = res.body[0];
+                            assert(x);
+                            assert(x.size == 0);
+                            done();
+                          });                        
+                      });
+                  });
               });
           }
         });

@@ -15,7 +15,6 @@ for boatdir in "$PROCESSED_DIR/"*; do
     "${BIN}/catTargetSpeed" --id "${id}" "$file" >> $SCRIPT
 done
   
-# Authentication for the mongo login is stored on:
-# anemolab.com:/home/jpilet/.ssh/authorized_keys
-cat $SCRIPT | ssh jpilet@anemolab.com mongo > /dev/null
+cat $SCRIPT | mongo \
+      -u anemomindprod -p ${MONGO_PASSWORD} anemolab1,anemolab2,arbiter/anemomind 
 rm $SCRIPT

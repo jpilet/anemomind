@@ -7,7 +7,7 @@
 export BIN="/home/anemomind/bin"
 export LOG_DIR="/home/anemomind/userlogs/anemologs"
 export PROCESSED_DIR="/home/anemomind/processed"
-export SRC_ROOT=$(dirname "$0")/../../../
+export SRC_ROOT="/home/jpilet/anemomind/anemomind"
 export BUILD_ROOT=${SRC_ROOT}/build
 
 log() {
@@ -28,7 +28,8 @@ fi
 
 safeRun() {
   loginfo "Running: " $*
-  timeout 30m $*
+    $*
+#timeout 24h $*
 }
 
 processBoat() {
@@ -47,7 +48,7 @@ processBoat() {
   else
     # checksum not present or not up to date: need recompute.
 
-    loginfo "Recomputing for boat: ${boat}"
+    log "Recomputing for boat: ${boat}"
 
     local boatdat="${boatprocessdir}/processed/boat.dat"
     [ -f "${boatdat}" ] && rm -f "${boatdat}"
@@ -70,19 +71,29 @@ processBoat() {
         --dst "${processed}" \
         --boatid "${boatid}" \
         -t --clean \
-	--db anemomind \
-        -u anemomindprod -p asjdhse5sdas \
+        --host anemolab1 \
+        --db anemomind \
+        -u anemomindprod -p ${MONGO_PASSWORD} \
 	--scale 20 ; then
 
       if [ -f "${boatdat}" ] ; then
         # If a boat.dat file has been generated, mail it to the anemobox.
-        cat "${boatdat}" | ssh anemomind@anemolab.com NODE_ENV=production \
-          node /home/xa4/anemomind/www2/utilities/SendBoatData.js \
+        cat "${boatdat}" | ssh anemomind@anemolab1 NODE_ENV=production \
+          MONGOLAB_URI=mongodb://anemomindprod:${MONGO_PASSWORD}@anemolab1,anemolab2,arbiter/anemomind \
+          node /home/jpilet/anemomind/www2/utilities/SendBoatData.js \
           "${boatid}" /dev/stdin /home/anemobox/boat.dat || true
+          #node /home/xa4/anemomind/www2/utilities/SendBoatData.js \
       fi
 
       # Recompute worked. Update the checksum.
       ls -lR "${boatdir}" | md5sum > "${lastprocess}"
+
+      # Update data associated with events
+      safeRun mongo --quiet \
+        -u anemomindprod -p "${MONGO_PASSWORD}" \
+        anemolab1,anemolab2,arbiter/anemomind \
+        --eval "boatid='${boatid}';onlynew=false;" \
+        "${SRC_ROOT}"/src/server/production/extendEvents.js
     else
       log "processBoatLogs FAILED for ${boatprocessdir}. Skipping upload."
     fi
@@ -96,18 +107,7 @@ export -f log
 export -f loginfo
 export -f safeRun
 
-# Make sure we have a ssh tunnel to anemolab DB
-#ps aux | grep autossh | grep -q anemolab || (autossh -T -N -L 27017:localhost:27017 jpilet@anemolab.com &)
-killall ssh >& /dev/null || true
-ssh -C -T -N -L 27017:localhost:27017 jpilet@anemolab.com &
-SSH_TUNNEL_PID=$!
-
-# wait for the tunnel to open.
-sleep 1
-
 export SHELL=/bin/bash
 parallel -j 3 processBoat ::: "${LOG_DIR}/"*
-
-kill $SSH_TUNNEL_PID
 
 safeRun "${BIN}"/uploadVmgTable.sh
