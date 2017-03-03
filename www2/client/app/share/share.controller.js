@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('ShareCtrl', function ($scope, $stateParams, $location, $element, boatList, ModalService) {
+  .controller('ShareCtrl', function ($scope, $stateParams, $location, $element, boatList, ModalService, Auth) {
 
-      $scope.boat = { _id: $stateParams.boatId, name: 'loading' };
+      $scope.boat = { _id: $stateParams.boatId, name: 'loading', publicAccess:false };
 
       $scope.isVisible = (typeof ModalService.isVisible === 'undefined' || ModalService.isVisible == null) ? false : ModalService.isVisible;
 
@@ -58,6 +58,8 @@ angular.module('www2App')
         var aveSpeedText = '32 Kts';
         var windBlowedText = '22 Kts';
         var performanceText = '91%';
+        $scope.admin = boat.admins.findIndex(function(x) {
+          return x == Auth.getCurrentUser()._id; }) >= 0;
         $scope.boat = boat;
         $scope.sharedLink = $location.absUrl();
         $scope.shareText = 'Share ' + boat.name + ' and her team performance';
@@ -74,7 +76,7 @@ angular.module('www2App')
     
 
     $scope.goShare=function(icon){
-      window.open(icon.url+$scope.sharedLink, "_new");
+      window.open(icon.url + encodeURIComponent($scope.sharedLink), "_new");
     };
 
     $scope.selecteIcon=function(icon){
