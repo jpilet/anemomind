@@ -171,12 +171,17 @@ angular.module('www2App')
       return container.width();
     };
 
-    $scope.infoPopupActive = (width() <= infoThreshold);
-    
-    container.on('resize', function() {
+    var updateInfoPopupActive = function() {
       $scope.infoPopupActive = (width() <= infoThreshold);
-    });
+    };
 
+    updateInfoPopupActive();
+    
+    container.on('resize', updateInfoPopupActive);
+
+    scope.$on('$destroy', function() {
+      container.off('resize', updateInfoPopupActive);
+    });
 
     // Responsive config for the Slick slider
     $scope.breakpoints = [
