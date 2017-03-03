@@ -54,7 +54,15 @@ angular.module('www2App', [
       // Intercept 401s and redirect you to login
       responseError: function(response) {
         if(response.status === 401) {
-          $location.url('/login?d=' + encodeURI($location.url()));
+          var url = $location.url();
+          var redirect = '';
+          // If the user tries to access /login or /, we do not need a redirect.
+          // We need the redirection only when the user attempts to access a
+          // real page.
+          if (url.match(/^\/(boats|map|vmgplot)\//)) {
+            redirect = '?d=' + encodeURI(url);
+          }
+          $location.url('/login' + redirect);
           // remove any stale tokens
           $cookieStore.remove('token');
           return $q.reject(response);
