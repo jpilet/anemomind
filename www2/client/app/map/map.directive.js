@@ -5,15 +5,19 @@ angular.module('www2App')
       return {
           restrict: 'A',
           link: function (scope, element, attrs) {
-          		element.keypress(function( event ) {
-					     event.preventDefault();
-					   	});
-              element.on('click', function () {
-                  if (!$window.getSelection().toString()) {
-                      // Required for mobile Safari
-                      this.setSelectionRange(0, this.value.length)
-                  }
-              });
+            element.keypress(function( event ) {
+              event.preventDefault();
+            });
+            var handleClick = function () {
+                if (!$window.getSelection().toString()) {
+                    // Required for mobile Safari
+                    this.setSelectionRange(0, this.value.length)
+                }
+            };
+            element.on('click', handleClick);
+            scope.$on('$destroy', function() {
+              element.off('click', handleClick);
+            });
           }
       };
   }])
@@ -52,14 +56,14 @@ angular.module('www2App')
 
         // I used specific triggers because $watch
         // has some delays when capturing the values of an element
-        icon.on('click', function() {
-          adjustHeight();          
-        });
-        angular.element('.graph .extension').on('click', function() {
-          adjustHeight();
-        });
-        win.on('resize', function() {
-          adjustHeight();
+        icon.on('click', adjustHeight);
+        angular.element('.graph .extension').on('click', adjustHeight);
+        win.on('resize', adjustHeight);
+
+        scope.$on('$destroy', function() {
+          icon.off('click', adjustHeight);
+          angular.element('.graph .extension').off('click', adjustHeight);
+          win.off('resize', adjustHeight);
         });
       }
     };
@@ -68,7 +72,7 @@ angular.module('www2App')
     return {
       restrict: 'C',
       link: function (scope, element, attrs) {
-        angular.element(element).on('click', function() {
+        var handleClick = function() {
           // To fool the Lightbox that there is an image. 
           // Sadly, this Lightbox plugin doesn't play friendly if there is no image passed.
           var images = [{'url': '',}]; 
@@ -79,6 +83,10 @@ angular.module('www2App')
           Lightbox.openModal(images,0);
 
           Lightbox.templateUrl = oldTemplate;
+        };
+        angular.element(element).on('click', handleClick);
+        scope.$on('$destroy', function() {
+          angular.element(element).off('click', handleClick);
         });
       }
     };
@@ -110,6 +118,10 @@ angular.module('www2App')
         moveElements();
         
         win.on('resize', moveElements);
+
+        scope.$on('$destroy', function() {
+          win.off('resize', moveElements);
+        });
       }
     };
   })

@@ -11,12 +11,17 @@ angular.module('www2App')
         var sort = '';
         var el = angular.element(element);
         
-        el.on('click', function (e) {
+        var handleClick = function (e) {
             var _this = angular.element(this);
 
             sort = scope.reverse ? 'up' : 'down';
             el.siblings().removeClass('up down');
             _this.removeClass('up down').addClass(sort);
+        };
+        el.on('click', handleClick);
+
+        scope.$on('$destroy', function() {
+          el.off('click', handleClick);
         });
       }
     };
