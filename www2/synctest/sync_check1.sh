@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
+WWW2_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+boatId=$(${WWW2_DIR}/synctest/get_devbox_boatid.sh)
 truth="d7b92cb70c333ff82616ff660799a078"
-result=$(md5 -q ../uploads/anemologs/boat57f678e612063872e749d481/dpkg.log || true)
+result=$(md5 -q ../uploads/anemologs/boat${boatId}/dpkg.log || true)
 if [ "$result" = "$truth" ]; then
   echo "PASSED :-)"
   exit 0

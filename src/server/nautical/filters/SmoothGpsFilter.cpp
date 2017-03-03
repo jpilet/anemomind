@@ -16,6 +16,7 @@
 #include <server/common/TimedTypedefs.h>
 #include <server/common/Span.h>
 #include <server/common/DOMUtils.h>
+#include <server/nautical/WGS84.h>
 
 namespace sail {
 
@@ -250,12 +251,11 @@ Array<Array<T> > applySplits(const Array<T> &src,
     }
     addToArrayPolicy<T>(&dst, src.slice(from, to));
     from = to;
-    if (from >= src.size()) {
-      break;
-    }
   }
   addToArrayPolicy<T>(&dst, src.slice(from, src.size()));
-  return dst.get();
+  auto result = dst.get();
+  assert(result.size() == splits.size()+1);
+  return result;
 }
 
 // Force instantiation so that we can unit test this code
@@ -352,18 +352,154 @@ Array<TimedValue<T>> toArray(const TimedSampleRange<T> &src) {
   return dst;
 }
 
+auto distanceSplitThreshold = 100.0_m;
+auto relativeMinimumSampleSizePerDistanceSplit = 0.2;
+auto unreliableTimeMargin = 1.0_minutes;
+
+bool shouldSplit(
+    const TimedValue<GeographicPosition<double>> &a,
+    const TimedValue<GeographicPosition<double>> &b) {
+  return sail::distance(a.value, b.value) > distanceSplitThreshold;
+}
+
+Length<double> computeMaxGap(
+    const Array<TimedValue<GeographicPosition<double>>> &mg) {
+  auto g = 0.0_m;
+  for (int i = 0; i < mg.size()-1; i++) {
+    g = std::max(g, sail::distance(mg[i].value, mg[i+1].value));
+  }
+  return g;
+}
+
+struct PositionPrefiltering {
+  Array<TimedValue<GeographicPosition<double>>> goodPositions;
+  Array<Span<TimeStamp>> unreliableSpans;
+};
+
+template <typename T>
+void append(ArrayBuilder<T> *dst, const Array<T> &src) {
+  for (auto x: src) {
+    dst->add(x);
+  }
+}
+
+PositionPrefiltering prefilterPositions(
+    const Array<TimedValue<GeographicPosition<double>>> &src,
+    DOM::Node *log) {
+
+  DOM::addSubTextNode(log, "p", "FILTER POSITIONS from "
+      + src.first().time.toString()
+      + " to " + src.last().time.toString());
+
+  std::vector<int> splitInds;
+  splitInds.push_back(0);
+  for (int i = 1; i < src.size(); i++) {
+    auto a = src[i-1];
+    auto b = src[i];
+    if (shouldSplit(a, b)) {
+      DOM::addSubTextNode(log, "p",
+          stringFormat("Gap of %.3g meters at index %d",
+              sail::distance(a.value, b.value).meters(), i));
+      splitInds.push_back(i);
+    }
+  }
+  DOM::addSubTextNode(log, "p",
+      stringFormat("Sample count: %d", src.size()));
+  splitInds.push_back(src.size());
+  int segmentCount = splitInds.size()-1;
+  ArrayBuilder<TimedValue<GeographicPosition<double>>> accepted;
+  ArrayBuilder<TimeStamp> rejected;
+  for (int i = 0; i < segmentCount; i++) {
+    int from = splitInds[i];
+    int to = splitInds[i+1];
+    double relSize = double(to - from)/src.size();
+    DOM::addSubTextNode(log, "p",
+        stringFormat(" Segment of relative size %d", relSize));
+    auto sub = src.slice(from, to);
+    if (relativeMinimumSampleSizePerDistanceSplit < relSize) {
+      DOM::addSubTextNode(log, "p", " -- accept");
+      append(&accepted, sub);
+    } else {
+      DOM::addSubTextNode(log, "p", " -- reject");
+      for (auto x: sub) {
+        rejected.add(x.time);
+      }
+    }
+  }
+  auto result = accepted.get();
+  DOM::addSubTextNode(log, "p", stringFormat("MAX GAP in filtered: %.3g",
+      computeMaxGap(result).meters()));
+  return {result, sail::Resampler::makeContinuousSpans(
+      rejected.get(), unreliableTimeMargin)};
+}
+
+Array<TimedValue<GeographicPosition<double>>> getGoodPositions(
+    const PositionPrefiltering &src) {
+  return src.goodPositions;
+}
+
+Array<Span<TimeStamp>> getUnreliableSpans(
+    const PositionPrefiltering &src) {
+  return src.unreliableSpans;
+}
+
+bool isCovered(TimeStamp t, const Array<Span<TimeStamp>> &spans) {
+  if (spans.empty()) {
+    return false;
+  } else if (spans.size() == 1) {
+    return spans.first().contains(t);
+  } else {
+    auto middle = spans.size()/2;
+    return isCovered(t, spans[middle-1].maxv() < t?
+        spans.sliceFrom(middle) : spans.sliceTo(middle));
+  }
+}
+
+Array<TimedValue<HorizontalMotion<double>>> maskUnreliable(
+    const Array<Span<TimeStamp>> &unreliableSpans,
+    const Array<TimedValue<HorizontalMotion<double>>> &src,
+    DOM::Node *log) {
+
+  DOM::addSubTextNode(log, "h3", "Mask unreliable");
+  DOM::addSubTextNode(log, "p", "Unreliable spans");
+  for (auto sp: unreliableSpans) {
+    DOM::addSubTextNode(log, "p",
+        "  * " + sp.minv().toString()
+        + " to " + sp.maxv().toString());
+  }
+  DOM::addSubTextNode(log, "p",
+      stringFormat(" in total %d", unreliableSpans.size()));
+
+  ArrayBuilder<TimedValue<HorizontalMotion<double>>> dst(src.size());
+  for (auto x: src) {
+    if (!isCovered(x.time, unreliableSpans)) {
+      dst.add(x);
+    }
+  }
+  auto result = dst.get();
+  if (result.size() < src.size()) {
+    DOM::addSubTextNode(log, "p",
+        stringFormat("Kept %d of %d samples", result.size(), src.size()));
+  } else {
+    DOM::addSubTextNode(log, "p",
+        stringFormat("Kept %d all samples", result.size()));
+  }
+  return result;
+}
+
 GpsFilterResults filterGpsData(
     const NavDataset &ds,
-    DOM::Node *dst,
+    DOM::Node *log,
     const GpsFilterSettings &settings) {
+
+  DOM::addSubTextNode(log, "h2", "Filter GPS data");
 
   if (ds.isDefaultConstructed()) {
     LOG(WARNING) << "Nothing to filter";
     return GpsFilterResults();
   }
 
-
-
+  //auto motions = Array<TimedValue<HorizontalMotion<double>>>(); //
   auto motions = GpsUtils::getGpsMotions(ds);
   auto positions = ds.samples<GPS_POS>();
   if (positions.empty()) {
@@ -384,16 +520,37 @@ GpsFilterResults filterGpsData(
 
   int expectedSliceCount = splits.size() + 1;
   auto timeSlices = applySplits(samplingTimes, splits);
-  auto positionSlices = applySplits(
-      toArray(positions), splits);
-  auto motionSlices = applySplits(motions, splits);
+  auto prefilteredPositions = map(
+      applySplits(toArray(positions), splits),
+      [&](const Array<TimedValue<GeographicPosition<double>>> &positions) {
+        return prefilterPositions(positions, log);
+  }).toArray();
+  auto positionSlices = map(prefilteredPositions, &getGoodPositions)
+      .toArray();
+  auto unreliableSpans = map(prefilteredPositions, &getUnreliableSpans)
+      .toArray();
+
+  auto motionPreSplits = applySplits(motions, splits);
+  Array<Array<TimedValue<HorizontalMotion<double>>>>
+    motionSlices(expectedSliceCount);
+  CHECK(motionPreSplits.size() == expectedSliceCount);
+  CHECK(unreliableSpans.size() == expectedSliceCount);
+  for (int i = 0; i < expectedSliceCount; i++) {
+    motionSlices[i] = maskUnreliable(
+        unreliableSpans[i],
+        motionPreSplits[i], log);
+  }
+
+
+  std::cout << "Number of slices: "<< motionSlices.size() << std::endl;
+
   CHECK(expectedSliceCount == timeSlices.size());
   CHECK(expectedSliceCount == positionSlices.size());
   CHECK(expectedSliceCount == motionSlices.size());
   std::vector<LocalGpsFilterResults> subResults;
 
-  DOM::addSubTextNode(dst, "h2", "Producing GPS filter sub results");
-  auto ol = DOM::makeSubNode(dst, "ol");
+  DOM::addSubTextNode(log, "h2", "Producing GPS filter sub results");
+  auto ol = DOM::makeSubNode(log, "ol");
 
   subResults.reserve(expectedSliceCount);
   for (int i = 0; i < expectedSliceCount; i++) {
