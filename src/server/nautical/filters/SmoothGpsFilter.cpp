@@ -462,6 +462,19 @@ bool shouldSplit(
   return sail::distance(a.value, b.value) > distanceSplitThreshold;
 }
 
+bool isSingleOutlier(
+    const TimedValue<GeographicPosition<double>> &a,
+    const TimedValue<GeographicPosition<double>> &b,   //<-- This is the one we are considering
+    const TimedValue<GeographicPosition<double>> &c) {
+  auto ab = sail::distance(a.value, b.value);
+  auto ac = sail::distance(a.value, c.value);
+  auto bc = sail::distance(b.value, c.value);
+
+  // The middle point is off-track, but the neighbours
+  // on either side are close to each other.
+  return ac < distanceSplitThreshold && std::max(ab, bc) > distanceSplitThreshold;
+}
+
 Length<double> computeMaxGap(
     const Array<TimedValue<GeographicPosition<double>>> &mg) {
   auto g = 0.0_m;
@@ -483,13 +496,48 @@ void append(ArrayBuilder<T> *dst, const Array<T> &src) {
   }
 }
 
-PositionPrefiltering prefilterPositions(
+Array<TimedValue<GeographicPosition<double>>> removeSingleOutliers(
     const Array<TimedValue<GeographicPosition<double>>> &src,
     DOM::Node *log) {
 
+  DOM::addSubTextNode(log, "h4", "Single outlier removal");
+
+  if (src.size() < 3) {
+    return src;
+  }
+
+  ArrayBuilder<TimedValue<GeographicPosition<double>>> dst(src.size());
+  int n = src.size();
+  dst.add(src.first());
+  for (int i = 1; i < n-1; i++) {
+    auto x = src[i];
+    if (!isSingleOutlier(src[i-1], x, src[i+1])) {
+      dst.add(x);
+    }
+  }
+  dst.add(src.last());
+  auto results = dst.get();
+  DOM::addSubTextNode(log, "p", stringFormat("Keep %d of %d points",
+      results.size(), src.size()));
+  return results;
+}
+
+PositionPrefiltering prefilterPositions(
+    const Array<TimedValue<GeographicPosition<double>>> &src0,
+    DOM::Node *log) {
+
+  if (src0.empty()) {
+    DOM::addSubTextNode(log, "h3", "No data to prefilter")
+      .setAttribute("class", "warning");
+  }
+
   DOM::addSubTextNode(log, "h3", "Filter from "
-      + src.first().time.toString()
-      + " to " + src.last().time.toString());
+      + src0.first().time.toString()
+      + " to " + src0.last().time.toString());
+
+  auto src = removeSingleOutliers(src0, log);
+
+  DOM::addSubTextNode(log, "h4", "Segment based outlier removal");
 
   auto body = DOM::makeSubNode(log, "pre");
 
@@ -500,10 +548,12 @@ PositionPrefiltering prefilterPositions(
     auto b = src[i];
     if (shouldSplit(a, b)) {
       DOM::addLine(&body,
-          stringFormat("Gap of %.3g meters at index %d from %s to %s",
+          stringFormat("Gap of %.3g meters at index %d from %s to %s, from (%.7g, %.7g) to (%.7g, %.7g)",
               sail::distance(a.value, b.value).meters(), i,
               a.time.toString().c_str(),
-              b.time.toString().c_str()));
+              b.time.toString().c_str(),
+              a.value.lat().degrees(), a.value.lon().degrees(),
+              b.value.lat().degrees(), b.value.lon().degrees()));
       splitInds.push_back(i);
     }
   }
