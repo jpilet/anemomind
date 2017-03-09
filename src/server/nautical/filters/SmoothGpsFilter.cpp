@@ -61,18 +61,25 @@ namespace {
 }
 
 
-TimedSampleCollection<GeographicPosition<double> >::TimedVector
-  LocalGpsFilterResults::getGlobalPositions() const {
-  int n = filteredLocalPositions.size();
+TimedSampleCollection<GeographicPosition<double>>::TimedVector
+  getGlobalPositionsFromLocal(
+      const GeographicReference &geoRef,
+      const Array<CeresTrajectoryFilter::Types<2>::TimedPosition> &src) {
+  int n = src.size();
   TimedSampleCollection<GeographicPosition<double> >::TimedVector dst;
   dst.resize(n);
   for (int i = 0; i < n; i++) {
-    const auto &x = filteredLocalPositions[i];
+    const auto &x = src[i];
     auto &y = dst[i];
     y.time = x.time;
     y.value = geoRef.unmap(x.value);
   }
   return dst;
+}
+
+TimedSampleCollection<GeographicPosition<double> >::TimedVector
+  LocalGpsFilterResults::getGlobalPositions() const {
+  return getGlobalPositionsFromLocal(geoRef, filteredLocalPositions);
 }
 
 namespace {
@@ -319,6 +326,9 @@ GpsFilterResults mergeSubResults(
         localMaxSpeed.knots()));
     DOM::addLine(&body, stringFormat("    Max position gap: %.3g meters",
         getMaxPositionGap(pos)));
+    DOM::addLine(&body, stringFormat("    Max input position gap: %.3g meters",
+        getMaxPositionGap(getGlobalPositionsFromLocal(
+            x.geoRef, x.rawLocalPositions))));
     maxSpeed = std::max(maxSpeed, localMaxSpeed);
     for (auto y: pos) {
       positions.push_back(y);
