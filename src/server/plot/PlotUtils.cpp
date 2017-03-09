@@ -87,7 +87,7 @@ Eigen::Matrix<double, 2, 4> computeTotalProjection(
   Eigen::Matrix<double, 2, 4> viewMat = Eigen::Matrix<double, 2, 4>::Zero();
 
   int tcol = 3;
-  if (settings.orthogonal) {
+  if (settings.orthonormal) {
     double minScale = std::min(rawXFit.getK(), rawYFit.getK());
     Eigen::Vector2d srcMiddle(
         proj.getSpan(0).middle(),
