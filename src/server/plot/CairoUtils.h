@@ -25,6 +25,13 @@ namespace Cairo {
 std::shared_ptr<cairo_surface_t> sharedPtrWrap(cairo_surface_t *x);
 std::shared_ptr<cairo_t> sharedPtrWrap(cairo_t *x);
 
+struct Setup {
+  std::shared_ptr<cairo_surface_t> surface;
+  std::shared_ptr<cairo_t> cr;
+  static Setup svg(const std::string &filename,
+        double width, double height);
+};
+
 template <int rows, int cols>
 cairo_matrix_t toCairo(
     const Eigen::Matrix<double, rows, cols> &mat);
@@ -50,7 +57,7 @@ private:
 // the boat drawing to be invariant to zoom.
 class WithLocalDeviceScale {
 public:
-  enum Mode {Determinant, Identity};
+  enum Mode {Determinant, Identity, SVD};
 
   WithLocalDeviceScale(cairo_t *cr, Mode mode);
   ~WithLocalDeviceScale();
@@ -91,6 +98,31 @@ bool drawLocalFlow(
     double localStddev, int n,
     double pointSize,
     std::default_random_engine *rng);
+
+void renderPlot(
+    // Settings for how the data should be renderered.
+    const PlotUtils::Settings2d &settings,
+
+    // Renders the data to be plotted
+    std::function<void(cairo_t*)> dataRenderer,
+
+    // Renders axes, labels, etc,
+    // given the bounding box of the data
+    std::function<void(BBox3d, cairo_t*)> contextRenderer,
+
+    cairo_t *dst);
+
+void renderPlot(
+    const PlotUtils::Settings2d &settings,
+    std::function<void(cairo_t*)> dataRenderer,
+    const std::string &xLabel,
+    const std::string &yLabel,
+    cairo_t *dst);
+
+void moveTo(cairo_t *dst, const Eigen::Vector2d &x);
+void lineTo(cairo_t *dst, const Eigen::Vector2d &x);
+void plotLineStrip(cairo_t *dst,
+    const Array<Eigen::Vector2d> &src);
 
 }
 }
