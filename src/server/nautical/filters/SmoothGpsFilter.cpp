@@ -500,8 +500,10 @@ PositionPrefiltering prefilterPositions(
     auto b = src[i];
     if (shouldSplit(a, b)) {
       DOM::addLine(&body,
-          stringFormat("Gap of %.3g meters at index %d",
-              sail::distance(a.value, b.value).meters(), i));
+          stringFormat("Gap of %.3g meters at index %d from %s to %s",
+              sail::distance(a.value, b.value).meters(), i,
+              a.time.toString().c_str(),
+              b.time.toString().c_str()));
       splitInds.push_back(i);
     }
   }
@@ -511,12 +513,13 @@ PositionPrefiltering prefilterPositions(
   int segmentCount = splitInds.size()-1;
   ArrayBuilder<TimedValue<GeographicPosition<double>>> accepted;
   ArrayBuilder<TimeStamp> rejected;
+  int totalRejectedSize = 0;
   for (int i = 0; i < segmentCount; i++) {
     int from = splitInds[i];
     int to = splitInds[i+1];
     double relSize = double(to - from)/src.size();
     DOM::addLine(&body,
-        stringFormat(" Segment of relative size %d", relSize));
+        stringFormat(" Segment of relative size %.3g", relSize));
     auto sub = src.slice(from, to);
     if (relativeMinimumSampleSizePerDistanceSplit < relSize) {
       DOM::addLine(&body, " -- accept");
@@ -526,9 +529,12 @@ PositionPrefiltering prefilterPositions(
       for (auto x: sub) {
         rejected.add(x.time);
       }
+      totalRejectedSize += to - from;
     }
   }
   auto result = accepted.get();
+  DOM::addLine(&body, stringFormat("Total rejected size: %.3g",
+      double(totalRejectedSize)/src.size()));
   DOM::addLine(&body,
       stringFormat("MAX GAP in filtered: %.3g",
       computeMaxGap(result).meters()));
