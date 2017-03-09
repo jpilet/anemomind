@@ -31,6 +31,8 @@ target_link_libraries(plot_CairoUtils
   ${CAIRO_LIBRARIES}
   plot_PlotUtils
   plot_AxisTicks
+  common_Span
+  common_BBox
   )
   
 add_library(plot_PlotUtils

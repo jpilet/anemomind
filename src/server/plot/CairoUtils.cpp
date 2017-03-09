@@ -112,6 +112,14 @@ void rotateMathematically(cairo_t *cr, Angle<double> angle) {
   cairo_rotate(cr, angle.radians());
 }
 
+void drawFilledCircle(cairo_t *cr,
+    double r) {
+  WithLocalContext context(cr);
+  cairo_arc(cr, 0, 0, r, 0.0, 2.0*M_PI);
+  cairo_clip(cr);
+  cairo_paint(cr);
+}
+
 void rotateGeographically(cairo_t *cr, Angle<double> angle) {
   rotateMathematically(cr, -angle);
 }
@@ -344,6 +352,19 @@ void plotLineStrip(cairo_t *dst,
   WithLocalDeviceScale wlds(dst,
       WithLocalDeviceScale::Identity);
   cairo_stroke(dst);
+}
+
+void plotDots(cairo_t *dst,
+    const Array<Eigen::Vector2d> &pts,
+    double dotSize) {
+  WithLocalContext wlc(dst);
+  for (auto x: pts) {
+    WithLocalContext wlc2(dst);
+    cairo_translate(dst, x(0), x(1));
+    WithLocalDeviceScale wlds(dst,
+        WithLocalDeviceScale::SVD);
+    drawFilledCircle(dst, dotSize);
+  }
 }
 
 

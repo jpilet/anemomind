@@ -334,8 +334,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     infoNavDataset("After resampling GPS", resampled, &htmlReport);
 
     if (_gpsFilter) {
+      auto gpsFilterReport = DOM::linkToSubPage(
+          &htmlReport, "GPS filter output");
       resampled = filterNavs(resampled,
-          &htmlReport,
+          &gpsFilterReport,
           _gpsFilterSettings);
       infoNavDataset("After filtering", resampled, &htmlReport);
     }

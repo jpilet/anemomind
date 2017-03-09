@@ -17,6 +17,8 @@
 #include <server/common/Span.h>
 #include <server/common/DOMUtils.h>
 #include <server/nautical/WGS84.h>
+#include <server/plot/PlotUtils.h>
+#include <server/plot/CairoUtils.h>
 
 namespace sail {
 
@@ -289,13 +291,46 @@ Length<double> getMaxPositionGap(
   return m;
 }
 
+Eigen::Vector2d tov2(
+    const CeresTrajectoryFilter::Types<2>::TimedPosition &x) {
+  return Eigen::Vector2d(
+      x.value[0].kilometers(),
+      x.value[1].kilometers());
+}
+
+Array<Eigen::Vector2d> toV2(
+    const Array<CeresTrajectoryFilter::Types<2>::TimedPosition> &src) {
+  return map(src, &tov2);
+}
+
+void outputLocalResults(
+    const LocalGpsFilterResults &r,
+    DOM::Node *dst) {
+  auto page = DOM::linkToSubPage(dst, "Trajectory");
+  auto imageFilename = DOM::makeGeneratedImageNode(
+      &page, ".svg").toString();
+
+  auto setup = Cairo::Setup::svg(imageFilename, 800, 600);
+
+  std::cout << "At " <<
+      r.filteredLocalPositions.first().time.toString() << std::endl;
+
+  auto pts = toV2(r.filteredLocalPositions);
+
+  PlotUtils::Settings2d settings;
+  Cairo::renderPlot(settings, [&](cairo_t *cr) {
+    Cairo::plotDots(cr, toV2(r.rawLocalPositions), 0.5);
+    Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
+    cairo_set_line_width (cr, 0.5);
+    Cairo::plotLineStrip(cr, pts);
+  }, "X", "Y", setup.cr.get());
+}
 
 GpsFilterResults mergeSubResults(
     const std::vector<LocalGpsFilterResults> &subResults,
     Duration<double> thresh,
     DOM::Node *log) {
   DOM::addSubTextNode(log, "h2", "Merge gps sub results");
-  auto body = DOM::makeSubNode(log, "pre");
 
   if (subResults.empty()) {
     return GpsFilterResults();
@@ -306,6 +341,7 @@ GpsFilterResults mergeSubResults(
 
   Velocity<double> maxSpeed = 0.0_kn;
   for (int i = 0; i < subResults.size(); i++) {
+    auto body = DOM::makeSubNode(log, "pre");
     auto x = subResults[i];
     auto pos = x.getGlobalPositions();
     auto mot = x.getGpsMotions(thresh);
@@ -330,6 +366,11 @@ GpsFilterResults mergeSubResults(
         getMaxPositionGap(getGlobalPositionsFromLocal(
             x.geoRef, x.rawLocalPositions))));
     maxSpeed = std::max(maxSpeed, localMaxSpeed);
+
+    if (body.defined()) {
+      outputLocalResults(x, &body);
+    }
+
     for (auto y: pos) {
       positions.push_back(y);
     }
@@ -340,7 +381,7 @@ GpsFilterResults mergeSubResults(
 
     DOM::addLine(&body, "");
   }
-  DOM::addLine(&body,
+  DOM::addSubTextNode(log, "p",
       stringFormat("Max speed overall: %.3g knots",
           maxSpeed.knots()));
 
