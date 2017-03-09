@@ -316,6 +316,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   if (!_htmlReportName.empty()) {
     htmlReport = DOM::makeBasicHtmlPage("Boat log processor",
         _dstPath.toString(), _htmlReportName);
+    CHECK(htmlReport.writer);
   }
 
   NavDataset resampled;

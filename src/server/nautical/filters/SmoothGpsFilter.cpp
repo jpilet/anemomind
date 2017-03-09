@@ -387,9 +387,11 @@ PositionPrefiltering prefilterPositions(
     const Array<TimedValue<GeographicPosition<double>>> &src,
     DOM::Node *log) {
 
-  DOM::addSubTextNode(log, "p", "FILTER POSITIONS from "
+  DOM::addSubTextNode(log, "h3", "Filter from "
       + src.first().time.toString()
       + " to " + src.last().time.toString());
+
+  auto body = DOM::makeSubNode(log, "pre");
 
   std::vector<int> splitInds;
   splitInds.push_back(0);
@@ -397,13 +399,13 @@ PositionPrefiltering prefilterPositions(
     auto a = src[i-1];
     auto b = src[i];
     if (shouldSplit(a, b)) {
-      DOM::addSubTextNode(log, "p",
+      DOM::addLine(&body,
           stringFormat("Gap of %.3g meters at index %d",
               sail::distance(a.value, b.value).meters(), i));
       splitInds.push_back(i);
     }
   }
-  DOM::addSubTextNode(log, "p",
+  DOM::addLine(&body,
       stringFormat("Sample count: %d", src.size()));
   splitInds.push_back(src.size());
   int segmentCount = splitInds.size()-1;
@@ -413,21 +415,22 @@ PositionPrefiltering prefilterPositions(
     int from = splitInds[i];
     int to = splitInds[i+1];
     double relSize = double(to - from)/src.size();
-    DOM::addSubTextNode(log, "p",
+    DOM::addLine(&body,
         stringFormat(" Segment of relative size %d", relSize));
     auto sub = src.slice(from, to);
     if (relativeMinimumSampleSizePerDistanceSplit < relSize) {
-      DOM::addSubTextNode(log, "p", " -- accept");
+      DOM::addLine(&body, " -- accept");
       append(&accepted, sub);
     } else {
-      DOM::addSubTextNode(log, "p", " -- reject");
+      DOM::addLine(&body, " -- reject");
       for (auto x: sub) {
         rejected.add(x.time);
       }
     }
   }
   auto result = accepted.get();
-  DOM::addSubTextNode(log, "p", stringFormat("MAX GAP in filtered: %.3g",
+  DOM::addLine(&body,
+      stringFormat("MAX GAP in filtered: %.3g",
       computeMaxGap(result).meters()));
   return {result, sail::Resampler::makeContinuousSpans(
       rejected.get(), unreliableTimeMargin)};
