@@ -264,9 +264,32 @@ template Array<Array<TimedValue<int> > >
   applySplits<TimedValue<int>>(const Array<TimedValue<int> > &src,
     const Array<TimeStamp> &splits);
 
+Velocity<double> getMaxSpeed(
+    const TimedSampleCollection<HorizontalMotion<double> >::TimedVector &src) {
+  auto m = 0.0_kn;
+  for (auto x: src) {
+    m = std::max(m, x.value.norm());
+  }
+  return m;
+}
+
+Length<double> getMaxPositionGap(
+    const TimedSampleCollection<GeographicPosition<double> >::TimedVector &src) {
+  auto m = 0.0_m;
+  for (int i = 0; i < src.size()-1; i++) {
+    m = std::max(m, sail::distance(src[i].value, src[i+1].value));
+  }
+  return m;
+}
+
+
 GpsFilterResults mergeSubResults(
     const std::vector<LocalGpsFilterResults> &subResults,
-    Duration<double> thresh) {
+    Duration<double> thresh,
+    DOM::Node *log) {
+  DOM::addSubTextNode(log, "h2", "Merge gps sub results");
+  auto body = DOM::makeSubNode(log, "pre");
+
   if (subResults.empty()) {
     return GpsFilterResults();
   }
@@ -274,16 +297,42 @@ GpsFilterResults mergeSubResults(
   TimedSampleCollection<GeographicPosition<double> >::TimedVector positions;
   TimedSampleCollection<HorizontalMotion<double> >::TimedVector motions;
 
-  for (auto x: subResults) {
+  Velocity<double> maxSpeed = 0.0_kn;
+  for (int i = 0; i < subResults.size(); i++) {
+    auto x = subResults[i];
     auto pos = x.getGlobalPositions();
     auto mot = x.getGpsMotions(thresh);
+    auto localMaxSpeed = getMaxSpeed(mot);
+    DOM::addLine(&body, stringFormat("  * Sub results %d", i));
+    if (x.empty()) {
+      DOM::addLine(&body, "    Empty sub result");
+    } else {
+      DOM::addLine(&body, stringFormat("    From %s to %s",
+          x.filteredLocalPositions.first().time.toString().c_str(),
+          x.filteredLocalPositions.last().time.toString().c_str()));
+    }
+    DOM::addLine(&body, stringFormat(
+        "    %d positions and duration %s",
+        x.filteredLocalPositions.size(), x.duration().str().c_str()));
+    DOM::addLine(&body, stringFormat(
+        "    Max speed for sub result: %.3g knots",
+        localMaxSpeed.knots()));
+    DOM::addLine(&body, stringFormat("    Max position gap: %.3g meters",
+        getMaxPositionGap(pos)));
+    maxSpeed = std::max(maxSpeed, localMaxSpeed);
     for (auto y: pos) {
       positions.push_back(y);
     }
     for (auto y: mot) {
       motions.push_back(y);
     }
+
+
+    DOM::addLine(&body, "");
   }
+  DOM::addLine(&body,
+      stringFormat("Max speed overall: %.3g knots",
+          maxSpeed.knots()));
 
   return GpsFilterResults{
     positions, motions
@@ -464,27 +513,41 @@ Array<TimedValue<HorizontalMotion<double>>> maskUnreliable(
     DOM::Node *log) {
 
   DOM::addSubTextNode(log, "h3", "Mask unreliable");
-  DOM::addSubTextNode(log, "p", "Unreliable spans");
+  auto body = DOM::makeSubNode(log, "pre");
+  if (src.empty()) {
+    DOM::addLine(&body, "No GPS motions");
+    return src;
+  }
+  DOM::addLine(&body,
+      stringFormat("From %s to %s",
+          src.first().time.toString().c_str(),
+          src.last().time.toString().c_str()));
+
+
+  DOM::addLine(&body, "Unreliable spans");
   for (auto sp: unreliableSpans) {
-    DOM::addSubTextNode(log, "p",
+    DOM::addLine(&body,
         "  * " + sp.minv().toString()
         + " to " + sp.maxv().toString());
   }
-  DOM::addSubTextNode(log, "p",
+  DOM::addLine(&body,
       stringFormat(" in total %d", unreliableSpans.size()));
 
   ArrayBuilder<TimedValue<HorizontalMotion<double>>> dst(src.size());
+  auto maxv = 0.0_kn;
   for (auto x: src) {
     if (!isCovered(x.time, unreliableSpans)) {
+      maxv = std::max(maxv, x.value.norm());
       dst.add(x);
     }
   }
+  DOM::addLine(&body, stringFormat("Max speed: %.3g knots", maxv.knots()));
   auto result = dst.get();
   if (result.size() < src.size()) {
-    DOM::addSubTextNode(log, "p",
+    DOM::addLine(&body,
         stringFormat("Kept %d of %d samples", result.size(), src.size()));
   } else {
-    DOM::addSubTextNode(log, "p",
+    DOM::addLine(&body,
         stringFormat("Kept %d all samples", result.size()));
   }
   return result;
@@ -582,7 +645,8 @@ GpsFilterResults filterGpsData(
         .warning();
     }
   }
-  return mergeSubResults(subResults, settings.subProblemThreshold);
+  return mergeSubResults(subResults,
+      settings.subProblemThreshold, log);
 }
 
 }
