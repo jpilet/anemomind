@@ -27,6 +27,9 @@
     - 2016-06-21
     - 2016-06-23
 
+  * boat571b387ebe57c552638c5712 (Zed4)
+    - 2016-05-17 03:18:40 to 2016-05-18 15:15:09
+
 # Related pull requests and issues
 
   * https://github.com/jpilet/anemomind/pull/1031, that removes some bad data, using two approaches: (i) By chopping up the position data into segments when there are large gaps, and then removing short segments and related motion data, and (ii) by identifying individual outliers that are surrounded by two inliers.

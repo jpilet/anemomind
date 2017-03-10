@@ -671,9 +671,15 @@ struct GpsData {
   Array<TimedValue<HorizontalMotion<double>>> motions;
 };
 
+Array<TimeStamp> findDistanceSplits(
+    const Array<TimedValue<GeographicPosition<double>>> &src) {
+  return Array<TimeStamp>();
+}
+
 TimeSegmentation segmentTime(
     const GpsData &data,
-    const GpsFilterSettings &settings) {
+    const GpsFilterSettings &settings,
+    bool withDistance) {
   auto positionTimes = getTimeStamps(data.positions);
   auto motionTimes = getTimeStamps(data.motions);
 
@@ -682,8 +688,11 @@ TimeSegmentation segmentTime(
 
   auto splits = listSplittingTimeStampsNotTooLong(samplingTimes,
       settings.subProblemThreshold, settings.subProblemLength);
-
   CHECK(std::is_sorted(splits.begin(), splits.end()));
+  if (withDistance) {
+    splits = concat(Array<Array<TimeStamp>>{splits, findDistanceSplits(data.positions)});
+    std::sort(splits.begin(), splits.end());
+  }
 
   int expectedSliceCount = splits.size() + 1;
   return TimeSegmentation{
@@ -749,7 +758,7 @@ GpsData prefilterAllData(
     const GpsFilterSettings &settings,
     DOM::Node *log) {
   return prefilterAllData(
-      data, segmentTime(data, settings),
+      data, segmentTime(data, settings, false),
       settings, log);
 }
 
@@ -778,7 +787,7 @@ GpsFilterResults filterGpsData(
   auto cleanData = prefilterAllData(rawData, settings, log);
 
   // Chop up the cleaned data.
-  auto time = segmentTime(cleanData, settings);
+  auto time = segmentTime(cleanData, settings, true);
   auto timeSlices = applySplits(time.samplingTimes, time.splits);
   auto positionSlices = applySplits(cleanData.positions, time.splits);
   auto motionSlices = applySplits(cleanData.motions, time.splits);
