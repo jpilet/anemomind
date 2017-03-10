@@ -300,17 +300,22 @@ BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
     NavDataset navs,
-    const Array<Nav>& navArray) {
+    const Array<Nav>& navArray,
+    DOM::Node *li) {
   BSONObjBuilder session;
   session.append("_id", curveId);
   session.append("boat", OID(boatId));
   session.append("trajectoryLength",
       computeTrajectoryLength(navs).nauticalMiles());
 
-  Optional<MaxSpeed> maxSpeed = computeMaxSpeed(navs, Duration<>::seconds(60));
+  Optional<TimedValue<Velocity<double>>> maxSpeed
+    = computeMaxSpeed(navs);
   if (maxSpeed.defined()) {
-    session.append("maxSpeedOverGround", maxSpeed.get().speed.knots());
-    append(session, "maxSpeedOverGroundTime", maxSpeed.get().begin);
+    DOM::addSubTextNode(li, "p",
+        stringFormat("BSON session max speed: %.3g knots",
+            maxSpeed.get().value.knots()));
+    session.append("maxSpeedOverGround", maxSpeed.get().value.knots());
+    append(session, "maxSpeedOverGroundTime", maxSpeed.get().time);
   } else {
     LOG(WARNING) << "The max speed is not defined for curve '"
         << curveId << "' and boat '" << boatId << "'";
@@ -388,11 +393,18 @@ bool generateAndUploadTiles(std::string boatId,
   }
 
   BulkInserter inserter(params, db);
-
+  DOM::Node d2 = params.log; // Workaround
+  auto page = DOM::linkToSubPage(&d2, "generateAndUploadTiles");
+  auto ul = DOM::makeSubNode(&page, "ul");
   for (const NavDataset& curve : allNavs) {
+    auto li = DOM::makeSubNode(&ul, "li");
+
     Array<Nav> navs = makeArray(curve);
 
     std::string curveId = tileCurveId(boatId, curve);
+
+    DOM::addSubTextNode(&li, "p",
+        stringFormat("Curve with id %s and %d navs", curveId.c_str(), navs.size()));
 
     map<TileKey, vector<int>> tiles = tilesForNav(navs, params.maxScale);
 
@@ -415,7 +427,7 @@ bool generateAndUploadTiles(std::string boatId,
         return false;
       }
     }
-    BSONObj session = makeBsonSession(curveId, boatId, curve, navs);
+    BSONObj session = makeBsonSession(curveId, boatId, curve, navs, &li);
     if (!insertSession(session, params, db)) {
       return false;
     }

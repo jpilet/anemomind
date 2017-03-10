@@ -14,6 +14,7 @@
 #include <Poco/Path.h>
 #include <server/common/Array.h>
 #include <memory>
+#include <sstream>
 
 namespace sail {
 namespace DOM {
@@ -93,6 +94,11 @@ void writeHtmlFile(
 Node linkToSubPage(Node *parent, const std::string title);
 Poco::Path makeGeneratedImageNode(
     Node *node, const std::string &filenameSuffix);
+template <typename T> std::string objectToString(const T &x) {
+  std::stringstream ss; ss << x; return ss.str();
+}
+Node displayLabeledString(const char *label, const std::string &s, Node *dst);
+#define HTML_DISPLAY(x, dst) if ((dst)->defined()) {DOM::displayLabeledString(#x, objectToString(x), (dst));}
 
 }
 } /* namespace sail */

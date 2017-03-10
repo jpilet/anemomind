@@ -13,6 +13,7 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/tiles/NavTileUploader.h>
 #include <server/nautical/tiles/TileUtils.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 
