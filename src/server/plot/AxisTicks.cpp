@@ -6,7 +6,7 @@
  */
 
 #include <server/plot/AxisTicks.h>
-#include <server/common/String.h>
+#include <server/common/string.h>
 #include <server/common/TimeStamp.h>
 #include <iostream>
 
