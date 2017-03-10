@@ -326,6 +326,16 @@ void outputLocalResults(
   }, "X", "Y", setup.cr.get());
 }
 
+Velocity<double> findMaxSpeed(
+    const TimedSampleCollection<HorizontalMotion<double>
+      >::TimedVector &src) {
+  auto x = 0.0_kn;
+  for (auto y: src) {
+    x = std::max(x, y.value.norm());
+  }
+  return x;
+}
+
 GpsFilterResults mergeSubResults(
     const std::vector<LocalGpsFilterResults> &subResults,
     Duration<double> thresh,
@@ -381,9 +391,13 @@ GpsFilterResults mergeSubResults(
 
     DOM::addLine(&body, "");
   }
-  DOM::addSubTextNode(log, "p",
-      stringFormat("Max speed overall: %.3g knots",
-          maxSpeed.knots()));
+  auto m2 = findMaxSpeed(motions);
+  auto speedNode = DOM::addSubTextNode(log, "p",
+      stringFormat("Max speed overall: %.3g knots (= %.3g knots)",
+          maxSpeed.knots(), m2.knots()));
+  if (abs(maxSpeed.knots() - m2.knots()) > 0.1) {
+    speedNode.warning();
+  }
 
   return GpsFilterResults{
     positions, motions

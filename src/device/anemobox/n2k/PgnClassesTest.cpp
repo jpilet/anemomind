@@ -7,6 +7,8 @@
 #include <device/anemobox/n2k/PgnClasses.h>
 #include <device/anemobox/n2k/BitStream.h>
 
+using namespace PgnClasses;
+
 TEST(PgnClassesTest, DefaultWindData) {
   PgnClasses::WindData x;
   EXPECT_FALSE(x.valid());
@@ -63,5 +65,38 @@ TEST(PgnClassesTest, WindVisitor) {
   uint8_t shortSrc = 119;
   EXPECT_TRUE(visitor.visit(PgnClasses::CanPacket{
     "MyWindsensor", shortSrc, PgnClasses::WindData::ThisPgn, data}));
+}
+
+TEST(PgnClassesTest, PositionRapidUpdate) {
+  uint8_t data[] = { 0x41, 0x0b, 0xaa, 0x18, 0xcd, 0x84, 0x4d, 0x01 };
+
+  PositionRapidUpdate pru(data, sizeof(data));
+  EXPECT_TRUE(pru.latitude().defined());
+  EXPECT_TRUE(pru.longitude().defined());
+  EXPECT_NEAR(41.3797185, pru.latitude().get().degrees(), 1e-7);
+  EXPECT_NEAR(2.1857485, pru.longitude().get().degrees(), 1e-7);
+}
+
+TEST(PgnClassesTest, GnssPositionData) {
+  uint8_t data[] = {
+    // Commented out bytes are the header bytes used by the fastpacket
+    // system.
+    /* 0x20, 0x2F,*/ 0x3E, 0xA7, 0x42, 0x60, 0x39, 0xEA,
+    /* 0x21,*/ 0x12, 0x80, 0xA7, 0xAA, 0x1E, 0x67, 0x1A,
+    /* 0x22,*/ 0xBE, 0x05, 0x6C, 0x6C, 0x13, 0x39, 0x5D,
+    /* 0x23,*/ 0xA7, 0x4D, 0x00, 0x69, 0x99, 0x26, 0x03,
+    /* 0x24,*/ 0x00, 0x00, 0x00, 0x00, 0x13, 0xFC, 0x09,
+    /* 0x25,*/ 0x62, 0x00, 0xB5, 0x00, 0x08, 0x14, 0x00,
+    /* 0x26,*/ 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+  };
+
+  GnssPositionData pos(data, sizeof(data));
+
+  EXPECT_TRUE(pos.valid());
+  EXPECT_TRUE(pos.latitude().defined());
+  EXPECT_TRUE(pos.longitude().defined());
+  EXPECT_NEAR(41.37972459, pos.latitude().get().degrees(), 1e-8);
+  EXPECT_NEAR(2.1857592038, pos.longitude().get().degrees(), 1e-8);
+  EXPECT_NEAR(52.861289, pos.altitude().get().meters(), 1e-6);
 }
 

@@ -31,6 +31,7 @@
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
 #include <server/common/DOMUtils.h>
+#include <server/nautical/MaxSpeed.h>
 #include <server/common/Json.impl.h> // This one should probably be the last one.
 
 namespace sail {
@@ -296,6 +297,23 @@ void BoatLogProcessor::grammarDebug(
   }
 }
 
+void outputSessionSummary(const NavDataset &ds, DOM::Node *dst) {
+  auto x = computeMaxSpeed(ds);
+  DOM::addSubTextNode(dst, "li",
+      stringFormat("Max speed %.3g knots",
+          x.defined()? x.get().value.knots() : 0.0));
+}
+
+void outputInfoPerSession(
+    const Array<NavDataset> &sessions,
+    DOM::Node *log) {
+  DOM::addSubTextNode(log, "h2", "Sessions");
+  auto ul = DOM::makeSubNode(log, "ul");
+  for (auto s: sessions) {
+    outputSessionSummary(s, &ul);
+  }
+}
+
 
 //
 // high-level processing logic
@@ -312,12 +330,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
-  DOM::Node htmlReport;
-  if (!_htmlReportName.empty()) {
-    htmlReport = DOM::makeBasicHtmlPage("Boat log processor",
+  auto htmlReport = _htmlReportName.empty()? DOM::Node()
+    : DOM::makeBasicHtmlPage("Boat log processor",
         _dstPath.toString(), _htmlReportName);
-    CHECK(htmlReport.writer);
-  }
+  _tileParams.log = htmlReport;
 
   NavDataset resampled;
 
@@ -404,16 +420,18 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     visualizeBoatDat(_dstPath);
   }
 
+  HTML_DISPLAY(_generateTiles, &htmlReport);
   if (_generateTiles) {
     Array<NavDataset> sessions =
       extractAll("Sailing", simulated, _grammar.grammar, fulltree);
-
+    outputInfoPerSession(sessions, &htmlReport);
     if (!generateAndUploadTiles(_boatid, sessions, &db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
       return false;
     }
   }
 
+  HTML_DISPLAY(_generateChartTiles, &htmlReport);
   if (_generateChartTiles) {
     if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)) {
       LOG(ERROR) << "Failed to upload chart tiles!";
