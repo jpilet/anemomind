@@ -37,6 +37,11 @@ struct LocalGpsFilterResults {
   TimedSampleCollection<HorizontalMotion<double> >
     ::TimedVector getGpsMotions(
         Duration<double> maxTimeDiff) const;
+
+  Duration<double> duration() const {
+    return empty()? 0.0_s : filteredLocalPositions.last().time
+        - filteredLocalPositions.first().time;
+  }
 };
 
 struct GpsFilterResults {
