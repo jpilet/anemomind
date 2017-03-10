@@ -1,3 +1,9 @@
+# Description of problematic data
+
+  * Outliers appearing as single isolated points far away. Often surrounded by valid data on either side.
+  * Offset errors: The position data is offset by a constant during a short time span. This is the case for some Irene data
+  * Positions being (0, 0). Because that is the position that is sometimes reported when parsing fails.
+
 # Problematic data
 
   * boat55a774ac16361494ab094dc7 (SYZ)
@@ -14,6 +20,12 @@
   * Irene 
 
     - around Flensburg I think: The GPS trajectory was offset by a constant for some time.
+
+  * boat5766c70b6ad172e8c32a9c94 (You too)
+
+    - 2016-06-20
+    - 2016-06-21
+    - 2016-06-23
 
 # Related pull requests and issues
 
