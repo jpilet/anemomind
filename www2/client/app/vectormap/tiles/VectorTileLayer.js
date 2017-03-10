@@ -41,6 +41,7 @@ function VectorTileLayer(params, renderer) {
 
   var t = this;
   var loadIcon = function(url, name, w, h) {
+    t[name] = { };
     renderer.loadImage(url, function(image) {
       t[name] = image;
       if (w) { image.width = w; }
