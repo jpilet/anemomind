@@ -13,6 +13,7 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/tiles/NavTileUploader.h>
 #include <server/nautical/tiles/TileUtils.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 
@@ -49,6 +50,15 @@ std::string makeFilteredGpsName(const NavDataset &src) {
   return d->source() + " merged+filtered";
 }
 
+Velocity<double> findMaxSpeed(
+    const TimedSampleCollection<Velocity<double>>::TimedVector &src) {
+  auto m = 0.0_kn;
+  for (auto x: src) {
+    m = std::max(m, x.value);
+  }
+  return m;
+}
+
 }  // namespace
 
 NavDataset filterNavs(
@@ -68,6 +78,9 @@ NavDataset filterNavs(
       &gpsBearings,
       &gpsSpeeds);
   CHECK(motions.size() == gpsSpeeds.size());
+  DOM::addSubTextNode(dst, "p",
+      stringFormat("filterNavs gpsSpeeds: %.3g knots",
+          findMaxSpeed(gpsSpeeds)));
 
   // TODO: See issue https://github.com/jpilet/anemomind/issues/793#issuecomment-239423894.
   // In short, we need to make sure that NavDataset::stripChannel doesn't

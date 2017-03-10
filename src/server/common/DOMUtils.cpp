@@ -142,7 +142,12 @@ Node makeBasicHtmlPage(const std::string &titleString) {
   auto head = makeSubNode(&page, "head");
   auto title = makeSubNode(&head, "title");
   addSubTextNode(&head, "style",
-      "td, th {border: 1px solid black;} svg {margin: 30px; border: 1px solid black;} .warning {color: orange} .error {color: red} .success {color: green}");
+      "td, th {border: 1px solid black;} "
+      ".box {border: 1px solid black; padding: 0.5em; margin: 0.5em;} "
+      "svg {margin: 30px; border: 1px solid black;} "
+      ".warning {color: orange} .error {color: red} "
+      ".success {color: green} "
+      "body {padding: 2em;} ");
   addTextNode(&title, titleString);
   auto body = makeSubNode(&page, "body");
   return body;
@@ -184,6 +189,16 @@ Poco::Path makeGeneratedImageNode(Node *node,
       Poco::XML::toXMLString("src"),
       Poco::XML::toXMLString(p.getFileName()));
   return p;
+}
+
+Node displayLabeledString(const char *label, const std::string &s, Node *dst) {
+  auto div = DOM::makeSubNode(dst, "div");
+  div.setAttribute("class", "box");
+  DOM::addSubTextNode(&div, "p", "The value of");
+  DOM::addSubTextNode(&div, "pre", label);
+  DOM::addSubTextNode(&div, "p", "is");
+  DOM::addSubTextNode(&div, "pre", s);
+  return div;
 }
 
 }

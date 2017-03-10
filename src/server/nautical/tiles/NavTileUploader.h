@@ -6,10 +6,12 @@
 #include <server/common/Array.h>
 #include <server/nautical/NavCompatibility.h>
 #include <server/nautical/tiles/MongoUtils.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 
 struct TileGeneratorParameters {
+  DOM::Node log;
   std::string dbHost;
   int maxScale;
   int maxNumNavsPerSubCurve;

@@ -296,6 +296,29 @@ void BoatLogProcessor::grammarDebug(
   }
 }
 
+Velocity<double> getMaxGpsSpeed(const NavDataset &ds) {
+  auto m = 0.0_kn;
+  for (auto x: ds.samples<GPS_SPEED>()) {
+    m = std::max(m, x.value);
+  }
+  return m;
+}
+
+void outputSessionSummary(const NavDataset &ds, DOM::Node *dst) {
+  DOM::addSubTextNode(dst, "li", stringFormat("Max speed %.3g knots",
+      getMaxGpsSpeed(ds)));
+}
+
+void outputInfoPerSession(
+    const Array<NavDataset> &sessions,
+    DOM::Node *log) {
+  DOM::addSubTextNode(log, "h2", "Sessions");
+  auto ul = DOM::makeSubNode(log, "ul");
+  for (auto s: sessions) {
+    outputSessionSummary(s, &ul);
+  }
+}
+
 
 //
 // high-level processing logic
@@ -312,12 +335,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
-  DOM::Node htmlReport;
-  if (!_htmlReportName.empty()) {
-    htmlReport = DOM::makeBasicHtmlPage("Boat log processor",
+  auto htmlReport = _htmlReportName.empty()? DOM::Node()
+    : DOM::makeBasicHtmlPage("Boat log processor",
         _dstPath.toString(), _htmlReportName);
-    CHECK(htmlReport.writer);
-  }
+  _tileParams.log = htmlReport;
 
   NavDataset resampled;
 
@@ -404,16 +425,18 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     visualizeBoatDat(_dstPath);
   }
 
+  HTML_DISPLAY(_generateTiles, &htmlReport);
   if (_generateTiles) {
     Array<NavDataset> sessions =
       extractAll("Sailing", simulated, _grammar.grammar, fulltree);
-
+    outputInfoPerSession(sessions, &htmlReport);
     if (!generateAndUploadTiles(_boatid, sessions, &db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
       return false;
     }
   }
 
+  HTML_DISPLAY(_generateChartTiles, &htmlReport);
   if (_generateChartTiles) {
     if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)) {
       LOG(ERROR) << "Failed to upload chart tiles!";
