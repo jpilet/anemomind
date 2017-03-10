@@ -198,7 +198,7 @@ public:
       DataCode code,
       const std::string& source,
       const typename TimedSampleCollection<T>::TimedVector& values) const {
-    NavDataset r(addChannel(code, source, values));
+    NavDataset r(addChannel<T>(code, source, values));
     r.selectSource(code, source);
     return r;
   }

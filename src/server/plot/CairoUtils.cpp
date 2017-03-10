@@ -7,12 +7,26 @@
 
 #include <server/plot/CairoUtils.h>
 #include <Eigen/Dense>
+#include <server/plot/AxisTicks.h>
+#include <iostream>
+#include <cairo/cairo-svg.h>
 
 namespace sail {
 namespace Cairo {
 
 std::shared_ptr<cairo_surface_t> sharedPtrWrap(cairo_surface_t *x) {
   return std::shared_ptr<cairo_surface_t>(x, &cairo_surface_destroy);
+}
+
+Setup Setup::svg(const std::string &filename,
+      double width, double height) {
+  Setup dst;
+  dst.surface = sharedPtrWrap(
+        cairo_svg_surface_create(
+            filename.c_str(),
+            width, height));
+  dst.cr = sharedPtrWrap(cairo_create(dst.surface.get()));
+  return dst;
 }
 
 std::shared_ptr<cairo_t> sharedPtrWrap(cairo_t *x) {
@@ -37,12 +51,27 @@ WithLocalDeviceScale::WithLocalDeviceScale(
     tmp.yy = 1.0;
     tmp.xy = 0.0;
     tmp.yx = 0.0;
-  } else {
+  } else if (mode == Mode::Determinant){
     double s = 1.0/sqrt(absDet);
     tmp.xx *= s;
     tmp.xy *= s;
     tmp.yx *= s;
     tmp.yy *= s;
+  } else if (mode == Mode::SVD) {
+    Eigen::Matrix2d A;
+    A << tmp.xx, tmp.xy,
+         tmp.yx, tmp.yy;
+    Eigen::JacobiSVD<Eigen::Matrix2d> svd(A,
+        Eigen::ComputeFullU | Eigen::ComputeFullV);
+    CHECK(svd.computeU() && svd.computeV());
+    // Recompose the matrix again, but without
+    // the singular values:
+    // that is, the singular values are all 1.0
+    Eigen::Matrix2d B = svd.matrixU()*svd.matrixV().transpose();
+    tmp.xx = B(0, 0);
+    tmp.xy = B(0, 1);
+    tmp.yx = B(1, 0);
+    tmp.yy = B(1, 1);
   }
   cairo_set_matrix(cr, &tmp);
 }
@@ -81,6 +110,14 @@ void setSourceColor(cairo_t *cr, const PlotUtils::HSV &hsv) {
 
 void rotateMathematically(cairo_t *cr, Angle<double> angle) {
   cairo_rotate(cr, angle.radians());
+}
+
+void drawFilledCircle(cairo_t *cr,
+    double r) {
+  WithLocalContext context(cr);
+  cairo_arc(cr, 0, 0, r, 0.0, 2.0*M_PI);
+  cairo_clip(cr);
+  cairo_paint(cr);
 }
 
 void rotateGeographically(cairo_t *cr, Angle<double> angle) {
@@ -156,6 +193,180 @@ cairo_matrix_t toCairo(const Eigen::Matrix<double, rows, cols> &mat) {
 
 template cairo_matrix_t toCairo<2, 3>(const Eigen::Matrix<double, 2, 3> &mat);
 template cairo_matrix_t toCairo<2, 4>(const Eigen::Matrix<double, 2, 4> &mat);
+
+namespace {
+  BBox3d getBBox(cairo_surface_t *surface,
+      double pixelsPerUnit) {
+    double x = 0;
+    double y = 0;
+    double width = 0;
+    double height = 0;
+    cairo_recording_surface_ink_extents(surface,
+        &x, &y, &width, &height);
+
+    x /= pixelsPerUnit;
+    y /= pixelsPerUnit;
+    width /= pixelsPerUnit;
+    height /= pixelsPerUnit;
+
+    BBox3d box;
+    box.extend({x, y, 0.0});
+    box.extend({x+width, y+height, 0.0});
+
+    return box;
+  }
+}
+
+void renderPlot(
+    const PlotUtils::Settings2d &settings,
+    std::function<void(cairo_t*)> dataRenderer,
+    std::function<void(BBox3d, cairo_t*)> contextRenderer,
+    cairo_t *dst) {
+
+  auto surface = sharedPtrWrap(
+      cairo_recording_surface_create(
+          CAIRO_CONTENT_COLOR_ALPHA, nullptr));
+  auto cr = sharedPtrWrap(cairo_create(surface.get()));
+  cairo_scale(cr.get(),
+      settings.pixelsPerUnit,
+      settings.pixelsPerUnit);
+  dataRenderer(cr.get());
+  auto dataBbox = getBBox(surface.get(), settings.pixelsPerUnit);
+  contextRenderer(dataBbox, cr.get());
+  auto fullBbox = getBBox(surface.get(), 1.0);
+  auto goodBbox = PlotUtils::ensureGoodBBox(fullBbox, settings);
+  auto proj = PlotUtils::computeTotalProjection(
+      goodBbox, settings);
+
+  // Render to the real surface
+  WithLocalContext wlc(dst);
+  auto mat = toCairo(proj);
+  cairo_transform(dst, &mat);
+  cairo_scale(dst,
+      settings.pixelsPerUnit,
+      settings.pixelsPerUnit);
+  dataRenderer(dst);
+  contextRenderer(dataBbox, dst);
+}
+
+double getAxisPosition(Array<AxisTick<double>> ticks) {
+  if (ticks.first().position <= 0 && 0 < ticks.last().position) {
+    return 0;
+  }
+  return ticks.first().position;
+}
+
+void renderAxisText(int dim, const std::string &text,
+    cairo_t *dst) {
+  WithLocalContext wlc(dst);
+  WithLocalDeviceScale wlds(dst,
+      WithLocalDeviceScale::SVD);
+  cairo_translate(dst, 0.0, 10.0*(2*dim - 1));
+  WithLocalDeviceScale wlds2(dst,
+      WithLocalDeviceScale::Identity);
+  cairo_show_text(dst, text.c_str());
+}
+
+void renderAxis(int dim,
+    Array<AxisTick<double>> ticks,
+    const std::string &label,
+    double position, cairo_t *dst) {
+  WithLocalContext wlc(dst);
+  cairo_set_line_width(dst, 1.0);
+  Cairo::setSourceColor(dst, PlotUtils::RGB::black());
+  if (dim == 1) {
+    cairo_matrix_t mat;
+    mat.xx = 0;
+    mat.xy = 1;
+    mat.yx = 1;
+    mat.yy = 0;
+    cairo_transform(dst, &mat);
+  }
+  cairo_move_to(dst, ticks.first().position, position);
+  cairo_line_to(dst, ticks.last().position, position);
+  {
+    WithLocalDeviceScale wlds(dst,
+        WithLocalDeviceScale::Identity);
+    cairo_stroke(dst);
+  }
+  for (auto tick: ticks) {
+    WithLocalContext wlc2(dst);
+    cairo_translate(dst, tick.position, position);
+    {
+      WithLocalDeviceScale wlds(dst,
+          WithLocalDeviceScale::SVD);
+      cairo_move_to(dst, 0.0, -5.0);
+      cairo_line_to(dst, 0.0, 5.0);
+      cairo_stroke(dst);
+    }
+    renderAxisText(dim, tick.tickLabel, dst);
+  }
+  {
+    WithLocalContext w2(dst);
+    cairo_translate(dst, ticks.last().position, position);
+    renderAxisText(dim, label, dst);
+  }
+}
+
+void renderPlot(
+    const PlotUtils::Settings2d &settings,
+    std::function<void(cairo_t*)> dataRenderer,
+    const std::string &xLabel,
+    const std::string &yLabel,
+    cairo_t *dst) {
+  renderPlot(settings, dataRenderer,
+      [&](const BBox3d &box, cairo_t *dst) {
+    typedef BasicTickIterator Iter;
+    auto xTicks = computeAxisTicks<Iter>(
+            box.getSpan(0).minv(),
+            box.getSpan(0).maxv(), Iter());
+    auto yTicks = computeAxisTicks<Iter>(
+            box.getSpan(1).minv(),
+            box.getSpan(1).maxv(), Iter());
+
+    renderAxis(0, xTicks, xLabel,
+        getAxisPosition(yTicks), dst);
+    renderAxis(1, yTicks, yLabel,
+        getAxisPosition(xTicks), dst);
+
+  }, dst);
+}
+
+void moveTo(cairo_t *dst, const Eigen::Vector2d &x) {
+  cairo_move_to(dst, x(0), x(1));
+}
+
+void lineTo(cairo_t *dst, const Eigen::Vector2d &x) {
+  cairo_line_to(dst, x(0), x(1));
+}
+
+void plotLineStrip(cairo_t *dst,
+    const Array<Eigen::Vector2d> &src) {
+  if (src.empty()) {
+    return;
+  }
+  moveTo(dst, src[0]);
+  for (auto x: src.sliceFrom(1)) {
+    lineTo(dst, x);
+  }
+  WithLocalDeviceScale wlds(dst,
+      WithLocalDeviceScale::Identity);
+  cairo_stroke(dst);
+}
+
+void plotDots(cairo_t *dst,
+    const Array<Eigen::Vector2d> &pts,
+    double dotSize) {
+  WithLocalContext wlc(dst);
+  for (auto x: pts) {
+    WithLocalContext wlc2(dst);
+    cairo_translate(dst, x(0), x(1));
+    WithLocalDeviceScale wlds(dst,
+        WithLocalDeviceScale::SVD);
+    drawFilledCircle(dst, dotSize);
+  }
+}
+
 
 }
 } /* namespace sail */

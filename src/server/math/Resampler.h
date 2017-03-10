@@ -9,6 +9,7 @@
 #define SERVER_MATH_RESAMPLER_H_
 
 #include <server/common/TimeStamp.h>
+#include <server/common/Span.h>
 
 namespace sail {
 namespace Resampler {
@@ -26,6 +27,9 @@ Array<Endpoint> listEndpoints(const Array<TimeStamp> &samples,
     Duration<double> period);
 Array<TimeStamp> makeNewSamplesFromEndpoints(const Array<Endpoint> &eps,
     Duration<double> period);
+Array<Span<TimeStamp>> makeContinuousSpans(
+    const Array<TimeStamp> &timeSamples,
+    Duration<double> margin);
 Array<TimeStamp> resample(const Array<TimeStamp> &irregularSamples,
     Duration<double> newSamplingPeriod);
 
