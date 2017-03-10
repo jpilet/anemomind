@@ -660,6 +660,101 @@ Array<TimedValue<HorizontalMotion<double>>> maskUnreliable(
   return result;
 }
 
+struct TimeSegmentation {
+  Array<TimeStamp> samplingTimes;
+  int expectedSliceCount;
+  Array<TimeStamp> splits;
+};
+
+struct GpsData {
+  Array<TimedValue<GeographicPosition<double>>> positions;
+  Array<TimedValue<HorizontalMotion<double>>> motions;
+};
+
+TimeSegmentation segmentTime(
+    const GpsData &data,
+    const GpsFilterSettings &settings) {
+  auto positionTimes = getTimeStamps(data.positions);
+  auto motionTimes = getTimeStamps(data.motions);
+
+  auto samplingTimes = buildSampleTimes(positionTimes, motionTimes,
+      settings.samplingPeriod);
+
+  auto splits = listSplittingTimeStampsNotTooLong(samplingTimes,
+      settings.subProblemThreshold, settings.subProblemLength);
+
+  CHECK(std::is_sorted(splits.begin(), splits.end()));
+
+  int expectedSliceCount = splits.size() + 1;
+  return TimeSegmentation{
+    samplingTimes,
+    expectedSliceCount,
+    splits,
+  };
+}
+
+Array<TimedValue<GeographicPosition<double>>> getPositions(
+    const NavDataset &src) {
+  auto src0 = src.samples<GPS_POS>();
+  int n = src0.size();
+  Array<TimedValue<GeographicPosition<double>>> dst(n);
+  std::copy(src0.begin(), src0.end(), dst.begin());
+  return dst;
+}
+
+GpsData getGpsData(const NavDataset &src) {
+  return GpsData{
+    getPositions(src),
+    GpsUtils::getGpsMotions(src)
+  };
+}
+
+
+GpsData reassembleData(
+    const Array<Array<TimedValue<GeographicPosition<double>>>> &positions,
+    const Array<Array<TimedValue<HorizontalMotion<double>>>> &motions) {
+  return GpsData{concat(positions), concat(motions)};
+}
+
+GpsData prefilterAllData(
+    const GpsData &data,
+    const TimeSegmentation &timeSlices,
+    const GpsFilterSettings &settings,
+    DOM::Node *log) {
+  auto prefilteredPositions = map(
+      applySplits(data.positions, timeSlices.splits),
+      [&](const Array<TimedValue<GeographicPosition<double>>> &positions) {
+        return prefilterPositions(positions, log);
+  }).toArray();
+  auto positionSlices = map(prefilteredPositions, &getGoodPositions)
+      .toArray();
+  auto unreliableSpans = map(prefilteredPositions, &getUnreliableSpans)
+      .toArray();
+
+  auto motionPreSplits = applySplits(data.motions, timeSlices.splits);
+  Array<Array<TimedValue<HorizontalMotion<double>>>>
+    motionSlices(timeSlices.expectedSliceCount);
+  CHECK(motionPreSplits.size() == timeSlices.expectedSliceCount);
+  CHECK(unreliableSpans.size() == timeSlices.expectedSliceCount);
+  for (int i = 0; i < timeSlices.expectedSliceCount; i++) {
+    motionSlices[i] = maskUnreliable(
+        unreliableSpans[i],
+        motionPreSplits[i], log);
+  }
+  return reassembleData(positionSlices, motionSlices);
+}
+
+GpsData prefilterAllData(
+    const GpsData &data,
+    const GpsFilterSettings &settings,
+    DOM::Node *log) {
+  return prefilterAllData(
+      data, segmentTime(data, settings),
+      settings, log);
+}
+
+
+
 GpsFilterResults filterGpsData(
     const NavDataset &ds,
     DOM::Node *log,
@@ -672,61 +767,29 @@ GpsFilterResults filterGpsData(
     return GpsFilterResults();
   }
 
-  //auto motions = Array<TimedValue<HorizontalMotion<double>>>(); //
-  auto motions = GpsUtils::getGpsMotions(ds);
-  auto positions = ds.samples<GPS_POS>();
-  if (positions.empty()) {
+  auto rawData = getGpsData(ds);
+  if (rawData.positions.empty()) {
     LOG(ERROR) << "No GPS positions in dataset, cannot filter";
     return GpsFilterResults();
   }
 
-  auto positionTimes = getTimeStamps(positions);
-  auto motionTimes = getTimeStamps(motions);
+  // Chop up the data in segments and remove outliers from every segment.
+  // Then reassemble the data again.
+  auto cleanData = prefilterAllData(rawData, settings, log);
 
-  auto samplingTimes = buildSampleTimes(positionTimes, motionTimes,
-      settings.samplingPeriod);
+  // Chop up the cleaned data.
+  auto time = segmentTime(cleanData, settings);
+  auto timeSlices = applySplits(time.samplingTimes, time.splits);
+  auto positionSlices = applySplits(cleanData.positions, time.splits);
+  auto motionSlices = applySplits(cleanData.motions, time.splits);
 
-  auto splits = listSplittingTimeStampsNotTooLong(samplingTimes,
-      settings.subProblemThreshold, settings.subProblemLength);
-
-  CHECK(std::is_sorted(splits.begin(), splits.end()));
-
-  int expectedSliceCount = splits.size() + 1;
-  auto timeSlices = applySplits(samplingTimes, splits);
-  auto prefilteredPositions = map(
-      applySplits(toArray(positions), splits),
-      [&](const Array<TimedValue<GeographicPosition<double>>> &positions) {
-        return prefilterPositions(positions, log);
-  }).toArray();
-  auto positionSlices = map(prefilteredPositions, &getGoodPositions)
-      .toArray();
-  auto unreliableSpans = map(prefilteredPositions, &getUnreliableSpans)
-      .toArray();
-
-  auto motionPreSplits = applySplits(motions, splits);
-  Array<Array<TimedValue<HorizontalMotion<double>>>>
-    motionSlices(expectedSliceCount);
-  CHECK(motionPreSplits.size() == expectedSliceCount);
-  CHECK(unreliableSpans.size() == expectedSliceCount);
-  for (int i = 0; i < expectedSliceCount; i++) {
-    motionSlices[i] = maskUnreliable(
-        unreliableSpans[i],
-        motionPreSplits[i], log);
-  }
-
-
-  std::cout << "Number of slices: "<< motionSlices.size() << std::endl;
-
-  CHECK(expectedSliceCount == timeSlices.size());
-  CHECK(expectedSliceCount == positionSlices.size());
-  CHECK(expectedSliceCount == motionSlices.size());
   std::vector<LocalGpsFilterResults> subResults;
 
   DOM::addSubTextNode(log, "h2", "Producing GPS filter sub results");
   auto ol = DOM::makeSubNode(log, "ol");
 
-  subResults.reserve(expectedSliceCount);
-  for (int i = 0; i < expectedSliceCount; i++) {
+  subResults.reserve(time.expectedSliceCount);
+  for (int i = 0; i < time.expectedSliceCount; i++) {
     auto timeSlice = timeSlices[i];
     auto positionSlice = positionSlices[i];
     auto motionSlice = motionSlices[i];
