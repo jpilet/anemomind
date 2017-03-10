@@ -392,12 +392,8 @@ GpsFilterResults mergeSubResults(
     DOM::addLine(&body, "");
   }
   DOM::addSubTextNode(log, "p",
-      stringFormat("Max speed overall: %.3g knots",
-          maxSpeed.knots()));
-
-  DOM::addSubTextNode(log, "p",
-      stringFormat("Max speed overall (just to check again): %.3g knots",
-          findMaxSpeed(motions)));
+      stringFormat("Max speed overall: %.3g knots (= %.3g knots)",
+          maxSpeed.knots(), findMaxSpeed(motions)));
 
   return GpsFilterResults{
     positions, motions

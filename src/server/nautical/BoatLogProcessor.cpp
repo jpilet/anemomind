@@ -31,6 +31,7 @@
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
 #include <server/common/DOMUtils.h>
+#include <server/nautical/MaxSpeed.h>
 #include <server/common/Json.impl.h> // This one should probably be the last one.
 
 namespace sail {
@@ -296,17 +297,11 @@ void BoatLogProcessor::grammarDebug(
   }
 }
 
-Velocity<double> getMaxGpsSpeed(const NavDataset &ds) {
-  auto m = 0.0_kn;
-  for (auto x: ds.samples<GPS_SPEED>()) {
-    m = std::max(m, x.value);
-  }
-  return m;
-}
-
 void outputSessionSummary(const NavDataset &ds, DOM::Node *dst) {
-  DOM::addSubTextNode(dst, "li", stringFormat("Max speed %.3g knots",
-      getMaxGpsSpeed(ds)));
+  auto x = computeMaxSpeed(ds);
+  DOM::addSubTextNode(dst, "li",
+      stringFormat("Max speed %.3g knots",
+          x.defined()? x.get().value.knots() : 0.0));
 }
 
 void outputInfoPerSession(
