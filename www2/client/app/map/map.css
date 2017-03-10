@@ -1232,7 +1232,7 @@ perfplot {
 /*==================================================*/
 
 .mapScreenContainer sidebar {
-  overflow: initial;
+  overflow: auto;
   min-height: 0;
 }
 .sidebar-container {
