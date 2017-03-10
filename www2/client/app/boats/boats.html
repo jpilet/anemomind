@@ -4,7 +4,11 @@
 <div ng-if="isLoggedIn">
 <h4>Add boat</h4>
 <p class="input-group">
-  <input type="text" class="form-control" placeholder="Boat name" ng-model="newBoat">
+  <div ng-if="boatCreated" class="alert alert-success">
+    <a ng-href="/boats/{{boatCreated._id}}">{{boatCreated.name}}</a> has been created
+  </div>
+  <div ng-if="errorMessage" class="alert alert-danger">{{errorMessage}}</div>
+  <input type="text" class="form-control" placeholder="Boat name" ng-model="newBoat.name">
   <span class="input-group-btn">
     <button type="submit" class="btn btn-primary" ng-click="addBoat()">Add Boat</button>
   </span>
