@@ -7,20 +7,20 @@
 namespace sail {
 
 namespace {
-  Optional<TimedValue<Velocity<double>>> maxSpeed(
-      const Optional<TimedValue<Velocity<double>>> &x,
+  TimedValue<Velocity<double>> maxSpeed(
+      const TimedValue<Velocity<double>> &x,
       const TimedValue<Velocity<double>> &y) {
-    if (x.defined() && x.get().value >= y.value) {
-      return x;
-    }
-    return y;
+    return x.value < y.value? y : x;
   }
 }
 
 Optional<TimedValue<Velocity<double>>> computeMaxSpeed(
     const NavDataset& data) {
   auto speeds = data.samples<GPS_SPEED>();
-  Optional<TimedValue<Velocity<double>>> best;
+  if (speeds.empty()) {
+    return Optional<TimedValue<Velocity<double>>>();
+  }
+  TimedValue<Velocity<double>> best;
   for (auto x: speeds) {
     best = maxSpeed(best, x);
   }
