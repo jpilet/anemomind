@@ -673,7 +673,19 @@ struct GpsData {
 
 Array<TimeStamp> findDistanceSplits(
     const Array<TimedValue<GeographicPosition<double>>> &src) {
-  return Array<TimeStamp>();
+  if (src.size() < 2) {
+    return Array<TimeStamp>();
+  }
+  int n = src.size() - 1;
+  ArrayBuilder<TimeStamp> dst;
+  for (int i = 0; i < n; i++) {
+    const auto &a = src[i];
+    const auto &b = src[i+1];
+    if (shouldSplit(a, b)) {
+      dst.add(a.time + 0.5*(b.time - a.time));
+    }
+  }
+  return dst.get();
 }
 
 TimeSegmentation segmentTime(
