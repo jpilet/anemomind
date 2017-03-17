@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('BoatDetailCtrl', function ($scope, $stateParams, Auth, $http, userDB, boatList) {
+  .controller('BoatDetailCtrl', function ($scope, $stateParams, Auth, $http, userDB, boatList, $location) {
     $scope.boat = { sails: [] };
     $scope.invitationMessage = "";
     $scope.invitedEMail = "";
@@ -25,10 +25,13 @@ angular.module('www2App')
       });
 
 
-    $scope.saveBoat = function() {
+    $scope.saveBoat = function(navigateAway) {
       boatList.save($stateParams.boatId, $scope.boat)
         .success(function(boat) { 
           $scope.boat = boat; 
+          if (navigateAway) {
+            $location.path('/boats/' + boat._id);
+          }
         });
     }
 
