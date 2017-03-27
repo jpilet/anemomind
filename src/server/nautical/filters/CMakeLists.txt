@@ -61,6 +61,7 @@ add_library(filters_SmoothGpsFilter
 
 target_link_libraries(filters_SmoothGpsFilter
                       filters_GpsUtils
+                      filters_gpsLogic
                       nonlinear_CeresTrajectoryFilter
                       math_Resampler
                       common_Progress
@@ -91,3 +92,21 @@ target_link_libraries(filters_tryNewGpsFilter
   filters_SmoothGpsFilter
   logimport_LogLoader
   )
+
+add_library(filters_gpsLogic
+            gpsLogic.h
+            gpsLogic.cpp
+            )
+
+target_link_libraries(filters_gpsLogic
+  nautical_NavDataset
+  nautical_ValidPeriods
+  nautical_downsamplegps 
+)
+
+cxx_test(filters_gpsLogicTest
+  gpsLogicTest.cpp
+  gtest_main
+  filters_gpsLogic
+  )
+

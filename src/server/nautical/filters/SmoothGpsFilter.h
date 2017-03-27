@@ -11,7 +11,7 @@
 #include <server/math/nonlinear/CeresTrajectoryFilter.h>
 #include <server/nautical/GeographicReference.h>
 #include <server/nautical/NavDataset.h>
-#include <server/nautical/GeographicReference.h>
+#include <server/nautical/filters/gpsLogic.h>
 
 namespace sail {
 
@@ -24,6 +24,7 @@ struct GpsFilterSettings {
   Duration<double> samplingPeriod = Duration<double>::seconds(1.0);
   Duration<double> subProblemThreshold = Duration<double>::minutes(3.0);
   Duration<double> subProblemLength = Duration<double>::hours(4.0);
+  GpsLogicParams gpsLogic;
 };
 
 struct LocalGpsFilterResults {

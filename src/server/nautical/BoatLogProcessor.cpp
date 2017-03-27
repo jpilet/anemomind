@@ -334,17 +334,11 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   if (_resumeAfterPrepare.size() > 0) {
     resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    NavDataset raw = removeStrangeGpsPositions(
-        loadNavs(*amap, _boatid));
+    NavDataset raw = loadNavs(*amap, _boatid);
     infoNavDataset("After loading", raw);
 
-    resampled = raw.createMergedChannels(
-        std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
-        Duration<>::seconds(0.99));
-    infoNavDataset("After resampling GPS", resampled);
-
     if (_gpsFilter) {
-      resampled = filterNavs(resampled, &_htmlReport, _gpsFilterSettings);
+      resampled = filterNavs(raw, &_htmlReport, _gpsFilterSettings);
       infoNavDataset("After filtering", resampled);
     }
   }

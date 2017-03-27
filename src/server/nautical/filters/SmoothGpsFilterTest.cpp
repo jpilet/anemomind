@@ -139,40 +139,34 @@ TEST(SmoothGpsFilterTest, TestIt) {
 
   EXPECT_FALSE(filtered0.positions.empty());
 
-  auto filteredPositions = filtered0.positions;
+  TimedSampleCollection<GeographicPosition<double>> filteredPositions(
+      filtered0.positions);
 
 
   int filteredCounter = 0;
   int corrCounter = 0;
   int marg = 3;
   for (int i = 0; i < n; i++) {
-    if (i % 10 == 0) {
-      auto good = originalPositions[i];
-      auto bad = corruptedPositions[i];
-      auto t = good.time;
+    TimedValue<GeographicPosition<double>> bad = corruptedPositions[i];
+    TimedValue<GeographicPosition<double>> good = originalPositions[i];
+    TimeStamp t = good.time;
 
-      // Step to the next filtered sample that is close to our good/bad ones.
-      while (filteredCounter < filteredPositions.size() &&
-          filteredPositions[filteredCounter].time < t) {
-        filteredCounter++;
-      }
+    Optional<TimedValue<GeographicPosition<double>>> filteredOpt =
+      filteredPositions.nearestTimedValue(t);
 
-      for (int j = std::max(0, filteredCounter - marg);
-          j <= std::min<int>(filteredPositions.size()-1, filteredCounter + marg); j++) {
-        auto x = filteredPositions[j];
-
-        auto distToGood = distance(x.value, good.value);
-        auto distToBad = distance(x.value, bad.value);
-        corrCounter++;
-        EXPECT_LT(distToGood, distToBad); // TODO: Actually quite weak test, but better than nothing.
-
-        EXPECT_LT(distToGood.meters(), 30);
-      }
-
-      if (filteredCounter == filteredPositions.size()) {
-        break;
-      }
+    if (!filteredOpt.defined()) {
+      continue;
     }
+    GeographicPosition<double> filtered = filteredOpt.get().value;
+
+    Length<> distToGood = distance(filtered, good.value);
+    //Length<> distToBad = distance(filtered, bad.value);
+
+    corrCounter++;
+
+    //EXPECT_LT(distToGood, distToBad); // TODO: Actually quite weak test, but better than nothing.
+
+    EXPECT_LT(distToGood.meters(), 30);
   }
   EXPECT_LT(60, corrCounter);
 }

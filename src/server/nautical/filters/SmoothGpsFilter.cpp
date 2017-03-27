@@ -19,6 +19,8 @@
 #include <server/nautical/WGS84.h>
 #include <server/plot/PlotUtils.h>
 #include <server/plot/CairoUtils.h>
+#include <server/nautical/ValidPeriods.h>
+#include <server/nautical/filters/gpsLogic.h>
 
 namespace sail {
 
@@ -196,14 +198,13 @@ LocalGpsFilterResults solveGpsSubproblem(
     typedef FTypes::TimedPosition TimedPosition;
     typedef FTypes::TimedMotion TimedMotion;
 
-    const AbstractArray<TimeStamp> &t = times;
-    const AbstractArray<TimedPosition> &p = localPositions;
-    const AbstractArray<TimedMotion> &m = localMotions;
 
     auto e = EmptyArray<FTypes::Position>();
 
     Types<2>::TimedPositionArray filtered = CeresTrajectoryFilter::filter<2>(
-        t, p, m,
+        times,
+        localPositions,
+        localMotions,
         settings.ceresSettings, e);
 
     if (filtered.empty()) {
@@ -730,7 +731,7 @@ TimeSegmentation segmentTime(
 
 Array<TimedValue<GeographicPosition<double>>> getPositions(
     const NavDataset &src) {
-  auto src0 = src.samples<GPS_POS>();
+  TimedSampleRange<GeographicPosition<double>> src0 = src.samples<GPS_POS>();
   int n = src0.size();
   Array<TimedValue<GeographicPosition<double>>> dst(n);
   std::copy(src0.begin(), src0.end(), dst.begin());
@@ -790,7 +791,7 @@ GpsData prefilterAllData(
 
 
 
-GpsFilterResults filterGpsData(
+GpsFilterResults filterGpsData__(
     const NavDataset &ds,
     DOM::Node *log,
     const GpsFilterSettings &settings) {
@@ -854,4 +855,94 @@ GpsFilterResults filterGpsData(
       settings.subProblemThreshold, log);
 }
 
+Array<TimeStamp> oneSecondSamples(TimeStamp a, TimeStamp b) {
+  CHECK_LT(a, b);
+  Array<TimeStamp> result(int((b - a).seconds()));
+  for (int i = 0; i < result.size(); ++i) {
+    result[i] = a + Duration<>::seconds(i);
+  }
+  return result;
 }
+
+GpsFilterResults filterGpsData(
+    const NavDataset &ds,
+    DOM::Node *log,
+    const GpsFilterSettings &settings) {
+
+  DOM::addSubTextNode(log, "h2", "Filter GPS data (new version)");
+
+  if (ds.isDefaultConstructed()) {
+    LOG(WARNING) << "Nothing to filter";
+    return GpsFilterResults();
+  }
+
+  GpsFilterResults result;
+
+  StatusTimedVector segments;
+  NavDataset cleaned =
+    findGpsSegments(ds, settings.gpsLogic, &segments)
+    .createMergedChannels(
+        std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING});
+
+  for (Period fullp : ValidPeriods(&segments)) {
+
+    Duration<> d = Duration<>::seconds(20);
+    for (Period p(fullp.begin, std::min(fullp.end, fullp.begin + d));
+         p.end < fullp.end;
+         p = Period(p.end, std::min(fullp.end, p.end + d))) {
+      Array<TimeStamp> samples = oneSecondSamples(p.begin, p.end);
+
+      if (samples.size() < 10) {
+        continue;
+      }
+
+      NavDataset segmentData = cleaned.slice(p.begin, p.end);
+
+      Array<TimedValue<GeographicPosition<double>>> positions =
+        getPositions(segmentData);
+
+      if (positions.size() == 0) {
+        continue;
+      }
+
+      Array<TimedValue<HorizontalMotion<double>>> motions =
+        GpsUtils::getGpsMotions(segmentData);
+
+      GeographicReference geoRef(GpsUtils::getReferencePosition(positions));
+
+      Array<CeresTrajectoryFilter::Types<2>::TimedPosition> localPositions =
+        getLocalPositions(geoRef, positions);
+
+      CeresTrajectoryFilter::Types<2>::TimedPositionArray filtered =
+        CeresTrajectoryFilter::filter<2>(
+          wrapIndexable<TypeMode::ConstRef>(samples),
+          wrapIndexable<TypeMode::ConstRef>(localPositions),
+          wrapIndexable<TypeMode::ConstRef>(toLocalMotions(motions)),
+          settings.ceresSettings,
+
+          // initialize with 0s
+          EmptyArray<FTypes::Position>()
+        );
+
+      TimedSampleCollection<GeographicPosition<double>>::TimedVector globalFiltered =
+        getGlobalPositionsFromLocal(geoRef, filtered);
+
+      if (globalFiltered.size() > 1) {
+        for (int i = 0; i < globalFiltered.size(); ++i) {
+          result.positions.push_back(globalFiltered[i]);
+
+          auto prev = filtered[(i >= 1 ? i - 1 : i)];
+          auto next = filtered[(i+1 < globalFiltered.size() ? i + 1 : i)];
+          result.motions.push_back(
+              makeTimedValue(filtered[i].time, computeHorizontalMotion(
+                      prev.value, next.value, next.time - prev.time)));
+
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+}  // namespace sail
