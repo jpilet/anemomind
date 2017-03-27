@@ -331,6 +331,20 @@ target_link_libraries(nautical_MaxSpeed
                       )
 
 
+add_library(nautical_ValidPeriods
+            ValidPeriods.h
+            ValidPeriods.cpp
+            )
+target_link_libraries(nautical_ValidPeriods
+                      common_logging
+                      common_TimeStamp)
+
+cxx_test(nautical_ValidPeriodsTest
+         ValidPeriodsTest.cpp
+         gtest_main
+         nautical_ValidPeriods
+        )
+
 add_executable(nautical_boatDatInfo boatDatInfo.cpp)
 target_link_libraries(nautical_boatDatInfo 
   anemobox_DispatcherTrueWindEstimator
