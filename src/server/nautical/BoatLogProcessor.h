@@ -59,6 +59,7 @@ struct BoatLogProcessor {
   bool _verboseCalibrator = false;
   bool _exploreGrammar = false;
   bool _logGrammar = false;
+  bool _saveDefaultCalib = false;
 
   mongo::DBClientConnection db;
 
