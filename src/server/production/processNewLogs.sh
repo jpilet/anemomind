@@ -70,6 +70,7 @@ processBoat() {
         --dir "${boatprocessdir}" \
         --dst "${processed}" \
         --boatid "${boatid}" \
+        --save-default-calib \
         -t --clean \
         --host anemolab1 \
         --db anemomind \
