@@ -92,6 +92,9 @@ class Optional {
   T _value;
 };
 
+template <typename T>
+Optional<T> makeOptional(T x) { return Optional<T>(x); }
+
 namespace sail {
   template <typename T>
   bool isNaN(const Optional<T> &x) {
