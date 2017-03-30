@@ -68,14 +68,8 @@ AxisTick<TimeStamp> DateTickIterator::get(int index) const {
       date, stringFormat("%d", year)
     };
   } else {
-    const char *months[] = {
-        "January", "February", "March",
-        "April", "May", "June",
-        "July", "August", "September",
-        "October", "November", "December"
-    };
     return AxisTick<TimeStamp>{
-      date, stringFormat("%s %d", months[month], year)
+      date, date.toString("%Y %B")
     };
   }
 }
@@ -145,7 +139,6 @@ double PhysicalQuantityIterator<T>::computeFracIndex(T x) const {
   return x/tickSpacing();
 }
 
-
 template <typename T>
 AxisTick<T> PhysicalQuantityIterator<T>::get(int i) const {
   auto x = _iter.get(i);
@@ -159,19 +152,5 @@ PhysicalQuantityIterator<T>::PhysicalQuantityIterator(
 template class PhysicalQuantityIterator<Velocity<double>>;
 template class PhysicalQuantityIterator<Length<double>>;
 template class PhysicalQuantityIterator<Duration<double>>;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

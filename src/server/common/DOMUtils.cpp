@@ -59,6 +59,7 @@ void writeHtmlFile(
 
 
 PageWriter::~PageWriter() {
+  std::cout << "Output HTML to " << fullFilename() << std::endl;
   writeHtmlFile(fullFilename(), _document);
 }
 
@@ -130,6 +131,10 @@ void addTextNode(Node *node, const std::string &text) {
   }
   auto x = node->document->createTextNode(text);
   node->element->appendChild(x);
+}
+
+void addLine(Node *parent, const std::string &text) {
+  addTextNode(parent, text + "\n");
 }
 
 Node makeBasicHtmlPage(const std::string &titleString) {

@@ -77,6 +77,8 @@ void drawBoat(cairo_t *cr, double boatLength);
 // Rotates counter-clockwise, in the "positive" direction
 void rotateMathematically(cairo_t *cr, Angle<double> angle);
 
+void drawFilledCircle(cairo_t *cr, double r);
+
 // Rotates clockwise, like like angles are applied when
 // giving the heading of a boat on the map.
 void rotateGeographically(cairo_t *cr, Angle<double> angle);
@@ -123,6 +125,9 @@ void moveTo(cairo_t *dst, const Eigen::Vector2d &x);
 void lineTo(cairo_t *dst, const Eigen::Vector2d &x);
 void plotLineStrip(cairo_t *dst,
     const Array<Eigen::Vector2d> &src);
+void plotDots(cairo_t *dst,
+    const Array<Eigen::Vector2d> &pts,
+    double dotSize);
 
 }
 }
