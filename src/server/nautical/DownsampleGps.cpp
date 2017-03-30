@@ -27,6 +27,8 @@ TimedSampleCollection<GeographicPosition<double> >
   return dst;
 }
 
+}  // namespace
+
 TimedSampleCollection<GeographicPosition<double>>::TimedVector
   getCleanGpsPositions(
     const NavDataset &ds, const std::string &src) {
@@ -45,10 +47,8 @@ TimedSampleCollection<GeographicPosition<double>>::TimedVector
   return dst;
 }
 
-}  // namespace
-
 NavDataset removeStrangeGpsPositions(const NavDataset &ds) {
-  auto sources = ds.sourcesForChannel(GPS_POS);
+  std::vector<std::string> sources = ds.sourcesForChannel(GPS_POS);
   NavDataset result = ds.stripChannel(GPS_POS);
   for (auto src: sources) {
     auto cleanData = getCleanGpsPositions(ds, src);
