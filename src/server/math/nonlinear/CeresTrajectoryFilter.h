@@ -225,7 +225,6 @@ typename Types<N>::TimedPositionArray filter(
     return TimedPositionArray();
   }
 
-  LOG(INFO) << "Perform CeresTrajectoryFilter";
   if (positions.empty()) {
     LOG(ERROR) << "At least one position is needed in order to perform the filtering";
     return TimedPositionArray();
@@ -264,7 +263,6 @@ typename Types<N>::TimedPositionArray filter(
   }
 
   // Regularization
-  LOG(INFO) << "Number of regularization terms: " << sampleCount - 2;
   for (int i = 1; i < sampleCount-1; i++) {
     double lambda = computeLambda<sail::TimeStamp>(samples[i-1], samples[i+1], samples[i]);
     problem.AddResidualBlock(Regularization<N>::Create(settings.regWeight, lambda), nullptr,
@@ -272,9 +270,7 @@ typename Types<N>::TimedPositionArray filter(
   }
 
   ceres::Solver::Summary summary;
-  LOG(INFO) << "Optimizing...";
   ceres::Solve(settings.ceresOptions, &problem, &summary);
-  LOG(INFO) << "Done optimizing";
 
   // I don't consider reaching the maximum number of iterations (that is NO_CONVERGENCE)
   // a bad outcome. This is perfectly possible, and we probably want to use that result.
@@ -287,7 +283,6 @@ typename Types<N>::TimedPositionArray filter(
 
     return TimedPositionArray();
   }
-  LOG(INFO) << "Successfully performed CeresTrajectoryFilter.";
   return wrapResult<N>(samples, X);
 }
 

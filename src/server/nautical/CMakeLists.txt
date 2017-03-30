@@ -330,3 +330,8 @@ target_link_libraries(nautical_MaxSpeed
                       common_TimeStamp
                       )
 
+
+add_executable(nautical_boatDatInfo boatDatInfo.cpp)
+target_link_libraries(nautical_boatDatInfo 
+  anemobox_DispatcherTrueWindEstimator
+  )

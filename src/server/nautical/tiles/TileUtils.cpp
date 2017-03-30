@@ -56,7 +56,9 @@ NavDataset filterNavs(
     const NavDataset& navs,
     DOM::Node *dst,
     const GpsFilterSettings& settings) {
-  auto results = filterGpsData(navs, dst, settings);
+  DOM::Node gpsFilterReport = DOM::linkToSubPage(dst, "GPS filter output");
+
+  GpsFilterResults results = filterGpsData(navs, &gpsFilterReport, settings);
   if (results.empty()) {
     LOG(ERROR) << "GPS filtering failed";
     return NavDataset();

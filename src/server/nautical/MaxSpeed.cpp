@@ -20,8 +20,9 @@ Optional<TimedValue<Velocity<double>>> computeMaxSpeed(
   if (speeds.empty()) {
     return Optional<TimedValue<Velocity<double>>>();
   }
-  TimedValue<Velocity<double>> best;
+  TimedValue<Velocity<double>> best = speeds[0];
   for (auto x: speeds) {
+    CHECK(!isNaN(x.value));
     best = maxSpeed(best, x);
   }
   return best;
