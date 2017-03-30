@@ -380,6 +380,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   } else {
     LOG(WARNING) << "Calibration failed. Using default calib values.";
     calibrator.clear();
+    if (_saveDefaultCalib) {
+      calibrator.saveCalibration(&boatDatFile);
+    }
   }
 
   // First simulation pass: adds true wind
@@ -582,6 +585,9 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--verbose-calib", "Enable debug output for calibration")
     .store(&processor._verboseCalibrator);
+
+  amap.registerOption("--saveDefaultCalib", "Save default calibration values even if calibration failed")
+    .store(&processor._saveDefaultCalib);
 
   amap.registerOption("--explore", "Explore grammar tree")
     .store(&processor._exploreGrammar);
