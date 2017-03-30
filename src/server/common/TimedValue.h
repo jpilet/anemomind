@@ -41,8 +41,12 @@ bool operator<(const TimeStamp &a, const TimedValue<T> &b) {
   return a < b.time;
 }
 
+template <typename T>
+TimedValue<T> makeTimedValue(TimeStamp t, const T& value) {
+  return TimedValue<T>(t, value);
 }
 
+}  // namespace sail
 
 
 #endif /* SERVER_COMMON_TIMEDVALUE_H_ */
