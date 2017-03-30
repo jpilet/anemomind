@@ -308,8 +308,9 @@ BSONObj makeBsonSession(
   session.append("trajectoryLength",
       computeTrajectoryLength(navs).nauticalMiles());
 
-  Optional<TimedValue<Velocity<double>>> maxSpeed
-    = computeMaxSpeed(navs);
+  Optional<TimedValue<Velocity<double>>> maxSpeed =
+    computeMaxSpeedOverPeriod(navs);
+
   if (maxSpeed.defined()) {
     DOM::addSubTextNode(li, "p",
         stringFormat("BSON session max speed: %.3g knots",
