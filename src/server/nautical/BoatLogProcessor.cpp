@@ -297,10 +297,12 @@ void BoatLogProcessor::grammarDebug(
 }
 
 void outputSessionSummary(const NavDataset &ds, DOM::Node *dst) {
-  auto x = computeMaxSpeed(ds);
+  Optional<TimedValue<Velocity<>>> instant = computeInstantMaxSpeed(ds);
+  Optional<TimedValue<Velocity<>>> period = computeMaxSpeedOverPeriod(ds);
   DOM::addSubTextNode(dst, "li",
-      stringFormat("Max speed %.3g knots",
-          x.defined()? x.get().value.knots() : 0.0));
+      stringFormat("Max speed instant: %.3g knots, over period: %.3g",
+          instant.defined()? instant.get().value.knots() : 0.0,
+          period.defined()? period.get().value.knots() : 0.0));
 }
 
 void outputInfoPerSession(
