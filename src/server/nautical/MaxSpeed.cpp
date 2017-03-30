@@ -20,20 +20,20 @@ Optional<TimedValue<Velocity<double>>> computeMaxSpeedOverPeriod(
 
   Optional<Velocity<>> bestSpeed;
   TimeStamp bestTime, bestEnd;
-  for (auto it = pos.begin(); it != pos.end(); ++it) {
+  for (auto p: pos) {
     Optional<TimedValue<GeographicPosition<double>>> after =
-      pos.nearest(it->time + delta);
+      pos.nearest(p.time + delta);
 
-    if (after.undefined()) {
+    if (after.undefined()  || after.get().time <= p.time) {
       continue;
     }
 
     Velocity<> speed =
-      distance(it->value, after.get().value) / (after.get().time - it->time);
+      distance(p.value, after.get().value) / (after.get().time - p.time);
 
     if (bestSpeed.undefined() || bestSpeed.get() < speed) {
       bestSpeed = speed;
-      bestTime = it->time;
+      bestTime = p.time;
       bestEnd = after.get().time;
     }
   }
