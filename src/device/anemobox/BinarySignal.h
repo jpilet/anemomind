@@ -65,8 +65,8 @@ class OnPeriods {
 
       return Period(it->time, end->time);
     }
-    bool operator == (const iterator& other) { return it == other.it; }
-    bool operator != (const iterator& other) { return it != other.it; }
+    bool operator == (const iterator& other) const { return it == other.it; }
+    bool operator != (const iterator& other) const { return it != other.it; }
 
     BinarySignal::const_iterator it;
   };
