@@ -247,6 +247,7 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
   virtual void run(DispatchGeoPosData *pos) { /* nothing for pos */ }
   virtual void run(DispatchTimeStampData *timestamp) { /* nothing */ }
   virtual void run(DispatchAbsoluteOrientationData *orient) { /* TODO */ }
+  virtual void run(DispatchBinaryEdge *binary) { /* nothing */ }
 
   bool result() const { return _result; }
 

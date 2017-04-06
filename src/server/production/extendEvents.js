@@ -22,8 +22,17 @@ function boatInfoAtTime(boat, time) {
   return closest;
 };
 
-db.events.find().forEach(function(ev) {
-  //if (ev.dataAtEventTime) { return; }
+var query = {};
+
+if (boatid) {
+  query.boat = boatid;
+}
+
+if (onlynew) {
+  query.dataAtEventTime = null;
+}
+
+db.events.find(query).forEach(function(ev) {
   var info = boatInfoAtTime(ev.boat, ev.when);
   if (info) {
     var delta = Math.abs(ev.when.getTime() - info.time.getTime()) / 1000;

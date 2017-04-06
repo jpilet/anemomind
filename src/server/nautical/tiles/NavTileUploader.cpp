@@ -2,6 +2,7 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 #include <algorithm>
+#include <boost/noncopyable.hpp>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <server/common/Optional.h>
 #include <server/common/Span.h>
@@ -22,6 +23,8 @@ namespace mongo { namespace client { void initialize() { } } }
 namespace sail {
 
 using namespace NavCompat;
+using std::vector;
+using std::map;
 
 namespace {
 BSONObj navToBSON(const Nav& nav) {
@@ -90,6 +93,51 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
   }
   return result.arr();
 }
+
+class BulkInserter : private boost::noncopyable {
+ public:
+  BulkInserter(const TileGeneratorParameters& params, DBClientConnection* db)
+    : _params(params), _db(db), _success(true) { }
+
+  ~BulkInserter() { finish(); }
+
+  bool insert(const BSONObj& obj) {
+    if (!_params.fullClean) {
+      safeMongoOps("cleaning old tiles",
+          _db, [=](DBClientConnection *db) {
+        db->remove(_params.tileTable(),
+                   MONGO_QUERY("key" << obj["key"]
+                         << "boat" << obj["boat"]
+                         << "startTime" << GTE << obj["startTime"]
+                         << "endTime" << LTE << obj["endTime"]));
+      });
+    }
+    _toInsert.push_back(obj);
+    if (_toInsert.size() > 1000) {
+      return finish();
+    }
+    return _success;
+  }
+
+  bool finish() {
+    if (_toInsert.size() == 0) {
+      return _success;
+    }
+    bool r = safeMongoOps("inserting tiles in mongoDB",
+        _db, [=](DBClientConnection *db) {
+      db->insert(_params.tileTable(), _toInsert);
+    });
+    _toInsert.clear();
+    _success = _success && r;
+    return _success;
+  }
+
+ private:
+  TileGeneratorParameters _params;
+  DBClientConnection* _db;
+  std::vector<BSONObj> _toInsert;
+  bool _success;
+};
 
 bool insertOrUpdateTile(const BSONObj& obj,
     const TileGeneratorParameters& params,
@@ -252,17 +300,23 @@ BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
     NavDataset navs,
-    const Array<Nav>& navArray) {
+    const Array<Nav>& navArray,
+    DOM::Node *li) {
   BSONObjBuilder session;
   session.append("_id", curveId);
   session.append("boat", OID(boatId));
   session.append("trajectoryLength",
       computeTrajectoryLength(navs).nauticalMiles());
 
-  Optional<MaxSpeed> maxSpeed = computeMaxSpeed(navs, Duration<>::seconds(60));
+  Optional<TimedValue<Velocity<double>>> maxSpeed =
+    computeMaxSpeedOverPeriod(navs);
+
   if (maxSpeed.defined()) {
-    session.append("maxSpeedOverGround", maxSpeed.get().speed.knots());
-    append(session, "maxSpeedOverGroundTime", maxSpeed.get().begin);
+    DOM::addSubTextNode(li, "p",
+        stringFormat("BSON session max speed: %.3g knots",
+            maxSpeed.get().value.knots()));
+    session.append("maxSpeedOverGround", maxSpeed.get().value.knots());
+    append(session, "maxSpeedOverGroundTime", maxSpeed.get().time);
   } else {
     LOG(WARNING) << "The max speed is not defined for curve '"
         << curveId << "' and boat '" << boatId << "'";
@@ -339,17 +393,29 @@ bool generateAndUploadTiles(std::string boatId,
                MONGO_QUERY("boat" << OID(boatId)));
   }
 
+  BulkInserter inserter(params, db);
+  DOM::Node d2 = params.log; // Workaround
+  auto page = DOM::linkToSubPage(&d2, "generateAndUploadTiles");
+  auto ul = DOM::makeSubNode(&page, "ul");
   for (const NavDataset& curve : allNavs) {
+    auto li = DOM::makeSubNode(&ul, "li");
+
     Array<Nav> navs = makeArray(curve);
 
     std::string curveId = tileCurveId(boatId, curve);
 
-    std::set<TileKey> tiles = tilesForNav(navs, params.maxScale);
+    DOM::addSubTextNode(&li, "p",
+        stringFormat("Curve with id %s and %d navs", curveId.c_str(), navs.size()));
 
+    map<TileKey, vector<int>> tiles = tilesForNav(navs, params.maxScale);
 
-    for (auto tileKey : tiles) {
+    for (auto it : tiles) {
+      const TileKey& tileKey = it.first;
       Array<Array<Nav>> subCurvesInTile = generateTiles(
-          tileKey, navs, params.maxNumNavsPerSubCurve, params.curveCutThreshold);
+          tileKey,
+          navs,
+          it.second, // the vector of nav indices
+          params.maxNumNavsPerSubCurve, params.curveCutThreshold);
 
       if (subCurvesInTile.size() == 0) {
         continue;
@@ -357,17 +423,18 @@ bool generateAndUploadTiles(std::string boatId,
 
       BSONObj tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
 
-      if (!insertOrUpdateTile(tile, params, db)) {
+      if (!inserter.insert(tile)) {
         // There is no point to continue if we can't write to the DB.
         return false;
       }
     }
-    BSONObj session = makeBsonSession(curveId, boatId, curve, navs);
+    BSONObj session = makeBsonSession(curveId, boatId, curve, navs, &li);
     if (!insertSession(session, params, db)) {
       return false;
     }
   }
-  return true;
+
+  return inserter.finish();
 }
 
 }  // namespace sail

@@ -146,10 +146,12 @@ namespace {
   template <DataCode Code>
   Optional<typename TypeForCode<Code>::type> getValue(
       const NavDataset &src, const TimeStamp &time) {
-    auto nearest = src.samples<Code>().nearest(time);
-    if (nearest.defined()) {
-      if (fabs(nearest.get().time - time) < maxMergeDif) {
-        return Optional<typename TypeForCode<Code>::type>(nearest.get().value);
+    if (src.hasActiveChannel(Code)) {
+      auto nearest = src.samples<Code>().nearest(time);
+      if (nearest.defined()) {
+        if (fabs(nearest.get().time - time) < maxMergeDif) {
+          return Optional<typename TypeForCode<Code>::type>(nearest.get().value);
+        }
       }
     }
     return Optional<typename TypeForCode<Code>::type>();
@@ -311,7 +313,8 @@ Array<Nav> makeArray(const NavDataset &ds) {
 }
 
 NavDataset fromNavs(const Array<Nav> &navs) {
-  return NavDataset(makeDispatcherFromNavs(navs));
+  LOG(FATAL) << "fromNavs should never be called.";
+  return NavDataset();
 }
 
 Iterator getBegin(const NavDataset &ds) {

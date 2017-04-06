@@ -25,11 +25,12 @@
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/grammars/TreeExplorer.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
-
+#include <server/nautical/MaxSpeed.h>
 #include <server/common/Json.impl.h> // This one should probably be the last one.
 
 namespace sail {
@@ -237,6 +238,15 @@ Nav::Id extractBoatId(Poco::Path path) {
   return path.directory(path.depth()-1);
 }
 
+std::string grammarNodeInfo(const NavDataset& navs, std::shared_ptr<HTree> tree) {
+  CHECK(tree->left() < tree->right());
+  Nav right = getNav(navs, tree->right()-1);
+  Nav left = getNav(navs, tree->left());
+  return left.time().toString() + " to "
+      + right.time().toString()
+      + " with duration of " + (right.time() - left.time()).str();
+}
+
 }  // namespace
 
 NavDataset loadNavs(ArgMap &amap, std::string boatId) {
@@ -269,6 +279,43 @@ Poco::Path getDstPath(ArgMap &amap) {
   }
 }
 
+void BoatLogProcessor::grammarDebug(
+    const std::shared_ptr<HTree> &fulltree,
+    const NavDataset &resampled) const {
+  auto grammarNodeInfoResampled =
+      [&](std::shared_ptr<HTree> t) {return grammarNodeInfo(resampled, t);};
+  if (_exploreGrammar) {
+    exploreTree(
+        _grammar.grammar.nodeInfo(), fulltree, &std::cout,
+        grammarNodeInfoResampled);
+  }
+  if (_logGrammar) {
+    std::ofstream file(_dstPath.toString() + "/loggrammar.txt");
+    outputLogGrammar(&file, _grammar.grammar.nodeInfo(),
+        fulltree, grammarNodeInfoResampled);
+  }
+}
+
+void outputSessionSummary(const NavDataset &ds, DOM::Node *dst) {
+  Optional<TimedValue<Velocity<>>> instant = computeInstantMaxSpeed(ds);
+  Optional<TimedValue<Velocity<>>> period = computeMaxSpeedOverPeriod(ds);
+  DOM::addSubTextNode(dst, "li",
+      stringFormat("Max speed instant: %.3g knots, over period: %.3g",
+          instant.defined()? instant.get().value.knots() : 0.0,
+          period.defined()? period.get().value.knots() : 0.0));
+}
+
+void outputInfoPerSession(
+    const Array<NavDataset> &sessions,
+    DOM::Node *log) {
+  DOM::addSubTextNode(log, "h2", "Sessions");
+  auto ul = DOM::makeSubNode(log, "ul");
+  for (auto s: sessions) {
+    outputSessionSummary(s, &ul);
+  }
+}
+
+
 //
 // high-level processing logic
 //
@@ -289,11 +336,18 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   if (_resumeAfterPrepare.size() > 0) {
     resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    NavDataset raw = loadNavs(*amap, _boatid);
-    resampled = downSampleGpsTo1Hz(raw);
+    NavDataset raw = removeStrangeGpsPositions(
+        loadNavs(*amap, _boatid));
+    infoNavDataset("After loading", raw);
+
+    resampled = raw.createMergedChannels(
+        std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
+        Duration<>::seconds(0.99));
+    infoNavDataset("After resampling GPS", resampled);
 
     if (_gpsFilter) {
-      resampled = filterNavs(resampled, _gpsFilterSettings);
+      resampled = filterNavs(resampled, &_htmlReport, _gpsFilterSettings);
+      infoNavDataset("After filtering", resampled);
     }
   }
 
@@ -303,6 +357,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
+  resampled = resampled.createMergedChannels(
+      std::set<DataCode>{AWA, AWS}, Duration<>::seconds(.3));
   std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
 
   if (!fulltree) {
@@ -310,10 +366,13 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
+  grammarDebug(fulltree, resampled);
+
   Calibrator calibrator(_grammar.grammar);
   if (_verboseCalibrator) { calibrator.setVerbose(); }
   std::string boatDatPath = _dstPath.toString() + "/boat.dat";
   std::ofstream boatDatFile(boatDatPath);
+  CHECK(boatDatFile.is_open()) << "Error opening " << boatDatPath;
 
   // Calibrate. TODO: use filtered data instead of resampled.
   if (calibrator.calibrate(resampled, fulltree, _boatid)) {
@@ -321,22 +380,18 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   } else {
     LOG(WARNING) << "Calibration failed. Using default calib values.";
     calibrator.clear();
+    if (_saveDefaultCalib) {
+      calibrator.saveCalibration(&boatDatFile);
+    }
   }
 
   // First simulation pass: adds true wind
   NavDataset simulated = calibrator.simulate(resampled);
 
-  /*
-Why this is needed:
-Whenever the NavDataset::samples<...> method is called, a merge is performed
-for that datacode using all the data of the underlying dispatcher
-(not limited in time). Several NavDatasets will be produced by in the following
-code by slicing up the full NavDataset. Before this slicing takes place,
-we want to merge the data, so that it doesn't have to be merged for every
-slice that produce. This saves us a lot of memory. If we decide to refactor
-this code some time, we should think carefully how we want to do the merging.
-   */
-  simulated.mergeAll();
+  // This choice should be left to the user.
+  // TODO: add a per-boat configuration system
+  simulated.preferSource(std::set<DataCode>{TWS, TWDIR, TWA, VMG},
+                         "Simulated Anemomind estimator");
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
@@ -360,16 +415,18 @@ this code some time, we should think carefully how we want to do the merging.
     visualizeBoatDat(_dstPath);
   }
 
+  HTML_DISPLAY(_generateTiles, &_htmlReport);
   if (_generateTiles) {
     Array<NavDataset> sessions =
       extractAll("Sailing", simulated, _grammar.grammar, fulltree);
-
+    outputInfoPerSession(sessions, &_htmlReport);
     if (!generateAndUploadTiles(_boatid, sessions, &db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
       return false;
     }
   }
 
+  HTML_DISPLAY(_generateChartTiles, &_htmlReport);
   if (_generateChartTiles) {
     if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)
         || !uploadChartSourceIndex(simulated, _boatid, _chartTileSettings, &db)) {
@@ -378,9 +435,23 @@ this code some time, we should think carefully how we want to do the merging.
     }
   }
 
-  LOG(INFO) << "Processing time for " << _boatid << ": "
-    << (TimeStamp::now() - start).seconds() << " seconds.";
+  // Logging to cout and not LOG(INFO) because LOG(INFO) is disabled in
+  // production and we want to keep track of processing time.
+  std::cout << "Processing time for " << _boatid << ": "
+    << (TimeStamp::now() - start).seconds() << " seconds." << std::endl;
   return true;
+}
+
+void BoatLogProcessor::infoNavDataset(const std::string& info,
+                                      const NavDataset& ds) {
+  if (_debug) {
+    std::cout << info << ": ";
+    ds.outputSummary(&std::cout);
+  }
+  DOM::addSubTextNode(&_htmlReport, "h2", info);
+  std::stringstream ss;
+  ds.outputSummary(&ss);
+  DOM::addSubTextNode(&_htmlReport, "pre", ss.str());
 }
 
 void BoatLogProcessor::readArgs(ArgMap* amap) {
@@ -396,6 +467,9 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
 
   _tileParams.fullClean = amap->optionProvided("--clean");
 
+  _exploreGrammar = amap->optionProvided("--explore");
+  _logGrammar = amap->optionProvided("--log-grammar");
+
   _chartTileSettings.dbName = _tileParams.dbName;
   if (_debug) {
     LOG(INFO) << "BoatLogProcessor:\n"
@@ -406,12 +480,17 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
           "grammar vmg samples" : "blind vmg samples");
   }
 
-
   _tileParams.curveCutThreshold = _gpsFilterSettings.subProblemThreshold;
 }
 
 bool BoatLogProcessor::prepare(ArgMap* amap) {
   readArgs(amap);
+
+  if (!_htmlReportName.empty()) {
+    _htmlReport = DOM::makeBasicHtmlPage("Boat log processor",
+          _dstPath.toString(), _htmlReportName);
+    _tileParams.log = _htmlReport;
+  }
 
   if (_generateTiles || _generateChartTiles) {
     if (!mongoConnect(_tileParams.dbHost,
@@ -433,6 +512,10 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--debug", "Display debug information and visualization")
     .setArgCount(0);
+
+  amap.registerOption("--output-html",
+      "Produce a HTML report with the specified name in the output directory")
+    .setArgCount(1).store(&processor._htmlReportName);
 
   amap.registerOption("--saveSimulated <file.log>",
                       "Save dispatcher in the given file after simulation")
@@ -503,6 +586,15 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--verbose-calib", "Enable debug output for calibration")
     .store(&processor._verboseCalibrator);
+
+  amap.registerOption("--save-default-calib", "Save default calibration values even if calibration failed")
+    .store(&processor._saveDefaultCalib);
+
+  amap.registerOption("--explore", "Explore grammar tree")
+    .store(&processor._exploreGrammar);
+
+  amap.registerOption("--log-grammar",
+      "Produce a log file with the parsed result");
 
   auto status = amap.parse(argc, argv);
   switch (status) {

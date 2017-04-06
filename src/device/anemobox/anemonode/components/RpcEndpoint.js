@@ -36,20 +36,20 @@ function callEndpointMethod(endpointName, methodName, args, cbFinal) {
       cb('unknown endpoint method: ' + endpoint.methodName);
     } else {
       try {
-	method.apply(endpoint, args.concat([
-	  function(err, result) {
-	    if (err) {
-	      cb(err);
-	    } else {
+	      method.apply(endpoint, args.concat([
+	        function(err, result) {
+	          if (err) {
+	            cb(err);
+	          } else {
               cb(null, result);
-	    }
-	  }
-	]));
+	          }
+	        }
+	      ]));
       } catch (e) {
-	console.log(
-	  "Please don't throw exceptions, passing errors to the callback is better.");
-	console.log("This exception was caught: %j", e);
-	cb(e);
+	      console.log(
+	        "Please don't throw exceptions, passing errors to the callback is better.");
+	      console.log("This exception was caught: %j", e);
+	      cb(e);
       }
     }
   }, cbFinal);

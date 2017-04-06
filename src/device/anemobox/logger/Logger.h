@@ -29,7 +29,8 @@ class LoggerValueListener:
   public Listener<Length<double>>,
   public Listener<GeographicPosition<double>>,
   public Listener<TimeStamp>,
-  public Listener<AbsoluteOrientation> {
+  public Listener<AbsoluteOrientation>,
+  public Listener<BinaryEdge> {
 public:
   LoggerValueListener(const std::string& shortName,
                       const std::string& sourceName)
@@ -125,6 +126,11 @@ public:
                     _valueSet.mutable_orient()->mutable_pitch());
   }
 
+  virtual void onNewValue(const ValueDispatcher<BinaryEdge> &v) {
+    addTimestamp(v.lastTimeStamp());
+    _valueSet.mutable_binary()->add_edges(v.lastValue() == BinaryEdge::ToOn);
+  }
+
   void addText(TimeStamp t, const std::string& text) {
     addTimestamp(t);
     _valueSet.add_text(text);
@@ -173,6 +179,9 @@ class Logger {
 
   static void unpack(const AbsOrientValueSet& values,
                      std::vector<AbsoluteOrientation>* result);
+
+  static void unpack(const BinaryEdgeValueSet& values,
+                     std::vector<BinaryEdge>* result);
 
   static void unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
                       std::vector<TimeStamp>* result);
@@ -239,6 +248,12 @@ struct ValueSetToTypedVector<TimeStamp> {
   }
 };
 
+template <>
+struct ValueSetToTypedVector<BinaryEdge> {
+  static void extract(const ValueSet &x, std::vector<BinaryEdge> *dst) {
+    Logger::unpack(x.binary(), dst);
+  }
+};
 }  // namespace sail
 
 #endif   // ANEMOBOX_LOGGER_H

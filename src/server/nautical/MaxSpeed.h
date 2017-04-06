@@ -5,13 +5,10 @@
 
 namespace sail {
 
-struct MaxSpeed {
-  Velocity<double> speed;
-  TimeStamp begin;
-  TimeStamp end;
-};
+Optional<TimedValue<Velocity<double>>> computeInstantMaxSpeed(const NavDataset& data);
 
-Optional<MaxSpeed> computeMaxSpeed(const NavDataset& data, Duration<> delta);
+Optional<TimedValue<Velocity<double>>> computeMaxSpeedOverPeriod(
+    const NavDataset& data, Duration<> delta = Duration<>::seconds(30));
 
 }  // namespace sail
 

@@ -146,6 +146,8 @@ namespace internal {
  */
 #define CHECK_LT(A, B) CHECK_CMP(A, B, <)
 #define CHECK_LE(A, B) CHECK_CMP(A, B, <=)
+#define CHECK_EQ(A, B) CHECK_CMP(A, B, ==)
+#define CHECK_NE(A, B) CHECK_CMP(A, B, !=)
 
 /*! CHECK_NOTNULL(EXPRESSION) checks that EXPRESSION does not evaluate to 0. The
  macro can be used as an inplace replacement for EXPRESSION. For example:

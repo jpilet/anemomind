@@ -64,6 +64,10 @@ target_link_libraries(filters_SmoothGpsFilter
                       nonlinear_CeresTrajectoryFilter
                       math_Resampler
                       common_Progress
+                      common_DOMUtils
+                      plot_CairoUtils
+                      plot_PlotUtils
+                      common_BBox
                      )
 
 cxx_test(filters_SmoothGpsFilterTest

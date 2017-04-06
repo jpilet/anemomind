@@ -14,11 +14,12 @@
 #ifndef SERVER_NAUTICAL_NAVDATASET_H_
 #define SERVER_NAUTICAL_NAVDATASET_H_
 
-#include <memory>
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/DispatcherUtils.h>
-#include <server/common/TimeStamp.h>
 #include <device/anemobox/TimedSampleCollection.h>
+#include <memory>
+#include <server/common/TimeStamp.h>
+#include <server/common/logging.h>
 #include <server/nautical/types/SampledSignal.h>
 
 
@@ -130,14 +131,25 @@ class Dispatcher;
  * For example, the following line produces a new NavDataset that points to the same
  * data, except that there will be no GPS_POS channel:
  * NavDataset stripped = navDataset.stripChannel<GPS_POS>();
+ *
+ * In a NavDataset, there can be multiple sources for the same channel. But
+ * reading can occur only from one channel. There are two options:
+ *   - selecting an "active source"
+ *   - or having only one source (in that case the source becomes "active" by default)
+ *
+ * Note that it is also possible to merge multiple sources together into a
+ * merged source, add this source to the NavDataset, and set it active.
+ * In that case, reading this channel would result in reading a mix of multiple
+ * sources.
  */
 class NavDataset {
 public:
   NavDataset() {}
+
   NavDataset(const std::shared_ptr<Dispatcher> &dispatcher,
-      const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData> > > &merged
-        = std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
-      TimeStamp a = TimeStamp(), TimeStamp b = TimeStamp());
+      TimeStamp a = TimeStamp(), TimeStamp b = TimeStamp(),
+      std::map<DataCode, std::shared_ptr<DispatchData>> activeSource
+        = std::map<DataCode, std::shared_ptr<DispatchData>>());
 
   NavDataset slice(TimeStamp a, TimeStamp b) const;
   NavDataset sliceFrom(TimeStamp ts) const;
@@ -164,6 +176,46 @@ public:
     return result;
   }
 
+  template<typename T>
+  NavDataset addChannel(
+      DataCode code,
+      const std::string& source,
+      const typename TimedSampleCollection<T>::TimedVector& values) const {
+    NavDataset r;
+    if (_dispatcher) {
+      // we can't modify dispatcher directly, because it is shared.
+      // We have to clone it first.
+      r = clone();
+    } else {
+      r._dispatcher =  std::make_shared<Dispatcher>();
+    }
+    r.dispatcher()->insertValues<T>(code, source, values);
+    return r;
+  }
+
+  template<typename T>
+  NavDataset addAndSelectChannel(
+      DataCode code,
+      const std::string& source,
+      const typename TimedSampleCollection<T>::TimedVector& values) const {
+    NavDataset r(addChannel<T>(code, source, values));
+    r.selectSource(code, source);
+    return r;
+  }
+
+  // Returns a new NavDataset in which the channels contained in
+  // channelSelection are merged with the priority source selection algorithm
+  // used by the dispatcher during navigation.
+  // If channelSelection is empty, all channels are merged.
+  // minInterval will downsample data.
+  NavDataset createMergedChannels(
+      std::set<DataCode> channelSelection = std::set<DataCode>(),
+      Duration<> minInterval = Duration<>::seconds(0));
+
+  // Returns a new NavDataset with a cloned dispatcher that is guaranteed not
+  // to be shared with anybody else, meaning it can be modified.
+  NavDataset clone() const;
+
   NavDataset stripChannel(DataCode code) const;
 
   bool hasLowerBound() const;
@@ -178,19 +230,24 @@ public:
   // Return a range of samples given the code.
   template <DataCode Code>
   TimedSampleRange<typename TypeForCode<Code>::type> samples() const {
-    auto m = getMergedSamples<Code>();
-    if (m == nullptr) {
+    if (!_dispatcher) {
       return TimedSampleRange<typename TypeForCode<Code>::type>();
     }
-    const auto &v = m->samples();
-    if (v.empty()) {
+    std::shared_ptr<DispatchData> ptr = activeChannel(Code);
+    if (!ptr) {
       return TimedSampleRange<typename TypeForCode<Code>::type>();
     }
+
+    const typename TimedSampleCollection<typename TypeForCode<Code>::type>::TimedVector&
+      v = toTypedDispatchData<Code>(ptr.get())->dispatcher()->values().samples();
+
     auto lower = (_lowerBound.defined()? std::lower_bound(v.begin(), v.end(), _lowerBound) : v.begin());
     auto upper = (_upperBound.defined()? std::upper_bound(v.begin(), v.end(), _upperBound) : v.end());
     return TimedSampleRange<typename TypeForCode<Code>::type>(lower, upper);
   }
 
+  // returns a one line string describing bounds.
+  std::string boundsAsString() const;
   void outputSummary(std::ostream *dst) const;
 
   bool operator== (const NavDataset &other) const {
@@ -208,33 +265,60 @@ public:
   // step will then return 'NavDataset()', for which this method returns true.
   bool isDefaultConstructed() const;
 
-  void mergeAll() {
-#define PERFORM_MERGE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  getMergedSamples<HANDLE>();
-    FOREACH_CHANNEL(PERFORM_MERGE)
-#undef PERFORM_MERGE
+  // Returns a pointer to the active DispatchData for <code>.
+  // If there is only one source for the given channel, it will be
+  // automatically used as active.
+  // If there are multiple sources, one of sourcesForChannel(code)
+  // has to be selected with selectSource().
+  //
+  // If there is channel ambiguity, the OrNull version returns a null pointer
+  // while activeChannel() crashes with a relevant error message.
+  std::shared_ptr<DispatchData> activeChannel(DataCode code) const;
+  std::shared_ptr<DispatchData> activeChannelOrNull(DataCode code) const;
+
+  bool hasActiveChannel(DataCode code) const {
+    return static_cast<bool>(activeChannelOrNull(code));
   }
+
+  std::vector<std::string> sourcesForChannel(DataCode code) const {
+    if (!_dispatcher) {
+      return std::vector<std::string>();
+    } else {
+      return _dispatcher->sourcesForChannel(code);
+    }
+  }
+
+  bool hasSource(DataCode code, const std::string& source) const {
+    return _dispatcher && _dispatcher->hasSource(code, source);
+  }
+
+  // select the active source for a given channel.
+  // Will crash if source is not a valid one for this channel.
+  void selectSource(DataCode code, const std::string& source);
+
+  // if the source if valid for "code", set it as active and return true.
+  // Otherwise, return false.
+  bool preferSource(DataCode code, const std::string& source);
+  void preferSource(std::set<DataCode> codes, const std::string& source);
+
+
+  // Activate "source" on all channels for which it is valid
+  void preferSourceAll(const std::string& source);
+
+  void clearSourceSelection(DataCode code) {
+    _activeSource.erase(code);
+  }
+
 private:
-  template <DataCode Code>
-  const TimedSampleCollection<typename TypeForCode<Code>::type> *getMergedSamples() const {
-    if (!_merged) { // Only when we have a default-constructed, completely empty object.
-      assert(!_dispatcher);
-      return nullptr;
-    }
-    const auto &d = getMergedDispatchData(Code, _merged, _dispatcher);
-    if (d) {
-      auto dp = d.get();
-      return &(toTypedDispatchData<Code>(dp)->dispatcher()->values());
-    }
-    return nullptr;
-  }
 
   // Undefined _lowerBound means negative infinity,
   // Undefined _upperBound means positive infinity.
   sail::TimeStamp _lowerBound, _upperBound;
   std::shared_ptr<Dispatcher> _dispatcher;
 
-  std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>> _merged;
+  std::map<DataCode, std::shared_ptr<DispatchData>> _activeSource;
+
+  
 };
 
 std::ostream &operator<<(std::ostream &s, const NavDataset &ds);

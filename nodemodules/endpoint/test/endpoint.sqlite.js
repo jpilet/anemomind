@@ -407,4 +407,30 @@ sqlite>
         });
       });
   });
+
+  it('Compute the total size of packets in a range of seq numbers', function(done) {
+    endpoint.tryMakeAndResetEndpoint(
+      '/tmp/sizeep.db', 'mjao', function(err, ep) {
+        ep.sendPacket('c', 89, new Buffer(7), function(err) {
+          ep.sendPacket('c', 89, new Buffer(4), function(err) {
+            ep.getPacketBounds('mjao', 'c', function(err, bds) {
+              ep.getSizeOfRange(
+                'mjao', 'c', bds.lower, bds.upper, 
+                function(err, s) {
+                  assert(!err);
+                  assert(s == 11);
+
+                  ep.getSizeOfRange(
+                    'mjao', 'c', bigint.inc(bds.lower), bds.upper,
+                    function(err, s) {
+                      assert(!err);
+                      assert(s == 4);
+                      done();
+                    });
+              });
+            });
+          });
+        });
+      });
+  });
 });

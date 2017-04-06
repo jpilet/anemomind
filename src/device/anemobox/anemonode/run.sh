@@ -17,15 +17,6 @@ fi
 
 ./format.sh
 
-if ! [ -f /etc/cron.d/checknetwork ] ; then
-  # install custom network stuff
-  cp /anemonode/checknetwork /etc/cron.d
-  systemctl disable hostapd
-  echo "source-directory interfaces.d" >> /etc/network/interfaces
-fi
-
-/anemonode/ifup-userconfig.sh
-
 systemctl restart avahi-daemon
 
 ps aux | grep -v grep | grep -q jacd || ./start_n2k.sh

@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 
+#include <device/anemobox/BinarySignal.h>
 #include <device/anemobox/ValueDispatcher.h>
 #include <server/common/string.h>
 
@@ -53,7 +54,8 @@ namespace sail {
   X(TARGET_VMG, 13, "targetVmg", Velocity<>, "Target VMG") \
   X(VMG, 14, "vmg", Velocity<>, "VMG") \
   X(ORIENT, 15, "orient", AbsoluteOrientation, "Absolute anemobox orientation") \
-  X(RUDDER_ANGLE, 16, "rudderAngle", Angle<>, "Rudder angle")
+  X(RUDDER_ANGLE, 16, "rudderAngle", Angle<>, "Rudder angle") \
+  X(VALID_GPS, 17, "validGps", BinaryEdge, "Valid GPS periods")
 
 enum DataCode {
 #define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
@@ -64,6 +66,8 @@ enum DataCode {
 };
 
 template <DataCode Code> struct TypeForCode { };
+
+const std::vector<DataCode>& allDataCodes();
 
 #define DECL_TYPE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
 template<> struct TypeForCode<HANDLE> { typedef TYPE type; };
@@ -145,6 +149,7 @@ typedef TypedDispatchData<Length<double>> DispatchLengthData;
 typedef TypedDispatchData<GeographicPosition<double>> DispatchGeoPosData;
 typedef TypedDispatchData<TimeStamp> DispatchTimeStampData;
 typedef TypedDispatchData<AbsoluteOrientation> DispatchAbsoluteOrientationData;
+typedef TypedDispatchData<BinaryEdge> DispatchBinaryEdge;
 
 template <typename T>
 class DispatchDataProxy : public TypedDispatchData<T> {
@@ -180,6 +185,7 @@ class DispatchDataVisitor {
   virtual void run(DispatchGeoPosData *pos) = 0;
   virtual void run(DispatchTimeStampData *timestamp) = 0;
   virtual void run(DispatchAbsoluteOrientationData *orient) = 0;
+  virtual void run(DispatchBinaryEdge *data) = 0;
   virtual ~DispatchDataVisitor() {}
 };
 
@@ -242,7 +248,7 @@ class Dispatcher : public Clock {
   template <DataCode Code>
   TypedDispatchData<typename TypeForCode<Code>::type>* get(
       const std::string& source) const {
-    return toTypedDispatchData<Code>(dispatchDataForSource(Code, source));
+    return toTypedDispatchData<Code>(dispatchDataForSource(Code, source).get());
   }
 
 
@@ -358,6 +364,24 @@ class Dispatcher : public Clock {
 
   int maxPriority() const;
 
+  std::vector<std::string> sourcesForChannel(DataCode code) const {
+    std::vector<std::string> sources;
+    auto it = _data.find(code);
+    if ((it == _data.end()) || (it->second.size() == 0)) {
+      return sources;
+    }
+    for (auto s : it->second) {
+      sources.push_back(s.first);
+    }
+    return sources;
+  }
+
+  bool hasSource(DataCode code, const std::string& source) const {
+    auto it = _data.find(code);
+    return (it != _data.end()
+            && it->second.find(source) != it->second.end());
+  }
+
  private:
   static Dispatcher *_globalInstance;
 
@@ -396,6 +420,10 @@ class SubscribeVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchAbsoluteOrientationData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchBinaryEdge *data) {
     data->dispatcher()->subscribe(listener_);
   }
 
