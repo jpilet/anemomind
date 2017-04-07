@@ -14,7 +14,7 @@ namespace sail {
 
 class MeanAndVar {
  public:
-  MeanAndVar() : _sum(0), _sum2(0), _count(0) {}
+  MeanAndVar() : _sum(0), _sum2(0), _count(0), _min(0), _max(0) {}
   MeanAndVar(Arrayd arr);
   void add(double value);
   double mean() const;
@@ -31,11 +31,17 @@ class MeanAndVar {
   bool empty() const {
     return _count == 0;
   }
+
+  double min() const { return _min; }
+  double max() const { return _max; }
+
  private:
   double biasedVariance() const;
-  MeanAndVar(int count_, double sum, double sum2) : _sum(sum), _sum2(sum2), _count(count_) {}
+  MeanAndVar(int count_, double sum, double sum2, double mini, double maxi)
+    : _sum(sum), _sum2(sum2), _count(count_), _min(mini), _max(maxi) { }
   double _sum, _sum2;
   int _count;
+  double _min, _max;
 };
 
 std::ostream &operator<<(std::ostream &s, const MeanAndVar &x);

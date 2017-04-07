@@ -11,6 +11,13 @@
 namespace sail {
 
 void MeanAndVar::add(double value) {
+  if (_count == 0) {
+    _min = _max = value;
+  } else {
+    _min = std::min(_min, value);
+    _max = std::max(_max, value);
+  }
+
   _count++;
   _sum += value;
   _sum2 += value*value;
@@ -51,8 +58,20 @@ double MeanAndVar::standardDeviation() const {
 }
 
 MeanAndVar MeanAndVar::operator+ (const MeanAndVar &other) const {
+  double mini, maxi;
+  if (_count == 0) {
+    mini = other._min;
+    maxi = other._max;
+  } else if (other._count == 0) {
+    mini = _min;
+    maxi = _max;
+  } else {
+    mini = std::min(_min, other._min);
+    maxi = std::max(_max, other._max);
+  }
+
   return MeanAndVar(_count + other._count, _sum + other._sum,
-      _sum2 + other._sum2);
+      _sum2 + other._sum2, mini, maxi);
 }
 
 std::string MeanAndVar::toString() const {
@@ -63,11 +82,13 @@ std::string MeanAndVar::toString() const {
 
 MeanAndVar MeanAndVar::normalize() const {
   CHECK_LT(0, _count);
-  return MeanAndVar(1, _sum/_count, _sum2/_count);
+  return MeanAndVar(1, _sum/_count, _sum2/_count, _min, _max);
 }
 
 std::ostream &operator<<(std::ostream &s, const MeanAndVar &x) {
-  s << "(mean = " << x.mean() << ", stddev = " << x.standardDeviation() << ")";
+  s << "(mean = " << x.mean() << ", stddev = " << x.standardDeviation()
+    << " [" << x.min() << "," << x.max() << "]"
+    << ")";
   return s;
 }
 
