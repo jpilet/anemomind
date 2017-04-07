@@ -322,6 +322,7 @@ add_library(common_MeanAndVar
            )
 
 target_link_libraries(common_MeanAndVar
+                      common_Span
                       common_logging
                      )
 
