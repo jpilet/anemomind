@@ -16,6 +16,12 @@ inline bool operator == (const mongo::Query& a, const mongo::Query& b) {
 
 namespace sail {
 
+namespace {
+
+const std::string fakeBoatId("577cb9b45b769c12e94338c7");
+
+}  // namespace
+
 TEST(ChartTiles, VelocityStatTest) {
   Statistics<Velocity<>> vstatsA, vstatsB;
 
@@ -55,6 +61,18 @@ class MockDBClientConnection : public mongo::DBClientConnection {
                     mongo::BSONObj obj,
                     bool upsert,
                     bool multi,
+                    const mongo::WriteConcern* wc));
+
+  MOCK_METHOD4(remove,
+               void(const std::string& ns,
+                    mongo::Query query,
+                    bool single,
+                    const mongo::WriteConcern* wc));
+
+  MOCK_METHOD4(insert,
+               void(const std::string& ns,
+                    const std::vector<mongo::BSONObj>& v,
+                    int flags,
                     const mongo::WriteConcern* wc));
 
   // Mocking runCommand is necessary to mock getLastError().
@@ -112,13 +130,10 @@ TEST(ChartTiles, UploadOneTile) {
   MockDBClientConnection db;
   EXPECT_CALL(db, runCommand(_, _, _, _)).WillRepeatedly(Return(true));
 
-  EXPECT_CALL(db,
-              update("anemomind-dev.charttiles",
-                     tileQuery("fakeboatid", zoom, 34),
-                     numSamplesWithCount(settings.samplesPerTile, 1),
-                     true, false, nullptr));
+  EXPECT_CALL(db, remove("anemomind-dev.charttiles", _, false, _));
+  EXPECT_CALL(db, insert("anemomind-dev.charttiles", _, _, _));
 
-  EXPECT_TRUE(uploadChartTiles(ds, "fakeboatid", settings, &db));
+  EXPECT_TRUE(uploadChartTiles(ds, fakeBoatId, settings, &db));
 }
 
 TEST(ChartTiles, UploadTwoTilesPlusOneCombined) {
@@ -146,23 +161,10 @@ TEST(ChartTiles, UploadTwoTilesPlusOneCombined) {
   MockDBClientConnection db;
   EXPECT_CALL(db, runCommand(_, _, _, _)).WillRepeatedly(Return(true));
 
-  EXPECT_CALL(db, update("anemomind-dev.charttiles",
-                         tileQuery("fakeboatid", zoom, 34),
-                         numSamplesWithCount(settings.samplesPerTile, 1),
-                         true, false, nullptr));
+  EXPECT_CALL(db, remove("anemomind-dev.charttiles", _, false, _));
+  EXPECT_CALL(db, insert("anemomind-dev.charttiles", _, _, _));
 
-  EXPECT_CALL(db, update("anemomind-dev.charttiles",
-                         tileQuery("fakeboatid", zoom, 35),
-                         numSamplesWithCount(settings.samplesPerTile, 1),
-                         true, false, nullptr));
-
-  // on next zoom level, there is only 1 tile, but for each tile bin
-  // it combines 2 samples from preview tiles
-  EXPECT_CALL(db, update("anemomind-dev.charttiles",
-                         tileQuery("fakeboatid", zoom + 1, 34 / 2),
-                         numSamplesWithCount(settings.samplesPerTile, 2),
-                         true, false, nullptr));
-  EXPECT_TRUE(uploadChartTiles(ds, "fakeboatid", settings, &db));
+  EXPECT_TRUE(uploadChartTiles(ds, fakeBoatId, settings, &db));
 }
 
 MATCHER_P(with_id, id, "") {
@@ -202,12 +204,12 @@ TEST(ChartTiles, UploadSourceIndex) {
   EXPECT_CALL(db, runCommand(_, _, _, _)).WillRepeatedly(Return(true));
 
   EXPECT_CALL(db, update("anemomind-dev.chartsources",
-                         with_id("fakeboatid"),
+                         _,
                          hasSource("gpsSpeed", "testSource"),
                          true, false, nullptr));
 
 
-  EXPECT_TRUE(uploadChartSourceIndex(ds, "fakeboatid", settings, &db));
+  EXPECT_TRUE(uploadChartSourceIndex(ds, fakeBoatId, settings, &db));
 }
 
 }  // namespace sail
