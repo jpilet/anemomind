@@ -47,7 +47,7 @@ class Index {
     return (0 <= inds[0]) && (inds[0] <= sizes[0]) && Index<dims-1>::validIncl(inds + 1, sizes + 1);
   }
 
-  static bool step(int *inds, int *sizes, int stepsize) {
+  static bool step(int *inds, const int *sizes, int stepsize) {
     int inds0Added = inds[0] + stepsize;
     int s = sizes[0];
     int inds0New = inds0Added % s;
@@ -84,7 +84,7 @@ class Index<0> {
     return true;
   }
 
-  static bool step(int *inds, int *sizes, int stepsize) {
+  static bool step(int *inds, const int *sizes, int stepsize) {
     return stepsize != 0;
   }
 
@@ -113,7 +113,7 @@ class MDInds {
     }
   }
 
-  MDInds(int *sizes) {
+  MDInds(const int *sizes) {
     for (int i = 0; i < dims; i++) {
       _sizes[i] = sizes[i];
     }
@@ -145,7 +145,7 @@ class MDInds {
     return Index<dims>::calcMirrored(inds, _sizes);
   }
 
-  bool step(int *inds, int step) {
+  bool step(int *inds, int step) const {
     return Index<dims>::step(inds, _sizes, step);
   }
 

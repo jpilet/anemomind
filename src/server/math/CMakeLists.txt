@@ -133,6 +133,12 @@ cxx_test(math_ResamplerTest
   gtest_main
   )        
 
+cxx_test(math_PolynomialTest
+  PolynomialTest.cpp
+  gtest_main
+  )
+
+add_subdirectory(spline)
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)

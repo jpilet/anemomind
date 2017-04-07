@@ -105,11 +105,11 @@ class MDArray {
     return rows() == cols();
   }
 
-  void create(int *sizes) {
+  void create(const int *sizes) {
     allocate(sizes);
   }
 
-  MDArray(int *sizes) {
+  MDArray(const int *sizes) {
     allocate(sizes);
   }
 
@@ -121,7 +121,7 @@ class MDArray {
   MDArray(const MDInds<dims> &size, Array<T> data) :
     _data(data), _size(size), _index(size) {}
 
-  void allocate(int *sizes) {
+  void allocate(const int *sizes) {
     setSize(sizes);
     _data = Array<T>(_size.numel());
   }
@@ -192,18 +192,18 @@ class MDArray {
     }
   }
 
-  void initInds(int *inds) {
+  void initInds(int *inds) const {
     for (int i = 0; i < dims; i++) {
       inds[i] = 0;
     }
   }
 
-  void copyTo(ThisType &dst) {
+  void copyTo(ThisType &dst) const {
     dst.create(_size.getData());
     copyToSafe(dst);
   }
 
-  void copyToSafe(ThisType dst) {
+  void copyToSafe(ThisType dst) const {
     assert(_size == dst._size);
     int inds[dims];
     initInds(inds);
@@ -227,12 +227,12 @@ class MDArray {
     }
   }
 
-  ThisType allocate() {
+  ThisType allocate() const {
     ThisType dst(_size.getData());
     return dst;
   }
 
-  ThisType dup() {
+  ThisType dup() const {
     ThisType dst = allocate();
     copyTo(dst);
     return dst;
@@ -251,6 +251,16 @@ class MDArray {
     assert(_size.valid(inds));
 #endif
     return _data.getData() + _index.calcIndex(inds);
+  }
+
+  T getStepAlongDim(int dim) const {
+    int inds[dims];
+    for (int i = 0; i < dims; i++) {
+      inds[i] = 0;
+    }
+    int offset = _index.calcIndex(inds);
+    inds[dim] = 1;
+    return _index.calcIndex(inds) - offset;
   }
 
   T *getPtrAt(int i, int j) const {
@@ -331,7 +341,7 @@ class MDArray {
   virtual ~MDArray() {}
 
   // Returns true upon reaching the end
-  bool step(int *inds, int stepsize) {
+  bool step(int *inds, int stepsize) const {
     return _size.step(inds, stepsize);
   }
 
@@ -489,17 +499,34 @@ class MDArray {
     return _size.get(dim);
   }
 
-  template <typename S>
-  MDArray<S, dims> cast() {
+
+  template <typename Function>
+  auto map(const Function &f) const ->
+    MDArray<decltype(std::declval<Function>()(std::declval<T>())),
+      dims> const {
+    typedef decltype(std::declval<Function>()(std::declval<T>())) S;
     MDArray<S, dims> dst(_size.getData());
     int count = numel();
-    int inds[dims];
-    initInds(inds);
-    for (int i = 0; i < count; i++) {
-      dst.set(inds, (S)(get(inds)));
-      _size.step(inds, 1);
+    if (isContinuous()) {
+      const T *srcData = ptr();
+      S *dstData = dst.ptr();
+      for (int i = 0; i < count; i++) {
+        dstData[i] = f(srcData[i]);
+      }
+    } else {
+      int inds[dims];
+      initInds(inds);
+      for (int i = 0; i < count; i++) {
+        dst.set(inds, f(get(inds)));
+        _size.step(inds, 1);
+      }
     }
     return dst;
+  }
+
+  template <typename S>
+  MDArray<S, dims> cast() const{
+    return map([](const T &x) {return static_cast<S>(x);});
   }
 
   int getStep() const {
@@ -535,7 +562,7 @@ class MDArray {
       Array<T> dst(n);
       int inds[dims];
       for (int i = 0; i < n; i++) {
-
+        assert(false); // TODO
       }
       return dst;
     }
@@ -551,7 +578,7 @@ class MDArray {
     return _index.calcIndex(inds);
   }
 
-  void setSize(int *sizes) {
+  void setSize(const int *sizes) {
     _index = MDInds<dims>(sizes);
     _size = MDInds<dims>(sizes);
   }
