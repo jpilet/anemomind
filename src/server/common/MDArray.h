@@ -561,8 +561,10 @@ class MDArray {
       int n = numel();
       Array<T> dst(n);
       int inds[dims];
+      initInds(inds);
       for (int i = 0; i < n; i++) {
-        assert(false); // TODO
+        dst[i] = get(inds);
+        step(inds);
       }
       return dst;
     }

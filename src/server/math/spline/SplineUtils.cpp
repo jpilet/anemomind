@@ -6,12 +6,6 @@
  */
 
 #include <server/math/spline/SplineUtils.h>
-#include <server/math/band/BandWrappers.h>
-#include <server/common/ArrayIO.h>
-#include <server/common/LineKM.h>
-#include <server/common/indexed.h>
-#include <server/common/TimedValue.h>
-#include <server/nautical/common.h>
 
 namespace sail {
 

@@ -10,9 +10,6 @@
 
 #include <server/math/spline/Spline.h>
 #include <server/common/TimeMapper.h>
-#include <server/math/band/BandMatrix.h>
-#include <server/math/OutlierRejector.h>
-#include <server/common/RNG.h>
 
 namespace sail {
 
