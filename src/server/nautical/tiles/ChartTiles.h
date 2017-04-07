@@ -1,6 +1,7 @@
 #ifndef NAUTICAL_TILES_CHART_TILES_H
 #define NAUTICAL_TILES_CHART_TILES_H
 
+#include <map>
 #include <string>
 
 #include <device/anemobox/TimedSampleCollection.h>
@@ -17,8 +18,10 @@ struct ChartTileSettings {
   int highestZoomLevel = 28; // 2^28 seconds = about 10 years
   std::string dbName = "anemomind-dev";
   std::string chartTileTable = "charttiles";
+  std::string chartTileSourceTable = "chartsources";
 
   std::string table() const { return dbName + "." + chartTileTable; }
+  std::string sourceTable() const { return dbName + "." + chartTileSourceTable; }
 };
 
 bool uploadChartTiles(const NavDataset& data,
@@ -26,8 +29,15 @@ bool uploadChartTiles(const NavDataset& data,
                       const ChartTileSettings& settings,
                       mongo::DBClientConnection *db);
 
+bool uploadChartSourceIndex(const NavDataset& data,
+                            const std::string& boatId,
+                            const ChartTileSettings& settings,
+                            mongo::DBClientConnection *db);
 
-void appendStats(const MeanAndVar& stats, mongo::BSONObjBuilder* builder);
+
+std::shared_ptr<mongo::BSONArrayBuilder> getBuilder(
+    const std::string& key,
+    std::map<std::string, std::shared_ptr<mongo::BSONArrayBuilder>>* arrays);
 
 template <typename T> struct Statistics {
   MeanAndVar stats;
@@ -41,8 +51,19 @@ template <typename T> struct Statistics {
   static double unit(Velocity<> x) { return x.knots(); }
   static double unit(Length<> x) { return x.meters(); }
 
-  void appendBson(mongo::BSONObjBuilder* builder) const {
-    appendStats(stats, builder);
+  void appendToArrays(std::map<std::string,
+                     std::shared_ptr<mongo::BSONArrayBuilder>>* arrays) const {
+    if (stats.count() > 0) {
+      getBuilder("count", arrays)->append(1);
+      getBuilder("mean", arrays)->append(stats.mean());
+      getBuilder("max", arrays)->append(stats.max());
+      getBuilder("min", arrays)->append(stats.min());
+    } else {
+      getBuilder("count", arrays)->append(0);
+      getBuilder("mean", arrays)->append(0);
+      getBuilder("max", arrays)->append(0);
+      getBuilder("min", arrays)->append(0);
+    }
   }
 };
 
@@ -63,10 +84,19 @@ template <> struct Statistics<Angle<double>> {
     return result;
   }
 
-  void appendBson(mongo::BSONObjBuilder* builder) const {
-    builder->append("count", (long long) count);
+  void appendToArrays(std::map<std::string,
+                     std::shared_ptr<mongo::BSONArrayBuilder>>* arrays) const {
+    for (std::string key : {"count", "mean" }) {
+      if (arrays->find(key) == arrays->end()) {
+        (*arrays)[key] = std::make_shared<mongo::BSONArrayBuilder>();
+      }
+    }
     if (count > 0 && vectorSum.norm() > 0.01_kn) {
-      builder->append("mean", vectorSum.angle().degrees());
+      (*arrays)["count"]->append(count);
+      (*arrays)["mean"]->append( vectorSum.angle().degrees());
+    } else {
+      (*arrays)["count"]->append(0);
+      (*arrays)["mean"]->append(0);
     }
   }
 
