@@ -219,6 +219,7 @@ public:
   typedef DimensionlessTraits<T, System, TimeDim, LengthDim, AngleDim, MassDim> DimensionlessInfo;
 
   typedef T ValueType;
+  typedef System SystemType;
 
 #if ON_SERVER
   PhysicalQuantity() : _x(T(std::numeric_limits<double>::signaling_NaN())) {} // TODO: FIX THIS!!!
@@ -472,6 +473,9 @@ template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
 using Velocity = PhysicalQuantity<T, System, -1, 1, 0, 0>;
 
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
+using Acceleration = PhysicalQuantity<T, System, -2, 1, 0, 0>;
+
+template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
 using Angle = PhysicalQuantity<T, System, 0, 0, 1, 0>;
 
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
@@ -700,6 +704,12 @@ DEFINE_LITERAL(Velocity, knots, _kn)
 DEFINE_LITERAL(Velocity, knots, _kt)
 #undef DEFINE_LITERAL
 
+template <typename A, typename B>
+using Per = decltype((std::declval<A>())/(std::declval<B>()));
+
+template <typename T>
+using TimeDerivative = Per<T,
+    PhysicalQuantity<typename T::ValueType, typename T::SystemType, 1, 0, 0, 0>>;
 
 }  // namespace sail
 

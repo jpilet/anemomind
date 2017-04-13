@@ -133,6 +133,12 @@ cxx_test(math_ResamplerTest
   gtest_main
   )        
 
+cxx_test(math_PolynomialTest
+  PolynomialTest.cpp
+  gtest_main
+  )
+
+add_subdirectory(spline)
 add_library(math_OutlierRejector
   OutlierRejector.h
   OutlierRejector.cpp
