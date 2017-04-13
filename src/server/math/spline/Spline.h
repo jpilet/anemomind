@@ -74,19 +74,19 @@ struct SplineBasisFunction {
         _pieces[i] : Piece::zero();
   }
 
-  static T supportWidth() {
+  static int supportWidth() {
     return PieceCount;
   }
 
-  static T rightmost() {
+  static double rightmost() {
     return 0.5*supportWidth();
   }
 
-  static T leftmost() {
+  static double leftmost() {
     return -rightmost();
   }
 
-  static T polynomialBoundary(int index) {
+  static double polynomialBoundary(int index) {
     return leftmost() + T(index);
   }
 
