@@ -604,14 +604,14 @@ class Vectorize : public FixedArray<T, N> {
 
     // General purpose implementation (doesn't work with FixedPoint I think)
     T norm() const {
+      constexpr Unit unit = T::UInfo::unit;
       typedef typename T::ValueType type;
-      auto unit = T::makeFromSI(type(1.0));
       type sum(0.0);
       for (int i = 0; i < N; i++) {
-        type x = ((*this)[i])/unit;
+        type x = ((*this)[i]).template get<unit>();
         sum += x*x;
       }
-      return sqrt(sum)*unit;
+      return T::template make<unit>(sqrt(sum));
     }
 
     Vectorize() { }
