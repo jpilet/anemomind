@@ -203,7 +203,7 @@ public:
     }
 
     Weights operator*(T s) const {
-      Weights dst = *this;
+      Weights dst(*this);
       for (int i = 0; i < dim; i++) {
         dst.weights[i] *= s;
       }
