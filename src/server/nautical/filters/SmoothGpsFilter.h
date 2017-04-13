@@ -8,7 +8,7 @@
 #ifndef SERVER_NAUTICAL_FILTERS_SMOOTHGPSFILTER_H_
 #define SERVER_NAUTICAL_FILTERS_SMOOTHGPSFILTER_H_
 
-#include <server/math/nonlinear/CeresTrajectoryFilter.h>
+#include <server/math/Curve2dFilter.h>
 #include <server/nautical/GeographicReference.h>
 #include <server/nautical/NavDataset.h>
 #include <server/nautical/GeographicReference.h>
@@ -17,10 +17,10 @@ namespace sail {
 
 namespace DOM {struct Node;}
 
-CeresTrajectoryFilter::Settings makeDefaultOptSettings();
+Curve2dFilter::Settings makeDefaultOptSettings();
 
 struct GpsFilterSettings {
-  CeresTrajectoryFilter::Settings ceresSettings = makeDefaultOptSettings();
+  Curve2dFilter::Settings settings = makeDefaultOptSettings();
   Duration<double> samplingPeriod = Duration<double>::seconds(1.0);
   Duration<double> subProblemThreshold = Duration<double>::minutes(3.0);
   Duration<double> subProblemLength = Duration<double>::hours(4.0);
@@ -28,21 +28,30 @@ struct GpsFilterSettings {
 
 struct LocalGpsFilterResults {
   GeographicReference geoRef;
-  Array<CeresTrajectoryFilter::Types<2>::TimedPosition>
-    rawLocalPositions,
-    filteredLocalPositions;
+  Curve2dFilter::Results curve;
+  Duration<double> computationTime;
+  Array<TimedValue<Curve2dFilter::Vec2<Length<double>>>> rawLocalPositions;
 
-  bool empty() const {return filteredLocalPositions.empty();}
-  TimedSampleCollection<GeographicPosition<double> >::TimedVector getGlobalPositions() const;
-  TimedSampleCollection<HorizontalMotion<double> >
-    ::TimedVector getGpsMotions(
-        Duration<double> maxTimeDiff) const;
+  bool empty() const {return curve.empty();}
 
-  Duration<double> duration() const {
-    return empty()? 0.0_s : filteredLocalPositions.last().time
-        - filteredLocalPositions.first().time;
+  Duration<double> computationTimePerSample() const {
+    return (1.0/curve.curve.timeMapper().sampleCount())*computationTime;
   }
+
+  Array<TimedValue<GeographicPosition<double>>> samplePositions() const;
+  Array<TimedValue<HorizontalMotion<double>>> sampleMotions() const;
 };
+
+void outputLocalResults(
+    const LocalGpsFilterResults& r,
+    DOM::Node *dst);
+
+LocalGpsFilterResults solveGpsSubproblem(
+    const TimeMapper& mapper,
+    const Array<TimedValue<GeographicPosition<double>>> rawPositions,
+    const Array<TimedValue<HorizontalMotion<double>>> &motions,
+    const GpsFilterSettings &settings,
+    DOM::Node *dst);
 
 struct GpsFilterResults {
   bool empty() const {return positions.empty();}

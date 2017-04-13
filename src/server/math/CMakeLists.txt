@@ -142,6 +142,23 @@ add_library(math_OutlierRejector
   OutlierRejector.cpp
   )
 
+add_library(math_Curve2dFilter
+  Curve2dFilter.h
+  Curve2dFilter.cpp
+  )
+
+target_link_libraries(math_Curve2dFilter
+  spline_SplineUtils
+  band_BandedIrls
+  math_OutlierRejector
+  )
+
+cxx_test(math_Curve2dFilterTest
+  Curve2dFilterTest.cpp
+  math_Curve2dFilter
+  gtest_main
+  )
+
 add_subdirectory(spline)
 add_subdirectory(geometry)
 add_subdirectory(hmm)

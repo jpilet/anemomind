@@ -22,9 +22,11 @@ struct CoefsWithOffset {
   int offset;
   Eigen::Matrix<double, 1, dim> coefs;
 
-  CoefsWithOffset() : offset(0), coefs(Eigen::Matrix<double, 1, dim>::Zero()) { }
+  CoefsWithOffset()
+    : offset(0), coefs(Eigen::Matrix<double, 1, dim>::Zero()) { }
 
-  CoefsWithOffset(const typename BASIS::Weights& w) {
+  CoefsWithOffset(const typename BASIS::Weights& w)
+    : offset(0), coefs(Eigen::Matrix<double, 1, dim>::Zero()) {
     for (int i = 0; i < w.dim; i++) {
       if (w.isSet(i)) {
         offset = w.inds[i];

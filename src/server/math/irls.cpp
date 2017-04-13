@@ -352,7 +352,5 @@ Results solve(const Eigen::SparseMatrix<double> &A,
   return Results{X, residuals};
 }
 
-
-
 }
 }
