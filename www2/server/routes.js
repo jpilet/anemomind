@@ -20,6 +20,7 @@ module.exports = function(app) {
   app.use('/api/tiles', require('./api/tiles'));
   app.use('/api/upload', require('./api/upload'));
   app.use('/api/users', require('./api/user'));
+  app.use('/api/chart', require('./api/chart'));
 
   app.use('/auth', require('./auth'));
   app.use('/map', require('./social')(app));

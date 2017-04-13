@@ -8,6 +8,7 @@
 #ifndef SERVER_MATH_LAPACK_BANDMATRIX_H_
 #define SERVER_MATH_LAPACK_BANDMATRIX_H_
 
+#include <iostream>
 #include <server/common/MDArray.h>
 
 namespace sail {
@@ -141,14 +142,21 @@ public:
     return _m == _n;
   }
 
+  int computeStride(int rowStep, int colStep) const {
+    int inds1[2] = {computeI(rowStep, colStep), colStep};
+    int inds0[2] = {computeI(0, 0), 0};
+    return _storageArrayAB.calcIndex(inds1)
+        - _storageArrayAB.calcIndex(inds0);
+  }
+
   // When taking a horizontal step, from (i, j) to (i, j + 1),
   // what step does it correspond to in the underlying array?
   int horizontalStride() const {
-    int inds1[2] = {computeI(0, 1), 1};
-    int inds0[2] = {computeI(0, 0), 0};
+    return computeStride(0, 1);
+  }
 
-    return _storageArrayAB.calcIndex(inds1)
-        - _storageArrayAB.calcIndex(inds0);
+  int verticalStride() const {
+    return computeStride(1, 0);
   }
 
   T *ptr(int i, int j) {
@@ -165,10 +173,11 @@ public:
     }
     return dst;
   }
-private:
+
   int computeI(int i0, int j0) const {
     return _ku + i0 - j0;
   }
+private:
 
   int _m, _n; // An "m x n" matrix, that is _m rows and _n columns.
   int _kl, _ku; // _kl subdiagonals, _ku superdiagonals
@@ -180,6 +189,109 @@ private:
   // A view of that storage where the matrix coefficients are kept
   MDArray<T, 2> _AB;
 };
+
+template <typename T>
+class SymmetricBandMatrixL {
+public:
+  static const char uplo = 'L';
+  SymmetricBandMatrixL() {}
+  SymmetricBandMatrixL(int n, int kd) : _A(kd+1, n) {}
+  SymmetricBandMatrixL(const MDArray<T, 2> &A) : _A(A) {}
+
+  static SymmetricBandMatrixL<T> zero(int n, int k) {
+    auto mat = SymmetricBandMatrixL<T>(n, k);
+    mat._A.setAll(T(0.0));
+    return mat;
+  }
+
+  // Always the lower-left part of the matrix.
+  T &atUnsafe(int i, int j) {
+    assert(i >= j);
+    return _A(i - j, j);
+  }
+
+  const T &atUnsafe(int i, int j) const {
+    assert(i >= j);
+    return _A(i - j, j);
+  }
+
+  T getSafe(int i, int j) const {
+    if (0 <= i && i < size() && 0 <= j && j < size()) {
+      if (abs(i - j) <= kd()) {
+        return i < j? atUnsafe(j, i) : atUnsafe(i, j);
+      }
+    }
+    return T(0.0);
+  }
+
+  MDArray<T, 2> makeDense() const {
+    int n = size();
+    MDArray<T, 2> dst(n, n);
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        dst(i, j) = getSafe(i, j);
+      }
+    }
+    return dst;
+  }
+
+  int size() const {
+    return _A.cols();
+  }
+
+  int kd() const {
+    return _A.rows()-1;
+  }
+
+  // Useful when building normal equations
+  void add(int i, int j, T x) {
+    if (i >= j) {
+      atUnsafe(i, j) += x;
+    }
+  }
+
+  T *ab() {return _A.ptr();}
+  int ldab() const {return _A.rows();}
+
+  const MDArray<T, 2> &storage() const {return _A;}
+
+  T diagonalElement(int index) const {
+    return _A(0, index);
+  }
+
+  SymmetricBandMatrixL<T> dup() const {
+    return SymmetricBandMatrixL<T>(_A.dup());
+  }
+private:
+  MDArray<T, 2> _A;
+};
+
+template <typename T>
+bool multiply(const SymmetricBandMatrixL<T> &A, const MDArray<T, 2> &B,
+    MDArray<T, 2> *outAB) {
+  int n = A.size();
+  int cols = B.cols();
+  assert(A.size() == B.rows());
+  assert(outAB != nullptr);
+  if (outAB->rows() != A.size() || outAB->cols() != B.cols()) {
+    *outAB = MDArray<T, 2>(n, cols);
+  }
+  int kd = A.kd();
+  for (int bCol = 0; bCol < cols; bCol++) {
+    auto b = B.sliceCol(bCol).ptr();
+    auto c = outAB->sliceCol(bCol).ptr();
+    for (int i = 0; i < n; i++) {
+      int from = std::max(0, i - kd);
+      int to = std::min(n, i + 1 + kd);
+      T sum = b[0] - b[0];
+      for (int j = from; j < to; j++) {
+        sum += A.getSafe(i, j)*b[j];
+      }
+      c[i] = sum;
+    }
+  }
+  return true;
+}
 
 } /* namespace sail */
 

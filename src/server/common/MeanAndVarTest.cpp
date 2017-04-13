@@ -28,3 +28,22 @@ TEST(MeanAndVarTest, Array) {
   EXPECT_NEAR(x.variance(), 4.3333, 0.01);
   EXPECT_NEAR(x.standardDeviation(), 2.0817, 0.01);
 }
+
+TEST(MeanAndVarTest, MinMax) {
+  Arrayd X = Arrayd{-7, 1, 2, 5};
+  MeanAndVar x(X);
+  EXPECT_EQ(-7, x.min());
+  EXPECT_EQ(5, x.max());
+
+  MeanAndVar null;
+  x = x + null;
+  EXPECT_EQ(-7, x.min());
+  EXPECT_EQ(5, x.max());
+
+  MeanAndVar bigger;
+  bigger.add(18);
+  EXPECT_EQ(18, bigger.max());
+  x = x + bigger;
+  EXPECT_EQ(18, x.max());
+}
+

@@ -200,3 +200,21 @@ TEST(LoggerTest, ReadInteger2) {
   EXPECT_EQ(value.get(), 119);
   std::remove(filename);
 }
+
+TEST(LoggerTest, LogBinary) {
+  FakeClockDispatcher dispatcher;
+  Logger logger(&dispatcher);
+
+  TimeStamp today = TimeStamp::UTC(2016, 5, 27, 14, 6, 0);
+  TimeStamp tomorrow = today + Duration<>::days(1);
+  dispatcher.setTime(today);
+  dispatcher.publishValue(VALID_GPS, "test", BinaryEdge::ToOn);
+  dispatcher.setTime(tomorrow);
+  dispatcher.publishValue(VALID_GPS, "test", BinaryEdge::ToOff);
+
+  LogFile saved;
+  logger.flushTo(&saved);
+
+  EXPECT_EQ(1, saved.stream_size());
+  EXPECT_EQ(2, saved.stream(0).binary().edges_size());
+}

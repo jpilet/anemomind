@@ -120,6 +120,44 @@ namespace {
     return true;
   }
 
+  template <>
+  bool isValidColl(const TimedSampleCollection<BinaryEdge> &coll) {
+    const BinarySignal &samples = coll.samples();
+
+    if (samples.size() == 0) {
+      return true;
+    }
+
+    for (int i = 0; i < samples.size(); ++i) {
+      if (!samples[i].time.defined()) {
+        LOG(WARNING) << "Sample " << i << " has undefined time";
+        return false;
+      }
+    }
+
+    bool result = true;
+    if (samples.front().value != BinaryEdge::ToOn) {
+      LOG(WARNING) << "First binary edge is ToOff At time "
+        << samples.front().time;
+      result = false;
+    }
+    if (samples.back().value != BinaryEdge::ToOff) {
+      LOG(WARNING) << "Last binary edge is ToOn At time "
+        << samples.back().time;
+      result = false;
+    }
+    for (int i = 0; (i + 1) < samples.size(); i += 2) {
+      if (samples[i].value == samples[i+1].value) {
+        LOG(WARNING) << "Two consecutive " << (samples[i].value == BinaryEdge::ToOn ?
+                                               "ToOn" : "ToOff") << " samples "
+          " at time " << samples[i].time;
+        result = false;
+      }
+    }
+
+    return result;
+  }
+
   class ValidVisitor {
   public:
     template <DataCode Code, typename T>
@@ -704,6 +742,7 @@ class DispatchDataMerger : public DispatchDataVisitor {
   virtual void run(DispatchGeoPosData *d) { addStream(d); }
   virtual void run(DispatchTimeStampData *d) { addStream(d); }
   virtual void run(DispatchAbsoluteOrientationData *d) { addStream(d); }
+  virtual void run(DispatchBinaryEdge *d) { addStream(d); }
 
   void merge() {
     MultiMerge<TimeStamp> merger;

@@ -27,10 +27,10 @@ TEST(AxisTicksTest, DateTest) {
   {
     {
       auto x = iter.get(2016*12);
-      EXPECT_EQ(x.tickLabel, "January 2016");
+      EXPECT_EQ(x.tickLabel, "2016 January");
     }{
       auto x = iter.get(2016*12 + 1);
-      EXPECT_EQ(x.tickLabel, "February 2016");
+      EXPECT_EQ(x.tickLabel, "2016 February");
     }
     auto index = iter.computeFracIndex(
         TimeStamp::UTC(2014, 1, 1, 0, 0, 0.0));
@@ -39,8 +39,8 @@ TEST(AxisTicksTest, DateTest) {
     auto g = iter.coarser();
     auto index = int(round(g.computeFracIndex(
         TimeStamp::UTC(2014, 1, 1, 0, 0, 0.0))));
-    EXPECT_EQ(g.get(index).tickLabel, "January 2014");
-    EXPECT_EQ(g.get(index + 1).tickLabel, "March 2014");
+    EXPECT_EQ(g.get(index).tickLabel, "2014 January");
+    EXPECT_EQ(g.get(index + 1).tickLabel, "2014 March");
   }
 }
 

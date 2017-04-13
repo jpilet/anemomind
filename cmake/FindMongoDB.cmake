@@ -27,8 +27,8 @@ if (MongoDB_BUILD_FROM_SOURCES)
         " install")
 
   ExternalProject_Add(mongodb_ext
-        GIT_REPOSITORY "https://github.com/mongodb/mongo-cxx-driver.git"
-        GIT_TAG legacy
+        GIT_REPOSITORY "https://github.com/jpilet/mongo-cxx-driver.git"
+        GIT_TAG legacy-larger-cache
         BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
