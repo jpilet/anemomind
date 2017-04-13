@@ -4,6 +4,7 @@
 #include <device/anemobox/TimedSampleCollection.h>
 
 #include <cassert>
+#include <iterator>
 
 namespace sail {
 
@@ -47,7 +48,7 @@ class OnPeriods {
     }
   }
 
-  struct iterator {
+  struct iterator : public std::iterator<std::forward_iterator_tag, Period> {
     iterator() { }
     iterator(BinarySignal::const_iterator i) : it(i) { }
     iterator(const iterator& a) = default;

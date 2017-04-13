@@ -1,12 +1,13 @@
 #include <device/anemobox/BinarySignal.h>
 
 #include <algorithm>
+#include <iterator>
 
 namespace sail {
 
 namespace {
 
-struct EdgeMergeIterator {
+struct EdgeMergeIterator : public std::iterator<std::output_iterator_tag, void,  std::ptrdiff_t, void *, void> {
   EdgeMergeIterator(BinarySignal * container) : container(container), count(0) { }
   EdgeMergeIterator& operator= (const TimedValue<BinaryEdge>& x) {
     int delta = (x.value == BinaryEdge::ToOn ? 1 : -1);

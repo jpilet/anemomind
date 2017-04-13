@@ -93,7 +93,7 @@ template <> struct Statistics<Angle<double>> {
       }
     }
     if (count > 0 && vectorSum.norm() > 0.01_kn) {
-      (*arrays)["count"]->append(count);
+      (*arrays)["count"]->append(static_cast<long long>(count));
       (*arrays)["mean"]->append( vectorSum.angle().degrees());
     } else {
       (*arrays)["count"]->append(0);
