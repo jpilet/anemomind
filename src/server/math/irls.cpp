@@ -12,7 +12,6 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/Functional.h>
-#include <server/math/lapack/DgbsvWrapper.h>
 
 namespace sail {
 namespace irls {
@@ -353,7 +352,7 @@ Results solve(const Eigen::SparseMatrix<double> &A,
   return Results{X, residuals};
 }
 
-int DenseBlock::minDiagWidth() const {
+/*int DenseBlock::minDiagWidth() const {
   return lhsCols() - 1;
 }
 
@@ -517,7 +516,7 @@ ResultsMat solveBanded(int rows, int cols,
   }
 
   return solveBandedSub(params, rows, cols, blocks, strategies, settings);
-}
+}*/
 
 
 }

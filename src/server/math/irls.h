@@ -13,7 +13,6 @@
 #include <server/common/math.h>
 #include <server/math/Majorize.h>
 #include <server/math/QuadForm.h>
-#include <server/math/lapack/BandMatrix.h>
 
 namespace sail {
 namespace irls {
@@ -263,7 +262,7 @@ Results solve(const Eigen::SparseMatrix<double> &A,
  * Problems that result in a band matrix
  *
  */
-class DenseBlock {
+/*class DenseBlock {
 public:
   virtual int lhsCols() const = 0;
   virtual int rhsCols() const = 0;
@@ -290,18 +289,7 @@ Eigen::Map<Eigen::MatrixXd,
 
 Eigen::Map<Eigen::MatrixXd,
     Eigen::Unaligned, Eigen::OuterStride<> > arrayView(
-        MDArray2d *X, int rows, int cols, int rowOffsest);
-
-
-struct ResultsMat {
-  Eigen::MatrixXd X;
-  Eigen::VectorXd residuals;
-};
-
-ResultsMat solveBanded(int aRows, int aCols,
-    const sail::Array<DenseBlock::Ptr> &blocks,
-    Array<std::shared_ptr<WeightingStrategy> > strategies,
-    Settings settings);
+        MDArray2d *X, int rows, int cols, int rowOffsest);*/
 
 }
 }

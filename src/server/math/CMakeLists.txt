@@ -102,7 +102,6 @@ target_link_libraries(math_irls
                       common_ScopedLog
                       common_string
                       common_Span
-                      lapack_DgbsvWrapper
                      )           
 
 cxx_test(math_irlsTest
@@ -138,13 +137,13 @@ cxx_test(math_PolynomialTest
   gtest_main
   )
 
-add_subdirectory(spline)
 add_library(math_OutlierRejector
   OutlierRejector.h
   OutlierRejector.cpp
   )
 
+add_subdirectory(spline)
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
-add_subdirectory(lapack)
+add_subdirectory(band)
