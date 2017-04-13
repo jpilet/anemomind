@@ -141,6 +141,8 @@ private:
       _pieces[i] = leftItg + rightItg;
     }
   }
+
+  // To make it compile when PieceCount=1
   void initializeFrom(const ThisType &x) {}
 };
 
