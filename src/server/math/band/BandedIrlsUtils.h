@@ -62,7 +62,7 @@ private:
 };
 
 
-template <int rows, int cols, int rhs=1, typename SourceData=void>
+template <int rows, int cols, int rhs=1>
 class RobustCost : public Cost {
 public:
   RobustCost(int at,
