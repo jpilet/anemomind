@@ -13,8 +13,9 @@ namespace sail {
 class NavDataset;
 
 struct ChartTileSettings {
-  int samplesPerTile = 256;
-  int lowestZoomLevel = 7; // 2^7 = 128 seconds
+  // These values should match those in dynloader.js
+  int samplesPerTile = 512;
+  int lowestZoomLevel = 9; // 2^9 = 512 seconds
   int highestZoomLevel = 28; // 2^28 seconds = about 10 years
   std::string dbName = "anemomind-dev";
   std::string chartTileTable = "charttiles";

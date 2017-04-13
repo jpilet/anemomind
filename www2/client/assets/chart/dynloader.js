@@ -2,6 +2,13 @@ function DynLoader(fetchTile) {
   this.maxSimultaneousLoads = 2;
   this.maxTilesInCache = 256;
   this.setFetchTile(fetchTile);
+
+  // These values should match those in CharTiles.h
+  this.minZoom = 9;
+  this.maxZoom = 28;
+  this.samplesPerTile = 512;
+
+  this.pixelsPerSample = 4;
 }
 
 DynLoader.prototype.states = {
@@ -75,16 +82,11 @@ DynLoader.prototype.tileRangeInView = function(scale) {
   var endTime = scale.invert(range[1]);
 
   var timeRangeSec = (endTime - startTime) / 1000;
-  var samplesPerTile = 256;
-  var pixelsPerSample = 2;
+  var samplesPerTile = this.samplesPerTile;
+  var pixelsPerSample = this.pixelsPerSample;
   var wantedTimePerTile = timeRangeSec * samplesPerTile * pixelsPerSample / pixels;
   var zoom = Math.floor(Math.log2(wantedTimePerTile));
-  if (this.maxZoom != undefined) {
-    zoom = Math.min(this.maxZoom, zoom);
-  }
-  if (this.minZoom != undefined) {
-    zoom = Math.max(this.minZoom, zoom);
-  }
+  zoom = Math.min(this.maxZoom, Math.max(this.minZoom, zoom));
 
   var actualTimePerTile = 1 << zoom;
 
