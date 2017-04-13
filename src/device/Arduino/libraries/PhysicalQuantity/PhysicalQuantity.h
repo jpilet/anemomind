@@ -602,6 +602,18 @@ class Vectorize : public FixedArray<T, N> {
       return *this;
     }
 
+    // General purpose implementation (doesn't work with FixedPoint I think)
+    T norm() const {
+      typedef typename T::ValueType type;
+      auto unit = T::makeFromSI(type(1.0));
+      type sum(0.0);
+      for (int i = 0; i < N; i++) {
+        type x = ((*this)[i])/unit;
+        sum += x*x;
+      }
+      return sqrt(sum)*unit;
+    }
+
     Vectorize() { }
   private:
 };
@@ -653,11 +665,13 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
             speed.scaled(cosDir));
     }
 
+    // Special implementation, that also works with fixed point, I think.
     Velocity<T> norm() const {
         T a = (*this)[0].knots();
         T b = (*this)[1].knots();
         return Velocity<T>::knots(sqrt(a*a + b*b));
     }
+
     Angle<T> angle() const {
         return Angle<T>::radians(atan2(
                 (*this)[0].knots(),

@@ -42,10 +42,10 @@ TimedValue<T> getMaxNorm(
   auto ispan = c.indexSpan();
   for (auto i: ispan) {
     auto t = m.toTimeStamp(i);
-
-    auto x = sqrt(sqr(c.evaluate(0, t)/c.unit())
-        + sqr(c.evaluate(1, t)/c.unit()))*c.unit();
-
+    auto x = Vec2<T>{
+        c.evaluate(0, t),
+        c.evaluate(1, t)
+    }.norm();
     if (x > maxv.value) {
       maxv = TimedValue<T>(t, x);
     }
