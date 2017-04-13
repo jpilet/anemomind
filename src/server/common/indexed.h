@@ -15,7 +15,7 @@ namespace sail {
 template <typename Container>
 class IndexedContainer {
 public:
-  typedef decltype(copyOf(std::declval<Container>()[0])) T;
+  typedef decltype(copyOf(std::declval<Container>()[0])) value_type;
   typedef IndexedContainer<Container> ThisType;
 
   IndexedContainer(const Container &c) : _c(c) {}
@@ -39,7 +39,7 @@ public:
       return !(*this == x);
     }
 
-    std::pair<int, T> operator*() const {
+    std::pair<int, value_type> operator*() const {
       return std::make_pair(index, (*c)[index]);
     }
 
