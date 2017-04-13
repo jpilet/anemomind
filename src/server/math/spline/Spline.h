@@ -170,7 +170,7 @@ public:
 
 
     template <typename S>
-    S evaluateGeneric(const S *data) const {
+    S evaluate(const S *data) const {
       S sum = S(0.0);
       for (int i = 0; i < dim; i++) {
         if (isSet(i)) {
@@ -178,10 +178,6 @@ public:
         }
       }
       return sum;
-    }
-
-    T evaluate(const T *data) const {
-      return evaluateGeneric<T>(data);
     }
 
     bool add(int index, T value) {
