@@ -252,45 +252,6 @@ Results solve(const Eigen::SparseMatrix<double> &A,
     Array<std::shared_ptr<WeightingStrategy> > strategies,
     Settings settings);
 
-
-
-
-
-
-/*********************************************************************
- *
- * Problems that result in a band matrix
- *
- */
-/*class DenseBlock {
-public:
-  virtual int lhsCols() const = 0;
-  virtual int rhsCols() const = 0;
-  virtual int requiredRows() const = 0;
-  virtual int requiredCols() const = 0;
-
-  virtual void accumulateWeighted(const Eigen::VectorXd &weights,
-      BandMatrix<double> *AtA, MDArray2d *AtB) const = 0;
-
-  int minDiagWidth() const;
-
-  virtual void eval(const Eigen::MatrixXd &X,
-      Eigen::VectorXd *residuals) const = 0;
-
-  typedef std::shared_ptr<DenseBlock> Ptr;
-  virtual ~DenseBlock() {}
-};
-
-
-Eigen::Map<Eigen::MatrixXd,
-  Eigen::Unaligned,
-    Eigen::Stride<Eigen::Dynamic, 1> > bandMatrixView(
-        BandMatrix<double> *src, int N, int offset);
-
-Eigen::Map<Eigen::MatrixXd,
-    Eigen::Unaligned, Eigen::OuterStride<> > arrayView(
-        MDArray2d *X, int rows, int cols, int rowOffsest);*/
-
 }
 }
 
