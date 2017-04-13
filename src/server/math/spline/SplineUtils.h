@@ -18,10 +18,11 @@ struct TimedValue;
 
 template <typename BASIS>
 struct CoefsWithOffset {
-  static const int dim = BASIS::Weights::dim;
-  int offset = 0;
-  Eigen::Matrix<double, 1, dim> coefs
-    = Eigen::Matrix<double, 1, dim>::Zero();
+  static constexpr int dim = BASIS::Weights::dim;
+  int offset;
+  Eigen::Matrix<double, 1, dim> coefs;
+
+  CoefsWithOffset() : offset(0), coefs(Eigen::Matrix<double, 1, dim>::Zero()) { }
 
   CoefsWithOffset(const typename BASIS::Weights& w) {
     for (int i = 0; i < w.dim; i++) {
