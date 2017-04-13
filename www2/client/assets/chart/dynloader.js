@@ -149,22 +149,23 @@ DynLoader.prototype.fetchTilesInView = function(range) {
   this.deleteOldTiles();
 };
 
-DynLoader.prototype.tileFetchSucceeded = function (z, t, data) {
-  var key = this.tileKey({z: z, t: t});
+DynLoader.prototype.getOrMakeTile = function (z, t) {
+  var zt = {z: z, t: t};
+  var key = this.tileKey(zt);
   if (!(key in this.tiles)) {
-    this.tiles[key] = {z: z, t: t};
+    return this.tiles[key] = zt;
   }
-  var tile = this.tiles[key];
+  return this.tiles[key];
+}
+
+DynLoader.prototype.tileFetchSucceeded = function (z, t, data) {
+  var tile = this.getOrMakeTile(z, t);
   tile.data = data;
   tile.state = this.states.LOADED;
 };
 
 DynLoader.prototype.tileFetchFailed = function (z, t) {
-  var key = this.tileKey({z: z, t: t});
-  if (!(key in this.tiles)) {
-    this.tiles[key] = {z: z, t: t};
-  }
-  var tile = this.tiles[key];
+  var tile = this.getOrMakeTile(z, t);
   tile.state = this.states.FAILED;
 };
 
