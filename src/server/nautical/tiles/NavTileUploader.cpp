@@ -94,17 +94,15 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
   return result.arr();
 }
 
-class BulkInserter : private boost::noncopyable {
+class TileInserter : public BulkInserter {
  public:
-  BulkInserter(const TileGeneratorParameters& params, DBClientConnection* db)
-    : _params(params), _db(db), _success(true) { }
-
-  ~BulkInserter() { finish(); }
+  TileInserter(const TileGeneratorParameters& params, DBClientConnection* db)
+    : BulkInserter(params.tileTable(), 1000, db), _params(params) { }
 
   bool insert(const BSONObj& obj) {
     if (!_params.fullClean) {
       safeMongoOps("cleaning old tiles",
-          _db, [=](DBClientConnection *db) {
+          db(), [=](DBClientConnection *db) {
         db->remove(_params.tileTable(),
                    MONGO_QUERY("key" << obj["key"]
                          << "boat" << obj["boat"]
@@ -112,31 +110,10 @@ class BulkInserter : private boost::noncopyable {
                          << "endTime" << LTE << obj["endTime"]));
       });
     }
-    _toInsert.push_back(obj);
-    if (_toInsert.size() > 1000) {
-      return finish();
-    }
-    return _success;
+    return BulkInserter::insert(obj);
   }
-
-  bool finish() {
-    if (_toInsert.size() == 0) {
-      return _success;
-    }
-    bool r = safeMongoOps("inserting tiles in mongoDB",
-        _db, [=](DBClientConnection *db) {
-      db->insert(_params.tileTable(), _toInsert);
-    });
-    _toInsert.clear();
-    _success = _success && r;
-    return _success;
-  }
-
  private:
-  TileGeneratorParameters _params;
-  DBClientConnection* _db;
-  std::vector<BSONObj> _toInsert;
-  bool _success;
+  const TileGeneratorParameters& _params;
 };
 
 bool insertOrUpdateTile(const BSONObj& obj,
@@ -393,7 +370,7 @@ bool generateAndUploadTiles(std::string boatId,
                MONGO_QUERY("boat" << OID(boatId)));
   }
 
-  BulkInserter inserter(params, db);
+  TileInserter inserter(params, db);
   DOM::Node d2 = params.log; // Workaround
   auto page = DOM::linkToSubPage(&d2, "generateAndUploadTiles");
   auto ul = DOM::makeSubNode(&page, "ul");

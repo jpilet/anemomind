@@ -56,5 +56,27 @@ bool mongoConnect(const std::string& host,
   return true;
 }
 
+bool BulkInserter::insert(const BSONObj& obj) {
+  _toInsert.push_back(obj);
+  if (_toInsert.size() > 1000) {
+    return finish();
+  }
+  return _success;
+}
+
+bool BulkInserter::finish() {
+  if (_toInsert.size() == 0) {
+    return _success;
+  }
+  bool r = safeMongoOps("inserting tiles in mongoDB",
+      _db, [=](DBClientConnection *db) {
+    db->insert(_table, _toInsert);
+  });
+  _toInsert.clear();
+  _success = _success && r;
+  return _success;
+}
+
+
 };  // namespace sail
 

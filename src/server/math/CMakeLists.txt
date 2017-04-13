@@ -139,6 +139,11 @@ cxx_test(math_PolynomialTest
   )
 
 add_subdirectory(spline)
+add_library(math_OutlierRejector
+  OutlierRejector.h
+  OutlierRejector.cpp
+  )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
