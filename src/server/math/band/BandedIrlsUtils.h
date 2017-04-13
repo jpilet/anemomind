@@ -62,20 +62,9 @@ private:
 };
 
 
-template <typename T>
-struct Voidable {
-  T value;
-};
-
-template <> struct Voidable<void> {};
-
 template <int rows, int cols, int rhs=1, typename SourceData=void>
 class RobustCost : public Cost {
 public:
-  // Any extra data that you would like to associate
-  // with this function. Not sure this is a good design...
-  Voidable<SourceData> sourceData;
-
   RobustCost(int at,
       const Eigen::Matrix<double, rows, cols>& A,
       const Eigen::Matrix<double, rows, rhs>& B,
