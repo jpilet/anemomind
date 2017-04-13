@@ -108,7 +108,7 @@ public:
   }
 
   T evaluate(int dim, TimeStamp t) const {
-    return _unit*_curve.evaluate(dim, _mapper.mapToReal(t));
+    return _unit*_curve.evaluate(dim, _mapper.toRealIndex(t));
   }
 
   bool empty() const {return _curve.empty();}

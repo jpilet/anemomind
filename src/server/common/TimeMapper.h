@@ -12,6 +12,8 @@
 
 namespace sail {
 
+// Associates sample indices to a time line.
+// Useful when optimizing samples of a temporal signal.
 class TimeMapper {
 public:
 
@@ -27,27 +29,27 @@ public:
   TimeMapper(TimeStamp offs, Duration<double> per,
       int n) : _offset(offs), _period(per), _sampleCount(n) {}
 
-  double mapToReal(TimeStamp t) const {
+  double toRealIndex(TimeStamp t) const {
     return (t - _offset)/_period;
   }
 
-  int mapUnbounded(TimeStamp t) const {
-    return int(round(mapToReal(t)));
+  int toIntegerIndex(TimeStamp t) const {
+    return int(round(toRealIndex(t)));
   }
 
-  int map(TimeStamp t) const {
-    int index = mapUnbounded(t);
+  int toBoundedIntegerIndex(TimeStamp t) const {
+    int index = toIntegerIndex(t);
     return 0 <= index && index < _sampleCount? index : -1;
   }
 
-  TimeStamp unmap(double i) const {
+  TimeStamp toTimeStamp(double i) const {
     return _offset + i*_period;
   }
 
   int firstSampleIndex() const {return 0;}
   int lastSampleIndex() const {return _sampleCount-1;}
-  TimeStamp firstSampleTime() const {return unmap(firstSampleIndex());}
-  TimeStamp lastSampleTime() const {return unmap(lastSampleIndex());}
+  TimeStamp firstSampleTime() const {return toTimeStamp(firstSampleIndex());}
+  TimeStamp lastSampleTime() const {return toTimeStamp(lastSampleIndex());}
 
   TimeStamp offset() const {return _offset;}
   Duration<double> period() const {return _period;}
