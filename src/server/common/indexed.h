@@ -12,6 +12,25 @@
 
 namespace sail {
 
+// The indexed container is a facility used when iterating over
+// an indexable container, such as std::vector, when you both
+// need the index of the element and the value of the element itself.
+// You can of course write
+//
+// for (int i = 0; i < container.size(); i++) {
+//   auto x = container[i];
+//   ....
+// }
+//
+// but because this case is so common, this file lets us instead to
+// for (auto indexAndValue: indexed(container)) {
+//    std::cout << "The index is " << indexAndValue.first << std::endl;
+//    std::cout << "The value is " << indexAndValue.second << std::endl;
+//    ....
+// }
+//
+// A future improvement would be to drop the requirement that the
+// container should support the [] operator.
 template <typename Container>
 class IndexedContainer {
 public:
