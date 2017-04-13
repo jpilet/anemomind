@@ -16,6 +16,45 @@
 #include <Eigen/Dense>
 #include <map>
 
+/*
+ * Overview:
+ *
+ *   - SplineBasisFunction
+ *     represents a single basis function, parameterized by
+ *     the numeric type T (e.g. double) and the degree. A basis
+ *     function is composed by a number of polynomial pieces. The
+ *     simplest basis function is just one polynomial of the constant
+ *     value of 1 from -0.5 to 0.5. Higher order basis functions
+ *     are obtained through convolution.
+ *
+ *   - RawSplineBasis represents the linear basis obtained by
+ *     taking a basis function and shifting it in time to span
+ *     a function space.
+ *
+ *   - BoundaryIndices is an internal helper class of this file.
+ *
+ *   - SmoothBoundarySplineBasis
+ *     This class is composed of a RawSplineBasis, but reduces the
+ *     degrees of freedom of the signals that can be represented by
+ *     imposing smoothness constraints at the boundaries, that derivatives
+ *     of order greater or equal to 2 should be 0. The SmoothBoundarySplineBasis
+ *     is probably the class you will want to use when fitting a curve
+ *     to time samples.
+ *
+ * On the theory:
+ *   The SplineBasisFunction corresponds to the beta_i functions in
+ *   Eq. 2 and 3 of this paper: http://bigwww.epfl.ch/publications/unser9902.pdf
+ *   (Unser, Michael: Splines - A perfect fit for Signal and Image processing)
+ *   Fig. 2 in that paper can be interpreted as a visualization of RawSplineBasis.
+ *
+ * More here:
+ *   http://bigwww.epfl.ch/tutorials/unser_icip_05.pdf
+ *
+ *
+ *
+ *
+ */
+
 namespace sail {
 
 template <typename T, int PieceCount>
