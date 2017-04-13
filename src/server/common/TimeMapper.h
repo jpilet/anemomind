@@ -34,7 +34,7 @@ public:
   }
 
   int toIntegerIndex(TimeStamp t) const {
-    return int(round(toRealIndex(t)));
+    return std::lround(toRealIndex(t));
   }
 
   int toBoundedIntegerIndex(TimeStamp t) const {
