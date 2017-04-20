@@ -397,5 +397,24 @@ FOREACH_CHANNEL(ADD_CHANNEL)
   return result;
 }
 
+NavDataset NavDataset::preferSourceOrCreateMergedChannels(
+    std::set<DataCode> channelSelection,
+    const std::string& source) const {
+  NavDataset result = *this;
+  result.preferSource(channelSelection, source);
+  std::set<DataCode> needMerge;
+  for(DataCode code : channelSelection) {
+    if (!result.hasActiveChannel(code)) {
+      needMerge.insert(code);
+    }
+  }
+  if (needMerge.size() == 0) {
+    return result;
+  } else {
+    return result.createMergedChannels(needMerge);
+  }
+}
+
+
 }  // namespace sail
 
