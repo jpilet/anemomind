@@ -34,7 +34,12 @@ class TimedSampleRange : public SampledSignal<T> {
   typedef typename TimedVector::const_iterator Iterator;
   typedef TimedSampleRange<T> ThisType;
 
-  TimedSampleRange() : _defined(false) {}
+  static const TimedVector& emptyVector() { static TimedVector e; return e; }
+
+  TimedSampleRange() :
+      _defined(false),
+      _begin(emptyVector().begin()),
+      _end(emptyVector().end()) {}
 
   TimedSampleRange(const Iterator &b, const Iterator &e) :
     _defined(b <= e), _begin(b), _end(e) {}
