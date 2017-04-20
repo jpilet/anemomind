@@ -18,6 +18,13 @@ std::shared_ptr<cairo_surface_t> sharedPtrWrap(cairo_surface_t *x) {
   return std::shared_ptr<cairo_surface_t>(x, &cairo_surface_destroy);
 }
 
+void setCairoDefaults(cairo_t* cr) {
+  // So that, when we plot a GPS trajectory,
+  // it doesn't look as if the GPS filter failed
+  // to remove outliers due to using MITER joining.
+  cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND);
+}
+
 Setup Setup::svg(const std::string &filename,
       double width, double height) {
   Setup dst;
@@ -26,6 +33,7 @@ Setup Setup::svg(const std::string &filename,
             filename.c_str(),
             width, height));
   dst.cr = sharedPtrWrap(cairo_create(dst.surface.get()));
+  setCairoDefaults(dst.cr.get());
   return dst;
 }
 
