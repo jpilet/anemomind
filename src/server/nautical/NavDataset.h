@@ -314,6 +314,9 @@ public:
     _activeSource.erase(code);
   }
 
+  NavDataset preferSourceOrCreateMergedChannels(
+      std::set<DataCode> channelSelection,
+      const std::string& source) const;
 private:
 
   // Undefined _lowerBound means negative infinity,
