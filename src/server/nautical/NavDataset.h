@@ -33,27 +33,13 @@ class TimedSampleRange : public SampledSignal<T> {
   typedef typename sail::TimedSampleCollection<T>::TimedVector TimedVector;
   typedef typename TimedVector::const_iterator Iterator;
   typedef TimedSampleRange<T> ThisType;
-  static Iterator getSomeIterator() {
-    TimedVector v;
-    return v.begin();
-  }
 
-  // Produce a default value for an iterator
-  // (even if that iterator does not point to valid memory,
-  //  at least we will get the same iterator every time we call
-  //  this function)
-  static Iterator defaultIteratorValue() {
-    static Iterator i = getSomeIterator();
-    return i;
-  }
+  static const TimedVector& emptyVector() { static TimedVector e; return e; }
 
   TimedSampleRange() :
       _defined(false),
-
-      // Initialize the iterators to point to an empty
-      // range. That way we can still use them.
-      _begin(defaultIteratorValue()),
-      _end(defaultIteratorValue()) {}
+      _begin(emptyVector().begin()),
+      _end(emptyVector().end()) {}
 
   TimedSampleRange(const Iterator &b, const Iterator &e) :
     _defined(b <= e), _begin(b), _end(e) {}
