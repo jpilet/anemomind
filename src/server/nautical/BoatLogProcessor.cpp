@@ -390,8 +390,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system
-  simulated.preferSource(std::set<DataCode>{TWS, TWDIR, TWA, VMG},
-                         "Simulated Anemomind estimator");
+  simulated = simulated.preferSourceOrCreateMergedChannels(
+      std::set<DataCode>{TWS, TWDIR, TWA, VMG},
+      "Simulated Anemomind estimator");
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
