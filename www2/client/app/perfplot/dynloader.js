@@ -49,10 +49,11 @@ DynLoader.prototype.enqueueTile = function(tile) {
 };
 
 DynLoader.prototype.processQueue = function() {
+  var me = this;
   var countState = function(state) {
     var count = 0;
-    for (var i in this.tiles) {
-      if (tiles[i].state == state) {
+    for (var i in me.tiles) {
+      if (me.tiles[i].state == state) {
         ++count;
       }
     }
