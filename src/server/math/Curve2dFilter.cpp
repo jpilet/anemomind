@@ -145,12 +145,7 @@ Array<Cost::Ptr> makeRegCosts(
     const TimeMapper& mapper,
     const Settings& settings,
     const BasisData& b) {
-  ExponentialWeighting weights(settings.iterations,
-      settings.initialWeight, settings.finalWeight);
-
   ArrayBuilder<Cost::Ptr> costs(mapper.sampleCount());
-  auto sigma = (weight/settings.regWeights.last())*(settings.regSigma
-                *mapper.period()*mapper.period()).meters();
   for (int i = 0; i < mapper.sampleCount(); i++) {
     CoefsWithOffset<Basis> coefs(b.acceleration.build(i));
     costs.add(Cost::Ptr(new StaticCost<1, BasisData::dim, 2>(
