@@ -115,14 +115,14 @@ Array<TimedValue<Motion2d>> to2dMotions(
 
 Array<TimedValue<GeographicPosition<double>>>
   LocalGpsFilterResults::samplePositions() const {
-  const auto& m = curve.curve.timeMapper();
-  auto span = curve.curve.indexSpan();
+  const auto& m = curve.timeMapper();
+  auto span = curve.indexSpan();
   ArrayBuilder<TimedValue<GeographicPosition<double>>> dst(span.size());
   for (int i: span) {
     auto t = m.toTimeStamp(i);
     auto pos = Position2d{
-      curve.curve.evaluate(0, t),
-      curve.curve.evaluate(1, t)
+      curve.evaluate(0, t),
+      curve.evaluate(1, t)
     };
     dst.add(TimedValue<GeographicPosition<double>>(t, geoRef.unmap(pos)));
   }
@@ -131,9 +131,9 @@ Array<TimedValue<GeographicPosition<double>>>
 
 Array<TimedValue<HorizontalMotion<double>>>
   LocalGpsFilterResults::sampleMotions() const {
-  const auto& m = curve.curve.timeMapper();
-  auto c = curve.curve.derivative();
-  auto span = curve.curve.indexSpan();
+  const auto& m = curve.timeMapper();
+  auto c = curve.derivative();
+  auto span = curve.indexSpan();
   ArrayBuilder<TimedValue<HorizontalMotion<double>>> dst(span.size());
   for (int i: span) {
     auto t = m.toTimeStamp(i);
@@ -168,18 +168,21 @@ LocalGpsFilterResults solveGpsSubproblem(
   auto positionsForFilter = to2dPositions(geoRef, rawPositions);
   auto motionsForFilter = to2dMotions(motions);
   LOG(INFO) << "Optimizing sub problem on " << mapper.sampleCount() << " samples...";
-  Curve2dFilter::Results curve = Curve2dFilter::optimize(mapper,
+  Curve2dFilter::Results results = Curve2dFilter::optimize(mapper,
       positionsForFilter, motionsForFilter,
       settings.settings);
-  if (!curve.OK()) {
+  if (!results.OK()) {
     return LocalGpsFilterResults();
   }
+  auto curve = results.curve();
 
   CHECK(rawPositions.size() == positionsForFilter.size());
 
-  auto maxSpeed = curve.getMaxSpeed();
+  auto motion = curve.derivative();
+  auto acceleration = motion.derivative();
+  auto maxSpeed = computeMaxNorm<2>(motion);
   if (maxSpeed.value > 50.0_kn && bool(dst->writer)) {
-    auto toffs = curve.curve.timeMapper().offset();
+    auto toffs = curve.timeMapper().offset();
     auto pref = dst->writer->generatePath("problem_data").toString();
     auto posName = pref + "_positions.dat";
     auto motName = pref + "_motions.dat";
@@ -196,7 +199,7 @@ LocalGpsFilterResults solveGpsSubproblem(
         posName.c_str(), motName.c_str(), timeName.c_str()))
       .warning();
 
-    auto maxAcc = curve.getMaxAcceleration();
+    auto maxAcc = computeMaxNorm<2>(acceleration);
     DOM::addSubTextNode(dst, "p", stringFormat(
         "The max acceleration is %.3g m/s^2 after %s",
         double(maxAcc.value/(1.0_mps/1.0_s)),
@@ -210,10 +213,10 @@ LocalGpsFilterResults solveGpsSubproblem(
   }
 
   return LocalGpsFilterResults{
-    geoRef, curve,
+    geoRef, results,
     TimeStamp::now() - start,
     rawLocalPositions,
-    curve.curve()
+    curve
   };
 }
 
@@ -306,14 +309,14 @@ Array<Eigen::Vector2d> toV2(
 
 Array<Eigen::Vector2d> toV2(
     const LocalGpsFilterResults& r) {
-  auto m = r.curve.curve.timeMapper();
-  auto span = r.curve.curve.indexSpan();
+  auto m = r.curve.timeMapper();
+  auto span = r.curve.indexSpan();
   ArrayBuilder<Eigen::Vector2d> pts(span.size());
-  for (auto i: r.curve.curve.indexSpan()) {
+  for (auto i: r.curve.indexSpan()) {
     auto t = m.toTimeStamp(i);
     pts.add(Eigen::Vector2d(
-        r.curve.curve.evaluate(0, t)/plotUnit,
-        r.curve.curve.evaluate(1, t)/plotUnit));
+        r.curve.evaluate(0, t)/plotUnit,
+        r.curve.evaluate(1, t)/plotUnit));
   }
   return pts.get();
 }
@@ -371,7 +374,7 @@ GpsFilterResults mergeSubResults(
     auto pos = x.samplePositions();
     auto mot = x.sampleMotions();
     DOM::addLine(&body, stringFormat("  * Sub results %d", i));
-    auto m = x.curve.curve.timeMapper();
+    auto m = x.curve.timeMapper();
     totalSamples += m.sampleCount();
 
     auto from = m.firstSampleTime();
@@ -820,7 +823,7 @@ GpsFilterResults filterGpsData(
            motionSlice, settings, &li);
        if (!subResult.empty()) {
          std::stringstream msg;
-         msg << "Optimized " << subResult.curve.curve.timeMapper().sampleCount()
+         msg << "Optimized " << subResult.curve.timeMapper().sampleCount()
              << " samples in " << subResult.computationTime.str();
          LOG(INFO) << msg.str();
          DOM::addSubTextNode(&li, "p", msg.str());

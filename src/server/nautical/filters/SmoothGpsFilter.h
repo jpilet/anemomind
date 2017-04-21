@@ -36,7 +36,7 @@ struct LocalGpsFilterResults {
   bool empty() const {return curve.empty();}
 
   Duration<double> computationTimePerSample() const {
-    return (1.0/curve.curve.timeMapper().sampleCount())*computationTime;
+    return (1.0/curve.timeMapper().sampleCount())*computationTime;
   }
 
   Array<TimedValue<GeographicPosition<double>>> samplePositions() const;
