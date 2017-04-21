@@ -211,7 +211,7 @@ TEST(SmoothGpsFilter, ApplySplits) {
 }*/
 
 TEST(SmoothGpsFilter, Masking) {
-  std::string path = "/Users/jonas/data/boat571b387ebe57c552638c5712/processed/report_0_150goodmask.dat";
+  std::string path = "/Users/jonas/data/boat571b387ebe57c552638c5712/processed/report_0_153goodmask.dat";
   auto data = loadRawArray<TimedValue<bool>>(path);
 
   std::cout << "Number of values: " << data.size() << std::endl;
@@ -228,4 +228,8 @@ TEST(SmoothGpsFilter, Masking) {
   auto marg = 1.0_minutes;
   auto segments = SampleUtils::makeGoodSpans(data, marg, marg);
   std::cout << "Number of segments: " << segments.size() << std::endl;
+  for (auto s: segments) {
+    std::cout << "Segment from " << s.minv().toIso8601String()
+        << " to " << s.maxv().toIso8601String() << std::endl;
+  }
 }

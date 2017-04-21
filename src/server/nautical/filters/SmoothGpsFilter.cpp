@@ -270,12 +270,14 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
   auto good = goodBuilder.get();
   CHECK(std::is_sorted(good.begin(), good.end()));
 
-  Duration<double> margin = 1.0_minutes;
+  // Clean up quite a lot of the surrounding data.
+  Duration<double> margin = 5.0_minutes;
+
   auto segments = SampleUtils::makeGoodSpans(good,
       margin, margin);
 
   if (segments.size() == 1 && !largeGaps.empty()) {
-    DOM::addSubTextNode(out, "p", "This is a bit strange").interesting();
+    DOM::addSubTextNode(out, "p", "This might be a bit strange").interesting();
     auto name = out->writer->generatePath("goodmask.dat").toString();
     saveRawArray<TimedValue<bool>>(name, good);
     DOM::addSubTextNode(out, "p", "Save it to " + name);
