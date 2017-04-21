@@ -86,6 +86,10 @@ public:
   bool empty() const {return _coefs.empty();}
 
   const CubicBasis& basis() const {return _basis;}
+
+  int dims() const {
+    return _coefs.cols();
+  }
 private:
   CubicBasis _basis;
   MDArray2d _coefs;
@@ -96,6 +100,8 @@ Array<double> makePowers(int n, double f);
 template <typename T>
 class PhysicalTemporalSplineCurve {
 public:
+  typedef PhysicalTemporalSplineCurve<T> ThisType;
+
   PhysicalTemporalSplineCurve() {}
   PhysicalTemporalSplineCurve(
       const TimeMapper& m,
@@ -125,12 +131,48 @@ public:
   Span<int> indexSpan() const {
     return _indexSpan;
   }
+
+  ThisType slice(Span<int> is) const {
+    return (is.initialized() && 0 < is.size())?
+        ThisType(_mapper, _curve, _unit, is) : ThisType();
+  }
+
+  ThisType slice(const Span<TimeStamp>& ts) const {
+    return ts.initialized()? slice(
+          Span<int>(
+              _mapper.toIntegerIndex(ts.minv()),
+              _mapper.toIntegerIndex(ts.maxv()))) : ThisType();
+  }
+
+  int dims() const {
+    return _curve.dims();
+  }
 private:
   TimeMapper _mapper;
   SplineCurve _curve;
   T _unit;
   Span<int> _indexSpan;
 };
+
+template <int dims, typename T>
+TimedValue<T> computeMaxNorm(
+    const PhysicalTemporalSplineCurve<T>& c) {
+  auto m = c.timeMapper();
+  TimedValue<T> maxv(TimeStamp(), 0.0*c.unit());
+  auto ispan = c.indexSpan();
+  for (auto i: ispan) {
+    auto t = m.toTimeStamp(i);
+    Vectorize<T, dims> dst;
+    for (int k = 0; k < dims; k++) {
+      dst[k] = c.evaluate(k, t);
+    }
+    auto x = dst.norm();
+    if (x > maxv.value) {
+      maxv = TimedValue<T>(t, x);
+    }
+  }
+  return maxv;
+}
 
 }
 

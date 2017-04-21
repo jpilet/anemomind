@@ -94,6 +94,10 @@ void Node::error() {
   setClass("error");
 }
 
+void Node::interesting() {
+  setClass("interesting");
+}
+
 Node makeRootNode(const std::string &name) {
   Node dst;
   dst.document = new Poco::XML::Document();
@@ -145,7 +149,7 @@ Node makeBasicHtmlPage(const std::string &titleString) {
       "td, th {border: 1px solid black;} "
       ".box {border: 1px solid black; padding: 0.5em; margin: 0.5em;} "
       "svg {margin: 30px; border: 1px solid black;} "
-      ".warning {color: orange} .error {color: red} "
+      ".warning {color: orange} .error {color: red} .interesting {color: magenta}"
       ".success {color: green} "
       "body {padding: 2em;} ");
   addTextNode(&title, titleString);

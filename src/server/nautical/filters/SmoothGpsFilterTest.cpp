@@ -14,10 +14,9 @@
 #include <server/nautical/WGS84.h>
 #include <server/common/DOMUtils.h>
 #include <server/common/ArrayIO.h>
-
+#include <server/math/SampleUtils.h>
 
 using namespace sail;
-
 
 
 namespace {

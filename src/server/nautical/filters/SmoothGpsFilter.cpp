@@ -8,7 +8,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/Functional.h>
 #include <server/common/logging.h>
-#include <server/math/Resampler.h>
+#include <server/math/SampleUtils.h>
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/common/Progress.h>
@@ -20,6 +20,7 @@
 #include <server/plot/CairoUtils.h>
 #include <server/math/Curve2dFilter.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/indexed.h>
 
 namespace sail {
 
@@ -115,34 +116,220 @@ Array<TimedValue<Motion2d>> to2dMotions(
 
 Array<TimedValue<GeographicPosition<double>>>
   LocalGpsFilterResults::samplePositions() const {
-  const auto& m = curve.curve.timeMapper();
-  auto span = curve.curve.indexSpan();
-  ArrayBuilder<TimedValue<GeographicPosition<double>>> dst(span.size());
-  for (int i: span) {
-    auto t = m.toTimeStamp(i);
-    auto pos = Position2d{
-      curve.curve.evaluate(0, t),
-      curve.curve.evaluate(1, t)
-    };
-    dst.add(TimedValue<GeographicPosition<double>>(t, geoRef.unmap(pos)));
+  ArrayBuilder<TimedValue<GeographicPosition<double>>> dst(
+      filterResults.timeMapper.sampleCount());
+  for (auto curve: curves) {
+    const auto& m = curve.timeMapper();
+    auto span = curve.indexSpan();
+    for (int i: span) {
+      auto t = m.toTimeStamp(i);
+      auto pos = Position2d{
+        curve.evaluate(0, t),
+        curve.evaluate(1, t)
+      };
+      dst.add(TimedValue<GeographicPosition<double>>(t, geoRef.unmap(pos)));
+    }
   }
   return dst.get();
 }
 
 Array<TimedValue<HorizontalMotion<double>>>
   LocalGpsFilterResults::sampleMotions() const {
-  const auto& m = curve.curve.timeMapper();
-  auto c = curve.curve.derivative();
-  auto span = curve.curve.indexSpan();
-  ArrayBuilder<TimedValue<HorizontalMotion<double>>> dst(span.size());
-  for (int i: span) {
-    auto t = m.toTimeStamp(i);
-    HorizontalMotion<double> x{
-      c.evaluate(0, t), c.evaluate(1, t)
-    };
-    dst.add(TimedValue<HorizontalMotion<double>>(t, x));
+  ArrayBuilder<TimedValue<HorizontalMotion<double>>> dst(
+      filterResults.timeMapper.sampleCount());
+  for (auto curve: curves) {
+    const auto& m = curve.timeMapper();
+    auto c = curve.derivative();
+    auto span = curve.indexSpan();
+    for (int i: span) {
+      auto t = m.toTimeStamp(i);
+      HorizontalMotion<double> x{
+        c.evaluate(0, t), c.evaluate(1, t)
+      };
+      dst.add(TimedValue<HorizontalMotion<double>>(t, x));
+    }
   }
   return dst.get();
+}
+
+Array<TimedValue<Length<double>>> getGaps(
+    const Array<TimedValue<Vec2<Length<double>>>>& positions) {
+  int n = std::max(0, positions.size() - 1);
+  ArrayBuilder<TimedValue<Length<double>>> dst(n);
+  for (int i = 0; i < n; i++) {
+    const auto& a = positions[i];
+    const auto& b = positions[i+1];
+    auto t = a.time + 0.5*(b.time - a.time);
+    auto d = (b.value - a.value).norm();
+    dst.add(TimedValue<Length<double>>(t, d));
+  }
+  return dst.get();
+}
+
+void populate(const Array<TimedValue<Length<double>>>& lengths,
+    int at, Array<Length<double>>* buf) {
+  int w = buf->size();
+  int w2 = w/2;
+  int from = at - w2;
+  int n = lengths.size();
+  for (int i = 0; i < w; i++) {
+    auto k = mirror(from + i, n-1);
+    CHECK(0 <= k);
+    CHECK(k < lengths.size());
+    (*buf)[i] = lengths[k].value;
+  }
+}
+
+Array<TimedValue<Length<double>>> localMedianLengths(
+    const Array<TimedValue<Length<double>>>& lengths, int w) {
+  if (lengths.empty()) {
+    return Array<TimedValue<Length<double>>>();
+  }
+  Array<Length<double>> buf(w);
+  int n = lengths.size();
+  ArrayBuilder<TimedValue<Length<double>>> result(n);
+  for (int i = 0; i < n; i++) {
+    populate(lengths, i, &buf);
+    auto middle = buf.begin() + buf.middle();
+    std::nth_element(buf.begin(), middle, buf.end());
+    result.add(TimedValue<Length<double>>(
+        lengths[i].time,
+        *middle));
+  }
+  return result.get();
+}
+
+
+
+Array<Eigen::Vector2d> getGapPoints(
+    const Array<TimedValue<Length<double>>>& gaps) {
+  int n = gaps.size();
+  ArrayBuilder<Eigen::Vector2d> dst(n);
+  for (auto kv: indexed(gaps)) {
+    dst.add(Eigen::Vector2d(kv.first, kv.second.value.meters()));
+  }
+  return dst.get();
+}
+
+void visualizeRawLocalGaps(
+    const Array<TimedValue<Length<double>>>& gaps,
+    const Array<TimedValue<Length<double>>>& filteredGaps,
+    DOM::Node* dst) {
+  if (dst->defined()) {
+    auto subpage = DOM::linkToSubPage(dst, "Gap plot");
+    Poco::Path p = DOM::makeGeneratedImageNode(&subpage, ".svg");
+    auto setup = Cairo::Setup::svg(p.toString(), 800.0, 600.0);
+    PlotUtils::Settings2d settings;
+    settings.orthonormal = false;
+    Cairo::renderPlot(settings, [&](cairo_t* cr) {
+      Cairo::plotLineStrip(cr, getGapPoints(gaps)); //, 3);
+      Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(215.0_deg));
+      Cairo::plotLineStrip(cr, getGapPoints(filteredGaps)); //, 3);
+    }, "Index", "Gap (meters)", setup.cr.get());
+    std::cout << "Done rendering" << std::endl;
+  }
+}
+
+struct LargeGap {
+  Length<double> distanceToSupport;
+  Length<double> threshold;
+};
+
+Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
+    const LocalGpsFilterResults::Curve& curve,
+    Length<double> inlierThreshold,
+    const Array<TimedValue<Vec2<Length<double>>>>& inlierPositions,
+    int medianWindowLength,
+    DOM::Node* out) {
+  auto gaps = getGaps(inlierPositions);
+  auto filtered = localMedianLengths(gaps, medianWindowLength);
+  visualizeRawLocalGaps(gaps, filtered, out);
+  int n = gaps.size();
+  ArrayBuilder<TimedValue<bool>> goodBuilder(2*n);
+  std::vector<LargeGap> largeGaps;
+  for (int i = 0; i < n; i++) {
+    const auto& y = filtered[i];
+    auto pos = Vec2<Length<double>>{
+      curve.evaluate(0, y.time),
+      curve.evaluate(1, y.time)
+    };
+    const auto& a = inlierPositions[i];
+    const auto& b = inlierPositions[i+1];
+    goodBuilder.add(TimedValue<bool>(a.time, true));
+    auto maxl = std::max(
+        (pos - a.value).norm(),
+        (pos - b.value).norm());
+    auto threshold = y.value + inlierThreshold;
+    if (threshold < maxl) {
+      goodBuilder.add(TimedValue<bool>(a.time, false));
+      goodBuilder.add(TimedValue<bool>(y.time, false));
+      goodBuilder.add(TimedValue<bool>(b.time, false));
+      largeGaps.push_back(LargeGap{maxl, threshold});
+    }
+  }
+  goodBuilder.add(TimedValue<bool>(filtered.last().time, true));
+  auto good = goodBuilder.get();
+  CHECK(std::is_sorted(good.begin(), good.end()));
+
+  // Clean up quite a lot of the surrounding data.
+  Duration<double> margin = 5.0_minutes;
+
+  auto segments = SampleUtils::makeGoodSpans(good,
+      margin, margin);
+
+  if (segments.size() == 1 && !largeGaps.empty()) {
+    DOM::addSubTextNode(out, "p", "This might be a bit strange").interesting();
+    auto name = out->writer->generatePath("goodmask.dat").toString();
+    saveRawArray<TimedValue<bool>>(name, good);
+    DOM::addSubTextNode(out, "p", "Save it to " + name);
+  }
+
+  int segmentCount = segments.size();
+  ArrayBuilder<LocalGpsFilterResults::Curve> resultsBuilder(segmentCount);
+  for (auto s: segments) {
+    auto c = curve.slice(s);
+    if (!c.empty()) {
+      resultsBuilder.add(c);
+    }
+  }
+  auto results = resultsBuilder.get();
+
+  if (2 <= results.size()) {
+    DOM::addSubTextNode(out, "p",
+        stringFormat(
+            "Large distance gap resulted in "
+            "the curve being cut in %d pieces", results.size()))
+    .warning();
+  } else {
+    DOM::addSubTextNode(out, "p", "Curve was not cut").success();
+  }
+  if (2 <= segments.size()) {
+    DOM::addSubTextNode(out, "p",
+        stringFormat("Number of segments detected: %d", segments.size()));
+    auto list = DOM::makeSubNode(out, "ul");
+    for (auto s: segments) {
+      DOM::addSubTextNode(&list, "li", stringFormat(
+          "Segment form %s to %s", s.minv().toIso8601String().c_str(),
+          s.maxv().toIso8601String().c_str()));
+    }
+
+  }
+  if (!largeGaps.empty()) {
+    DOM::addSubTextNode(out, "p", "Large gaps").warning();
+    auto list = DOM::makeSubNode(out, "ul");
+    for (auto lg: largeGaps) {
+      DOM::addSubTextNode(&list,
+          "li",
+          stringFormat(
+              "Distance to closest support %.3g meters "
+              "and threshold %.3g meters", lg.distanceToSupport.meters(),
+              lg.threshold.meters()
+          ));
+    }
+  }
+
+
+  return results;
 }
 
 LocalGpsFilterResults solveGpsSubproblem(
@@ -164,55 +351,68 @@ LocalGpsFilterResults solveGpsSubproblem(
 
   auto rawLocalPositions = getLocalPositions(geoRef, rawPositions);
 
+
   TimeStamp start = TimeStamp::now();
   auto positionsForFilter = to2dPositions(geoRef, rawPositions);
   auto motionsForFilter = to2dMotions(motions);
   LOG(INFO) << "Optimizing sub problem on " << mapper.sampleCount() << " samples...";
-  Curve2dFilter::Results curve = Curve2dFilter::optimize(mapper,
+  Curve2dFilter::Results results = Curve2dFilter::optimize(mapper,
       positionsForFilter, motionsForFilter,
-      settings.settings);
-  if (!curve.OK()) {
+      settings.curveFilterSettings);
+  if (!results.OK()) {
     return LocalGpsFilterResults();
   }
+  auto curves = segmentCurvesByDistanceThreshold(
+      results.curve(), settings.positionSupportThreshold,
+      results.inlierPositions,
+      settings.medianWindowLength,
+      dst);
 
   CHECK(rawPositions.size() == positionsForFilter.size());
 
-  auto maxSpeed = curve.getMaxSpeed();
-  if (maxSpeed.value > 50.0_kn && bool(dst->writer)) {
-    auto toffs = curve.curve.timeMapper().offset();
-    auto pref = dst->writer->generatePath("problem_data").toString();
-    auto posName = pref + "_positions.dat";
-    auto motName = pref + "_motions.dat";
-    auto timeName = pref + "_timemapper.dat";
-    DOM::addSubTextNode(dst, "p", stringFormat(
-        "Unusually high filtered boat speed of %.3g knots at %s "
-        "in session starting at %s after %s. "
-        "Source positions, motions and mapper serialized "
-        "to %s, %s and %s, respectively.",
-        maxSpeed.value.knots(),
-        maxSpeed.time.toIso8601String().c_str(),
-        toffs.toIso8601String().c_str(),
-        (maxSpeed.time - toffs).str().c_str(),
-        posName.c_str(), motName.c_str(), timeName.c_str()))
-      .warning();
+  for (auto curve: curves) {
+    auto motion = curve.derivative();
+    auto acceleration = motion.derivative();
+    auto maxSpeed = computeMaxNorm<2>(motion);
+    if (maxSpeed.value > 50.0_kn && bool(dst->writer)) {
+      auto toffs = curve.timeMapper().offset();
+      auto pref = dst->writer->generatePath("problem_data").toString();
+      auto posName = pref + "_positions.dat";
+      auto motName = pref + "_motions.dat";
+      auto timeName = pref + "_timemapper.dat";
+      DOM::addSubTextNode(dst, "p", stringFormat(
+          "Unusually high filtered boat speed of %.3g knots at %s "
+          "in session starting at %s after %s. "
+          "Source positions, motions and mapper serialized "
+          "to %s, %s and %s, respectively.",
+          maxSpeed.value.knots(),
+          maxSpeed.time.toIso8601String().c_str(),
+          toffs.toIso8601String().c_str(),
+          (maxSpeed.time - toffs).str().c_str(),
+          posName.c_str(), motName.c_str(), timeName.c_str()))
+        .warning();
 
-    auto maxAcc = curve.getMaxAcceleration();
-    DOM::addSubTextNode(dst, "p", stringFormat(
-        "The max acceleration is %.3g m/s^2 after %s",
-        double(maxAcc.value/(1.0_mps/1.0_s)),
-        (maxAcc.time - toffs).str().c_str()));
+      auto maxAcc = computeMaxNorm<2>(acceleration);
+      DOM::addSubTextNode(dst, "p", stringFormat(
+          "The max acceleration is %.3g m/s^2 after %s",
+          double(maxAcc.value/(1.0_mps/1.0_s)),
+          (maxAcc.time - toffs).str().c_str()));
 
-    saveRawArray<TimedValue<GeographicPosition<double>>>(
-        posName, rawPositions);
-    saveRawArray<TimedValue<HorizontalMotion<double>>>(
-        motName, motions);
-    saveRawArray<TimeMapper>(timeName, {mapper});
+      saveRawArray<TimedValue<GeographicPosition<double>>>(
+                posName, rawPositions);
+      saveRawArray<TimedValue<HorizontalMotion<double>>>(
+          motName, motions);
+      saveRawArray<TimeMapper>(timeName, {mapper});
+    }
   }
 
+
+
   return LocalGpsFilterResults{
-    geoRef, curve,
+    geoRef, results,
     TimeStamp::now() - start,
-    rawLocalPositions
+    rawLocalPositions,
+    curves
   };
 }
 
@@ -304,15 +504,15 @@ Array<Eigen::Vector2d> toV2(
 }
 
 Array<Eigen::Vector2d> toV2(
-    const LocalGpsFilterResults& r) {
-  auto m = r.curve.curve.timeMapper();
-  auto span = r.curve.curve.indexSpan();
+    const LocalGpsFilterResults::Curve& curve) {
+  auto m = curve.timeMapper();
+  auto span = curve.indexSpan();
   ArrayBuilder<Eigen::Vector2d> pts(span.size());
-  for (auto i: r.curve.curve.indexSpan()) {
+  for (auto i: curve.indexSpan()) {
     auto t = m.toTimeStamp(i);
     pts.add(Eigen::Vector2d(
-        r.curve.curve.evaluate(0, t)/plotUnit,
-        r.curve.curve.evaluate(1, t)/plotUnit));
+        curve.evaluate(0, t)/plotUnit,
+        curve.evaluate(1, t)/plotUnit));
   }
   return pts.get();
 }
@@ -326,14 +526,16 @@ void outputLocalResults(
 
   auto setup = Cairo::Setup::svg(imageFilename, 800, 600);
 
-  auto pts = toV2(r);
 
   PlotUtils::Settings2d settings;
   Cairo::renderPlot(settings, [&](cairo_t *cr) {
     Cairo::plotDots(cr, toV2(r.rawLocalPositions), 0.5);
     Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
     cairo_set_line_width (cr, 0.5);
-    Cairo::plotLineStrip(cr, pts);
+    for (auto curve: r.curves) {
+      auto pts = toV2(curve);
+      Cairo::plotLineStrip(cr, pts);
+    }
   }, "X", "Y", setup.cr.get());
 }
 
@@ -370,7 +572,7 @@ GpsFilterResults mergeSubResults(
     auto pos = x.samplePositions();
     auto mot = x.sampleMotions();
     DOM::addLine(&body, stringFormat("  * Sub results %d", i));
-    auto m = x.curve.curve.timeMapper();
+    auto m = x.filterResults.timeMapper;
     totalSamples += m.sampleCount();
 
     auto from = m.firstSampleTime();
@@ -819,7 +1021,8 @@ GpsFilterResults filterGpsData(
            motionSlice, settings, &li);
        if (!subResult.empty()) {
          std::stringstream msg;
-         msg << "Optimized " << subResult.curve.curve.timeMapper().sampleCount()
+         msg << "Optimized " << subResult
+             .filterResults.timeMapper.sampleCount()
              << " samples in " << subResult.computationTime.str();
          LOG(INFO) << msg.str();
          DOM::addSubTextNode(&li, "p", msg.str());

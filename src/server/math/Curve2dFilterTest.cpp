@@ -37,15 +37,15 @@ TimedValue<Vec2<T>> ltv(
 void checkCurve(const Results& results) {
   EXPECT_TRUE(results.OK());
 
-  EXPECT_NEAR(results.curve.evaluate(0, offset + 0.0_s).meters(), 0.0, 1.0e-6);
-  EXPECT_NEAR(results.curve.evaluate(0, offset + 2.0_s).meters(), 3.0, 1.0e-6);
-  EXPECT_NEAR(results.curve.evaluate(0, offset + 4.0_s).meters(), 6.0, 1.0e-6);
+  EXPECT_NEAR(results.curve().evaluate(0, offset + 0.0_s).meters(), 0.0, 1.0e-6);
+  EXPECT_NEAR(results.curve().evaluate(0, offset + 2.0_s).meters(), 3.0, 1.0e-6);
+  EXPECT_NEAR(results.curve().evaluate(0, offset + 4.0_s).meters(), 6.0, 1.0e-6);
 
-  EXPECT_NEAR(results.curve.evaluate(1, offset + 0.0_s).meters(), 2.0, 1.0e-6);
-  EXPECT_NEAR(results.curve.evaluate(1, offset + 2.0_s).meters(), 1.5, 1.0e-6);
-  EXPECT_NEAR(results.curve.evaluate(1, offset + 4.0_s).meters(), 1.0, 1.0e-6);
+  EXPECT_NEAR(results.curve().evaluate(1, offset + 0.0_s).meters(), 2.0, 1.0e-6);
+  EXPECT_NEAR(results.curve().evaluate(1, offset + 2.0_s).meters(), 1.5, 1.0e-6);
+  EXPECT_NEAR(results.curve().evaluate(1, offset + 4.0_s).meters(), 1.0, 1.0e-6);
 
-  auto motionCurve = results.curve.derivative();
+  auto motionCurve = results.curve().derivative();
 
   for (int i = 0; i < 3; i++) {
     auto t = offset + double(i)*2.0_s;
