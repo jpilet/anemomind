@@ -285,6 +285,12 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
             "Large distance gap resulted in "
             "the curve being cut in %d pieces", results.size()))
     .warning();
+  } else {
+    DOM::addSubTextNode(out, "p", "Curve was not cut").success();
+  }
+
+  if (!largeGaps.empty()) {
+    DOM::addSubTextNode(out, "p", "Large gaps").warning();
     auto list = DOM::makeSubNode(out, "ul");
     for (auto lg: largeGaps) {
       DOM::addSubTextNode(&list,
@@ -295,9 +301,8 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
               lg.threshold.meters()
           ));
     }
-  } else {
-    DOM::addSubTextNode(out, "p", "Curve was not cut").success();
   }
+
 
   return results;
 }
