@@ -116,8 +116,16 @@ angular.module('www2App')
     }
 
     function setSelectTime() {
-      $scope.startTime = curveStartTime($scope.selectedCurve);
-      $scope.endTime = curveEndTime($scope.selectedCurve);
+      if ($scope.selectedCurve) {
+        $scope.startTime = curveStartTime($scope.selectedCurve);
+        $scope.endTime = curveEndTime($scope.selectedCurve);
+        if (!$scope.timeSelection) {
+          $scope.timeSelection = {
+            start: $scope.startTime,
+            end: $scope.endTime
+          };
+        }
+      }
     }
 
     function parseParams() {

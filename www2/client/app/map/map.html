@@ -133,13 +133,11 @@
           <i class="fa fa-caret-down" ng-class="{'fa-caret-up' : !containers.showGraph}" ng-click="containers.showGraph = !containers.showGraph;refreshGraph();" col-target=".graph-holder" col-parent=".graph" aria-hidden="true"></i>
         </div>
         <div class="graph-holder show" ng-class="{'hidden' : !containers.showGraph}">
-          <select id="dataSourceSelector"
-          ng-model="plotField"
-          ng-options="field as label for (field, label) in plotFieldLabels"></select>
           <perfplot
-            plot-data="plotData"
-            current-time="currentTime"
-            field="plotField"></perfplot>
+            boat="boat._id"
+            start-time="timeSelection.start"
+            end-time="timeSelection.end"
+            current-time="currentTime"></perfplot>
         </div>
       </div>
     </div>
