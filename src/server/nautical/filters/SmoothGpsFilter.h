@@ -34,12 +34,12 @@ struct LocalGpsFilterResults {
   Curve2dFilter::Results filterResults;
   Duration<double> computationTime;
   Array<TimedValue<Curve2dFilter::Vec2<Length<double>>>> rawLocalPositions;
-  Curve curve;
+  Array<Curve> curves;
 
-  bool empty() const {return curve.empty();}
+  bool empty() const {return curves.empty();}
 
   Duration<double> computationTimePerSample() const {
-    return (1.0/curve.timeMapper().sampleCount())*computationTime;
+    return (1.0/filterResults.timeMapper.sampleCount())*computationTime;
   }
 
   Array<TimedValue<GeographicPosition<double>>> samplePositions() const;
