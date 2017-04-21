@@ -174,18 +174,20 @@ void populate(const Array<TimedValue<Length<double>>>& lengths,
   }
 }
 
-Array<Length<double>> localMedianLengths(
+Array<TimedValue<Length<double>>> localMedianLengths(
     const Array<TimedValue<Length<double>>>& lengths, int w) {
   if (lengths.empty()) {
-    return Array<Length<double>>();
+    return Array<TimedValue<Length<double>>>();
   }
   Array<Length<double>> buf(w);
   int n = lengths.size();
-  ArrayBuilder<Length<double>> result(n);
+  ArrayBuilder<TimedValue<Length<double>>> result(n);
   for (int i = 0; i < n; i++) {
     populate(lengths, i, &buf);
     std::sort(buf.begin(), buf.end());
-    result.add(buf[buf.middle()]);
+    result.add(TimedValue<Length<double>>(
+        lengths[i].time,
+        buf[buf.middle()]));
   }
   return result.get();
 }
@@ -202,25 +204,11 @@ Array<Eigen::Vector2d> getGapPoints(
   return dst.get();
 }
 
-Array<Eigen::Vector2d> getMedianPoints(
-    const Array<Length<double>>& meds) {
-  int n = meds.size();
-  ArrayBuilder<Eigen::Vector2d> dst(n);
-  for (int i = 0; i < n; i++) {
-    dst.add(Eigen::Vector2d(i, meds[i].meters()));
-  }
-  return dst.get();
-}
-
-
 void visualizeRawLocalGaps(
-    const Array<TimedValue<Vec2<Length<double>>>>& positions,
+    const Array<TimedValue<Length<double>>>& gaps,
+    const Array<TimedValue<Length<double>>>& filteredGaps,
     DOM::Node* dst) {
   if (dst->defined()) {
-    auto gaps = getGaps(positions);
-    auto filteredGaps = localMedianLengths(gaps, 5);
-
-    std::cout << "Render " << positions.size() << " positions..." << std::endl;
     auto subpage = DOM::linkToSubPage(dst, "Gap plot");
     Poco::Path p = DOM::makeGeneratedImageNode(&subpage, ".svg");
     auto setup = Cairo::Setup::svg(p.toString(), 800.0, 600.0);
@@ -229,10 +217,65 @@ void visualizeRawLocalGaps(
     Cairo::renderPlot(settings, [&](cairo_t* cr) {
       Cairo::plotLineStrip(cr, getGapPoints(gaps)); //, 3);
       Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(215.0_deg));
-      Cairo::plotLineStrip(cr, getMedianPoints(filteredGaps)); //, 3);
+      Cairo::plotLineStrip(cr, getGapPoints(filteredGaps)); //, 3);
     }, "Index", "Gap (meters)", setup.cr.get());
     std::cout << "Done rendering" << std::endl;
   }
+}
+
+Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
+    const LocalGpsFilterResults::Curve& curve,
+    Length<double> inlierThreshold,
+    const Array<TimedValue<Vec2<Length<double>>>>& inlierPositions,
+    int medianWindowLength,
+    DOM::Node* out) {
+  auto gaps = getGaps(inlierPositions);
+  auto filtered = localMedianLengths(gaps, medianWindowLength);
+  visualizeRawLocalGaps(gaps, filtered, out);
+  int n = gaps.size();
+  ArrayBuilder<TimedValue<bool>> goodBuilder(2*n);
+  for (int i = 0; i < n; i++) {
+    const auto& y = filtered[i];
+    auto pos = Vec2<Length<double>>{
+      curve.evaluate(0, y.time),
+      curve.evaluate(1, y.time)
+    };
+    const auto& a = inlierPositions[i];
+    goodBuilder.add(TimedValue<bool>(a.time, true));
+    auto maxl = std::max(
+        (pos - a.value).norm(),
+        (pos - inlierPositions[i+1].value).norm());
+    if (y.value + inlierThreshold < maxl) {
+      goodBuilder.add(TimedValue<bool>(y.time, false));
+    }
+  }
+  goodBuilder.add(TimedValue<bool>(filtered.last().time, true));
+
+  Duration<double> margin = 1.0_minutes;
+  auto segments = SampleUtils::makeGoodSpans(goodBuilder.get(),
+      margin, margin);
+
+  int segmentCount = segments.size();
+  ArrayBuilder<LocalGpsFilterResults::Curve> resultsBuilder(segmentCount);
+  for (auto s: segments) {
+    auto c = curve.slice(s);
+    if (!c.empty()) {
+      resultsBuilder.add(c);
+    }
+  }
+  auto results = resultsBuilder.get();
+
+  if (2 <= results.size()) {
+    DOM::addSubTextNode(out, "p",
+        stringFormat(
+            "Large distance gap resulted in "
+            "the curve being cut in %d pieces", results.size()))
+    .warning();
+  } else {
+    DOM::addSubTextNode(out, "p", "Curve was not cut").success();
+  }
+
+  return results;
 }
 
 LocalGpsFilterResults solveGpsSubproblem(
@@ -254,7 +297,6 @@ LocalGpsFilterResults solveGpsSubproblem(
 
   auto rawLocalPositions = getLocalPositions(geoRef, rawPositions);
 
-  visualizeRawLocalGaps(rawLocalPositions, dst);
 
   TimeStamp start = TimeStamp::now();
   auto positionsForFilter = to2dPositions(geoRef, rawPositions);
@@ -262,11 +304,17 @@ LocalGpsFilterResults solveGpsSubproblem(
   LOG(INFO) << "Optimizing sub problem on " << mapper.sampleCount() << " samples...";
   Curve2dFilter::Results results = Curve2dFilter::optimize(mapper,
       positionsForFilter, motionsForFilter,
-      settings.settings);
+      settings.curveFilterSettings);
   if (!results.OK()) {
     return LocalGpsFilterResults();
   }
   auto curve = results.curve();
+
+  auto curves = segmentCurvesByDistanceThreshold(
+      curve, settings.curveFilterSettings.inlierThreshold,
+      results.inlierPositions,
+      settings.medianWindowLength,
+      dst);
 
   CHECK(rawPositions.size() == positionsForFilter.size());
 

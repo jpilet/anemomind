@@ -36,59 +36,12 @@ std::string toString(const Basis::Weights& w) {
 }
 
 
-Array<Span<TimeStamp>> Results::segmentSpans(
-    Duration<double> margin) const {
-  if (!OK()) {
-    return Array<Span<TimeStamp>>();
-  }
-  ArrayBuilder<TimedValue<bool>> maskBuilder(regCosts.size());
-  for (auto t: inlierPositionTimes) {
-    maskBuilder.add(TimedValue<bool>(t, true));
-  }
-  for (auto regCost: regCosts) {
-    auto time = regCost.getTime();
-    if (time.defined()) {
-      maskBuilder.add(TimedValue<bool>(time, regCost.isInlier(X)));
-    }
-  }
-  auto mask = maskBuilder.get();
-  return SampleUtils::makeGoodSpans(mask, margin, margin);
-}
-
-namespace {
-  Span<int> spanToInt(const Span<TimeStamp>& src, const TimeMapper& m) {
-    if (!src.initialized()) {
-      return Span<int>();
-    }
-    int from = m.toIntegerIndex(src.minv());
-    int to = m.toIntegerIndex(src.maxv());
-    return from < to? Span<int>(from, to) : Span<int>();
-  }
-
-  Array<Results::Curve> sliceCurveBySpans(
-      const Results::Curve& c, const Array<Span<TimeStamp>>& spans) {
-    const auto& m = c.timeMapper();
-    ArrayBuilder<Results::Curve> dst(spans.size());
-    for (auto s: spans) {
-      auto si = spanToInt(s, m);
-      if (si.initialized()) {
-        dst.add(c.slice(si));
-      }
-    }
-    return dst.get();
-  }
-}
-
-Array<Results::Curve> Results::segmentCurves(Duration<double> margin) const {
-  return sliceCurveBySpans(curve(), segmentSpans(margin));
-}
-
 Span<TimeStamp> getReliableSpan(
-    const Array<TimeStamp>& inlierPositionTimes) {
+    const Array<TimedPosition>& inlierPositionTimes) {
   return inlierPositionTimes.empty()?
       Span<TimeStamp>() : Span<TimeStamp>(
-          inlierPositionTimes.first(),
-          inlierPositionTimes.last());
+          inlierPositionTimes.first().time,
+          inlierPositionTimes.last().time);
 }
 
 
@@ -150,6 +103,7 @@ Array<std::shared_ptr<DataCost>> makePositionCosts(
                 mat1x2(p.value[0].meters(), p.value[1].meters()),
                 weights, settings.inlierThreshold.meters());
       x->time = p.time;
+      x->position = p.value;
       costs.add(x);
     }
   }
@@ -184,16 +138,9 @@ Array<std::shared_ptr<DataCost>> makeMotionCosts(
   return costs.get();
 }
 
-Cost::Ptr regToCommonCost(const RegCost& x) {
-  return x.cost;
-}
-
-Array<Cost::Ptr> toCommonCosts(const Array<RegCost>& src) {
-  return map(src, &regToCommonCost);
-}
 
 
-Array<RegCost> makeRegCosts(
+Array<Cost::Ptr> makeRegCosts(
     double weight,
     const TimeMapper& mapper,
     const Settings& settings,
@@ -201,31 +148,26 @@ Array<RegCost> makeRegCosts(
   ExponentialWeighting weights(settings.iterations,
       settings.initialWeight, settings.finalWeight);
 
-  ArrayBuilder<RegCost> costs(mapper.sampleCount());
+  ArrayBuilder<Cost::Ptr> costs(mapper.sampleCount());
   auto sigma = (weight/settings.regWeights.last())*(settings.regSigma
                 *mapper.period()*mapper.period()).meters();
   for (int i = 0; i < mapper.sampleCount(); i++) {
     CoefsWithOffset<Basis> coefs(b.acceleration.build(i));
-    if (settings.robustRegularization()) {
-      costs.add(RegCost(std::make_shared<DataCost>(
-          coefs.offset, weight*coefs.coefs,
-          mat1x2(0, 0),
-          weights, sigma)));
-    } else {
-      costs.add(RegCost(Cost::Ptr(new StaticCost<1, BasisData::dim, 2>(
-          coefs.offset, weight*coefs.coefs, mat1x2(0, 0)))));
-    }
+    costs.add(Cost::Ptr(new StaticCost<1, BasisData::dim, 2>(
+        coefs.offset, weight*coefs.coefs, mat1x2(0, 0))));
   }
   return costs.get();
 }
 
-Array<TimeStamp> getInlierPositionTimes(
+
+
+Array<TimedPosition> getInlierPositions(
     const Array<std::shared_ptr<DataCost>>& positionCosts,
     const MDArray2d& X) {
-  ArrayBuilder<TimeStamp> dst(positionCosts.size());
+  ArrayBuilder<TimedPosition> dst(positionCosts.size());
   for (const auto& c: positionCosts) {
     if (c->isInlier(X)) {
-      dst.add(c->time);
+      dst.add(TimedPosition(c->time, c->position));
     }
   }
   return dst.get();
@@ -240,38 +182,6 @@ Span<int> mapToIndexSpan(const TimeMapper& m,
   return src.initialized()?
       Span<int>(toClamped(m, src.minv()), 1+toClamped(m, src.maxv()))
       : Span<int>();
-}
-
-int countInliers(
-    const Array<RegCost>& costs,
-    const MDArray2d& X) {
-  int counter = 0;
-  for (auto c: costs) {
-    if (c.maybeDataCost) {
-      counter += c.maybeDataCost->isInlier(X);
-    } else {
-      //counter++; // Not sure if this is a good default.
-    }
-  }
-  return counter;
-}
-
-void outputReport(
-    const Settings& settings,
-    const Array<RegCost>& regCosts,
-    const MDArray2d& X) {
-  DOM::Node output = settings.output;
-  if (output.defined()) {
-    if (settings.robustRegularization()) {
-      auto inlierCount = countInliers(regCosts, X);
-      if (inlierCount < regCosts.size()) {
-        addSubTextNode(&output, "pre",
-            stringFormat("Number of inlier reg terms: %d/%d",
-                inlierCount,
-                regCosts.size()));
-      }
-    }
-  }
 }
 
 Results optimize(
@@ -299,12 +209,11 @@ Results optimize(
   }));
 
   BandedIrls::Results solution;
-  Array<TimeStamp> inlierTimes;
-  Array<RegCost> lastRegCosts;
+  Array<TimedValue<Vec2<Length<double>>>> inlierPositions;
   for (auto w: settings.regWeights) {
     auto regCosts = makeRegCosts(w, mapper, settings, b);
     auto costs = concat(Array<Array<Cost::Ptr>>{
-      dataCosts, toCommonCosts(regCosts)
+      dataCosts, regCosts
     });
     BandedIrls::Settings birls;
     solution = solve(birls, costs, solution.X);
@@ -313,30 +222,26 @@ Results optimize(
       LOG(ERROR) << "Curve filter failed";
       return Results();
     }
-    inlierTimes = getInlierPositionTimes(positionCosts, solution.X);
-    if (inlierTimes.size() < settings.minimumInlierCount) {
+    inlierPositions = getInlierPositions(positionCosts, solution.X);
+    if (inlierPositions.size() < settings.minimumInlierCount) {
       LOG(ERROR) << "Not enough inlier positions";
       return Results();
     }
-    lastRegCosts = regCosts;
   }
-  auto reliableSpan = getReliableSpan(inlierTimes);
+  auto reliableSpan = getReliableSpan(inlierPositions);
   auto reliableIndices = mapToIndexSpan(mapper, reliableSpan);
   if (!reliableIndices.initialized() || reliableIndices.width() == 0) {
     LOG(ERROR) << "No reliable data";
     return Results();
   }
 
-  outputReport(settings, lastRegCosts, solution.X);
-
   return Results{
     solution,
     positionCosts.size(),
-    inlierTimes,
+    inlierPositions,
     mapper,
     b, solution.X,
     reliableIndices,
-    lastRegCosts
   };
 }
 

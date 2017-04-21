@@ -20,18 +20,20 @@ namespace DOM {struct Node;}
 Curve2dFilter::Settings makeDefaultOptSettings();
 
 struct GpsFilterSettings {
-  Curve2dFilter::Settings settings = makeDefaultOptSettings();
+  Curve2dFilter::Settings curveFilterSettings = makeDefaultOptSettings();
   Duration<double> samplingPeriod = Duration<double>::seconds(1.0);
   Duration<double> subProblemThreshold = Duration<double>::minutes(3.0);
   Duration<double> subProblemLength = Duration<double>::hours(4.0);
+  int medianWindowLength = 5;
 };
 
 struct LocalGpsFilterResults {
+  typedef Curve2dFilter::Results::Curve Curve;
   GeographicReference geoRef;
   Curve2dFilter::Results filterResults;
   Duration<double> computationTime;
   Array<TimedValue<Curve2dFilter::Vec2<Length<double>>>> rawLocalPositions;
-  Curve2dFilter::Results::Curve curve;
+  Curve curve;
 
   bool empty() const {return curve.empty();}
 

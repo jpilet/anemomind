@@ -133,7 +133,15 @@ public:
   }
 
   ThisType slice(Span<int> is) const {
-    return ThisType(_mapper, _curve, _unit, is);
+    return (is.initialized() && 0 < is.size())?
+        ThisType(_mapper, _curve, _unit, is) : ThisType();
+  }
+
+  ThisType slice(const Span<TimeStamp>& ts) const {
+    return ts.initialized()? slice(
+          Span<int>(
+              _mapper.toIntegerIndex(ts.minv()),
+              _mapper.toIntegerIndex(ts.maxv()))) : ThisType();
   }
 
   int dims() const {

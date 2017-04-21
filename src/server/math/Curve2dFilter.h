@@ -44,33 +44,9 @@ typedef BandedIrls::RobustCost<1, BasisData::dim, 2> DataCostBase;
 class DataCost : public DataCostBase {
 public:
   TimeStamp time;
+  Vec2<Length<double>> position;
   using DataCostBase::DataCostBase;
 };
-
-struct RegCost {
-  BandedIrls::Cost::Ptr cost;
-
-  // If not null, then this is the actual class of cost
-  std::shared_ptr<DataCost> maybeDataCost;
-
-  bool isInlier(const MDArray2d& X) const {
-    return !maybeDataCost || maybeDataCost->isInlier(X);
-  }
-
-  TimeStamp getTime() const {
-    return maybeDataCost? maybeDataCost->time : TimeStamp();
-  }
-
-  RegCost() {}
-
-  RegCost(const std::shared_ptr<DataCost>& c)
-    : cost(std::static_pointer_cast<BandedIrls::Cost>(c)),
-      maybeDataCost(c) {}
-
-  RegCost(const BandedIrls::Cost::Ptr& c) : cost(c) {}
-};
-
-
 
 struct Settings {
   // Parameters related to the optimization algorithm
@@ -94,6 +70,8 @@ struct Settings {
   bool robustRegularization() const;
 };
 
+typedef TimedValue<Vec2<Length<double>>> TimedPosition;
+
 struct Results {
   typedef PhysicalTemporalSplineCurve<Length<double>> Curve;
 
@@ -102,12 +80,11 @@ struct Results {
 
   BandedIrls::Results optimizerOutput;
   int positionsCountUsedForOptimization;
-  Array<TimeStamp> inlierPositionTimes;
+  Array<TimedPosition> inlierPositions;
   TimeMapper timeMapper;
   BasisData basis;
   MDArray2d X;
   Spani reliableIndices;
-  Array<RegCost> regCosts;
 
   Curve curve() const;
 
