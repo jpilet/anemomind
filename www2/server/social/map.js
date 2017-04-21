@@ -35,17 +35,25 @@ module.exports = function(app) {
 	// open a shared map
 	controller.get=function (req,res) {
 
-	  var l=req.query.l,
-	      boatId=req.params.boatId,
-	      curve=req.query.c,
-	      start=curveStartTimeStr(curve),
-	      end=curveEndTimeStr(curve),
-	      width=1024, height=536;
+	  var l = req.query.l;
+	  var boatId = req.params.boatId;
+	  var curve = req.query.c;
+	  var start = curve ? curveStartTimeStr(curve) : undefined;
+	  var end = curve ? curveEndTimeStr(curve) : undefined;
+	  var width = 1024, height=536;
 
 	  // build image url that keep ideal FB ratio 1.91:1 (600x315, 800x418, 1024x536)
-	  var ogImg=[
-	    "/api/map",boatId,l,start,end,width+"-"+height+".png"
-	  ].join('/');
+	  var ogImg = undefined;
+          if (l && start && end) {
+            ogImg = [
+              "/api/map",boatId,l,start,end,width+"-"+height+".png"
+            ].join('/');
+          } else {
+            // TODO: make sure the map generation api works for a full boat history
+            ogImg = [
+              "/api/map",boatId,'','','',width+"-"+height+".png"
+            ].join('/');
+          }
 
 	  // Load current boat
 	  mongoose.model('Boat').findById(boatId).select('name').exec(function(err,boat) {

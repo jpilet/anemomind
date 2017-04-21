@@ -16,6 +16,8 @@ module.exports.getSessionById = function(req, res, next) {
   SailingSession.findOne(search, function(err, session) {
     if (err) {
       handleError(res, err);
+    } else if (!session || !session.boat) {
+      res.status(400).send();
     } else {
       boatAccess.userCanRead(req.user, session.boat)
       .then(function() {
