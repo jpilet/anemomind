@@ -19,8 +19,9 @@ function vmgAtPoint(p) {
 }
 
 angular.module('www2App')
-  .controller('MapCtrl', function ($scope, $stateParams, userDB, boatList, ModalService, 
-                                    $timeout, $http, $interval, $state, $location) {
+  .controller('MapCtrl', function ($scope, $stateParams, userDB, boatList,
+                                   ModalService, $timeout, $http, $interval,
+                                   $state, $location, $window) {
 
     var defaultColor = '#FF0033';
     var defaultTaillength = 300;
@@ -538,5 +539,9 @@ angular.module('www2App')
         $timeout.cancel(visibilityTimeout);
       }
       visibilityTimeout = $timeout(hideBubble, 3000);
+    };
+
+    $scope.navigate = function(where) {
+      $window.history[where]();
     };
 });

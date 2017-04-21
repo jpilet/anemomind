@@ -26,11 +26,11 @@
                 <i class="anemomind-icon">&nbsp;</i>
               </button>
             </div>
-            <i class="anemomind-icon cut-before" ng-click="cutBefore()" title="Cut Before" show-if="admin" show-boat="boat">&nbsp;</i>
-            <i class="anemomind-icon cut-after" ng-click="cutAfter()" title="Cut After" show-if="admin" show-boat="boat">&nbsp;</i>
-            <i class="anemomind-icon split" ng-click="" title="Split" show-if="admin" show-boat="boat"></i>
-            <i class="anemomind-icon jump-prev" ng-click="" title="Jump Previous">&nbsp;</i>
-            <i class="anemomind-icon jump-next" ng-click="" title="Jump Next">&nbsp;</i>
+            <i class="anemomind-icon cut-before" ng-click="cutBefore()" title="Cut Before" show-boat="boat">&nbsp;</i>
+            <i class="anemomind-icon cut-after" ng-click="cutAfter()" title="Cut After" show-boat="boat">&nbsp;</i>
+            <i class="anemomind-icon split" ng-click="" title="Split" ng-if="false && admin" show-boat="boat"></i>
+            <i class="anemomind-icon jump-prev" ng-click="navigate('back')" title="Jump Previous">&nbsp;</i>
+            <i class="anemomind-icon jump-next" ng-click="navigate('forward')" title="Jump Next">&nbsp;</i>
           </div>
           <div class="info-group collapse-area" ng-class="{'uncollapse-area' : containers.showInfoGroup}">
             <div class="section tail-inputs">
