@@ -7,12 +7,12 @@
 
 #include <iostream>
 #include <server/common/ArrayIO.h>
-#include <server/math/Resampler.h>
+#include <server/math/SampleUtils.h>
 #include <gtest/gtest.h>
 #include <server/common/Functional.h>
 
 using namespace sail;
-using namespace sail::Resampler;
+using namespace sail::SampleUtils;
 
 namespace {
   auto offset = TimeStamp::UTC(2016, 5, 20, 9, 59, 0);
@@ -70,4 +70,31 @@ TEST(ResamplerTest, TestEpsDense) {
   EXPECT_EQ(
       fromTimeArray(resample(toTimeArray(samples), period)),
       expected);
+}
+
+TimedValue<bool> tv(int i, bool v) {
+  return TimedValue<bool>(toTime(i), v);
+}
+
+TEST(SampleUtilsTest, GoodSpans) {
+  Array<TimedValue<bool>> samples{
+    tv(0, true),
+    tv(1, true),
+    tv(2, true),
+    tv(3, true),
+    tv(4, false),
+    tv(5, true),
+    tv(6, true),
+    tv(7, true),
+    tv(8, true)
+  };
+  auto spans = makeGoodSpans(samples, 1.5*unit, 1.5*unit);
+  EXPECT_EQ(spans.size(), 2);
+  auto a = spans[0];
+  auto b = spans[1];
+
+  EXPECT_EQ(fromTime(a.minv()), 0);
+  EXPECT_EQ(fromTime(a.maxv()), 2);
+  EXPECT_EQ(fromTime(b.minv()), 6);
+  EXPECT_EQ(fromTime(b.maxv()), 8);
 }

@@ -61,7 +61,7 @@ add_library(filters_SmoothGpsFilter
 
 target_link_libraries(filters_SmoothGpsFilter
                       filters_GpsUtils
-                      math_Resampler
+                      math_SampleUtils
                       common_Progress
                       common_DOMUtils
                       plot_CairoUtils

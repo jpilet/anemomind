@@ -12,6 +12,8 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/TimedValue.h>
 #include <server/common/Functional.h>
+#include <server/common/String.h>
+#include <server/math/SampleUtils.h>
 
 
 namespace sail {
@@ -34,27 +36,51 @@ std::string toString(const Basis::Weights& w) {
 }
 
 
-template <typename T>
-TimedValue<T> getMaxNorm(
-    const PhysicalTemporalSplineCurve<T>& c) {
-  auto m = c.timeMapper();
-  TimedValue<T> maxv(TimeStamp(), 0.0*c.unit());
-  auto ispan = c.indexSpan();
-  for (auto i: ispan) {
-    auto t = m.toTimeStamp(i);
-    auto x = Vec2<T>{
-        c.evaluate(0, t),
-        c.evaluate(1, t)
-    }.norm();
-    if (x > maxv.value) {
-      maxv = TimedValue<T>(t, x);
+Array<Span<TimeStamp>> Results::segmentSpans(
+    Duration<double> margin) const {
+  if (!OK()) {
+    return Array<Span<TimeStamp>>();
+  }
+  ArrayBuilder<TimedValue<bool>> maskBuilder(regCosts.size());
+  for (auto t: inlierPositionTimes) {
+    maskBuilder.add(TimedValue<bool>(t, true));
+  }
+  for (auto regCost: regCosts) {
+    auto time = regCost.getTime();
+    if (time.defined()) {
+      maskBuilder.add(TimedValue<bool>(time, regCost.isInlier(X)));
     }
   }
-  return maxv;
+  auto mask = maskBuilder.get();
+  return SampleUtils::makeGoodSpans(mask, margin, margin);
 }
 
-TimedValue<Acceleration<double>> Results::getMaxAcceleration() const {
-  return getMaxNorm(curve.derivative().derivative());
+namespace {
+  Span<int> spanToInt(const Span<TimeStamp>& src, const TimeMapper& m) {
+    if (!src.initialized()) {
+      return Span<int>();
+    }
+    int from = m.toIntegerIndex(src.minv());
+    int to = m.toIntegerIndex(src.maxv());
+    return from < to? Span<int>(from, to) : Span<int>();
+  }
+
+  Array<Results::Curve> sliceCurveBySpans(
+      const Results::Curve& c, const Array<Span<TimeStamp>>& spans) {
+    const auto& m = c.timeMapper();
+    ArrayBuilder<Results::Curve> dst(spans.size());
+    for (auto s: spans) {
+      auto si = spanToInt(s, m);
+      if (si.initialized()) {
+        dst.add(c.slice(si));
+      }
+    }
+    return dst.get();
+  }
+}
+
+Array<Results::Curve> Results::segmentCurves(Duration<double> margin) const {
+  return sliceCurveBySpans(curve(), segmentSpans(margin));
 }
 
 Span<TimeStamp> getReliableSpan(
@@ -65,38 +91,34 @@ Span<TimeStamp> getReliableSpan(
           inlierPositionTimes.last());
 }
 
-TimedValue<Velocity<double>> Results::getMaxSpeed() const {
-  return getMaxNorm(curve.derivative());
+
+bool Settings::robustRegularization() const {
+  return regSigma > 0.0_mps2;
 }
 
-
-
-
-struct BasisData {
-  BasisData(const TimeMapper& mapper) {
-    basis = Basis(mapper.sampleCount());
-    derivatives = basis.derivatives();
-    speed = derivatives[1];
-    acceleration = derivatives[2];
-    powers = makePowers(derivatives.size(), 1.0/mapper.period().seconds());
-  }
-  static constexpr int dim = Basis::Weights::dim;
-
-  Basis basis;
-  Array<Basis> derivatives;
-  Basis speed;
-  Basis acceleration;
-  Array<double> powers;
-};
-
-typedef RobustCost<1, BasisData::dim, 2> DataCostBase;
-
-class DataCost : public DataCostBase {
-public:
-  TimeStamp time;
-  using DataCostBase::DataCostBase;
-};
-
+/*
+ * About speed and acceleration.
+ *
+ * Assuming that a basis codes a physical quantity
+ * as
+ *
+ *   Y = unit*curve.evaluate(mapper.toRealIndex(x))
+ *
+ * Then the derivative is
+ *
+ *   dYdT = unit*curve.derivative()
+ *     .evaluate(mapper.toRealIndex(x))/mapper.period()
+ *
+ * But maybe we want to convert this quantity back to the previous one,
+ * so we multiply it by mapper.period() again
+ *
+ * mapper.period()*dYdT = unit*curve
+ *     .derivative().evaluate(mapper.toRealIndex(x))
+ *
+ * That is why we don't apply any weighting in particular for velocity
+ * fitness and acceleration.
+ *
+ */
 
 
 
@@ -145,35 +167,54 @@ Array<std::shared_ptr<DataCost>> makeMotionCosts(
   ExponentialWeighting weights(settings.iterations,
       settings.initialWeight, settings.finalWeight);
   auto span = b.basis.raw().dataSpan();
-  double dweight = b.powers[1];
   double period = mapper.period().seconds();
   for (auto m: motions) {
     double t = mapper.toRealIndex(m.time);
     if (span.contains(t)) {
       CoefsWithOffset<Basis> coefs(b.speed.build(t));
       costs.add(std::make_shared<DataCost>(
-          coefs.offset, period*dweight*coefs.coefs,
-          period*mat1x2(
+          coefs.offset, coefs.coefs, // Don't multipy by period here...
+          period*mat1x2( // ...but multiply by period here.
               m.value[0].metersPerSecond(),
               m.value[1].metersPerSecond()),
           weights,
-          settings.inlierThreshold.meters())); // Really weigh it here?
+          settings.inlierThreshold.meters()));
     }
   }
   return costs.get();
 }
 
-Array<Cost::Ptr> makeRegCosts(
+Cost::Ptr regToCommonCost(const RegCost& x) {
+  return x.cost;
+}
+
+Array<Cost::Ptr> toCommonCosts(const Array<RegCost>& src) {
+  return map(src, &regToCommonCost);
+}
+
+
+Array<RegCost> makeRegCosts(
     double weight,
     const TimeMapper& mapper,
     const Settings& settings,
     const BasisData& b) {
-  ArrayBuilder<Cost::Ptr> costs(mapper.sampleCount());
-  auto regWeight = weight*b.powers[2];
+  ExponentialWeighting weights(settings.iterations,
+      settings.initialWeight, settings.finalWeight);
+
+  ArrayBuilder<RegCost> costs(mapper.sampleCount());
+  auto sigma = (weight/settings.regWeights.last())*(settings.regSigma
+                *mapper.period()*mapper.period()).meters();
   for (int i = 0; i < mapper.sampleCount(); i++) {
     CoefsWithOffset<Basis> coefs(b.acceleration.build(i));
-    costs.add(Cost::Ptr(new StaticCost<1, BasisData::dim, 2>(
-        coefs.offset, regWeight*coefs.coefs, mat1x2(0, 0))));
+    if (settings.robustRegularization()) {
+      costs.add(RegCost(std::make_shared<DataCost>(
+          coefs.offset, weight*coefs.coefs,
+          mat1x2(0, 0),
+          weights, sigma)));
+    } else {
+      costs.add(RegCost(Cost::Ptr(new StaticCost<1, BasisData::dim, 2>(
+          coefs.offset, weight*coefs.coefs, mat1x2(0, 0)))));
+    }
   }
   return costs.get();
 }
@@ -201,12 +242,45 @@ Span<int> mapToIndexSpan(const TimeMapper& m,
       : Span<int>();
 }
 
+int countInliers(
+    const Array<RegCost>& costs,
+    const MDArray2d& X) {
+  int counter = 0;
+  for (auto c: costs) {
+    if (c.maybeDataCost) {
+      counter += c.maybeDataCost->isInlier(X);
+    } else {
+      //counter++; // Not sure if this is a good default.
+    }
+  }
+  return counter;
+}
+
+void outputReport(
+    const Settings& settings,
+    const Array<RegCost>& regCosts,
+    const MDArray2d& X) {
+  DOM::Node output = settings.output;
+  if (output.defined()) {
+    if (settings.robustRegularization()) {
+      auto inlierCount = countInliers(regCosts, X);
+      if (inlierCount < regCosts.size()) {
+        addSubTextNode(&output, "pre",
+            stringFormat("Number of inlier reg terms: %d/%d",
+                inlierCount,
+                regCosts.size()));
+      }
+    }
+  }
+}
+
 Results optimize(
   const TimeMapper& mapper,
   const Array<TimedValue<Vec2<Length<double>>>>& positions,
   const Array<TimedValue<Vec2<Velocity<double>>>>& motions,
   const Settings& settings,
   const MDArray2d& Xinit) {
+
   if (positions.empty()) {
     LOG(ERROR) << "No input positions";
     return Results();
@@ -226,9 +300,11 @@ Results optimize(
 
   BandedIrls::Results solution;
   Array<TimeStamp> inlierTimes;
+  Array<RegCost> lastRegCosts;
   for (auto w: settings.regWeights) {
+    auto regCosts = makeRegCosts(w, mapper, settings, b);
     auto costs = concat(Array<Array<Cost::Ptr>>{
-      dataCosts, makeRegCosts(w, mapper, settings, b)
+      dataCosts, toCommonCosts(regCosts)
     });
     BandedIrls::Settings birls;
     solution = solve(birls, costs, solution.X);
@@ -242,6 +318,7 @@ Results optimize(
       LOG(ERROR) << "Not enough inlier positions";
       return Results();
     }
+    lastRegCosts = regCosts;
   }
   auto reliableSpan = getReliableSpan(inlierTimes);
   auto reliableIndices = mapToIndexSpan(mapper, reliableSpan);
@@ -250,17 +327,26 @@ Results optimize(
     return Results();
   }
 
+  outputReport(settings, lastRegCosts, solution.X);
+
   return Results{
     solution,
     positionCosts.size(),
     inlierTimes,
-    Results::Curve(
-        mapper,
-        SplineCurve(
-            b.basis,
-            solution.X.sliceRowsTo(mapper.sampleCount())), 1.0_m,
-            reliableIndices)
+    mapper,
+    b, solution.X,
+    reliableIndices,
+    lastRegCosts
   };
+}
+
+Results::Curve Results::curve() const {
+  return OK()? Results::Curve(
+          timeMapper,
+          SplineCurve(
+              basis.basis,
+              X.sliceRowsTo(timeMapper.sampleCount())), 1.0_m,
+              reliableIndices) : Curve();
 }
 
 
