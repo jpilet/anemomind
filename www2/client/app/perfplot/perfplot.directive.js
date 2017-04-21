@@ -33,6 +33,15 @@ angular.module('www2App')
           return tile[field][index];
         };
 
+        // The following functions does 2 things:
+        //   1. convert the tile format from what the server sent into what
+        //      perfplot.js expects.
+        //   2. make sure a single defined point surrounded by undefined values
+        //      will get displayed.
+        //
+        //  At the border between undefined and defined values, because
+        //  perfplot draws lines, not points, a single point would not be visible.
+        //  So we extend it with the same value to the undefined bin next to it.
         var convertAndExtendData = function(zoom, tileno, data) {
           var result= [];
           for (var t in data) {
@@ -101,6 +110,10 @@ angular.module('www2App')
           });
         };
 
+        // The performance data is not directly computed on the server.
+        // But it can be computed from vmg and targetVmg.
+        // So we fetch both tiles, do the computation, are create a new tile
+        // containing the computed performance.
         var fetchTilesForPerf = function(zoom, tileno) {
           $q.all([
             $.getJSON(makeUrl('vmg', $scope.source, zoom, tileno)),
