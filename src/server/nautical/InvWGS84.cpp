@@ -9,6 +9,7 @@
 #include <Eigen/Dense>
 #include <ceres/ceres.h>
 #include "InvWGS84.h"
+#include <server/common/StreamUtils.h>
 
 namespace sail {
 
@@ -60,8 +61,21 @@ GeographicPosition<double> computeGeographicPositionFromXYZ(const Length<double>
   problem.AddResidualBlock(cost, nullptr, params);
   ceres::Solver::Summary summary;
   ceres::Solver::Options opts;
+  opts.linear_solver_type = ceres::LinearSolverType::DENSE_NORMAL_CHOLESKY;
   opts.minimizer_progress_to_stdout = false;
-  ceres::Solve(opts, &problem, &summary);
+  opts.logging_type = ceres::SILENT;
+  {
+    // The reason why we might fail to control the logging
+    // is that we use MINIGLOG in Ceres. The reason for
+    // using MINIGLOG instead of GLOG was that GLOG was compiled
+    // with an ancient version of GCC whose ABI was incompatible
+    // with our code. It could be that things have changed.
+    //
+    // In case the above does not work, this hack might :-)
+    RedirectOstream redirectOut(&(std::cout), nullptr);
+    RedirectOstream redirectErr(&(std::cerr), nullptr);
+    ceres::Solve(opts, &problem, &summary);
+  }
   return paramsToGeoPos(params);
 }
 
