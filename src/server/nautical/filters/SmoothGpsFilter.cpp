@@ -253,13 +253,16 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
       curve.evaluate(1, y.time)
     };
     const auto& a = inlierPositions[i];
+    const auto& b = inlierPositions[i+1];
     goodBuilder.add(TimedValue<bool>(a.time, true));
     auto maxl = std::max(
         (pos - a.value).norm(),
-        (pos - inlierPositions[i+1].value).norm());
+        (pos - b.value).norm());
     auto threshold = y.value + inlierThreshold;
     if (threshold < maxl) {
+      goodBuilder.add(TimedValue<bool>(a.time, false));
       goodBuilder.add(TimedValue<bool>(y.time, false));
+      goodBuilder.add(TimedValue<bool>(b.time, false));
       largeGaps.push_back(LargeGap{maxl, threshold});
     }
   }
@@ -272,7 +275,7 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
       margin, margin);
 
   if (segments.size() == 1 && !largeGaps.empty()) {
-    DOM::addSubTextNode(out, "p", "This is really strange").error();
+    DOM::addSubTextNode(out, "p", "This is a bit strange").interesting();
     auto name = out->writer->generatePath("goodmask.dat").toString();
     saveRawArray<TimedValue<bool>>(name, good);
     DOM::addSubTextNode(out, "p", "Save it to " + name);
