@@ -20,6 +20,7 @@
 #include <server/plot/CairoUtils.h>
 #include <server/math/Curve2dFilter.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/indexed.h>
 
 namespace sail {
 
@@ -145,6 +146,95 @@ Array<TimedValue<HorizontalMotion<double>>>
   return dst.get();
 }
 
+Array<TimedValue<Length<double>>> getGaps(
+    const Array<TimedValue<Vec2<Length<double>>>>& positions) {
+  int n = std::max(0, positions.size() - 1);
+  ArrayBuilder<TimedValue<Length<double>>> dst(n);
+  for (int i = 0; i < n; i++) {
+    const auto& a = positions[i];
+    const auto& b = positions[i+1];
+    auto t = a.time + 0.5*(b.time - a.time);
+    auto d = (b.value - a.value).norm();
+    dst.add(TimedValue<Length<double>>(t, d));
+  }
+  return dst.get();
+}
+
+void populate(const Array<TimedValue<Length<double>>>& lengths,
+    int at, Array<Length<double>>* buf) {
+  int w = buf->size();
+  int w2 = w/2;
+  int from = at - w2;
+  int n = lengths.size();
+  for (int i = 0; i < w; i++) {
+    auto k = mirror(from + i, n-1);
+    CHECK(0 <= k);
+    CHECK(k < lengths.size());
+    (*buf)[i] = lengths[k].value;
+  }
+}
+
+Array<Length<double>> localMedianLengths(
+    const Array<TimedValue<Length<double>>>& lengths, int w) {
+  if (lengths.empty()) {
+    return Array<Length<double>>();
+  }
+  Array<Length<double>> buf(w);
+  int n = lengths.size();
+  ArrayBuilder<Length<double>> result(n);
+  for (int i = 0; i < n; i++) {
+    populate(lengths, i, &buf);
+    std::sort(buf.begin(), buf.end());
+    result.add(buf[buf.middle()]);
+  }
+  return result.get();
+}
+
+
+
+Array<Eigen::Vector2d> getGapPoints(
+    const Array<TimedValue<Length<double>>>& gaps) {
+  int n = gaps.size();
+  ArrayBuilder<Eigen::Vector2d> dst(n);
+  for (auto kv: indexed(gaps)) {
+    dst.add(Eigen::Vector2d(kv.first, kv.second.value.meters()));
+  }
+  return dst.get();
+}
+
+Array<Eigen::Vector2d> getMedianPoints(
+    const Array<Length<double>>& meds) {
+  int n = meds.size();
+  ArrayBuilder<Eigen::Vector2d> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst.add(Eigen::Vector2d(i, meds[i].meters()));
+  }
+  return dst.get();
+}
+
+
+void visualizeRawLocalGaps(
+    const Array<TimedValue<Vec2<Length<double>>>>& positions,
+    DOM::Node* dst) {
+  if (dst->defined()) {
+    auto gaps = getGaps(positions);
+    auto filteredGaps = localMedianLengths(gaps, 5);
+
+    std::cout << "Render " << positions.size() << " positions..." << std::endl;
+    auto subpage = DOM::linkToSubPage(dst, "Gap plot");
+    Poco::Path p = DOM::makeGeneratedImageNode(&subpage, ".svg");
+    auto setup = Cairo::Setup::svg(p.toString(), 800.0, 600.0);
+    PlotUtils::Settings2d settings;
+    settings.orthonormal = false;
+    Cairo::renderPlot(settings, [&](cairo_t* cr) {
+      Cairo::plotLineStrip(cr, getGapPoints(gaps)); //, 3);
+      Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(215.0_deg));
+      Cairo::plotLineStrip(cr, getMedianPoints(filteredGaps)); //, 3);
+    }, "Index", "Gap (meters)", setup.cr.get());
+    std::cout << "Done rendering" << std::endl;
+  }
+}
+
 LocalGpsFilterResults solveGpsSubproblem(
     const TimeMapper& mapper,
     const Array<TimedValue<GeographicPosition<double>>> rawPositions,
@@ -163,6 +253,8 @@ LocalGpsFilterResults solveGpsSubproblem(
   GeographicReference geoRef(referencePosition);
 
   auto rawLocalPositions = getLocalPositions(geoRef, rawPositions);
+
+  visualizeRawLocalGaps(rawLocalPositions, dst);
 
   TimeStamp start = TimeStamp::now();
   auto positionsForFilter = to2dPositions(geoRef, rawPositions);
@@ -211,6 +303,8 @@ LocalGpsFilterResults solveGpsSubproblem(
         motName, motions);
     saveRawArray<TimeMapper>(timeName, {mapper});
   }
+
+
 
   return LocalGpsFilterResults{
     geoRef, results,
