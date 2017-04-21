@@ -28,9 +28,10 @@ struct GpsFilterSettings {
 
 struct LocalGpsFilterResults {
   GeographicReference geoRef;
-  Curve2dFilter::Results curve;
+  Curve2dFilter::Results filterResults;
   Duration<double> computationTime;
   Array<TimedValue<Curve2dFilter::Vec2<Length<double>>>> rawLocalPositions;
+  Curve2dFilter::Results::Curve curve;
 
   bool empty() const {return curve.empty();}
 
