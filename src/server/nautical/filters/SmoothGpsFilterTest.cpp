@@ -92,8 +92,6 @@ TimedValue<Curve2dFilter::Vec2<Length<double>>> timedPos(double t, double x, dou
 
 }
 
-/*
-
 TEST(SmoothGpsFilterTest, TestIt) {
   auto original = getPsarosTestData();
   EXPECT_FALSE(original.isDefaultConstructed());
@@ -207,29 +205,5 @@ TEST(SmoothGpsFilter, ApplySplits) {
       Array<TimedValue<int>>{tvi(0.2, 4)},
     }) ==
     applySplits(values, times));
-  }
-}*/
-
-TEST(SmoothGpsFilter, Masking) {
-  std::string path = "/Users/jonas/data/boat571b387ebe57c552638c5712/processed/report_0_153goodmask.dat";
-  auto data = loadRawArray<TimedValue<bool>>(path);
-
-  std::cout << "Number of values: " << data.size() << std::endl;
-
-  int counter = 0;
-  for (auto x : data) {
-    if (!x.value) {
-      std::cout << "Bad segment at " << x.time << std::endl;
-      counter++;
-    }
-  }
-  std::cout << "Number of bad samples: " << counter << std::endl;
-
-  auto marg = 1.0_minutes;
-  auto segments = SampleUtils::makeGoodSpans(data, marg, marg);
-  std::cout << "Number of segments: " << segments.size() << std::endl;
-  for (auto s: segments) {
-    std::cout << "Segment from " << s.minv().toIso8601String()
-        << " to " << s.maxv().toIso8601String() << std::endl;
   }
 }
