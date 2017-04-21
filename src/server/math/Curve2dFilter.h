@@ -59,15 +59,6 @@ struct Settings {
   // Parameters related to the objective function
   Length<double> inlierThreshold = 10.0_m;
   Array<double> regWeights = {1.0};
-  Acceleration<double> regSigma = -1.0_mps2;
-
-
-  // Helper methods
-
-  // If this is true, we allow for "outliers" in the regularization
-  // That is useful in order to detect discontinuities in the curve
-  // where we should cut it again.
-  bool robustRegularization() const;
 };
 
 typedef TimedValue<Vec2<Length<double>>> TimedPosition;

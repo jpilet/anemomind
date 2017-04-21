@@ -45,10 +45,6 @@ Span<TimeStamp> getReliableSpan(
 }
 
 
-bool Settings::robustRegularization() const {
-  return regSigma > 0.0_mps2;
-}
-
 /*
  * About speed and acceleration.
  *
