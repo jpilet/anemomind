@@ -223,6 +223,11 @@ void visualizeRawLocalGaps(
   }
 }
 
+struct LargeGap {
+  Length<double> distanceToSupport;
+  Length<double> threshold;
+};
+
 Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
     const LocalGpsFilterResults::Curve& curve,
     Length<double> inlierThreshold,
@@ -234,6 +239,7 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
   visualizeRawLocalGaps(gaps, filtered, out);
   int n = gaps.size();
   ArrayBuilder<TimedValue<bool>> goodBuilder(2*n);
+  std::vector<LargeGap> largeGaps;
   for (int i = 0; i < n; i++) {
     const auto& y = filtered[i];
     auto pos = Vec2<Length<double>>{
@@ -245,8 +251,10 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
     auto maxl = std::max(
         (pos - a.value).norm(),
         (pos - inlierPositions[i+1].value).norm());
-    if (y.value + inlierThreshold < maxl) {
+    auto threshold = y.value + inlierThreshold;
+    if (threshold < maxl) {
       goodBuilder.add(TimedValue<bool>(y.time, false));
+      largeGaps.push_back(LargeGap{maxl, threshold});
     }
   }
   goodBuilder.add(TimedValue<bool>(filtered.last().time, true));
@@ -271,6 +279,16 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
             "Large distance gap resulted in "
             "the curve being cut in %d pieces", results.size()))
     .warning();
+    auto list = DOM::makeSubNode(out, "ul");
+    for (auto lg: largeGaps) {
+      DOM::addSubTextNode(&list,
+          "li",
+          stringFormat(
+              "Distance to closest support %.3g meters "
+              "and threshold %.3g meters", lg.distanceToSupport.meters(),
+              lg.threshold.meters()
+          ));
+    }
   } else {
     DOM::addSubTextNode(out, "p", "Curve was not cut").success();
   }
