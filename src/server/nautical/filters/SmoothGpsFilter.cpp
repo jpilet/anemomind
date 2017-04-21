@@ -190,10 +190,11 @@ Array<TimedValue<Length<double>>> localMedianLengths(
   ArrayBuilder<TimedValue<Length<double>>> result(n);
   for (int i = 0; i < n; i++) {
     populate(lengths, i, &buf);
-    std::sort(buf.begin(), buf.end());
+    auto middle = buf.begin() + buf.middle();
+    std::nth_element(buf.begin(), middle, buf.end());
     result.add(TimedValue<Length<double>>(
         lengths[i].time,
-        buf[buf.middle()]));
+        *middle));
   }
   return result.get();
 }
