@@ -306,6 +306,10 @@ add_library(nautical_InvWGS84
 
 target_depends_on_ceres(nautical_InvWGS84)
 
+target_link_libraries(nautical_InvWGS84
+  common_StreamUtils
+  )
+
 cxx_test(nautical_InvWGS84Test
          InvWGS84Test.cpp
          gtest_main
