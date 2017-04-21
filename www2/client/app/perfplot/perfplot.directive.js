@@ -20,9 +20,10 @@ angular.module('www2App')
         $scope.channel = 'gpsSpeed';
         $scope.source = undefined;
 
-        var samplesPerTile = 512;
         var graph = new Graph(element[0].querySelector('.graph-container'),
                               function(zoom, tileno) { });
+
+        var samplesPerTile = graph.loader.samplesPerTile;
 
         var chartApiUrl = "/api/chart";
 
@@ -126,10 +127,10 @@ angular.module('www2App')
             var tileDur = 1 << zoom;
 
             var perfTile = {
-              count: [],
-              mean: [],
-              min: [],
-              max: []
+              count: new Array(samplesPerTile),
+              mean: new Array(samplesPerTile),
+              min: new Array(samplesPerTile),
+              max: new Array(samplesPerTile)
             };
             for (var i = 0; i < samplesPerTile; ++i) {
               var count = 
@@ -247,8 +248,7 @@ angular.module('www2App')
             return;
           }
           $scope.sourceList = [];
-          var bestSource;
-          var bestPrio;
+          var best;
         
           for (var s in $scope.channels[chan]) {
             var source = $scope.channels[chan][s];
@@ -256,13 +256,16 @@ angular.module('www2App')
               $scope.sourceList.push(s);
 
               var prio = +source.priority;
-              if ((bestPrio == undefined) || (bestPrio < prio)) {
-                bestPrio = prio;
-                bestSource = s;
+              if (!best || (best.prio < prio)) {
+                best = { prio: prio, source: s};
               }
             }
           }
-          $scope.source = bestSource;
+          if (best) {
+            $scope.source = best.source;
+          } else {
+            $scope.source = undefined;
+          }
           selectionChanged();
         });
         $scope.$watch('source', selectionChanged);

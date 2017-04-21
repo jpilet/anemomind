@@ -44,7 +44,7 @@ Graph.prototype.prepare = function() {
   x.range([0, innerWidth]);
 
   if (!this.y) {
-  this.y = d3.scale.linear();
+    this.y = d3.scale.linear();
   }
   var y = this.y;
   y.range([innerHeight, 0]);
@@ -291,9 +291,9 @@ Graph.prototype.prepareTileData = function() {
   var range = this.loader.tileRangeInView(this.x);
 
   if (!this.preparedRange
-      || this.praparedRange.firstTile != range.firstTile
-      || this.praparedRange.lastTile != range.lastTile
-      || this.praparedRange.zoom != range.zoom) {
+      || this.preparedRange.firstTile != range.firstTile
+      || this.preparedRange.lastTile != range.lastTile
+      || this.preparedRange.zoom != range.zoom) {
     var visibleTiles = this.loader.tilesInView(this.x);
 
     var data = [];
