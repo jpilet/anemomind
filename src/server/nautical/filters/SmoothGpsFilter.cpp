@@ -329,7 +329,7 @@ LocalGpsFilterResults solveGpsSubproblem(
   auto curve = results.curve();
 
   auto curves = segmentCurvesByDistanceThreshold(
-      curve, settings.curveFilterSettings.inlierThreshold,
+      curve, settings.positionSupportThreshold,
       results.inlierPositions,
       settings.medianWindowLength,
       dst);

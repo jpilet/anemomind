@@ -25,6 +25,7 @@ struct GpsFilterSettings {
   Duration<double> subProblemThreshold = Duration<double>::minutes(3.0);
   Duration<double> subProblemLength = Duration<double>::hours(4.0);
   int medianWindowLength = 5;
+  Length<double> positionSupportThreshold = 100.0_m;
 };
 
 struct LocalGpsFilterResults {
