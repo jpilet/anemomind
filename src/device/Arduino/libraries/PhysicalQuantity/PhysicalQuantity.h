@@ -68,6 +68,9 @@ namespace sail {
   OP(Velocity, kilometersPerHour, 1000.0/3600.0) \
   OP(Velocity, milesPerHour, 1609.0/3600.0)
 
+#define FOREACH_ACCELERATION_UNIT(OP) \
+  OP(Acceleration, metersPerSecondSquared, 1.0)
+
 #define FOREACH_MASS_UNIT(OP) \
   OP(Mass, kilograms, 1.0) \
   OP(Mass, skeppund, 170.0) \
@@ -78,6 +81,7 @@ namespace sail {
   FOREACH_LENGTH_UNIT(OP) \
   FOREACH_ANGLE_UNIT(OP) \
   FOREACH_VELOCITY_UNIT(OP) \
+  FOREACH_ACCELERATION_UNIT(OP) \
   FOREACH_MASS_UNIT(OP)
 
 #define FOREACH_QUANTITY(OP) \
@@ -85,7 +89,8 @@ namespace sail {
   OP(Length, meters, 0, 1, 0, 0) \
   OP(Angle, radians, 0, 0, 1, 0) \
   OP(Mass, kilograms, 0, 0, 0, 1) \
-  OP(Velocity, metersPerSecond, -1, 1, 0, 0)
+  OP(Velocity, metersPerSecond, -1, 1, 0, 0) \
+  OP(Acceleration, metersPerSecondSquared, -2, 1, 0, 0)
 
 enum class Quantity {
   // Any quantity that has not been declared maps to this one.
@@ -716,6 +721,7 @@ DEFINE_LITERAL(Duration, minutes, _minutes)
 DEFINE_LITERAL(Velocity, metersPerSecond, _mps)
 DEFINE_LITERAL(Velocity, knots, _kn)
 DEFINE_LITERAL(Velocity, knots, _kt)
+DEFINE_LITERAL(Acceleration, metersPerSecondSquared, _mps2)
 #undef DEFINE_LITERAL
 
 template <typename A, typename B>

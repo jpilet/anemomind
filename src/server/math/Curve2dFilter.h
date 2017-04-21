@@ -12,37 +12,86 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <utility>
 #include <server/math/band/BandedIrls.h>
+#include <server/math/band/BandedIrlsUtils.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 namespace Curve2dFilter {
 
 typedef SmoothBoundarySplineBasis<double, 3> Basis;
 
+struct BasisData {
+  BasisData() {}
+  BasisData(const TimeMapper& mapper) {
+    basis = Basis(mapper.sampleCount());
+    derivatives = basis.derivatives();
+    speed = derivatives[1];
+    acceleration = derivatives[2];
+  }
+  static constexpr int dim = Basis::Weights::dim;
+
+  Basis basis;
+  Array<Basis> derivatives;
+  Basis speed;
+  Basis acceleration;
+};
+
 template <typename T>
 using Vec2 = sail::Vectorize<T, 2>;
 
+typedef BandedIrls::RobustCost<1, BasisData::dim, 2> DataCostBase;
+
+class DataCost : public DataCostBase {
+public:
+  TimeStamp time;
+  Vec2<Length<double>> position;
+  using DataCostBase::DataCostBase;
+};
+
 struct Settings {
+  // Parameters related to the optimization algorithm
+  DOM::Node output;
   int minimumInlierCount = 30;
   int iterations = 30;
   double initialWeight = 0.1;
   double finalWeight = 10000.0;
+
+  // Parameters related to the objective function
   Length<double> inlierThreshold = 10.0_m;
   Array<double> regWeights = {1.0};
+  Acceleration<double> regSigma = -1.0_mps2;
+
+
+  // Helper methods
+
+  // If this is true, we allow for "outliers" in the regularization
+  // That is useful in order to detect discontinuities in the curve
+  // where we should cut it again.
+  bool robustRegularization() const;
 };
+
+typedef TimedValue<Vec2<Length<double>>> TimedPosition;
 
 struct Results {
   typedef PhysicalTemporalSplineCurve<Length<double>> Curve;
 
-  bool OK() const {return !curve.empty();}
-  bool empty() const {return curve.empty();}
-
-  TimedValue<Velocity<double>> getMaxSpeed() const;
-  TimedValue<Acceleration<double>> getMaxAcceleration() const;
+  bool empty() const {return reliableIndices.size() == 0;}
+  bool OK() const {return !empty();}
 
   BandedIrls::Results optimizerOutput;
   int positionsCountUsedForOptimization;
-  Array<TimeStamp> inlierPositionTimes;
-  Curve curve;
+  Array<TimedPosition> inlierPositions;
+  TimeMapper timeMapper;
+  BasisData basis;
+  MDArray2d X;
+  Spani reliableIndices;
+
+  Curve curve() const;
+
+  Array<Span<TimeStamp>> segmentSpans(
+      Duration<double> margin) const;
+
+  Array<Curve> segmentCurves(Duration<double> margin) const;
 };
 
 Results optimize(

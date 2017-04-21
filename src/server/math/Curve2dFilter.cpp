@@ -12,6 +12,8 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/TimedValue.h>
 #include <server/common/Functional.h>
+#include <server/common/String.h>
+#include <server/math/SampleUtils.h>
 
 
 namespace sail {
@@ -34,69 +36,42 @@ std::string toString(const Basis::Weights& w) {
 }
 
 
-template <typename T>
-TimedValue<T> getMaxNorm(
-    const PhysicalTemporalSplineCurve<T>& c) {
-  auto m = c.timeMapper();
-  TimedValue<T> maxv(TimeStamp(), 0.0*c.unit());
-  auto ispan = c.indexSpan();
-  for (auto i: ispan) {
-    auto t = m.toTimeStamp(i);
-    auto x = Vec2<T>{
-        c.evaluate(0, t),
-        c.evaluate(1, t)
-    }.norm();
-    if (x > maxv.value) {
-      maxv = TimedValue<T>(t, x);
-    }
-  }
-  return maxv;
-}
-
-TimedValue<Acceleration<double>> Results::getMaxAcceleration() const {
-  return getMaxNorm(curve.derivative().derivative());
-}
-
 Span<TimeStamp> getReliableSpan(
-    const Array<TimeStamp>& inlierPositionTimes) {
+    const Array<TimedPosition>& inlierPositionTimes) {
   return inlierPositionTimes.empty()?
       Span<TimeStamp>() : Span<TimeStamp>(
-          inlierPositionTimes.first(),
-          inlierPositionTimes.last());
-}
-
-TimedValue<Velocity<double>> Results::getMaxSpeed() const {
-  return getMaxNorm(curve.derivative());
+          inlierPositionTimes.first().time,
+          inlierPositionTimes.last().time);
 }
 
 
+bool Settings::robustRegularization() const {
+  return regSigma > 0.0_mps2;
+}
 
-
-struct BasisData {
-  BasisData(const TimeMapper& mapper) {
-    basis = Basis(mapper.sampleCount());
-    derivatives = basis.derivatives();
-    speed = derivatives[1];
-    acceleration = derivatives[2];
-    powers = makePowers(derivatives.size(), 1.0/mapper.period().seconds());
-  }
-  static constexpr int dim = Basis::Weights::dim;
-
-  Basis basis;
-  Array<Basis> derivatives;
-  Basis speed;
-  Basis acceleration;
-  Array<double> powers;
-};
-
-typedef RobustCost<1, BasisData::dim, 2> DataCostBase;
-
-class DataCost : public DataCostBase {
-public:
-  TimeStamp time;
-  using DataCostBase::DataCostBase;
-};
-
+/*
+ * About speed and acceleration.
+ *
+ * Assuming that a basis codes a physical quantity
+ * as
+ *
+ *   Y = unit*curve.evaluate(mapper.toRealIndex(x))
+ *
+ * Then the derivative is
+ *
+ *   dYdT = unit*curve.derivative()
+ *     .evaluate(mapper.toRealIndex(x))/mapper.period()
+ *
+ * But maybe we want to convert this quantity back to the previous one,
+ * so we multiply it by mapper.period() again
+ *
+ * mapper.period()*dYdT = unit*curve
+ *     .derivative().evaluate(mapper.toRealIndex(x))
+ *
+ * That is why we don't apply any weighting in particular for velocity
+ * fitness and acceleration.
+ *
+ */
 
 
 
@@ -128,6 +103,7 @@ Array<std::shared_ptr<DataCost>> makePositionCosts(
                 mat1x2(p.value[0].meters(), p.value[1].meters()),
                 weights, settings.inlierThreshold.meters());
       x->time = p.time;
+      x->position = p.value;
       costs.add(x);
     }
   }
@@ -145,46 +121,53 @@ Array<std::shared_ptr<DataCost>> makeMotionCosts(
   ExponentialWeighting weights(settings.iterations,
       settings.initialWeight, settings.finalWeight);
   auto span = b.basis.raw().dataSpan();
-  double dweight = b.powers[1];
   double period = mapper.period().seconds();
   for (auto m: motions) {
     double t = mapper.toRealIndex(m.time);
     if (span.contains(t)) {
       CoefsWithOffset<Basis> coefs(b.speed.build(t));
       costs.add(std::make_shared<DataCost>(
-          coefs.offset, period*dweight*coefs.coefs,
-          period*mat1x2(
+          coefs.offset, coefs.coefs, // Don't multipy by period here...
+          period*mat1x2( // ...but multiply by period here.
               m.value[0].metersPerSecond(),
               m.value[1].metersPerSecond()),
           weights,
-          settings.inlierThreshold.meters())); // Really weigh it here?
+          settings.inlierThreshold.meters()));
     }
   }
   return costs.get();
 }
+
+
 
 Array<Cost::Ptr> makeRegCosts(
     double weight,
     const TimeMapper& mapper,
     const Settings& settings,
     const BasisData& b) {
+  ExponentialWeighting weights(settings.iterations,
+      settings.initialWeight, settings.finalWeight);
+
   ArrayBuilder<Cost::Ptr> costs(mapper.sampleCount());
-  auto regWeight = weight*b.powers[2];
+  auto sigma = (weight/settings.regWeights.last())*(settings.regSigma
+                *mapper.period()*mapper.period()).meters();
   for (int i = 0; i < mapper.sampleCount(); i++) {
     CoefsWithOffset<Basis> coefs(b.acceleration.build(i));
     costs.add(Cost::Ptr(new StaticCost<1, BasisData::dim, 2>(
-        coefs.offset, regWeight*coefs.coefs, mat1x2(0, 0))));
+        coefs.offset, weight*coefs.coefs, mat1x2(0, 0))));
   }
   return costs.get();
 }
 
-Array<TimeStamp> getInlierPositionTimes(
+
+
+Array<TimedPosition> getInlierPositions(
     const Array<std::shared_ptr<DataCost>>& positionCosts,
     const MDArray2d& X) {
-  ArrayBuilder<TimeStamp> dst(positionCosts.size());
+  ArrayBuilder<TimedPosition> dst(positionCosts.size());
   for (const auto& c: positionCosts) {
     if (c->isInlier(X)) {
-      dst.add(c->time);
+      dst.add(TimedPosition(c->time, c->position));
     }
   }
   return dst.get();
@@ -207,6 +190,7 @@ Results optimize(
   const Array<TimedValue<Vec2<Velocity<double>>>>& motions,
   const Settings& settings,
   const MDArray2d& Xinit) {
+
   if (positions.empty()) {
     LOG(ERROR) << "No input positions";
     return Results();
@@ -225,10 +209,11 @@ Results optimize(
   }));
 
   BandedIrls::Results solution;
-  Array<TimeStamp> inlierTimes;
+  Array<TimedValue<Vec2<Length<double>>>> inlierPositions;
   for (auto w: settings.regWeights) {
+    auto regCosts = makeRegCosts(w, mapper, settings, b);
     auto costs = concat(Array<Array<Cost::Ptr>>{
-      dataCosts, makeRegCosts(w, mapper, settings, b)
+      dataCosts, regCosts
     });
     BandedIrls::Settings birls;
     solution = solve(birls, costs, solution.X);
@@ -237,13 +222,13 @@ Results optimize(
       LOG(ERROR) << "Curve filter failed";
       return Results();
     }
-    inlierTimes = getInlierPositionTimes(positionCosts, solution.X);
-    if (inlierTimes.size() < settings.minimumInlierCount) {
+    inlierPositions = getInlierPositions(positionCosts, solution.X);
+    if (inlierPositions.size() < settings.minimumInlierCount) {
       LOG(ERROR) << "Not enough inlier positions";
       return Results();
     }
   }
-  auto reliableSpan = getReliableSpan(inlierTimes);
+  auto reliableSpan = getReliableSpan(inlierPositions);
   auto reliableIndices = mapToIndexSpan(mapper, reliableSpan);
   if (!reliableIndices.initialized() || reliableIndices.width() == 0) {
     LOG(ERROR) << "No reliable data";
@@ -253,14 +238,20 @@ Results optimize(
   return Results{
     solution,
     positionCosts.size(),
-    inlierTimes,
-    Results::Curve(
-        mapper,
-        SplineCurve(
-            b.basis,
-            solution.X.sliceRowsTo(mapper.sampleCount())), 1.0_m,
-            reliableIndices)
+    inlierPositions,
+    mapper,
+    b, solution.X,
+    reliableIndices,
   };
+}
+
+Results::Curve Results::curve() const {
+  return OK()? Results::Curve(
+          timeMapper,
+          SplineCurve(
+              basis.basis,
+              X.sliceRowsTo(timeMapper.sampleCount())), 1.0_m,
+              reliableIndices) : Curve();
 }
 
 

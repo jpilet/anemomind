@@ -10,9 +10,10 @@
 
 #include <server/common/TimeStamp.h>
 #include <server/common/Span.h>
+#include <server/common/TimedValue.h>
 
 namespace sail {
-namespace Resampler {
+namespace SampleUtils {
 
 struct Endpoint {
   sail::TimeStamp pos;
@@ -27,11 +28,15 @@ Array<Endpoint> listEndpoints(const Array<TimeStamp> &samples,
     Duration<double> period);
 Array<TimeStamp> makeNewSamplesFromEndpoints(const Array<Endpoint> &eps,
     Duration<double> period);
-Array<Span<TimeStamp>> makeContinuousSpans(
+Array<Span<TimeStamp>> makeContinuousSpansWithMargin(
     const Array<TimeStamp> &timeSamples,
     Duration<double> margin);
 Array<TimeStamp> resample(const Array<TimeStamp> &irregularSamples,
     Duration<double> newSamplingPeriod);
+bool isCovered(TimeStamp t, const Array<Span<TimeStamp>> &spans);
+Array<Span<TimeStamp>> makeGoodSpans(
+    const Array<TimedValue<bool>>& good,
+    Duration<double> goodMargin, Duration<double> badMaring);
 
 
 }

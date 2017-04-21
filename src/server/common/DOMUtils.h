@@ -64,6 +64,7 @@ struct Node {
   void success();
   void warning();
   void error();
+  void interesting();
 };
 
 // Even if functions below accept a pointer to a Node,
