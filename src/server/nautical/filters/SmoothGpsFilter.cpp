@@ -264,10 +264,19 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
     }
   }
   goodBuilder.add(TimedValue<bool>(filtered.last().time, true));
+  auto good = goodBuilder.get();
+  CHECK(std::is_sorted(good.begin(), good.end()));
 
   Duration<double> margin = 1.0_minutes;
-  auto segments = SampleUtils::makeGoodSpans(goodBuilder.get(),
+  auto segments = SampleUtils::makeGoodSpans(good,
       margin, margin);
+
+  if (segments.size() == 1 && !largeGaps.empty()) {
+    DOM::addSubTextNode(out, "p", "This is really strange").error();
+    auto name = out->writer->generatePath("goodmask.dat").toString();
+    saveRawArray<TimedValue<bool>>(name, good);
+    DOM::addSubTextNode(out, "p", "Save it to " + name);
+  }
 
   int segmentCount = segments.size();
   ArrayBuilder<LocalGpsFilterResults::Curve> resultsBuilder(segmentCount);
@@ -288,7 +297,17 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
   } else {
     DOM::addSubTextNode(out, "p", "Curve was not cut").success();
   }
+  if (2 <= segments.size()) {
+    DOM::addSubTextNode(out, "p",
+        stringFormat("Number of segments detected: %d", segments.size()));
+    auto list = DOM::makeSubNode(out, "ul");
+    for (auto s: segments) {
+      DOM::addSubTextNode(&list, "li", stringFormat(
+          "Segment form %s to %s", s.minv().toIso8601String().c_str(),
+          s.maxv().toIso8601String().c_str()));
+    }
 
+  }
   if (!largeGaps.empty()) {
     DOM::addSubTextNode(out, "p", "Large gaps").warning();
     auto list = DOM::makeSubNode(out, "ul");
@@ -374,7 +393,7 @@ LocalGpsFilterResults solveGpsSubproblem(
           (maxAcc.time - toffs).str().c_str()));
 
       saveRawArray<TimedValue<GeographicPosition<double>>>(
-          posName, rawPositions);
+                posName, rawPositions);
       saveRawArray<TimedValue<HorizontalMotion<double>>>(
           motName, motions);
       saveRawArray<TimeMapper>(timeName, {mapper});

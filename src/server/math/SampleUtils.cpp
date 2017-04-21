@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/logging.h>
 
 
 namespace sail {
@@ -137,8 +138,23 @@ Array<TimeStamp> filterGoodTimes(
 Array<Span<TimeStamp>> makeGoodSpans(
     const Array<TimedValue<bool>>& good,
     Duration<double> goodMargin, Duration<double> badMargin) {
+  CHECK(std::is_sorted(good.begin(), good.end()));
   auto badSpans = getBadSpans(good, badMargin);
+  std::cout << "Number of bad spans: " << badSpans.size() << std::endl;
+  for (auto bs: badSpans) {
+    std::cout << "  Bad span from "
+        << bs.minv().toIso8601String() << " to "
+        << bs.maxv().toIso8601String() << std::endl;
+  }
   auto goodTimes = filterGoodTimes(good, badSpans);
+  std::cout << "Number of good times: " << goodTimes.size() << "/" << good.size() << std::endl;
+  auto maxGap = 0.0_s;
+  for (int i = 0; i < goodTimes.size()-1; i++) {
+    maxGap = std::max(maxGap, goodTimes[i+1] - goodTimes[i]);
+  }
+  std::cout << "Max gap of " << maxGap.str() << std::endl;
+  std::cout << "First good time:  " << goodTimes.first().toIso8601String() << std::endl;
+  std::cout << "Last good time: " << goodTimes.last().toIso8601String() << std::endl;
   return makeContinuousSpans(goodTimes, goodMargin);
 }
 

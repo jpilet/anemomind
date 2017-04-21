@@ -14,10 +14,9 @@
 #include <server/nautical/WGS84.h>
 #include <server/common/DOMUtils.h>
 #include <server/common/ArrayIO.h>
-
+#include <server/math/SampleUtils.h>
 
 using namespace sail;
-
 
 
 namespace {
@@ -92,6 +91,8 @@ TimedValue<Curve2dFilter::Vec2<Length<double>>> timedPos(double t, double x, dou
 }
 
 }
+
+/*
 
 TEST(SmoothGpsFilterTest, TestIt) {
   auto original = getPsarosTestData();
@@ -207,4 +208,24 @@ TEST(SmoothGpsFilter, ApplySplits) {
     }) ==
     applySplits(values, times));
   }
+}*/
+
+TEST(SmoothGpsFilter, Masking) {
+  std::string path = "/Users/jonas/data/boat571b387ebe57c552638c5712/processed/report_0_150goodmask.dat";
+  auto data = loadRawArray<TimedValue<bool>>(path);
+
+  std::cout << "Number of values: " << data.size() << std::endl;
+
+  int counter = 0;
+  for (auto x : data) {
+    if (!x.value) {
+      std::cout << "Bad segment at " << x.time << std::endl;
+      counter++;
+    }
+  }
+  std::cout << "Number of bad samples: " << counter << std::endl;
+
+  auto marg = 1.0_minutes;
+  auto segments = SampleUtils::makeGoodSpans(data, marg, marg);
+  std::cout << "Number of segments: " << segments.size() << std::endl;
 }
