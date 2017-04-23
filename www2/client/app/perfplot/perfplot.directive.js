@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('perfplot', function ($timeout, $q) {
+  .directive('perfplot', function ($timeout, $q, $http) {
     return {
       templateUrl: 'app/perfplot/perfplot.html',
       template: '',
@@ -105,9 +105,9 @@ angular.module('www2App')
         var fetchTile = function(zoom, tileno) {
           var url = makeUrl($scope.channel, $scope.source, zoom, tileno);
 
-          $.getJSON(url, function(data) {
+          $http.get(url).then(function(data) {
             graph.tileFetchSucceeded(zoom, tileno,
-              convertAndExtendData(zoom, tileno, data));
+              convertAndExtendData(zoom, tileno, data.data));
           });
         };
 
@@ -117,11 +117,11 @@ angular.module('www2App')
         // containing the computed performance.
         var fetchTilesForPerf = function(zoom, tileno) {
           $q.all([
-            $.getJSON(makeUrl('vmg', $scope.source, zoom, tileno)),
-            $.getJSON(makeUrl('targetVmg', $scope.source, zoom, tileno))])
+            $http.get(makeUrl('vmg', $scope.source, zoom, tileno)),
+            $http.get(makeUrl('targetVmg', $scope.source, zoom, tileno))])
           .then(function(data) {
-            var vmgData = data[0][0];
-            var targetVmgData = data[1][0];
+            var vmgData = data[0].data[0];
+            var targetVmgData = data[1].data[0];
 
             var tileTimeSec = tileno << zoom;
             var tileDur = 1 << zoom;
@@ -212,8 +212,8 @@ angular.module('www2App')
         };
 
         var fetchChannelList = function() {
-          $.getJSON(chartApiUrl + '/' + $scope.boat, function(data) {
-            $scope.channels = (data ? data.channels : { });
+          $http.get(chartApiUrl + '/' + $scope.boat).then(function(data) {
+            $scope.channels = (data && data.data ? data.data.channels : { });
             $scope.channelList = [];
             if ('vmg' in $scope.channels && 'targetVmg' in $scope.channels) {
               var source = 'Simulated Anemomind estimator';
