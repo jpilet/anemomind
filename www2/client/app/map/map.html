@@ -26,11 +26,14 @@
                 <i class="anemomind-icon">&nbsp;</i>
               </button>
             </div>
+            <a ng-if="downloadAsCsvLink" target="_blank"
+               ng-href="{{ downloadAsCsvLink }}"><i
+                class="anemomind-icon download-csv button-round fa fa-file-o" title="Download as CSV"></i></a>
             <i class="anemomind-icon cut-before" ng-click="cutBefore()" title="Cut Before" show-boat="boat">&nbsp;</i>
             <i class="anemomind-icon cut-after" ng-click="cutAfter()" title="Cut After" show-boat="boat">&nbsp;</i>
             <i class="anemomind-icon split" ng-click="" title="Split" ng-if="false && admin" show-boat="boat"></i>
-            <i class="anemomind-icon jump-prev" ng-click="navigate('back')" title="Jump Previous">&nbsp;</i>
-            <i class="anemomind-icon jump-next" ng-click="navigate('forward')" title="Jump Next">&nbsp;</i>
+            <i class="anemomind-icon jump-prev" ng-click="navigate('back')" title="Goo back / undo">&nbsp;</i>
+            <i class="anemomind-icon jump-next" ng-click="navigate('forward')" title="Go forward / redo">&nbsp;</i>
           </div>
           <div class="info-group collapse-area" ng-class="{'uncollapse-area' : containers.showInfoGroup}">
             <div class="section tail-inputs">
