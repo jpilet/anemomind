@@ -60,7 +60,7 @@ angular.module('www2App', [
           // We need the redirection only when the user attempts to access a
           // real page.
           if (url.match(/^\/(boats|map|vmgplot)\//)) {
-            redirect = '?d=' + encodeURI(url);
+            redirect = '?d=' + encodeURIComponent(url);
           }
           $location.url('/login' + redirect);
           // remove any stale tokens
