@@ -125,6 +125,6 @@ exports.boatReadAccessOrRedirect = function(req, res, next) {
   module.exports.userCanReadBoatId((req.user ? req.user.id : undefined), boat)
     .then(next)
     .catch(function() {
-      return res.redirect('/login?d=' + encodeURI(req.originalUrl));
+      return res.redirect('/login?d=' + encodeURIComponent(req.originalUrl));
     });
 };
