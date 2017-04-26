@@ -21,7 +21,7 @@ function vmgAtPoint(p) {
 angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, boatList,
                                    ModalService, $timeout, $http, $interval,
-                                   $state, $location, $window) {
+                                   $state, $location, $window, Auth) {
 
     var defaultColor = '#FF0033';
     var defaultTaillength = 300;
@@ -552,4 +552,21 @@ angular.module('www2App')
     $scope.navigate = function(where) {
       $window.history[where]();
     };
+
+    $scope.downloadAsCsvLink = function() {
+      if (!$scope.boat || !$scope.boat._id
+          || !$scope.startTime || !$scope.endTime) {
+        return undefined;
+      }
+
+      var url = [
+        '/api/export',
+        $scope.boat._id,
+        encodeTime($scope.startTime) + encodeTime($scope.endTime) + '.csv'
+      ].join('/');
+      if (Auth.isLoggedIn() && !$scope.boat.publicAccess) {
+        url += '?access_token=' + Auth.getToken();
+      }
+      return url;
+    }();
 });

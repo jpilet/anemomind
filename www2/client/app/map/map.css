@@ -188,7 +188,17 @@ height:100%;
 .mainControl .control-btns .split {
   margin-right: 5px;
 }
+
+.button-round {
+  border-radius: 10px;
+  background-color: #e6e6e6;
+  color: #fc0f3a;
+  text-align: center;
+  padding-top: 6px;  /* TODO: dynamically vertical align */
+}
+
 .mainControl .control-btns .play,
+.mainControl .control-btns .download-csv,
 .mainControl .control-btns .cut-before,
 .mainControl .control-btns .cut-after,
 .mainControl .control-btns .split,
@@ -558,6 +568,7 @@ height:100%;
 }
 @media only screen and (max-width: 345px) {
   .mainControl .control-btns .play, 
+  .mainControl .control-btns .download-csv, 
   .mainControl .control-btns .cut-before, 
   .mainControl .control-btns .cut-after, 
   .mainControl .control-btns .split, 
