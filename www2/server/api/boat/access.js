@@ -101,7 +101,7 @@ var checkAccess = function(checkFunc, req, res, next) {
     return res.sendStatus(400);
   }
 
-  checkFunc(req.user || {}, boat)
+  checkFunc(req.user, boat)
     .then(next)
     .catch(function() {
       return res.sendStatus(req.user ? 403 : 401);

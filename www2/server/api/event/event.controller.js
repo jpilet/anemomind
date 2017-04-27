@@ -32,11 +32,11 @@ var canRead = function(req, event) {
 
   // Otherwise, the user needs read access to the boat the note is
   // attached to.
-  return boatAccess.userCanReadBoatId(req.user || {}, event.boat);
+  return boatAccess.userCanReadBoatId(req.user, event.boat);
 }
 
 var canWrite = function(req, event) {
-  return boatAccess.userCanWriteBoatId(req.user || {}, event.boat);
+  return boatAccess.userCanWriteBoatId(req.user, event.boat);
 }
 
 function sendEventsWithQuery(res, query) {
@@ -74,7 +74,7 @@ exports.index = function(req, res) {
     handleDateParam('A', '$gte');
 
     if (req.query.b) {
-      boatAccess.userCanReadBoatId(req.user || {}, req.query.b)
+      boatAccess.userCanReadBoatId(req.user, req.query.b)
       .then(function() {
          query.boat = req.query.b;
          sendEventsWithQuery(res, query);
