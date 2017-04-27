@@ -8,7 +8,7 @@
 #ifndef SERVER_COMMON_STREAMUTILS_H_
 #define SERVER_COMMON_STREAMUTILS_H_
 
-#include <boost/core/noncopyable.hpp>
+#include <boost/noncopyable.hpp>
 #include <iosfwd>
 
 namespace sail {
