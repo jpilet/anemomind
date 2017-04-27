@@ -69,7 +69,7 @@ Poco::Path PageWriter::generatePath(const std::string &suffix) {
 }
 
 bool Node::defined() const {
-  return bool(element);
+  return bool(element) && bool(document) && bool(writer);
 }
 
 void Node::setAttribute(
