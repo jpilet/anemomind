@@ -12,7 +12,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/TimedValue.h>
 #include <server/common/Functional.h>
-#include <server/common/String.h>
+#include <server/common/string.h>
 #include <server/math/SampleUtils.h>
 
 
