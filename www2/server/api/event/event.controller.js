@@ -32,12 +32,11 @@ var canRead = function(req, event) {
 
   // Otherwise, the user needs read access to the boat the note is
   // attached to.
-  return boatAccess.userCanReadBoatId((req.user ? req.user.id : undefined),
-                                      event.boat);
+  return boatAccess.userCanReadBoatId(req.user || {}, event.boat);
 }
 
 var canWrite = function(req, event) {
-  return boatAccess.userCanWriteBoatId(req.user.id, event.boat);
+  return boatAccess.userCanWriteBoatId(req.user || {}, event.boat);
 }
 
 function sendEventsWithQuery(res, query) {
@@ -75,8 +74,7 @@ exports.index = function(req, res) {
     handleDateParam('A', '$gte');
 
     if (req.query.b) {
-      boatAccess.userCanReadBoatId((req.user ? req.user.id : undefined),
-                                   req.query.b)
+      boatAccess.userCanReadBoatId(req.user || {}, req.query.b)
       .then(function() {
          query.boat = req.query.b;
          sendEventsWithQuery(res, query);
@@ -165,7 +163,7 @@ exports.remove = function(req, res) {
   if (!req.body.boat) {
     return res.sendStatus(400);
   }
-  boatAccess.userCanWriteBoatId(req.user.id, req.body.boat)
+  boatAccess.userCanWriteBoatId(req.user, req.body.boat)
     .then(function() {
       // User is allowed to add a note for this boat.
       var user = mongoose.Types.ObjectId(req.user.id);
