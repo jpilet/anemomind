@@ -278,10 +278,12 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
       margin, margin);
 
   if (segments.size() == 1 && !largeGaps.empty()) {
-    DOM::addSubTextNode(out, "p", "This might be a bit strange").interesting();
-    auto name = out->writer->generatePath("goodmask.dat").toString();
-    saveRawArray<TimedValue<bool>>(name, good);
-    DOM::addSubTextNode(out, "p", "Save it to " + name);
+    if (out->defined()) {
+      DOM::addSubTextNode(out, "p", "This might be a bit strange").interesting();
+      auto name = out->writer->generatePath("goodmask.dat").toString();
+      saveRawArray<TimedValue<bool>>(name, good);
+      DOM::addSubTextNode(out, "p", "Save it to " + name);
+    }
   }
 
   int segmentCount = segments.size();
@@ -294,41 +296,41 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
   }
   auto results = resultsBuilder.get();
 
-  if (2 <= results.size()) {
-    DOM::addSubTextNode(out, "p",
-        stringFormat(
-            "Large distance gap resulted in "
-            "the curve being cut in %d pieces", results.size()))
-    .warning();
-  } else {
-    DOM::addSubTextNode(out, "p", "Curve was not cut").success();
-  }
-  if (2 <= segments.size()) {
-    DOM::addSubTextNode(out, "p",
-        stringFormat("Number of segments detected: %d", segments.size()));
-    auto list = DOM::makeSubNode(out, "ul");
-    for (auto s: segments) {
-      DOM::addSubTextNode(&list, "li", stringFormat(
-          "Segment form %s to %s", s.minv().toIso8601String().c_str(),
-          s.maxv().toIso8601String().c_str()));
-    }
-
-  }
-  if (!largeGaps.empty()) {
-    DOM::addSubTextNode(out, "p", "Large gaps").warning();
-    auto list = DOM::makeSubNode(out, "ul");
-    for (auto lg: largeGaps) {
-      DOM::addSubTextNode(&list,
-          "li",
+  if (out->defined()) {
+    if (2 <= results.size()) {
+      DOM::addSubTextNode(out, "p",
           stringFormat(
-              "Distance to closest support %.3g meters "
-              "and threshold %.3g meters", lg.distanceToSupport.meters(),
-              lg.threshold.meters()
-          ));
+              "Large distance gap resulted in "
+              "the curve being cut in %d pieces", results.size()))
+      .warning();
+    } else {
+      DOM::addSubTextNode(out, "p", "Curve was not cut").success();
+    }
+    if (2 <= segments.size()) {
+      DOM::addSubTextNode(out, "p",
+          stringFormat("Number of segments detected: %d", segments.size()));
+      auto list = DOM::makeSubNode(out, "ul");
+      for (auto s: segments) {
+        DOM::addSubTextNode(&list, "li", stringFormat(
+            "Segment form %s to %s", s.minv().toIso8601String().c_str(),
+            s.maxv().toIso8601String().c_str()));
+      }
+
+    }
+    if (!largeGaps.empty()) {
+      DOM::addSubTextNode(out, "p", "Large gaps").warning();
+      auto list = DOM::makeSubNode(out, "ul");
+      for (auto lg: largeGaps) {
+        DOM::addSubTextNode(&list,
+            "li",
+            stringFormat(
+                "Distance to closest support %.3g meters "
+                "and threshold %.3g meters", lg.distanceToSupport.meters(),
+                lg.threshold.meters()
+            ));
+      }
     }
   }
-
-
   return results;
 }
 
