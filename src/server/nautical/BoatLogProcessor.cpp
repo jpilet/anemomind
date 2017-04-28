@@ -340,9 +340,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
         loadNavs(*amap, _boatid));
     infoNavDataset("After loading", raw);
 
+    auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?
     resampled = raw.createMergedChannels(
         std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
-        Duration<>::seconds(0.99));
+        minGpsSamplingPeriod);
     infoNavDataset("After resampling GPS", resampled);
 
     if (_gpsFilter) {
