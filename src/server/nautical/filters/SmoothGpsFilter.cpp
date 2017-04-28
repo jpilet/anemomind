@@ -33,6 +33,7 @@ typedef Vec2<Velocity<double>> Motion2d;
 Curve2dFilter::Settings makeDefaultOptSettings() {
   Curve2dFilter::Settings s;
   s.regWeights = Array<double>{100, 10};
+  s.postReg = 0.1;
   return s;
 }
 

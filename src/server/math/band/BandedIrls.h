@@ -136,6 +136,10 @@ Results solve(
     const Array<Cost::Ptr>& costs,
     const MDArray2d& Xinit = MDArray2d());
 
+Results constantSolve(
+    const Settings& settings,
+    const Array<Cost::Ptr>& costs);
+
 }
 } /* namespace sail */
 

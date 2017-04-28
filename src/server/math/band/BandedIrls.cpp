@@ -106,5 +106,16 @@ Results solve(
   return Results{X};
 }
 
+Results constantSolve(
+    const Settings& settings,
+    const Array<Cost::Ptr>& costs) {
+  ProblemSummary summary(costs);
+  auto problem = makeProblem(settings, summary);
+  for (auto c: costs) {
+    c->constantApply(&problem);
+  }
+  return Results{problem.solveAndInvalidate()};
+}
+
 }
 } /* namespace sail */

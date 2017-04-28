@@ -14,6 +14,7 @@
 #include <server/math/band/BandedIrls.h>
 #include <server/math/band/BandedIrlsUtils.h>
 #include <server/common/DOMUtils.h>
+#include <server/common/Optional.h>
 
 namespace sail {
 namespace Curve2dFilter {
@@ -59,6 +60,9 @@ struct Settings {
   // Parameters related to the objective function
   Length<double> inlierThreshold = 10.0_m;
   Array<double> regWeights = {1.0};
+
+  // Post regularization, once all outliers have been identified.
+  Optional<double> postReg;
 };
 
 typedef TimedValue<Vec2<Length<double>>> TimedPosition;
