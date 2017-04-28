@@ -121,7 +121,8 @@ describe('httpapi', function() {
       } else {
 
         var cleanup = function(err) {/*nothing to cleanup*/};
-        app.use('/sqlite', httpapi.make(express.Router(), function(name, f) {
+        app.use('/sqlite', httpapi.make(express.Router(), function(args, f) {
+          var name = args.name;
           if (name == ep.name) {
             f(null, ep, cleanup);
           } else {
@@ -147,7 +148,8 @@ describe('httpapi', function() {
         done(err);
       } else {
         var cleanup = function(err) {/*nothing to cleanup*/};
-        app.use('/sqlite', httpapi.make(express.Router(), function(name, f) {
+        app.use('/sqlite', httpapi.make(express.Router(), function(args, f) {
+          var name = args.name;
           if (name == ep.name) {
             f(null, ep, cleanup);
           } else {
