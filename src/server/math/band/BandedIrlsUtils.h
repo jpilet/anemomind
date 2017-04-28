@@ -37,10 +37,8 @@ public:
     dst->addNormalEquations(_at, _A, _B);
   }
 
-  virtual void apply(
-      int iteration,
-      const MDArray2d& currentSolution,
-      BandProblem* dst) override {
+  virtual void constantApply(
+      BandProblem* dst) const override {
     dst->addNormalEquations(_at, _A, _B);
   }
 
@@ -87,6 +85,10 @@ public:
     return computeError(currentSolution) < _rejector.sigma();
   }
 
+  void constantApply(BandProblem* dst) const override {
+    addWithWeight(_rejector.computeWeight(), dst);
+  }
+
   void apply(
       int iteration,
       const MDArray2d& currentSolution,
@@ -94,7 +96,7 @@ public:
     _rejector.update(
         _weighting.evaluate(iteration),
         computeError(currentSolution));
-    addWithWeight(_rejector.computeWeight(), dst);
+    constantApply(dst);
   }
 
   int minimumProblemDimension() const override {

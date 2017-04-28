@@ -201,12 +201,12 @@ Results optimize(
 
   BandedIrls::Results solution;
   Array<TimedValue<Vec2<Length<double>>>> inlierPositions;
+  BandedIrls::Settings birls;
   for (auto w: settings.regWeights) {
     auto regCosts = makeRegCosts(w, mapper, settings, b);
     auto costs = concat(Array<Array<Cost::Ptr>>{
       dataCosts, regCosts
     });
-    BandedIrls::Settings birls;
     solution = solve(birls, costs, solution.X);
 
     if (!solution.OK()) {
@@ -219,6 +219,19 @@ Results optimize(
       return Results();
     }
   }
+  if (settings.postReg.defined()) {
+    solution = BandedIrls::constantSolve(birls,
+        concat(Array<Array<Cost::Ptr>>{
+          dataCosts,
+          makeRegCosts(settings.postReg.get(), mapper,
+              settings, b)
+    }));
+    if (!solution.OK()) {
+      LOG(ERROR) << "Post reg failed";
+      return Results();
+    }
+  }
+
   auto reliableSpan = getReliableSpan(inlierPositions);
   auto reliableIndices = mapToIndexSpan(mapper, reliableSpan);
   if (!reliableIndices.initialized() || reliableIndices.width() == 0) {
