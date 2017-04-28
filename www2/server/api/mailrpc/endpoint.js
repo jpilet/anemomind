@@ -76,6 +76,10 @@ function acquireEndpointAccess(user, endpointName, cb) {
   }
 }
 
+// cbOperation is a callback that receives as arguments
+//   * the endpoint
+//   * a callback to call once we are done working on the endpoint
+// done is a callback that is called once the operation was done.
 function withEndpoint(endpointName, req, cbOperation, done) {
   var user = req.user;
   acquireEndpointAccess(user, endpointName, function(err) {

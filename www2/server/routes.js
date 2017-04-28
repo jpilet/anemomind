@@ -14,7 +14,8 @@ module.exports = function(app) {
   app.use('/api/boatstats', require('./api/boatstat'));
   app.use('/api/events', require('./api/event'));
   app.use('/api/boats', require('./api/boat'));
-  app.use('/api/mailrpc', require('./api/mailrpc'));
+  app.use('/api/mailrpc', require('./api/mailrpc')); // old
+  app.use('/api/endpoint', require('./api/endpoint')); // new
   app.use('/api/session', require('./api/session'));  
   app.use('/api/tiles', require('./api/tiles'));
   app.use('/api/upload', require('./api/upload'));

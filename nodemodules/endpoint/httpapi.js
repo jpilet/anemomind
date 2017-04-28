@@ -89,11 +89,14 @@ function areRangeQueries(x) {
   return false;
 }
 
-function make(router, accessEndpoint, errorLogger0) {
+function makeImpl(router, accessEndpoint, errorLogger0) {
   var logError = wrapErrorLogger(errorLogger0);
 
   function withEndpoint(req, res, onAccessErrorData, accessor) {
-    accessEndpoint(req.params.name, function(err, endpoint, cb) {
+    accessEndpoint({
+      name: req.params.name,
+      req: req
+    }, function(err, endpoint, cb) {
       if (err) {
         logError("Failed to access endpoint: " + err);
         res.status(internalServerError).send(onAccessErrorData);
@@ -204,6 +207,24 @@ function make(router, accessEndpoint, errorLogger0) {
   return router;
 }
 
-module.exports.make = make;
+// Converts the 'accessEndpoint' function that expects
+// as first argument the name of the endpoint to the more
+// general form
+function fromSimplifiedAccessEndpoint(simplified) {
+  return function(args, cb) {
+    return simplified(args.name, cb);
+  };
+}
+
+// This is used by the box.
+function make(router, accessEndpoint, errorLogger0) {
+  return makeImpl(
+    router,
+    fromSimplifiedAccessEndpoint(accessEndpoint), 
+    errorLogger0);
+}
+
+module.exports.makeAdvanced = makeImpl; // Full version: Accessor receives more arguments.
+module.exports.make = make; // Simplified: Accessor only receives the name (consider removal).
 module.exports.encodePacket = encodePacket;
 module.exports.decodePacket = decodePacket;
