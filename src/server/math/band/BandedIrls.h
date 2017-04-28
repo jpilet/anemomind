@@ -94,12 +94,17 @@ public:
   // For the first iteration, we may not have an initial solution.
   virtual void initialize(BandProblem* dst) = 0;
 
+  virtual void constantApply(
+      BandProblem* dst) const = 0;
+
   // Called for every iteration to build the new least-squares problem
   // to be solved.
   virtual void apply(
       int iteration,
       const MDArray2d& currentSolution,
-      BandProblem* dst) = 0;
+      BandProblem* dst) {
+    constantApply(dst);
+  }
 
   // 1+(the highest index referred to in the optimized vector)
   virtual int minimumProblemDimension() const = 0;

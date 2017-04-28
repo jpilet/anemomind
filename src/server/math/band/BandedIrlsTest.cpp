@@ -29,10 +29,8 @@ public:
         Eigen::Vector2d::Zero());
   }
 
-  void apply(
-        int iteration,
-        const MDArray2d& currentSolution,
-        BandProblem* dst) override {
+  void constantApply(
+        BandProblem* dst) const override {
     dst->addNormalEquations<2, 2, 1>(_offset, _A, _B);
   }
 
