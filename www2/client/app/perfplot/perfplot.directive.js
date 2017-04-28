@@ -166,10 +166,12 @@ angular.module('www2App')
           var d =graph.x.domain();
           var newDomain =
             [new Date(source.first), new Date(source.last)];
-          if ($scope.startTime.getTime() > 10000) {
+          if ($scope.startTime instanceof Date
+              && $scope.startTime.getTime() > 10000) {
             newDomain[0] = new Date($scope.startTime);
           }
-          if ($scope.endTime.getTime() > 10000) {
+          if ($scope.endTime instanceof Date
+              && $scope.endTime.getTime() > 10000) {
             newDomain[1] = new Date($scope.endTime);
           }
 
