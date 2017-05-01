@@ -1,0 +1,52 @@
+<div class="modal fade ng-scope share-modal" ng-class="{'in' : isVisible}" style="display: block;" aria-hidden="false"  ng-controller="ShareCtrl">
+    <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="cls-btn" ng-click="closeModal();" data-dismiss="modal" aria-hidden="true">&nbsp;</button>
+        </div>
+        <!-- Social Modal -->
+        <div class="modal-body">
+          <div class="custom-modal-container">
+            <div ng-show="boat.publicAccess">
+              <h4>{{shareText}}</h4>
+              <div class="icon-list">
+                  <ul>
+                      <li ng-repeat="icon in iconList" class="{{icon.name}}" 
+                          ng-click="goShare(icon)"
+                          ng-show="icon.use">
+                          <i class="anemomind-icon" aria-hidden="true"></i>
+                      </li>
+                  </ul>
+              </div>
+            </div>
+
+            <!-- ON PRIVATE BOAT -->
+            <p ng-show="!boat.publicAccess">
+              To share this page on a social network, boat access must be open to
+              everybody. Currently, access is restricted to team members.
+            </p>
+            <!-- OPEN BOAT ACCESS -->
+            <div ng-show="admin && !boat.publicAccess">
+              <p>
+                To do so, click the button below. Boat access is configured on the
+                <a href="/boats/{{boat._id}}/edit">settings page</a>.
+              </p>
+              <button class="btn btn-default btn-block " 
+                      ng-click="changePublicAccess()">Open access to everyone and enable sharing</button>
+            </div>
+            <!-- SHOW IF NOT ADMIN AND NOT PUBLIC -->
+            <blockquote ng-show="!admin && !boat.publicAccess">
+              You are not authorized to share this session.  
+            </blockquote>            
+            <blockquote ng-show="boat.publicAccess">
+              <i class="fa fa-check-circle gray"></i> This boat access is public
+            </blockquote>            
+                        
+          </div>            
+        </div>
+    </div>
+    </div>
+</div>
+<div class="modal-backdrop fade in"></div>
+
+

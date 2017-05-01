@@ -8,6 +8,8 @@ var Boat = require('./boat.model');
 var testUtils = require('../testUtils.spec');
 var Q = require('q');
 
+window.location = {};
+
 describe('GET /api/boats', function() {
 
   var testUser;
@@ -19,7 +21,11 @@ describe('GET /api/boats', function() {
         testUser = user;
         return Q.all([
               testUtils.addTestBoat({name: "writable boat", admins: [ user.id ]}),
-              testUtils.addTestBoat({name: "readable boat", readers: [ user.id ]}),
+              testUtils.addTestBoat({
+                name: "readable boat",
+                readers: [ user.id ],
+                anemobox: '12341234abcd'
+              }),
               testUtils.addTestBoat({name: "public boat", publicAccess: true})
         ])
       })
@@ -103,6 +109,7 @@ describe('GET /api/boats', function() {
     request(app)
       .post('/api/boats')
       .set('Authorization', 'Bearer ' + token)
+      // the name does not match, anemobox is missing. The test should fail.
       .send({ _id: readableBoat._id, name: 'TestBoat3' })
       .expect(400)
       .end(done);
@@ -118,6 +125,26 @@ describe('GET /api/boats', function() {
         res.body.should.have.length(1);
         res.body[0].should.have.property('name');
         res.body[0].name.should.equal('public boat');
+        done();
+      });
+   });
+
+  it('should grant write access when posting the correct info', function(done) {
+    request(app)
+      .post('/api/boats')
+      .set('Authorization', 'Bearer ' + token)
+      // the name does not match, anemobox is missing. The test should fail.
+      .send({
+        _id: readableBoat._id,
+        name: readableBoat.name,
+        anemobox: readableBoat.anemobox
+      })
+      .expect(201)
+      .end(function(err, res){
+        if (err) return done(err);
+        res.body.should.have.property('admins');
+        res.body.admins.should.have.length(1);
+        (res.body.admins[0] + '').should.equal(testUser.id + '');
         done();
       });
    });
