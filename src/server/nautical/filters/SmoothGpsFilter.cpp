@@ -281,9 +281,11 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
   if (segments.size() == 1 && !largeGaps.empty()) {
     if (out->defined()) {
       DOM::addSubTextNode(out, "p", "This might be a bit strange").interesting();
-      auto name = out->writer->generatePath("goodmask.dat").toString();
-      saveRawArray<TimedValue<bool>>(name, good);
-      DOM::addSubTextNode(out, "p", "Save it to " + name);
+      auto name = generatePath(*out, "goodmask.dat").toString();
+      if (!name.empty()) {
+        saveRawArray<TimedValue<bool>>(name, good);
+        DOM::addSubTextNode(out, "p", "Save it to " + name);
+      }
     }
   }
 
@@ -379,33 +381,35 @@ LocalGpsFilterResults solveGpsSubproblem(
     auto maxSpeed = computeMaxNorm<2>(motion);
     if (maxSpeed.value > 50.0_kn && bool(dst->writer)) {
       auto toffs = curve.timeMapper().offset();
-      auto pref = dst->writer->generatePath("problem_data").toString();
-      auto posName = pref + "_positions.dat";
-      auto motName = pref + "_motions.dat";
-      auto timeName = pref + "_timemapper.dat";
-      DOM::addSubTextNode(dst, "p", stringFormat(
-          "Unusually high filtered boat speed of %.3g knots at %s "
-          "in session starting at %s after %s. "
-          "Source positions, motions and mapper serialized "
-          "to %s, %s and %s, respectively.",
-          maxSpeed.value.knots(),
-          maxSpeed.time.toIso8601String().c_str(),
-          toffs.toIso8601String().c_str(),
-          (maxSpeed.time - toffs).str().c_str(),
-          posName.c_str(), motName.c_str(), timeName.c_str()))
-        .warning();
+      auto pref = generatePath(*dst, "problem_data").toString();
+      if (!pref.empty()) {
+        auto posName = pref + "_positions.dat";
+        auto motName = pref + "_motions.dat";
+        auto timeName = pref + "_timemapper.dat";
+        DOM::addSubTextNode(dst, "p", stringFormat(
+            "Unusually high filtered boat speed of %.3g knots at %s "
+            "in session starting at %s after %s. "
+            "Source positions, motions and mapper serialized "
+            "to %s, %s and %s, respectively.",
+            maxSpeed.value.knots(),
+            maxSpeed.time.toIso8601String().c_str(),
+            toffs.toIso8601String().c_str(),
+            (maxSpeed.time - toffs).str().c_str(),
+            posName.c_str(), motName.c_str(), timeName.c_str()))
+          .warning();
 
-      auto maxAcc = computeMaxNorm<2>(acceleration);
-      DOM::addSubTextNode(dst, "p", stringFormat(
-          "The max acceleration is %.3g m/s^2 after %s",
-          double(maxAcc.value/(1.0_mps/1.0_s)),
-          (maxAcc.time - toffs).str().c_str()));
+        auto maxAcc = computeMaxNorm<2>(acceleration);
+        DOM::addSubTextNode(dst, "p", stringFormat(
+            "The max acceleration is %.3g m/s^2 after %s",
+            double(maxAcc.value/(1.0_mps/1.0_s)),
+            (maxAcc.time - toffs).str().c_str()));
 
-      saveRawArray<TimedValue<GeographicPosition<double>>>(
-                posName, rawPositions);
-      saveRawArray<TimedValue<HorizontalMotion<double>>>(
-          motName, motions);
-      saveRawArray<TimeMapper>(timeName, {mapper});
+        saveRawArray<TimedValue<GeographicPosition<double>>>(
+                  posName, rawPositions);
+        saveRawArray<TimedValue<HorizontalMotion<double>>>(
+            motName, motions);
+        saveRawArray<TimeMapper>(timeName, {mapper});
+      }
     }
   }
 
