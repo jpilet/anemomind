@@ -24,13 +24,13 @@ function openEndpoint(endpointName, cb) {
         mb.tryMakeEndpoint(
           filename, endpointName,
           function(err, endpoint) {
-	    if (err) {
-	      cb(err);
-	    } else {
-              schema.makeVerbose(endpoint);
-	      packetCallbacks.add(endpoint);
-	      cb(err, endpoint);
-	    }
+	          if (err) {
+	            cb(err);
+	          } else {
+              //schema.makeVerbose(endpoint);
+	            packetCallbacks.add(endpoint);
+	            cb(err, endpoint);
+	          }
           });
       }
     });
