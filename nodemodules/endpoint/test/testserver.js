@@ -30,7 +30,8 @@ MockEndpoint.prototype.putPacket = function(p, cb) {
 
 var mock = new MockEndpoint();
 
-function mockAccess(name, f) {
+function mockAccess(args, f) {
+  var name = args.name;
   if (name == 'mock') {
     f(null, mock, function(err) {/*nothing to clean up*/});
   } else {
