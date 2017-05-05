@@ -357,6 +357,7 @@ namespace {
       }
     }
 
+    virtual ~PublishListener() {}
    private:
     Dispatcher *_dispatcher;
     typename TimedSampleCollection<T>::TimedVector _values;

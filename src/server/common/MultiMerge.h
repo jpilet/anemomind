@@ -49,6 +49,8 @@ class MultiMerge : public SortedStream<T> {
 
   virtual bool end() const { return _queue.empty(); }
 
+  virtual ~MultiMerge() {}
+
  private:
  
   struct CompareStreamPtr {

@@ -10,6 +10,7 @@
 #include <device/anemobox/TimedSampleCollection.h>
 #include <server/nautical/AbsoluteOrientation.h>
 #include <server/nautical/GeographicPosition.h>
+#include <device/anemobox/LocalArrayCopy.h>
 #include <iostream>
 
 namespace sail {
@@ -39,11 +40,8 @@ class Listener {
     // in that case, the listerners list will be modified.
     // thus, we can not iterate safely over listeners,
     // we have to copy the list first.
-    std::vector<Listener<T> *> listenersToCall;
-    listenersToCall.reserve(listeners.size());
-    std::copy(listeners.begin(),
-              listeners.end(),
-              std::back_inserter(listenersToCall));
+    LocalArrayCopy<Listener<T> *, 30> listenersToCall(
+        listeners.begin(), listeners.end());
     for (Listener<T> *listener : listenersToCall) {
       listener->notify(dispatcher);
     }
