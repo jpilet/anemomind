@@ -55,7 +55,6 @@ void Nmea0183ProcessByte(const std::string &sourceName,
     case NmeaParser::NMEA_VLW: break;
       handler->template add<WAT_DIST>(
           sourceName, static_cast<Length<double>>(parser->watDist()));
-          /* no break */
     case NmeaParser::NMEA_GLL:
       handler->template add<GPS_POS>(sourceName, getPos(*parser));
       break;
