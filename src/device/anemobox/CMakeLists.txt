@@ -140,3 +140,9 @@ cxx_test(anemobox_BinarySignalTest
          anemobox_BinarySignal
          common_logging
         )
+
+cxx_test(anemobox_LocalArrayCopyTest
+  LocalArrayCopyTest.cpp
+  gtest_main
+  )
+  
