@@ -139,7 +139,7 @@ class TypedDispatchDataReal : public TypedDispatchData<T> {
   virtual const ValueDispatcher<T> *dispatcher() const { return &_dispatcher; }
 
   virtual void setValue(T value) { _dispatcher.setValue(value); }
-
+  virtual ~TypedDispatchDataReal() {}
  private:
   ValueDispatcher<T> _dispatcher;
 };
@@ -154,7 +154,8 @@ typedef TypedDispatchData<BinaryEdge> DispatchBinaryEdge;
 template <typename T>
 class DispatchDataProxy : public TypedDispatchData<T> {
  public:
-   DispatchDataProxy(DataCode code) : TypedDispatchData<T>(code, "") { }
+   DispatchDataProxy(DataCode code) : TypedDispatchData<T>(code, ""),
+     _forward(nullptr) { }
 
   virtual ValueDispatcher<T> *dispatcher() { return &_proxy; }
   virtual const ValueDispatcher<T> *dispatcher() const {
@@ -171,7 +172,7 @@ class DispatchDataProxy : public TypedDispatchData<T> {
   TypedDispatchData<T> *realDispatcher() const { return _forward; }
 
   virtual void setValue(T value) { _proxy.setValue(value); }
-    
+  virtual ~DispatchDataProxy() {}
  private:
   ValueDispatcherProxy<T> _proxy;
   TypedDispatchData<T>* _forward;
