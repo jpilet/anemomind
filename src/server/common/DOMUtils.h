@@ -67,6 +67,8 @@ struct Node {
   void interesting();
 };
 
+Poco::Path generatePath(const Node& src, const std::string &suffix);
+
 // Even if functions below accept a pointer to a Node,
 // that pointer must never be a null pointer. To represent
 // the absence of a Node, or an undefined Node, use a default

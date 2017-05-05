@@ -41,6 +41,7 @@ function VectorTileLayer(params, renderer) {
 
   var t = this;
   var loadIcon = function(url, name, w, h) {
+    t[name] = { };
     renderer.loadImage(url, function(image) {
       t[name] = image;
       if (w) { image.width = w; }
@@ -48,7 +49,7 @@ function VectorTileLayer(params, renderer) {
     });
   };
   // URL have to be absolute because imgmin will change the name
-  loadIcon('/assets/images/boat.svg', 'boatIcon');
+  loadIcon('/assets/images/boat.svg', 'boatIcon', 12, 34);
   loadIcon('/assets/images/truewind.svg', 'trueWindIcon', 14, 28);
   loadIcon('/assets/images/appwind.svg', 'appWindIcon', 14, 28);
 
@@ -64,6 +65,7 @@ function VectorTileLayer(params, renderer) {
   this.queueSeconds = undefined;
   this.currentTime = undefined;
   this.tailColor = undefined;
+  this.allTrack = undefined;
   this.outOfTailColor = '#888888';
   this.outOfTailWidth = .3;
 
@@ -90,6 +92,20 @@ function VectorTileLayer(params, renderer) {
   if (!this.params.maxSimultaneousLoads) this.params.maxSimultaneousLoads = 3;
 
 
+}
+
+VectorTileLayer.prototype.buildUrl = function(boatId,starts,end) {
+  var params=[boatId], url;
+  if(starts){
+    params=params.concat(starts,end);
+  }
+  //
+  // nice way to build url
+  url=function(scale,x,y) {
+    return ["/api/tiles/raw",scale,x,y].concat(params).join('/')
+  };
+
+  this.setUrl(url);
 }
 
 VectorTileLayer.prototype.setUrl = function(url) {
@@ -337,27 +353,35 @@ VectorTileLayer.prototype.checkIfTail = function(point) {
   return (pointTime.getTime() >= queueTime && pointTime.getTime() <= this.currentTime.getTime());
 };
 
+VectorTileLayer.prototype.colorForVmgPerf = function(point) {
+  var currentPerf = perfAtPoint(point);
+
+  if (isNaN(currentPerf)) {
+    return this.colorSpectrum[0];
+  }
+  for(var i=0; i<this.vmgPerf.length; i++) {
+    if (currentPerf <= this.vmgPerf[i]) {
+      return this.colorSpectrum[i];
+    }
+  }
+  return this.colorSpectrum[this.colorSpectrum.length - 1];
+}
+
 VectorTileLayer.prototype.colorForPoint = function(point) {
   if (this.queueSeconds) {
     if (this.checkIfTail(point)) {
       if (this.tailColor) {
         return this.tailColor;
       }
-      var currentPerf = perfAtPoint(point);
-
-      if (isNaN(currentPerf)) {
-        return this.colorSpectrum[0];
-      }
-      for(var i=0; i<this.vmgPerf.length; i++) {
-        if (currentPerf <= this.vmgPerf[i]) {
-          return this.colorSpectrum[i];
-        }
-      }
-      return this.colorSpectrum[this.colorSpectrum.length - 1];
+      return this.colorForVmgPerf(point);
     } else {
       return this.outOfTailColor;
     }
   } else {
+    // VMG Perf color for the whole trajectory
+    if(this.allTrack)
+      return this.colorForVmgPerf(point);
+
     // default color when no tail is displayed
     return '#FF0033';
   }
@@ -516,8 +540,8 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
     context.strokeStyle = '#ff0033';
     context.stroke();
 
-    var l = 40 * pixelRatio;
-    var w = 20 * pixelRatio;
+    var l = this.boatIcon.height * pixelRatio;
+    var w = this.boatIcon.width * pixelRatio;
     context.drawImage(this.boatIcon,
                       - w/2,
                       - l/2,

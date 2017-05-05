@@ -1,45 +1,135 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
 <div class="container challenges">
-<div class="row">
-    <div class="col-md-4" ng-repeat="challenge in challenges" ng-show="isAdmin() || isLoggedIn()">
-        <div class="panel panel-default">
+<div class="record">
+    <div class="col-md-12">
+        <div class="panel panel-default challenge-types">
             <div class="panel-heading">
                 <h3 class="panel-title">
-                    <a class="ng-binding" href="challenge/list">{{challenge.name}}</a>
+                    The fastest on ...
                 </h3>
             </div>
-            <div class="panel-body">
-                <a href="challenge/list">
-                    <img src="assets/images/empty.image.png">
-                </a>
-                <div class="description">{{challenge.description}}</div>
+            <div class="panel-body challenge-container is-slick-slider" breakpoints="breakpoints">
+                <div class="challenge" ng-repeat="challenge in challenges">
+                    <div class="circle {{challenge.classes}}" 
+                        ng-class="{'selected' : selectedChallenge == $index, 'default-challenge' : $first }"
+                        ng-init="defaultChallenge($first, challenge)"
+                        ng-click="selectChallenge($index, challenge)">
+                        <label 
+                        ng-class="{'km' : challenge.name.indexOf('km') > -1, 
+                                'minutes' : challenge.name.indexOf('minutes') > -1,
+                                'hour' : challenge.name.indexOf('hour') > -1,
+                                'hours' : challenge.name.indexOf('hours') > -1}">{{challenge.name}}</label>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4" ng-show="isAdmin()">
-        <div class="panel panel-default">
+        
+        <div class="panel panel-default challenge-records" ng-show="selectedChallenge >= 0 && selectedChallenge != null">
             <div class="panel-heading">
                 <h3 class="panel-title">
-                    <a class="ng-binding" href="challenge/list">Add Challenge</a>
+                    {{challengeName}}
                 </h3>
             </div>
             <div class="panel-body">
-                <a href="challenge/list">
-                    <img src="assets/images/add.challenge.png">
-                </a>
-                <div class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris odio nunc, 
-                accumsan vitae tristique faucibus, vulputate ut turpis. </div>
+                <form class="navbar-form navbar-left" role="search">
+                    <div class="form-group custom-select">
+                        <select id="class" name="class" class="selectpicker">
+                            <option data-hidden="true">CLASS</option>
+                            <option value="seascape 1">Seascape 1</option>
+                            <option value="seascape 2">Seascape 2</option>
+                        </select>
+                    </div>
+                    <div class="form-group custom-select">
+                        <select id="length" name="length" class="selectpicker">
+                            <option data-hidden="true">LENGTH</option>
+                            <option value="3-5">3-5m</option>
+                            <option value="5-7">5-7m</option>
+                        </select>
+                    </div>
+                    <div class="form-group custom-select">
+                        <select id="type" name="type" class="selectpicker">
+                            <option data-hidden="true">TYPE</option>
+                            <option value="monohull">Monohull</option>
+                            <option value="multihull">Multihull</option>
+                        </select>
+                    </div>
+                    <div class="form-group custom-select">
+                        <select id="class" name="class" class="selectpicker">
+                            <option data-hidden="true">ALL TIME</option>
+                            <option value="test 1">Oct 2016</option>
+                            <option value="test 2">Sept 2016</option>
+                        </select>
+                    </div>
+                    <div class="boat-label">
+                        <label for="boat">Irene:</label>
+                        <span>Not ranked on 8 boats</span>
+                    </div>
+                </form>
+
+                
+                
+                <table class="table sortable-custom"> 
+                    <thead> 
+                        <tr> 
+                            <th class="arrow record heading" reverse="reverse" ng-click="sortBy('rank')">Rank</th> 
+                            <th class="arrow record heading" reverse="reverse" ng-click="sortBy('name')">Name</th> 
+                            <th class="arrow record heading hidden-sm hidden-xs" reverse="reverse" ng-click="sortBy('boat')">Boat Type</th>
+                            <th class="arrow record heading hidden-sm hidden-xs" reverse="reverse" ng-click="sortBy('speed')">Speed</th>
+                            <th class="arrow record heading hidden-sm hidden-xs" reverse="reverse" ng-click="sortBy('distance')">Distance</th>
+                            <th class="hidden-sm hidden-xs">Time Elapsed</th>
+                            <th class="arrow record heading hidden-xs" reverse="reverse" ng-click="sortBy('startTime')">Date</th>
+                            <th class="text-center">Track</th>
+                            <th class="text-center">&nbsp;</th>
+                            
+                            
+                        </tr> 
+                    </thead> 
+                    <tbody> 
+                        <tr ng-repeat="record in challengeList | orderBy:defaultOrder:reverse"> 
+                            <th>{{record.rank}}</th> 
+                            <td><a href="/challenge/details">{{record.name}}</a></td> 
+                            <td class="details hidden-sm hidden-xs">
+                                {{record.type}}
+                                <a href="#" class="with-popover" ng-click="fillDetails(record)" uib-popover-template="sharePopup.templateUrl" popover-title="{{sharePopup.title}}">
+                                    <img src="assets/images/information_black.svg">
+                                </a>
+                            </td>
+                            <td class="hidden-sm hidden-xs">{{record.speed}} {{record.speedUnit}}</td>
+                            <td class="hidden-sm hidden-xs">{{record.distance}}</td>
+                            <td class="hidden-sm hidden-xs">{{[record.startTime, record.endTime] | timeSpan}}</td>
+                            <td class="hidden-xs">{{record.startTime | date: 'd.M.yyyy H:mm'}}</td>
+                            <td class="text-center track"><a href="#"><img src="assets/images/tracking.svg"></a></td>
+                            <td class="text-center share"><a href="#" ng-click="showModal(record);" user-details="record"><img src="assets/images/share-3.svg"></a></td>
+                        </tr> 
+                        <tr>
+                    </tbody> 
+                </table>
             </div>
         </div>
     </div>
 </div>
 
+<script type="text/ng-template" id="shareTemplate.html">
+    <div class="details-popup">
+        <div class="left-side">
+            <div class="line">
+                <label for="boat-name">Boat name: </label><span>&nbsp;{{detail.boat}}</span>
+            </div>
+            <div class="line">
+                <label for="boat-class">Class: </label><span>&nbsp;{{detail.class}}</span>
+            </div>
+            <div class="line">
+                <label for="boat-number">Sail number: </label><span>&nbsp;{{detail.number}}</span>
+            </div>
+            <div class="line">
+                <label for="boat-length">Length: </label><span>&nbsp;{{detail.length}}</span>
+            </div>
+        </div>
+        <div class="right-side">
+            <img src="/assets/images/sample-image.jpg">
+        </div>
+    </div>
+</script>
 
 </div>
-
-<footer class="footer">
-  <div class="container">
-      <p><a href="http://anemomind.com">Anemomind</a></p>
-  </div>
-</footer>

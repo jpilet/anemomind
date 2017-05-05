@@ -29,7 +29,9 @@ PageWriter::PageWriter(
       _basePath(basePath),
       _name(name),
       _document(doc),
-      _counter(0) {}
+      _counter(0) {
+  CHECK(doc);
+}
 
 std::string PageWriter::fullFilename() const {
   return PathBuilder::makeDirectory(_basePath)
@@ -44,12 +46,14 @@ std::string PageWriter::generateName() {
 }
 
 PageWriter::Ptr PageWriter::makeSubPageWriter(AutoPtr<Document> doc) {
+  CHECK(doc);
   return std::make_shared<PageWriter>(_basePath, generateName(), doc);
 }
 
 void writeHtmlFile(
     const std::string &filename,
     Poco::XML::AutoPtr<Poco::XML::Document> document) {
+  CHECK(document);
   std::ofstream file(filename);
   file << "<!DOCTYPE html>\n";
   DOMWriter writer;
@@ -69,7 +73,7 @@ Poco::Path PageWriter::generatePath(const std::string &suffix) {
 }
 
 bool Node::defined() const {
-  return bool(element) && bool(document) && bool(writer);
+  return bool(element) && bool(document);
 }
 
 void Node::setAttribute(
@@ -96,6 +100,12 @@ void Node::error() {
 
 void Node::interesting() {
   setClass("interesting");
+}
+
+Poco::Path generatePath(const Node& src, const std::string &suffix) {
+  return src.writer?
+    src.writer->generatePath(suffix)
+    : Poco::Path();
 }
 
 Node makeRootNode(const std::string &name) {
@@ -161,6 +171,7 @@ Node makeBasicHtmlPage(const std::string &titleString,
     const std::string &basePath,
     const std::string &name) {
   auto page = makeBasicHtmlPage(titleString);
+  CHECK(page.document);
   page.writer = std::make_shared<PageWriter>(
     basePath, name, page.document);
   return page;
@@ -173,6 +184,7 @@ Node linkToSubPage(Node *parent, const std::string title) {
     return Node();
   }
   auto subPage = makeBasicHtmlPage(title);
+  CHECK(subPage.document);
   subPage.writer = parent->writer->makeSubPageWriter(subPage.document);
   auto a = makeSubNode(parent, "a");
   a.element->setAttribute(toXMLString("href"),
