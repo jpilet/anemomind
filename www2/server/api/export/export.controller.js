@@ -41,7 +41,7 @@ function csvEscape(s) {
 function sendCsv(res, columns, table) {
 
   var row = [ "Time" ];
-  for (var c in columns) { row[columns[c]] = csvEscape(c); }
+  for (var c in columns) { row[1 + columns[c]] = csvEscape(c); }
   res.write(row.join(', ') + '\n');
 
   var times = Object.keys(table);
