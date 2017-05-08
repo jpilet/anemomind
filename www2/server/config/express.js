@@ -28,7 +28,6 @@ module.exports = function(app) {
   // app.use(compression());
   app.use(bodyParser.urlencoded({limit: '2mb',  extended: false }));
   app.use(bodyParser.json({ limit: '2mb' }));
-  app.use(bodyParser.raw({type: 'application/octet-stream', limit: '10mb'}));
   app.use(methodOverride());
   app.use(cookieParser());
   app.use(passport.initialize());
