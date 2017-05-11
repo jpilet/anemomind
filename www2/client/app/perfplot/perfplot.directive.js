@@ -179,10 +179,16 @@ angular.module('www2App')
           graph.draw();
         };
 
+        var zoomRefreshTimeout;
         graph.onZoom = function() {
-          var d =graph.x.domain();
-          $scope.startTime = new Date(d[0]);
-          $scope.endTime = new Date(d[1]);
+          if (zoomRefreshTimeout) {
+            $timeout.cancel(zoomRefreshTimeout);
+          }
+          zoomRefreshTimeout = $timeout(function() {
+            var d =graph.x.domain();
+            $scope.startTime = new Date(d[0]);
+            $scope.endTime = new Date(d[1]);
+          }, 100);
         };
 
         var selectionChanged = function() {
