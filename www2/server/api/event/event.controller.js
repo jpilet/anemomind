@@ -106,9 +106,6 @@ exports.show = function(req, res) {
 
     canRead(req, event)
     .then(function() {
-      return extendEventWithBoatData(event);
-    })
-    .then(function(event) {
       res.json(event);
     })
     .catch(function(err) {
