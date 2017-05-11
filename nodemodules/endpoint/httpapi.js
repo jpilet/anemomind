@@ -93,7 +93,10 @@ function make(router, accessEndpoint, errorLogger0) {
   var logError = wrapErrorLogger(errorLogger0);
 
   function withEndpoint(req, res, onAccessErrorData, accessor) {
-    accessEndpoint(req.params.name, function(err, endpoint, cb) {
+    accessEndpoint({
+      name: req.params.name,
+      req: req
+    }, function(err, endpoint, cb) {
       if (err) {
         logError("Failed to access endpoint: " + err);
         res.status(internalServerError).send(onAccessErrorData);
