@@ -237,7 +237,6 @@ Graph.prototype.setTimeBounds = function(startTime, endTime) {
 
 Graph.prototype.setYBounds = function(data) {
   if (data.length > 1) {
-    var me = this;
     var getField = function(d) { return d.value; };
     this.y.domain([
       Math.min(0, d3.min(data, getField)),
@@ -266,10 +265,12 @@ Graph.prototype.draw = function() {
   var svg = this.svg;
   svg.select("g.x.axis").call(this.xAxis);
   svg.select("g.y.axis").call(this.yAxis);
-  svg.select("path.area").attr("d", this.area);
-  svg.select("#lowLine").attr("d", this.lowLine);
-  svg.select("#highLine").attr("d", this.highLine);
-  svg.select("#mainLine").attr("d", this.line);
+  if (this.hasData) {
+    svg.select("path.area").attr("d", this.area);
+    svg.select("#lowLine").attr("d", this.lowLine);
+    svg.select("#highLine").attr("d", this.highLine);
+    svg.select("#mainLine").attr("d", this.line);
+  }
 
   var x = this.x;
   var selection = this.svg.select("g.timeMarks").selectAll("rect").data(this.times);
@@ -313,16 +314,17 @@ Graph.prototype.prepareTileData = function() {
       }
     });
 
-    if (data.length == 0 && dataPending) {
-      return false;
+
+    if (data.length > 0) {
+      this.hasData = true;
+      this.setYBounds(data);
+      this.svg.select("path.area").data([data]);
+      this.svg.select("#mainLine").data([data]);
+      this.svg.select("#lowLine").data([data]);
+      this.svg.select("#highLine").data([data]);
+    } else {
+      this.hasData = false;
     }
-
-    this.setYBounds(data);
-
-    this.svg.select("path.area").data([data]);
-    this.svg.select("#mainLine").data([data]);
-    this.svg.select("#lowLine").data([data]);
-    this.svg.select("#highLine").data([data]);
 
     return true;
   }
