@@ -4,8 +4,7 @@ var express = require('express');
 var httpapi = require('endpoint/httpapi.js');
 var lep = require('../../../LocalEndpoint.js');
 
-function accessLocalEndpoint(args, f) {
-  var name = args.name;
+function accessLocalEndpoint(name, f) {
   lep.withNamedLocalEndpointValidated(name, function(ep, cb) {
     f(null, ep, cb);
   }, function(err) {
