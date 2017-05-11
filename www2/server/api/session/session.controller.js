@@ -19,7 +19,7 @@ module.exports.getSessionById = function(req, res, next) {
     } else if (!session || !session.boat) {
       res.status(400).send();
     } else {
-      boatAccess.userCanRead(req.user, session.boat)
+      boatAccess.userCanReadBoatId(req.user, session.boat)
       .then(function() {
         res.status(200).json(session);
       })
