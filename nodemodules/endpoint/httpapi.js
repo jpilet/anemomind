@@ -34,6 +34,19 @@ function encodePacket(packet) {
   }
 }
 
+function decodePacket(data) {
+  if (!(data instanceof Buffer)) {
+    return failure("Not a buffer");
+  } else if (data.length < 1) {
+    return failure("Size of the buffer should be at least 1 (to contain the label)");
+  } else {
+    return success({
+      label: data[0],
+      data: data.slice(1)
+    });
+  }
+}
+
 /* 
 
 Make a router for accessing an endpoint.
@@ -80,7 +93,10 @@ function make(router, accessEndpoint, errorLogger0) {
   var logError = wrapErrorLogger(errorLogger0);
 
   function withEndpoint(req, res, onAccessErrorData, accessor) {
-    accessEndpoint(req.params.name, function(err, endpoint, cb) {
+    accessEndpoint({
+      name: req.params.name,
+      req: req
+    }, function(err, endpoint, cb) {
       if (err) {
         logError("Failed to access endpoint: " + err);
         res.status(internalServerError).send(onAccessErrorData);
@@ -122,6 +138,32 @@ function make(router, accessEndpoint, errorLogger0) {
         }
       });
     });
+  });
+
+  router.put('/putPacket/:name/:src/:dst/:seqNumber', function(req, res) {
+    var packetData = decodePacket(req.body);
+    if (packetData.success) {
+      withEndpoint(req, res, null, function(endpoint, cb) {
+        var packet = packetData.success;
+        packet.src = req.params.src;
+        packet.dst = req.params.dst;
+        packet.seqNumber = req.params.seqNumber;
+        endpoint.putPacket(packet, function(err) {
+          if (err) {
+            res.status(badRequest).send();
+            logError("Failed to put packet in endpoint");
+            cb();
+          } else {
+            res.send();
+            cb();
+          }
+        });
+      });
+    } else {
+      console.log("Failed to decode packet in putPacket: %j", 
+                  packetData);
+      res.status(badRequest).send();
+    }
   });
 
   // Hesitant if I should call it just 'summary', but 'getSummary' is more clear and
@@ -167,3 +209,4 @@ function make(router, accessEndpoint, errorLogger0) {
 
 module.exports.make = make;
 module.exports.encodePacket = encodePacket;
+module.exports.decodePacket = decodePacket;

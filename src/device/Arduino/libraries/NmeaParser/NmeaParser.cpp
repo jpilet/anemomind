@@ -167,6 +167,7 @@ NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
     argc_ = 1;
     argv_[0] = data_;
     state_ = NP_STATE_CMD;
+    /* no break */
 
   // Retrieve command (NMEA Address)
   case NP_STATE_CMD :

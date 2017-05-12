@@ -29,7 +29,9 @@ PageWriter::PageWriter(
       _basePath(basePath),
       _name(name),
       _document(doc),
-      _counter(0) {}
+      _counter(0) {
+  CHECK(doc);
+}
 
 std::string PageWriter::fullFilename() const {
   return PathBuilder::makeDirectory(_basePath)
@@ -44,12 +46,14 @@ std::string PageWriter::generateName() {
 }
 
 PageWriter::Ptr PageWriter::makeSubPageWriter(AutoPtr<Document> doc) {
+  CHECK(doc);
   return std::make_shared<PageWriter>(_basePath, generateName(), doc);
 }
 
 void writeHtmlFile(
     const std::string &filename,
     Poco::XML::AutoPtr<Poco::XML::Document> document) {
+  CHECK(document);
   std::ofstream file(filename);
   file << "<!DOCTYPE html>\n";
   DOMWriter writer;
@@ -59,6 +63,7 @@ void writeHtmlFile(
 
 
 PageWriter::~PageWriter() {
+  std::cout << "Output HTML to " << fullFilename() << std::endl;
   writeHtmlFile(fullFilename(), _document);
 }
 
@@ -68,7 +73,7 @@ Poco::Path PageWriter::generatePath(const std::string &suffix) {
 }
 
 bool Node::defined() const {
-  return bool(element);
+  return bool(element) && bool(document);
 }
 
 void Node::setAttribute(
@@ -91,6 +96,16 @@ void Node::warning() {
 }
 void Node::error() {
   setClass("error");
+}
+
+void Node::interesting() {
+  setClass("interesting");
+}
+
+Poco::Path generatePath(const Node& src, const std::string &suffix) {
+  return src.writer?
+    src.writer->generatePath(suffix)
+    : Poco::Path();
 }
 
 Node makeRootNode(const std::string &name) {
@@ -132,12 +147,21 @@ void addTextNode(Node *node, const std::string &text) {
   node->element->appendChild(x);
 }
 
+void addLine(Node *parent, const std::string &text) {
+  addTextNode(parent, text + "\n");
+}
+
 Node makeBasicHtmlPage(const std::string &titleString) {
   auto page = makeRootNode("html");
   auto head = makeSubNode(&page, "head");
   auto title = makeSubNode(&head, "title");
   addSubTextNode(&head, "style",
-      "td, th {border: 1px solid black;} svg {margin: 30px; border: 1px solid black;} .warning {color: orange} .error {color: red} .success {color: green}");
+      "td, th {border: 1px solid black;} "
+      ".box {border: 1px solid black; padding: 0.5em; margin: 0.5em;} "
+      "svg {margin: 30px; border: 1px solid black;} "
+      ".warning {color: orange} .error {color: red} .interesting {color: magenta}"
+      ".success {color: green} "
+      "body {padding: 2em;} ");
   addTextNode(&title, titleString);
   auto body = makeSubNode(&page, "body");
   return body;
@@ -147,6 +171,7 @@ Node makeBasicHtmlPage(const std::string &titleString,
     const std::string &basePath,
     const std::string &name) {
   auto page = makeBasicHtmlPage(titleString);
+  CHECK(page.document);
   page.writer = std::make_shared<PageWriter>(
     basePath, name, page.document);
   return page;
@@ -159,6 +184,7 @@ Node linkToSubPage(Node *parent, const std::string title) {
     return Node();
   }
   auto subPage = makeBasicHtmlPage(title);
+  CHECK(subPage.document);
   subPage.writer = parent->writer->makeSubPageWriter(subPage.document);
   auto a = makeSubNode(parent, "a");
   a.element->setAttribute(toXMLString("href"),
@@ -179,6 +205,16 @@ Poco::Path makeGeneratedImageNode(Node *node,
       Poco::XML::toXMLString("src"),
       Poco::XML::toXMLString(p.getFileName()));
   return p;
+}
+
+Node displayLabeledString(const char *label, const std::string &s, Node *dst) {
+  auto div = DOM::makeSubNode(dst, "div");
+  div.setAttribute("class", "box");
+  DOM::addSubTextNode(&div, "p", "The value of");
+  DOM::addSubTextNode(&div, "pre", label);
+  DOM::addSubTextNode(&div, "p", "is");
+  DOM::addSubTextNode(&div, "pre", s);
+  return div;
 }
 
 }

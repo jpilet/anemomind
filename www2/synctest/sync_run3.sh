@@ -2,6 +2,8 @@
 set -e
 ./sync_init.sh 3
 sleep 16s
-node ../utilities/RunRemoteScript.js 57f678e612063872e749d481 sample_script.sh | grep "node" > /tmp/calltmp.txt
+WWW2_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+boatId=$(${WWW2_DIR}/synctest/get_devbox_boatid.sh)
+node ../utilities/RunRemoteScript.js ${boatId} sample_script.sh | grep "node" > /tmp/calltmp.txt
 echo "######################################################################################################################################################################################################################################################################################################################################################### Posted script"
 

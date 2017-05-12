@@ -1,0 +1,28 @@
+<div class="modal fade ng-scope share-modal" ng-class="{'in' : isVisible}" style="display: block;" aria-hidden="false" ng-controller="ShareCtrl">
+    <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="cls-btn" ng-click="closeModal()" data-dismiss="modal" aria-hidden="true">&nbsp;</button>
+        </div>
+        <div class="modal-body" ng-controller="ShareCtrl">
+            <div class="custom-modal-container">
+                <div class="icon-list">
+                    <ul>
+                        <li ng-repeat="icon in iconList" class="{{icon.name}}">
+                            <i class="anemomind-icon" aria-hidden="true"></i>
+                        </li>
+                    </ul>
+                </div>
+                <div class="share-box">
+                    <textarea>{{shareMe}}</textarea>
+                    <button type="button" class="btn btn-default" ng-click="updateText()">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+<div class="modal-backdrop fade in"></div>
+
+

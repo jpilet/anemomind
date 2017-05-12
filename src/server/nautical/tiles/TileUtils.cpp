@@ -13,6 +13,7 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/tiles/NavTileUploader.h>
 #include <server/nautical/tiles/TileUtils.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 
@@ -43,14 +44,10 @@ void splitMotionsIntoAnglesAndNorms(
 
 template <DataCode code>
 std::string makeFilteredGpsName(const NavDataset &src) {
-  auto d = src.dispatcher();
-  if (d->has(code)) {
-    auto x = src.dispatcher()->get<code>();
-    if (x != nullptr) {
-      return x->source() + " merged+filtered";
-    }
-  }
-  return "merged+filtered";
+  std::shared_ptr<DispatchData> d(src.activeChannel(code));
+  CHECK(d);
+
+  return d->source() + " merged+filtered";
 }
 
 }  // namespace
@@ -59,7 +56,9 @@ NavDataset filterNavs(
     const NavDataset& navs,
     DOM::Node *dst,
     const GpsFilterSettings& settings) {
-  auto results = filterGpsData(navs, dst, settings);
+  DOM::Node gpsFilterReport = DOM::linkToSubPage(dst, "GPS filter output");
+
+  GpsFilterResults results = filterGpsData(navs, &gpsFilterReport, settings);
   if (results.empty()) {
     LOG(ERROR) << "GPS filtering failed";
     return NavDataset();
@@ -77,15 +76,15 @@ NavDataset filterNavs(
   // In short, we need to make sure that NavDataset::stripChannel doesn't
   // throw away valid data that has already been merged.
   NavDataset cleanGps = navs
-    .replaceChannel<GeographicPosition<double> >(
+    .addAndSelectChannel<GeographicPosition<double> >(
       GPS_POS,
       makeFilteredGpsName<GPS_POS>(navs),
       results.positions)
-    .replaceChannel<Velocity<double> >(
+    .addAndSelectChannel<Velocity<double> >(
       GPS_SPEED,
       makeFilteredGpsName<GPS_SPEED>(navs),
       gpsSpeeds)
-    .replaceChannel<Angle<double> >(
+    .addAndSelectChannel<Angle<double> >(
       GPS_BEARING,
       makeFilteredGpsName<GPS_BEARING>(navs),
       gpsBearings);

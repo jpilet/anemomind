@@ -30,7 +30,7 @@
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
-#include <server/common/DOMUtils.h>
+#include <server/nautical/MaxSpeed.h>
 #include <server/common/Json.impl.h> // This one should probably be the last one.
 
 namespace sail {
@@ -296,6 +296,25 @@ void BoatLogProcessor::grammarDebug(
   }
 }
 
+void outputSessionSummary(const NavDataset &ds, DOM::Node *dst) {
+  Optional<TimedValue<Velocity<>>> instant = computeInstantMaxSpeed(ds);
+  Optional<TimedValue<Velocity<>>> period = computeMaxSpeedOverPeriod(ds);
+  DOM::addSubTextNode(dst, "li",
+      stringFormat("Max speed instant: %.3g knots, over period: %.3g",
+          instant.defined()? instant.get().value.knots() : 0.0,
+          period.defined()? period.get().value.knots() : 0.0));
+}
+
+void outputInfoPerSession(
+    const Array<NavDataset> &sessions,
+    DOM::Node *log) {
+  DOM::addSubTextNode(log, "h2", "Sessions");
+  auto ul = DOM::makeSubNode(log, "ul");
+  for (auto s: sessions) {
+    outputSessionSummary(s, &ul);
+  }
+}
+
 
 //
 // high-level processing logic
@@ -312,30 +331,24 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
-  DOM::Node htmlReport;
-  if (!_htmlReportName.empty()) {
-    htmlReport = DOM::makeBasicHtmlPage("Boat log processor",
-        _dstPath.toString(), _htmlReportName);
-  }
-
   NavDataset resampled;
 
   if (_resumeAfterPrepare.size() > 0) {
     resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    NavDataset raw = loadNavs(*amap, _boatid);
-    infoNavDataset("After loading", raw, &htmlReport);
+    NavDataset raw = removeStrangeGpsPositions(
+        loadNavs(*amap, _boatid));
+    infoNavDataset("After loading", raw);
 
+    auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?
     resampled = raw.createMergedChannels(
         std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
-        Duration<>::seconds(0.99));
-    infoNavDataset("After resampling GPS", resampled, &htmlReport);
+        minGpsSamplingPeriod);
+    infoNavDataset("After resampling GPS", resampled);
 
     if (_gpsFilter) {
-      resampled = filterNavs(resampled,
-          &htmlReport,
-          _gpsFilterSettings);
-      infoNavDataset("After filtering", resampled, &htmlReport);
+      resampled = filterNavs(resampled, &_htmlReport, _gpsFilterSettings);
+      infoNavDataset("After filtering", resampled);
     }
   }
 
@@ -368,6 +381,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   } else {
     LOG(WARNING) << "Calibration failed. Using default calib values.";
     calibrator.clear();
+    if (_saveDefaultCalib) {
+      calibrator.saveCalibration(&boatDatFile);
+    }
   }
 
   // First simulation pass: adds true wind
@@ -375,8 +391,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system
-  simulated.preferSource(std::set<DataCode>{TWS, TWDIR, TWA, VMG},
-                         "Simulated Anemomind estimator");
+  simulated = simulated.preferSourceOrCreateMergedChannels(
+      std::set<DataCode>{TWS, TWDIR, TWA, VMG},
+      "Simulated Anemomind estimator");
 
   if (_saveSimulated.size() > 0) {
     saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
@@ -400,39 +417,43 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     visualizeBoatDat(_dstPath);
   }
 
+  HTML_DISPLAY(_generateTiles, &_htmlReport);
   if (_generateTiles) {
     Array<NavDataset> sessions =
       extractAll("Sailing", simulated, _grammar.grammar, fulltree);
-
+    outputInfoPerSession(sessions, &_htmlReport);
     if (!generateAndUploadTiles(_boatid, sessions, &db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
       return false;
     }
   }
 
+  HTML_DISPLAY(_generateChartTiles, &_htmlReport);
   if (_generateChartTiles) {
-    if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)) {
+    if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)
+        || !uploadChartSourceIndex(simulated, _boatid, _chartTileSettings, &db)) {
       LOG(ERROR) << "Failed to upload chart tiles!";
       return false;
     }
   }
 
-  LOG(INFO) << "Processing time for " << _boatid << ": "
-    << (TimeStamp::now() - start).seconds() << " seconds.";
+  // Logging to cout and not LOG(INFO) because LOG(INFO) is disabled in
+  // production and we want to keep track of processing time.
+  std::cout << "Processing time for " << _boatid << ": "
+    << (TimeStamp::now() - start).seconds() << " seconds." << std::endl;
   return true;
 }
 
 void BoatLogProcessor::infoNavDataset(const std::string& info,
-                                      const NavDataset& ds,
-                                      DOM::Node *dst) {
+                                      const NavDataset& ds) {
   if (_debug) {
     std::cout << info << ": ";
     ds.outputSummary(&std::cout);
   }
-  DOM::addSubTextNode(dst, "h2", info);
+  DOM::addSubTextNode(&_htmlReport, "h2", info);
   std::stringstream ss;
   ds.outputSummary(&ss);
-  DOM::addSubTextNode(dst, "pre", ss.str());
+  DOM::addSubTextNode(&_htmlReport, "pre", ss.str());
 }
 
 void BoatLogProcessor::readArgs(ArgMap* amap) {
@@ -461,12 +482,17 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
           "grammar vmg samples" : "blind vmg samples");
   }
 
-
   _tileParams.curveCutThreshold = _gpsFilterSettings.subProblemThreshold;
 }
 
 bool BoatLogProcessor::prepare(ArgMap* amap) {
   readArgs(amap);
+
+  if (!_htmlReportName.empty()) {
+    _htmlReport = DOM::makeBasicHtmlPage("Boat log processor",
+          _dstPath.toString(), _htmlReportName);
+    _tileParams.log = _htmlReport;
+  }
 
   if (_generateTiles || _generateChartTiles) {
     if (!mongoConnect(_tileParams.dbHost,
@@ -562,6 +588,9 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
   amap.registerOption("--verbose-calib", "Enable debug output for calibration")
     .store(&processor._verboseCalibrator);
+
+  amap.registerOption("--save-default-calib", "Save default calibration values even if calibration failed")
+    .store(&processor._saveDefaultCalib);
 
   amap.registerOption("--explore", "Explore grammar tree")
     .store(&processor._exploreGrammar);

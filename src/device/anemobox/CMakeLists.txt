@@ -127,3 +127,22 @@ cxx_test(anemobox_SourcesTest
          gtest_main
         )
 
+add_library(anemobox_BinarySignal
+            BinarySignal.h
+            BinarySignal.cpp
+           )
+target_link_libraries(anemobox_BinarySignal
+                      common_TimeStamp
+                     )
+cxx_test(anemobox_BinarySignalTest
+         BinarySignalTest.cpp
+         gtest_main
+         anemobox_BinarySignal
+         common_logging
+        )
+
+cxx_test(anemobox_LocalArrayCopyTest
+  LocalArrayCopyTest.cpp
+  gtest_main
+  )
+  

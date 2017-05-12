@@ -14,6 +14,7 @@
 #include <Poco/Path.h>
 #include <server/common/Array.h>
 #include <memory>
+#include <sstream>
 
 namespace sail {
 namespace DOM {
@@ -63,7 +64,10 @@ struct Node {
   void success();
   void warning();
   void error();
+  void interesting();
 };
+
+Poco::Path generatePath(const Node& src, const std::string &suffix);
 
 // Even if functions below accept a pointer to a Node,
 // that pointer must never be a null pointer. To represent
@@ -76,6 +80,7 @@ struct Node {
 Node makeRootNode(const std::string &name);
 Node makeSubNode(Node *parent, const std::string &name);
 void addTextNode(Node *parent, const std::string &text);
+void addLine(Node *parent, const std::string &text);
 Node addSubTextNode(Node *node,
     const std::string &name,
     const std::string &data);
@@ -89,9 +94,14 @@ void writeHtmlFile(
     const std::string &filename,
     Poco::XML::AutoPtr<Poco::XML::Document> document);
 
-Node linkToSubPage(Node parent, const std::string title);
+Node linkToSubPage(Node *parent, const std::string title);
 Poco::Path makeGeneratedImageNode(
-    Node node, const std::string &filenameSuffix);
+    Node *node, const std::string &filenameSuffix);
+template <typename T> std::string objectToString(const T &x) {
+  std::stringstream ss; ss << x; return ss.str();
+}
+Node displayLabeledString(const char *label, const std::string &s, Node *dst);
+#define HTML_DISPLAY(x, dst) if ((dst)->defined()) {DOM::displayLabeledString(#x, objectToString(x), (dst));}
 
 }
 } /* namespace sail */

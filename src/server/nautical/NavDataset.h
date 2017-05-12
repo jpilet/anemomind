@@ -34,7 +34,12 @@ class TimedSampleRange : public SampledSignal<T> {
   typedef typename TimedVector::const_iterator Iterator;
   typedef TimedSampleRange<T> ThisType;
 
-  TimedSampleRange() : _defined(false) {}
+  static const TimedVector& emptyVector() { static TimedVector e; return e; }
+
+  TimedSampleRange() :
+      _defined(false),
+      _begin(emptyVector().begin()),
+      _end(emptyVector().end()) {}
 
   TimedSampleRange(const Iterator &b, const Iterator &e) :
     _defined(b <= e), _begin(b), _end(e) {}
@@ -198,7 +203,7 @@ public:
       DataCode code,
       const std::string& source,
       const typename TimedSampleCollection<T>::TimedVector& values) const {
-    NavDataset r(addChannel(code, source, values));
+    NavDataset r(addChannel<T>(code, source, values));
     r.selectSource(code, source);
     return r;
   }
@@ -309,6 +314,9 @@ public:
     _activeSource.erase(code);
   }
 
+  NavDataset preferSourceOrCreateMergedChannels(
+      std::set<DataCode> channelSelection,
+      const std::string& source) const;
 private:
 
   // Undefined _lowerBound means negative infinity,

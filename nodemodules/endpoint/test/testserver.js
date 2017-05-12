@@ -19,9 +19,19 @@ MockEndpoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
   }
 }
 
+MockEndpoint.prototype.putPacket = function(p, cb) {
+  if (p.src == 'x' && p.dst == 'y' && p.seqNumber == 'deadbeef'
+      && p.label == 119 && p.data.equals(new Buffer([9, 0]))) {
+    cb();
+  } else {
+    cb('Failed to put packet');
+  }
+}
+
 var mock = new MockEndpoint();
 
-function mockAccess(name, f) {
+function mockAccess(args, f) {
+  var name = args.name;
   if (name == 'mock') {
     f(null, mock, function(err) {/*nothing to clean up*/});
   } else {
@@ -30,6 +40,7 @@ function mockAccess(name, f) {
 }
 
 app.use(bodyParser.json());
+app.use(bodyParser.raw({type: 'application/octet-stream', limit: '10mb'}));
 app.use('/mockendpoint', httpapi.make(express.Router(), mockAccess));
 
 module.exports.app = app;

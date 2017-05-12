@@ -71,7 +71,7 @@ exports.index = function(req, res) {
 
 // Get a single boat
 exports.show = function(req, res) {
-  Boat.findById(req.params.id, function (err, boat) {
+  Boat.findById(req.params.boatId, function (err, boat) {
     if(err) { return handleError(res, err); }
     if (!userCanRead(req.user, boat)) { return res.sendStatus(403); }
     if(!boat) { return res.sendStatus(404); }
@@ -104,15 +104,57 @@ exports.create = function(req, res) {
     }
   }
 
-  Boat.create(boat, function(err, boat) {
+  Boat.create(boat, function(err, createdBoat) {
     if (err) {
       if (err.code == 11000) {
         // Duplicate key error.
-        return res.sendStatus(400);
+        // Check if boatid, boat name and boxid match. If so, grant access.
+        Boat.findById(id, function(err, dbBoat) {
+          if (err) {
+            // that should not happen
+            console.warn('Duplication error when creating a boat, but can\'t fetch'
+              + ' the duplicated boat! id: ' + id);
+            res.sendStatus(500);
+          } else {
+            if ('' + dbBoat._id == '' + id
+                && dbBoat.anemobox
+                && dbBoat.anemobox === boat.anemobox
+                && dbBoat.name === boat.name) {
+              // it is a match. So we assume the user got all these information
+              // by connection to the boat anemobox, and it should have access.
+              if (!userCanWrite(req.user, dbBoat)) {
+                dbBoat.admins.push(user);
+                console.warn('Grant-on-create succeeded for user ' + user
+                  + ' on boat ' + dbBoat._id + ' (' + dbBoat.name + ')');
+                dbBoat.save(function (err) {
+                  if (err) { return handleError(res, err); }
+                  return res.status(201).json(dbBoat);
+                });
+              } else {
+                // a user tries to create a boat twice. Well, that should not occur,
+                // but it is no big deal. Let's pretend it worked.
+                console.warn('User: ' + user + ' re-created boat ' + id
+                             + ', it could be a bug in the app');
+                return res.status(201).json(dbBoat);
+              }
+            } else {
+              // The boat already exists but does not match.
+              // We can't grant access.
+              console.log('Grant-on-create refused because '
+                + id + ' != ' + dbBoat._id
+                + ' || ' + boat.name + ' != ' + dbBoat.name
+                + ' || ' + boat.anemobox + ' != ' + dbBoat.anemobox);
+              return res.sendStatus(400);
+            }
+          }
+        });
+      } else {
+        return handleError(res, err);
       }
-      return handleError(res, err);
+    } else {
+      // creation worked.
+      return res.status(201).json(createdBoat);
     }
-    return res.status(201).json(boat);
   });
 };
 

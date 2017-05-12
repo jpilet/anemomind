@@ -23,6 +23,31 @@ bool mongoConnect(const std::string& host,
                   const std::string& passwd,
                   mongo::DBClientConnection* db);
 
+class BulkInserter : private boost::noncopyable {
+ public:
+  BulkInserter(const std::string& table, int batchSize,
+               mongo::DBClientConnection* db)
+    : _table(table), _db(db), _batchSize(batchSize), _success(true) { }
+
+  ~BulkInserter() { finish(); }
+
+  bool insert(const mongo::BSONObj& obj);
+
+  bool finish();
+
+  mongo::DBClientConnection* db() const { return _db; }
+
+ private:
+  std::string _table;
+  mongo::DBClientConnection* _db;
+  std::vector<mongo::BSONObj> _toInsert;
+  int _batchSize;
+  bool _success;
+};
+
+
+
+
 };  // namespace sail
 
 #endif  // NAUTICAL_TILES_MONGO_UTILS_H

@@ -27,7 +27,10 @@ function fetchTiles(boatId, scale, x, y, startsAfter, endsBefore, callback) {
                         y,
                         startsAfter,
                         endsBefore);
-  Tiles.find(query, function(err, tiles) {
+  // This query might return many tiles. The lean() call tells mongoose to
+  // pass raw objects instead of trying to apply magic to them. There is a
+  // significant speed difference!
+  Tiles.find(query).lean().exec(function(err, tiles) {
     if (err) {
       return callback(err, null);
     }

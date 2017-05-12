@@ -2,6 +2,7 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 #include <algorithm>
+#include <boost/noncopyable.hpp>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <server/common/Optional.h>
 #include <server/common/Span.h>
@@ -92,6 +93,28 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
   }
   return result.arr();
 }
+
+class TileInserter : public BulkInserter {
+ public:
+  TileInserter(const TileGeneratorParameters& params, DBClientConnection* db)
+    : BulkInserter(params.tileTable(), 1000, db), _params(params) { }
+
+  bool insert(const BSONObj& obj) {
+    if (!_params.fullClean) {
+      safeMongoOps("cleaning old tiles",
+          db(), [=](DBClientConnection *db) {
+        db->remove(_params.tileTable(),
+                   MONGO_QUERY("key" << obj["key"]
+                         << "boat" << obj["boat"]
+                         << "startTime" << GTE << obj["startTime"]
+                         << "endTime" << LTE << obj["endTime"]));
+      });
+    }
+    return BulkInserter::insert(obj);
+  }
+ private:
+  const TileGeneratorParameters& _params;
+};
 
 bool insertOrUpdateTile(const BSONObj& obj,
     const TileGeneratorParameters& params,
@@ -254,17 +277,23 @@ BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
     NavDataset navs,
-    const Array<Nav>& navArray) {
+    const Array<Nav>& navArray,
+    DOM::Node *li) {
   BSONObjBuilder session;
   session.append("_id", curveId);
   session.append("boat", OID(boatId));
   session.append("trajectoryLength",
       computeTrajectoryLength(navs).nauticalMiles());
 
-  Optional<MaxSpeed> maxSpeed = computeMaxSpeed(navs, Duration<>::seconds(60));
+  Optional<TimedValue<Velocity<double>>> maxSpeed =
+    computeMaxSpeedOverPeriod(navs);
+
   if (maxSpeed.defined()) {
-    session.append("maxSpeedOverGround", maxSpeed.get().speed.knots());
-    append(session, "maxSpeedOverGroundTime", maxSpeed.get().begin);
+    DOM::addSubTextNode(li, "p",
+        stringFormat("BSON session max speed: %.3g knots",
+            maxSpeed.get().value.knots()));
+    session.append("maxSpeedOverGround", maxSpeed.get().value.knots());
+    append(session, "maxSpeedOverGroundTime", maxSpeed.get().time);
   } else {
     LOG(WARNING) << "The max speed is not defined for curve '"
         << curveId << "' and boat '" << boatId << "'";
@@ -341,10 +370,19 @@ bool generateAndUploadTiles(std::string boatId,
                MONGO_QUERY("boat" << OID(boatId)));
   }
 
+  TileInserter inserter(params, db);
+  DOM::Node d2 = params.log; // Workaround
+  auto page = DOM::linkToSubPage(&d2, "generateAndUploadTiles");
+  auto ul = DOM::makeSubNode(&page, "ul");
   for (const NavDataset& curve : allNavs) {
+    auto li = DOM::makeSubNode(&ul, "li");
+
     Array<Nav> navs = makeArray(curve);
 
     std::string curveId = tileCurveId(boatId, curve);
+
+    DOM::addSubTextNode(&li, "p",
+        stringFormat("Curve with id %s and %d navs", curveId.c_str(), navs.size()));
 
     map<TileKey, vector<int>> tiles = tilesForNav(navs, params.maxScale);
 
@@ -362,17 +400,18 @@ bool generateAndUploadTiles(std::string boatId,
 
       BSONObj tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
 
-      if (!insertOrUpdateTile(tile, params, db)) {
+      if (!inserter.insert(tile)) {
         // There is no point to continue if we can't write to the DB.
         return false;
       }
     }
-    BSONObj session = makeBsonSession(curveId, boatId, curve, navs);
+    BSONObj session = makeBsonSession(curveId, boatId, curve, navs, &li);
     if (!insertSession(session, params, db)) {
       return false;
     }
   }
-  return true;
+
+  return inserter.finish();
 }
 
 }  // namespace sail

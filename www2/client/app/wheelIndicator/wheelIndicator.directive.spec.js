@@ -7,9 +7,17 @@ describe('Directive: wheelIndicator', function () {
   beforeEach(module('app/wheelIndicator/wheelIndicator.html'));
 
   var element, scope;
+  var $httpBackend;
 
-  beforeEach(inject(function ($rootScope) {
+  beforeEach(inject(function ($rootScope, $injector) {
     scope = $rootScope.$new();
+
+    // Set up the mock http service responses
+    $httpBackend = $injector.get('$httpBackend');
+
+    // I do not understand why angular is fetching home.html.
+    // But it does.
+    $httpBackend.when('GET', 'app/home/home.html').respond('');
   }));
 
     it('should change the value of angle, north and northtext on the wheel', inject(function ($compile) {
@@ -18,6 +26,10 @@ describe('Directive: wheelIndicator', function () {
         '<wheel-indicator arrow="63" north="89" label="\'deg\'" description="\"Wheel\"">'
         + '</wheel-indicator>');
     element = $compile(element)(scope);
+ 
+    // I do not understand why angular is fetching home.html.
+    // But it does.
+    $httpBackend.when('GET', 'app/home/home.html').respond('');
     scope.$apply();
 
     // wheel-indicator loads an svg asynchronously. Let's wait for the loading

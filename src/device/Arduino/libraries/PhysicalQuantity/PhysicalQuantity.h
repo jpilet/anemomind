@@ -68,6 +68,9 @@ namespace sail {
   OP(Velocity, kilometersPerHour, 1000.0/3600.0) \
   OP(Velocity, milesPerHour, 1609.0/3600.0)
 
+#define FOREACH_ACCELERATION_UNIT(OP) \
+  OP(Acceleration, metersPerSecondSquared, 1.0)
+
 #define FOREACH_MASS_UNIT(OP) \
   OP(Mass, kilograms, 1.0) \
   OP(Mass, skeppund, 170.0) \
@@ -78,6 +81,7 @@ namespace sail {
   FOREACH_LENGTH_UNIT(OP) \
   FOREACH_ANGLE_UNIT(OP) \
   FOREACH_VELOCITY_UNIT(OP) \
+  FOREACH_ACCELERATION_UNIT(OP) \
   FOREACH_MASS_UNIT(OP)
 
 #define FOREACH_QUANTITY(OP) \
@@ -85,7 +89,8 @@ namespace sail {
   OP(Length, meters, 0, 1, 0, 0) \
   OP(Angle, radians, 0, 0, 1, 0) \
   OP(Mass, kilograms, 0, 0, 0, 1) \
-  OP(Velocity, metersPerSecond, -1, 1, 0, 0)
+  OP(Velocity, metersPerSecond, -1, 1, 0, 0) \
+  OP(Acceleration, metersPerSecondSquared, -2, 1, 0, 0)
 
 enum class Quantity {
   // Any quantity that has not been declared maps to this one.
@@ -219,6 +224,7 @@ public:
   typedef DimensionlessTraits<T, System, TimeDim, LengthDim, AngleDim, MassDim> DimensionlessInfo;
 
   typedef T ValueType;
+  typedef System SystemType;
 
 #if ON_SERVER
   PhysicalQuantity() : _x(T(std::numeric_limits<double>::signaling_NaN())) {} // TODO: FIX THIS!!!
@@ -472,6 +478,9 @@ template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
 using Velocity = PhysicalQuantity<T, System, -1, 1, 0, 0>;
 
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
+using Acceleration = PhysicalQuantity<T, System, -2, 1, 0, 0>;
+
+template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
 using Angle = PhysicalQuantity<T, System, 0, 0, 1, 0>;
 
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
@@ -598,6 +607,18 @@ class Vectorize : public FixedArray<T, N> {
       return *this;
     }
 
+    // General purpose implementation (doesn't work with FixedPoint I think)
+    T norm() const {
+      constexpr Unit unit = T::UInfo::unit;
+      typedef typename T::ValueType type;
+      type sum(0.0);
+      for (int i = 0; i < N; i++) {
+        type x = ((*this)[i]).template get<unit>();
+        sum += x*x;
+      }
+      return T::template make<unit>(sqrt(sum));
+    }
+
     Vectorize() { }
   private:
 };
@@ -649,11 +670,13 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
             speed.scaled(cosDir));
     }
 
+    // Special implementation, that also works with fixed point, I think.
     Velocity<T> norm() const {
         T a = (*this)[0].knots();
         T b = (*this)[1].knots();
         return Velocity<T>::knots(sqrt(a*a + b*b));
     }
+
     Angle<T> angle() const {
         return Angle<T>::radians(atan2(
                 (*this)[0].knots(),
@@ -698,8 +721,15 @@ DEFINE_LITERAL(Duration, minutes, _minutes)
 DEFINE_LITERAL(Velocity, metersPerSecond, _mps)
 DEFINE_LITERAL(Velocity, knots, _kn)
 DEFINE_LITERAL(Velocity, knots, _kt)
+DEFINE_LITERAL(Acceleration, metersPerSecondSquared, _mps2)
 #undef DEFINE_LITERAL
 
+template <typename A, typename B>
+using Per = decltype((std::declval<A>())/(std::declval<B>()));
+
+template <typename T>
+using TimeDerivative = Per<T,
+    PhysicalQuantity<typename T::ValueType, typename T::SystemType, 1, 0, 0, 0>>;
 
 }  // namespace sail
 
