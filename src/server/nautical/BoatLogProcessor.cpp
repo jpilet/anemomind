@@ -324,6 +324,7 @@ void outputInfoPerSession(
 // Parameters such as path to files are passed implicitely (as struct
 // members), while raw and derived data are kept in local variables,
 // to improve data flow readability.
+
 bool BoatLogProcessor::process(ArgMap* amap) {
   TimeStamp start = TimeStamp::now();
 
@@ -331,43 +332,43 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
-  NavDataset resampled;
+  NavDataset current;
 
   if (_resumeAfterPrepare.size() > 0) {
-    resampled = LogLoader::loadNavDataset(_resumeAfterPrepare);
+    current = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    NavDataset raw = removeStrangeGpsPositions(
+    current = removeStrangeGpsPositions(
         loadNavs(*amap, _boatid));
-    infoNavDataset("After loading", raw);
+    infoNavDataset("After loading", current);
 
     auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?
-    resampled = raw.createMergedChannels(
+    current = current.createMergedChannels(
         std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
         minGpsSamplingPeriod);
-    infoNavDataset("After resampling GPS", resampled);
+    infoNavDataset("After resampling GPS", current);
 
     if (_gpsFilter) {
-      resampled = filterNavs(resampled, &_htmlReport, _gpsFilterSettings);
-      infoNavDataset("After filtering", resampled);
+      current = filterNavs(current, &_htmlReport, _gpsFilterSettings);
+      infoNavDataset("After filtering", current);
     }
   }
 
   if (_savePreparedData.size() != 0) {
-    saveDispatcher(_savePreparedData.c_str(), *(resampled.dispatcher()));
+    saveDispatcher(_savePreparedData.c_str(), *(current.dispatcher()));
   }
 
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
-  resampled = resampled.createMergedChannels(
+  current = current.createMergedChannels(
       std::set<DataCode>{AWA, AWS}, Duration<>::seconds(.3));
-  std::shared_ptr<HTree> fulltree = _grammar.parse(resampled);
+  std::shared_ptr<HTree> fulltree = _grammar.parse(current);
 
   if (!fulltree) {
     LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
     return false;
   }
 
-  grammarDebug(fulltree, resampled);
+  grammarDebug(fulltree, current);
 
   Calibrator calibrator(_grammar.grammar);
   if (_verboseCalibrator) { calibrator.setVerbose(); }
@@ -376,7 +377,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   CHECK(boatDatFile.is_open()) << "Error opening " << boatDatPath;
 
   // Calibrate. TODO: use filtered data instead of resampled.
-  if (calibrator.calibrate(resampled, fulltree, _boatid)) {
+  if (calibrator.calibrate(current, fulltree, _boatid)) {
       calibrator.saveCalibration(&boatDatFile);
   } else {
     LOG(WARNING) << "Calibration failed. Using default calib values.";
@@ -387,22 +388,22 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   }
 
   // First simulation pass: adds true wind
-  NavDataset simulated = calibrator.simulate(resampled);
+  current = calibrator.simulate(current);
 
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system
-  simulated = simulated.preferSourceOrCreateMergedChannels(
+  current = current.preferSourceOrCreateMergedChannels(
       std::set<DataCode>{TWS, TWDIR, TWA, VMG},
       "Simulated Anemomind estimator");
 
   if (_saveSimulated.size() > 0) {
-    saveDispatcher(_saveSimulated.c_str(), *(simulated.dispatcher()));
+    saveDispatcher(_saveSimulated.c_str(), *(current.dispatcher()));
   }
 
   outputTargetSpeedTable(_debug, 
                          fulltree,
                          _grammar.grammar.nodeInfo(),
-                         simulated,
+                         current,
                          _vmgSampleSelection,
                          &boatDatFile);
 
@@ -411,7 +412,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   // Second simulation path to apply target speed.
   // Todo: simply lookup the target speed instead of recomputing true wind.
-  simulated = SimulateBox(boatDatPath, simulated);
+  current = SimulateBox(boatDatPath, current);
 
   if (_debug) {
     visualizeBoatDat(_dstPath);
@@ -420,7 +421,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   HTML_DISPLAY(_generateTiles, &_htmlReport);
   if (_generateTiles) {
     Array<NavDataset> sessions =
-      extractAll("Sailing", simulated, _grammar.grammar, fulltree);
+      extractAll("Sailing", current, _grammar.grammar, fulltree);
     outputInfoPerSession(sessions, &_htmlReport);
     if (!generateAndUploadTiles(_boatid, sessions, &db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
@@ -430,13 +431,12 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   HTML_DISPLAY(_generateChartTiles, &_htmlReport);
   if (_generateChartTiles) {
-    if (!uploadChartTiles(simulated, _boatid, _chartTileSettings, &db)
-        || !uploadChartSourceIndex(simulated, _boatid, _chartTileSettings, &db)) {
+    if (!uploadChartTiles(current, _boatid, _chartTileSettings, &db)
+        || !uploadChartSourceIndex(current, _boatid, _chartTileSettings, &db)) {
       LOG(ERROR) << "Failed to upload chart tiles!";
       return false;
     }
   }
-
   // Logging to cout and not LOG(INFO) because LOG(INFO) is disabled in
   // production and we want to keep track of processing time.
   std::cout << "Processing time for " << _boatid << ": "
