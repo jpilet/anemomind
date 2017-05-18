@@ -22,24 +22,24 @@ function register(rpcFuncTable) {
         var configChanges = {};
         var valid = false;
         if ('boatId' in data) {
-	        configChanges.boatId = data.boatId;
-	        valid = true;
+          configChanges.boatId = data.boatId;
+          valid = true;
         }
         if ('boatName' in data) {
-	        configChanges.boatName = data.boatName;
-	        valid = true;
+          configChanges.boatName = data.boatName;
+          valid = true;
         }
         if (valid) {
-	        config.change(configChanges, function(err, cfg) {
-	          if (err) {
-	            cb({error: "can't save config"});
-	          } else {
+          config.change(configChanges, function(err, cfg) {
+            if (err) {
+              cb({error: "can't save config"});
+            } else {
               runPostIdAssignJobs();
-	            cb({result: "OK"});
-	          }
-	        });
+              cb({result: "OK"});
+            }
+          });
         } else {
-	        cb({error: "invalid arguments"});
+          cb({error: "invalid arguments"});
         }
       }
     });
