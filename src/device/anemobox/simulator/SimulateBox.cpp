@@ -112,13 +112,12 @@ void generateComputeCallbacks(Dispatcher *src,
 }
 */
 
-NavDataset SimulateBox(const std::string& boatDat, const NavDataset &ds) {
-  std::ifstream file(boatDat);
-  return SimulateBox(file, ds);
-}
+NavDataset SimulateBox(
+    std::istream &boatDat,
+    const NavDataset &ds,
+    const ReplayDispatcher::Settings& replaySettings) {
 
-NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
-  auto replay = std::make_shared<ReplayDispatcher>();
+  auto replay = std::make_shared<ReplayDispatcher>(replaySettings);
   DispatcherTrueWindEstimator estimator(replay.get());
   if (!estimator.loadCalibration(boatDat)) {
     return NavDataset();
@@ -152,6 +151,42 @@ NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
   }
 
   return result;
+}
+
+namespace {
+  ReplayDispatcher::Settings destructive(bool v) {
+    ReplayDispatcher::Settings s;
+    s.destructive = v;
+    return s;
+  }
+}
+
+bool SimulateBox(
+    std::istream &boatDat,
+    NavDataset *ds) {
+  auto out = SimulateBox(boatDat, *ds, destructive(true));
+  if (out.isDefaultConstructed()) {
+    return false;
+  } else {
+    *ds = out;
+    return true;
+  }
+}
+
+NavDataset SimulateBox(
+    std::istream &boatDat,
+    const NavDataset &ds) {
+  return SimulateBox(boatDat, ds, destructive(false));
+}
+
+NavDataset SimulateBox(const std::string& boatDat, const NavDataset &ds) {
+  std::ifstream file(boatDat);
+  return SimulateBox(file, ds, destructive(false));
+}
+
+bool SimulateBox(const std::string& boatDat, NavDataset *ds) {
+  std::ifstream file(boatDat);
+  return SimulateBox(file, ds);
 }
 
 }  // namespace sail

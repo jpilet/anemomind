@@ -38,6 +38,7 @@ class TimedSampleCollection : public SampledSignal<T> {
    void append(TimeStamp t, T value) { append(TimedValue<T>(t, value)); }
 
    const TimedVector& samples() const { return _samples; }
+   TimedVector* mutableSamples() {return &_samples;}
 
    const TimedValue<T>& back(int backIndex) const {
      assert(backIndex >= 0 && size_t(backIndex) < _samples.size());

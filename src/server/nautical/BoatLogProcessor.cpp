@@ -410,9 +410,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   // write calibration and target speed to disk
   boatDatFile.close();
 
-  // Second simulation path to apply target speed.
+  // Second simulation pass to apply target speed.
   // Todo: simply lookup the target speed instead of recomputing true wind.
-  current = SimulateBox(boatDatPath, current);
+  SimulateBox(boatDatPath, &current);
 
   if (_debug) {
     visualizeBoatDat(_dstPath);

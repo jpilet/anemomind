@@ -9,8 +9,12 @@
 
 namespace sail {
 
+NavDataset SimulateBox(
+    std::istream &boatDat,
+    const NavDataset &ds);
 NavDataset SimulateBox(const std::string& boatDat, const NavDataset &ds);
-NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds);
+bool SimulateBox(const std::string& boatDat, NavDataset *ds);
+
 
 }  // namespace sail
 

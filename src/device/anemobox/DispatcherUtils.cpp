@@ -726,14 +726,50 @@ class DispatcherStream : public SortedStream<TimeStamp> {
   ReplayDispatcher *_destination;
 };
 
+template <typename T>
+class DestructiveDispatcherStream : public SortedStream<TimeStamp> {
+ public:
+  DestructiveDispatcherStream(
+      TypedDispatchData<T> *dispatchData,
+      ReplayDispatcher *destination)
+    : _dispatchData(dispatchData),
+    _samples(dispatchData->dispatcher()->mutableValues()->mutableSamples()),
+    _destination(destination) { }
+
+  virtual TimeStamp value() const { return _samples->front().time; }
+  virtual bool next() {
+    assert(!end());
+    _destination->publishTimedValue<T>(_dispatchData->dataCode(),
+                                       _dispatchData->source(),
+                                       _samples->front());
+    _samples->pop_front();
+    return end();
+  }
+
+  virtual bool end() const {
+    return _samples->empty();
+  }
+
+ private:
+  TypedDispatchData<T> *_dispatchData;
+  typename TimedSampleCollection<T>::TimedVector* _samples;
+  ReplayDispatcher *_destination;
+};
+
 class DispatchDataMerger : public DispatchDataVisitor {
  public:
-  DispatchDataMerger(ReplayDispatcher *destination)
-    : _destination(destination) { }
+  DispatchDataMerger(ReplayDispatcher *destination, bool destructive)
+    : _destination(destination), _destructive(destructive) { }
+
   template<typename T>
   void addStream(TypedDispatchData<T> *d) {
-    auto s = std::make_shared<DispatcherStream<T>>(d, _destination);
-    _streams.push_back(s);
+    if (_destructive) {
+      _streams.push_back(
+          std::make_shared<DestructiveDispatcherStream<T>>(d, _destination));
+    } else {
+      _streams.push_back(
+          std::make_shared<DispatcherStream<T>>(d, _destination));
+    }
   }
 
   virtual void run(DispatchAngleData *d) { addStream(d); }
@@ -759,13 +795,14 @@ class DispatchDataMerger : public DispatchDataVisitor {
   // This vector is used to delete all the allocated SortedStreams
   // when destructing the DispatchDataMerger object.
   std::vector<std::shared_ptr<SortedStream<TimeStamp>>> _streams;
-
+  bool _destructive;
   ReplayDispatcher *_destination;
 };
 
 }  // namespace 
 
-ReplayDispatcher::ReplayDispatcher() : _counter(0) {}
+ReplayDispatcher::ReplayDispatcher(const Settings& s)
+  : _counter(0), _settings(s) {}
 
 void ReplayDispatcher::replay(const Dispatcher *src) {
   if (src == nullptr) {
@@ -774,7 +811,7 @@ void ReplayDispatcher::replay(const Dispatcher *src) {
 
   copyPriorities(src, this);
 
-  DispatchDataMerger merger(this);
+  DispatchDataMerger merger(this, _settings.destructive);
 
   for (auto code : src->allSources()) {
     for (auto source : code.second) {
