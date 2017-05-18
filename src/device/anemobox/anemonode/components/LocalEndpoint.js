@@ -20,7 +20,7 @@ var script = require('endpoint/script.js');
 var triggerSync = require('./sync.js').triggerSync;
 var endpoints = {};
 var files = require('endpoint/files.js');
-
+var settings = require('./GlobalSettings.js');
 var estimator = require('./estimator.js');
 
 function endpointCount() {
@@ -301,6 +301,10 @@ function postRemainingLogFiles(logRoot, cb) {
   }, cb);
 }
 
+function postRemainingLogFilesFromRoot(cb) {
+  postRemainingLogFiles(settings.logRoot, cb);
+}
+
 function setRemoveLogFiles(p) {
   doRemoveLogFiles = p;
 }
@@ -330,3 +334,4 @@ module.exports.withNamedLocalEndpoint = withNamedLocalEndpoint;
 module.exports.withNamedLocalEndpointValidated
   = withNamedLocalEndpointValidated;
 module.exports.postRemainingLogFiles = postRemainingLogFiles;
+module.exports.postRemainingLogFilesFromRoot = postRemainingLogFilesFromRoot;

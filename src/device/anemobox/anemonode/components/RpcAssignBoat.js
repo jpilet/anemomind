@@ -1,5 +1,17 @@
 var config = require('./config');
 var anemoId = require('./boxId');
+var localEndpoint = require("./LocalEndpoint.js");
+
+
+function runPostIdAssignJobs() {
+  localEndpoint.postRemainingLogFilesFromRoot(function(err) {
+    if (err) {
+      console.log("Failed to post remaining log files after id was assigned");
+    } else {
+      console.log("Successfully posted remaining log files after id was assigned.");
+    }
+  });
+}
 
 function register(rpcFuncTable) {
   rpcFuncTable.assignBoat = function(data, cb) {
@@ -10,23 +22,24 @@ function register(rpcFuncTable) {
         var configChanges = {};
         var valid = false;
         if ('boatId' in data) {
-	  configChanges.boatId = data.boatId;
-	  valid = true;
+	        configChanges.boatId = data.boatId;
+	        valid = true;
         }
         if ('boatName' in data) {
-	  configChanges.boatName = data.boatName;
-	  valid = true;
+	        configChanges.boatName = data.boatName;
+	        valid = true;
         }
         if (valid) {
-	  config.change(configChanges, function(err, cfg) {
-	    if (err) {
-	      cb({error: "can't save config"});
-	    } else {
-	      cb({result: "OK"});
-	    }
-	  });
+	        config.change(configChanges, function(err, cfg) {
+	          if (err) {
+	            cb({error: "can't save config"});
+	          } else {
+              runPostIdAssignJobs();
+	            cb({result: "OK"});
+	          }
+	        });
         } else {
-	  cb({error: "invalid arguments"});
+	        cb({error: "invalid arguments"});
         }
       }
     });

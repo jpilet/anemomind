@@ -1,10 +1,10 @@
 var dispatcher = require('./build/Release/anemonode').dispatcher;
 var version = require('./version');
+var settings = require('./components/GlobalSettings.js');
 
 console.log('Anemobox firmware version ' + version.string);
 
 var nmea0183PortPath = '/dev/ttyMFD1';
-var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 var withLocalEndpoint = true;
 var withLogger = true;
@@ -44,7 +44,7 @@ if (withLocalEndpoint) {
   var localEndpoint = require('./components/LocalEndpoint.js');
   var sync = require('./components/sync.js');
 
-  localEndpoint.postRemainingLogFiles(logRoot, function(err, files) {
+  localEndpoint.postRemainingLogFiles(settings.logRoot, function(err, files) {
     if (err) {
       console.log('Failed to post logfiles at startup:');
       console.log(err);
@@ -126,7 +126,7 @@ var getCurrentTime = withTimeEstimator?
     : function() {return new Date();};
 
 function startLogging() {
-  logger.startLogging(logRoot, logInterval, getCurrentTime, function(path) {
+  logger.startLogging(settings.logRoot, logInterval, getCurrentTime, function(path) {
     if (withLocalEndpoint) {
       localEndpoint.postLogFile(path, function(err, remaining) {
         if (err) {
