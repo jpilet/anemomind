@@ -80,37 +80,12 @@ cxx_test(math_nnlsTest
          gtest_main
         )       
         
-cxx_test(math_GridSearchTest
-         GridSearchTest.cpp
-         gtest_main
-        )
-        
-
-
 cxx_test(math_PiecewisePolynomialsTest
          PiecewisePolynomialsTest.cpp
          gtest_main
          math_LUImpl
         )
 
-add_library(math_irls
-            irls.cpp
-            irls.h
-           )
-           
-target_link_libraries(math_irls
-                      common_ScopedLog
-                      common_string
-                      common_Span
-                     )           
-
-cxx_test(math_irlsTest
-         irlsTest.cpp
-         math_irls
-         gtest_main
-         plot_gnuplot
-        )
-        
 cxx_test(math_PointQuadTest
          PointQuadTest.cpp
          gtest_main
