@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Factory reset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="style.css" rel="stylesheet">
+  </head>
+  <body>
+    <center><h3>Factory reset</h3></center>
+    <div class="center-block">
+      <p>
+        This will reset the state of your anemobox to 
+        the same state as it was when it was new. This means that the following
+        data that is stored on the anemobox  <strong>will be lost</strong>:
+      </p>
+      <ul>
+        <li>The boat that the anemobox is associated with</li>
+        <li>All log files on the anemobox, including archived ones</li>
+        <li>Target speed table</li>
+        <li>Calibration of sensors</li>
+        <li>Any manual configuration you have performed through the configuration page</li>
+      </ul>
+      <p>
+        Note that it is only data on the box that will be lost. Any data that was successfully
+        transferred to Anemolab will remain on Anemolab. You may want to check that all your
+        data is on Anemolab before you proceed.
+      </p>
+      <p>
+        <strong>Are you sure you want to reset the box?</strong>
+      </p>
+      <button id="resetButton" class="body-link">Reset the box</button>
+    </div>
+
+    <script src="jquery.min.js"></script>
+    <script>
+      $(document).ready(function() {   
+        $("#resetButton").click(function(e) {
+          $.ajax({
+            url: '/api/reset/',
+            type: 'PUT',
+            success: function(result) {
+              alert("Anemobox successfully reset");
+              window.location.href = 'config.html';
+            },
+            error: function(result) {
+              alert("Failed to reset the anemobox");
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
