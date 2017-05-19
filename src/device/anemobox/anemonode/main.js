@@ -1,7 +1,6 @@
 var dispatcher = require('./build/Release/anemonode').dispatcher;
 var version = require('./version');
-var settings = require('./components/GlobalSettings.js');
-
+var logRoot = '/media/sdcard/logs/';
 console.log('Anemobox firmware version ' + version.string);
 
 var nmea0183PortPath = '/dev/ttyMFD1';
@@ -43,16 +42,21 @@ if (withLogger) {
 if (withLocalEndpoint) {
   var localEndpoint = require('./components/LocalEndpoint.js');
   var sync = require('./components/sync.js');
-
-  localEndpoint.postRemainingLogFiles(settings.logRoot, function(err, files) {
-    if (err) {
-      console.log('Failed to post logfiles at startup:');
-      console.log(err);
-    } else if (files && 0 < files.length) {
-      console.log('Posted these logfiles at startup:');
-      console.log(files);
-    }
+  function postRemaining(context) {
+    localEndpoint.postRemainingLogFiles(logRoot, function(err, files) {
+      if (err) {
+        console.log('Failed to post logfiles at "%s":', context);
+        console.log(err);
+      } else if (files && 0 < files.length) {
+        console.log('Posted these logfiles at "%s":', context);
+        console.log(files);
+      }
+    });
+  }
+  config.events.on('change', function() {
+    postRemaining('config change');
   });
+  postRemaining('startup');
 }
 
 if (withBT) {
@@ -126,7 +130,7 @@ var getCurrentTime = withTimeEstimator?
     : function() {return new Date();};
 
 function startLogging() {
-  logger.startLogging(settings.logRoot, logInterval, getCurrentTime, function(path) {
+  logger.startLogging(logRoot, logInterval, getCurrentTime, function(path) {
     if (withLocalEndpoint) {
       localEndpoint.postLogFile(path, function(err, remaining) {
         if (err) {

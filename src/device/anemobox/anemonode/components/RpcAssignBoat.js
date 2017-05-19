@@ -1,17 +1,5 @@
 var config = require('./config');
 var anemoId = require('./boxId');
-var localEndpoint = require("./LocalEndpoint.js");
-
-
-function runPostIdAssignJobs() {
-  localEndpoint.postRemainingLogFilesFromRoot(function(err) {
-    if (err) {
-      console.log("Failed to post remaining log files after id was assigned");
-    } else {
-      console.log("Successfully posted remaining log files after id was assigned.");
-    }
-  });
-}
 
 function register(rpcFuncTable) {
   rpcFuncTable.assignBoat = function(data, cb) {
@@ -34,7 +22,6 @@ function register(rpcFuncTable) {
             if (err) {
               cb({error: "can't save config"});
             } else {
-              runPostIdAssignJobs();
               cb({result: "OK"});
             }
           });
