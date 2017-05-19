@@ -31,6 +31,8 @@
         <strong>Are you sure you want to reset the box?</strong>
       </p>
       <button id="resetButton" class="body-link">Reset the box</button>
+      <p>After resetting the box, it will reboot 
+        and be unresponsive for a minute or so.</p>
     </div>
 
     <script src="jquery.min.js"></script>
@@ -41,7 +43,7 @@
             url: '/api/reset/',
             type: 'PUT',
             success: function(result) {
-              alert("Anemobox successfully reset");
+              alert("Anemobox successfully reset. The box is rebooting...");
               window.location.href = 'config.html';
             },
             error: function(result) {
