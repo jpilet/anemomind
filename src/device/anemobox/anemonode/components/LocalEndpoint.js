@@ -20,7 +20,6 @@ var script = require('endpoint/script.js');
 var triggerSync = require('./sync.js').triggerSync;
 var endpoints = {};
 var files = require('endpoint/files.js');
-
 var estimator = require('./estimator.js');
 
 function endpointCount() {
@@ -316,8 +315,6 @@ function reset(cb) {
 module.exports.setMailRoot = function(newMailRoot) {
   mailRoot = newMailRoot;
 }
-
-
 
 module.exports.reset = reset;
 module.exports.getName = getName;
