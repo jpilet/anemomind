@@ -13,7 +13,7 @@ Note the box id: It is the concatenation of the hexadecimal digits printed on th
 ## Initialization
 
 1. Make sure we have a reasonably clean web server in *DEV* mode running locally on your computer. There might be a user on that web server, but no boat.
-2. Compile a clean iOS app with an empty Core Data database. The app should connect to the *DEV* webserver. You can use the ```prepare_sync.sh``` bash script in the anemomind-ios repository. **TODO**: We need a script that calls ```.mr_truncateAll()``` on all the database objects on startup.
+2. Compile a clean iOS app with an empty Core Data database. The app should connect to the *DEV* webserver. You can use the ```./prepare_sync_test.sh``` bash script in the anemomind-ios repository, and use ```./prepare_full_reset.sh``` to reset the database of the app.
 3. A clean box. You can use the ```/anemonode/factory_reset.sh``` script if the box is not clean.
 
 ## Test steps
