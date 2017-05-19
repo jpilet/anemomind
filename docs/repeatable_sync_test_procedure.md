@@ -19,5 +19,5 @@ This is a complementary, more rigorous, procedure for testing the synchronizatio
 15. Connect the tablet to the ```Anemobox``` network and sync with the box from within the app.
 15. If you log in on the web page, you should see your new boat there.
 16. Close the web server, the app (from withing XCode) and the box service.
-17. In the ```anemomind-ios``` subdirectory, undo your previous changes by calli
+17. In the ```anemomind-ios``` subdirectory, undo your previous changes by calling ```git stash```.
 18. *Now all devices are aware of each other*. Continue with the tests, as explained in ```sync_test_procedure.md```.
