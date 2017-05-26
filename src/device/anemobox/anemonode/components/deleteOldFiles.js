@@ -134,8 +134,18 @@ function computeAmountToRemove(U, F, k) {
 
 function add(a, b) {return a + b;}
 
+function getTimeFromLogFilename(filename) {
+  var stripped = filename.replace(/\.log$/, "");
+  var secOrmillis = parseInt(stripped, 16);
+  if (secOrmillis < 0x10000000000) {
+    secOrmillis *= 1000;
+  }
+  return new Date(secOrmillis);
+}
+
+
 function creationTime(file) {
-  return file.ctime; // Is this value representative?
+  return getTimeFromLogFilename(file.filename);
 }
 
 function byDate(fileA, fileB) {
@@ -197,3 +207,4 @@ module.exports.fullReadDir = fullReadDir;
 module.exports.computeAmountToRemove = computeAmountToRemove;
 module.exports.filesToRemoveByFreeFraction = filesToRemoveByFreeFraction;
 module.exports.easyCleanFolder = easyCleanFolder;
+module.exports.getTimeFromLogFilename = getTimeFromLogFilename;

@@ -57,14 +57,18 @@ describe('delete old files', function() {
   });
 
   it('file-removal', function() {
-    var files = [{filename: "a.txt", size: 100, ctime: "2020"},
-                 {filename: "b.txt", size: 100, ctime: "2029"},
-                 {filename: "c.txt", size: 100, ctime: "2018"},
-                 {filename: "d.txt", size: 100, ctime: "2010"}];
+    var files = [{filename: "2020a.txt", size: 100},
+                 {filename: "2029b.txt", size: 100},
+                 {filename: "2018c.txt", size: 100},
+                 {filename: "2010d.txt", size: 100}];
     var toRemove = dof.filesToRemoveByFreeFraction(files, 200, 0.5);
     assert(toRemove.length == 1);
-    assert(toRemove[0].filename == "d.txt");
+    assert(toRemove[0].filename == "2010d.txt");
   });
 
-  
+  it('time-from-filename', function() {
+    var filename = "00000000560FEFF8.log"
+    var time = dof.getTimeFromLogFilename(filename);
+    assert(time instanceof Date);
+  });
 });
