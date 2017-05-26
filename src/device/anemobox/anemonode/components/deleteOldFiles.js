@@ -2,7 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var assert = require('assert');
 var exec = require('child_process').exec;
-var diskInfo = require('./diskInfo.js');
+var diskspace = require('diskspace');
 
 function pmapOneElement(index, f, data, results, cb) {
   f(data[index], function(x) {
@@ -166,12 +166,12 @@ function filesToRemoveByFreeFraction(allFiles, freeSpaceBytes, fraction) {
 // as second argument to clean folder.
 function filterByFreeFraction(folder, fraction) {
   return function(files, cb) {
-    di.diskInfoAt(folder, function(err, info) {
+    diskspace.check(folder, function(err, info) {
       if (err) {
         cb(err);
       } else {
         var filtered = filesToRemoveByFreeFraction(
-          files, info.available, fraction);
+          files, info.free, fraction);
         cb(null, filtered);
       }
     });

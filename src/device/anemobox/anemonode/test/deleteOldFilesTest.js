@@ -1,5 +1,4 @@
 var dof = require('../components/deleteOldFiles.js');
-var di = require('../components/diskInfo.js');
 var fs = require('fs');
 var path = require('path');
 var assert = require('assert');
@@ -39,7 +38,8 @@ describe('delete old files', function() {
         assert(initialFiles.length == 3);
         dof.cleanFolder(
           testDir, 
-          function(files, cb) {cb(null, files.slice(0, 2));}, // <-- Remove two files.
+          // Remove two files.
+          function(files, cb) {cb(null, files.slice(0, 2));}, 
           function(err, output) {
             assert(!err);
             dof.fullReadDir(testDir, function(err, finalFiles) {
@@ -48,22 +48,6 @@ describe('delete old files', function() {
             });
           });        
       });
-    });
-  });
-
-  it('parseDiskInfoTest', function() {
-    var testData = "Filesystem 1024-blocks      Used Available Capacity  iused    ifree %iused  Mounted on\n/dev/disk1   243924992 141985332 101683660    59% 35560331 25420915   58%   /\n";
-    var info = di.parseDiskInfo(testData);
-    console.log('Disk info: %j', info);
-    assert(info.available == 104124067840);
-    assert(info.capacity == "59%");
-  });
-
-  it('diskInfoAt', function(done) {
-    di.diskInfoAt('/tmp', function(err, data) {
-      assert(typeof data.available == "number");
-      assert(0 < data.available);
-      done();
     });
   });
 
