@@ -90,19 +90,19 @@ dispatcher.setSourcePriority("NMEA2000/0", -10);
 var gps = (withGps ?  require('./components/gps') : {readGps:function(){}});
 
 function publishNmea(dst, data) {
+  dst.emitNmea0183Sentence(data);
+  return dst;
+}
+
+var publishSampledNmea = NmeaUtils.sample(publishNmea);
+
+function gpsData(data) {
   if (echoGpsOnNmea) {
-    dst.emitNmea0183Sentence(data);
+    publishSampledNmea(nmea0183port, data);
   }
   if (withLogger && logInternalGpsNmea) {
     logger.logText("Internal GPS NMEA", data.toString('ascii'));
   }  
-  return dst;
-}
-
-var publishSampledNmea = NmeaUtils.sampleLimited(publishNmea);
-
-function gpsData(data) {
-  publishSampledNmea(nmea0183port, data);
 }
 
 if (withIMU) {
