@@ -55,7 +55,7 @@ function init(nmea0183PortPath, dataCb) {
 }
 
 function emitNmea0183Sentence (sentence) {
-  if (nmea0183Port && limiter && limitier.accept(sentence.length)) {
+  if (nmea0183Port && limiter && limiter.accept(sentence.length)) {
     nmea0183Port.write(sentence);
   }
 }
