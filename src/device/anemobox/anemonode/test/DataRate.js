@@ -13,27 +13,16 @@ function produceTimedCalls(count, period, call, cb) {
 }
 
 describe('DataRate', function() {
-  it('Rate estimator', function() {
-    // Posting 60 bytes every 0.1 seconds. 
-    // That is a rate of 600 bytes per second
-    var r = new dr.RateEstimator(10.0);
-    for (var i = 0; i < 10000; i++) {
-      r.add(0.1*i, 60);
-    }
-    console.log("The rate is " + r.estimate());
-    assert(Math.abs(r.estimate() - 600) < 10);
-  });
-
   it('ByteRateLimiting', function(done) {
     this.timeout(10000);
-    var acc = dr.limitRateAcceptor(
+    var acc = new dr.NaiveRateLimiter(
       100, 0.5); // 100 bytes per second, 10 per hundreth
 
     var counter = 0;
 
     var n = 100;
     produceTimedCalls(n, 33, function() {
-      if (acc("ABCDEFGHIJ")) {
+      if (acc.accept("ABCDEFGHIJ".length)) {
         counter++;
       }
     }, function() {
