@@ -33,21 +33,31 @@
       <button id="resetButton" class="body-link">Reset the box</button>
       <p>After resetting the box, it will reboot 
         and be unresponsive for a minute or so.</p>
+      <p id="success-message" style="display:none">
+        <strong>Anemobox successfully reset. The box is rebooting...</strong>
+      </p>
+      <p id="failure-message" style="display:none">
+        <strong>Failed to reset the anemobox.</strong>
+      </p>
     </div>
 
     <script src="jquery.min.js"></script>
     <script>
+      function displayResultMessage(id) {
+        $(id).css('display', 'inherit');
+      }
+
       $(document).ready(function() {   
         $("#resetButton").click(function(e) {
           $.ajax({
             url: '/api/reset/',
             type: 'PUT',
             success: function(result) {
-              alert("Anemobox successfully reset. The box is rebooting...");
+              displayResultMessage("#success-message");
               window.location.href = 'config.html';
             },
             error: function(result) {
-              alert("Failed to reset the anemobox");
+              displayResultMessage("#failure-message");
             }
           });
         });
