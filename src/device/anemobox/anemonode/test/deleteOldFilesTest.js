@@ -53,6 +53,7 @@ describe('delete old files', function() {
 
   it('compute-amount-remove-test', function() {
     assert(100 == dof.computeAmountToRemove(400, 200, 0.5));
+    assert(-50 == dof.computeAmountToRemove(400, 200, 0.75));
   });
 
   it('file-removal', function() {
