@@ -179,12 +179,16 @@ function filterByFreeFraction(folder, fraction) {
 }
 
 ////// Wraps cleanFolder
+/// The fraction is K/F, where K is the total size of the files
+/// in the sentlogs-folder, and F is the free diskspace. So the
+/// greater the fraction, the greater the maximum total size of
+/// the files in the sent folder.
 function cleanFolderByFraction(folder, fraction, cb) {
   cleanFolder(folder, filterByFreeFraction(folder, fraction), cb);
 }
 
 function easyCleanFolder(folder, cb) {
-  cleanFolderByFraction(folder, 0.5, cb);
+  cleanFolderByFraction(folder, 0.95, cb);
 }
 
 module.exports.cleanFolder = cleanFolder;
