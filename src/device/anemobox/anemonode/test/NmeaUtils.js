@@ -8,13 +8,18 @@ function addToArray(dst, x) {
   return dst;
 }
 
+function parseNmeaChunks(testData) {
+  return testData.reduce(
+    nf.sample(addToArray), []);
+}
+
 describe('nmeaFilter', function() {
   it('parseNmea', function() {
     var sample = nf.sample(addToArray);
 
     var garbage = ["asdfasdf\nasdfasdf", "\n98980\nas", "dfasdfsad\nas", "dfasdf"];
     var testData = garbage.concat(buffers).concat(garbage);
-    var output = testData.reduce(sample, []);
+    var output = parseNmeaChunks(testData);
     assert(!output.empty);
     var s = output[3] + '';
     assert(s.slice(1, 6) == "GNRMC");
