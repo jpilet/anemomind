@@ -768,16 +768,6 @@ class DispatchDataMerger : public DispatchDataVisitor {
 
 ReplayDispatcher::ReplayDispatcher() : _counter(0) {}
 
-
-/*void ReplayDispatcher::finalizeLazyReplayDispatchers(
-    const std::set<std::shared_ptr<DispatchData>>& reps) {
-  for (auto& sourceAndChannels: src) {
-    for (auto& codeAndData: sourceAndChannels) {
-
-    }
-  }
-}*/
-
 void ReplayDispatcher::replay(const Dispatcher *src) {
   if (src == nullptr) {
     return;
