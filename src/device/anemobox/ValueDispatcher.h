@@ -74,6 +74,7 @@ class ValueDispatcher {
   virtual TimeStamp lastTimeStamp() const { return values_.lastTimeStamp(); }
 
   virtual const TimedSampleCollection<T>& values() const { return values_; }
+  virtual TimedSampleCollection<T>* mutableValues() { return &values_; }
 
   void insert(const typename TimedSampleCollection<T>::TimedVector& values) {
     values_.insert(values);

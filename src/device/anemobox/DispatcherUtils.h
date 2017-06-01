@@ -161,6 +161,11 @@ void exportDispatcherToTextFiles(const std::string &filenamePrefix,
 class ReplayDispatcher : public Dispatcher {
  public:
 
+  struct Settings {
+    Settings() {}
+    bool destructive = false;
+  };
+
   struct Timeout {
     int64_t id;
     TimeStamp time;
@@ -171,7 +176,7 @@ class ReplayDispatcher : public Dispatcher {
     }
   };
 
-  ReplayDispatcher();
+  ReplayDispatcher(const Settings& s = Settings());
 
    TimeStamp currentTime() override {
      return _currentTime;
@@ -205,6 +210,7 @@ class ReplayDispatcher : public Dispatcher {
      return _timeouts;
    }
  private:
+   Settings _settings;
    void visitTimeouts();
    int64_t _counter;
    std::set<Timeout> _timeouts;

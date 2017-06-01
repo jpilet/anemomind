@@ -502,11 +502,10 @@ void Calibrator::clear() {
   _maneuvers.clear();
 }
 
-NavDataset Calibrator::simulate(const NavDataset &src) const {
+NavDataset Calibrator::simulate(const NavDataset& src) const {
   std::stringstream calibFile;
   saveCalibration(&calibFile);
   calibFile.seekg(0, std::ios::beg);
-
   return SimulateBox(calibFile, src);
 }
 
