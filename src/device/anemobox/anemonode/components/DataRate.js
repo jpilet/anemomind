@@ -14,7 +14,7 @@ function NaiveRateLimiter(maxRateBytesPerSecond, resetPeriodSeconds) {
 
 NaiveRateLimiter.prototype.accept = function(bytes) {
   assert(typeof bytes == 'number');
-  if (bytes.length > this.thresholdBytes) {
+  if (bytes > this.thresholdBytes) {
     console.log("WARNING: RateLimiter was queried on %d bytes, which always exceeds the threshold %d bytes",
                 bytes, this.thresholdBytes);
   }
