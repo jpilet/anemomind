@@ -75,6 +75,8 @@ class ValueDispatcher {
 
   virtual const TimedSampleCollection<T>& values() const { return values_; }
 
+  TimedSampleCollection<T>* mutableValues() {return &values_;}
+
   void insert(const typename TimedSampleCollection<T>::TimedVector& values) {
     values_.insert(values);
   }
@@ -176,7 +178,6 @@ class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
   virtual void onNewValue(const ValueDispatcher<T> &dispatcher) {
     Listener<T>::safelyNotifyListenerSet(this->listeners_, *this);
   }
-
  private:
   TimedSampleCollection<T> emptyValues_;
   ValueDispatcher<T> *_forward;
