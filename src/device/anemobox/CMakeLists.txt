@@ -105,6 +105,7 @@ target_link_libraries(anemobox_DispatcherUtils
                       anemobox_Dispatcher
                       nautical_AbsoluteOrientation
                       anemobox_Logger
+                      anemobox_LazyReplayDispatchData
                      )
 
 cxx_test(anemobox_DispatcherUtilsTest
@@ -144,5 +145,17 @@ cxx_test(anemobox_BinarySignalTest
 cxx_test(anemobox_LocalArrayCopyTest
   LocalArrayCopyTest.cpp
   gtest_main
+  )
+
+add_library(anemobox_LazyReplayDispatchData
+  LazyReplayDispatchData.h
+  LazyReplayDispatchData.cpp
+  )
+
+cxx_test(anemobox_LazyReplayDispatchDataTest
+  LazyReplayDispatchDataTest.cpp
+  gtest_main
+  anemobox_LazyReplayDispatchData
+  common_TimeStamp
   )
   

@@ -214,7 +214,9 @@ class Dispatcher : public Clock {
   const std::map<DataCode, std::shared_ptr<DispatchData>>& dispatchers()
     const { return _currentSource; }
 
-  const std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>> &allSources() const {
+  const std::map<DataCode,
+    std::map<std::string,
+      std::shared_ptr<DispatchData>>> &allSources() const {
     return _data;
   }
 
@@ -225,7 +227,8 @@ class Dispatcher : public Clock {
 
   // Return or create a DispatchData for the given source.
   template <typename T>
-  TypedDispatchData<T>* createDispatchDataForSource(DataCode code, const std::string& source, int size);
+  TypedDispatchData<T>* createDispatchDataForSource(
+      DataCode code, const std::string& source, int size);
 
   DispatchData* dispatchData(DataCode code) const {
     auto it = _currentSource.find(code);
@@ -382,11 +385,32 @@ class Dispatcher : public Clock {
     return (it != _data.end()
             && it->second.find(source) != it->second.end());
   }
-
+ protected:
+  // Override if you want to use a particular DispatchData representation.
+  // It must be downcastable to TypedDispatchData<T> with T
+  // corresponding to 'code'.
+  virtual DispatchData* createNewCustomDispatchData(
+      DataCode code, const std::string& src, int size) {
+    return nullptr;
+  }
  private:
-  static Dispatcher *_globalInstance;
+  template <typename T>
+  TypedDispatchData<T>* createNewTypedDispatchData(
+      DataCode code, const std::string& source, int size) {
+    auto custom = createNewCustomDispatchData(code, source, size);
+    if (bool(custom)) {
+      auto typed = dynamic_cast<TypedDispatchData<T>*>(custom);
+      assert(bool(typed));
+      return typed;
+    } else {
+      return new TypedDispatchDataReal<T>(code, source, this, size);
+    }
+  }
 
-  std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>> _data;
+  std::map<DataCode, std::map<std::string,
+    std::shared_ptr<DispatchData>>> _data;
+
+  static Dispatcher *_globalInstance;
 
   // _currentSource contains the proxies of different types.
   std::map<DataCode, std::shared_ptr<DispatchData>> _currentSource;
@@ -440,7 +464,7 @@ TypedDispatchData<T>* Dispatcher::createDispatchDataForSource(
 
   TypedDispatchData<T>* dispatchData;
   if (!ptr) {
-    dispatchData = new TypedDispatchDataReal<T>(code, source, this, size);
+    dispatchData = createNewTypedDispatchData<T>(code, source, size);
     _data[code][source] = std::shared_ptr<DispatchData>(dispatchData);
     newDispatchData(dispatchData);
   } else {

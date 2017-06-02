@@ -11,6 +11,7 @@
 #include <server/common/logging.h>
 #include <server/nautical/AbsoluteOrientation.h>
 #include <fstream>
+#include <device/anemobox/LazyReplayDispatchData.h>
 
 namespace sail {
 
@@ -771,6 +772,7 @@ void ReplayDispatcher::replay(const Dispatcher *src) {
   if (src == nullptr) {
     return;
   }
+  _replayingFrom = src;
 
   copyPriorities(src, this);
 
@@ -783,8 +785,17 @@ void ReplayDispatcher::replay(const Dispatcher *src) {
   }
 
   merger.merge();
-
   finishTimeouts();
+
+  finalizeLazyReplay();
+}
+
+void ReplayDispatcher::finalizeLazyReplay() {
+  for (auto x: _toFinalize) {
+    finalizeLazyReplayDispatchData(x);
+  }
+  _toFinalize = std::vector<DispatchData*>();
+  _replayingFrom = nullptr;
 }
 
 void ReplayDispatcher::setTimeout(std::function<void()> cb, double delayMS) {
@@ -794,6 +805,31 @@ void ReplayDispatcher::setTimeout(std::function<void()> cb, double delayMS) {
     _timeouts.insert(Timeout{_counter, next, cb});
   }
 }
+
+DispatchData* ReplayDispatcher::createNewCustomDispatchData(
+      DataCode code, const std::string& src, int unusedSize) {
+
+  // Ignore the provided size...
+  (void)unusedSize;
+  // ... and provide our own, short-term size.
+  // For all LazyReplayDispatchData, once we call
+  // finalize, the size will be arbitrarily large.
+  int shortSize = 30;
+
+  if (_replayingFrom) {
+    auto fCode = _replayingFrom->allSources().find(code);
+    if (fCode != _replayingFrom->allSources().end()) {
+      auto f = fCode->second.find(src);
+      if (f != fCode->second.end()) {
+        auto x = makeLazyReplayDispatchData(this, shortSize, f->second);
+        _toFinalize.push_back(x);
+        return x;
+      }
+    }
+  }
+  return nullptr;
+}
+
 
 void ReplayDispatcher::finishTimeouts() {
   for (auto to: _timeouts) {
