@@ -51,7 +51,6 @@ function removeFile(file, cb) {
 function removeManyFiles(files, cb) {
   assert(files instanceof Array);
   pmap(removeFile, files, function(results) {
-    console.log("results = %j", results);
     for (var i = 0; i < results.length; i++) {
       var x = results[i];
       if (x.err) {
