@@ -4,7 +4,9 @@ var logRoot = '/media/sdcard/logs/';
 console.log('Anemobox firmware version ' + version.string);
 
 var nmea0183PortPath = '/dev/ttyMFD1';
-var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
+var minutes = 60 * 1000;
+var logInterval = 5 * minutes;  // create a log file every 5 minutes
+var cleanInterval = 2 * minutes;
 var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
@@ -26,10 +28,15 @@ var reboot = require('./components/reboot').reboot;
 var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
 
-dof.easyCleanFolder(settings.sentLogsPath, function(err) {
-  console.log("Old files cleanup failed");
-  console.log(err);
-});
+function cleanOld() {
+  dof.easyCleanFolder(settings.sentLogsPath, function(err) {
+    console.log("Old files cleanup failed");
+    console.log(err);
+  });
+}
+
+cleanOld();
+setInterval(cleanOld, cleanInterval);
 
 var btrpcFuncTable = {};
 if (withBT) {
