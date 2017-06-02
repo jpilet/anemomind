@@ -159,7 +159,13 @@ class Logger {
   // Convenience function to call flushTo, nextFilename and save.
   bool flushAndSaveToFile(const std::string& filename);
 
-  void logText(const std::string& streamName, const std::string& content);
+  void logText(const std::string& streamName, 
+	       const std::string& content);
+
+  void logRawNmea2000(int64_t tsSec,
+		      int64_t tsUsec,
+		      int64_t id,
+		      const std::string& data);
 
   // Save invokes gzip, it might be slightly time consuming.
   static bool save(const std::string& filename, const LogFile& data);

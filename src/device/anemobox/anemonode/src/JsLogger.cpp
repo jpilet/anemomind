@@ -59,6 +59,8 @@ void JsLogger::Init(v8::Handle<v8::Object> target) {
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
   NODE_SET_METHOD(proto, "flush", JsLogger::flush);
   NODE_SET_METHOD(proto, "logText", JsLogger::logText);
+  NODE_SET_METHOD(proto, "logRawNmea2000", 
+		  JsLogger::logRawNmea2000);
 
   NanAssignPersistent<FunctionTemplate>(logger_constructor, tpl);
 
@@ -72,14 +74,16 @@ NAN_METHOD(JsLogger::New) {
   NanReturnValue(args.This());
 }
 
+#define GET_TYPED_THIS(TYPE, OBJ)		     \
+  TYPE* OBJ = ObjectWrap::Unwrap<TYPE>(args.This()); \
+  if (!OBJ) {					     \
+    NanThrowTypeError("This is not a " #TYPE);	     \
+    NanReturnUndefined();			     \
+  }						     
+
 NAN_METHOD(JsLogger::flush) {
   NanScope();
-
-  JsLogger* obj = ObjectWrap::Unwrap<JsLogger>(args.This());
-  if (!obj) {
-    NanThrowTypeError("This is not a Logger");
-    NanReturnUndefined();
-  }
+  GET_TYPED_THIS(JsLogger, obj);
 
   if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsFunction()) {
     NanThrowTypeError(
@@ -99,12 +103,7 @@ NAN_METHOD(JsLogger::flush) {
 
 NAN_METHOD(JsLogger::logText) {
   NanScope();
-
-  JsLogger* obj = ObjectWrap::Unwrap<JsLogger>(args.This());
-  if (!obj) {
-    NanThrowTypeError("This is not a Logger");
-    NanReturnUndefined();
-  }
+  GET_TYPED_THIS(JsLogger, obj);
 
   if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsString()) {
     NanThrowTypeError(
@@ -117,6 +116,52 @@ NAN_METHOD(JsLogger::logText) {
   v8::String::Utf8Value content(args[1]->ToString());
 
   obj->_logger.logText(*source, *content);
+
+  NanReturnUndefined();
+}
+
+// Expects as input these arguments:
+//   ts_sec: Time stamp in seconds (a number)
+//   ts_usec: Additional microseconds, to add to timestamp (a number)
+//   id: Id of the message (a number)
+//   data: The data of the message (a string (not a buffer!))
+// https://github.com/jpilet/node-can/commit/4d4019b2b7a7b6c14f550ff02ab99db5e0c148ea
+
+#define LOG_RAW_NMEA2000_USAGE "Usage: logRawNmea2000(ts_sec: Number, ts_usec: Number, id: Number, data: Buffer)"
+
+NAN_METHOD(JsLogger::logRawNmea2000) {
+  NanScope();
+  GET_TYPED_THIS(JsLogger, obj);
+  
+  if (args.Length() < 4) {
+    NanThrowTypeError("Too few arguments. " LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  }
+  if (!args[0]->IsNumber()) {
+    NanThrowTypeError("'ts_sec' is not a number" LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  }
+  if (!args[1]->IsNumber()) {
+    NanThrowTypeError("'ts_usec' is not a number" LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  }
+  if (!args[2]->IsNumber()) {
+    NanThrowTypeError("'id' is not a number" LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  }
+  if (!args[3]->IsString()) {
+    NanThrowTypeError("'data' is not a string" LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  }
+
+  double ts_sec = args[0]->ToNumber()->Value();
+  double ts_usec = args[1]->ToNumber()->Value();
+  double id = args[2]->ToNumber()->Value();
+  v8::String::Utf8Value data(args[3]->ToString());
+
+  obj->_logger.logRawNmea2000(ts_sec,
+			      ts_usec,
+			      id, *data);
 
   NanReturnUndefined();
 }
