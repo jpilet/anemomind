@@ -138,19 +138,19 @@ NAN_METHOD(JsLogger::logRawNmea2000) {
     NanReturnUndefined();
   }
   if (!args[0]->IsNumber()) {
-    NanThrowTypeError("'ts_sec' is not a number" LOG_RAW_NMEA2000_USAGE);
+    NanThrowTypeError("'ts_sec' is not a number. " LOG_RAW_NMEA2000_USAGE);
     NanReturnUndefined();
   }
   if (!args[1]->IsNumber()) {
-    NanThrowTypeError("'ts_usec' is not a number" LOG_RAW_NMEA2000_USAGE);
+    NanThrowTypeError("'ts_usec' is not a number. " LOG_RAW_NMEA2000_USAGE);
     NanReturnUndefined();
   }
   if (!args[2]->IsNumber()) {
-    NanThrowTypeError("'id' is not a number" LOG_RAW_NMEA2000_USAGE);
+    NanThrowTypeError("'id' is not a number. " LOG_RAW_NMEA2000_USAGE);
     NanReturnUndefined();
   }
   if (!args[3]->IsString()) {
-    NanThrowTypeError("'data' is not a string" LOG_RAW_NMEA2000_USAGE);
+    NanThrowTypeError("'data' is not a string. " LOG_RAW_NMEA2000_USAGE);
     NanReturnUndefined();
   }
 
