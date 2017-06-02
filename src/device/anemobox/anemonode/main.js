@@ -20,11 +20,16 @@ var withIMU = true;
 var withCUPS = false;
 var withNMEA2000 = true;
 var withWatchdog = !process.env['NO_WATCHDOG'];
-
 var spiBugDetected = false;
-
 var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
+var settings = require('./components/GlobalSettings.js');
+var dof = require('./components/deleteOldFiles.js');
+
+dof.easyCleanFolder(settings.sentLogsPath, function(err) {
+  console.log("Old files cleanup failed");
+  console.log(err);
+});
 
 var btrpcFuncTable = {};
 if (withBT) {
