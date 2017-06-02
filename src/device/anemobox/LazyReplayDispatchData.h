@@ -107,7 +107,7 @@ public:
       auto b = samplesOf(_prototype).begin();
       coll->insertAtFront(b, b + missingCount);
     }
-    _prototype = std::shared_ptr<TypedDispatchData<T>>();
+    _prototype.reset();
   }
 };
 

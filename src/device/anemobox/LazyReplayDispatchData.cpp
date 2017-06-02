@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include "LazyReplayDispatchData.h"
+#include <device/anemobox/LazyReplayDispatchData.h>
 
 namespace sail {
 

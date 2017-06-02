@@ -107,11 +107,14 @@ void TimedSampleCollection<T>::insert(const TimedVector& entries) {
   trim();
 }
 
-
 template <typename T>
 void TimedSampleCollection<T>::insertAtFront(
     typename TimedVector::const_iterator begin,
     typename TimedVector::const_iterator end) {
+  assert(std::is_sorted(begin, end));
+  assert(implies(
+    0 < _samples.size() && begin < end,
+    *(end - 1) < *_samples.begin()));
   _samples.insert(_samples.begin(), begin, end);
 }
 
