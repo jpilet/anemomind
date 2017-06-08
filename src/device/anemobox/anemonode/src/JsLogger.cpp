@@ -128,6 +128,21 @@ NAN_METHOD(JsLogger::logText) {
 
 #define LOG_RAW_NMEA2000_USAGE "Usage: logRawNmea2000(timestampMillisecondsSinceBoot: Number, id: Number, data: String)"
 
+  /*
+    
+    The incoming sentences come with the system time, call it S0, 
+    of when the packet arrived to the kernel. Then we receive
+    the packet a bit later, when the system time is S1 and the 
+    monotonic clock time (time since boot) is M1. To compute the 
+    monotonic clock time M0 when the packet arrived (which is the
+    value expected by this function), we need to solve w.r.t. M0:
+
+       M1 - M0 = S1 - S0 ,
+
+    which has the solution M0 = M1 - (S1 - S0).
+
+   */
+
 NAN_METHOD(JsLogger::logRawNmea2000) {
   NanScope();
   GET_TYPED_THIS(JsLogger, obj);
@@ -158,8 +173,7 @@ NAN_METHOD(JsLogger::logRawNmea2000) {
   double id = args[1]->ToNumber()->Value();
   v8::String::Utf8Value data(args[2]->ToString());
 
-  obj->_logger.logRawNmea2000(tsMs,
-			      id, *data);
+  obj->_logger.logRawNmea2000(tsMs, id, *data);
 
   NanReturnUndefined();
 }
