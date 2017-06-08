@@ -21,6 +21,10 @@ void addTimeStampToRepeatedFields(
 
 Optional<int64_t> readIntegerFromTextFile(const std::string &filename);
 
+void unpackTimeStamps(
+    const google::protobuf::RepeatedField<std::int64_t> &times,
+    std::vector<TimeStamp>* result);
+
 
 // Listen and save a single stream of values.
 class LoggerValueListener:
@@ -139,13 +143,23 @@ public:
   const std::string& source() const { return _sourceName; }
 private:
   ValueSet _valueSet;
-  int intBase;
-  int intBaseRoll;
-  int intBasePitch;
-  std::int64_t timestampBase;
-  std::int64_t extTimesBase;
+  int intBase = 0;
+  int intBaseRoll = 0;
+  int intBasePitch = 0;
+  std::int64_t timestampBase = 0;
+  std::int64_t extTimesBase = 0;
   std::string _sourceName;
   std::string _shortName;
+};
+
+class Nmea2000SentenceAccumulator {
+public:
+  void add(const TimeStamp& time,
+      int64_t id, const std::string& data);
+  Nmea2000Sentences* mutableData() {return &_data;}
+private:
+  std::int64_t timestampBase = 0;
+  Nmea2000Sentences _data;
 };
 
 class Logger {
@@ -153,13 +167,19 @@ class Logger {
   Logger(Dispatcher* dispatcher);
 
   // Move all stored data into <container>. This method should
-  // be called in the dispatcher thread. 
+  // be called in the dispatcher thread.
   void flushTo(LogFile* container);
 
   // Convenience function to call flushTo, nextFilename and save.
   bool flushAndSaveToFile(const std::string& filename);
 
-  void logText(const std::string& streamName, const std::string& content);
+  void logText(const std::string& streamName, 
+	       const std::string& content);
+
+  void logRawNmea2000(
+        int64_t timestampMillisecondsSinceBoot,
+        int64_t id,
+        const std::string& data);
 
   // Save invokes gzip, it might be slightly time consuming.
   static bool save(const std::string& filename, const LogFile& data);
@@ -199,6 +219,7 @@ class Logger {
   Dispatcher* _dispatcher;
   std::vector<std::shared_ptr<LoggerValueListener>> _listeners;
   std::map<std::string, LoggerValueListener> _textLoggers;
+  std::map<int64_t, Nmea2000SentenceAccumulator> _rawNmea2000Sentences;
   boost::signals2::scoped_connection _newDispatchDataListener;
 };
 

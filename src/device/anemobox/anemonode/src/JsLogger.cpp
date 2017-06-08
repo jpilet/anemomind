@@ -59,6 +59,8 @@ void JsLogger::Init(v8::Handle<v8::Object> target) {
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
   NODE_SET_METHOD(proto, "flush", JsLogger::flush);
   NODE_SET_METHOD(proto, "logText", JsLogger::logText);
+  NODE_SET_METHOD(proto, "logRawNmea2000", 
+		  JsLogger::logRawNmea2000);
 
   NanAssignPersistent<FunctionTemplate>(logger_constructor, tpl);
 
@@ -72,14 +74,16 @@ NAN_METHOD(JsLogger::New) {
   NanReturnValue(args.This());
 }
 
+#define GET_TYPED_THIS(TYPE, OBJ)		     \
+  TYPE* OBJ = ObjectWrap::Unwrap<TYPE>(args.This()); \
+  if (!OBJ) {					     \
+    NanThrowTypeError("This is not a " #TYPE);	     \
+    NanReturnUndefined();			     \
+  }						     
+
 NAN_METHOD(JsLogger::flush) {
   NanScope();
-
-  JsLogger* obj = ObjectWrap::Unwrap<JsLogger>(args.This());
-  if (!obj) {
-    NanThrowTypeError("This is not a Logger");
-    NanReturnUndefined();
-  }
+  GET_TYPED_THIS(JsLogger, obj);
 
   if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsFunction()) {
     NanThrowTypeError(
@@ -99,12 +103,7 @@ NAN_METHOD(JsLogger::flush) {
 
 NAN_METHOD(JsLogger::logText) {
   NanScope();
-
-  JsLogger* obj = ObjectWrap::Unwrap<JsLogger>(args.This());
-  if (!obj) {
-    NanThrowTypeError("This is not a Logger");
-    NanReturnUndefined();
-  }
+  GET_TYPED_THIS(JsLogger, obj);
 
   if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsString()) {
     NanThrowTypeError(
@@ -117,6 +116,64 @@ NAN_METHOD(JsLogger::logText) {
   v8::String::Utf8Value content(args[1]->ToString());
 
   obj->_logger.logText(*source, *content);
+
+  NanReturnUndefined();
+}
+
+// Expects as input these arguments:
+//   timestampMillisecondsSinceBoot: A number
+//   id: Id of the message (a number)
+//   data: The data of the message (a string (not a buffer!))
+// https://github.com/jpilet/node-can/commit/4d4019b2b7a7b6c14f550ff02ab99db5e0c148ea
+
+#define LOG_RAW_NMEA2000_USAGE "Usage: logRawNmea2000(timestampMillisecondsSinceBoot: Number, id: Number, data: String)"
+
+  /*
+    
+    The incoming sentences come with the system time, call it S0, 
+    of when the packet arrived to the kernel. Then we receive
+    the packet a bit later, when the system time is S1 and the 
+    monotonic clock time (time since boot) is M1. To compute the 
+    monotonic clock time M0 when the packet arrived (which is the
+    value expected by this function), we need to solve w.r.t. M0:
+
+       M1 - M0 = S1 - S0 ,
+
+    which has the solution M0 = M1 - (S1 - S0).
+
+   */
+
+NAN_METHOD(JsLogger::logRawNmea2000) {
+  NanScope();
+  GET_TYPED_THIS(JsLogger, obj);
+  
+  if (args.Length() < 3) {
+    NanThrowTypeError("Too few arguments. " LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  } 
+  if (args.Length() > 3) {
+    NanThrowTypeError("Too many arguments. " LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  }
+  if (!args[0]->IsNumber()) {
+    NanThrowTypeError("'timestampMillisecondsSinceBoot' is not a number. " 
+		      LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  }
+  if (!args[1]->IsNumber()) {
+    NanThrowTypeError("'id' is not a number. " LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  }
+  if (!args[2]->IsString()) {
+    NanThrowTypeError("'data' is not a string. " LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
+  }
+
+  double tsMs = args[0]->ToNumber()->Value();
+  double id = args[1]->ToNumber()->Value();
+  v8::String::Utf8Value data(args[2]->ToString());
+
+  obj->_logger.logRawNmea2000(tsMs, id, *data);
 
   NanReturnUndefined();
 }

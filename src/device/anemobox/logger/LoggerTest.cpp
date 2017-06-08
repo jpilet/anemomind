@@ -218,3 +218,35 @@ TEST(LoggerTest, LogBinary) {
   EXPECT_EQ(1, saved.stream_size());
   EXPECT_EQ(2, saved.stream(0).binary().edges_size());
 }
+
+TEST(LoggerTest, LogNmea) {
+  auto time = TimeStamp::UTC(2016, 6, 8, 15, 19, 0);
+
+  LogFile saved0, saved1;
+  {
+    FakeClockDispatcher dispatcher;
+    Logger logger(&dispatcher);
+    dispatcher.setTime(time);
+    logger.logRawNmea2000(34200, 119, "abc");
+    dispatcher.setTime(time + 1.0_s);
+    logger.logRawNmea2000(36200, 119, "def");
+    logger.logRawNmea2000(36250, 17, "xyz");
+    logger.flushTo(&saved0);
+
+    logger.logRawNmea2000(36600, 119, "ghi");
+    logger.flushTo(&saved1);
+  }
+
+  EXPECT_EQ(saved0.rawnmea2000_size(), 2);
+  std::vector<TimeStamp> times;
+  unpackTimeStamps(
+      saved0.rawnmea2000(1).timestampssinceboot(),
+      &times);
+  EXPECT_EQ(saved0.rawnmea2000(1).sentences(1), "def");
+  EXPECT_EQ(saved0.rawnmea2000(1).sentence_id(), 119);
+  EXPECT_EQ(times.size(), 2);
+  EXPECT_EQ(times[0].toMilliSecondsSince1970(), 34200);
+  EXPECT_EQ(times[1].toMilliSecondsSince1970(), 36200);
+
+  EXPECT_EQ(saved1.rawnmea2000_size(), 1);
+}
