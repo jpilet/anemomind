@@ -28,15 +28,13 @@ var reboot = require('./components/reboot').reboot;
 var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
 
+// To free up space if possible.
 function cleanOld() {
   dof.easyCleanFolder(settings.sentLogsPath, function(err) {
     console.log("Old files cleanup failed");
     console.log(err);
   });
 }
-
-cleanOld();
-setInterval(cleanOld, cleanInterval);
 
 var btrpcFuncTable = {};
 if (withBT) {
@@ -143,6 +141,7 @@ var getCurrentTime = withTimeEstimator?
 
 function startLogging() {
   logger.startLogging(logRoot, logInterval, getCurrentTime, function(path) {
+    cleanOld();
     if (withLocalEndpoint) {
       localEndpoint.postLogFile(path, function(err, remaining) {
         if (err) {
