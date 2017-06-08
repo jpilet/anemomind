@@ -4,8 +4,7 @@ var logRoot = '/media/sdcard/logs/';
 console.log('Anemobox firmware version ' + version.string);
 
 var nmea0183PortPath = '/dev/ttyMFD1';
-var minutes = 60 * 1000;
-var logInterval = 5 * minutes;  // create a log file every 5 minutes
+var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
@@ -34,6 +33,9 @@ function cleanOld() {
     console.log(err);
   });
 }
+
+// On startup, but also later, when we post files.
+cleanOld();
 
 var btrpcFuncTable = {};
 if (withBT) {
