@@ -135,6 +135,10 @@ NAN_METHOD(JsLogger::logRawNmea2000) {
   if (args.Length() < 3) {
     NanThrowTypeError("Too few arguments. " LOG_RAW_NMEA2000_USAGE);
     NanReturnUndefined();
+  } 
+  if (args.Length() > 3) {
+    NanThrowTypeError("Too many arguments. " LOG_RAW_NMEA2000_USAGE);
+    NanReturnUndefined();
   }
   if (!args[0]->IsNumber()) {
     NanThrowTypeError("'timestampMillisecondsSinceBoot' is not a number. " 

@@ -7,16 +7,15 @@ describe('anemonode', function() {
 	assert(logger);
 	assert(logger.logRawNmea2000);
 	
-	var ts_sec = 123;
-	var ts_usec = 1233;
+	var timestampMilliseconds = 123;
 	var id = 99;
 	var data = "abc";
 
-	logger.logRawNmea2000(ts_sec, ts_usec, id, data);
+	logger.logRawNmea2000(timestampMilliseconds, id, data);
 
 	var thrown = false;
 	try {
-	    logger.logRawNmea2000(ts_sec, ts_usec, id, ts_sec);
+	    logger.logRawNmea2000(timestampMilliseconds, id, data, data);
 	} catch (e) {
 	    thrown = true;
 	}
