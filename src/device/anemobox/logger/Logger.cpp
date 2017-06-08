@@ -157,7 +157,9 @@ void Logger::subscribeToDispatcher(DispatchData *d) {
   _listeners.push_back(std::shared_ptr<LoggerValueListener>(listener));
 }
 
-void Logger::logText(const std::string& streamName, const std::string& content) {
+void Logger::logText(
+    const std::string& streamName,
+    const std::string& content) {
   auto it = _textLoggers.find(streamName);
   if (it == _textLoggers.end()) {
     it = _textLoggers.insert(

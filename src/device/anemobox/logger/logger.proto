@@ -94,9 +94,14 @@ message ValueSet {
   repeated string text = 7;
 }
 
+// Sentences are grouped by sentence-id,
+// every sentence id has its own instance
+// of the object below.
 message Nmea2000Sentences {
-  repeated int64 delta_microseconds = 2;
-  repeated bytes sentences = 3;
+  required int64 sentence_id = 1;
+  required int64 timestamp_microseconds = 2; 
+  repeated int64 delta_microseconds = 3 [packed = true];
+  repeated bytes sentences = 4;
 }
 
 message LogFile {
@@ -112,6 +117,5 @@ message LogFile {
   // Stores the number of time the machine recording the data booted. 
   optional int64 bootcount = 6;
   
-  // Map from sentence id to stream.
-  optional map<int64, Nmea2000Sentences> rawNmea2000 = 7;
+  repeated Nmea2000Sentences rawNmea2000 = 7;
 }
