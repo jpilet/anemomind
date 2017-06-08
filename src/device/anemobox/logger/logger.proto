@@ -99,9 +99,12 @@ message ValueSet {
 // of the object below.
 message Nmea2000Sentences {
   required int64 sentence_id = 1;
-  required int64 timestamp_microseconds = 2; 
-  repeated int64 delta_microseconds = 3 [packed = true];
-  repeated bytes sentences = 4;
+  
+  // Delta-coded, in milliseconds (the same instant as the message
+  // was tagged with a system time)
+  repeated int64 timestampssinceboot = 2 [packed = true];
+  
+  repeated bytes sentences = 3;
 }
 
 message LogFile {

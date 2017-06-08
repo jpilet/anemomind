@@ -293,10 +293,10 @@ void Logger::unpack(const BinaryEdgeValueSet& values,
   }
 }
 
-void Logger::logRawNmea2000(int64_t tsSec,
-          int64_t tsUsec,
-          int64_t id,
-          const std::string& data) {
+void Logger::logRawNmea2000(
+      int64_t timestampMillisecondsSinceBoot,
+      int64_t id,
+      const std::string& data) {
 
 }
 
