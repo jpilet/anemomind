@@ -94,6 +94,11 @@ message ValueSet {
   repeated string text = 7;
 }
 
+message Nmea2000Sentences {
+  repeated int64 delta_microseconds = 2;
+  repeated bytes sentences = 3;
+}
+
 message LogFile {
   repeated ValueSet stream = 1;
   optional string anemobox = 2;
@@ -106,4 +111,7 @@ message LogFile {
   
   // Stores the number of time the machine recording the data booted. 
   optional int64 bootcount = 6;
+  
+  // Map from sentence id to stream.
+  optional map<int64, Nmea2000Sentences> rawNmea2000 = 7;
 }
