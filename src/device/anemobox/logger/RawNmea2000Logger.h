@@ -8,20 +8,10 @@
 #ifndef DEVICE_ANEMOBOX_LOGGER_RAWNMEA2000LOGGER_H_
 #define DEVICE_ANEMOBOX_LOGGER_RAWNMEA2000LOGGER_H_
 
+#include <server/common/TimeStamp.h>
+
 namespace sail {
 
-struct RawNmea2000Sentence {
-  int64_t timestamp_us;
-  std::string data;
-};
-
-class RawNmea2000Logger {
-public:
-  RawNmea2000Logger();
-  virtual ~RawNmea2000Logger();
-private:
-  //std::map<int64_t, std::vector<>>
-};
 
 } /* namespace sail */
 

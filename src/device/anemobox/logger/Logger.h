@@ -148,6 +148,12 @@ private:
   std::string _shortName;
 };
 
+struct RawNmea2000Sentence {
+  TimeStamp time;
+  int64_t id;
+  std::string data;
+};
+
 class Logger {
  public:
   Logger(Dispatcher* dispatcher);
@@ -205,6 +211,7 @@ class Logger {
   Dispatcher* _dispatcher;
   std::vector<std::shared_ptr<LoggerValueListener>> _listeners;
   std::map<std::string, LoggerValueListener> _textLoggers;
+  std::vector<RawNmea2000Sentence> _rawNmea2000Sentences;
   boost::signals2::scoped_connection _newDispatchDataListener;
 };
 

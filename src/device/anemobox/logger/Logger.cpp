@@ -297,7 +297,11 @@ void Logger::logRawNmea2000(
       int64_t timestampMillisecondsSinceBoot,
       int64_t id,
       const std::string& data) {
-
+  _rawNmea2000Sentences.push_back(RawNmea2000Sentence{
+    TimeStamp::fromMilliSecondsSince1970(
+        timestampMillisecondsSinceBoot),
+    id, data
+  });
 }
 
 }  // namespace sail
