@@ -6,7 +6,6 @@ console.log('Anemobox firmware version ' + version.string);
 var nmea0183PortPath = '/dev/ttyMFD1';
 var minutes = 60 * 1000;
 var logInterval = 5 * minutes;  // create a log file every 5 minutes
-var cleanInterval = 2 * minutes;
 var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
