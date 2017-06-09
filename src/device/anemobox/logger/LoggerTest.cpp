@@ -231,18 +231,19 @@ TEST(LoggerTest, LogNmea) {
     dispatcher.setTime(time + 1.0_s);
     logger.logRawNmea2000(36200, 119, 3, "def");
     logger.logRawNmea2000(36250, 17, 3, "xyz");
+    logger.logRawNmea2000(36250, 17, 8, "abcdefgh");
     logger.flushTo(&saved0);
 
     logger.logRawNmea2000(36600, 119, 3, "ghi");
     logger.flushTo(&saved1);
   }
 
-  EXPECT_EQ(saved0.rawnmea2000_size(), 2);
+  EXPECT_EQ(saved0.rawnmea2000_size(), 3);
   std::vector<TimeStamp> times;
   unpackTimeStamps(
       saved0.rawnmea2000(1).timestampssinceboot(),
       &times);
-  EXPECT_EQ(saved0.rawnmea2000(1).sentences(1), "def");
+  EXPECT_EQ(saved0.rawnmea2000(1).oddsizesentences(1), "def");
   EXPECT_EQ(saved0.rawnmea2000(1).sentence_id(), 119);
   EXPECT_EQ(times.size(), 2);
   EXPECT_EQ(times[0].toMilliSecondsSince1970(), 34200);

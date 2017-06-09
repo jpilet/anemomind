@@ -70,15 +70,24 @@ void addTimeStampToRepeatedFields(
 void Nmea2000SentenceAccumulator::add(
     const TimeStamp& time,
     int64_t id, size_t count, const char* data) {
+  auto sc = getNmea2000SizeClass(count);
   if (_data.has_sentence_id()) {
     CHECK(_data.sentence_id() == id);
+    CHECK(_sizeClass == sc);
   } else {
     _data.set_sentence_id(id);
+    _sizeClass = sc;
   }
   addTimeStampToRepeatedFields(
         &timestampBase, _data.mutable_timestampssinceboot(),
         time);
-  _data.add_sentences(std::string(data, count));
+  if (sc == Nmea2000SizeClass::Odd) {
+    _data.add_oddsizesentences(std::string(data, count));
+  } else {
+    _data.add_regularsizesentences(
+        *reinterpret_cast<const ::google::protobuf::uint64*>(data));
+  }
+
 }
 
 Logger::Logger(Dispatcher* dispatcher) :
@@ -320,7 +329,7 @@ void Logger::logRawNmea2000(
   auto t = TimeStamp::fromMilliSecondsSince1970(
       timestampMillisecondsSinceBoot);
 
-  _rawNmea2000Sentences[id].add(t, id, count, data);
+  _rawNmea2000Sentences[{id, getNmea2000SizeClass(count)}].add(t, id, count, data);
 }
 
 }  // namespace sail

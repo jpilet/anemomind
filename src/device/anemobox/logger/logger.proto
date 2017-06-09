@@ -97,6 +97,10 @@ message ValueSet {
 // Sentences are grouped by sentence-id,
 // every sentence id has its own instance
 // of the object below.
+//
+// This class is a bit polymorphic, in the sense that either
+// (i) it only stores sentences of 8 bytes or (ii) it only
+// stores sentences that are *not* 8 bytes.
 message Nmea2000Sentences {
   required int64 sentence_id = 1;
   
@@ -104,7 +108,9 @@ message Nmea2000Sentences {
   // was tagged with a system time)
   repeated int64 timestampssinceboot = 2 [packed = true];
   
-  repeated bytes sentences = 3;
+  // Any of these two must be empty.
+  repeated bytes oddSizeSentences = 3;
+  repeated fixed64 regularSizeSentences = 4;
 }
 
 message LogFile {

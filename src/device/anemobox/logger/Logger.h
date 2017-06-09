@@ -152,12 +152,21 @@ private:
   std::string _shortName;
 };
 
+enum class Nmea2000SizeClass {Regular, Odd};
+
+inline Nmea2000SizeClass getNmea2000SizeClass(size_t byteCount) {
+  return byteCount == 8?
+      Nmea2000SizeClass::Regular
+      : Nmea2000SizeClass::Odd;
+}
+
 class Nmea2000SentenceAccumulator {
 public:
   void add(const TimeStamp& time,
 	   int64_t id, size_t count, const char* data);
   Nmea2000Sentences* mutableData() {return &_data;}
 private:
+  Nmea2000SizeClass _sizeClass = Nmea2000SizeClass::Regular;
   std::int64_t timestampBase = 0;
   Nmea2000Sentences _data;
 };
@@ -219,7 +228,7 @@ class Logger {
   Dispatcher* _dispatcher;
   std::vector<std::shared_ptr<LoggerValueListener>> _listeners;
   std::map<std::string, LoggerValueListener> _textLoggers;
-  std::map<int64_t, Nmea2000SentenceAccumulator> _rawNmea2000Sentences;
+  std::map<std::pair<int64_t, Nmea2000SizeClass>, Nmea2000SentenceAccumulator> _rawNmea2000Sentences;
   boost::signals2::scoped_connection _newDispatchDataListener;
 };
 
