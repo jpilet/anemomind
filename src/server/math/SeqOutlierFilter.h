@@ -72,9 +72,12 @@ public:
          * Here we decide how to choose the best state to
          * update. For instance, we can choose the best fit. Or
          * we can choose the longest segment.
+         *
+         * If we choose the longest segment we will greedily
+         * try to make long segments longer.
          */
 
-        selCost = nextCost;
+        selCost = -state->insertedCount;
       }
     }
 
