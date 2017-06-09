@@ -227,13 +227,13 @@ TEST(LoggerTest, LogNmea) {
     FakeClockDispatcher dispatcher;
     Logger logger(&dispatcher);
     dispatcher.setTime(time);
-    logger.logRawNmea2000(34200, 119, "abc");
+    logger.logRawNmea2000(34200, 119, 3, "abc");
     dispatcher.setTime(time + 1.0_s);
-    logger.logRawNmea2000(36200, 119, "def");
-    logger.logRawNmea2000(36250, 17, "xyz");
+    logger.logRawNmea2000(36200, 119, 3, "def");
+    logger.logRawNmea2000(36250, 17, 3, "xyz");
     logger.flushTo(&saved0);
 
-    logger.logRawNmea2000(36600, 119, "ghi");
+    logger.logRawNmea2000(36600, 119, 3, "ghi");
     logger.flushTo(&saved1);
   }
 
