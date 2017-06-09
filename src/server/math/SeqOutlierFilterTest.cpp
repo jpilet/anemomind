@@ -49,7 +49,7 @@ TEST(SeqOutlierFilterTest, ShortLineTest) {
   double m = -23;
 
   for (int i = 0; i < n; i++) {
-
+    //if (i == outlierIndex)
   }
 
 }
