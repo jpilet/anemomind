@@ -136,6 +136,13 @@ cxx_test(math_Curve2dFilterTest
   gtest_main
   )
 
+cxx_test(math_SeqOutlierFilterTest
+  SeqOutlierFilterTest.cpp
+  gtest_main
+  common_logging
+  )
+  
+
 add_subdirectory(spline)
 add_subdirectory(geometry)
 add_subdirectory(hmm)

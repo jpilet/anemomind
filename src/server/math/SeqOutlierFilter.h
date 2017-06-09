@@ -9,6 +9,7 @@
 #define SERVER_MATH_SEQOUTLIERFILTER_H_
 
 #include <server/common/indexed.h>
+#include <server/common/logging.h>
 
 namespace sail {
 namespace SeqOutlierFilter {
@@ -32,7 +33,10 @@ public:
   State(
       const Settings& settings,
       const LocalModel& prototype)
-    : _settings(settings), _prototype(prototype) {}
+    : _settings(settings), _prototype(prototype) {
+      CHECK(0 < settings.maxLocalModelCost);
+      CHECK(0 < settings.maxLocalModelCount);
+  }
 
   struct LocalState {
     // The index of its associated segment.
