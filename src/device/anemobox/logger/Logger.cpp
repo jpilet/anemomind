@@ -329,7 +329,8 @@ void Logger::logRawNmea2000(
   auto t = TimeStamp::fromMilliSecondsSince1970(
       timestampMillisecondsSinceBoot);
 
-  _rawNmea2000Sentences[{id, getNmea2000SizeClass(count)}].add(t, id, count, data);
+  _rawNmea2000Sentences[{id, getNmea2000SizeClass(count)}]
+    .add(t, id, count, data);
 }
 
 }  // namespace sail
