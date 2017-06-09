@@ -164,16 +164,20 @@ NAN_METHOD(JsLogger::logRawNmea2000) {
     NanThrowTypeError("'id' is not a number. " LOG_RAW_NMEA2000_USAGE);
     NanReturnUndefined();
   }
-  if (!args[2]->IsString()) {
-    NanThrowTypeError("'data' is not a string. " LOG_RAW_NMEA2000_USAGE);
+  if (!args[2]->IsObject()) {
+    NanThrowTypeError("'data' is not a buffer. " 
+		      LOG_RAW_NMEA2000_USAGE);
     NanReturnUndefined();
   }
 
   double tsMs = args[0]->ToNumber()->Value();
   double id = args[1]->ToNumber()->Value();
-  v8::String::Utf8Value data(args[2]->ToString());
 
-  obj->_logger.logRawNmea2000(tsMs, id, *data);
+  Local<Object> bufferObj = args[2]->ToObject();
+  char* bufferData = node::Buffer::Data(bufferObj);
+  size_t bufferLength = node::Buffer::Length(bufferObj);
+
+  obj->_logger.logRawNmea2000(tsMs, id, bufferLength, bufferData);
 
   NanReturnUndefined();
 }

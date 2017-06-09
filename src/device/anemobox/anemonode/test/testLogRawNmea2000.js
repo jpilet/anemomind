@@ -1,6 +1,17 @@
 var anemonode = require('../build/Release/anemonode');
 var assert = require('assert');
 
+function shouldNotWork(f) {
+    var thrown = false;
+    try {
+	f();
+    } catch (e) {
+	thrown = true;
+    }
+    assert(thrown);
+}
+
+
 describe('anemonode', function() {
     it('log raw', function() {
 	var logger = new anemonode.Logger();
@@ -9,17 +20,20 @@ describe('anemonode', function() {
 	
 	var timestampMilliseconds = 123;
 	var id = 99;
-	var data = "abc";
+	var data = new Buffer("abc");
 
 	logger.logRawNmea2000(timestampMilliseconds, id, data);
 
-	var thrown = false;
-	try {
+	shouldNotWork(function() {
 	    logger.logRawNmea2000(timestampMilliseconds, id, data, data);
-	} catch (e) {
-	    thrown = true;
-	}
+	});
 
-	assert(thrown);
+	shouldNotWork(function() {
+	    logger.logRawNmea2000(timestampMilliseconds, id, 9);
+	});
+
+	shouldNotWork(function() {
+	    logger.logRawNmea2000(timestampMilliseconds, id, "asdfasdfasdf");
+	});
     });
 });

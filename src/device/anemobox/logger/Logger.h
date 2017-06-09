@@ -155,7 +155,7 @@ private:
 class Nmea2000SentenceAccumulator {
 public:
   void add(const TimeStamp& time,
-      int64_t id, const std::string& data);
+	   int64_t id, size_t count, const char* data);
   Nmea2000Sentences* mutableData() {return &_data;}
 private:
   std::int64_t timestampBase = 0;
@@ -179,7 +179,7 @@ class Logger {
   void logRawNmea2000(
         int64_t timestampMillisecondsSinceBoot,
         int64_t id,
-        const std::string& data);
+        size_t count, const char* data);
 
   // Save invokes gzip, it might be slightly time consuming.
   static bool save(const std::string& filename, const LogFile& data);

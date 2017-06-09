@@ -69,7 +69,7 @@ void addTimeStampToRepeatedFields(
 
 void Nmea2000SentenceAccumulator::add(
     const TimeStamp& time,
-    int64_t id, const std::string& data) {
+    int64_t id, size_t count, const char* data) {
   if (_data.has_sentence_id()) {
     CHECK(_data.sentence_id() == id);
   } else {
@@ -78,7 +78,7 @@ void Nmea2000SentenceAccumulator::add(
   addTimeStampToRepeatedFields(
         &timestampBase, _data.mutable_timestampssinceboot(),
         time);
-  _data.add_sentences(data);
+  _data.add_sentences(std::string(data, count));
 }
 
 Logger::Logger(Dispatcher* dispatcher) :
@@ -312,7 +312,7 @@ void Logger::unpack(const BinaryEdgeValueSet& values,
 void Logger::logRawNmea2000(
       int64_t timestampMillisecondsSinceBoot,
       int64_t id,
-      const std::string& data) {
+      size_t count, const char* data) {
 
   // Well, the naming is a bit contratictory.
   // The timestamp that we are constructing is
@@ -320,7 +320,7 @@ void Logger::logRawNmea2000(
   auto t = TimeStamp::fromMilliSecondsSince1970(
       timestampMillisecondsSinceBoot);
 
-  _rawNmea2000Sentences[id].add(t, id, data);
+  _rawNmea2000Sentences[id].add(t, id, count, data);
 }
 
 }  // namespace sail
