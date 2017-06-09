@@ -219,6 +219,20 @@ TEST(LoggerTest, LogBinary) {
   EXPECT_EQ(2, saved.stream(0).binary().edges_size());
 }
 
+const ::sail::Nmea2000Sentences& findNmea2000Sentences(
+    const LogFile& src,
+    int64_t id, Nmea2000SizeClass sc) {
+  for (int i = 0; i < src.rawnmea2000_size(); i++) {
+    const ::sail::Nmea2000Sentences& x = src.rawnmea2000(i);
+    if (x.sentence_id() == id && ((x.oddsizesentences_size() == 0)
+            == (sc == Nmea2000SizeClass::Regular))) {
+      return x;
+    }
+  }
+  EXPECT_TRUE(false);
+  return src.rawnmea2000(0);
+}
+
 TEST(LoggerTest, LogNmea) {
   auto time = TimeStamp::UTC(2016, 6, 8, 15, 19, 0);
 
@@ -240,11 +254,12 @@ TEST(LoggerTest, LogNmea) {
 
   EXPECT_EQ(saved0.rawnmea2000_size(), 3);
   std::vector<TimeStamp> times;
+  const auto& odd = findNmea2000Sentences(saved0, 119,
+      Nmea2000SizeClass::Odd);
   unpackTimeStamps(
-      saved0.rawnmea2000(1).timestampssinceboot(),
-      &times);
-  EXPECT_EQ(saved0.rawnmea2000(1).oddsizesentences(1), "def");
-  EXPECT_EQ(saved0.rawnmea2000(1).sentence_id(), 119);
+      odd.timestampssinceboot(), &times);
+  EXPECT_EQ(odd.oddsizesentences(1), "def");
+  EXPECT_EQ(odd.sentence_id(), 119);
   EXPECT_EQ(times.size(), 2);
   EXPECT_EQ(times[0].toMilliSecondsSince1970(), 34200);
   EXPECT_EQ(times[1].toMilliSecondsSince1970(), 36200);
