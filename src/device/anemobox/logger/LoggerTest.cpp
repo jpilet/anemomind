@@ -264,5 +264,12 @@ TEST(LoggerTest, LogNmea) {
   EXPECT_EQ(times[0].toMilliSecondsSince1970(), 34200);
   EXPECT_EQ(times[1].toMilliSecondsSince1970(), 36200);
 
+  auto regular = findNmea2000Sentences(
+      saved0, 17,
+      Nmea2000SizeClass::Regular);
+  uint64_t sentence = regular.regularsizesentences(0);
+  EXPECT_EQ(std::string(reinterpret_cast<const char*>(&sentence), 8),
+      "abcdefgh");
+
   EXPECT_EQ(saved1.rawnmea2000_size(), 1);
 }
