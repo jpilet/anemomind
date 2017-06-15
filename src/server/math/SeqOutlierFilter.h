@@ -54,6 +54,11 @@ struct Settings {
 //   // if we *would* insert x. (but doesn't insert it).
 //   double previewCost(const T& x) const;
 //
+// In the case of filtering GPS data, we could model the GPS trajectory
+// locally as the boat coordinates being second-order polynomial
+// functions of time, and only use the 12 last samples or so for fitting
+// that model.
+//
 // The type T is the type of observation. It could, for instance,
 // be a TimedValue<GeographicPosition<double>> in case we were to
 // filter GPS data.
