@@ -17,7 +17,16 @@ namespace sail {
 namespace SeqOutlierFilter {
 
 struct Settings {
+  // This is maximum number of local models that we keep track
+  // of. A higher number here is likely to lead to better segmentations
+  // in difficult cases, but the time complexity is also linear w.r.t.
+  // this parameter.
   int maxLocalModelCount = 0;
+
+  // This parameter is used as a threshold to distinguish between
+  // what is noise or natural model inaccuracies
+  // (e.g. fitting a parabola to a circular arc),
+  // versus what is outlier data.
   double maxLocalModelCost = 0;
 };
 
@@ -48,6 +57,8 @@ struct Settings {
 // The type T is the type of observation. It could, for instance,
 // be a TimedValue<GeographicPosition<double>> in case we were to
 // filter GPS data.
+//
+// See the unit test for an example of how this class is used.
 template <typename T, typename LocalModel>
 class State {
 public:
@@ -161,7 +172,9 @@ private:
 
       // Not sure which rule is best to determine what to
       // replace next.
-      return s.insertedCount;
+
+      //return s.insertedCount; // Shortest
+      return s.lastUpdate; // Oldest
     });
 
   }
