@@ -32,6 +32,8 @@ private:
   Eigen::Vector2d values[3];
 };
 
+std::pair<int >
+
 TEST(SeqOutlierFilterTest, ShortLineTest) {
   using namespace sail;
   using namespace SeqOutlierFilter;
