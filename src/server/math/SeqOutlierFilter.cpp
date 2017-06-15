@@ -130,13 +130,31 @@ std::set<int> getInlierSegmentSet(
 
 std::set<int> computeInlierSegments(
     const Array<IndexSpan>& spans) {
+
+  // Because we can have multiple contiguous
+  // spans with the same segment index, we group them here
+  // into an array of SegmentInfo. The array index is
+  // *does not* correspond to the segment index, but is
+  // used as a reference in the dynamic programming problem that
+  // we will solve.
   auto total = computeTotalSpans(spans);
+
+  // Here we connect every segment with its closest successors
+  // that are not overlapping with it.
   buildGraph(&total);
+
+  // Here we do a forward sweep in the dynamic programming problem.
+  // The objective is to choose a subset of the SegmentInfo elements
+  // such that the total number of samples is maximized, subject to
+  // the constraint that 'totalSpan' of two SegmentInfo cannot overlap.
+  // That constraint is encoded in the graph that we built previously.
   int best = -1;
   for (auto& x: total) {
     x.computeBestPredecessor(total);
     best = bestSegment(best, x.arrayIndex, total);
   }
+
+  // Here we unwind the solution starting from the best final segment.
   return getInlierSegmentSet(total, best);
 }
 

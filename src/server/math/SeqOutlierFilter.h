@@ -31,7 +31,7 @@ struct Settings {
 // than inliers, and inliers, in turn form long segments.
 //
 // So, given a sequence of observations, we get a sequence of segment
-// indices, one index per observation. In a seconds step, that sequence
+// indices, one index per observation. In a second step, that sequence
 // can be parsed with a heuristic that identifies inlier segments.
 //
 // Template parameters:

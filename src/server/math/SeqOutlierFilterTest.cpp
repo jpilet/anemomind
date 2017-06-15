@@ -42,12 +42,14 @@ std::pair<int, double> getDataWithOutliers(int index, double trueValue) {
     return {1, trueValue + 1000};
   } else if ((index == 30) || (index == 40)) {
     return {2, 90};
+  } else if (index < 300) {
+    return {0, trueValue};
   }
-  return {0, trueValue};
+  return {3, trueValue};
 }
 
 double trueFunction(int index) {
-  return 3.4*index - 23;
+  return index < 300? 3.4*index - 23 : 56 - 0.1*index;
 }
 
 TEST(SeqOutlierFilterTest, ModelTest) {
@@ -71,9 +73,22 @@ TEST(SeqOutlierFilterTest, ShortLineTest) {
   State<Eigen::Vector2d, ShortStraightLineModel> state(
       settings, ShortStraightLineModel());
 
+  // Problem description:
+  // We have a curve that should be broken up into two sections.
+  // The first section is for the first 300 samples and is a straight
+  // line with slope 3.4 and offset -23. The second section is
+  // a straight line for the remaining samples from index 300,
+  // with slope -0.1 and offset 56.
+  //
+  // We have injected a few outliers in the data, and the objective
+  // of this code is to
+  //  (i) Assign segment indices to all the samples
+  // (ii) Determine which segment indices are likely corresponding
+  //      to inlier data.
+
   // Part 1: Assign segment indices to every sample
   IndexGrouper grouper;
-  int n = 300;
+  int n = 400;
   for (int i = 0; i < n; i++) {
     auto indexAndValue = getDataWithOutliers(i, trueFunction(i));
     auto expectedSegmentIndex = indexAndValue.first;
@@ -84,11 +99,13 @@ TEST(SeqOutlierFilterTest, ShortLineTest) {
   }
 
   // Part 2: Parse the sequence of segment indices
-  // to extract only inlier segments
+  // to extract only inlier segments. We expect two sections,
+  // as described in the problem description.
   auto inliers = computeInlierSegments(grouper.get());
 
-  EXPECT_EQ(inliers.size(), 1);
-  EXPECT_EQ(*inliers.begin(), 0);
+  EXPECT_EQ(inliers.size(), 2);
+  EXPECT_TRUE(inliers.count(0) == 1);
+  EXPECT_TRUE(inliers.count(3) == 1);
 }
 
 TEST(SeqOutlierFilterTest, IndexGrouperTest) {
