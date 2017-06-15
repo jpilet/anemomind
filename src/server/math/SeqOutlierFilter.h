@@ -11,6 +11,7 @@
 #include <server/common/indexed.h>
 #include <server/common/logging.h>
 #include <server/common/Span.h>
+#include <set>
 
 namespace sail {
 namespace SeqOutlierFilter {
@@ -74,9 +75,10 @@ public:
     int insertedCount = 0;
 
     LocalState(
+        const LocalModel& prototype,
         int i,
         int itemCount, const T& x)
-      : lastUpdate(itemCount), index(i) {
+      : model(prototype), lastUpdate(itemCount), index(i) {
       model.insert(x);
     }
   };
@@ -138,7 +140,8 @@ public:
       return u.index;
     }
 
-    LocalState newState(_segmentCounter++, _itemCounter, x);
+    LocalState newState(
+        _prototype, _segmentCounter++, _itemCounter, x);
     if (_localStates.size() < _settings.maxLocalModelCount) {
       _localStates.push_back(newState);
     } else {
@@ -186,6 +189,9 @@ private:
   ArrayBuilder<IndexSpan> _groups;
   void flush();
 };
+
+std::set<int> computeInlierSegments(
+    const Array<IndexSpan>& spans);
 
 }
 }

@@ -103,3 +103,4 @@ TEST(SeqOutlierFilterTest, IndexGrouperTest) {
     EXPECT_EQ(g.span.maxv(), tos[i]);
   }
 }
+
