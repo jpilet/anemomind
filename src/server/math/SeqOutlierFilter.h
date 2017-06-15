@@ -157,17 +157,21 @@ private:
   std::vector<LocalState> _localStates;
 
   int nextToReplace() const {
-    // Not sure which rule is best to determine what to
-    // replace next.
-    return oldestIndex();
+    return chooseNextToReplace([](LocalState s) {
+
+      // Not sure which rule is best to determine what to
+      // replace next.
+      return s.insertedCount;
+    });
+
   }
 
-  int oldestIndex() const {
-    auto luAndIndex = std::make_pair(_itemCounter, -1);
+  int chooseNextToReplace(
+      std::function<double(LocalState)> f) const {
+    auto luAndIndex = std::make_pair(
+        std::numeric_limits<double>::infinity(), -1);
     for (const auto& x: indexed(_localStates)) {
-      luAndIndex = std::min(
-          luAndIndex,
-            std::make_pair(x.second.lastUpdate, x.first));
+      luAndIndex = std::min(luAndIndex, {f(x.second), x.first});
     }
     return luAndIndex.second;
   }
