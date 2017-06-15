@@ -113,6 +113,13 @@ namespace {
 }
 
 
+
+bool empty(const LogFile& container) {
+  return container.stream_size() == 0
+        && container.text_size() == 0
+        && container.rawnmea2000_size() == 0;
+}
+
 void Logger::flushTo(LogFile* container) {
   // Clear content.
   *container = LogFile();
@@ -153,8 +160,7 @@ bool Logger::flushAndSaveToFile(const std::string& filename) {
 
   flushTo(&container);
 
-  if (container.stream_size() == 0 && container.text_size() == 0) {
-    // nothing to save.
+  if (empty(container)) {
     return false;
   }
 

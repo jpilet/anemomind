@@ -5,6 +5,8 @@
 #include <device/anemobox/FakeClockDispatcher.h>
 #include <cstdio>
 #include <fstream>
+#include <random>
+#include <fstream>
 
 using namespace sail;
 
@@ -233,7 +235,58 @@ const ::sail::Nmea2000Sentences& findNmea2000Sentences(
   return src.rawnmea2000(0);
 }
 
+
+
+
+
+
+
+
+
+
+std::string makeRandomSentence(
+    int sentenceSize,
+    std::default_random_engine* rng) {
+  std::string dst;
+  std::uniform_int_distribution<unsigned char> d(0, 255);
+  for (int i = 0; i < sentenceSize; i++) {
+    dst += d(*rng);
+  }
+  return dst;
+}
+
+std::ifstream::pos_type filesize(const char* filename) {
+    std::ifstream in(filename, std::ifstream::ate
+        | std::ifstream::binary);
+    return in.tellg();
+}
+
+std::ifstream::pos_type measureSizeOfLogFileWithData(int count, int sentenceSize) {
+  std::default_random_engine rng;
+  FakeClockDispatcher dispatcher;
+  Logger logger(&dispatcher);
+  int64_t sentenceId = 119;
+  for (int i = 0; i < count; i++) {
+    auto s = makeRandomSentence(sentenceSize, &rng);
+    logger.logRawNmea2000(i, sentenceId, s.length(), s.data());
+  }
+  const char* filename = "/tmp/logfile_for_size_comparison.txt";
+  EXPECT_TRUE(logger.flushAndSaveToFile(filename));
+  return filesize(filename);
+}
+
+void compareSavings() {
+  int n = 1000;
+  std::cout << "Estimated general size: " <<
+      0.5*double(measureSizeOfLogFileWithData(n, 7)
+          + measureSizeOfLogFileWithData(n, 9)) << std::endl;
+  std::cout << "Size when using 8 byte sentences: " <<
+      measureSizeOfLogFileWithData(n, 8) << std::endl;
+}
+
 TEST(LoggerTest, LogNmea) {
+  compareSavings();
+
   auto time = TimeStamp::UTC(2016, 6, 8, 15, 19, 0);
 
   LogFile saved0, saved1;
