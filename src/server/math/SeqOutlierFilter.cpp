@@ -45,7 +45,7 @@ struct SegmentInfo {
   int segmentIndex = -1;
   int bestPredecessor = -1;
   int cumulativeSampleCount = 0;
-  std::vector<int> successors, predecessors;
+  std::vector<int> predecessors;
 
   void computeBestPredecessor(const Array<SegmentInfo>& data) {
     for (auto i: predecessors) {
@@ -87,7 +87,6 @@ Array<SegmentInfo> computeTotalSpans(
 }
 
 void connect(SegmentInfo* x, SegmentInfo* y) {
-  x->successors.push_back(y->arrayIndex);
   y->predecessors.push_back(x->arrayIndex);
 }
 
@@ -97,9 +96,10 @@ void connectToSuccessors(Array<SegmentInfo>* data, int index) {
   for (int i = index+1; i < data->size(); i++) {
     auto& y = (*data)[i];
 
-    // Any further connections would never be needed, because it
+    // In case the condition below holds, any further
+    // connections would never be needed, because it
     // would always be more optimal to include the segment that
-    // resulted in the current value of 'minExtent' and then connect
+    // resulted in the current value of 'minExtent' and connect
     // that segment to 'y', than omitting the segment corresponding to
     // 'minExtent'.
     if (minExtent <= y.totalExtent.minv()) {
@@ -123,7 +123,7 @@ std::set<int> getInlierSegmentSet(
     const Array<SegmentInfo>& data, int final) {
   std::set<int> dst;
   for (int i = final; i != -1; i = data[i].bestPredecessor) {
-    dst.insert(i);
+    dst.insert(data[i].segmentIndex);
   }
   return dst;
 }

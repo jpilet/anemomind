@@ -71,6 +71,8 @@ TEST(SeqOutlierFilterTest, ShortLineTest) {
   State<Eigen::Vector2d, ShortStraightLineModel> state(
       settings, ShortStraightLineModel());
 
+  // Part 1: Assign segment indices to every sample
+  IndexGrouper grouper;
   int n = 300;
   for (int i = 0; i < n; i++) {
     auto indexAndValue = getDataWithOutliers(i, trueFunction(i));
@@ -78,7 +80,15 @@ TEST(SeqOutlierFilterTest, ShortLineTest) {
     auto value = indexAndValue.second;
     int segmentIndex = state.filter(Eigen::Vector2d(i, value));
     EXPECT_EQ(expectedSegmentIndex, segmentIndex);
+    grouper.insert(segmentIndex);
   }
+
+  // Part 2: Parse the sequence of segment indices
+  // to extract only inlier segments
+  auto inliers = computeInlierSegments(grouper.get());
+
+  EXPECT_EQ(inliers.size(), 1);
+  EXPECT_EQ(*inliers.begin(), 0);
 }
 
 TEST(SeqOutlierFilterTest, IndexGrouperTest) {
