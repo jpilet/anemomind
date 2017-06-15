@@ -261,13 +261,17 @@ std::ifstream::pos_type filesize(const char* filename) {
     return in.tellg();
 }
 
-std::ifstream::pos_type measureSizeOfLogFileWithData(int count, int sentenceSize) {
+std::ifstream::pos_type measureSizeOfLogFileWithData(
+    bool repetitive,
+    int count, int sentenceSize) {
   std::default_random_engine rng;
   FakeClockDispatcher dispatcher;
   Logger logger(&dispatcher);
   int64_t sentenceId = 119;
   for (int i = 0; i < count; i++) {
-    auto s = makeRandomSentence(sentenceSize, &rng);
+    auto s = repetitive?
+        std::string(sentenceSize, 'k')
+        : makeRandomSentence(sentenceSize, &rng);
     logger.logRawNmea2000(i, sentenceId, s.length(), s.data());
   }
   const char* filename = "/tmp/logfile_for_size_comparison.txt";
@@ -277,11 +281,17 @@ std::ifstream::pos_type measureSizeOfLogFileWithData(int count, int sentenceSize
 
 void compareSavings() {
   int n = 1000;
-  std::cout << "Estimated general size: " <<
-      0.5*double(measureSizeOfLogFileWithData(n, 7)
-          + measureSizeOfLogFileWithData(n, 9)) << std::endl;
-  std::cout << "Size when using 8 byte sentences: " <<
-      measureSizeOfLogFileWithData(n, 8) << std::endl;
+  for (auto r: {false, true}) {
+    std::cout << "\n\nRepetitive? " << (r? "YES" : "NO") << std::endl;
+    auto general = 0.5*double(measureSizeOfLogFileWithData(r, n, 7)
+                + measureSizeOfLogFileWithData(r, n, 9));
+    auto bytes8 = measureSizeOfLogFileWithData(r, n, 8);
+    std::cout << "Estimated general size: " <<
+        general << std::endl;
+    std::cout << "Size when using 8 byte sentences: " <<
+        bytes8 << std::endl;
+    std::cout << "8bytes/general = " << bytes8/general << std::endl;
+  }
 }
 
 TEST(LoggerTest, LogNmea) {
