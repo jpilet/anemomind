@@ -3,8 +3,6 @@ var j1939socket = require('j1939socket');
 var can = require('socketcan');
 var buffer = require('buffer');
 var anemonode = require('../build/Release/anemonode');
-var channel = can.createRawChannel("can0", true /* ask for timestamps */);
-channel.start();
 
 function logRawPacket(msg) {
   var systemTime0 = 1000*msg.ts_sec + 0.001*msg.ts_usec;
@@ -24,5 +22,12 @@ function logRawPacket(msg) {
   j1939socket.fetch();
 }
 
-channel.addListener("onMessage", logRawPacket);
+try {
+    var channel = can.createRawChannel("can0", true /* ask for timestamps */);
+    channel.start();
+    channel.addListener("onMessage", logRawPacket);
+} catch (e) {
+    console.log("Failed to listen to CAN channel");
+    console.log(e);
+}
 
