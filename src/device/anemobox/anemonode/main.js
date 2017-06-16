@@ -9,7 +9,7 @@ var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
 var withTimeEstimator = true;
-var withSetTime = true;
+var withSetTime = false;
 var withBT = false;
 var echoGpsOnNmea = false;
 var withEstimator = true;
@@ -19,13 +19,12 @@ var withHttp = true;
 var withIMU = true;
 var withCUPS = false;
 var withNMEA2000 = true;
-var withWatchdog = !process.env['NO_WATCHDOG'];
+var withWatchdog = false; //!process.env['NO_WATCHDOG'];
 var spiBugDetected = false;
 var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
 var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
-var nmea2000raw = require('./components/nmea2000raw.js');
 
 // To free up space if possible.
 function cleanOld() {
@@ -49,7 +48,6 @@ if (withHttp) {
 
 if (withLogger) {
   var logger = require('./components/logger');
-  nmea2000raw.start();
 }
 
 if (withLocalEndpoint) {
@@ -183,7 +181,11 @@ if (withCUPS) {
 }
 
 if (withNMEA2000) {
-  require('./components/nmea2000.js').detectSPIBug(function() {
+  //setTimeout(function() {
+  console.log("Log NMEA2000");
+  var nmea2000 = require('./components/nmea2000.js');
+  nmea2000.start();
+  nmea2000.detectSPIBug(function() {
     var message = 'SPI bug detected, rebooting!';
     console.log(message);
     spiBugDetected = true;
@@ -192,6 +194,7 @@ if (withNMEA2000) {
       logger.flush();
     }
   });
+  //}, 10000);
 }
 
 if (withWatchdog) {
