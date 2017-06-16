@@ -23,11 +23,12 @@ class FlushWorker : public Nan::AsyncWorker {
 
   void HandleOKCallback() {
     Nan::HandleScope scope;
-    Handle<Value> argv[2];
+    Local<Value> argv[2];
 
-    argv[0] = Nan::New(_filename);
+    argv[0] = Nan::New(_filename).ToLocalChecked();
     if (!_result) {
-      argv[1] = Nan::New("Logger::save failed to write " + _filename);
+      argv[1] = Nan::New("Logger::save failed to write " 
+			 + _filename).ToLocalChecked();
     } else {
       argv[1] = Nan::Undefined();
     }
