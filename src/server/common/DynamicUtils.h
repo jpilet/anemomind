@@ -78,9 +78,9 @@ struct FromDynamic {
     OP(double) \
     OP(float) \
     OP(std::string) \
+    OP(bool) \
     OP(int32_t) \
-    OP(uint32_t) \
-    OP(bool)
+    OP(uint32_t)
 
 
 //OP(uint16_t) \
@@ -162,7 +162,9 @@ public:
   SerializationInfo writeTo(Poco::JSON::Object::Ptr dst) override {
     Poco::Dynamic::Var d;
     auto x = ToDynamic<T>::apply(*_ref, &d);
+    std::cout << "Value of d = " << d.toString() << std::endl;
     if (bool(x)) {
+      std::cout << "WRITE " << _key << std::endl;
       dst->set(_key, d);
     }
     return x;
@@ -192,13 +194,14 @@ SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
 //  struct ToDn
 
 #define DYNAMIC_INTERFACE \
-    Poco::Dynamic::Var toDynamic() const;/* \
-    SerializationInfo fromDynamic(const Poco::Dynamic::Var& src);*/
+    Poco::Dynamic::Var toDynamic() const;
+    //SerializationInfo fromDynamic(const Poco::Dynamic::Var& src);
 
 #define DYNAMIC_IMPLEMENTATION(ClassName, ...) \
     Poco::Dynamic::Var ClassName::toDynamic() const { \
-      return makeDynamicMap({__VA_ARGS__}); \
-    } /*\
+      return Poco::Dynamic::Var(Poco::JSON::Object::Ptr(new Poco::JSON::Object())); \
+      /*return makeDynamicMap({__VA_ARGS__});*/ \
+    }/* \
     SerializationInfo ClassName::fromDynamic(const Poco::Dynamic::Var& src) { \
       return fromDynamicMap(src, {__VA_ARGS__}); \
     }*/
