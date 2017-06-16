@@ -294,6 +294,11 @@ void compareSavings() {
   }
 }
 
+std::string string8(uint64_t sentence) {
+  return std::string(reinterpret_cast<const char*>(&sentence), 8);
+}
+
+
 TEST(LoggerTest, LogNmea) {
   compareSavings();
 
@@ -312,6 +317,10 @@ TEST(LoggerTest, LogNmea) {
     logger.flushTo(&saved0);
 
     logger.logRawNmea2000(36600, 119, 3, "ghi");
+
+    logger.logRawNmea2000(36700, 120, 5, "xx\0xx");
+    logger.logRawNmea2000(36700, 120, 8, "xx\0xxxx\0");
+    logger.logRawNmea2000(36700, 120, 8, "xx\0xx\0xx");
     logger.flushTo(&saved1);
   }
 
@@ -331,8 +340,22 @@ TEST(LoggerTest, LogNmea) {
       saved0, 17,
       Nmea2000SizeClass::Regular);
   uint64_t sentence = regular.regularsizesentences(0);
-  EXPECT_EQ(std::string(reinterpret_cast<const char*>(&sentence), 8),
-      "abcdefgh");
+  EXPECT_EQ(string8(sentence), "abcdefgh");
 
-  EXPECT_EQ(saved1.rawnmea2000_size(), 1);
+  const auto& odd2 = findNmea2000Sentences(saved1, 120,
+        Nmea2000SizeClass::Odd);
+
+  // NOTE: On using std::string to represent bytes (including '\0'):
+  // https://stackoverflow.com/questions/11467567/why-protocol-buffer-bytes-is-string-in-c
+  EXPECT_EQ(odd2.oddsizesentences(0), std::string("xx\0xx", 5));
+
+  const auto& reg2 = findNmea2000Sentences(saved1, 120,
+        Nmea2000SizeClass::Regular);
+
+  EXPECT_EQ(string8(reg2.regularsizesentences(0)),
+      std::string("xx\0xxxx\0", 8));
+  EXPECT_EQ(string8(reg2.regularsizesentences(1)),
+      std::string("xx\0xx\0xx", 8));
+
+  EXPECT_EQ(saved1.rawnmea2000_size(), 3);
 }
