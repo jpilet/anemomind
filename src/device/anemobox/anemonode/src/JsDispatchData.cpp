@@ -275,7 +275,8 @@ class JsListener:
     GetValueVisitor getValue(0);
     dispatchData_->visit(&getValue);
 
-    Handle<Value> argv[1] = { getValue.value() };
+    Local<Value> argv[1] = { getValue.value() };
+
     Nan::MakeCallback(
         Nan::GetCurrentContext()->Global(), 
 	Nan::New<Function>(callback_), 1, argv);
