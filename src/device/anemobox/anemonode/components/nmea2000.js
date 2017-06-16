@@ -56,32 +56,46 @@ function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr, srcAddr)
   counter2++;
 }
 
-var channel = null;
 
+function createAndSubscribeToChannel(can, socket) {
+  console.log("Create new channel!");
+  var channel = can.createRawChannel("can0", true /* ask for timestamps */);
+  channel.start();
+  channel.addListener("onMessage", function(msg) {logRawPacket(socket, msg);});
+  return channel;
+}
+
+function Context() {
+  console.log("Load the modules");
+  this.j1939 = require('j1939socket').j1939;
+  console.log("Create a new socket");
+  this.socket = new this.j1939.J1939Socket("can0");
+  console.log("Open the socket");
+  this.socket.open(handlePacket);
+  this.can = require('socketcan');
+  console.log("Create the channel");
+  this.channel = createAndSubscribeToChannel(this.can, this.socket);
+}
+
+function unload(moduleName) {
+  var name = require.resolve(moduleName);
+  delete require.cache[name];
+}
+
+Context.prototype.destroy = function() {
+  this.channel.stop();
+  unload('socketcan');
+  unload('j1939socket');
+}
+
+var context = null;
 function restart() {
   try {
-  if (channel) {
-    //channel.stop();
-    //channel.start();
-  } else {
-  console.log("Load the modules");
-  var j1939 = require('j1939socket').j1939;
-  console.log("Create a new socket");
-  var socket = new j1939.J1939Socket("can0");
-  console.log("Open the socket");
-  socket.open(handlePacket);
-  var can = require('socketcan');
-  var buffer = require('buffer');
-
-  console.log("Create the channel");
-  if (!channel) {
-    channel = can.createRawChannel("can0", true /* ask for timestamps */);
+  if (context) {
+    console.log("Destroy old context");
+    context.destroy();
   }
-  channel.start();
-
-  assert(j1939);
-  channel.addListener("onMessage", function(msg) {logRawPacket(socket, msg);});
-  }
+  context = new Context();
   } catch (e) {
     console.log("Failed to listen to CAN channel");
     console.log(e);
