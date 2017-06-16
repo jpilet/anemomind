@@ -58,6 +58,18 @@ SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
   }
 }
 
+Poco::Dynamic::Var makeDynamicMap(
+    std::vector<DynamicField::Ptr> fields) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  for (const auto& f: fields) {
+    auto s = f->writeTo(obj);
+    if (!bool(s)) {
+      return Poco::Dynamic::Var();
+    }
+  }
+  return Poco::Dynamic::Var(obj);
+}
+
 Poco::Dynamic::Var readJson(const std::string &filename) {
   std::ifstream file(filename);
   Poco::JSON::Parser parser;

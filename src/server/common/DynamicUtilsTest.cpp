@@ -28,7 +28,9 @@ TEST(DynamicTest, TestStructSerialization) {
   //x.name = "Signe";
   x.age = 13;
 
+  std::cout << "Convert it to dynamic" << std::endl;
   auto d = x.toDynamic();
+  std::cout << "Done" << std::endl;
 
   std::ofstream file("/tmp/mydata.json");
   outputJson(x, &file);
