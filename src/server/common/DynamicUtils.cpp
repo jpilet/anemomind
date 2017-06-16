@@ -57,13 +57,13 @@ Poco::Dynamic::Var makeDynamicMap(
   //    Poco::JSON::Object::Ptr(new Poco::JSON::Object()));
 
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
-  /*for (const auto& f: fields) {
+  for (const auto& f: fields) {
     auto s = f->writeTo(obj);
     if (!bool(s)) {
       std::cout << "FAILED!" << std::endl;
       return Poco::Dynamic::Var();
     }
-  }*/
+  }
   auto v = Poco::Dynamic::Var(obj);
   std::cout << "Value of the map : " << v.toString() << std::endl;
   return v;
