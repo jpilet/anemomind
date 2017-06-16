@@ -67,6 +67,29 @@ void addTimeStampToRepeatedFields(
 }
 
 
+void Nmea2000SentenceAccumulator::add(
+    const TimeStamp& time,
+    int64_t id, size_t count, const char* data) {
+  auto sc = getNmea2000SizeClass(count);
+  if (_data.has_sentence_id()) {
+    CHECK(_data.sentence_id() == id);
+    CHECK(_sizeClass == sc);
+  } else {
+    _data.set_sentence_id(id);
+    _sizeClass = sc;
+  }
+  addTimeStampToRepeatedFields(
+        &timestampBase, _data.mutable_timestampssinceboot(),
+        time);
+  if (sc == Nmea2000SizeClass::Odd) {
+    _data.add_oddsizesentences(std::string(data, count));
+  } else {
+    _data.add_regularsizesentences(
+        *reinterpret_cast<const ::google::protobuf::uint64*>(data));
+  }
+
+}
+
 Logger::Logger(Dispatcher* dispatcher) :
     _dispatcher(dispatcher) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -89,6 +112,13 @@ namespace {
   }
 }
 
+
+
+bool empty(const LogFile& container) {
+  return container.stream_size() == 0
+        && container.text_size() == 0
+        && container.rawnmea2000_size() == 0;
+}
 
 void Logger::flushTo(LogFile* container) {
   // Clear content.
@@ -118,6 +148,10 @@ void Logger::flushTo(LogFile* container) {
     }
     it->second.clear();
   }
+  for (auto& kv: _rawNmea2000Sentences) {
+    container->add_rawnmea2000()->Swap(kv.second.mutableData());
+  }
+  _rawNmea2000Sentences.clear();
 }
 
 
@@ -126,8 +160,7 @@ bool Logger::flushAndSaveToFile(const std::string& filename) {
 
   flushTo(&container);
 
-  if (container.stream_size() == 0 && container.text_size() == 0) {
-    // nothing to save.
+  if (empty(container)) {
     return false;
   }
 
@@ -157,7 +190,9 @@ void Logger::subscribeToDispatcher(DispatchData *d) {
   _listeners.push_back(std::shared_ptr<LoggerValueListener>(listener));
 }
 
-void Logger::logText(const std::string& streamName, const std::string& content) {
+void Logger::logText(
+    const std::string& streamName,
+    const std::string& content) {
   auto it = _textLoggers.find(streamName);
   if (it == _textLoggers.end()) {
     it = _textLoggers.insert(
@@ -182,7 +217,7 @@ bool Logger::read(const std::string& filename, LogFile *dst) {
     google::protobuf::io::IstreamInputStream zero_copy_input(&in);
     google::protobuf::io::CodedInputStream decoder(&zero_copy_input);
     // By default, google protobufs have a limit of about 60MB.
-    // If we save the full boat history in a single protobug, it will
+    // If we save the full boat history in a single protobuf, it will
     // easily exceed this size. Of course, we should split it into
     // multiple smaller files... but for now we simply increase the limit
     // to 500MB, with a warning at 400.
@@ -258,28 +293,26 @@ void Logger::unpack(const AbsOrientValueSet& values,
   }
 }
 
-namespace {
-  void unpackTimeSub(const google::protobuf::RepeatedField<std::int64_t> &times,
-                     std::vector<TimeStamp>* result) {
-    result->clear();
-    result->reserve(times.size());
+void unpackTimeStamps(const google::protobuf::RepeatedField<std::int64_t> &times,
+                   std::vector<TimeStamp>* result) {
+  result->clear();
+  result->reserve(times.size());
 
-    std::int64_t time = 0;
-    for (int i = 0; i < times.size(); ++i) {
-      time += times.Get(i);
-      result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
-    }
+  std::int64_t time = 0;
+  for (int i = 0; i < times.size(); ++i) {
+    time += times.Get(i);
+    result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
   }
 }
 
 void Logger::unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
                     std::vector<TimeStamp>* result) {
-  unpackTimeSub(times, result);
+  unpackTimeStamps(times, result);
 }
 
 void Logger::unpackTime(const ValueSet& valueSet,
                         std::vector<TimeStamp>* result) {
-  unpackTimeSub(getBestKnownTimeStamps(valueSet), result);
+  unpackTimeStamps(getBestKnownTimeStamps(valueSet), result);
 }
 
 void Logger::unpack(const BinaryEdgeValueSet& values,
@@ -289,6 +322,21 @@ void Logger::unpack(const BinaryEdgeValueSet& values,
   for (int i = 0; i < values.edges_size(); ++i) {
     (*result)[i] = values.edges(i) ? BinaryEdge::ToOn : BinaryEdge::ToOff;
   }
+}
+
+void Logger::logRawNmea2000(
+      int64_t timestampMillisecondsSinceBoot,
+      int64_t id,
+      size_t count, const char* data) {
+
+  // Well, the naming is a bit contratictory.
+  // The timestamp that we are constructing is
+  // not really from 1970 but from when the box was booted.
+  auto t = TimeStamp::fromMilliSecondsSince1970(
+      timestampMillisecondsSinceBoot);
+
+  _rawNmea2000Sentences[{id, getNmea2000SizeClass(count)}]
+    .add(t, id, count, data);
 }
 
 }  // namespace sail
