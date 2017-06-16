@@ -122,25 +122,16 @@ public:
   virtual ~DynamicField() {}
 };
 
+template <typename T, bool>
+struct ReadFieldFrom {};
+
 template <typename T>
-class Field : public DynamicField {
-public:
-  Field(const std::string& key, T* ref) :
-    _key(key), _mutableRef(ref) {}
-
-  SerializationInfo writeTo(Poco::JSON::Object::Ptr dst) override {
-    Poco::Dynamic::Var d;
-    auto x = ToDynamic<T>::apply(*_mutableRef, &d);
-    if (bool(x)) {
-      dst->set(_key, d);
-    }
-    return x;
-  }
-
-  SerializationInfo readFrom(
-      const Poco::JSON::Object::Ptr& src) override {
+struct ReadFieldFrom<T, true> {
+  static SerializationInfo apply(
+      const std::string& key, T* ref,
+      Poco::JSON::Object::Ptr src) {
     try {
-      auto r = FromDynamic<T>::apply(src->get(_key), _mutableRef);
+      auto r = FromDynamic<T>::apply(src->get(key), ref);
       if (!bool(r)) {
         return r;
       }
@@ -149,14 +140,47 @@ public:
     }
     return SerializationStatus::Success;
   }
+};
+
+template <typename T>
+struct ReadFieldFrom<T, false> {
+  static SerializationInfo apply(
+      const std::string&, T*, Poco::JSON::Object::Ptr) {
+    // Operation not supported: We cannot change constant data.
+    return SerializationStatus::Failure;
+  }
+};
+
+
+
+template <typename T, bool mut>
+class Field : public DynamicField {
+public:
+  Field(const std::string& key, T* ref) :
+    _key(key), _ref(ref) {}
+
+  SerializationInfo writeTo(Poco::JSON::Object::Ptr dst) override {
+    Poco::Dynamic::Var d;
+    auto x = ToDynamic<T>::apply(*_ref, &d);
+    if (bool(x)) {
+      dst->set(_key, d);
+    }
+    return x;
+  }
+
+  SerializationInfo readFrom(
+      const Poco::JSON::Object::Ptr& src) override {
+    return ReadFieldFrom<T, mut>::apply(_key, _ref, src);
+  }
 private:
   std::string _key;
-  T* _mutableRef = nullptr;
+  T* _ref = nullptr;
 };
 
 template <typename T>
 DynamicField::Ptr field(const std::string& k, T& value) {
-  return DynamicField::Ptr(new Field<T>(k, &value));
+  return DynamicField::Ptr(
+      new Field<T, !std::is_const<T>::value>(k, &value));
 }
 
 Poco::Dynamic::Var makeDynamicMap(
@@ -168,16 +192,16 @@ SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
 //  struct ToDn
 
 #define DYNAMIC_INTERFACE \
-    Poco::Dynamic::Var toDynamic() const; \
-    SerializationInfo fromDynamic(const Poco::Dynamic::Var& src);
+    Poco::Dynamic::Var toDynamic() const;/* \
+    SerializationInfo fromDynamic(const Poco::Dynamic::Var& src);*/
 
 #define DYNAMIC_IMPLEMENTATION(ClassName, ...) \
     Poco::Dynamic::Var ClassName::toDynamic() const { \
       return makeDynamicMap({__VA_ARGS__}); \
-    } \
+    } /*\
     SerializationInfo ClassName::fromDynamic(const Poco::Dynamic::Var& src) { \
       return fromDynamicMap(src, {__VA_ARGS__}); \
-    }
+    }*/
 
 
 struct JsonSettings {
