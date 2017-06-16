@@ -125,8 +125,8 @@ public:
 template <typename T>
 class Field : public DynamicField {
 public:
-  Field(const std::string& key, T& ref) :
-    _key(key), _mutableRef(&ref) {}
+  Field(const std::string& key, T* ref) :
+    _key(key), _mutableRef(ref) {}
 
   SerializationInfo writeTo(Poco::JSON::Object::Ptr dst) override {
     Poco::Dynamic::Var d;
@@ -156,7 +156,7 @@ private:
 
 template <typename T>
 DynamicField::Ptr field(const std::string& k, T& value) {
-  return DynamicField::Ptr(new Field<std::remove_const<T>>(k, value));
+  return DynamicField::Ptr(new Field<T>(k, &value));
 }
 
 Poco::Dynamic::Var makeDynamicMap(
