@@ -50,5 +50,10 @@ function logText(stream, text) {
   }
 }
 
+function getLogger() {
+  return logger;
+}
+
 module.exports.startLogging = startLogging;
 module.exports.logText = logText;
+module.exports.getLogger = getLogger;

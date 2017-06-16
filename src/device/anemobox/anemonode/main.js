@@ -25,6 +25,7 @@ var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
 var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
+var nmea2000raw = require('./components/nmea2000raw.js');
 
 // To free up space if possible.
 function cleanOld() {
@@ -48,6 +49,7 @@ if (withHttp) {
 
 if (withLogger) {
   var logger = require('./components/logger');
+  nmea2000raw.start();
 }
 
 if (withLocalEndpoint) {

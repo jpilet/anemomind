@@ -10,7 +10,7 @@ DEST=root@${HOST}:/anemonode
 
 # avoid rebuilding, because rebuilding will make npm updates the dependencies
 # in node_modules, which in turn will lead to a large patch
-if false; then
+if true; then
 
   rm -fR node_modules/mail node_modules/endpoint || true
   export NODE_ENV=production
