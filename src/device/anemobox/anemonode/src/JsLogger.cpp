@@ -123,7 +123,7 @@ NAN_METHOD(JsLogger::logText) {
 // Expects as input these arguments:
 //   timestampMillisecondsSinceBoot: A number
 //   id: Id of the message (a number)
-//   data: The data of the message (a string (not a buffer!))
+//   data: The data of the message (a buffer)
 // https://github.com/jpilet/node-can/commit/4d4019b2b7a7b6c14f550ff02ab99db5e0c148ea
 
 #define LOG_RAW_NMEA2000_USAGE "Usage: logRawNmea2000(timestampMillisecondsSinceBoot: Number, id: Number, data: String)"
