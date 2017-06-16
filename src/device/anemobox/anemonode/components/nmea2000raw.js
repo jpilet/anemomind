@@ -15,9 +15,12 @@ function logRawPacket(msg) {
     
   console.log('LOG RAW PACKET at %j', monotonicTime0);
 
-  logger.getLogger().logRawNmea2000(
-    monotonicTime0, 
-    msg.id, msg.data.toString());
+  var l = logger.getLogger();
+  if (l) {
+    l.logRawNmea2000(
+	monotonicTime0,
+	msg.id, msg.data.toString());
+  }
   
   // This will, hopefully, trigger a packet to be
   // delivered, inside "nmea2000.js".
