@@ -136,6 +136,22 @@ cxx_test(math_Curve2dFilterTest
   gtest_main
   )
 
+add_library(math_SegmentOutlierFilter
+  SegmentOutlierFilter.h
+  SegmentOutlierFilter.cpp
+  )
+
+target_link_libraries(math_SegmentOutlierFilter
+  common_logging
+  )
+
+cxx_test(math_SegmentOutlierFilterTest
+  SegmentOutlierFilterTest.cpp
+  math_SegmentOutlierFilter
+  gtest_main
+  )
+  
+
 add_subdirectory(spline)
 add_subdirectory(geometry)
 add_subdirectory(hmm)

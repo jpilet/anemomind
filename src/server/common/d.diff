@@ -1,0 +1,29 @@
+97c97
+< LBB0_3:                                 ## %.lr.ph.i.i.preheader
+---
+> LBB0_3:                                 ## %.lr.ph.i.preheader
+103c103
+< LBB0_4:                                 ## %.lr.ph.i.i
+---
+> LBB0_4:                                 ## %.lr.ph.i
+124c124
+< LBB0_6:                                 ## %_ZN4sail6FilterIZN10SumOddDiv3ILb1EE5applyERKNSt3__16vectorIiNS3_9allocatorIiEEEEEUliE_NS_3MapIZNS2_5applyES9_EUliE0_NS_7AddStepIiEEEEE4stepEii.exit.i.i
+---
+> LBB0_6:                                 ## %.lr.ph.i.124
+144,145c144
+< LBB0_8:                                 ## %_ZN4sail6FilterIZN10SumOddDiv3ILb1EE5applyERKNSt3__16vectorIiNS3_9allocatorIiEEEEEUliE_NS_3MapIZNS2_5applyES9_EUliE0_NS_7AddStepIiEEEEE4stepEii.exit.i.i.1
+<                                         ##   in Loop: Header=BB0_4 Depth=2
+---
+> LBB0_8:                                 ##   in Loop: Header=BB0_4 Depth=2
+149c148
+< ## BB#9:                                ## %_ZN10SumOddDiv3ILb1EE5applyERKNSt3__16vectorIiNS1_9allocatorIiEEEE.exit
+---
+> ## BB#9:                                ## %_ZN10SumOddDiv3ILb0EE5applyERKNSt3__16vectorIiNS1_9allocatorIiEEEE.exit
+315c314
+< 	movl	$17, %edx
+---
+> 	movl	$14, %edx
+869c868
+< 	.asciz	"USING TRANSDUCER "
+---
+> 	.asciz	"USING FOR LOOP"

@@ -18,6 +18,10 @@
 #include <server/nautical/GeographicPosition.h>
 #include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/nautical/logimport/ProtobufLogLoader.h>
+#include <server/common/ArrayBuilder.h>
+#include <server/common/Transducer.h>
+#include <server/nautical/DynamicChannelValue.h>
+#include <server/common/FrequencyLimiter.h>
 
 namespace sail {
 
@@ -53,31 +57,40 @@ bool LogLoader::load(const LogFile &data) {
   return true;
 }
 
-bool LogLoader::load(const Poco::Path &name) {
+Array<std::string> listFilesToLoad(
+    const Poco::Path& name) {
   FileTraverseSettings settings;
   settings.visitDirectories = false;
   settings.visitFiles = true;
-  int failCount = 0;
+  ArrayBuilder<std::string> toLoad;
   traverseDirectory(
       name,
       [&](const Poco::Path &path) {
     std::string ext = toLower(path.getExtension());
     if (ext == "txt" || ext == "csv" || ext == "log") {
-      if (!loadFile(path.toString())) {
-        if (failCount < 12) { // So that we don't flood the log file if there are many files.
-          LOG(ERROR) << "Failed to load log file " << path.toString();
-        }
-        failCount++;
-      }
+      toLoad.add(path.toString());
     } else {
       // Silently ignore files with unknown extensions while scanning
       // the directory
     }
   }, settings);
+  return toLoad.get();
+}
+
+bool LogLoader::load(const Poco::Path &name) {
+  int failCount = 0;
+  auto filenames = listFilesToLoad(name);
+  for (auto filename: filenames) {
+    if (!loadFile(filename)) {
+      if (failCount < 12) { // So that we don't flood the log file if there are many files.
+        LOG(ERROR) << "Failed to load log file " << filename;
+      }
+      failCount++;
+    }
+  }
   if (0 < failCount) {
     LOG(ERROR) << "Failed to load " << failCount << " files when visiting " << name.toString();
   }
-
   return 0 == failCount;
 }
 
@@ -121,5 +134,64 @@ NavDataset LogLoader::makeNavDataset() const {
   addToDispatcher(d.get());
   return NavDataset(d);
 }
+
+NavDataset loadNavDataset(const std::string& filename) {
+  LogLoader loader;
+  loader.load(filename);
+  return loader.makeNavDataset();
+}
+
+LogFileInfo analyzeLogFileData(const std::string& filename) {
+  auto ds = loadNavDataset(filename);
+
+  auto values = getDynamicValues(ds.dispatcher().get());
+  if (values.empty()) {
+    return LogFileInfo();
+  } else {
+    LogFileInfo dst;
+    dst.filename = filename;
+    dst.medianTime = values[values.size()/2].time;
+    dst.minTime = values.first().time;
+    dst.maxTime = values.last().time;
+    dst.size = values.size();
+    return dst;
+  }
+}
+
+bool hasLogFileData(const LogFileInfo& info) {
+  return !info.filename.empty();
+}
+
+Poco::Path toPath(const std::string& s) {
+  return Poco::Path(s);
+}
+
+std::vector<LogFileInfo> listLogFiles(
+    const std::vector<std::string>& searchPaths) {
+  auto showProgress = progressNotifier<std::string>(
+      [](int count, const std::string& filename) {
+    LOG(INFO) << "PRE-parsing log file " << filename;
+  });
+  auto T = composeTransducers(
+      map(&toPath),
+      map(&listFilesToLoad),
+      Cat<Array<std::string>>(),
+      visit(showProgress),
+      map(&analyzeLogFileData),
+      filter(&hasLogFileData));
+
+  //std::vector<Array<std::string>> r;
+  //std::vector<std::string> r;
+  //transduceIntoColl(T, &r, searchPaths);
+
+  std::vector<LogFileInfo> result;
+  transduceIntoColl(T, &result, searchPaths);
+  std::sort(result.begin(), result.end(),
+      [](LogFileInfo a, LogFileInfo b) {
+    return a.medianTime < b.medianTime;
+  });
+  return result;
+}
+
 
 }

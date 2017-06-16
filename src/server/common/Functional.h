@@ -19,6 +19,9 @@
 
 namespace sail {
 
+#define AUTO_EXPR(expr) \
+  -> decltype(expr) {return expr;}
+
 template <typename Array>
 class ArrayIterator {
  private:

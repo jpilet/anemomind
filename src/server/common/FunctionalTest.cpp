@@ -41,3 +41,15 @@ TEST(FunctionalTest, Map) {
   EXPECT_EQ(forthAndBack, (Arrayi{0, 1, 2, 3, 4}));
 }
 
+std::string intToString(int i) {
+  std::stringstream ss;
+  ss << i;
+  return ss.str();
+}
+
+auto someBasicFunction(int x)
+  AUTO_EXPR(intToString(x) + " is the number");
+
+TEST(FunctionTest, Inferred) {
+  EXPECT_EQ("119 is the number", someBasicFunction(119));
+}
