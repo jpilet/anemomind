@@ -6,7 +6,7 @@
     "async": "^1.4.2",
     "bleno": "^0.2.0",
     "body-parser": "^1.13.3",
-    "debug": "^2.2.0",
+    "debug": "2.6.7",
     "diskspace": "^2.0.0",
     "endpoint": "file:../../../../nodemodules/endpoint",
     "express": "^4.13.3",
