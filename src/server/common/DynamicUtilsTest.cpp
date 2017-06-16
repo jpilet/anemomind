@@ -12,7 +12,7 @@
 using namespace sail;
 
 struct MyData {
-  std::string name;
+  //std::string name;
   int age = 0;
 
   DYNAMIC_INTERFACE;
@@ -20,12 +20,12 @@ struct MyData {
 
 DYNAMIC_IMPLEMENTATION(
     MyData,
-    field("name", name),
+    //field("name", name),
     field("age", age));
 
 TEST(DynamicTest, TestStructSerialization) {
   MyData x;
-  x.name = "Signe";
+  //x.name = "Signe";
   x.age = 13;
 
   auto d = x.toDynamic();

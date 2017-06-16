@@ -18,33 +18,40 @@ enum class SerializationStatus {
   Failure
 };
 
+template <typename T>
 struct SerializationInfo {
   SerializationStatus status = SerializationStatus::Success;
   Poco::Dynamic::Var output;
 
   SerializationInfo() {}
   SerializationInfo(const SerializationStatus& s) : status(s) {}
+  SerializationInfo(const T& v)
+    : status(SerializationStatus::Success),
+      output(v) {}
 
   operator bool() const {
-    return status == SerializationStatus::Success;
+    return status != SerializationStatus::Failure;
   }
 };
+
+SerializationInfo merge(
+    const SerializationInfo& a,
+    const SerializationInfo& b);
 
 ////////////// Main templates used for SFINAE
 template <typename T, typename output = SerializationInfo>
 struct ToDynamic {
   static SerializationInfo apply(
-      const T& src, Poco::Dynamic::Var* dst) {
-    *dst = src.toDynamic();
-    return SerializationInfo();
+      const T& src) {
+    return src.toDynamic();
   }
 };
 
 template <typename T, typename output = SerializationInfo>
 struct FromDynamic {
   static SerializationInfo apply(
-      const Poco::Dynamic::Var& src, T* dst) {
-    return dst->fromDynamic(src);
+      const Poco::Dynamic::Var& src) {
+    return dst->fromDynamic(src, dst);
   }
 };
 
@@ -82,8 +89,8 @@ struct ToDynamic<T, decltype(toDynamic(
 class DynamicField {
 public:
   typedef std::shared_ptr<DynamicField> Ptr;
-
-  virtual SerializationInfo writeTo(Poco::JSON::Object::Ptr dst) = 0;
+  virtual SerializationInfo readFrom(const Poco::JSON::Object::Ptr& src) = 0;
+  virtual SerializationInfo writeTo(const Poco::JSON::Object::Ptr& dst) = 0;
   virtual ~DynamicField() {}
 };
 
@@ -93,13 +100,26 @@ public:
   Field(const std::string& key, T& ref) :
     _key(key), _mutableRef(&ref) {}
 
-  SerializationInfo writeTo(Poco::JSON::Object::Ptr dst) override {
+  SerializationInfo writeTo(const Poco::JSON::Object::Ptr& dst) override {
     Poco::Dynamic::Var d;
     auto x = ToDynamic<T>::apply(*_mutableRef, &d);
     if (x.status == SerializationStatus::Success) {
       dst->set(_key, x);
     }
     return x;
+  }
+
+  SerializationInfo readFrom(
+      const Poco::JSON::Object::Ptr& src) override {
+    try {
+      auto r = FromDynamic<T>::apply(src->get(_key), _mutableRef);
+      if (!bool(r)) {
+        return r;
+      }
+    } catch (const std::exception& e) {
+      return SerializationStatus::Failure;
+    }
+    return SerializationStatus::Success;
   }
 private:
   std::string _key;

@@ -38,12 +38,24 @@ FOREACH_JSON_PRIMITIVE(PRIMITIVE_OPS)
 
 Poco::Dynamic::Var makeDynamicMap(
     const std::initializer_list<DynamicField::Ptr>& fields) {
-  return Poco::Dynamic::Var();
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  for (const auto& f: fields) {
+    f->writeTo(obj);
+  }
+  return Poco::Dynamic::Var(obj);
 }
 
 SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
     const std::initializer_list<DynamicField::Ptr>& fields) {
-  return SerializationStatus::Success;
+  try {
+    auto obj = src.extract<Poco::JSON::Object::Ptr>();
+    for (const auto& f: fields) {
+      f->readFrom(obj);
+    }
+    return SerializationStatus::Success;
+  } catch (const std::exception& e) {
+    return SerializationStatus::Failure;
+  }
 }
 
 Poco::Dynamic::Var readJson(const std::string &filename) {
