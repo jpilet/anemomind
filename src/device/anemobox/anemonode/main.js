@@ -9,7 +9,7 @@ var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
 var withTimeEstimator = true;
-var withSetTime = false;
+var withSetTime = true;
 var withBT = false;
 var echoGpsOnNmea = false;
 var withEstimator = true;
@@ -25,6 +25,7 @@ var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
 var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
+var assert = require('assert');
 
 // To free up space if possible.
 function cleanOld() {
@@ -132,9 +133,11 @@ if (withIMU) {
 
 
 // Set the system clock to GPS time
+var settime = null;
 if (withSetTime) {
-  require('./components/settime.js');
+  settime = require('./components/settime.js');
 }
+assert(settime);
 
 var getCurrentTime = withTimeEstimator? 
     require('./components/timeest.js').estimateTimeFromDispatcher 
@@ -184,7 +187,11 @@ if (withNMEA2000) {
   //setTimeout(function() {
   console.log("Log NMEA2000");
   var nmea2000 = require('./components/nmea2000.js');
-  nmea2000.start();
+  nmea2000.restart();
+    if (settime) {
+      settime.subscribe(nmea2000.restart);
+    }
+
   nmea2000.detectSPIBug(function() {
     var message = 'SPI bug detected, rebooting!';
     console.log(message);

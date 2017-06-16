@@ -56,12 +56,14 @@ function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr, srcAddr)
   counter2++;
 }
 
-var running = false;
+var channel = null;
 
-function start() {
+function restart() {
   try {
-  if (running) {
-  }
+  if (channel) {
+    //channel.stop();
+    //channel.start();
+  } else {
   console.log("Load the modules");
   var j1939 = require('j1939socket').j1939;
   console.log("Create a new socket");
@@ -72,12 +74,14 @@ function start() {
   var buffer = require('buffer');
 
   console.log("Create the channel");
-  var channel = can.createRawChannel("can0", true /* ask for timestamps */);
+  if (!channel) {
+    channel = can.createRawChannel("can0", true /* ask for timestamps */);
+  }
   channel.start();
 
   assert(j1939);
   channel.addListener("onMessage", function(msg) {logRawPacket(socket, msg);});
-
+  }
   } catch (e) {
     console.log("Failed to listen to CAN channel");
     console.log(e);
@@ -99,5 +103,5 @@ function detectSPIBug(callback) {
   , 10 * 1000);
 };
 
-module.exports.start = start;
+module.exports.restart = restart;
 module.exports.detectSPIBug = detectSPIBug;
