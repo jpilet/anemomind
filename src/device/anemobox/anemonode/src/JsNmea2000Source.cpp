@@ -11,85 +11,85 @@ using namespace v8;
 namespace sail {
 
 namespace {
-v8::Persistent<v8::FunctionTemplate> nmea2000_constructor;
+Nan::Persistent<v8::FunctionTemplate> nmea2000_constructor;
 }  // namespace
 
 JsNmea2000Source::JsNmea2000Source()
   : _nmea2000(globalAnemonodeDispatcher) { }
 
 void JsNmea2000Source::Init(v8::Handle<v8::Object> target) {
-  NanScope();
+  Nan::HandleScope scope;
 
   // Prepare constructor template
-  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
-  tpl->SetClassName(NanNew<String>("Nmea2000Source"));
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+  tpl->SetClassName(Nan::New<String>("Nmea2000Source").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   // Prototype
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
-  NODE_SET_METHOD(proto, "process", JsNmea2000Source::process);
+  Nan::SetMethod(proto, "process", JsNmea2000Source::process);
 
-  NanAssignPersistent<FunctionTemplate>(nmea2000_constructor, tpl);
+  nmea2000_constructor.Reset(tpl);
 
-  target->Set(NanNew<String>("Nmea2000Source"), tpl->GetFunction());
+  target->Set(Nan::New<String>("Nmea2000Source").ToLocalChecked(), tpl->GetFunction());
 }
 
 NAN_METHOD(JsNmea2000Source::New) {
-  NanScope();
+  Nan::HandleScope scope;
 
   JsNmea2000Source *obj = new JsNmea2000Source();
-  obj->Wrap(args.This());
-  NanReturnValue(args.This());
+  obj->Wrap(info.This());
+  info.GetReturnValue().Set(info.This());
 }
 
 // Args: data, timestamp, srcName, pgn
 NAN_METHOD(JsNmea2000Source::process) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (args.Length() < 5) {
-    NanThrowTypeError(
+  if (info.Length() < 5) {
+    Nan::ThrowTypeError(
         "Usage: process(data, timestamp, srcName, pgn, srcAddr)");
-    NanReturnUndefined();
+    return;
   }
 
-  if(!args[0]->IsObject() || !node::Buffer::HasInstance(args[0])) {
-    NanThrowTypeError("First argument must be a buffer");
-    NanReturnUndefined();
+  if(!info[0]->IsObject() || !node::Buffer::HasInstance(info[0])) {
+    Nan::ThrowTypeError("First argument must be a buffer");
+    return;
   }
   
-  if(!args[2]->IsString()) {
-    NanThrowTypeError("3rd argument (srcName) must be a string");
-    NanReturnUndefined();
+  if(!info[2]->IsString()) {
+    Nan::ThrowTypeError("3rd argument (srcName) must be a string");
+    return;
   }
 
-  if(!args[3]->IsNumber()) {
-    NanThrowTypeError("4th argument (pgn) must be a number");
-    NanReturnUndefined();
+  if(!info[3]->IsNumber()) {
+    Nan::ThrowTypeError("4th argument (pgn) must be a number");
+    return;
   }
 
-  if(!args[4]->IsNumber()) {
-    NanThrowTypeError("5th argument (srcAddr) must be a number");
-    NanReturnUndefined();
+  if(!info[4]->IsNumber()) {
+    Nan::ThrowTypeError("5th argument (srcAddr) must be a number");
+    return;
   }
   
-  JsNmea2000Source* obj = ObjectWrap::Unwrap<JsNmea2000Source>(args.This());
+  JsNmea2000Source* obj = Nan::ObjectWrap::Unwrap<JsNmea2000Source>(info.This());
   if (!obj) {
-    NanThrowTypeError("This is not a Nmea2000Source");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("This is not a Nmea2000Source");
+    return;
   }
 
-  v8::Local<v8::Object> buffer = args[0]->ToObject();
+  v8::Local<v8::Object> buffer = info[0]->ToObject();
   unsigned char* bufferData = (unsigned char *)node::Buffer::Data(buffer);
   size_t bufferLength = node::Buffer::Length(buffer);
 
-  v8::String::Utf8Value srcNameStr(args[2]->ToString());
+  v8::String::Utf8Value srcNameStr(info[2]->ToString());
   obj->_nmea2000.process(
       *srcNameStr,
-      args[3]->ToNumber()->Value(),
+      info[3]->ToNumber()->Value(),
       bufferData,
       bufferLength,
-      args[4]->ToNumber()->Value());
-  NanReturnUndefined();
+      info[4]->ToNumber()->Value());
+  return;
 }
 
 }  // namespace sail
