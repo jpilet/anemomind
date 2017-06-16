@@ -30,6 +30,9 @@ class VisitorTemplate {
 
 */
 
+Optional<DataCode> wordIdentifierToCode(
+    const std::string& word);
+
 // Visit every channel of a Dispatcher, for side effects.
 template <typename Mapper>
 void visitDispatcherChannels(Dispatcher *dispatcher, Mapper *m) {

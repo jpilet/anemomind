@@ -375,4 +375,30 @@ cxx_test(common_DynamicUtilsTest
   gtest_main
   )
 
+cxx_test(common_TransducerTest
+  TransducerTest.cpp
+  gtest_main
+  )
 
+add_library(common_FrequencyLimiter
+  FrequencyLimiter.h
+  FrequencyLimiter.cpp
+  )
+
+target_link_libraries(common_FrequencyLimiter
+  common_TimeStamp)
+
+add_library(common_Keyword
+  Keyword.h
+  Keyword.cpp
+  )
+
+target_link_libraries(common_Keyword
+  common_logging
+  )
+
+cxx_test(common_KeywordTest
+  KeywordTest.cpp
+  gtest_main
+  common_Keyword
+  )

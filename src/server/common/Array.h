@@ -19,6 +19,7 @@ class Array {
  public:
   typedef Array<T> ThisType;
   typedef T ElemType;
+  typedef T value_type;
 
   Array() {
     _size = 0;

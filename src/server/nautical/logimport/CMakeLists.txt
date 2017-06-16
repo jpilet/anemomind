@@ -31,6 +31,8 @@ target_link_libraries(logimport_LogLoader
                       logimport_CsvLoader
                       logimport_ProtobufLogLoader
                       logimport_Nmea0183Loader
+                      nautical_DynamicChannelValue
+                      common_FrequencyLimiter
                      )
 
 cxx_test(logimport_LogLoaderTest 

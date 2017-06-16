@@ -287,3 +287,44 @@ add_executable(nautical_boatDatInfo boatDatInfo.cpp)
 target_link_libraries(nautical_boatDatInfo 
   anemobox_DispatcherTrueWindEstimator
   )
+
+add_library(nautical_Process
+  Process.h
+  Process.cpp
+  )
+
+target_link_libraries(nautical_Process
+  logimport_LogLoader
+  common_DynamicUtils
+  common_Keyword
+  )
+
+cxx_test(nautical_ProcessTest
+  ProcessTest.cpp
+  gtest_main
+  nautical_Process
+  nautical_InvWGS84
+  )
+
+add_executable(nautical_process3
+  process3.cpp
+  )
+
+target_link_libraries(nautical_process3
+  common_ArgMap
+  logimport_LogLoader
+  common_PathBuilder
+  common_DOMUtils
+  nautical_Process
+  )
+
+add_library(nautical_DynamicChannelValue
+  DynamicChannelValue.h
+  DynamicChannelValue.cpp
+  )
+
+target_link_libraries(nautical_DynamicChannelValue
+  common_logging
+  nautical_NavDataset
+  common_Keyword
+  )

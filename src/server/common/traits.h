@@ -62,6 +62,19 @@ struct IsMap <T, typename void_<typename T::key_type>::type,
   typedef int type;
 };
 
+template <typename Iterator, typename = void>
+struct IteratorInputType {
+  typedef typename std::iterator_traits<Iterator>::value_type type;
+};
+
+template <typename Iterator>
+struct IteratorInputType<
+  Iterator, typename void_<
+    typename Iterator::container_type>::type> {
+  typedef typename Iterator::container_type C;
+  typedef typename C::value_type type;
+};
+
 template <typename T, typename = void>
 struct IsContainer {
   static const bool value = false;

@@ -15,6 +15,15 @@
 
 namespace sail {
 
+Optional<DataCode> wordIdentifierToCode(
+    const std::string& word) {
+#define IF_WORD(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  if (word == SHORTNAME) {return HANDLE;}
+FOREACH_CHANNEL(IF_WORD)
+#undef IF_WORD
+  return Optional<DataCode>();
+}
+
 
 namespace {
 class DispVisitor {
