@@ -5,6 +5,8 @@
 #include <device/anemobox/FakeClockDispatcher.h>
 #include <cstdio>
 #include <fstream>
+#include <random>
+#include <fstream>
 
 using namespace sail;
 
@@ -217,4 +219,149 @@ TEST(LoggerTest, LogBinary) {
 
   EXPECT_EQ(1, saved.stream_size());
   EXPECT_EQ(2, saved.stream(0).binary().edges_size());
+}
+
+const ::sail::Nmea2000Sentences& findNmea2000Sentences(
+    const LogFile& src,
+    int64_t id, Nmea2000SizeClass sc) {
+  for (int i = 0; i < src.rawnmea2000_size(); i++) {
+    const ::sail::Nmea2000Sentences& x = src.rawnmea2000(i);
+    if (x.sentence_id() == id && ((x.oddsizesentences_size() == 0)
+            == (sc == Nmea2000SizeClass::Regular))) {
+      return x;
+    }
+  }
+  EXPECT_TRUE(false);
+  return src.rawnmea2000(0);
+}
+
+
+
+
+
+
+
+
+
+
+std::string makeRandomSentence(
+    int sentenceSize,
+    std::default_random_engine* rng) {
+  std::string dst;
+  std::uniform_int_distribution<unsigned char> d(0, 255);
+  for (int i = 0; i < sentenceSize; i++) {
+    dst += d(*rng);
+  }
+  return dst;
+}
+
+std::ifstream::pos_type filesize(const char* filename) {
+    std::ifstream in(filename, std::ifstream::ate
+        | std::ifstream::binary);
+    return in.tellg();
+}
+
+std::ifstream::pos_type measureSizeOfLogFileWithData(
+    bool repetitive,
+    int count, int sentenceSize) {
+  std::default_random_engine rng;
+  FakeClockDispatcher dispatcher;
+  Logger logger(&dispatcher);
+  int64_t sentenceId = 119;
+  for (int i = 0; i < count; i++) {
+    auto s = repetitive?
+        std::string(sentenceSize, 'k')
+        : makeRandomSentence(sentenceSize, &rng);
+    logger.logRawNmea2000(i, sentenceId, s.length(), s.data());
+  }
+  const char* filename = "/tmp/logfile_for_size_comparison.txt";
+  EXPECT_TRUE(logger.flushAndSaveToFile(filename));
+  return filesize(filename);
+}
+
+void compareSavings() {
+  int n = 1000;
+  for (auto r: {false, true}) {
+    std::cout << "\n\nRepetitive? " << (r? "YES" : "NO") << std::endl;
+    auto general = 0.5*double(measureSizeOfLogFileWithData(r, n, 7)
+                + measureSizeOfLogFileWithData(r, n, 9));
+    auto bytes8 = measureSizeOfLogFileWithData(r, n, 8);
+    std::cout << "Estimated general size: " <<
+        general << std::endl;
+    std::cout << "Size when using 8 byte sentences: " <<
+        bytes8 << std::endl;
+    std::cout << "8bytes/general = " << bytes8/general << std::endl;
+  }
+}
+
+std::string string8(uint64_t sentence) {
+  return std::string(reinterpret_cast<const char*>(&sentence), 8);
+}
+
+
+TEST(LoggerTest, LogNmea) {
+  //compareSavings();
+
+  auto time = TimeStamp::UTC(2016, 6, 8, 15, 19, 0);
+
+  LogFile saved0, saved1;
+  {
+    FakeClockDispatcher dispatcher;
+    Logger logger(&dispatcher);
+    dispatcher.setTime(time);
+    logger.logRawNmea2000(34200, 119, 3, "abc");
+    dispatcher.setTime(time + 1.0_s);
+    logger.logRawNmea2000(36200, 119, 3, "def");
+    logger.logRawNmea2000(36250, 17, 3, "xyz");
+    logger.logRawNmea2000(36250, 17, 8, "abcdefgh");
+    logger.flushTo(&saved0);
+
+    logger.logRawNmea2000(36600, 119, 3, "ghi");
+
+    logger.logRawNmea2000(36700, 120, 5, "xx\0xx");
+    logger.logRawNmea2000(36700, 120, 8, "xx\0xxxx\0");
+    logger.logRawNmea2000(36700, 120, 8, "xx\0xx\0xx");
+    logger.flushTo(&saved1);
+
+    logger.logRawNmea2000(36700, 120, 5, "xx\0xx");
+    logger.logRawNmea2000(36700, 120, 8, "xx\0xxxx\0");
+    logger.logRawNmea2000(36700, 120, 8, "xx\0xx\0xx");
+
+    EXPECT_TRUE(logger.flushAndSaveToFile("/tmp/testlog.dat"));
+  }
+
+  EXPECT_EQ(saved0.rawnmea2000_size(), 3);
+  std::vector<TimeStamp> times;
+  const auto& odd = findNmea2000Sentences(saved0, 119,
+      Nmea2000SizeClass::Odd);
+  unpackTimeStamps(
+      odd.timestampssinceboot(), &times);
+  EXPECT_EQ(odd.oddsizesentences(1), "def");
+  EXPECT_EQ(odd.sentence_id(), 119);
+  EXPECT_EQ(times.size(), 2);
+  EXPECT_EQ(times[0].toMilliSecondsSince1970(), 34200);
+  EXPECT_EQ(times[1].toMilliSecondsSince1970(), 36200);
+
+  auto regular = findNmea2000Sentences(
+      saved0, 17,
+      Nmea2000SizeClass::Regular);
+  uint64_t sentence = regular.regularsizesentences(0);
+  EXPECT_EQ(string8(sentence), "abcdefgh");
+
+  const auto& odd2 = findNmea2000Sentences(saved1, 120,
+        Nmea2000SizeClass::Odd);
+
+  // NOTE: On using std::string to represent bytes (including '\0'):
+  // https://stackoverflow.com/questions/11467567/why-protocol-buffer-bytes-is-string-in-c
+  EXPECT_EQ(odd2.oddsizesentences(0), std::string("xx\0xx", 5));
+
+  const auto& reg2 = findNmea2000Sentences(saved1, 120,
+        Nmea2000SizeClass::Regular);
+
+  EXPECT_EQ(string8(reg2.regularsizesentences(0)),
+      std::string("xx\0xxxx\0", 8));
+  EXPECT_EQ(string8(reg2.regularsizesentences(1)),
+      std::string("xx\0xx\0xx", 8));
+
+  EXPECT_EQ(saved1.rawnmea2000_size(), 3);
 }
