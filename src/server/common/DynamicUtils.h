@@ -11,6 +11,25 @@
 #include <Poco/JSON/Object.h>
 #include <memory>
 
+/*
+ * GUIDE for providing serialization for any type T:
+ *
+ * 1. Is the type a class/struct that you implemented? Then provide
+ *    serialization for that type using
+ *    DYNAMIC_INTERFACE/DYNAMIC_IMPLEMENTATION
+ *    Should probably work also in the case of a template type.
+ *
+ * 2. Otherwise, if the above is not possible,
+ *    is it a non-template type? In that case,
+ *    implement fromDynamicObject/toDynamicObject for that type.
+ *
+ * 3. Otherwise, specialize the FromDynamic/ToDynamic template types.
+ *    That is the case for template types that we did not implement,
+ *    such as std::vector, etc.
+ *
+ */
+
+
 namespace sail {
 
 enum class SerializationStatus {
@@ -18,16 +37,11 @@ enum class SerializationStatus {
   Failure
 };
 
-template <typename T>
 struct SerializationInfo {
   SerializationStatus status = SerializationStatus::Success;
-  Poco::Dynamic::Var output;
 
   SerializationInfo() {}
   SerializationInfo(const SerializationStatus& s) : status(s) {}
-  SerializationInfo(const T& v)
-    : status(SerializationStatus::Success),
-      output(v) {}
 
   operator bool() const {
     return status != SerializationStatus::Failure;
@@ -42,16 +56,21 @@ SerializationInfo merge(
 template <typename T, typename output = SerializationInfo>
 struct ToDynamic {
   static SerializationInfo apply(
-      const T& src) {
-    return src.toDynamic();
+      const T& src, Poco::Dynamic::Var* dst) {
+    // If you get an error here, it probably means
+    // that you did not specialize ToDynamic for type T.
+    *dst = src.toDynamic();
+    return SerializationInfo();
   }
 };
 
 template <typename T, typename output = SerializationInfo>
 struct FromDynamic {
   static SerializationInfo apply(
-      const Poco::Dynamic::Var& src) {
-    return dst->fromDynamic(src, dst);
+      const Poco::Dynamic::Var& src, T* dst) {
+    // If you get an error here, it probably means
+    // that you did not specialize FromDynamic for type T.
+    return dst->fromDynamic(src);
   }
 };
 
@@ -72,17 +91,26 @@ struct FromDynamic {
 
 
 #define PRIMITIVE_OPS(T) \
-    SerializationInfo toDynamic(const T& x, Poco::Dynamic::Var* dst); \
-    SerializationInfo fromDynamic(const Poco::Dynamic::Var& src, T *x);
+    SerializationInfo toDynamicObject(const T& x, Poco::Dynamic::Var* dst); \
+    SerializationInfo fromDynamicObject(const Poco::Dynamic::Var& src, T *x);
 FOREACH_JSON_PRIMITIVE(PRIMITIVE_OPS)
 #undef PRIMITIVE_OPS
-////////////// When toDynamic/fromDynamic are overloaded
+
+////////////// When toDynamicObject/fromDynamicObject are overloaded
 template <typename T>
-struct ToDynamic<T, decltype(toDynamic(
-    std::declval<T>(), std::declval<Poco::Dynamic::Var*>()))> {
+struct ToDynamic<T, decltype(toDynamicObject(
+    std::declval<const T&>(), std::declval<Poco::Dynamic::Var*>()))> {
   static SerializationInfo apply(
       const T& src, Poco::Dynamic::Var* dst) {
-    return toDynamic(src, dst);
+    return toDynamicObject(src, dst);
+  }
+};
+template <typename T>
+struct FromDynamic<T, decltype(fromDynamicObject(
+    std::declval<const Poco::Dynamic::Var&>(), std::declval<T*>()))> {
+  static SerializationInfo apply(
+      const Poco::Dynamic::Var& src, T* dst) {
+    return fromDynamicObject(src, dst);
   }
 };
 
@@ -90,7 +118,7 @@ class DynamicField {
 public:
   typedef std::shared_ptr<DynamicField> Ptr;
   virtual SerializationInfo readFrom(const Poco::JSON::Object::Ptr& src) = 0;
-  virtual SerializationInfo writeTo(const Poco::JSON::Object::Ptr& dst) = 0;
+  virtual SerializationInfo writeTo(Poco::JSON::Object::Ptr dst) = 0;
   virtual ~DynamicField() {}
 };
 
@@ -100,11 +128,11 @@ public:
   Field(const std::string& key, T& ref) :
     _key(key), _mutableRef(&ref) {}
 
-  SerializationInfo writeTo(const Poco::JSON::Object::Ptr& dst) override {
+  SerializationInfo writeTo(Poco::JSON::Object::Ptr dst) override {
     Poco::Dynamic::Var d;
     auto x = ToDynamic<T>::apply(*_mutableRef, &d);
-    if (x.status == SerializationStatus::Success) {
-      dst->set(_key, x);
+    if (bool(x)) {
+      dst->set(_key, d);
     }
     return x;
   }
@@ -128,13 +156,13 @@ private:
 
 template <typename T>
 DynamicField::Ptr field(const std::string& k, T& value) {
-  return DynamicField::Ptr(new Field<T>(k, value));
+  return DynamicField::Ptr(new Field<std::remove_const<T>>(k, value));
 }
 
 Poco::Dynamic::Var makeDynamicMap(
-    const std::initializer_list<DynamicField::Ptr>& fields);
+    std::vector<DynamicField::Ptr> fields);
 SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
-    const std::initializer_list<DynamicField::Ptr>& fields);
+    std::vector<DynamicField::Ptr> fields);
 
 //#define TO_DYNAMIC_CONVERTER(type, converter) \
 //  struct ToDn

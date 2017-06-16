@@ -30,8 +30,8 @@ SerializationInfo deserializePrimitive(Poco::Dynamic::Var obj, T *x) {
 }
 
 #define PRIMITIVE_OPS(T) \
-    SerializationInfo toDynamic(const T& x, Poco::Dynamic::Var* dst) {return serializePrimitive<T>(x, dst);} \
-    SerializationInfo fromDynamic(const Poco::Dynamic::Var& src, T *x) {return deserializePrimitive<T>(src, x);}
+    SerializationInfo toDynamicObject(const T& x, Poco::Dynamic::Var* dst) {return serializePrimitive<T>(x, dst);} \
+    SerializationInfo fromDynamicObject(const Poco::Dynamic::Var& src, T *x) {return deserializePrimitive<T>(src, x);}
 FOREACH_JSON_PRIMITIVE(PRIMITIVE_OPS)
 #undef PRIMITIVE_OPS
 
