@@ -425,8 +425,9 @@ NAN_METHOD(JsDispatchData::time) {
   dispatchData->visit(&getValue);
 
   if (getValue.valid()) {
-    info.GetReturnValue().Set(Nan::New<Date>(
-            double(getValue.time().toMilliSecondsSince1970())));
+    info.GetReturnValue()
+      .Set(Nan::New<Date>(double(getValue.time().toMilliSecondsSince1970()))
+	   .ToLocalChecked());
   } else {
     return;
   }
@@ -505,7 +506,8 @@ NAN_METHOD(JsDispatchData::source) {
   Nan::HandleScope scope;
 
   std::shared_ptr<DispatchData> dispatchData = obj(info.This())->_dispatchData;
-  info.GetReturnValue().Set(Nan::New<String>(dispatchData->source())).ToLocalChecked();
+  info.GetReturnValue().Set(Nan::New<String>(dispatchData->source())
+			    .ToLocalChecked());
 }
 
 }  // namespace sail
