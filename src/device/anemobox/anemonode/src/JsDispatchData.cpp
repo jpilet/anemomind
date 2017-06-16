@@ -278,7 +278,7 @@ class JsListener:
     Handle<Value> argv[1] = { getValue.value() };
     Nan::MakeCallback(
         Nan::GetCurrentContext()->Global(), 
-	Nan::New<Function>(callback_), 1, argv.ToLocalChecked());
+	Nan::New<Function>(callback_), 1, argv);
   }
 
  private:
