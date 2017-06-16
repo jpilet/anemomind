@@ -339,3 +339,7 @@ add_executable(nautical_boatDatInfo boatDatInfo.cpp)
 target_link_libraries(nautical_boatDatInfo 
   anemobox_DispatcherTrueWindEstimator
   )
+
+add_executable(nautical_process3
+  process3.cpp
+  )

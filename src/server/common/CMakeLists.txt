@@ -423,3 +423,17 @@ add_library(common_StreamUtils
   StreamUtils.h
   StreamUtils.cpp
   )
+
+add_library(common_DynamicUtils
+  DynamicUtils.h
+  DynamicUtils.cpp
+  )
+target_depends_on_poco_json(common_DynamicUtils)
+
+cxx_test(common_DynamicUtilsTest
+  DynamicUtilsTest.cpp
+  common_DynamicUtils
+  gtest_main
+  )
+
+
