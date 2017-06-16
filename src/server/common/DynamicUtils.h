@@ -199,8 +199,8 @@ SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
 
 #define DYNAMIC_IMPLEMENTATION(ClassName, ...) \
     Poco::Dynamic::Var ClassName::toDynamic() const { \
-      return Poco::Dynamic::Var(Poco::JSON::Object::Ptr(new Poco::JSON::Object())); \
-      /*return makeDynamicMap({__VA_ARGS__});*/ \
+      /*return Poco::Dynamic::Var(Poco::JSON::Object::Ptr(new Poco::JSON::Object()));*/ \
+      return makeDynamicMap({__VA_ARGS__}); \
     }/* \
     SerializationInfo ClassName::fromDynamic(const Poco::Dynamic::Var& src) { \
       return fromDynamicMap(src, {__VA_ARGS__}); \
