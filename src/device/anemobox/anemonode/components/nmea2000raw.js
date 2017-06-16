@@ -13,13 +13,11 @@ function logRawPacket(msg) {
   // monotonicTime1 - monotonicTime0 = systemTime1 - systemTime0
   monotonicTime0 = monotonicTime1 - (systemTime1 - systemTime0);
     
-  console.log('LOG RAW PACKET at %j', monotonicTime0);
-
   var l = logger.getLogger();
   if (l) {
     l.logRawNmea2000(
 	monotonicTime0,
-	msg.id, msg.data.toString());
+	msg.id, msg.data);
   }
   
   // This will, hopefully, trigger a packet to be
