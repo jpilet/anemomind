@@ -300,7 +300,7 @@ std::string string8(uint64_t sentence) {
 
 
 TEST(LoggerTest, LogNmea) {
-  compareSavings();
+  //compareSavings();
 
   auto time = TimeStamp::UTC(2016, 6, 8, 15, 19, 0);
 
@@ -322,6 +322,12 @@ TEST(LoggerTest, LogNmea) {
     logger.logRawNmea2000(36700, 120, 8, "xx\0xxxx\0");
     logger.logRawNmea2000(36700, 120, 8, "xx\0xx\0xx");
     logger.flushTo(&saved1);
+
+    logger.logRawNmea2000(36700, 120, 5, "xx\0xx");
+    logger.logRawNmea2000(36700, 120, 8, "xx\0xxxx\0");
+    logger.logRawNmea2000(36700, 120, 8, "xx\0xx\0xx");
+
+    EXPECT_TRUE(logger.flushAndSaveToFile("/tmp/testlog.dat"));
   }
 
   EXPECT_EQ(saved0.rawnmea2000_size(), 3);
