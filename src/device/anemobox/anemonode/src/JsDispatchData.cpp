@@ -354,14 +354,14 @@ void JsDispatchData::setDispatchData(
   zis->_dispatchData->visit(&typeAndUnit);
 
   object->Set(Nan::New("unit").ToLocalChecked(), 
-	      Nan::New<String>(typeAndUnit.unit().c_str()))
-    .ToLocalChecked();
+	      Nan::New<String>(typeAndUnit.unit().c_str())
+	      .ToLocalChecked());
   object->Set(Nan::New("type").ToLocalChecked(), 
-	      Nan::New<String>(typeAndUnit.type().c_str()))
-    .ToLocalChecked();
+	      Nan::New<String>(typeAndUnit.type().c_str())
+	      .ToLocalChecked());
   object->Set(Nan::New("description").ToLocalChecked(),
-              Nan::New<String>(zis->_dispatchData->description()))
-    .ToLocalChecked();
+              Nan::New<String>(zis->_dispatchData->description())
+	      .ToLocalChecked());
   object->Set(Nan::New("dataCode").ToLocalChecked(),
               Nan::New<Integer>(zis->_dispatchData->dataCode()));
 }
