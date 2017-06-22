@@ -1,4 +1,4 @@
-var nmea2000 = require('../components/nmea2000.js');
+var nmea2000 = require('../components/canutils.js');
 var assert = require('assert');
 
 var exampleMessage = {"ts_sec":1498141174,
