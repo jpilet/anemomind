@@ -137,7 +137,6 @@ var settime = null;
 if (withSetTime) {
   settime = require('./components/settime.js');
 }
-assert(settime);
 
 var getCurrentTime = withTimeEstimator? 
     require('./components/timeest.js').estimateTimeFromDispatcher 
@@ -186,6 +185,9 @@ if (withCUPS) {
 if (withNMEA2000) {
   var nmea2000 = require('./components/nmea2000');
   nmea2000.start();
+  if (settime) { // Every time we set time, we need to restart the CAN source process.
+    settime.subscribe(nmea2000.start);
+  }
   nmea2000.detectSPIBug(function() {
     var message = 'SPI bug detected, rebooting!';
     console.log(message);
