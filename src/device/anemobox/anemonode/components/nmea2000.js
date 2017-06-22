@@ -21,7 +21,7 @@ function logRawPacket(jsocket, msg) {
     
     if (racc()) {
       var ds = delay + '';
-      console.log("RAW DATA: %j", msg.data);
+      console.log("RAW DATA: %j", msg);
     }
     l.logRawNmea2000(
 	monotonicTime0,
@@ -69,6 +69,56 @@ function start() {
   });
 }
 
+function makeError(msg) {
+  return "ERROR " + msg;
+}
+
+function getError(x) {
+  if (5 < x.length && x.slice(0, 5) == "ERROR") {
+    return x.slice(6);
+  }
+  return null;
+}
+
+function isNumber(x) {
+  return typeof x == "number";
+}
+
+function serializeMessage(msg) {
+  if (!(isNumber(msg.ts_sec) && 
+  	isNumber(msg.ts_usec) && isNumber(msg.id) && 
+	(msg.data instanceof Buffer))) {
+    return makeError("Bad message format");;
+  }
+  var dst = new Buffer(8 + 8 + 8 + msg.data.length);
+  dst.writeDoubleBE(msg.ts_sec, 0);
+  dst.writeDoubleBE(msg.ts_usec, 8);
+  dst.writeDoubleBE(msg.id, 16);
+  msg.data.copy(dst, 24);
+  return msg.toString('hex');
+}
+
+function deserializeMessage(src0) {
+  if (!(typeof src0 == "string")) {
+    return null;
+  }
+  var err = getError(src0);
+  if (err) {
+    return {error: err};
+  }
+  var src = new Buffer(src0, 'hex');
+  if (src.length < 24) {
+    return null;
+  }
+  return {
+    ts_sec: src.readDoubleBE(0),
+    ts_usec: src.readDouble(8),
+    id: src.readDouble(16),
+    data: src.slice(24)
+  };
+}
+
+
 // HACK to reboot we hit SPI bug
 function detectSPIBug(callback) {
   var timer = setInterval(function() {
@@ -86,3 +136,7 @@ function detectSPIBug(callback) {
 
 module.exports.start = start;
 module.exports.detectSPIBug = detectSPIBug;
+
+module.exports.serializeMessage = serializeMessage;
+module.exports.deserializeMessage = deserializeMessage;
+module.exports.getError = getError;
