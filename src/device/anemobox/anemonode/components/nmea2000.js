@@ -59,9 +59,8 @@ function start() {
   var rawcan = require('rawcan');
   var can = rawcan.createSocket('can0');
   can.on('error', function(err) { console.log('socket error: ' + err); });
-  can.on('message', function(id, buffer) {
-    console.log('received frame [' + id.toString(16) + '] ' 
-    	+ buffer.toString('hex'));
+  can.on('message', function(msg) {
+    logRawPacket(jsocket, msg);
   });
 }
 
