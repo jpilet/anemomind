@@ -17,7 +17,7 @@ class Nmea0183Source: public NmeaParser {
 
   void process(const unsigned char* buffer, int length);
 
-  NmeaParser *parser() {return &_parser;}
+  NmeaParser *parser() { return this; }
 
  protected:
   virtual void onRSA(const char *senderAndSentence,
