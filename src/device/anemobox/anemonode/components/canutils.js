@@ -50,19 +50,7 @@ function catSplit(separator) {
      var counter = 0;
      var lastPart = "";
      return function(dst, data) {
-        counter++;
-	var total = (lastPart + '' + data)
-        var parts = total.split(separator);
-	
-	console.log("Incomming: %j", data);
-	console.log("Catted: %j", total);
-	console.log("Last Part: %j", lastPart);
-
-        if (counter == 10) {
-	  assert(false);
-	}
-
-	console.log("Number of parts: %d", parts.length);
+        var parts = (lastPart + '' + data).split(separator);
 	if (parts.length == 0) {
 	  lastPart = "";
 	  return dst;

@@ -71,12 +71,21 @@ function dispKeys(x) {
 }
 
 
-// Mapping transducer
+// Returns a mapping transducer
 function map(f) {
   return function(red) {
     return function(dst, x) {
       return red(dst, f(x));
-    }
+    };
+  };
+}
+
+// Returns a filtering transducer
+function filter(f) {
+  return function(red) {
+    return function(dst, x) {
+      return f(x)? red(dst, x) : dst;
+    };
   };
 }
 
@@ -86,11 +95,37 @@ function compose2(f, g) {
   };
 }
 
-CanSource.prototype.start = function() {
+function compose() {
+  var args = Array.prototype.slice.call(arguments);
+  return args.reduce(compose2);
+}
+
+// Returns true if the message should be accepted (no error),
+// otherwise displays the error, but not too often.
+function messageAcceptor() {
+  var acc = infrequent.makeAcceptor(1000);
+  return function(msg) {
+    if (msg.error) {
+      if (acc()) {
+        console.log("GOT ERROR from raw can source: ");
+	console.log(msg);
+      }
+      return null;
+    } else {
+      return msg;
+    }
+  }
+}
+
+CanSource.prototype.stop = function() {
   if (this.process) {
     this.process.stdin.pause();
     this.process.kill();
   }
+}
+
+CanSource.prototype.start = function() {
+  this.stop();
   this.process = fork('./components/cansource.js', [], {
     stdio: 'pipe',
     silent: true
@@ -99,12 +134,11 @@ CanSource.prototype.start = function() {
     throw new Error("Failed to instantiate child can source.");
   }
   
-  //var pipeline = compose2(
-  //	canutils.catSplit("\n"), 
-  //	map(canutils.deserializeMessage));
-  
-  var pipeline = canutils.catSplit("\n");
-	
+  var pipeline = compose(
+  	canutils.catSplit("\n"), 
+  	map(canutils.deserializeMessage),
+	filter(messageAcceptor()));
+  	
   var processData = pipeline(function(cb, x) {
     console.log("--> Final data: %j", x);
     cb(x);
@@ -113,7 +147,6 @@ CanSource.prototype.start = function() {
   
   var self = this;
   this.process.stdout.on('data', function(data) {
-    console.log('\n\nIncoming data: %j', '' + data);
     processData(self.cb, data);
   });
 }

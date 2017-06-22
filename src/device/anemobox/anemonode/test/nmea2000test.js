@@ -30,3 +30,19 @@ assert(split.length == 3);
 assert(split[2] == "cccdd");
 
 cs.start();
+
+setTimeout(function() {
+  cs.stop();
+  console.log("Start it again in 2 seconds");
+  setTimeout(function() {
+    cs.start();
+    setTimeout(function() {
+      cs.stop();
+      console.log("We are done");
+    }, 2000);
+  }, 2000);
+}, 2000);
+
+
+
+
