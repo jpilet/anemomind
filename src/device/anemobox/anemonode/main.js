@@ -184,14 +184,8 @@ if (withCUPS) {
 }
 
 if (withNMEA2000) {
-  setTimeout(function() {
-  console.log("Log NMEA2000");
   var nmea2000 = require('./components/nmea2000.js');
   nmea2000.restart();
-    if (settime) {
-      //settime.subscribe(nmea2000.restart);
-    }
-
   nmea2000.detectSPIBug(function() {
     var message = 'SPI bug detected, rebooting!';
     console.log(message);
@@ -201,7 +195,6 @@ if (withNMEA2000) {
       logger.flush();
     }
   });
-  }, 10000);
 }
 
 if (withWatchdog) {
