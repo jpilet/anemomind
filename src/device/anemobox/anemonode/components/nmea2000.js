@@ -75,24 +75,18 @@ CanSource.prototype.start = function() {
   if (this.process) {
     this.process.stdin.pause();
     this.process.kill();
-    //this.process.stdin.setEncoding('utf-8');
-    //this.process.stdin.write('stop\n');
   }
   this.process = fork('./components/cansource.js', [], {
     stdio: 'pipe',
+    silent: true
   });
   if (!this.process) {
     throw new Error("Failed to instantiate child can source.");
   }
-  console.log("ALL KEYS");
-  dispKeys(this.process);
-  console.log("STDIN");
-  dispKeys(this.process.stdin);
-  console.log("STDOUT");
-  dispKeys(this.process.stdout);
-  this.process.on('data', function(data) {
+  var self = this;
+  this.process.stdout.on('data', function(data) {
     console.log("GOT DATA: %j", data); 
-    this.cb(canutils.deserializeMessage(data));
+    self.cb(canutils.deserializeMessage(data));
   });
 }
 
