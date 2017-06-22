@@ -29,8 +29,14 @@ void Nmea0183Source::process(const unsigned char* buffer, int length) {
   DispatcherAdaptor adaptor(_dispatcher);
   for (ssize_t i = 0; i < length; ++i) {
     Nmea0183ProcessByte<DispatcherAdaptor>(_sourceName, buffer[i],
-        &_parser, &adaptor);
+        this, &adaptor);
   }
 } 
+
+void Nmea0183Source::onRSA(const char *senderAndSentence,
+                     Optional<sail::Angle<>> rudderAngle0,
+                     Optional<sail::Angle<>> rudderAngle1) {
+  _dispatcher->publish<RUDDER_ANGLE>(_sourceName, rudderAngle0);
+}
 
 }  // namespace sail
