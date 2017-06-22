@@ -184,8 +184,7 @@ if (withCUPS) {
 }
 
 if (withNMEA2000) {
-  var nmea2000 = require('./components/nmea2000.js');
-  nmea2000.restart();
+  nmea2000.start();
   nmea2000.detectSPIBug(function() {
     var message = 'SPI bug detected, rebooting!';
     console.log(message);
