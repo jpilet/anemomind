@@ -22,4 +22,11 @@ console.log("Deserialized: %j", deser);
 var cs = new nmea2000.CanSource(function(msg) {
   console.log("Got this message: %j", msg);
 });
+
+var data = ["aaaa\nbbb\nccc", "dd\nee"];
+var f = canutils.catSplit("\n")(function(dst, x) {dst.push(x); return dst;});
+var split = data.reduce(f, []);
+assert(split.length == 3);
+assert(split[2] == "cccdd");
+
 cs.start();

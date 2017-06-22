@@ -71,6 +71,21 @@ function dispKeys(x) {
 }
 
 
+// Mapping transducer
+function map(f) {
+  return function(red) {
+    return function(dst, x) {
+      return red(dst, f(x));
+    }
+  };
+}
+
+function compose2(f, g) {
+  return function(x) {
+    return f(g(x));
+  };
+}
+
 CanSource.prototype.start = function() {
   if (this.process) {
     this.process.stdin.pause();
@@ -83,10 +98,23 @@ CanSource.prototype.start = function() {
   if (!this.process) {
     throw new Error("Failed to instantiate child can source.");
   }
+  
+  //var pipeline = compose2(
+  //	canutils.catSplit("\n"), 
+  //	map(canutils.deserializeMessage));
+  
+  var pipeline = canutils.catSplit("\n");
+	
+  var processData = pipeline(function(cb, x) {
+    console.log("--> Final data: %j", x);
+    cb(x);
+    return cb;
+  });
+  
   var self = this;
   this.process.stdout.on('data', function(data) {
-    console.log("GOT DATA: %j", data); 
-    self.cb(canutils.deserializeMessage(data));
+    console.log('\n\nIncoming data: %j', '' + data);
+    processData(self.cb, data);
   });
 }
 
