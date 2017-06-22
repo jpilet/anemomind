@@ -21,9 +21,7 @@ function logRawPacket(jsocket, msg) {
     
     if (racc()) {
       var ds = delay + '';
-      console.log("Type of delay: %j", typeof delay);
-      console.log("Delay: %s", ds);
-      console.log("Last sentence at %j", monotonicTime0);
+      console.log("RAW DATA: %j", msg.data);     
     }
     l.logRawNmea2000(
 	monotonicTime0,
