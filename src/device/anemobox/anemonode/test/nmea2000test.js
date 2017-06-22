@@ -1,5 +1,6 @@
 var canutils = require('../components/canutils.js');
 var assert = require('assert');
+var nmea2000 = require('../components/nmea2000.js');
 
 var exampleMessage = {"ts_sec":1498141174,
 	"ts_usec":139588,"id":167576077,"ext":true,
@@ -18,3 +19,7 @@ assert(deser.data.equals(exampleMessage.data));
 console.log("Serialized: %j", ser);
 console.log("Deserialized: %j", deser);
 
+var cs = new nmea2000.CanSource(function(msg) {
+  console.log("Got this message: %j", msg);
+});
+cs.start();

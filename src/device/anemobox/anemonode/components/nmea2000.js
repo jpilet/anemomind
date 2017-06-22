@@ -5,6 +5,7 @@ var nmea2000Source = new anemonode.Nmea2000Source();
 var exec = require('child_process').exec;
 var infrequent = require('./infrequent.js');
 var canutils = require('./canutils.js');
+var fork = require('child_process').fork;
 
 var racc = infrequent.makeAcceptor(1000);
 
@@ -58,8 +59,42 @@ function start() {
   });
 }
 
+function CanSource(cb) {
+  this.process = null;
+  this.cb = cb;
+}
+
+function dispKeys(x) {
+  for (var k in x) {
+    console.log("Key: %j", k);
+  }
+}
 
 
+CanSource.prototype.start = function() {
+  if (this.process) {
+    this.process.stdin.pause();
+    this.process.kill();
+    //this.process.stdin.setEncoding('utf-8');
+    //this.process.stdin.write('stop\n');
+  }
+  this.process = fork('./components/cansource.js', [], {
+    stdio: 'pipe',
+  });
+  if (!this.process) {
+    throw new Error("Failed to instantiate child can source.");
+  }
+  console.log("ALL KEYS");
+  dispKeys(this.process);
+  console.log("STDIN");
+  dispKeys(this.process.stdin);
+  console.log("STDOUT");
+  dispKeys(this.process.stdout);
+  this.process.on('data', function(data) {
+    console.log("GOT DATA: %j", data); 
+    this.cb(canutils.deserializeMessage(data));
+  });
+}
 
 // HACK to reboot we hit SPI bug
 function detectSPIBug(callback) {
@@ -78,7 +113,7 @@ function detectSPIBug(callback) {
 
 module.exports.start = start;
 module.exports.detectSPIBug = detectSPIBug;
-
+module.exports.CanSource = CanSource;
 
 
 
