@@ -21,7 +21,7 @@ function logRawPacket(jsocket, msg) {
     
     if (racc()) {
       var ds = delay + '';
-      console.log("RAW DATA: %j", msg.data);     
+      console.log("RAW DATA: %j", msg.data);
     }
     l.logRawNmea2000(
 	monotonicTime0,
@@ -49,15 +49,23 @@ function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr, srcAddr)
 }
 
 
+function getMessages(cb) {
+  var rawcan = require('rawcan');
+  var can = rawcan.createSocket('can0');
+  can.on('error', function(err) { 
+    cb(err);
+  });
+  can.on('message', function(msg) {
+    cb(null, msg);
+  });
+}
+
 function start() {
   var j1939 = require('j1939socket').j1939;
   var jsocket = new j1939.J1939Socket("can0");
   jsocket.open(handlePacket);
-  var rawcan = require('rawcan');
-  var can = rawcan.createSocket('can0');
-  can.on('error', function(err) { console.log('socket error: ' + err); });
-  can.on('message', function(msg) {
-    logRawPacket(jsocket, msg);
+  getMessages(function(err, msg) {
+     logRawPacket(jsocket, msg);
   });
 }
 
