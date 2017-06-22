@@ -121,6 +121,15 @@ function deserializeMessage(src0) {
   };
 }
 
+function startCanSource() {
+  getMessages(function(err, msg) {
+    if (err) {
+      process.stdout.write(makeError("Got error in getMessages callback") + "\n");
+    } else {
+      process.stdout.write(serializeMessage(msg) + "\n");
+    }
+  });
+}
 
 // HACK to reboot we hit SPI bug
 function detectSPIBug(callback) {
@@ -143,3 +152,8 @@ module.exports.detectSPIBug = detectSPIBug;
 module.exports.serializeMessage = serializeMessage;
 module.exports.deserializeMessage = deserializeMessage;
 module.exports.getError = getError;
+module.exports.startCanSource = startCanSource;
+
+
+
+

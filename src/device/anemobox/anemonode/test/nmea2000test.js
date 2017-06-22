@@ -17,3 +17,5 @@ assert(deser.data.equals(exampleMessage.data));
 
 console.log("Serialized: %j", ser);
 console.log("Deserialized: %j", deser);
+
+nmea2000.startCanSource();
