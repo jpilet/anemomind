@@ -8,7 +8,7 @@ var exec = require('child_process').exec;
 
 var counter = 0;
 
-function logRawPacket(socket, msg) {
+function logRawPacket(jsocket, msg) {
   var l = logger.getLogger();
   if (l) {
 
@@ -36,7 +36,7 @@ function logRawPacket(socket, msg) {
   
   // This will, hopefully, trigger a packet to be
   // delivered, inside "nmea2000.js".
-  socket.fetch();
+  jsocket.fetch();
 }
 
 var counter2 = 0;
@@ -57,49 +57,17 @@ function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr, srcAddr)
 }
 
 
-function createAndSubscribeToChannel(can, socket) {
-  console.log("Create new channel!");
-  var channel = can.createRawChannel("can0", true /* ask for timestamps */);
-  channel.start();
-  channel.addListener("onMessage", function(msg) {logRawPacket(socket, msg);});
-  return channel;
-}
-
-function Context() {
-  console.log("Load the modules");
-  this.j1939 = require('j1939socket').j1939;
-  console.log("Create a new socket");
-  this.socket = new this.j1939.J1939Socket("can0");
-  console.log("Open the socket");
-  this.socket.open(handlePacket);
-  this.can = require('socketcan');
-  console.log("Create the channel");
-  this.channel = createAndSubscribeToChannel(this.can, this.socket);
-}
-
-function unload(moduleName) {
-  var name = require.resolve(moduleName);
-  delete require.cache[name];
-}
-
-Context.prototype.destroy = function() {
-  this.channel.stop();
-  unload('socketcan');
-  unload('j1939socket');
-}
-
-var context = null;
-function restart() {
-  try {
-  if (context) {
-    console.log("Destroy old context");
-    context.destroy();
-  }
-  context = new Context();
-  } catch (e) {
-    console.log("Failed to listen to CAN channel");
-    console.log(e);
-  }
+function start() {
+  var j1939 = require('j1939socket').j1939;
+  var jsocket = new j1939.J1939Socket("can0");
+  jsocket.open(handlePacket);
+  var rawcan = require('rawcan');
+  var can = rawcan.createSocket('can0');
+  can.on('error', function(err) { console.log('socket error: ' + err); });
+  can.on('message', function(id, buffer) {
+    console.log('received frame [' + id.toString(16) + '] ' 
+    	+ buffer.toString('hex'));
+  });
 }
 
 // HACK to reboot we hit SPI bug
@@ -117,5 +85,5 @@ function detectSPIBug(callback) {
   , 10 * 1000);
 };
 
-module.exports.restart = restart;
+module.exports.start = start;
 module.exports.detectSPIBug = detectSPIBug;
