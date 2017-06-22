@@ -8,28 +8,26 @@ var canutils = require('./canutils.js');
 var fork = require('child_process').fork;
 
 var racc = infrequent.makeAcceptor(1000);
+var verbose = true;
 
 function logRawPacket(jsocket, msg) {
   var l = logger.getLogger();
   if (l) {
-
-  var systemTime0 = 1000*msg.ts_sec + 0.001*msg.ts_usec;
-  var systemTime1 = new Date().getTime();
-  var monotonicTime1 = anemonode.currentTime();
+    var systemTime0 = 1000*msg.ts_sec + 0.001*msg.ts_usec;
+    var systemTime1 = new Date().getTime();
+    var monotonicTime1 = anemonode.currentTime();
   
-  // monotonicTime1 - monotonicTime0 = systemTime1 - systemTime0
-  var delay = systemTime1 - systemTime0;
-  monotonicTime0 = monotonicTime1 - delay;
+    // monotonicTime1 - monotonicTime0 = systemTime1 - systemTime0
+    var delay = systemTime1 - systemTime0;
+    monotonicTime0 = monotonicTime1 - delay;
     
-    if (racc()) {
-      var ds = delay + '';
+    if (verbose && racc()) {
       console.log("RAW DATA: %j", msg);
     }
     l.logRawNmea2000(
 	monotonicTime0,
 	msg.id, msg.data);
   }
-
   
   // This will, hopefully, trigger a packet to be
   // delivered, inside "nmea2000.js".
@@ -59,7 +57,7 @@ function start() {
     var j1939 = require('j1939socket').j1939;
     var jsocket = new j1939.J1939Socket("can0");
     jsocket.open(handlePacket);
-    src = new canutils.CanSource(function(msg) {
+    src = new CanSource(function(msg) {
        logRawPacket(jsocket, msg);
     });
     src.start();
@@ -147,7 +145,6 @@ CanSource.prototype.start = function() {
 	filter(messageAcceptor()));
   	
   var processData = pipeline(function(cb, x) {
-    console.log("--> Final data: %j", x);
     cb(x);
     return cb;
   });
