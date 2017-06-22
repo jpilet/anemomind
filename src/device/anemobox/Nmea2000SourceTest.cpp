@@ -74,3 +74,14 @@ TEST(Nmea2000SourceTest, WindData) {
   EXPECT_NEAR(dispatcher.val<TWA>().degrees(), 75.3, .1);
 }
 
+TEST(Nmea2000SourceTest, RudderAngle) {
+  Dispatcher dispatcher;
+  Nmea2000Source source(&dispatcher);
+  
+  const unsigned char data[] = { 0xfc, 0xf8, 0xff, 0x7f, 0x06, 0xfd, 0xff, 0xff };
+  source.process("test", 127245, data, sizeof(data), 82);
+
+  EXPECT_TRUE(dispatcher.get<RUDDER_ANGLE>()->dispatcher()->hasValue());
+  EXPECT_NEAR(dispatcher.val<RUDDER_ANGLE>().degrees(), -4.4, .1);
+}
+
