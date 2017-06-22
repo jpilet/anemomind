@@ -86,21 +86,24 @@ function isNumber(x) {
 
 function serializeMessage(msg) {
   if (!(isNumber(msg.ts_sec) && 
-  	isNumber(msg.ts_usec) && isNumber(msg.id) && 
-	(msg.data instanceof Buffer))) {
+  	isNumber(msg.ts_usec) && isNumber(msg.id))) {
     return makeError("Bad message format");;
+  }
+  if (!(msg.data instanceof Buffer)) {
+    return makeError("data is not a buffer");
   }
   var dst = new Buffer(8 + 8 + 8 + msg.data.length);
   dst.writeDoubleBE(msg.ts_sec, 0);
   dst.writeDoubleBE(msg.ts_usec, 8);
   dst.writeDoubleBE(msg.id, 16);
   msg.data.copy(dst, 24);
-  return msg.toString('hex');
+  return dst.toString('hex');
 }
 
 function deserializeMessage(src0) {
+  console.log("It is ");
   if (!(typeof src0 == "string")) {
-    return null;
+    return {error: "Not a string"};
   }
   var err = getError(src0);
   if (err) {
@@ -108,12 +111,12 @@ function deserializeMessage(src0) {
   }
   var src = new Buffer(src0, 'hex');
   if (src.length < 24) {
-    return null;
+    return {error: "Too short message"};
   }
   return {
     ts_sec: src.readDoubleBE(0),
-    ts_usec: src.readDouble(8),
-    id: src.readDouble(16),
+    ts_usec: src.readDoubleBE(8),
+    id: src.readDoubleBE(16),
     data: src.slice(24)
   };
 }
