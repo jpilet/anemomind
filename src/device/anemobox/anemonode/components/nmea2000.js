@@ -5,7 +5,7 @@ var nmea2000Source = new anemonode.Nmea2000Source();
 var exec = require('child_process').exec;
 var infrequent = require('./infrequent.js');
 
-var racc = infrequent.makeAcceptor();
+var racc = infrequent.makeAcceptor(1000);
 
 function logRawPacket(jsocket, msg) {
   var l = logger.getLogger();
@@ -23,7 +23,6 @@ function logRawPacket(jsocket, msg) {
       var ds = delay + '';
       console.log("Type of delay: %j", typeof delay);
       console.log("Delay: %s", ds);
-      console.log("Logged %j sentences up to now", counter);
       console.log("Last sentence at %j", monotonicTime0);
     }
     l.logRawNmea2000(
