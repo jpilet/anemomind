@@ -58,6 +58,9 @@ function start() {
   });
 }
 
+
+
+
 // HACK to reboot we hit SPI bug
 function detectSPIBug(callback) {
   var timer = setInterval(function() {
