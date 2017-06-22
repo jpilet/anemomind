@@ -50,13 +50,20 @@ function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr, srcAddr)
   }
 }
 
+var src = null;
 function start() {
-  var j1939 = require('j1939socket').j1939;
-  var jsocket = new j1939.J1939Socket("can0");
-  jsocket.open(handlePacket);
-  canutils.getMessages(function(err, msg) {
-     logRawPacket(jsocket, msg);
-  });
+  if (src) {
+    console.log("Restarting CanSource...");
+    src.start();
+  } else {
+    var j1939 = require('j1939socket').j1939;
+    var jsocket = new j1939.J1939Socket("can0");
+    jsocket.open(handlePacket);
+    src = new canutils.CanSource(function(msg) {
+       logRawPacket(jsocket, msg);
+    });
+    src.start();
+  }
 }
 
 function CanSource(cb) {
