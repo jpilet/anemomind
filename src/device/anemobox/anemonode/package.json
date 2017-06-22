@@ -11,6 +11,7 @@
     "endpoint": "file:../../../../nodemodules/endpoint",
     "express": "^4.13.3",
     "j1939socket": "git+https://github.com/jpilet/j1939socket.git",
+    "rawcan": "git+https://github.com/jonasseglare/rawcan.git",
     "mkdirp": "^0.5.0",
     "mraa": "^0.9.5",
     "msgpack-js": "^0.3.0",
@@ -18,9 +19,7 @@
     "noble": "^1.1.0",
     "node-pre-gyp": "^0.6.0",
     "q": "^1.4.1",
-    "rawcan": "^1.1.4",
-    "serialport": "^1.6.3",
-    "socketcan": "^2.2.0"
+    "serialport": "^1.6.3"
   },
   "devDependencies": {
     "mocha": "^2.2.5",
