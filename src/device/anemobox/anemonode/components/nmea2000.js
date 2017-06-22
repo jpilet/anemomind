@@ -1,12 +1,11 @@
 // Emulate candump -L can0
-var buffer = require('buffer');
 var anemonode = require('../build/Release/anemonode');
 var logger = require('./logger.js');
-var assert = require('assert');
 var nmea2000Source = new anemonode.Nmea2000Source();
 var exec = require('child_process').exec;
+var infrequent = require('./infrequent.js');
 
-var counter = 0;
+var racc = infrequent.makeAcceptor();
 
 function logRawPacket(jsocket, msg) {
   var l = logger.getLogger();
@@ -20,8 +19,7 @@ function logRawPacket(jsocket, msg) {
   var delay = systemTime1 - systemTime0;
   monotonicTime0 = monotonicTime1 - delay;
     
-    counter++;
-    if (counter % 100 == 0) {
+    if (racc()) {
       var ds = delay + '';
       console.log("Type of delay: %j", typeof delay);
       console.log("Delay: %s", ds);
@@ -39,21 +37,18 @@ function logRawPacket(jsocket, msg) {
   jsocket.fetch();
 }
 
-var counter2 = 0;
-
+var jacc = infrequent.makeAcceptor(1000);
 
 function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr, srcAddr) {
   nmea2000Source.process(data, timestamp, srcName, pgn, srcAddr);
 
-  if (counter2 % 100 == 0) {
+  if (jacc()) {
     var str = "t:" + timestamp + " s:" + srcName + " pgn:" + pgn + " d:" + dstAddr;
-
     for (var i = 0; i < data.length; ++i) {
       str += " " + data[i].toString(16);
     }
     console.log(str);
   }
-  counter2++;
 }
 
 
