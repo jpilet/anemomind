@@ -105,7 +105,9 @@ namespace {
       if (times.size() == extTimes.size()) {
         int n = times.size();
         for (int j = 0; j < n; j++) {
-          diffs.push_back(extTimes[j] - times[j]);
+          if (extTimes[j].defined() && times[j].defined()) {
+            diffs.push_back(extTimes[j] - times[j]);
+          }
         }
       } else {
         LOG(WARNING) << "Inconsistent size of times and exttimes for stream";
