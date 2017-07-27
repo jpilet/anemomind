@@ -32,8 +32,8 @@ DYNAMIC_IMPLEMENTATION(
     MyData,
     field("name", name),
     field("age", age),
-    field("values", values)/*,
-    field("mapped_values", mappedValues)*/);
+    field("values", values),
+    field("mapped_values", mappedValues));
 
 TEST(DynamicTest, Sequence) {
   std::vector<int> mjao{9, 20, 11};
@@ -73,6 +73,7 @@ TEST(DynamicTest, TestStructSerialization) {
     x.name = "Signe";
     x.age = 13;
     x.values = std::vector<int>{9, 12};
+    x.mappedValues = {{"abra", 119}};
 
     std::ofstream file("/tmp/mydata.json");
     EXPECT_TRUE(writeJson(x, &file));
