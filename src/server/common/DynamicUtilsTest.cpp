@@ -36,7 +36,7 @@ Poco::Dynamic::Var makeDynamic() {
 
 TEST(DynamicTest, TestStructSerialization) {
   MyData x;
-  //x.name = "Signe";
+  x.name = "Signe";
   x.age = 13;
 
   std::cout << "Convert it to dynamic" << std::endl;
