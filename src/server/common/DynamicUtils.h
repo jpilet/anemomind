@@ -199,7 +199,6 @@ SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
 
 #define DYNAMIC_IMPLEMENTATION(ClassName, ...) \
     Poco::Dynamic::Var ClassName::toDynamic() const { \
-      /*return Poco::Dynamic::Var(Poco::JSON::Object::Ptr(new Poco::JSON::Object()));*/ \
       return makeDynamicMap({__VA_ARGS__}); \
     }/* \
     SerializationInfo ClassName::fromDynamic(const Poco::Dynamic::Var& src) { \
@@ -213,7 +212,7 @@ struct JsonSettings {
   bool preserveInsertionOrder = false;
 };
 
-void outputJson(
+void outputDynamicToJson(
     Poco::Dynamic::Var x, std::ostream* dst,
     const JsonSettings& s = JsonSettings());
 

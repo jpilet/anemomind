@@ -32,6 +32,6 @@ TEST(DynamicTest, TestStructSerialization) {
   std::cout << "STRING VALUE: " << d.toString() << std::endl;
 
   std::ofstream file("/tmp/mydata.json");
-  outputJson(d, &file);
+  outputDynamicToJson(d, &file);
 }
 

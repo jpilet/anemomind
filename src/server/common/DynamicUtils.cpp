@@ -78,7 +78,7 @@ Poco::Dynamic::Var readJson(const std::string &filename) {
   }
 }
 
-void outputJson(
+void outputDynamicToJson(
     Poco::Dynamic::Var x, std::ostream* file,
     const JsonSettings& s) {
 
