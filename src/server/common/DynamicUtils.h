@@ -132,11 +132,19 @@ SPECIALIZE_TO_DYNAMIC(toDynamicObject)
 SPECIALIZE_FROM_DYNAMIC(fromDynamicObject);
 
 ///////////// When the object is sequential
-template <typename T>
+template <typename T, typename E=int>
 struct SequentialToDynamic {};
 
 template <typename T>
-struct SequentialToDynamic<std::vector<T>> {
+struct IsSequential {};
+
+template <typename T>
+struct IsSequential<std::vector<T>> {
+  typedef int type;
+};
+
+template <typename T>
+struct SequentialToDynamic<T, typename IsSequential<T>::type> {
   SerializationInfo apply(const T& seq, Poco::Dynamic::Var* dst) {
     Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
     typedef typename T::element_typ e;
