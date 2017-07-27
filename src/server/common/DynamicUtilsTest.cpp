@@ -12,7 +12,7 @@
 using namespace sail;
 
 struct MyData {
-  //std::string name;
+  std::string name;
   int age = 0;
 
   /*Poco::Dynamic::Var toDynamic() {
@@ -24,7 +24,7 @@ struct MyData {
 
 DYNAMIC_IMPLEMENTATION(
     MyData,
-    //field("name", name),
+    field("name", name),
     field("age", age));
 
 Poco::Dynamic::Var makeDynamic() {
