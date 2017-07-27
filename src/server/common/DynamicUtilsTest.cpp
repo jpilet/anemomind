@@ -46,6 +46,16 @@ TEST(DynamicTest, Sequence) {
   }
 }
 
+TEST(DynamicTest, MapTest) {
+  std::map<std::string, int> m{
+    {"a", 0},
+    {"b", 1}
+  };
+
+  Poco::Dynamic::Var d;
+  EnabledMapToDynamic<std::map<std::string, int>>::apply(m, &d);
+}
+
 TEST(DynamicTest, TestStructSerialization) {
   {
     MyData x;

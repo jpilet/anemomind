@@ -188,10 +188,25 @@ template <typename T>
 struct MapToDynamic {
   static SerializationStatus apply(const T& src,
       Poco::Dynamic::Var* dst) {
-
+    typedef typename T::mapped_type V;
+    Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+    for (const auto& kv: src) {
+      Poco::Dynamic::Var x;
+      auto s = ToDynamic<V>::apply(kv.second, &x);
+      if (!bool(s)) {
+        std::cout << "Failed to convert" << std::endl;
+        return SerializationStatus::Failure;
+      }
+      obj->set(kv.first, x);
+    }
+    *dst = Poco::Dynamic::Var(obj);
+    return SerializationStatus::Success;
   }
 };
-
+template <typename T>
+using EnabledMapToDynamic =
+    typename std::enable_if<IsStringMap<T>::value,
+    MapToDynamic<T>>::type;
 
 
 

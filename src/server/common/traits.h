@@ -87,6 +87,11 @@ struct IsSequenceLike {
       && !AreSimilar<T, std::string>::value;
 };
 
+template <typename T>
+struct IsStringMap {
+  static const bool value = IsMap<T>::value
+      && std::is_same<std::string, typename T::key_type>::value;
+};
 
 }
 
