@@ -28,8 +28,8 @@ struct MyData {
 DYNAMIC_IMPLEMENTATION(
     MyData,
     field("name", name),
-    field("age", age)/*,
-    field("values", values)*/);
+    field("age", age),
+    field("values", values));
 
 TEST(DynamicTest, Sequence) {
   std::vector<int> mjao{9, 20, 11};
@@ -51,6 +51,7 @@ TEST(DynamicTest, TestStructSerialization) {
     MyData x;
     x.name = "Signe";
     x.age = 13;
+    x.values = std::vector<int>{9, 12};
 
     std::ofstream file("/tmp/mydata.json");
     EXPECT_TRUE(writeJson(x, &file));
@@ -60,6 +61,9 @@ TEST(DynamicTest, TestStructSerialization) {
     EXPECT_TRUE(readJson(&file, &x));
     EXPECT_EQ(x.name, "Signe");
     EXPECT_EQ(x.age, 13);
+    EXPECT_EQ(x.values.size(), 2);
+    EXPECT_EQ(x.values[0], 9);
+    EXPECT_EQ(x.values[1], 12);
   }
 }
 

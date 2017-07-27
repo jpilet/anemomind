@@ -133,9 +133,6 @@ SPECIALIZE_TO_DYNAMIC(toDynamicObject)
 SPECIALIZE_FROM_DYNAMIC(fromDynamicObject);
 
 ///////////// When the object is sequential
-
-
-
 template <typename T>
 struct SequentialToDynamic {
   static SerializationInfo apply(const T& seq, Poco::Dynamic::Var* dst) {
@@ -150,12 +147,11 @@ struct SequentialToDynamic {
     return SerializationInfo(SerializationStatus::Success);
   }
 };
-template <typename T>
+template <typename T> // Helper, just so that the macro works
 using EnabledSequenceToDynamic =
     typename std::enable_if<IsSequenceLike<T>::value,
     SequentialToDynamic<T>>::type;
 SPECIALIZE_TO_DYNAMIC(EnabledSequenceToDynamic<T>::apply);
-
 
 template <typename T>
 struct SequentialFromDynamic {
@@ -186,6 +182,27 @@ using EnabledSequenceFromDynamic =
     typename std::enable_if<IsSequenceLike<T>::value,
     SequentialFromDynamic<T>>::type;
 SPECIALIZE_FROM_DYNAMIC(EnabledSequenceFromDynamic<T>::apply);
+
+/////////////// When it is a map
+template <typename T>
+struct MapToDynamic {
+  static SerializationStatus apply(const T& src,
+      Poco::Dynamic::Var* dst) {
+
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 class DynamicField {
 public:
