@@ -210,9 +210,31 @@ struct JsonSettings {
   bool preserveInsertionOrder = false;
 };
 
-void outputDynamicToJson(
+SerializationInfo writeDynamicToJson(
     Poco::Dynamic::Var x, std::ostream* dst,
     const JsonSettings& s = JsonSettings());
+
+template <typename T>
+SerializationInfo writeJson(const T& src, std::ostream* dst,
+    const JsonSettings& s = JsonSettings()) {
+  Poco::Dynamic::Var obj;
+  auto i = ToDynamic<T>::apply(src, &obj);
+  if (!i) {
+    return i;
+  }
+  return writeDynamicToJson(obj, dst, s);
+}
+
+Poco::Dynamic::Var readDynamicFromJson(std::istream* src);
+
+template <typename T>
+SerializationInfo readJson(std::istream* src, T* dst) {
+  auto x = readDynamicFromJson(src);
+  if (!x) {
+    return SerializationInfo(SerializationStatus::Failure);
+  }
+  return FromDynamic<T>::apply(x, dst);
+}
 
 }
 

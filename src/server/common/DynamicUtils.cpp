@@ -93,11 +93,29 @@ Poco::Dynamic::Var readJson(const std::string &filename) {
   }
 }
 
-void outputDynamicToJson(
+SerializationInfo writeDynamicToJson(
     Poco::Dynamic::Var x, std::ostream* file,
     const JsonSettings& s) {
-  Poco::JSON::Stringifier::stringify(
-      x, *file, s.indent, s.step, s.preserveInsertionOrder);
+  try {
+    Poco::JSON::Stringifier::stringify(
+        x, *file, s.indent, s.step, s.preserveInsertionOrder);
+    return SerializationInfo();
+  } catch (const Poco::Exception& e) {
+    return SerializationInfo(SerializationStatus::Failure);
+  }
+
+}
+
+Poco::Dynamic::Var readDynamicFromJson(std::istream* src) {
+  Poco::JSON::Parser parser;
+  Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
+  parser.setHandler(handler);
+  try {
+    parser.parse(*src);
+    return handler->asVar();
+  } catch (Poco::Exception &e) {
+    return Poco::Dynamic::Var();
+  }
 }
 
 }

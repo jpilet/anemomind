@@ -28,12 +28,14 @@ TEST(DynamicTest, TestStructSerialization) {
     x.name = "Signe";
     x.age = 13;
 
-    auto d = x.toDynamic();
-
     std::ofstream file("/tmp/mydata.json");
-    outputDynamicToJson(d, &file);
+    EXPECT_TRUE(writeJson(x, &file));
   }{
-    MyData input;
+    MyData x;
+    std::ifstream file("/tmp/mydata.json");
+    EXPECT_TRUE(readJson(&file, &x));
+    EXPECT_EQ(x.name, "Signe");
+    EXPECT_EQ(x.age, 13);
   }
 }
 
