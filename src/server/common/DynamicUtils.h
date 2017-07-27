@@ -132,25 +132,44 @@ SPECIALIZE_TO_DYNAMIC(toDynamicObject)
 SPECIALIZE_FROM_DYNAMIC(fromDynamicObject);
 
 ///////////// When the object is sequential
-template <typename T, typename E=int>
-struct SequentialToDynamic {};
+template<typename T>
+struct void_ { typedef void type; };
 
-template <typename T>
-struct IsSequential {};
+template<typename T, typename = void, typename = void>
+struct IsMap {
+  static const bool value = false;
+};
 
-template <typename T>
-struct IsSequential<std::vector<T>> {
+template<typename T>
+struct IsMap <T, typename void_<typename T::key_type>::type,
+  typename void_<typename T::mapped_type>::type> {
+  static const bool value = true;
   typedef int type;
 };
 
+template <typename T, typename = void>
+struct IsContainer {
+  static const bool value = false;
+};
+
 template <typename T>
-struct SequentialToDynamic<T, typename IsSequential<T>::type> {
+struct IsContainer<T, typename void_<typename T::value_type>::type> {
+  static const bool value = true;
+};
+
+template <typename T>
+struct IsSequenceLike {
+  static const bool value = IsContainer<T>::value
+      && !IsMap<T>::value
+      && !std::is_same<T, std::string>::value;
+};
+
+template <typename T>
+struct SequentialToDynamic {
   SerializationInfo apply(const T& seq, Poco::Dynamic::Var* dst) {
     Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
     typedef typename T::element_typ e;
     for (auto x: seq) {
-    //for (int i = 0; i < seq.size(); i++) {
-    //  auto x = seq[i];
       Poco::Dynamic::Var e;
       auto s = ToDynamic<T>::apply(x, &e);
       arr->add(e);
@@ -159,15 +178,32 @@ struct SequentialToDynamic<T, typename IsSequential<T>::type> {
     return SerializationInfo(SerializationStatus::Success);
   }
 };
+SPECIALIZE_TO_DYNAMIC((typename std::enable_if<IsSequenceLike<T>::value, SequentialToDynamic<T>>::type::apply));
 
-SPECIALIZE_TO_DYNAMIC(SequentialToDynamic<T>::apply);
+template <typename T>
+struct SequentialFromDynamic {
+  SerializationInfo apply(const Poco::Dynamic::Var& csrc, T* dst) {
+    Poco::JSON::Array::Ptr src = csrc.extract<Poco::JSON::Array::Ptr>();
+    typedef typename T::value_type V;
+    std::vector<V> tmp;
+    int count = src->size();
+    tmp.reserve(count);
+    for (int i = 0; i < count; i++) {
+      V x;
+      auto k = FromDynamic<V>::apply(src->get(i), &x);
+      if (!k) {
+        return k;
+      }
+      tmp.push_back(x);
+    }
 
-/*template <typename T>
-struct ToDynamic<T, decltype(sequentialToDynamic(
-    std::declval<const T&>(), std::declval<Poco::Dynamic::Var*>()))> {
+    // T must have this kind of constructor.
+    *dst = T(tmp.begin(), tmp.end());
 
-};*/
-
+    return SerializationInfo();
+  }
+};
+SPECIALIZE_FROM_DYNAMIC((typename std::enable_if<IsSequenceLike<T>::value, SequentialFromDynamic<T>>::type::apply));
 
 
 class DynamicField {

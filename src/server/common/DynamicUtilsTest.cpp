@@ -11,6 +11,13 @@
 
 using namespace sail;
 
+typedef std::enable_if<true, int>::type x;
+
+static_assert(IsSequenceLike<std::vector<int>>::value, "");
+static_assert(!IsSequenceLike<int>::value, "");
+static_assert(!IsSequenceLike<std::string>::value, "");
+static_assert(!IsSequenceLike<std::map<int, int>>::value, "");
+
 struct MyData {
   std::string name;
   int age = 0;
