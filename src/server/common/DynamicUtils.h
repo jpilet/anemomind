@@ -156,24 +156,28 @@ SPECIALIZE_TO_DYNAMIC(EnabledSequenceToDynamic<T>::apply);
 template <typename T>
 struct SequentialFromDynamic {
   static SerializationInfo apply(const Poco::Dynamic::Var& csrc, T* dst) {
-    Poco::JSON::Array::Ptr src = csrc.extract<Poco::JSON::Array::Ptr>();
-    typedef typename T::value_type V;
-    std::vector<V> tmp;
-    int count = src->size();
-    tmp.reserve(count);
-    for (int i = 0; i < count; i++) {
-      V x;
-      auto k = FromDynamic<V>::apply(src->get(i), &x);
-      if (!k) {
-        return k;
+    try {
+      Poco::JSON::Array::Ptr src = csrc.extract<Poco::JSON::Array::Ptr>();
+      typedef typename T::value_type V;
+      std::vector<V> tmp;
+      int count = src->size();
+      tmp.reserve(count);
+      for (int i = 0; i < count; i++) {
+        V x;
+        auto k = FromDynamic<V>::apply(src->get(i), &x);
+        if (!k) {
+          return k;
+        }
+        tmp.push_back(x);
       }
-      tmp.push_back(x);
+
+      // T must have this kind of constructor.
+      *dst = T(tmp.begin(), tmp.end());
+
+      return SerializationStatus::Success;
+    } catch (const Poco::Exception& ) {
+      return SerializationStatus::Failure;
     }
-
-    // T must have this kind of constructor.
-    *dst = T(tmp.begin(), tmp.end());
-
-    return SerializationInfo();
   }
 };
 
@@ -214,24 +218,28 @@ struct MapFromDynamic {
   static SerializationInfo apply(const Poco::Dynamic::Var& src,
       T* dst) {
     typedef typename T::mapped_type V;
-    auto obj = src.extract<Poco::JSON::Object::Ptr>();
-    std::vector<std::string> names;
-    obj->getNames(names);
-    std::vector<std::pair<std::string, V>> kvPairs;
-    kvPairs.reserve(names.size());
-    for (const auto& name: names) {
-      V x;
-      auto s = FromDynamic<V>::apply(obj->get(name), &x);
-      if (!s) {
-        return s;
+    try {
+      auto obj = src.extract<Poco::JSON::Object::Ptr>();
+      std::vector<std::string> names;
+      obj->getNames(names);
+      std::vector<std::pair<std::string, V>> kvPairs;
+      kvPairs.reserve(names.size());
+      for (const auto& name: names) {
+        V x;
+        auto s = FromDynamic<V>::apply(obj->get(name), &x);
+        if (!s) {
+          return s;
+        }
+        kvPairs.push_back({name, x});
       }
-      kvPairs.push_back({name, x});
+
+      // It must have this constructor!
+      *dst = T(kvPairs.begin(), kvPairs.end());
+
+      return SerializationStatus::Success;
+    } catch (const Poco::Exception& ) {
+      return SerializationStatus::Failure;
     }
-
-    // It must have this constructor!
-    *dst = T(kvPairs.begin(), kvPairs.end());
-
-    return SerializationStatus::Success;
   }
 };
 template <typename T>
@@ -241,6 +249,38 @@ SPECIALIZE_FROM_DYNAMIC(EnabledMapFromDynamic<T>::apply);
 
 
 
+
+/////////// Shared ptr
+template <typename T>
+SerializationInfo sharedPointerToDynamic(
+    const std::shared_ptr<T>& src,
+    Poco::Dynamic::Var* dst) {
+  if (src) {
+    return ToDynamic<T>::apply(*src, dst);
+  } else {
+    *dst = Poco::Dynamic::Var();
+  }
+  return SerializationStatus::Success;
+}
+SPECIALIZE_TO_DYNAMIC(sharedPointerToDynamic);
+
+template <typename T>
+SerializationInfo sharedPointerFromDynamic(
+    const Poco::Dynamic::Var& src,
+    std::shared_ptr<T>* dst) {
+  if (src.isEmpty()) {
+    *dst = std::shared_ptr<T>();
+  } else {
+    T x;
+    auto s = FromDynamic<T>::apply(src, &x);
+    if (!s) {
+      return s;
+    }
+    *dst = std::make_shared<T>(x);
+  }
+  return SerializationStatus::Success;
+}
+SPECIALIZE_FROM_DYNAMIC(sharedPointerFromDynamic);
 
 
 
