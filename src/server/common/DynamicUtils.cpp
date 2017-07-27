@@ -50,10 +50,10 @@ SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
 }
 
 Poco::Dynamic::Var makeDynamicMap(
-    std::vector<DynamicField::Ptr> fields) {
+    std::vector<WrappedField> fields) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   for (const auto& f: fields) {
-    auto s = f->writeTo(obj);
+    auto s = f.field->writeTo(obj);
     if (!bool(s)) {
       std::cout << "FAILED!" << std::endl;
       return Poco::Dynamic::Var();
@@ -63,12 +63,12 @@ Poco::Dynamic::Var makeDynamicMap(
 }
 
 SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
-    std::vector<DynamicField::Ptr> fields) {
+    std::vector<WrappedField> fields) {
 
   try {
     auto obj = src.extract<Poco::JSON::Object::Ptr>();
     for (auto f: fields) {
-      auto i = f->readFrom(obj);
+      auto i = f.field->readFrom(obj);
       if (!i) {
         return i;
       }

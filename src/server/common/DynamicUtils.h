@@ -148,9 +148,9 @@ struct SequentialToDynamic<T, typename IsSequential<T>::type> {
   SerializationInfo apply(const T& seq, Poco::Dynamic::Var* dst) {
     Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
     typedef typename T::element_typ e;
-    //for (auto x: seq) {
-    for (int i = 0; i < seq.size(); i++) {
-      auto x = seq[i];
+    for (auto x: seq) {
+    //for (int i = 0; i < seq.size(); i++) {
+    //  auto x = seq[i];
       Poco::Dynamic::Var e;
       auto s = ToDynamic<T>::apply(x, &e);
       arr->add(e);
@@ -176,6 +176,19 @@ public:
   virtual SerializationInfo readFrom(const Poco::JSON::Object::Ptr& src) = 0;
   virtual SerializationInfo writeTo(Poco::JSON::Object::Ptr dst) = 0;
   virtual ~DynamicField() {}
+  void setRequired(bool r) {_required = r;}
+protected:
+  bool _required = true;
+};
+
+// Helper class just to make it more convenient
+struct WrappedField {
+  DynamicField::Ptr field;
+
+  WrappedField optional() const {
+    field->setRequired(false);
+    return WrappedField{field};
+  }
 };
 
 template <typename T, bool>
@@ -184,12 +197,18 @@ struct ReadFieldFrom {};
 template <typename T>
 struct ReadFieldFrom<T, true> {
   static SerializationInfo apply(
+      bool req,
       const std::string& key, T* ref,
       Poco::JSON::Object::Ptr src) {
     try {
-      auto r = FromDynamic<T>::apply(src->get(key), ref);
-      if (!bool(r)) {
-        return r;
+      if (src->has(key)) {
+        auto r = FromDynamic<T>::apply(src->get(key), ref);
+        if (!bool(r)) {
+          return r;
+        }
+      } else if (req) {
+        std::cerr << "Required field '" << key << "' missing.\n";
+        return SerializationStatus::Failure;
       }
     } catch (const std::exception& e) {
       return SerializationStatus::Failure;
@@ -201,6 +220,7 @@ struct ReadFieldFrom<T, true> {
 template <typename T>
 struct ReadFieldFrom<T, false> {
   static SerializationInfo apply(
+      bool req,
       const std::string&, T*, Poco::JSON::Object::Ptr) {
     // Operation not supported: We cannot change constant data.
     return SerializationStatus::Failure;
@@ -226,7 +246,7 @@ public:
 
   SerializationInfo readFrom(
       const Poco::JSON::Object::Ptr& src) override {
-    return ReadFieldFrom<T, mut>::apply(_key, _ref, src);
+    return ReadFieldFrom<T, mut>::apply(_required, _key, _ref, src);
   }
 private:
   std::string _key;
@@ -234,15 +254,15 @@ private:
 };
 
 template <typename T>
-DynamicField::Ptr field(const std::string& k, T& value) {
-  return DynamicField::Ptr(
-      new Field<T, !std::is_const<T>::value>(k, &value));
+WrappedField field(const std::string& k, T& value) {
+  return WrappedField{DynamicField::Ptr(
+      new Field<T, !std::is_const<T>::value>(k, &value))};
 }
 
 Poco::Dynamic::Var makeDynamicMap(
-    std::vector<DynamicField::Ptr> fields);
+    std::vector<WrappedField> fields);
 SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
-    std::vector<DynamicField::Ptr> fields);
+    std::vector<WrappedField> fields);
 
 //#define TO_DYNAMIC_CONVERTER(type, converter) \
 //  struct ToDn
