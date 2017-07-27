@@ -102,3 +102,30 @@ TEST(DynamicTest, TestStructSerialization) {
   }
 }
 
+struct OptimizerConfig {
+  int iters = 3;
+  double tol = 1.0e-6;
+
+  DYNAMIC_INTERFACE;
+};
+
+DYNAMIC_IMPLEMENTATION(
+    OptimizerConfig,
+    field("iters", iters),
+    field("tol", tol).optional());
+
+TEST(DynamicTest, OptionalTest) {
+  {
+    OptimizerConfig c;
+    std::stringstream file;
+    file << "{\"iters\": 9}";
+    EXPECT_TRUE(readJson(&file, &c));
+    EXPECT_EQ(c.iters, 9);
+    EXPECT_EQ(c.tol, 1.0e-6);
+  }{
+    OptimizerConfig c;
+    std::stringstream file;
+    file << "{\"tol\": 1.0e-3}";
+    EXPECT_FALSE(readJson(&file, &c));
+  }
+}
