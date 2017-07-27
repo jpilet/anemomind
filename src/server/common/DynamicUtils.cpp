@@ -52,10 +52,6 @@ SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
 
 Poco::Dynamic::Var makeDynamicMap(
     std::vector<DynamicField::Ptr> fields) {
-
-  //return Poco::Dynamic::Var(
-  //    Poco::JSON::Object::Ptr(new Poco::JSON::Object()));
-
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   for (const auto& f: fields) {
     auto s = f->writeTo(obj);
@@ -85,6 +81,9 @@ Poco::Dynamic::Var readJson(const std::string &filename) {
 void outputJson(
     Poco::Dynamic::Var x, std::ostream* file,
     const JsonSettings& s) {
+
+  std::cout << "GOT THIS: " << x.toString() << std::endl;
+
   Poco::JSON::Stringifier::stringify(
       x, *file, s.indent, s.step, s.preserveInsertionOrder);
 }
