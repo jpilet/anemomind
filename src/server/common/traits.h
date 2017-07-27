@@ -87,10 +87,24 @@ struct IsSequenceLike {
       && !AreSimilar<T, std::string>::value;
 };
 
+template <typename T, bool app>
+struct KeyType {
+  typedef void type;
+};
+
+template <typename T>
+struct KeyType<T, true> {
+  typedef typename T::key_type type;
+};
+
+template <typename T>
+using KeyTypeOf = typename KeyType<T, IsMap<T>::value>::type;
+
+
 template <typename T>
 struct IsStringMap {
   static const bool value = IsMap<T>::value
-      && std::is_same<std::string, typename T::key_type>::value;
+      && std::is_same<std::string, KeyTypeOf<T>>::value;
 };
 
 }

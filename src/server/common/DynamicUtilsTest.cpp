@@ -22,6 +22,9 @@ struct MyData {
   std::string name;
   int age = 0;
   std::vector<int> values;
+
+  std::map<std::string, int> mappedValues;
+
   DYNAMIC_INTERFACE;
 };
 
@@ -29,7 +32,8 @@ DYNAMIC_IMPLEMENTATION(
     MyData,
     field("name", name),
     field("age", age),
-    field("values", values));
+    field("values", values)/*,
+    field("mapped_values", mappedValues)*/);
 
 TEST(DynamicTest, Sequence) {
   std::vector<int> mjao{9, 20, 11};
@@ -54,6 +58,13 @@ TEST(DynamicTest, MapTest) {
 
   Poco::Dynamic::Var d;
   EnabledMapToDynamic<std::map<std::string, int>>::apply(m, &d);
+
+  std::map<std::string, int> m2;
+  EnabledMapFromDynamic<std::map<std::string, int>>::apply(d, &m2);
+
+  EXPECT_EQ(m2.size(), 2);
+  EXPECT_EQ(m2["a"], 0);
+  EXPECT_EQ(m2["b"], 1);
 }
 
 TEST(DynamicTest, TestStructSerialization) {

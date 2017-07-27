@@ -186,7 +186,7 @@ SPECIALIZE_FROM_DYNAMIC(EnabledSequenceFromDynamic<T>::apply);
 /////////////// When it is a map
 template <typename T>
 struct MapToDynamic {
-  static SerializationStatus apply(const T& src,
+  static SerializationInfo apply(const T& src,
       Poco::Dynamic::Var* dst) {
     typedef typename T::mapped_type V;
     Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
@@ -207,7 +207,37 @@ template <typename T>
 using EnabledMapToDynamic =
     typename std::enable_if<IsStringMap<T>::value,
     MapToDynamic<T>>::type;
+SPECIALIZE_TO_DYNAMIC(EnabledMapToDynamic<T>::apply);
 
+template <typename T>
+struct MapFromDynamic {
+  static SerializationInfo apply(const Poco::Dynamic::Var& src,
+      T* dst) {
+    typedef typename T::mapped_type V;
+    auto obj = src.extract<Poco::JSON::Object::Ptr>();
+    std::vector<std::string> names;
+    obj->getNames(names);
+    std::vector<std::pair<std::string, V>> kvPairs;
+    kvPairs.reserve(names.size());
+    for (const auto& name: names) {
+      V x;
+      auto s = FromDynamic<V>::apply(obj->get(name), &x);
+      if (!s) {
+        return s;
+      }
+      kvPairs.push_back({name, x});
+    }
+
+    // It must have this constructor!
+    *dst = T(kvPairs.begin(), kvPairs.end());
+
+    return SerializationStatus::Success;
+  }
+};
+template <typename T>
+using EnabledMapFromDynamic
+    = typename std::enable_if<IsMap<T>::value, MapFromDynamic<T>>::type;
+SPECIALIZE_FROM_DYNAMIC(EnabledMapFromDynamic<T>::apply);
 
 
 
