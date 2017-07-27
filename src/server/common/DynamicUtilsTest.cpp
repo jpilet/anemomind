@@ -21,13 +21,21 @@ static_assert(!IsSequenceLike<std::map<int, int>>::value, "");
 struct MyData {
   std::string name;
   int age = 0;
+  std::vector<int> values;
   DYNAMIC_INTERFACE;
 };
 
 DYNAMIC_IMPLEMENTATION(
     MyData,
     field("name", name),
-    field("age", age));
+    field("age", age)/*,
+    field("values", values)*/);
+
+TEST(DynamicTest, Sequence) {
+  std::vector<int> mjao{9, 20, 11};
+  Poco::Dynamic::Var d;
+  EnabledSequenceToDynamic<std::vector<int>>::apply(mjao, &d);
+}
 
 TEST(DynamicTest, TestStructSerialization) {
   {

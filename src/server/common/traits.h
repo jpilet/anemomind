@@ -10,6 +10,12 @@
 
 namespace sail {
 
+// To make a reference into a value.
+template <typename T>
+constexpr T copyOf(T x) {
+  return x;
+}
+
 template <typename T>
 T makeCopy(const T &x) {
   return T(x);

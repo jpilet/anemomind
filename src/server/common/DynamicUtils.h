@@ -10,6 +10,7 @@
 
 #include <Poco/JSON/Object.h>
 #include <memory>
+#include <server/common/traits.h>
 
 /*
  * GUIDE for providing serialization for any type T:
@@ -161,24 +162,31 @@ template <typename T>
 struct IsSequenceLike {
   static const bool value = IsContainer<T>::value
       && !IsMap<T>::value
-      && !std::is_same<T, std::string>::value;
+      && !std::is_same<decltype(copyOf(std::declval<T>())), std::string>::value;
 };
+
+
 
 template <typename T>
 struct SequentialToDynamic {
-  SerializationInfo apply(const T& seq, Poco::Dynamic::Var* dst) {
+  static SerializationInfo apply(const T& seq, Poco::Dynamic::Var* dst) {
     Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
-    typedef typename T::element_typ e;
+    typedef typename T::value_type V;
     for (auto x: seq) {
       Poco::Dynamic::Var e;
-      auto s = ToDynamic<T>::apply(x, &e);
+      auto s = ToDynamic<V>::apply(x, &e);
       arr->add(e);
     }
     *dst = Poco::Dynamic::Var(arr);
     return SerializationInfo(SerializationStatus::Success);
   }
 };
-SPECIALIZE_TO_DYNAMIC((typename std::enable_if<IsSequenceLike<T>::value, SequentialToDynamic<T>>::type::apply));
+template <typename T>
+using EnabledSequenceToDynamic =
+    typename std::enable_if<IsSequenceLike<T>::value,
+    SequentialToDynamic<T>>::type;
+SPECIALIZE_TO_DYNAMIC(EnabledSequenceToDynamic<T>::apply);
+
 
 template <typename T>
 struct SequentialFromDynamic {
@@ -203,8 +211,12 @@ struct SequentialFromDynamic {
     return SerializationInfo();
   }
 };
-SPECIALIZE_FROM_DYNAMIC((typename std::enable_if<IsSequenceLike<T>::value, SequentialFromDynamic<T>>::type::apply));
 
+template <typename T>
+using EnabledSequenceFromDynamic =
+    typename std::enable_if<IsSequenceLike<T>::value,
+    SequentialFromDynamic<T>>::type;
+SPECIALIZE_FROM_DYNAMIC(EnabledSequenceFromDynamic<T>::apply);
 
 class DynamicField {
 public:
