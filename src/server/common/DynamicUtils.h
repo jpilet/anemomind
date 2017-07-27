@@ -96,23 +96,64 @@ struct FromDynamic {
 FOREACH_JSON_PRIMITIVE(PRIMITIVE_OPS)
 #undef PRIMITIVE_OPS
 
+// TO_DYNAMIC_FUNCTION has signature
+//
+//   SerializationInfo TO_DYNAMIC_FUNCTION(const T& src, Poco::Dynamic::Var* dst);
+//
+// It can be a template function, or a regular function, possibly overloaded
+// for many different types.
+#define SPECIALIZE_TO_DYNAMIC(TO_DYNAMIC_FUNCTION) \
+  template <typename T> \
+  struct ToDynamic<T, decltype(TO_DYNAMIC_FUNCTION( \
+      std::declval<const T&>(), std::declval<Poco::Dynamic::Var*>()))> { \
+    static SerializationInfo apply( \
+        const T& src, Poco::Dynamic::Var* dst) { \
+      return TO_DYNAMIC_FUNCTION(src, dst); \
+    } \
+  };
+// FROM_DYNAMIC_FUNCTION has signature
+//
+// SerializationInfo FROM_DYNAMIC_FUNCTION(const Poco::Dynamic::Var& src, T* dst);
+//
+// It can be a template function, or a regular function, possibly overloaded
+// for many different types.
+#define SPECIALIZE_FROM_DYNAMIC(FROM_DYNAMIC_FUNCTION) \
+  template <typename T> \
+  struct FromDynamic<T, decltype(FROM_DYNAMIC_FUNCTION( \
+      std::declval<const Poco::Dynamic::Var&>(), std::declval<T*>()))> { \
+    static SerializationInfo apply( \
+        const Poco::Dynamic::Var& src, T* dst) { \
+      return FROM_DYNAMIC_FUNCTION(src, dst); \
+    } \
+  };
+
 ////////////// When toDynamicObject/fromDynamicObject are overloaded
+SPECIALIZE_TO_DYNAMIC(toDynamicObject)
+SPECIALIZE_FROM_DYNAMIC(fromDynamicObject);
+
+///////////// When the object is sequential
 template <typename T>
-struct ToDynamic<T, decltype(toDynamicObject(
+SerializationInfo sequentialToDynamic(const T& seq, Poco::Dynamic::Var* dst) {
+  Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
+  for (auto x: seq) {
+    Poco::Dynamic::Var e;
+    auto s = ToDynamic<T>::apply(x, &e);
+    arr->add(e);
+  }
+  *dst = Poco::Dynamic::Var(arr);
+  return SerializationInfo(SerializationStatus::Success);
+}
+
+
+//SPECIALIZE_TO_DYNAMIC(sequentialToDynamic);
+
+/*template <typename T>
+struct ToDynamic<T, decltype(sequentialToDynamic(
     std::declval<const T&>(), std::declval<Poco::Dynamic::Var*>()))> {
-  static SerializationInfo apply(
-      const T& src, Poco::Dynamic::Var* dst) {
-    return toDynamicObject(src, dst);
-  }
-};
-template <typename T>
-struct FromDynamic<T, decltype(fromDynamicObject(
-    std::declval<const Poco::Dynamic::Var&>(), std::declval<T*>()))> {
-  static SerializationInfo apply(
-      const Poco::Dynamic::Var& src, T* dst) {
-    return fromDynamicObject(src, dst);
-  }
-};
+
+};*/
+
+
 
 class DynamicField {
 public:
