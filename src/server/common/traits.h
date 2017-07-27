@@ -47,6 +47,47 @@ struct ModifiedType<T, TypeMode::Ref> {
   typedef T &type;
 };
 
+template<typename T>
+struct void_ { typedef void type; };
+
+template<typename T, typename = void, typename = void>
+struct IsMap {
+  static const bool value = false;
+};
+
+template<typename T>
+struct IsMap <T, typename void_<typename T::key_type>::type,
+  typename void_<typename T::mapped_type>::type> {
+  static const bool value = true;
+  typedef int type;
+};
+
+template <typename T, typename = void>
+struct IsContainer {
+  static const bool value = false;
+};
+
+template <typename T>
+struct IsContainer<T, typename void_<typename T::value_type>::type> {
+  static const bool value = true;
+};
+
+template <typename A, typename B>
+struct AreSimilar {
+  static const bool value =
+      std::is_same<
+        decltype(copyOf(std::declval<A>())),
+        decltype(copyOf(std::declval<B>()))>::value;
+};
+
+template <typename T>
+struct IsSequenceLike {
+  static const bool value = IsContainer<T>::value
+      && !IsMap<T>::value
+      && !AreSimilar<T, std::string>::value;
+};
+
+
 }
 
 

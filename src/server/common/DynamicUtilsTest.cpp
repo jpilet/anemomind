@@ -34,7 +34,16 @@ DYNAMIC_IMPLEMENTATION(
 TEST(DynamicTest, Sequence) {
   std::vector<int> mjao{9, 20, 11};
   Poco::Dynamic::Var d;
-  EnabledSequenceToDynamic<std::vector<int>>::apply(mjao, &d);
+  EXPECT_TRUE(EnabledSequenceToDynamic<
+      std::vector<int>>::apply(mjao, &d));
+  std::vector<int> mjao2;
+  EXPECT_TRUE(EnabledSequenceFromDynamic<
+    std::vector<int>>::apply(d, &mjao2));
+
+  EXPECT_EQ(mjao.size(), mjao2.size());
+  for (int i = 0; i < 3; i++) {
+    EXPECT_EQ(mjao[i], mjao2[i]);
+  }
 }
 
 TEST(DynamicTest, TestStructSerialization) {
