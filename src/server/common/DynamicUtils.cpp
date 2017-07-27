@@ -15,7 +15,6 @@ namespace sail {
 
 template <typename T>
 SerializationInfo serializePrimitive(const char* s, T x, Poco::Dynamic::Var* dst) {
-  std::cout << "SERIALIZE " << s << std::endl;
   *dst = Poco::Dynamic::Var(x);
   return SerializationInfo();
 }
@@ -60,10 +59,26 @@ Poco::Dynamic::Var makeDynamicMap(
       return Poco::Dynamic::Var();
     }
   }
-  auto v = Poco::Dynamic::Var(obj);
-  std::cout << "Value of the map : " << v.toString() << std::endl;
-  return v;
+  return Poco::Dynamic::Var(obj);
 }
+
+SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
+    std::vector<DynamicField::Ptr> fields) {
+
+  try {
+    auto obj = src.extract<Poco::JSON::Object::Ptr>();
+    for (auto f: fields) {
+      auto i = f->readFrom(obj);
+      if (!i) {
+        return i;
+      }
+    }
+    return SerializationInfo();
+  } catch (Poco::Exception &e) {
+    return SerializationInfo(SerializationStatus::Failure);
+  }
+}
+
 
 Poco::Dynamic::Var readJson(const std::string &filename) {
   std::ifstream file(filename);
@@ -81,9 +96,6 @@ Poco::Dynamic::Var readJson(const std::string &filename) {
 void outputDynamicToJson(
     Poco::Dynamic::Var x, std::ostream* file,
     const JsonSettings& s) {
-
-  std::cout << "GOT THIS: " << x.toString() << std::endl;
-
   Poco::JSON::Stringifier::stringify(
       x, *file, s.indent, s.step, s.preserveInsertionOrder);
 }

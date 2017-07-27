@@ -23,15 +23,17 @@ DYNAMIC_IMPLEMENTATION(
     field("age", age));
 
 TEST(DynamicTest, TestStructSerialization) {
-  MyData x;
-  x.name = "Signe";
-  x.age = 13;
+  {
+    MyData x;
+    x.name = "Signe";
+    x.age = 13;
 
-  auto d = x.toDynamic();
+    auto d = x.toDynamic();
 
-  std::cout << "STRING VALUE: " << d.toString() << std::endl;
-
-  std::ofstream file("/tmp/mydata.json");
-  outputDynamicToJson(d, &file);
+    std::ofstream file("/tmp/mydata.json");
+    outputDynamicToJson(d, &file);
+  }{
+    MyData input;
+  }
 }
 
