@@ -58,19 +58,9 @@ target_link_libraries(nautical_grammars_UserHint
                       common_Array
                      )        
                      
-add_library(nautical_grammars_UserHintJson
-            UserHintJson.h
-            UserHintJson.cpp
-           )         
-target_link_libraries(nautical_grammars_UserHintJson 
-                      nautical_grammars_UserHint
-                      common_JsonObjDeserializer
-                      common_TimeStampJson
-                     )
 cxx_test(nautical_grammars_UserHintTest 
                       UserHintTest.cpp
                       nautical_grammars_UserHint
-                      nautical_grammars_UserHintJson
                       gtest_main
                      )     
 

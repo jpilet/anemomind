@@ -11,6 +11,7 @@
 #include <Poco/JSON/Object.h>
 #include <memory>
 #include <server/common/traits.h>
+#include <server/common/DynamicInterface.h>
 
 /*
  * GUIDE for providing serialization for any type T:
@@ -385,10 +386,6 @@ SerializationInfo fromDynamicMap(const Poco::Dynamic::Var& src,
 
 //#define TO_DYNAMIC_CONVERTER(type, converter) \
 //  struct ToDn
-
-#define DYNAMIC_INTERFACE \
-    Poco::Dynamic::Var toDynamic() const; \
-    SerializationInfo fromDynamic(const Poco::Dynamic::Var& src);
 
 #define DYNAMIC_IMPLEMENTATION(ClassName, ...) \
     Poco::Dynamic::Var ClassName::toDynamic() const { \
