@@ -86,6 +86,7 @@ TEST(DynamicTest, TestStructSerialization) {
     EXPECT_EQ(x.values.size(), 2);
     EXPECT_EQ(x.values[0], 9);
     EXPECT_EQ(x.values[1], 12);
+    EXPECT_EQ(x.mappedValues["abra"], 119);
   }
 }
 
