@@ -178,5 +178,18 @@ bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Dir
   return false;
 }
 
+bool Nmea2000Source::apply(const PgnClasses::CanPacket &c,
+                           const PgnClasses::Rudder& packet) {
+  if (packet.valid() && packet.instance().defined()) {
+    if (packet.position().defined()) {
+      std::string source = getSrc(c) + " i" + std::to_string(packet.instance().get());
+      _dispatcher->publishValue(
+          RUDDER_ANGLE, source, packet.position().get());
+    }
+    return true;
+  }
+  return false;
+}
+
 }  // namespace sail
 
