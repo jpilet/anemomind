@@ -4,8 +4,9 @@ var anemonode = require('../build/Release/anemonode');
 var SerialPort = require("serialport").SerialPort
 var fs = require('fs');
 var config = require('./config');
-
+var dr = require('./DataRate.js');
 var nmea0183Port;
+var limiter = null;
 var source = '';
 
 function sourceName() { return source; }
@@ -19,11 +20,13 @@ function init(nmea0183PortPath, dataCb) {
   config.get(function(err, config) {
     var port;
 
+    var baudrate = config.nmea0183Speed;
     var openPort = function() {
       port = new SerialPort(nmea0183PortPath, {
-        baudrate: config.nmea0183Speed
+        baudrate: baudrate
       }, false); // this is the openImmediately flag [default is true]
     };
+    limiter = new dr.NaiveRateLimiter(0.1*baudrate, 2.0);
 
     openPort();
     source = "NMEA0183: " + nmea0183PortPath;
@@ -52,7 +55,7 @@ function init(nmea0183PortPath, dataCb) {
 }
 
 function emitNmea0183Sentence (sentence) {
-  if (nmea0183Port) {
+  if (nmea0183Port && limiter && limiter.accept(sentence.length)) {
     nmea0183Port.write(sentence);
   }
 }

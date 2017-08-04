@@ -1,6 +1,7 @@
 var dispatcher = require('./build/Release/anemonode').dispatcher;
 var version = require('./version');
 var logRoot = '/media/sdcard/logs/';
+var NmeaUtils = require('./components/NmeaUtils.js');
 console.log('Anemobox firmware version ' + version.string);
 
 var nmea0183PortPath = '/dev/ttyMFD1';
@@ -11,7 +12,7 @@ var withGps = true;
 var withTimeEstimator = true;
 var withSetTime = true;
 var withBT = false;
-var echoGpsOnNmea = false;
+var echoGpsOnNmea = true;
 var withEstimator = true;
 var logInternalGpsNmea = false;
 var logExternalNmea = true;
@@ -98,13 +99,21 @@ dispatcher.setSourcePriority("NMEA2000/0", -10);
 
 // Internal GPS with output to NMEA0183
 var gps = (withGps ?  require('./components/gps') : {readGps:function(){}});
+
+function publishNmea(dst, data) {
+  dst.emitNmea0183Sentence(data);
+  return dst;
+}
+
+var publishSampledNmea = NmeaUtils.sample(publishNmea);
+
 function gpsData(data) {
   if (echoGpsOnNmea) {
-    nmea0183port.emitNmea0183Sentence(data);
+    publishSampledNmea(nmea0183port, data);
   }
   if (withLogger && logInternalGpsNmea) {
     logger.logText("Internal GPS NMEA", data.toString('ascii'));
-  }
+  }  
 }
 
 if (withIMU) {
