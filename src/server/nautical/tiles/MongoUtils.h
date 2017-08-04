@@ -10,11 +10,10 @@
 namespace sail {
 
 bool safeMongoOps(std::string what,
-                  mongoc_client_t* db,
-                  std::function<void(mongoc_client_t*)> f);
+                  const std::shared_ptr<mongoc_collection_t>& db,
+                  std::function<void(std::shared_ptr<mongoc_collection_t>)> f);
 
 bson_t* append(bson_t* builder, const char* key, const TimeStamp& value);
-
 
 struct MongoDBConnection {
   std::shared_ptr<mongoc_client_t> client;
@@ -46,7 +45,7 @@ class BulkInserter : private boost::noncopyable {
 
   bool finish();
 
-  std::shared_ptr<mongoc_client_t> db() const { return _db; }
+  const MongoDBConnection& db() const { return _db; }
  private:
   std::string _tableName;
   MongoDBConnection _db;

@@ -30,13 +30,19 @@ bson_t* append(bson_t* builder, const char* key,
 }
 
 bool safeMongoOps(std::string what,
-                  const std::shared_ptr<mongoc_client_t>& db,
-                  std::function<void(std::shared_ptr<mongoc_client_t>)> f) {
+                  const std::shared_ptr<mongoc_collection_t>& db,
+                  std::function<void(std::shared_ptr<mongoc_collection_t>)> f) {
+
+  // No exceptions to catch, because we don't throw any, and we are using the C API.
   f(db);
 
-  LOG(WARNING) << "Not sure if there was an error, did not check it.";
-
-  return true;
+  auto error = mongoc_collection_get_last_error(db.get());
+  if (error) {
+    LOG(WARNING) << "safeMongoOps failed, TODO display error";
+    return false;
+  } else {
+    return true;
+  }
 }
 
 MongoDBConnection::MongoDBConnection(const std::string& host,
@@ -59,13 +65,14 @@ MongoDBConnection::MongoDBConnection(const std::string& host,
       mongoc_client_new_from_uri(uri.get()),
       &mongoc_client_destroy);
   if (!client) {
-    LOG(ERROR) << "Failed to connect to " << host;
+    LOG(ERROR) << "Failed to connect to "
+        << host << ". Are the authentication things correct?";
     return;
   }
   mongoc_client_set_error_api(client.get(), 2);
   db = std::shared_ptr<mongoc_database_t>(
       mongoc_client_get_database(client.get(), dbname.c_str()),
-      &mongoc_database_t);
+      &mongoc_database_destroy);
 }
 
 bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
