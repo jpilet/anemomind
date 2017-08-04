@@ -2,45 +2,55 @@
 #define NAUTICAL_TILES_MONGO_UTILS_H
 
 #include <server/common/TimeStamp.h>
+#include <mongoc-client.h>
+#include <bson.h>
 #include <string>
-
-#include <mongo/client/dbclient.h>
-#include <mongo/bson/bson-inl.h>
+#include <boost/noncopyable.hpp>
 
 namespace sail {
 
 bool safeMongoOps(std::string what,
-                  mongo::DBClientConnection *db,
-                  std::function<void(mongo::DBClientConnection*)> f);
+                  mongoc_client_t* db,
+                  std::function<void(mongoc_client_t*)> f);
 
-mongo::BSONObjBuilder& append(mongo::BSONObjBuilder& builder, const char* key,
-                              const TimeStamp& value);
+bson_t* append(bson_t* builder, const char* key, const TimeStamp& value);
 
 
-bool mongoConnect(const std::string& host,
-                  const std::string& dbname,
-                  const std::string& user,
-                  const std::string& passwd,
-                  mongo::DBClientConnection* db);
+struct MongoDBConnection {
+  std::shared_ptr<mongoc_client_t> client;
+  std::shared_ptr<mongoc_database_t> db;
+
+  bool defined() const {
+    return bool(client) && bool(db);
+  }
+
+  MongoDBConnection(
+        const std::string& host,
+        const std::string& dbname,
+        const std::string& user,
+        const std::string& passwd);
+};
+
 
 class BulkInserter : private boost::noncopyable {
  public:
-  BulkInserter(const std::string& table, int batchSize,
-               mongo::DBClientConnection* db)
-    : _table(table), _db(db), _batchSize(batchSize), _success(true) { }
+  BulkInserter(
+      const std::string& tableName, int batchSize,
+      const MongoDBConnection& db)
+    : _tableName(tableName), _db(db),
+      _batchSize(batchSize), _success(true) { }
 
   ~BulkInserter() { finish(); }
 
-  bool insert(const mongo::BSONObj& obj);
+  bool insert(const std::shared_ptr<bson_t>& obj);
 
   bool finish();
 
-  mongo::DBClientConnection* db() const { return _db; }
-
+  std::shared_ptr<mongoc_client_t> db() const { return _db; }
  private:
-  std::string _table;
-  mongo::DBClientConnection* _db;
-  std::vector<mongo::BSONObj> _toInsert;
+  std::string _tableName;
+  MongoDBConnection _db;
+  std::vector<std::shared_ptr<bson_t>> _toInsert;
   int _batchSize;
   bool _success;
 };

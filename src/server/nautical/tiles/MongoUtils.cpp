@@ -1,62 +1,74 @@
 
+#include <mongoc.h>
 #include <server/nautical/tiles/MongoUtils.h>
-
 #include <server/common/logging.h>
 
-using namespace mongo;
+
+void initializeMongo() {
+  static bool initialized = false;
+  if (!initialized) {
+    mongoc_init();
+    initialized = true;
+  }
+}
+
 
 namespace sail {
 
-BSONObjBuilder& append(BSONObjBuilder& builder, const char* key,
+bson_t* append(bson_t* builder, const char* key,
                        const TimeStamp& value) {
-  return builder.appendDate(key,
-      value.defined()? Date_t(value.toMilliSecondsSince1970()) : Date_t());
+  // What to do for undefined times? In the old version, we added a default-constructed Date_t
+  // It corresponds to 0 milliseconds
+  // https://mongodb.github.io/mongo-cxx-driver/api/legacy-1.1.0/time__support_8h_source.html
+
+  int64_t undefinedValue = 0;
+  BSON_APPEND_DATE_TIME(builder, key,
+      value.defined()?
+          value.toMilliSecondsSince1970()
+          : undefinedValue);
+  return builder;
 }
 
 bool safeMongoOps(std::string what,
-                  DBClientConnection *db,
-                  std::function<void(DBClientConnection*)> f) {
-  try {
-    f(db);
-    std::string err = db->getLastError();
-    if (err != "") {
-      LOG(ERROR) << "error while " << what << ": " << err;
-      return false;
-    }
-  } catch (const DBException &e) {
-    LOG(ERROR) << "error while " << what << ": " << e.what();
-    return false;
-  }
+                  const std::shared_ptr<mongoc_client_t>& db,
+                  std::function<void(std::shared_ptr<mongoc_client_t>)> f) {
+  f(db);
+
+  LOG(WARNING) << "Not sure if there was an error, did not check it.";
+
   return true;
 }
 
-bool mongoConnect(const std::string& host,
+MongoDBConnection::MongoDBConnection(const std::string& host,
                   const std::string& dbname,
                   const std::string& user,
-                  const std::string& passwd,
-                  DBClientConnection* db) {
-  // Can cause segfault
+                  const std::string& passwd) {
   // if driver is compiled as C++03, see:
   // https://groups.google.com/forum/#!topic/mongodb-user/-dkp8q9ZEGM
-  mongo::client::initialize();
+  initializeMongo();
 
-  std::string err;
-  if (!db->connect(host, err)) {
-    LOG(ERROR) << "mongoDB connection failed: " << err;
-    return false;
+  auto uri = std::shared_ptr<mongoc_uri_t>(
+      mongoc_uri_new(host.c_str()),
+      &mongoc_uri_destroy);
+  mongoc_uri_set_username(uri.get(), user.c_str());
+  mongoc_uri_set_password(uri.get(), passwd.c_str());
+
+  //mongoc_uri_set_database(uri.get(), dbname.c_str());
+
+  client = std::shared_ptr<mongoc_client_t>(
+      mongoc_client_new_from_uri(uri.get()),
+      &mongoc_client_destroy);
+  if (!client) {
+    LOG(ERROR) << "Failed to connect to " << host;
+    return;
   }
-
-  if (user.size() > 0) {
-    if (!db->auth(dbname, user, passwd, err)) {
-      LOG(ERROR) << "mongoDB authentication failed: " << err;
-      return false;
-    }
-  }
-
-  return true;
+  mongoc_client_set_error_api(client.get(), 2);
+  db = std::shared_ptr<mongoc_database_t>(
+      mongoc_client_get_database(client.get(), dbname.c_str()),
+      &mongoc_database_t);
 }
 
-bool BulkInserter::insert(const BSONObj& obj) {
+bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
   _toInsert.push_back(obj);
   if (_toInsert.size() > 1000) {
     return finish();
@@ -68,9 +80,14 @@ bool BulkInserter::finish() {
   if (_toInsert.size() == 0) {
     return _success;
   }
+  auto collection = std::shared_ptr<mongoc_collection_t>(
+      mongoc_database_get_collection(
+          _db.db.get(), _tableName.c_str()),
+          &mongoc_collection_destroy);
+
   bool r = safeMongoOps("inserting tiles in mongoDB",
-      _db, [=](DBClientConnection *db) {
-    db->insert(_table, _toInsert);
+      _db, [=](const std::shared_ptr<mongoc_client_t>& db) {
+    db->insert(_tableName, _toInsert);
   });
   _toInsert.clear();
   _success = _success && r;
