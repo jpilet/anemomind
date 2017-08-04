@@ -7,6 +7,8 @@
 #include <string>
 #include <boost/noncopyable.hpp>
 
+#define MONGO_PTR(type, x) std::shared_ptr<type##_t>(x, &type##_destroy)
+
 namespace sail {
 
 bool safeMongoOps(std::string what,

@@ -53,26 +53,23 @@ MongoDBConnection::MongoDBConnection(const std::string& host,
   // https://groups.google.com/forum/#!topic/mongodb-user/-dkp8q9ZEGM
   initializeMongo();
 
-  auto uri = std::shared_ptr<mongoc_uri_t>(
-      mongoc_uri_new(host.c_str()),
-      &mongoc_uri_destroy);
+  auto uri = MONGO_PTR(mongoc_uri,
+      mongoc_uri_new(host.c_str()));
   mongoc_uri_set_username(uri.get(), user.c_str());
   mongoc_uri_set_password(uri.get(), passwd.c_str());
 
   //mongoc_uri_set_database(uri.get(), dbname.c_str());
 
-  client = std::shared_ptr<mongoc_client_t>(
-      mongoc_client_new_from_uri(uri.get()),
-      &mongoc_client_destroy);
+  client = MONGO_PTR(mongoc_client,
+      mongoc_client_new_from_uri(uri.get()));
   if (!client) {
     LOG(ERROR) << "Failed to connect to "
         << host << ". Are the authentication things correct?";
     return;
   }
   mongoc_client_set_error_api(client.get(), 2);
-  db = std::shared_ptr<mongoc_database_t>(
-      mongoc_client_get_database(client.get(), dbname.c_str()),
-      &mongoc_database_destroy);
+  db = MONGO_PTR(mongoc_database,
+      mongoc_client_get_database(client.get(), dbname.c_str()));
 }
 
 bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
@@ -87,10 +84,9 @@ bool BulkInserter::finish() {
   if (_toInsert.size() == 0) {
     return _success;
   }
-  auto collection = std::shared_ptr<mongoc_collection_t>(
+  auto collection = MONGO_PTR(mongoc_collection,
       mongoc_database_get_collection(
-          _db.db.get(), _tableName.c_str()),
-          &mongoc_collection_destroy);
+          _db.db.get(), _tableName.c_str()));
 
   bool r = safeMongoOps("inserting tiles in mongoDB",
       _db, [=](const std::shared_ptr<mongoc_client_t>& db) {
