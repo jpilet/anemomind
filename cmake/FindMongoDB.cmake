@@ -1,133 +1,28 @@
-# - Find MongoDB; original from
-# https://raw.githubusercontent.com/ros-planning/warehouse_ros/master/cmake/FindMongoDB.cmake
-#
-# Find the MongoDB includes and client library
-# This module defines
-#  MongoDB_INCLUDE_DIR, where to find mongo/client/dbclient.h
-#  MongoDB_LIBRARIES, the libraries needed to use MongoDB.
-#  MongoDB_FOUND, If false, do not try to use MongoDB.
-#  MongoDB_EXPOSE_MACROS, If true, mongo_ros should use '#define MONGO_EXPOSE_MACROS'
+# The C-driver
 
-set(MongoDB_BUILD_FROM_SOURCES "YES")
+include(ExternalProject)
 
-find_package(Boost COMPONENTS filesystem regex thread system REQUIRED)
+ExternalProject_Add(mongo_ext
+  URL "https://github.com/mongodb/mongo-c-driver/releases/download/1.6.3/mongo-c-driver-1.6.3.tar.gz"
+  BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-build"
+  SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-src"
+  INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-install"
+  CONFIGURE_COMMAND "${CMAKE_BINARY_DIR}/third-party/mongo-c-src/configure" "--prefix=${CMAKE_BINARY_DIR}/third-party/mongo-c-install" "--disable-automatic-init-and-cleanup"
+  UPDATE_COMMAND ""
+  INSTALL_COMMAND make install
+)
 
-find_package(OpenSSL)
+link_directories("${CMAKE_BINARY_DIR}/third-party/mongo-c-install/lib")
 
-if (MongoDB_BUILD_FROM_SOURCES)
+set_property(TARGET mongo_ext PROPERTY INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/third-party/mongo-install/include/libmongoc-1.0")
 
-  find_program(SCONS scons)
+include_directories("${CMAKE_BINARY_DIR}/third-party/mongo-c-install/include/libmongoc-1.0")
 
-  message(STATUS "Building mongodb in ${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src")
-  message(STATUS "MongoDB config:"
-        "${SCONS} --prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
-        " --c++11=on"
-        " --cpppath=${Boost_INCLUDE_DIR}"
-        " --libpath=${Boost_LIBRARY_DIRS}"
-        " install")
-
-  ExternalProject_Add(mongodb_ext
-        GIT_REPOSITORY "https://github.com/jpilet/mongo-cxx-driver.git"
-        GIT_TAG legacy-larger-cache
-        BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
-        SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
-        INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
-
-        UPDATE_COMMAND ""
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND cd "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
-        && test "-f" "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/lib/libmongoclient.a"
-        || ${SCONS} --ssl "--prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
-        --c++11=on --disable-warnings-as-errors=on
-        "--cpppath=${Boost_INCLUDE_DIR}"
-        "--libpath=${Boost_LIBRARY_DIRS}"
-        install
-        INSTALL_COMMAND ""
-        )
-
-  set(MongoDB_INCLUDE_DIR  "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/include")
-
-  set(MongDB_FOUND "YES")
-
-  add_library(mongoclient STATIC IMPORTED)
-  set_property(TARGET mongoclient PROPERTY IMPORTED_LOCATION  "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/lib/libmongoclient.a")
-  add_dependencies(mongoclient mongodb_ext)
-
-  set (MongoDB_LIBRARIES mongoclient ${OPENSSL_LIBRARIES})
-
-else (MongoDB_BUILD_FROM_SOURCES)
-
-  set(MongoDB_EXPOSE_MACROS "NO")
-
-  set(MongoDB_PossibleIncludePaths
-    /usr/include/
-    /usr/local/include/
-    /usr/include/mongo/
-    /usr/local/include/mongo/
-    /opt/mongo/include/
-    $ENV{ProgramFiles}/Mongo/*/include
-    $ENV{SystemDrive}/Mongo/*/include
-    )
-  find_path(MongoDB_INCLUDE_DIR mongo/client/dbclient.h
-    ${MongoDB_PossibleIncludePaths})
-
-  if(MongoDB_INCLUDE_DIR)
-    find_path(MongoDB_dbclientinterface_Path mongo/client/dbclientinterface.h
-      ${MongoDB_PossibleIncludePaths})
-    if (MongoDB_dbclientinterface_Path)
-      set(MongoDB_EXPOSE_MACROS "YES")
-    endif()
-  endif()
-
-  if(WIN32)
-    find_library(MongoDB_LIBRARIES NAMES mongoclient
-      PATHS
-      $ENV{ProgramFiles}/Mongo/*/lib
-      $ENV{SystemDrive}/Mongo/*/lib
-      )
-  else(WIN32)
-    find_library(MongoDB_LIBRARIES NAMES libmongoclient.a mongoclient
-      PATHS
-      /usr/lib
-      /usr/lib64
-      /usr/lib/mongo
-      /usr/lib64/mongo
-      /usr/local/lib
-      /usr/local/lib64
-      /usr/local/lib/mongo
-      /usr/local/lib64/mongo
-      /opt/mongo/lib
-      /opt/mongo/lib64
-      )
-  endif(WIN32)
-endif (MongoDB_BUILD_FROM_SOURCES)
-
-if(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
-  set(MongoDB_FOUND TRUE)
-  message(STATUS "Found MongoDB: ${MongoDB_INCLUDE_DIR}, ${MongoDB_LIBRARIES}")
-  message(STATUS "MongoDB using new interface: ${MongoDB_EXPOSE_MACROS}")
-  include_directories(${MongoDB_INCLUDE_DIR})
-else(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
-  set(MongoDB_FOUND FALSE)
-  if (MongoDB_FIND_REQUIRED)
-    message(FATAL_ERROR "MongoDB not found.")
-  else (MongoDB_FIND_REQUIRED)
-    message(STATUS "MongoDB not found.")
-  endif (MongoDB_FIND_REQUIRED)
-endif(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
-
-if (UNIX)
-  # MongoDB depends on boost system library.
-  find_package(Boost COMPONENTS filesystem regex thread system REQUIRED)
-  set(MongoDB_LIBRARIES ${MongoDB_LIBRARIES}
-                        ${Boost_REGEX_LIBRARY}
-                        ${Boost_SYSTEM_LIBRARY}
-                        ${Boost_THREAD_LIBRARY}
-                        ${Boost_REGEX_LIBRARY}
-                        ${Boost_FILESYSTEM_LIBRARY}
-			${CMAKE_THREAD_LIBS_INIT}
-			ssl crypto)
-endif (UNIX)
-
-mark_as_advanced(MongoDB_INCLUDE_DIR MongoDB_LIBRARIES MongoDB_EXPOSE_MACROS)
-
+function(target_depends_on_mongoc target)
+    add_dependencies(${target} mongo_ext)
+    target_link_libraries(${target} mongoc-1.0 bson-1.0)
+    set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
+                 "${CMAKE_BINARY_DIR}/third-party/mongo-c-install/include/libmongoc-1.0" "${CMAKE_BINARY_DIR}/third-party/mongo-c-install/include/libbson-1.0")
+    set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
+                 "${CMAKE_BINARY_DIR}/third-party/mongoc-install/lib")
+endfunction()
