@@ -17,16 +17,13 @@ cxx_test(tiles_NavTileGeneratorTest
          nautical_tiles_TileUtils
         )
 
-if (MongoDB_LIBRARIES)
-
   add_library(tiles_MongoUtils MongoUtils.h MongoUtils.cpp)
-  include_directories(${MongoDB_INCLUDE_DIR})
   target_link_libraries(tiles_MongoUtils
                         common_logging
                         common_TimeStamp
-                        ${MongoDB_LIBRARIES}
                        )
-
+  target_depends_on_mongoc(tiles_MongoUtils)                                              
+                                              
   add_library(tiles_NavTileUploader
               NavTileUploader.cpp
              )
@@ -52,9 +49,7 @@ if (MongoDB_LIBRARIES)
                         nautical_downsamplegps
                         nautical_grammars_WindOrientedGrammar
                         tiles_NavTileUploader
-                        ${MongoDB_LIBRARIES}
                        )
-
 
   add_library(tiles_ChartTiles ChartTiles.h ChartTiles.cpp)
   target_link_libraries(tiles_ChartTiles
@@ -69,8 +64,3 @@ if (MongoDB_LIBRARIES)
            gmock
            tiles_ChartTiles
           )
-
-
-endif (MongoDB_LIBRARIES)
-
-           
