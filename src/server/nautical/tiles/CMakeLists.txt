@@ -34,6 +34,7 @@ cxx_test(tiles_NavTileGeneratorTest
                         nautical_MaxSpeed
                         tiles_MongoUtils
                        )
+  target_depends_on_mongoc(tiles_NavTileUploader)                                      
 
   add_library(nautical_tiles_TileUtils
               TileUtils.h

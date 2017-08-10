@@ -48,10 +48,10 @@ TEST(StringTest, Int64TestOrdering) {
   EXPECT_LE(int64ToHex(a), int64ToHex(b));
 }
 
-TEST(StringTest, PositiveAsString) {
-  PositiveAsString<int> a(0);
+TEST(StringTest, IntegerAsString) {
+  IntegerAsString<int> a(0);
   EXPECT_EQ(a.str(), std::string("0"));
-  PositiveAsString<int> b(119);
+  IntegerAsString<int> b(119);
   EXPECT_EQ(b.str(), std::string("119"));
 }
 
@@ -62,7 +62,7 @@ TEST(StringTest, BenchmarkIntToString) {
   {
     TimeStamp start = TimeStamp::now();
     for (int i = 0; i < n; i++) {
-      a += PositiveAsString<int>(i).str() - (const char *)nullptr;
+      a += IntegerAsString<int>(i).str() - (const char *)nullptr;
     }
     auto e = TimeStamp::now() - start;
     std::cout << "Elapsed optimized: " << e.seconds() << std::endl;

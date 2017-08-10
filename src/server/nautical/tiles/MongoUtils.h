@@ -22,7 +22,13 @@ namespace sail {
 
 bson_oid_t makeOid(const std::string& s);
 
-bson_t* append(bson_t* builder, const char* key, const TimeStamp& value);
+bson_t* bsonAppend(bson_t* builder, const char* key, const TimeStamp& value);
+inline IntegerAsString<uint32_t> getNextIndex(bson_t* x) {
+  return IntegerAsString<uint32_t>(bson_count_keys(x));
+}
+void insertArrayDocument(
+    bson_t* dst,
+    const std::function<void(bson_t*)>& op);
 
 void withTemporaryBsonDocument(const std::function<void(bson_t*)>& op);
 
@@ -46,7 +52,7 @@ void bsonAppendElements(
   withBsonSubArray(dst, key, [dst, begin, end](bson_t* dst) {
     size_t counter = 0;
     for (auto i = begin; i != end; i++) {
-      PositiveAsString<size_t> s(counter);
+      IntegerAsString<size_t> s(counter);
       bsonAppend(dst, s.str(), *i);
       counter++;
     }

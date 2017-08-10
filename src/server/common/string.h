@@ -44,13 +44,13 @@ std::string readFileToString(const std::string& filename);
 Array<std::string> split(std::string x, char delimiter);
 
 template <typename T>
-struct PositiveAsString {
+struct IntegerAsString {
   static const int StorageSize = 3*sizeof(T); // One byte needs at most three decimal digits.
   char storage[StorageSize];
   int start = 0;
   const char* str() const {return storage + start;}
 
-  PositiveAsString(T x) {
+  IntegerAsString(T x) {
     start = StorageSize-1;
     storage[start] = '\0';
     T y = x;

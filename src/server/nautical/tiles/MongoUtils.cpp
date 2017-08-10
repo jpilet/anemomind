@@ -22,7 +22,7 @@ bson_oid_t makeOid(const std::string& s) {
 }
 
 
-bson_t* append(bson_t* builder, const char* key,
+bson_t* bsonAppend(bson_t* builder, const char* key,
                        const TimeStamp& value) {
   // What to do for undefined times? In the old version, we added a default-constructed Date_t
   // It corresponds to 0 milliseconds
@@ -43,6 +43,12 @@ void withTemporaryBsonDocument(const std::function<void(bson_t*)>& op) {
   bson_destroy(&obj);
 }
 
+void insertArrayDocument(
+    bson_t* dst,
+    const std::function<void(bson_t*)>& op) {
+  withBsonSubDocument(dst, getNextIndex(dst).str(), op);
+}
+
 void withBsonSubDocument(
     bson_t* parent, const char* key,
     const std::function<void(bson_t*)>& op) {
@@ -58,7 +64,7 @@ void withBsonSubArray(
   bson_t sub;
   BSON_APPEND_ARRAY_BEGIN(parent, key, &sub);
   op(&sub);
-  bson_append_document_end(parent, &sub);
+  bson_append_array_end(parent, &sub);
 }
 
 void bsonAppend(bson_t* dst, const char* key, int32_t value) {

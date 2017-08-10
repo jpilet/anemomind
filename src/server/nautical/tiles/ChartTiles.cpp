@@ -366,8 +366,8 @@ bool uploadChartSourceIndex(const NavDataset& data,
             withBsonSubDocument(
                 chanObj, mmt.first.c_str(),
                 [&](bson_t* sourceObj) {
-              append(sourceObj, "first", mmt.second.first);
-              append(sourceObj, "last", mmt.second.last);
+              bsonAppend(sourceObj, "first", mmt.second.first);
+              bsonAppend(sourceObj, "last", mmt.second.last);
               bsonAppend(sourceObj, "priority",
                   data.dispatcher()->sourcePriority(mmt.first));
             });
