@@ -424,7 +424,6 @@ bool generateAndUploadTiles(std::string boatId,
                             const std::shared_ptr<mongoc_database_t>& db,
                             const TileGeneratorParameters& params) {
   if (params.fullClean) {
-    LOG(INFO) << "Full clean of the database";
     removeBoatWithId(db.get(), params.tileTable().localName(), boatId);
     removeBoatWithId(db.get(), params.sessionTable().localName(), boatId);
   }
@@ -433,9 +432,7 @@ bool generateAndUploadTiles(std::string boatId,
   DOM::Node d2 = params.log; // Workaround
   auto page = DOM::linkToSubPage(&d2, "generateAndUploadTiles");
   auto ul = DOM::makeSubNode(&page, "ul");
-  LOG(INFO) << "There are " << allNavs.size() << " curves to upload";
   for (const NavDataset& curve : allNavs) {
-    LOG(INFO) << "Visiting curve to upload";
     auto li = DOM::makeSubNode(&ul, "li");
 
     Array<Nav> navs = makeArray(curve);
@@ -460,7 +457,6 @@ bool generateAndUploadTiles(std::string boatId,
       }
 
       auto tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
-      LOG(INFO) << "Made a bson tile";
 
       if (!inserter.insert(tile)) {
         LOG(ERROR) << "Failed to insert tile";

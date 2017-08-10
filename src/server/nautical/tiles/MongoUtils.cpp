@@ -170,7 +170,6 @@ bool BulkInserter::finish() {
       mongoc_collection,
       mongoc_database_get_collection(
           _db.get(), _tableName.c_str()));
-  LOG(INFO) << "Bulk inserter finish with " << _toInsert.size();
   bool ordered = true;
   if (_success) {
     _success = withBulkOperation(
