@@ -65,3 +65,4 @@ cxx_test(tiles_NavTileGeneratorTest
            gmock
            tiles_ChartTiles
           )
+  target_depends_on_mongoc(tiles_ChartTilesTest)
