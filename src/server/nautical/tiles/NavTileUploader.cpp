@@ -11,7 +11,6 @@
 #include <server/nautical/tiles/MongoUtils.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 
-using namespace mongo;
 
 /*
 #if MONGOCLIENT_VERSION_MAJOR < 1
@@ -27,30 +26,33 @@ using std::vector;
 using std::map;
 
 namespace {
-BSONObj navToBSON(const Nav& nav) {
-  BSONObjBuilder result;
+void navToBSON(const Nav& nav, bson_t* result) {
 
   // GPS is mandatory.
-  append(result, "time", nav.time());
-  result.append("pos",
-                BSON_ARRAY(posToTileX(0, nav.geographicPosition())
-                           << posToTileY(0, nav.geographicPosition())));
-  result.append("gpsBearing", nav.gpsBearing().degrees());
-  result.append("gpsSpeed", nav.gpsSpeed().knots());
+  bsonAppend(result, "time", nav.time());
+
+  double posXY[2] = {
+      posToTileX(0, nav.geographicPosition()),
+      posToTileY(0, nav.geographicPosition())
+  };
+  bsonAppendElements(result, "pos", posXY, posXY + 2);
+
+  bsonAppend(result, "gpsBearing", nav.gpsBearing().degrees());
+  bsonAppend(result, "gpsSpeed", nav.gpsSpeed().knots());
 
   if (nav.hasApparentWind()) {
-    result.append("awa", nav.awa().degrees());
-    result.append("aws", nav.aws().knots());
+    bsonAppend(result, "awa", nav.awa().degrees());
+    bsonAppend(result, "aws", nav.aws().knots());
   }
   if (nav.hasMagHdg()) {
-    result.append("magHdg", nav.magHdg().degrees());
+    bsonAppend(result, "magHdg", nav.magHdg().degrees());
   }
   if (nav.hasWatSpeed()) {
-    result.append("watSpeed", nav.watSpeed().knots());
+    bsonAppend(result, "watSpeed", nav.watSpeed().knots());
   }
   if (nav.hasExternalTrueWind()) {
-    result.append("externalTwa", nav.externalTwa().degrees());
-    result.append("externalTws", nav.externalTws().knots());
+    bsonAppend(result, "externalTwa", nav.externalTwa().degrees());
+    bsonAppend(result, "externalTws", nav.externalTws().knots());
   }
 
   Optional<HorizontalMotion<double>> trueWind;
@@ -62,90 +64,132 @@ BSONObj navToBSON(const Nav& nav) {
 
   if (trueWind.defined()) {
     // The following lines assume there is not water current.
-    result.append("twdir", calcTwdir(trueWind.get()).degrees());
-    result.append("tws", calcTws(trueWind.get()).knots());
+    bsonAppend(result, "twdir", calcTwdir(trueWind.get()).degrees());
+    bsonAppend(result, "tws", calcTws(trueWind.get()).knots());
     Angle<> twa = calcTwa(trueWind.get(), nav.gpsBearing());
-    result.append("twa", twa.degrees());
-    result.append("vmg", calcVmg(twa, nav.gpsSpeed()).knots());
+    bsonAppend(result, "twa", twa.degrees());
+    bsonAppend(result, "vmg", calcVmg(twa, nav.gpsSpeed()).knots());
   }
 
   // Old anemobox simulated data.
   if (nav.hasDeviceScreen()) {
-    result.append("devicePerf", nav.deviceScreen().perf);
-    result.append("deviceTwdir", nav.deviceScreen().twdir);
-    result.append("deviceTws", nav.deviceScreen().tws);
+    bsonAppend(result, "devicePerf", nav.deviceScreen().perf);
+    bsonAppend(result, "deviceTwdir", nav.deviceScreen().twdir);
+    bsonAppend(result, "deviceTws", nav.deviceScreen().tws);
   }
 
   // New anemobox logged data.
   if (nav.hasDeviceVmg()) {
-    result.append("deviceVmg", nav.deviceVmg().knots());
+    bsonAppend(result, "deviceVmg", nav.deviceVmg().knots());
   }
   if (nav.hasDeviceTargetVmg()) {
-    result.append("deviceTargetVmg", nav.deviceTargetVmg().knots());
+    bsonAppend(result, "deviceTargetVmg", nav.deviceTargetVmg().knots());
   }
-  return result.obj();
 }
 
-BSONArray navsToBSON(const Array<Nav>& navs) {
-  BSONArrayBuilder result;
+void navsToBSON(const Array<Nav>& navs, bson_t* result) {
   for (auto nav: navs) {
-    result.append(navToBSON(nav));
+   BsonSubDocument dst(result, nextMongoArrayIndex);
+   navToBSON(nav, &dst);
   }
-  return result.arr();
 }
 
-class TileInserter : public BulkInserter {
- public:
-  TileInserter(const TileGeneratorParameters& params, DBClientConnection* db)
-    : BulkInserter(params.tileTable(), 1000, db), _params(params) { }
+struct BsonTileKey {
+  std::string key;
+  bson_oid_t boat;
+  TimeStamp startTime;
+  TimeStamp endTime;
+};
 
-  bool insert(const BSONObj& obj) {
+class TileInserter {
+ public:
+  TileInserter(
+      const TileGeneratorParameters& params,
+      const std::shared_ptr<mongoc_database_t>& db)
+    : _db(db),
+      _inserter(SHARED_MONGO_PTR(
+          mongoc_collection,
+          mongoc_database_get_collection(
+              db.get(),
+              params.tileTable().localName().c_str()))
+          , 1000),
+      _params(params) { }
+
+  bool insert(const std::pair<BsonTileKey, std::shared_ptr<bson_t>>& kv) {
     if (!_params.fullClean) {
-      safeMongoOps("cleaning old tiles",
-          db(), [=](DBClientConnection *db) {
-        db->remove(_params.tileTable(),
-                   MONGO_QUERY("key" << obj["key"]
-                         << "boat" << obj["boat"]
-                         << "startTime" << GTE << obj["startTime"]
-                         << "endTime" << LTE << obj["endTime"]));
-      });
+      auto coll = UNIQUE_MONGO_PTR(
+          mongoc_collection,
+          mongoc_database_get_collection(
+              _db.get(), _params.tileTable().localName().c_str()));
+
+      {
+        WrapBson query;
+        auto key = kv.first;
+
+        bsonAppend(&query, "key", key.key);
+        BSON_APPEND_OID(&query, "boat", &key.boat);
+        {
+          BsonSubDocument gte(&query, "startTime");
+          bsonAppend(&gte, "$gte", key.startTime);
+        }{
+          BsonSubDocument lte(&query, "endTime");
+          bsonAppend(&lte, "$lte", key.endTime);
+        }
+        auto concern = mongoWriteConcernForLevel(
+            MONGOC_WRITE_CONCERN_W_DEFAULT);
+        bson_error_t error;
+        if (!mongoc_collection_remove(
+            coll.get(), MONGOC_REMOVE_NONE,
+            &query, concern.get(), &error)) {
+          LOG(ERROR) << bsonErrorToString(error);
+        }
+      }
     }
-    return BulkInserter::insert(obj);
+    return _inserter.insert(kv.second);
   }
+
+  bool finish() {return _inserter.finish();}
  private:
+  std::shared_ptr<mongoc_database_t> _db;
+  BulkInserter _inserter;
   const TileGeneratorParameters& _params;
 };
 
-bool insertOrUpdateTile(const BSONObj& obj,
-    const TileGeneratorParameters& params,
-                        DBClientConnection* db) {
-  if (!params.fullClean) {
-    safeMongoOps("cleaning old tiles",
-        db, [=](DBClientConnection *db) {
-      db->remove(params.tileTable(),
-                 MONGO_QUERY("key" << obj["key"]
-                       << "boat" << obj["boat"]
-                       << "startTime" << GTE << obj["startTime"]
-                       << "endTime" << LTE << obj["endTime"]));
-    });
-  }
-  return safeMongoOps("inserting a tile in mongoDB",
-      db, [=](DBClientConnection *db) {
-    db->insert(params.tileTable(), obj);
-  });
-}
 
-bool insertSession(const BSONObj &obj,
-  const TileGeneratorParameters& params,
-  DBClientConnection *db) {
-  return safeMongoOps("updating a session", db,
-    [=](DBClientConnection *db) {
-    db->update(params.sessionTable(),// <-- The collection
-        MONGO_QUERY("_id" << obj["_id"]),  // <-- what to update
-        obj,                         // <-- the new data
-        true,                        // <-- upsert
-        false);                      // <-- multi
-  });
+bool insertSession(
+    const std::pair<std::string, std::shared_ptr<bson_t>> &kv,
+    const TileGeneratorParameters& params,
+    const std::shared_ptr<mongoc_database_t>& db) {
+
+    auto coll = UNIQUE_MONGO_PTR(
+        mongoc_collection,
+        mongoc_database_get_collection(
+        db.get(), params.sessionTable().localName().c_str()));
+
+    bool success = true;
+    {
+      WrapBson query;
+
+
+      // NOTE: We use a string as id, not an OID here, e.g:
+      //
+      //  db.sailingsessions.findOne()
+      //  {
+      //    "_id" : "57b18c02613e181e220a78ef2016-08-12T09:44:392016-08-12T09:46:14",
+      //
+      bsonAppend(&query, "_id", kv.first);
+
+      bson_error_t error;
+      auto wc = mongoWriteConcernForLevel(
+          MONGOC_WRITE_CONCERN_W_DEFAULT);
+      success = mongoc_collection_update(
+          coll.get(), MONGOC_UPDATE_UPSERT,
+          &query, kv.second.get(), wc.get(), &error);
+      if (!success) {
+        LOG(ERROR) << bsonErrorToString(error);
+      }
+    }
+    return success;
 }
 
 template <typename T>
@@ -156,9 +200,9 @@ Angle<T> average(const Angle<T>& a, const Angle<T>& b) {
   return motion.angle();
 }
 
-BSONObj locationForSession(const Array<Nav>& navs) {
+void locationForSession(const Array<Nav>& navs, bson_t* dst) {
   if (navs.size() == 0) {
-    return BSONObj();
+    return;
   }
 
   Angle<double> minLat(navs[0].geographicPosition().lat());
@@ -179,13 +223,11 @@ BSONObj locationForSession(const Array<Nav>& navs) {
   GeographicPosition<double> minPos(minLon, minLat);
   GeographicPosition<double> maxPos(maxLon, maxLat);
 
-  BSONObjBuilder location;
-  location.append("x", posToTileX(0, center));
-  location.append("y", posToTileY(0, center));
-  location.append("scale", 2 * std::max(
+  bsonAppend(dst, "x", posToTileX(0, center));
+  bsonAppend(dst, "y", posToTileY(0, center));
+  bsonAppend(dst, "scale", 2 * std::max(
           fabs(posToTileX(0, maxPos) - posToTileX(0, minPos)),
           fabs(posToTileY(0, maxPos) - posToTileY(0, minPos))));
-  return location.obj();
 }
 
 // Returns average wind speed and average wind direction.
@@ -273,16 +315,22 @@ std::pair<Velocity<double>, int> indexOfStrongestWind(const Array<Nav>& navs) {
   return std::pair<Velocity<double>, int>(Velocity<double>::knots(0), -1);
 }
 
-BSONObj makeBsonSession(
+std::pair<std::string, std::shared_ptr<bson_t>> makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
     NavDataset navs,
     const Array<Nav>& navArray,
     DOM::Node *li) {
-  BSONObjBuilder session;
-  session.append("_id", curveId);
-  session.append("boat", OID(boatId));
-  session.append("trajectoryLength",
+
+  auto id = curveId;
+  auto session = SHARED_MONGO_PTR(bson, bson_new());
+
+  bsonAppend(session.get(), "_id", id);
+  auto boid = makeOid(boatId);
+  BSON_APPEND_OID(session.get(), "boat", &boid);
+  BSON_APPEND_DOUBLE(
+      session.get(),
+      "trajectoryLength",
       computeTrajectoryLength(navs).nauticalMiles());
 
   Optional<TimedValue<Velocity<double>>> maxSpeed =
@@ -292,8 +340,11 @@ BSONObj makeBsonSession(
     DOM::addSubTextNode(li, "p",
         stringFormat("BSON session max speed: %.3g knots",
             maxSpeed.get().value.knots()));
-    session.append("maxSpeedOverGround", maxSpeed.get().value.knots());
-    append(session, "maxSpeedOverGroundTime", maxSpeed.get().time);
+    BSON_APPEND_DOUBLE(
+        session.get(),
+        "maxSpeedOverGround",
+        maxSpeed.get().value.knots());
+    bsonAppend(session.get(), "maxSpeedOverGroundTime", maxSpeed.get().time);
   } else {
     LOG(WARNING) << "The max speed is not defined for curve '"
         << curveId << "' and boat '" << boatId << "'";
@@ -303,71 +354,110 @@ BSONObj makeBsonSession(
   if (startTime.undefined()) {
     LOG(FATAL) << "Start time is undefined";
   }
-  append(session, "startTime", startTime);
+  bsonAppend(session.get(), "startTime", startTime);
 
   auto endTime = navArray.last().time();
   if (endTime.undefined()) {
     LOG(FATAL) << "End time is undefined";
   }
-  append(session, "endTime", endTime);
-  session.append("location", locationForSession(navArray));
+  bsonAppend(session.get(), "endTime", endTime);
+  {
+    BsonSubDocument loc(session.get(), "location");
+    locationForSession(navArray, &loc);
+  }
+
 
   auto wind = averageWind(navArray);
   if (wind.defined()) {
-    session.append("avgWindSpeed", calcTws(wind()).knots());
-    session.append("avgWindDir", calcTwdir(wind()).degrees());
+    bsonAppend(session.get(), "avgWindSpeed", calcTws(wind()).knots());
+    bsonAppend(session.get(), "avgWindDir", calcTwdir(wind()).degrees());
   } else {
     LOG(WARNING) << "No average wind";
   }
 
   std::pair<Velocity<double>, int> strongestWind = indexOfStrongestWind(navArray);
   if (strongestWind.second >= 0) {
-    session.append("strongestWindSpeed", strongestWind.first.knots());
-    append(session, "strongestWindTime", navArray[strongestWind.second].time());
+    bsonAppend(session.get(), "strongestWindSpeed", strongestWind.first.knots());
+    bsonAppend(session.get(), "strongestWindTime", navArray[strongestWind.second].time());
   } else {
     LOG(WARNING) << "No strongest wind";
   }
 
-  return session.obj();
+  return {id, session};
 }
 
-BSONObj makeBsonTile(const TileKey& tileKey,
-                     const Array<Array<Nav>>& subCurvesInTile,
-                     const std::string& boatId,
-                     const std::string& curveId) {
-  BSONObjBuilder tile;
-  tile.genOID();
-  tile.append("key", tileKey.stringKey());
-  tile.append("boat", OID(boatId));
-  append(tile, "startTime", subCurvesInTile.first().first().time());
-  append(tile, "endTime", subCurvesInTile.last().last().time());
-  append(tile, "created", TimeStamp::now());
+std::pair<BsonTileKey, std::shared_ptr<bson_t>>
+  makeBsonTile(
+      const TileKey& tileKey,
+      const Array<Array<Nav>>& subCurvesInTile,
+      const std::string& boatId,
+      const std::string& curveId) {
+  auto tile = SHARED_MONGO_PTR(bson, bson_new());
 
-  std::vector<BSONObj> curves;
-  for (auto subCurve: subCurvesInTile) {
-    BSONObjBuilder subCurveBuilder;
+  BsonTileKey btk{
+    tileKey.stringKey(),
+    makeOid(boatId),
+    subCurvesInTile.first().first().time(),
+    subCurvesInTile.last().last().time()
+  };
 
-    subCurveBuilder
-      .append("curveId", curveId)
-      .append("points", navsToBSON(subCurve));
+  bson_oid_t _id;
+  bson_oid_init(&_id, nullptr);
+  BSON_APPEND_OID(tile.get(), "_id", &_id); //tile.genOID();
+  bsonAppend(tile.get(), "key", btk.key);
 
-    curves.push_back(subCurveBuilder.obj());
+  BSON_APPEND_OID(tile.get(), "boat", &btk.boat);
+  bsonAppend(tile.get(), "startTime", btk.startTime);
+  bsonAppend(tile.get(), "endTime", btk.endTime);
+  bsonAppend(tile.get(), "created", TimeStamp::now());
+
+  {
+    BsonSubArray curves(tile.get(), "curves");
+    for (auto subCurve: subCurvesInTile) {
+      BsonSubDocument curve(&curves, nextMongoArrayIndex);
+      bsonAppend(&curve, "curveId", curveId);
+      {
+        BsonSubArray pts(&curve, "points");
+        navsToBSON(subCurve, &pts);
+      }
+    }
   }
-  tile.append("curves", curves);
-  return tile.obj();
+  return {btk, tile};
 }
 
 }  // namespace
 
+
+void removeBoatWithId(
+    mongoc_database_t* db, const std::string& tableName,
+    const std::string& boatId) {
+  auto coll = UNIQUE_MONGO_PTR(
+      mongoc_collection,
+      mongoc_database_get_collection(
+          db, tableName.c_str()));
+  auto oid = makeOid(boatId);
+  {
+    WrapBson query;
+    bson_error_t error;
+    auto concern = mongoWriteConcernForLevel(
+        MONGOC_WRITE_CONCERN_W_DEFAULT);
+    BSON_APPEND_OID(&query, "boat", &oid);
+    if (!mongoc_collection_remove(
+        coll.get(),
+        MONGOC_REMOVE_NONE,
+        &query, concern.get(), &error)) {
+      LOG(ERROR) << "Removing boat failed: " << bsonErrorToString(error);
+    }
+  }
+}
+
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
-                            DBClientConnection* db,
+                            const std::shared_ptr<mongoc_database_t>& db,
                             const TileGeneratorParameters& params) {
   if (params.fullClean) {
-    db->remove(params.tileTable(),
-               MONGO_QUERY("boat" << OID(boatId)));
-    db->remove(params.sessionTable(),
-               MONGO_QUERY("boat" << OID(boatId)));
+    removeBoatWithId(db.get(), params.tileTable().localName(), boatId);
+    removeBoatWithId(db.get(), params.sessionTable().localName(), boatId);
   }
 
   TileInserter inserter(params, db);
@@ -398,15 +488,17 @@ bool generateAndUploadTiles(std::string boatId,
         continue;
       }
 
-      BSONObj tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
+      auto tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
 
       if (!inserter.insert(tile)) {
+        LOG(ERROR) << "Failed to insert tile";
         // There is no point to continue if we can't write to the DB.
         return false;
       }
     }
-    BSONObj session = makeBsonSession(curveId, boatId, curve, navs, &li);
+    auto session = makeBsonSession(curveId, boatId, curve, navs, &li);
     if (!insertSession(session, params, db)) {
+      LOG(ERROR) << "Failed to insert session";
       return false;
     }
   }
