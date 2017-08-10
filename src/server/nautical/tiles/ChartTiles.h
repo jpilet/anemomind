@@ -28,12 +28,12 @@ struct ChartTileSettings {
 bool uploadChartTiles(const NavDataset& data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
-                      mongo::DBClientConnection *db);
+                      mongoc_database_t* db);
 
 bool uploadChartSourceIndex(const NavDataset& data,
                             const std::string& boatId,
                             const ChartTileSettings& settings,
-                            mongo::DBClientConnection *db);
+                            mongoc_database_t* db);
 
 
 std::shared_ptr<mongo::BSONArrayBuilder> getBuilder(

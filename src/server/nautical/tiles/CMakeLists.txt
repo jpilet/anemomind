@@ -57,6 +57,7 @@ cxx_test(tiles_NavTileGeneratorTest
                         tiles_MongoUtils
                         common_MeanAndVar
                        )
+  target_depends_on_mongoc(tiles_ChartTiles)                       
 
   cxx_test(tiles_ChartTilesTest
            ChartTilesTest.cpp

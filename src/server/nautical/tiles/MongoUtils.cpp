@@ -29,6 +29,32 @@ bson_t* append(bson_t* builder, const char* key,
   return builder;
 }
 
+void withTemporaryBsonDocument(const std::function<void(bson_t*)>& op) {
+  bson_t obj;
+  bson_init(&obj);
+  op(&obj);
+  bson_destroy(&obj);
+}
+
+void withBsonSubDocument(
+    bson_t* parent, const std::string& key,
+    const std::function<void(bson_t*)>& op) {
+  bson_t sub;
+  BSON_APPEND_DOCUMENT_BEGIN(parent, key.c_str(), &sub);
+  op(&sub);
+  bson_append_document_end(parent, &sub);
+}
+
+void withBsonSubArray(
+    bson_t* parent, const std::string& key,
+    const std::function<void(bson_t*)>& op) {
+  bson_t sub;
+  BSON_APPEND_ARRAY_BEGIN(parent, key.c_str(), &sub);
+  op(&sub);
+  bson_append_document_end(parent, &sub);
+}
+
+
 
 MongoDBConnection::MongoDBConnection(const std::string& host,
                   const std::string& dbname,
@@ -86,6 +112,7 @@ bool withBulkOperation(
   }
   f(op.get());
   auto reply = UNIQUE_MONGO_PTR(bson, bson_new());
+  // TODO: What about error?
   mongoc_bulk_operation_execute(op.get(), reply.get(), nullptr);
   return true;
 }
@@ -94,14 +121,15 @@ bool BulkInserter::finish() {
   if (_toInsert.size() == 0) {
     return _success;
   }
-  auto collection = SHARED_MONGO_PTR(mongoc_collection,
+  auto collection = UNIQUE_MONGO_PTR(
+      mongoc_collection,
       mongoc_database_get_collection(
-          _db.db.get(), _tableName.c_str()));
+          _db.get(), _tableName.c_str()));
   bool ordered = true;
   if (_success) {
     _success = withBulkOperation(
         collection.get(), ordered,
-        nullptr,
+        nullptr, // TODO: <-- What about write concern?
         [this](
             mongoc_bulk_operation_t* op) {
       for (auto x: _toInsert) {

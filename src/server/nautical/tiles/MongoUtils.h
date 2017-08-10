@@ -2,13 +2,16 @@
 #define NAUTICAL_TILES_MONGO_UTILS_H
 
 #include <server/common/TimeStamp.h>
-#include <mongoc-client.h>
-#include <bson.h>
 #include <string>
+#include <bson.h>
 #include <boost/noncopyable.hpp>
+#include <mongoc.h>
 
 template <typename T>
-using UniqueMongoPtr = std::unique_ptr<T, void(*)(T*)>;
+using MongoDestructor = void(*)(T*);
+
+template <typename T>
+using UniqueMongoPtr = std::unique_ptr<T, MongoDestructor<T>>;
 
 
 #define UNIQUE_MONGO_PTR(type, x) UniqueMongoPtr<type##_t>(x, &type##_destroy)
@@ -17,6 +20,21 @@ using UniqueMongoPtr = std::unique_ptr<T, void(*)(T*)>;
 namespace sail {
 
 bson_t* append(bson_t* builder, const char* key, const TimeStamp& value);
+
+void withTemporaryBsonDocument(const std::function<void(bson_t*)>& op);
+
+void withBsonSubDocument(
+    bson_t* parent, const std::string& key,
+    const std::function<void(bson_t*)>& op);
+
+void withBsonSubArray(
+    bson_t* parent, const std::string& key,
+    const std::function<void(bson_t*)>& op
+    /*Should only contain keys "0", "1", ... */);
+
+/*void withBsonSubArray(
+    bson_t* parent, const std::string& key,
+    const std::function<void(bson_t*)>& op);*/
 
 struct MongoDBConnection {
   std::shared_ptr<mongoc_client_t> client;
@@ -38,7 +56,7 @@ class BulkInserter : private boost::noncopyable {
  public:
   BulkInserter(
       const std::string& tableName, int batchSize,
-      const MongoDBConnection& db)
+      const std::shared_ptr<mongoc_database_t>& db)
     : _tableName(tableName), _db(db),
       _batchSize(batchSize), _success(true) { }
 
@@ -48,10 +66,10 @@ class BulkInserter : private boost::noncopyable {
 
   bool finish();
 
-  const MongoDBConnection& db() const { return _db; }
+  const std::shared_ptr<mongoc_database_t>& db() const { return _db; }
  private:
   std::string _tableName;
-  MongoDBConnection _db;
+  std::shared_ptr<mongoc_database_t> _db;
   std::vector<std::shared_ptr<bson_t>> _toInsert;
   int _batchSize;
   bool _success;
