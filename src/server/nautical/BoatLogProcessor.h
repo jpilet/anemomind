@@ -61,7 +61,7 @@ struct BoatLogProcessor {
   bool _logGrammar = false;
   bool _saveDefaultCalib = false;
 
-  mongo::DBClientConnection db;
+  MongoDBConnection db;
 
   DOM::Node _htmlReport;
 
