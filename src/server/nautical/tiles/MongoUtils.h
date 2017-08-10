@@ -81,6 +81,15 @@ struct MongoDBConnection {
         const std::string& passwd);
 };
 
+class MongoTableName {
+public:
+  MongoTableName() {}
+  MongoTableName(const std::string& db, const std::string& table);
+  std::string fullName() const;
+  const std::string& localName() const {return _table;}
+private:
+  std::string _db, _table;
+};
 
 class BulkInserter : private boost::noncopyable {
  public:

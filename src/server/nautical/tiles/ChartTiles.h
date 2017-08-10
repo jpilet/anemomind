@@ -18,11 +18,17 @@ struct ChartTileSettings {
   int lowestZoomLevel = 9; // 2^9 = 512 seconds
   int highestZoomLevel = 28; // 2^28 seconds = about 10 years
   std::string dbName = "anemomind-dev";
+
+  MongoTableName table() const {
+    return MongoTableName(dbName, chartTileTable);
+  }
+
+  MongoTableName sourceTable() const {
+    return MongoTableName(dbName, chartTileSourceTable);
+  }
+private:
   std::string chartTileTable = "charttiles";
   std::string chartTileSourceTable = "chartsources";
-
-  std::string table() const { return dbName + "." + chartTileTable; }
-  std::string sourceTable() const { return dbName + "." + chartTileSourceTable; }
 };
 
 bool uploadChartTiles(const NavDataset& data,

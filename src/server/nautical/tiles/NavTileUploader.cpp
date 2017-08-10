@@ -108,7 +108,7 @@ class TileInserter {
       const TileGeneratorParameters& params,
       const std::shared_ptr<mongoc_database_t>& db)
     : _db(db),
-      _inserter(params.tileTable(), 1000, db),
+      _inserter(params.tileTable().localName(), 1000, db),
       _params(params) { }
 
   bool insert(const std::pair<BsonTileKey, std::shared_ptr<bson_t>>& kv) {
@@ -116,7 +116,7 @@ class TileInserter {
       auto coll = UNIQUE_MONGO_PTR(
           mongoc_collection,
           mongoc_database_get_collection(
-              _db.get(), _params.tileTable().c_str()));
+              _db.get(), _params.tileTable().localName().c_str()));
 
       withTemporaryBsonDocument([&](bson_t* query) {
         auto key = kv.first;
@@ -154,7 +154,7 @@ bool insertSession(
     auto coll = UNIQUE_MONGO_PTR(
         mongoc_collection,
         mongoc_database_get_collection(
-        db.get(), params.sessionTable().c_str()));
+        db.get(), params.sessionTable().localName().c_str()));
 
     bool success = true;
     withTemporaryBsonDocument([&](bson_t* query) {
@@ -424,15 +424,18 @@ bool generateAndUploadTiles(std::string boatId,
                             const std::shared_ptr<mongoc_database_t>& db,
                             const TileGeneratorParameters& params) {
   if (params.fullClean) {
-    removeBoatWithId(db.get(), params.tileTable(), boatId);
-    removeBoatWithId(db.get(), params.sessionTable(), boatId);
+    LOG(INFO) << "Full clean of the database";
+    removeBoatWithId(db.get(), params.tileTable().localName(), boatId);
+    removeBoatWithId(db.get(), params.sessionTable().localName(), boatId);
   }
 
   TileInserter inserter(params, db);
   DOM::Node d2 = params.log; // Workaround
   auto page = DOM::linkToSubPage(&d2, "generateAndUploadTiles");
   auto ul = DOM::makeSubNode(&page, "ul");
+  LOG(INFO) << "There are " << allNavs.size() << " curves to upload";
   for (const NavDataset& curve : allNavs) {
+    LOG(INFO) << "Visiting curve to upload";
     auto li = DOM::makeSubNode(&ul, "li");
 
     Array<Nav> navs = makeArray(curve);
@@ -457,14 +460,17 @@ bool generateAndUploadTiles(std::string boatId,
       }
 
       auto tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
+      LOG(INFO) << "Made a bson tile";
 
       if (!inserter.insert(tile)) {
+        LOG(ERROR) << "Failed to insert tile";
         // There is no point to continue if we can't write to the DB.
         return false;
       }
     }
     auto session = makeBsonSession(curveId, boatId, curve, navs, &li);
     if (!insertSession(session, params, db)) {
+      LOG(ERROR) << "Failed to insert session";
       return false;
     }
   }

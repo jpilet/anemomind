@@ -121,6 +121,13 @@ MongoDBConnection::MongoDBConnection(
       mongoc_client_get_database(client.get(), dbname.c_str()));
 }
 
+MongoTableName::MongoTableName(const std::string& db, const std::string& table)
+  : _db(db), _table(table) {}
+std::string MongoTableName::fullName() const {
+  CHECK(!_db.empty());
+  return _db + "." + _table;
+}
+
 bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
   _toInsert.push_back(obj);
   if (_toInsert.size() > 1000) {
@@ -163,6 +170,7 @@ bool BulkInserter::finish() {
       mongoc_collection,
       mongoc_database_get_collection(
           _db.get(), _tableName.c_str()));
+  LOG(INFO) << "Bulk inserter finish with " << _toInsert.size();
   bool ordered = true;
   if (_success) {
     _success = withBulkOperation(

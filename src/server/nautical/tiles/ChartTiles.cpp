@@ -297,7 +297,7 @@ bool uploadChartTiles(const NavDataset& data,
       mongoc_collection,
       mongoc_database_get_collection(
           db.get(),
-          settings.table().c_str()));
+          settings.table().localName().c_str()));
 
   //MONGO_QUERY("_id.boat" << OID(boatId)),
 
@@ -317,7 +317,7 @@ bool uploadChartTiles(const NavDataset& data,
     }
   });
 
-  BulkInserter inserter(settings.table(), 1000, db);
+  BulkInserter inserter(settings.table().localName(), 1000, db);
 
   for (auto channel : allSources) {
     for (auto source : channel.second) {
@@ -381,7 +381,8 @@ bool uploadChartSourceIndex(const NavDataset& data,
         mongoc_collection,
         mongoc_database_get_collection(
             db.get(),
-            settings.sourceTable().c_str()));
+            settings.sourceTable()
+            .localName().c_str()));
 
    bool success = false;
    withTemporaryBsonDocument([&](bson_t* selector) {
