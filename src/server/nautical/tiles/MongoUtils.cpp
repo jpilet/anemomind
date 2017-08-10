@@ -132,7 +132,7 @@ bool withBulkOperation(
       mongoc_bulk_operation,
       mongoc_collection_create_bulk_operation(
       collection, ordered, write_concern));
-  if (op) {
+  if (!op) {
     LOG(ERROR) << "Failed to create bulk operation";
     return false;
   }
