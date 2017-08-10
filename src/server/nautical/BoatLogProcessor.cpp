@@ -423,7 +423,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     Array<NavDataset> sessions =
       extractAll("Sailing", current, _grammar.grammar, fulltree);
     outputInfoPerSession(sessions, &_htmlReport);
-    if (!generateAndUploadTiles(_boatid, sessions, &db, _tileParams)) {
+    if (!generateAndUploadTiles(_boatid, sessions, db.db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
       return false;
     }
@@ -431,8 +431,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   HTML_DISPLAY(_generateChartTiles, &_htmlReport);
   if (_generateChartTiles) {
-    if (!uploadChartTiles(current, _boatid, _chartTileSettings, &db)
-        || !uploadChartSourceIndex(current, _boatid, _chartTileSettings, &db)) {
+    if (!uploadChartTiles(
+        current, _boatid, _chartTileSettings, db.db)
+        || !uploadChartSourceIndex(
+            current, _boatid, _chartTileSettings, db.db)) {
       LOG(ERROR) << "Failed to upload chart tiles!";
       return false;
     }
@@ -495,11 +497,12 @@ bool BoatLogProcessor::prepare(ArgMap* amap) {
   }
 
   if (_generateTiles || _generateChartTiles) {
-    if (!mongoConnect(_tileParams.dbHost,
-                      _tileParams.dbName,
-                      _tileParams.user,
-                      _tileParams.passwd,
-                      &db)) {
+    db = MongoDBConnection(
+        _tileParams.dbHost,
+        _tileParams.dbName,
+        _tileParams.user,
+        _tileParams.passwd);
+    if (!db.defined()) {
       return false;
     }
   }

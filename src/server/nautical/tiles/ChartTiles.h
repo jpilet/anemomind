@@ -28,12 +28,12 @@ struct ChartTileSettings {
 bool uploadChartTiles(const NavDataset& data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
-                      mongoc_database_t* db);
+                      const std::shared_ptr<mongoc_database_t>& db);
 
 bool uploadChartSourceIndex(const NavDataset& data,
                             const std::string& boatId,
                             const ChartTileSettings& settings,
-                            mongoc_database_t* db);
+                            const std::shared_ptr<mongoc_database_t>& db);
 
 struct StatArrays {
   std::vector<double> min, max, mean;

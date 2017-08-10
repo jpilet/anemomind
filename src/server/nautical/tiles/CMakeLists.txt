@@ -16,6 +16,7 @@ cxx_test(tiles_NavTileGeneratorTest
          gtest_main
          nautical_tiles_TileUtils
         )
+target_depends_on_mongoc(tiles_NavTileGeneratorTest)        
 
   add_library(tiles_MongoUtils MongoUtils.h MongoUtils.cpp)
   target_link_libraries(tiles_MongoUtils
@@ -40,6 +41,8 @@ cxx_test(tiles_NavTileGeneratorTest
               TileUtils.h
               TileUtils.cpp
              )
+  target_depends_on_mongoc(nautical_tiles_TileUtils)                                              
+             
   target_link_libraries(nautical_tiles_TileUtils
                         anemobox_SimulateBox
                         common_ArgMap

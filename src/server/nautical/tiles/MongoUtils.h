@@ -66,6 +66,7 @@ void bsonAppendCollection(bson_t* dst, const char* key, const Coll& src) {
 
 
 struct MongoDBConnection {
+  MongoDBConnection() {}
   std::shared_ptr<mongoc_client_t> client;
   std::shared_ptr<mongoc_database_t> db;
 
