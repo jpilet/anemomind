@@ -91,20 +91,16 @@ MongoDBConnection::MongoDBConnection(const std::string& host,
   LOG(INFO) << "INITIALIZE MONGO!";
   initializeMongo();
   LOG(INFO) << "DONE";
-  auto full = "mongodb://" + host;
-  auto uri = UNIQUE_MONGO_PTR(
-      mongoc_uri,
-      mongoc_uri_new(full.c_str()));
+
 
   // URI format:
   // http://mongoc.org/libmongoc/current/mongoc_uri_t.html
-
-  LOG(INFO) << "Created a URI object for " << host;
-  /*LOG(INFO) << "USER is " << user.c_str();
-  LOG(INFO) << "PASS is " << passwd.c_str());
+  auto full = "mongodb://" + host;
+  auto uri = UNIQUE_MONGO_PTR(
+  mongoc_uri,
+  mongoc_uri_new(full.c_str()));
   mongoc_uri_set_username(uri.get(), user.c_str());
-  mongoc_uri_set_password(uri.get(), passwd.c_str());*/
-  LOG(INFO) << "Prepared URI";
+  mongoc_uri_set_password(uri.get(), passwd.c_str());
   //mongoc_uri_set_database(uri.get(), dbname.c_str());
 
   client = SHARED_MONGO_PTR(mongoc_client,
