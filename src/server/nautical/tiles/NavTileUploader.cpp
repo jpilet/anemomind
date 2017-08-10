@@ -11,7 +11,6 @@
 #include <server/nautical/tiles/MongoUtils.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 
-using namespace mongo;
 
 /*
 #if MONGOCLIENT_VERSION_MAJOR < 1
@@ -27,30 +26,33 @@ using std::vector;
 using std::map;
 
 namespace {
-BSONObj navToBSON(const Nav& nav) {
-  BSONObjBuilder result;
+void navToBSON(const Nav& nav, bson_t* result) {
 
   // GPS is mandatory.
   append(result, "time", nav.time());
-  result.append("pos",
-                BSON_ARRAY(posToTileX(0, nav.geographicPosition())
-                           << posToTileY(0, nav.geographicPosition())));
-  result.append("gpsBearing", nav.gpsBearing().degrees());
-  result.append("gpsSpeed", nav.gpsSpeed().knots());
+
+  double posXY[2] = {
+      posToTileX(0, nav.geographicPosition()),
+      posToTileY(0, nav.geographicPosition())
+  };
+  bsonAppendElements(result, "pos", posXY, posXY + 2);
+
+  bsonAppend(result, "gpsBearing", nav.gpsBearing().degrees());
+  bsonAppend(result, "gpsSpeed", nav.gpsSpeed().knots());
 
   if (nav.hasApparentWind()) {
-    result.append("awa", nav.awa().degrees());
-    result.append("aws", nav.aws().knots());
+    bsonAppend(result, "awa", nav.awa().degrees());
+    bsonAppend(result, "aws", nav.aws().knots());
   }
   if (nav.hasMagHdg()) {
-    result.append("magHdg", nav.magHdg().degrees());
+    bsonAppend(result, "magHdg", nav.magHdg().degrees());
   }
   if (nav.hasWatSpeed()) {
-    result.append("watSpeed", nav.watSpeed().knots());
+    bsonAppend(result, "watSpeed", nav.watSpeed().knots());
   }
   if (nav.hasExternalTrueWind()) {
-    result.append("externalTwa", nav.externalTwa().degrees());
-    result.append("externalTws", nav.externalTws().knots());
+    bsonAppend(result, "externalTwa", nav.externalTwa().degrees());
+    bsonAppend(result, "externalTws", nav.externalTws().knots());
   }
 
   Optional<HorizontalMotion<double>> trueWind;
@@ -62,28 +64,27 @@ BSONObj navToBSON(const Nav& nav) {
 
   if (trueWind.defined()) {
     // The following lines assume there is not water current.
-    result.append("twdir", calcTwdir(trueWind.get()).degrees());
-    result.append("tws", calcTws(trueWind.get()).knots());
+    bsonAppend(result, "twdir", calcTwdir(trueWind.get()).degrees());
+    bsonAppend(result, "tws", calcTws(trueWind.get()).knots());
     Angle<> twa = calcTwa(trueWind.get(), nav.gpsBearing());
-    result.append("twa", twa.degrees());
-    result.append("vmg", calcVmg(twa, nav.gpsSpeed()).knots());
+    bsonAppend(result, "twa", twa.degrees());
+    bsonAppend(result, "vmg", calcVmg(twa, nav.gpsSpeed()).knots());
   }
 
   // Old anemobox simulated data.
   if (nav.hasDeviceScreen()) {
-    result.append("devicePerf", nav.deviceScreen().perf);
-    result.append("deviceTwdir", nav.deviceScreen().twdir);
-    result.append("deviceTws", nav.deviceScreen().tws);
+    bsonAppend(result, "devicePerf", nav.deviceScreen().perf);
+    bsonAppend(result, "deviceTwdir", nav.deviceScreen().twdir);
+    bsonAppend(result, "deviceTws", nav.deviceScreen().tws);
   }
 
   // New anemobox logged data.
   if (nav.hasDeviceVmg()) {
-    result.append("deviceVmg", nav.deviceVmg().knots());
+    bsonAppend(result, "deviceVmg", nav.deviceVmg().knots());
   }
   if (nav.hasDeviceTargetVmg()) {
-    result.append("deviceTargetVmg", nav.deviceTargetVmg().knots());
+    bsonAppend(result, "deviceTargetVmg", nav.deviceTargetVmg().knots());
   }
-  return result.obj();
 }
 
 BSONArray navsToBSON(const Array<Nav>& navs) {
@@ -359,15 +360,31 @@ BSONObj makeBsonTile(const TileKey& tileKey,
 
 }  // namespace
 
+
+void removeBoatWithId(
+    mongoc_database_t* db, const std::string& tableName,
+    const std::string& boatId) {
+  auto coll = UNIQUE_MONGO_PTR(
+      mongoc_collection,
+      mongoc_database_get_collection(
+          db, tableName.c_str()));
+  auto oid = makeOid(boatId);
+  withTemporaryBsonDocument([&](bson_t* query) {
+    BSON_APPEND_OID(query, "boat", &oid);
+    mongoc_collection_remove(
+        coll.get(),
+        MONGOC_REMOVE_NONE,
+        query, nullptr, nullptr);
+  });
+}
+
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
-                            DBClientConnection* db,
+                            mongoc_database_t* db,
                             const TileGeneratorParameters& params) {
   if (params.fullClean) {
-    db->remove(params.tileTable(),
-               MONGO_QUERY("boat" << OID(boatId)));
-    db->remove(params.sessionTable(),
-               MONGO_QUERY("boat" << OID(boatId)));
+    removeBoatWithId(db, params.tileTable(), boatId);
+    removeBoatWithId(db, params.sessionTable(), boatId);
   }
 
   TileInserter inserter(params, db);
@@ -398,14 +415,14 @@ bool generateAndUploadTiles(std::string boatId,
         continue;
       }
 
-      BSONObj tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
+      auto tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
 
       if (!inserter.insert(tile)) {
         // There is no point to continue if we can't write to the DB.
         return false;
       }
     }
-    BSONObj session = makeBsonSession(curveId, boatId, curve, navs, &li);
+    auto session = makeBsonSession(curveId, boatId, curve, navs, &li);
     if (!insertSession(session, params, db)) {
       return false;
     }

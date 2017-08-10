@@ -20,6 +20,8 @@ using UniqueMongoPtr = std::unique_ptr<T, MongoDestructor<T>>;
 
 namespace sail {
 
+bson_oid_t makeOid(const std::string& s);
+
 bson_t* append(bson_t* builder, const char* key, const TimeStamp& value);
 
 void withTemporaryBsonDocument(const std::function<void(bson_t*)>& op);

@@ -15,6 +15,13 @@ void initializeMongo() {
 
 namespace sail {
 
+bson_oid_t makeOid(const std::string& s) {
+  bson_oid_t oid;
+  bson_oid_init_from_string(&oid, s.c_str());
+  return oid;
+}
+
+
 bson_t* append(bson_t* builder, const char* key,
                        const TimeStamp& value) {
   // What to do for undefined times? In the old version, we added a default-constructed Date_t

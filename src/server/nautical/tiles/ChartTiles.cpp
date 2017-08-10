@@ -121,13 +121,6 @@ void downSampleData(int64_t tileno, int zoom,
   }
 }
 
-bson_oid_t makeOid(const std::string& s) {
-  bson_oid_t oid;
-  bson_oid_init_from_string(&oid, s.c_str());
-  return oid;
-}
-
-
 template<class T>
 bool chartTileToBson(const ChartTile<T> tile,
                      const std::string& boatId,

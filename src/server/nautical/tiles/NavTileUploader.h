@@ -45,7 +45,7 @@ struct TileGeneratorParameters {
 
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
-                            mongo::DBClientConnection* db,
+                            mongoc_database_t* db,
                             const TileGeneratorParameters& params);
 
 }  // namespace sail
