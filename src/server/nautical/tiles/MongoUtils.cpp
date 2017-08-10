@@ -88,17 +88,28 @@ MongoDBConnection::MongoDBConnection(const std::string& host,
                   const std::string& passwd) {
   // if driver is compiled as C++03, see:
   // https://groups.google.com/forum/#!topic/mongodb-user/-dkp8q9ZEGM
+  LOG(INFO) << "INITIALIZE MONGO!";
   initializeMongo();
+  LOG(INFO) << "DONE";
+  auto full = "mongodb://" + host;
+  auto uri = UNIQUE_MONGO_PTR(
+      mongoc_uri,
+      mongoc_uri_new(full.c_str()));
 
-  auto uri = UNIQUE_MONGO_PTR(mongoc_uri,
-      mongoc_uri_new(host.c_str()));
+  // URI format:
+  // http://mongoc.org/libmongoc/current/mongoc_uri_t.html
+
+  LOG(INFO) << "Created a URI object for " << host;
+  /*LOG(INFO) << "USER is " << user.c_str();
+  LOG(INFO) << "PASS is " << passwd.c_str());
   mongoc_uri_set_username(uri.get(), user.c_str());
-  mongoc_uri_set_password(uri.get(), passwd.c_str());
-
+  mongoc_uri_set_password(uri.get(), passwd.c_str());*/
+  LOG(INFO) << "Prepared URI";
   //mongoc_uri_set_database(uri.get(), dbname.c_str());
 
   client = SHARED_MONGO_PTR(mongoc_client,
       mongoc_client_new_from_uri(uri.get()));
+  LOG(INFO) << "Created client";
   if (!client) {
     LOG(ERROR) << "Failed to connect to "
         << host << ". Are the authentication things correct?";
@@ -107,6 +118,7 @@ MongoDBConnection::MongoDBConnection(const std::string& host,
   mongoc_client_set_error_api(client.get(), 2);
   db = SHARED_MONGO_PTR(mongoc_database,
       mongoc_client_get_database(client.get(), dbname.c_str()));
+  LOG(INFO) << "Created db";
 }
 
 bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
