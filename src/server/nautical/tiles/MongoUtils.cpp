@@ -45,7 +45,7 @@ MongoDBConnection::MongoDBConnection(const std::string& host,
 
   //mongoc_uri_set_database(uri.get(), dbname.c_str());
 
-  client = MONGO_PTR(mongoc_client,
+  client = SHARED_MONGO_PTR(mongoc_client,
       mongoc_client_new_from_uri(uri.get()));
   if (!client) {
     LOG(ERROR) << "Failed to connect to "
@@ -53,7 +53,7 @@ MongoDBConnection::MongoDBConnection(const std::string& host,
     return;
   }
   mongoc_client_set_error_api(client.get(), 2);
-  db = MONGO_PTR(mongoc_database,
+  db = SHARED_MONGO_PTR(mongoc_database,
       mongoc_client_get_database(client.get(), dbname.c_str()));
 }
 
@@ -94,7 +94,7 @@ bool BulkInserter::finish() {
   if (_toInsert.size() == 0) {
     return _success;
   }
-  auto collection = MONGO_PTR(mongoc_collection,
+  auto collection = SHARED_MONGO_PTR(mongoc_collection,
       mongoc_database_get_collection(
           _db.db.get(), _tableName.c_str()));
   bool ordered = true;
