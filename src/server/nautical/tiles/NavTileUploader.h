@@ -21,12 +21,12 @@ struct TileGeneratorParameters {
   std::string passwd;
   Duration<> curveCutThreshold;
 
-  std::string tileTable() const {
-    return dbName + "." + _tileTable;
+  MongoTableName tileTable() const {
+    return MongoTableName(dbName, _tileTable);
   }
 
-  std::string sessionTable() const {
-    return dbName + "." + _sessionTable;
+  MongoTableName sessionTable() const {
+    return MongoTableName(dbName, _sessionTable);
   }
 
   TileGeneratorParameters() {
@@ -45,7 +45,7 @@ struct TileGeneratorParameters {
 
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
-                            mongo::DBClientConnection* db,
+                            const std::shared_ptr<mongoc_database_t>& db,
                             const TileGeneratorParameters& params);
 
 }  // namespace sail

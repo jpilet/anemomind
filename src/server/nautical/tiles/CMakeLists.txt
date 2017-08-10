@@ -16,17 +16,15 @@ cxx_test(tiles_NavTileGeneratorTest
          gtest_main
          nautical_tiles_TileUtils
         )
-
-if (MongoDB_LIBRARIES)
+target_depends_on_mongoc(tiles_NavTileGeneratorTest)        
 
   add_library(tiles_MongoUtils MongoUtils.h MongoUtils.cpp)
-  include_directories(${MongoDB_INCLUDE_DIR})
   target_link_libraries(tiles_MongoUtils
                         common_logging
                         common_TimeStamp
-                        ${MongoDB_LIBRARIES}
                        )
-
+  target_depends_on_mongoc(tiles_MongoUtils)                                              
+                                              
   add_library(tiles_NavTileUploader
               NavTileUploader.cpp
              )
@@ -37,11 +35,14 @@ if (MongoDB_LIBRARIES)
                         nautical_MaxSpeed
                         tiles_MongoUtils
                        )
+  target_depends_on_mongoc(tiles_NavTileUploader)                                      
 
   add_library(nautical_tiles_TileUtils
               TileUtils.h
               TileUtils.cpp
              )
+  target_depends_on_mongoc(nautical_tiles_TileUtils)                                              
+             
   target_link_libraries(nautical_tiles_TileUtils
                         anemobox_SimulateBox
                         common_ArgMap
@@ -52,9 +53,7 @@ if (MongoDB_LIBRARIES)
                         nautical_downsamplegps
                         nautical_grammars_WindOrientedGrammar
                         tiles_NavTileUploader
-                        ${MongoDB_LIBRARIES}
                        )
-
 
   add_library(tiles_ChartTiles ChartTiles.h ChartTiles.cpp)
   target_link_libraries(tiles_ChartTiles
@@ -62,6 +61,7 @@ if (MongoDB_LIBRARIES)
                         tiles_MongoUtils
                         common_MeanAndVar
                        )
+  target_depends_on_mongoc(tiles_ChartTiles)                       
 
   cxx_test(tiles_ChartTilesTest
            ChartTilesTest.cpp
@@ -69,8 +69,12 @@ if (MongoDB_LIBRARIES)
            gmock
            tiles_ChartTiles
           )
+  target_depends_on_mongoc(tiles_ChartTilesTest)
 
-
-endif (MongoDB_LIBRARIES)
-
-           
+  cxx_test(tiles_MongoUtilsTest
+    MongoUtilsTest.cpp
+    gtest_main
+    tiles_MongoUtils
+  )
+  
+  target_depends_on_mongoc(tiles_MongoUtilsTest)

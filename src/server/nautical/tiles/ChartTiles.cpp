@@ -10,7 +10,6 @@
 using std::map;
 using std::shared_ptr;
 using std::string;
-using namespace mongo;
 
 namespace sail {
 
@@ -126,13 +125,12 @@ template<class T>
 bool chartTileToBson(const ChartTile<T> tile,
                      const std::string& boatId,
                      const DispatchData* data,
-                     BSONObj *obj) {
+                     std::shared_ptr<bson_t>* dst) {
   if (tile.samples.size() == 0) {
     return false;
   }
 
-  BSONObjBuilder result;
-
+  auto result = SHARED_MONGO_PTR(bson, bson_new());
   // The key is function of:
   // boatId, zoom, tileno, code, source.
   // The order matters, because mongodb indexes first on boatId, then zoom,
@@ -144,30 +142,29 @@ bool chartTileToBson(const ChartTile<T> tile,
   //   "_id.tileno" : 256});
   // and it will return all codes + all sources available for this boat, zoom,
   // and tileno.
-  BSONObjBuilder key;
+  {
+    BsonSubDocument key(result.get(), "_id");
+    auto oid = makeOid(boatId);
+    BSON_APPEND_OID(&key, "boat", &oid);
+    BSON_APPEND_INT32(&key, "zoom", tile.zoom);
+    BSON_APPEND_INT64(&key, "tileno", (long long) tile.tileno);
+    BSON_APPEND_UTF8(&key, "what", data->wordIdentifier().c_str());
+    BSON_APPEND_UTF8(&key, "source", data->source().c_str());
+  }
 
-  key.append("boat", OID(boatId));
-
-  key.append("zoom", tile.zoom);
-  key.append("tileno", (long long) tile.tileno);
-  key.append("what", data->wordIdentifier());
-  key.append("source", data->source());
-  result.append("_id", key.obj());
-
-  BSONArrayBuilder samples;
-  std::map<std::string, std::shared_ptr<BSONArrayBuilder>> arrays;
+  StatArrays arrays;
 
   for (const TimedValue<Statistics<T>>& stats : tile.samples) {
     stats.value.appendToArrays(&arrays);
   }
 
-  for (const auto& arr : arrays) {
-    result.append(arr.first, arr.second->arr());
-  }
+  bsonAppendCollection(result.get(), "mean", arrays.mean);
+  bsonAppendCollection(result.get(), "min", arrays.min);
+  bsonAppendCollection(result.get(), "max", arrays.max);
+  bsonAppendCollection(result.get(), "count", arrays.count);
 
-  //result.append("samples", samples.arr());
+  *dst = result;
 
-  *obj = result.obj();
   return true;
 }
 
@@ -177,7 +174,7 @@ bool uploadChartTile(const ChartTile<T> tile,
                      const std::string& boatId,
                      const ChartTileSettings& settings,
                      BulkInserter *inserter) {
-  BSONObj obj;
+  std::shared_ptr<bson_t> obj;
   if (!chartTileToBson(tile, boatId, data, &obj)) {
     // Uploading an empty tile does not make sense.
     // But it is not an error.
@@ -220,7 +217,8 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
       for (int64_t tileno = firstTile; tileno <= lastTile; ++tileno) {
         ChartTile<T> tile;
         downSampleData(tileno, zoom, data, _settings,
-                       (zoom == _settings.lowestZoomLevel ? nullptr : &prevZoomTiles),
+                       (zoom == _settings.lowestZoomLevel ?
+                           nullptr : &prevZoomTiles),
                        &tile);
         if (!tile.empty()) {
           tiles[tileno] = tile;
@@ -293,19 +291,41 @@ bool uploadChartTiles(DispatchData* data,
 bool uploadChartTiles(const NavDataset& data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
-                      DBClientConnection *db) {
+                      const std::shared_ptr<mongoc_database_t>& db) {
   const map<DataCode, map<string, shared_ptr<DispatchData>>> &allSources =
     data.dispatcher()->allSources();
 
-  safeMongoOps("Cleaning all chart tiles", db,
-      [&](DBClientConnection *db) {
-        db->remove(settings.table(),
-                   MONGO_QUERY("_id.boat" << OID(boatId)), 
-                   false, // no single remove
-                   &WriteConcern::unacknowledged);
-        });
+  auto collection = UNIQUE_MONGO_PTR(
+      mongoc_collection,
+      mongoc_database_get_collection(
+          db.get(),
+          settings.table().localName().c_str()));
 
-  BulkInserter inserter(settings.table(), 1000, db);
+  //MONGO_QUERY("_id.boat" << OID(boatId)),
+
+
+  auto oid = makeOid(boatId);
+  {
+    WrapBson selector;
+    {
+      BsonSubDocument id(&selector, "_id");
+      BSON_APPEND_OID(&id, "boat", &oid);
+    }
+    auto concern = mongoWriteConcernForLevel(MONGOC_WRITE_CONCERN_W_DEFAULT);
+    bson_error_t error;
+    if (!mongoc_collection_remove(
+        collection.get(),
+        MONGOC_REMOVE_NONE,
+        &selector,
+        concern.get(),
+        &error)) {
+      LOG(ERROR) << "Failed to execute remove old chart "
+          "tiles for boat, but we will continue: "
+          << bsonErrorToString(error);
+    }
+  }
+
+  BulkInserter inserter(settings.table().localName(), 1000, db);
 
   for (auto channel : allSources) {
     for (auto source : channel.second) {
@@ -317,66 +337,77 @@ bool uploadChartTiles(const NavDataset& data,
   return true;
 }
 
+std::vector<std::pair<std::string, GetMinMaxTime>>
+  getMinMaxTimes(
+      const std::map<std::string, std::shared_ptr<DispatchData>>& sources) {
+  std::vector<std::pair<std::string, GetMinMaxTime>> dst;
+  dst.reserve(sources.size());
+  for (const auto& source: sources) {
+    GetMinMaxTime minMaxTime;
+    source.second->visit(&minMaxTime);
+    if (minMaxTime.valid) {
+      dst.push_back({source.first, minMaxTime});
+    }
+  }
+  return dst;
+}
+
 bool uploadChartSourceIndex(const NavDataset& data,
                             const std::string& boatId,
                             const ChartTileSettings& settings,
-                            DBClientConnection *db) {
-  BSONObjBuilder channels;
+                            const std::shared_ptr<mongoc_database_t>& db) {
   const map<DataCode, map<string, shared_ptr<DispatchData>>> &allSources =
     data.dispatcher()->allSources();
 
-  for (auto channel : allSources) {
-    BSONObjBuilder chanObj;
-    int numSources = 0;
-    for (auto source : channel.second) {
+  auto oid = makeOid(boatId);
+  auto index = SHARED_MONGO_PTR(bson, bson_new());
+  BSON_APPEND_OID(index.get(), "_id", &oid);
+  {
+    BsonSubDocument channels(index.get(), "channels");
+    for (auto channel : allSources) {
+      auto minMaxTimes = getMinMaxTimes(channel.second);
+      if (0 < minMaxTimes.size()) {
+        BsonSubDocument chanObj(
+            &channels,
+            wordIdentifierForCode(channel.first));
 
-      GetMinMaxTime minMaxTime;
-      source.second->visit(&minMaxTime);
-      if (!minMaxTime.valid) {
-        continue;
+        for (const auto& mmt : minMaxTimes) {
+          BsonSubDocument sourceObj(&chanObj, mmt.first.c_str());
+          bsonAppend(&sourceObj, "first", mmt.second.first);
+          bsonAppend(&sourceObj, "last", mmt.second.last);
+          bsonAppend(&sourceObj, "priority",
+              data.dispatcher()->sourcePriority(mmt.first));
+        }
       }
-      BSONObjBuilder sourceObj;
-      append(sourceObj, "first", minMaxTime.first);
-      append(sourceObj, "last", minMaxTime.last);
-      sourceObj.append("priority", data.dispatcher()->sourcePriority(source.first));
-
-      ++numSources;
-      chanObj.append(source.first, sourceObj.obj());
-    }
-    if (numSources > 0) {
-      channels.append(wordIdentifierForCode(channel.first),
-                      chanObj.obj());
     }
   }
 
-  BSONObjBuilder index;
-  index.append("_id", OID(boatId));
-  index.append("channels", channels.obj());
-  auto obj = index.obj();
+  auto collection = UNIQUE_MONGO_PTR(
+        mongoc_collection,
+        mongoc_database_get_collection(
+            db.get(),
+            settings.sourceTable()
+            .localName().c_str()));
 
-  return safeMongoOps(
-      "Inserting dispatcher index entry", db,
-      [=](DBClientConnection *db) {
-        db->update(settings.sourceTable(),
-                   MONGO_QUERY("_id" << obj["_id"]),  // <-- what to update
-                   obj,                         // <-- the new data
-                   true,                        // <-- upsert
-                   false);                      // <-- multi
-      }
-    );
-}
-
-std::shared_ptr<mongo::BSONArrayBuilder> getBuilder(
-    const std::string& key,
-    std::map<std::string, std::shared_ptr<mongo::BSONArrayBuilder>>* arrays) {
-  auto it = arrays->find(key);
-  if (it == arrays->end()) {
-    std::shared_ptr<mongo::BSONArrayBuilder> newBuilder = 
-      std::make_shared<mongo::BSONArrayBuilder>();
-    (*arrays)[key] = newBuilder;
-    return newBuilder;
-  }
-  return it->second;
+   bool success = false;
+   {
+     WrapBson selector;
+     BSON_APPEND_OID(&selector, "_id", &oid);
+     bson_error_t error;
+     auto concern = mongoWriteConcernForLevel(
+         MONGOC_WRITE_CONCERN_W_DEFAULT);
+     success = mongoc_collection_update(
+        collection.get(),
+        MONGOC_UPDATE_UPSERT,
+        &selector,
+        index.get(),
+        concern.get(),
+        &error);
+     if (!success) {
+       LOG(ERROR) << bsonErrorToString(error);
+     }
+   }
+   return success;
 }
 
 }  // namespace sail
