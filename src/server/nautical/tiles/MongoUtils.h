@@ -6,6 +6,7 @@
 #include <bson.h>
 #include <boost/noncopyable.hpp>
 #include <mongoc.h>
+#include <server/common/string.h>
 
 template <typename T>
 using MongoDestructor = void(*)(T*);
@@ -24,25 +25,35 @@ bson_t* append(bson_t* builder, const char* key, const TimeStamp& value);
 void withTemporaryBsonDocument(const std::function<void(bson_t*)>& op);
 
 void withBsonSubDocument(
-    bson_t* parent, const std::string& key,
+    bson_t* parent, const char* key,
     const std::function<void(bson_t*)>& op);
 
 void withBsonSubArray(
-    bson_t* parent, const std::string& key,
+    bson_t* parent, const char* key,
     const std::function<void(bson_t*)>& op
     /*Should only contain keys "0", "1", ... */);
 
-void bsonAppend(bson_t* dst, const std::string& key, int32_t value);
-void bsonAppend(bson_t* dst, const std::string& key, int64_t value);
-void bsonAppend(bson_t* dst, const std::string& key, double value);
+void bsonAppend(bson_t* dst, const char* key, int32_t value);
+void bsonAppend(bson_t* dst, const char* key, int64_t value);
+void bsonAppend(bson_t* dst, const char* key, double value);
 
 template <typename Iterator>
 void bsonAppendElements(
-    bson_t* dst, const std::string& key,
+    bson_t* dst, const char* key,
     Iterator begin, Iterator end) {
-  for (auto i = begin; i != end; i++) {
+  withBsonSubArray(dst, key, [dst, begin, end](bson_t* dst) {
+    size_t counter = 0;
+    for (auto i = begin; i != end; i++) {
+      PositiveAsString<size_t> s(counter);
+      bsonAppend(dst, s.str(), *i);
+      counter++;
+    }
+  });
+}
 
-  }
+template <typename Coll>
+void bsonAppendCollection(bson_t* dst, const char* key, const Coll& src) {
+  bsonAppendElements(dst, key, src.begin(), src.end());
 }
 
 

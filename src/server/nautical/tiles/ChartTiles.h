@@ -37,7 +37,7 @@ bool uploadChartSourceIndex(const NavDataset& data,
 
 struct StatArrays {
   std::vector<double> min, max, mean;
-  std::vector<int> count;
+  std::vector<int64_t> count;
 };
 
 template <typename T> struct Statistics {
@@ -84,19 +84,13 @@ template <> struct Statistics<Angle<double>> {
     return result;
   }
 
-  void appendToArrays(std::map<std::string,
-                     std::shared_ptr<mongo::BSONArrayBuilder>>* arrays) const {
-    for (std::string key : {"count", "mean" }) {
-      if (arrays->find(key) == arrays->end()) {
-        (*arrays)[key] = std::make_shared<mongo::BSONArrayBuilder>();
-      }
-    }
+  void appendToArrays(StatArrays* arrays) const {
     if (count > 0 && vectorSum.norm() > 0.01_kn) {
-      (*arrays)["count"]->append(static_cast<long long>(count));
-      (*arrays)["mean"]->append( vectorSum.angle().degrees());
+      arrays->count.push_back(static_cast<long long>(count));
+      arrays->mean.push_back( vectorSum.angle().degrees());
     } else {
-      (*arrays)["count"]->append(0);
-      (*arrays)["mean"]->append(0);
+      arrays->count.push_back(0);
+      arrays->mean.push_back(0);
     }
   }
 

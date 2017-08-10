@@ -37,33 +37,33 @@ void withTemporaryBsonDocument(const std::function<void(bson_t*)>& op) {
 }
 
 void withBsonSubDocument(
-    bson_t* parent, const std::string& key,
+    bson_t* parent, const char* key,
     const std::function<void(bson_t*)>& op) {
   bson_t sub;
-  BSON_APPEND_DOCUMENT_BEGIN(parent, key.c_str(), &sub);
+  BSON_APPEND_DOCUMENT_BEGIN(parent, key, &sub);
   op(&sub);
   bson_append_document_end(parent, &sub);
 }
 
 void withBsonSubArray(
-    bson_t* parent, const std::string& key,
+    bson_t* parent, const char* key,
     const std::function<void(bson_t*)>& op) {
   bson_t sub;
-  BSON_APPEND_ARRAY_BEGIN(parent, key.c_str(), &sub);
+  BSON_APPEND_ARRAY_BEGIN(parent, key, &sub);
   op(&sub);
   bson_append_document_end(parent, &sub);
 }
 
-void bsonAppend(bson_t* dst, const std::string& key, int32_t value) {
-  BSON_APPEND_INT32(dst, key.c_str(), value);
+void bsonAppend(bson_t* dst, const char* key, int32_t value) {
+  BSON_APPEND_INT32(dst, key, value);
 }
 
-void bsonAppend(bson_t* dst, const std::string& key, int64_t value) {
-  BSON_APPEND_INT64(dst, key.c_str(), value);
+void bsonAppend(bson_t* dst, const char* key, int64_t value) {
+  BSON_APPEND_INT64(dst, key, value);
 }
 
-void bsonAppend(bson_t* dst, const std::string& key, double value) {
-  BSON_APPEND_DOUBLE(dst, key.c_str(), value);
+void bsonAppend(bson_t* dst, const char* key, double value) {
+  BSON_APPEND_DOUBLE(dst, key, value);
 }
 
 
@@ -124,9 +124,9 @@ bool withBulkOperation(
     return false;
   }
   f(op.get());
-  auto reply = UNIQUE_MONGO_PTR(bson, bson_new());
-  // TODO: What about error?
-  mongoc_bulk_operation_execute(op.get(), reply.get(), nullptr);
+  bson_t uninitialized_reply;
+  mongoc_bulk_operation_execute(op.get(), &uninitialized_reply, nullptr);
+  bson_destroy(&uninitialized_reply);
   return true;
 }
 
