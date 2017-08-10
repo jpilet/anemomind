@@ -7,6 +7,11 @@
 #include <string>
 #include <boost/noncopyable.hpp>
 
+template <typename T>
+using UniqueCPtr = std::unique_ptr<T, void(*)(T*)>;
+
+
+#define UNIQUE_MONGO_PTR(type, x) UniqueCPtr<type##_t>(x, &type##_destroy)
 #define MONGO_PTR(type, x) std::shared_ptr<type##_t>(x, &type##_destroy)
 
 namespace sail {

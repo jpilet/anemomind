@@ -29,21 +29,6 @@ bson_t* append(bson_t* builder, const char* key,
   return builder;
 }
 
-bool safeMongoOps(std::string what,
-                  const std::shared_ptr<mongoc_collection_t>& db,
-                  std::function<void(std::shared_ptr<mongoc_collection_t>)> f) {
-
-  // No exceptions to catch, because we don't throw any, and we are using the C API.
-  f(db);
-
-  auto error = mongoc_collection_get_last_error(db.get());
-  if (error) {
-    LOG(WARNING) << "safeMongoOps failed, TODO display error";
-    return false;
-  } else {
-    return true;
-  }
-}
 
 MongoDBConnection::MongoDBConnection(const std::string& host,
                   const std::string& dbname,
@@ -53,7 +38,7 @@ MongoDBConnection::MongoDBConnection(const std::string& host,
   // https://groups.google.com/forum/#!topic/mongodb-user/-dkp8q9ZEGM
   initializeMongo();
 
-  auto uri = MONGO_PTR(mongoc_uri,
+  auto uri = UNIQUE_MONGO_PTR(mongoc_uri,
       mongoc_uri_new(host.c_str()));
   mongoc_uri_set_username(uri.get(), user.c_str());
   mongoc_uri_set_password(uri.get(), passwd.c_str());
@@ -80,6 +65,31 @@ bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
   return _success;
 }
 
+bson_t* unwrapBsonPtr(const std::shared_ptr<bson_t>& ptr) {
+  return ptr.get();
+}
+
+
+
+bool withBulkOperation(
+    mongoc_collection_t *collection,
+    bool ordered,
+    const mongoc_write_concern_t *write_concern,
+    const std::function<void(mongoc_bulk_operation_t*)>& f) {
+  auto op = UNIQUE_MONGO_PTR(
+      mongoc_bulk_operation,
+      mongoc_collection_create_bulk_operation(
+      collection, ordered, write_concern));
+  if (op) {
+    LOG(ERROR) << "Failed to create bulk operation";
+    return false;
+  }
+  f(op.get());
+  auto reply = UNIQUE_MONGO_PTR(bson, bson_new());
+  mongoc_bulk_operation_execute(op.get(), reply.get(), nullptr);
+  return true;
+}
+
 bool BulkInserter::finish() {
   if (_toInsert.size() == 0) {
     return _success;
@@ -87,13 +97,19 @@ bool BulkInserter::finish() {
   auto collection = MONGO_PTR(mongoc_collection,
       mongoc_database_get_collection(
           _db.db.get(), _tableName.c_str()));
-
-  bool r = safeMongoOps("inserting tiles in mongoDB",
-      _db, [=](const std::shared_ptr<mongoc_client_t>& db) {
-    db->insert(_tableName, _toInsert);
-  });
+  bool ordered = true;
+  if (_success) {
+    _success = withBulkOperation(
+        collection.get(), ordered,
+        nullptr,
+        [this](
+            mongoc_bulk_operation_t* op) {
+      for (auto x: _toInsert) {
+        mongoc_bulk_operation_insert(op, x.get());
+      }
+    });
+  }
   _toInsert.clear();
-  _success = _success && r;
   return _success;
 }
 
