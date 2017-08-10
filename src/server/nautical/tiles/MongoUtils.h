@@ -32,9 +32,19 @@ void withBsonSubArray(
     const std::function<void(bson_t*)>& op
     /*Should only contain keys "0", "1", ... */);
 
-/*void withBsonSubArray(
-    bson_t* parent, const std::string& key,
-    const std::function<void(bson_t*)>& op);*/
+void bsonAppend(bson_t* dst, const std::string& key, int32_t value);
+void bsonAppend(bson_t* dst, const std::string& key, int64_t value);
+void bsonAppend(bson_t* dst, const std::string& key, double value);
+
+template <typename Iterator>
+void bsonAppendElements(
+    bson_t* dst, const std::string& key,
+    Iterator begin, Iterator end) {
+  for (auto i = begin; i != end; i++) {
+
+  }
+}
+
 
 struct MongoDBConnection {
   std::shared_ptr<mongoc_client_t> client;

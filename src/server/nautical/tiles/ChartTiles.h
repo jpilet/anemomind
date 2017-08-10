@@ -35,10 +35,10 @@ bool uploadChartSourceIndex(const NavDataset& data,
                             const ChartTileSettings& settings,
                             mongoc_database_t* db);
 
-
-std::shared_ptr<mongo::BSONArrayBuilder> getBuilder(
-    const std::string& key,
-    std::map<std::string, std::shared_ptr<mongo::BSONArrayBuilder>>* arrays);
+struct StatArrays {
+  std::vector<double> min, max, mean;
+  std::vector<int> count;
+};
 
 template <typename T> struct Statistics {
   MeanAndVar stats;
@@ -52,18 +52,17 @@ template <typename T> struct Statistics {
   static double unit(Velocity<> x) { return x.knots(); }
   static double unit(Length<> x) { return x.meters(); }
 
-  void appendToArrays(std::map<std::string,
-                     std::shared_ptr<mongo::BSONArrayBuilder>>* arrays) const {
+  void appendToArrays(StatArrays* arrays) const {
     if (stats.count() > 0) {
-      getBuilder("count", arrays)->append(1);
-      getBuilder("mean", arrays)->append(stats.mean());
-      getBuilder("max", arrays)->append(stats.max());
-      getBuilder("min", arrays)->append(stats.min());
+      arrays->count.push_back(1);
+      arrays->mean.push_back(stats.mean());
+      arrays->max.push_back(stats.max());
+      arrays->min.push_back(stats.min());
     } else {
-      getBuilder("count", arrays)->append(0);
-      getBuilder("mean", arrays)->append(0);
-      getBuilder("max", arrays)->append(0);
-      getBuilder("min", arrays)->append(0);
+      arrays->count.push_back(0);
+      arrays->mean.push_back(0);
+      arrays->max.push_back(0);
+      arrays->min.push_back(0);
     }
   }
 };

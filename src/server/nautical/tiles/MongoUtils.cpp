@@ -54,6 +54,19 @@ void withBsonSubArray(
   bson_append_document_end(parent, &sub);
 }
 
+void bsonAppend(bson_t* dst, const std::string& key, int32_t value) {
+  BSON_APPEND_INT32(dst, key.c_str(), value);
+}
+
+void bsonAppend(bson_t* dst, const std::string& key, int64_t value) {
+  BSON_APPEND_INT64(dst, key.c_str(), value);
+}
+
+void bsonAppend(bson_t* dst, const std::string& key, double value) {
+  BSON_APPEND_DOUBLE(dst, key.c_str(), value);
+}
+
+
 
 
 MongoDBConnection::MongoDBConnection(const std::string& host,

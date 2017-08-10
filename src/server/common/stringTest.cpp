@@ -5,6 +5,7 @@
 
 #include <server/common/string.h>
 #include <gtest/gtest.h>
+#include <server/common/TimeStamp.h>
 
 using namespace sail;
 
@@ -45,6 +46,37 @@ TEST(StringTest, Int64TestOrdering) {
 
   EXPECT_LE(a, b);
   EXPECT_LE(int64ToHex(a), int64ToHex(b));
+}
+
+TEST(StringTest, PositiveAsString) {
+  PositiveAsString<int> a(0);
+  EXPECT_EQ(a.str(), std::string("0"));
+  PositiveAsString<int> b(119);
+  EXPECT_EQ(b.str(), std::string("119"));
+}
+
+TEST(StringTest, BenchmarkIntToString) {
+  int n = 1000000;
+  uint64_t a = 0;
+  uint64_t b = 0;
+  {
+    TimeStamp start = TimeStamp::now();
+    for (int i = 0; i < n; i++) {
+      a += PositiveAsString<int>(i).str() - (const char *)nullptr;
+    }
+    auto e = TimeStamp::now() - start;
+    std::cout << "Elapsed optimized: " << e.seconds() << std::endl;
+  }{
+    TimeStamp start = TimeStamp::now();
+    for (int i = 0; i < n; i++) {
+      b += objectToString<int>(i).c_str() - (const char *)nullptr;
+    }
+    auto e = TimeStamp::now() - start;
+    std::cout << "Elapsed optimized: " << e.seconds() << std::endl;
+  }
+  // Just some dummy comparison to make sure that
+  // the above loops are not simplified in some way.
+  EXPECT_NE(a, b);
 }
 
 TEST(StringTetst, joinTest) {

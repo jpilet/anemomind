@@ -43,6 +43,28 @@ void indent(std::ostream *s, int count);
 std::string readFileToString(const std::string& filename);
 Array<std::string> split(std::string x, char delimiter);
 
+template <typename T>
+struct PositiveAsString {
+  static const int StorageSize = 3*sizeof(T); // One byte needs at most three decimal digits.
+  char storage[StorageSize];
+  int start = 0;
+  const char* str() const {return storage + start;}
+
+  PositiveAsString(T x) {
+    start = StorageSize-1;
+    storage[start] = '\0';
+    T y = x;
+    if (x == 0) {
+      storage[--start] = '0';
+    } else {
+      while (y > 0) {
+        storage[--start] = '0' + (y % 10);
+        y = y/10;
+      }
+    }
+  }
+};
+
 template <class StringCollection>
 std::string join(const StringCollection& array, const std::string& delimiter) {
   std::string result;

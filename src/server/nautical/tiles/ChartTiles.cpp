@@ -157,15 +157,16 @@ bool chartTileToBson(const ChartTile<T> tile,
     BSON_APPEND_UTF8(key, "source", data->source().c_str());
   });
 
-  auto samples = SHARED_MONGO_PTR(bson, bson_new());
-  std::map<std::string, std::shared_ptr<bson_t>> arrays;
+  BSONArrayBuilder samples;
+  StatArrays arrays;
 
   for (const TimedValue<Statistics<T>>& stats : tile.samples) {
     stats.value.appendToArrays(&arrays);
   }
 
   for (const auto& arr : arrays) {
-    result.append(arr.first, arr.second);
+    appendBsonPrimitiveArray();
+    result.append(arr.first, arr.second->arr());
   }
 
   //result.append("samples", samples.arr());
@@ -307,20 +308,24 @@ bool uploadChartTiles(const NavDataset& data,
           settings.table().c_str()));
 
   //MONGO_QUERY("_id.boat" << OID(boatId)),
-  withTemporaryBsonDocument([&](bson_t* selector) {
-    auto oid = makeOid(boatId);
-    withBsonSubDocument(selector, "_id", [&](bson_t* id) {
-      BSON_APPEND_OID(&id, "boat", &oid);
-    });
-    if (!mongoc_collection_remove(
-        collection.get(),
-        MONGOC_REMOVE_NONE,
-        selector,
-        MONGOC_WRITE_CONCERN_W_UNACKNOWLEDGED(0),
-        nullptr)) {
-      LOG(ERROR) << "Failed to execute remove old chart tiles for boat, but we will continue.";
-    }
-  });
+
+  auto oid = makeOid(boatId);
+
+  bson_t selector, id;
+  bson_init(&selector);
+  BSON_APPEND_DOCUMENT_BEGIN(&selector, "_id", &id);
+  BSON_APPEND_OID(&id, "boat", oid);
+  bson_append_document_end(&selector, &id);
+
+  if (!mongoc_collection_remove(
+      collection.get(),
+      MONGOC_REMOVE_NONE,
+      selector.get(),
+      MONGOC_WRITE_CONCERN_W_UNACKNOWLEDGED(0),
+      nullptr)) {
+    LOG(ERROR) << "Failed to execute remove old chart tiles for boat, but we will continue.";
+  }
+  bson_destroy (&selector);
 
   BulkInserter inserter(settings.table(), 1000, db);
 
@@ -381,18 +386,6 @@ bool uploadChartSourceIndex(const NavDataset& data,
                    false);                      // <-- multi
       }
     );
-}
-
-std::shared_ptr<bson_t> getBuilder(
-    const std::string& key,
-    std::map<std::string, std::shared_ptr<bson_t>>* arrays) {
-  auto it = arrays->find(key);
-  if (it == arrays->end()) {
-    auto newBuilder = SHARED_MONGO_PTR(bson, bson_new());
-    (*arrays)[key] = newBuilder;
-    return newBuilder;
-  }
-  return it->second;
 }
 
 }  // namespace sail

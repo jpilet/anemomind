@@ -34,6 +34,7 @@ endif ()
 cxx_test(common_stringTest
          stringTest.cpp
          common_string
+         common_TimeStamp
          gtest_main
         )
 
