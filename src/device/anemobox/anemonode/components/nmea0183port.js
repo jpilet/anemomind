@@ -46,6 +46,9 @@ function init(nmea0183PortPath, dataCb) {
             dataCb(data);
           }
         });
+        port.on('error', function(err) {
+          console.warn(err);
+        });
       }
     });
   });
