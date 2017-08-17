@@ -53,6 +53,24 @@ TEST(TimeSetsTest, BasicTest) {
     TimeSetsQuery q;
     auto results = getTimeSets(db.db, q);
     EXPECT_EQ(results.size(), 4);
+  }{
+    TimeSetsQuery q;
+    q.lower = t(9.5);
+    auto results = getTimeSets(db.db, q);
+    EXPECT_EQ(results.size(), 1);
+    auto r = results[0];
+    EXPECT_EQ(r.span.minv(), t(10));
+    EXPECT_EQ(r.span.maxv(), t(11));
+    EXPECT_EQ(r.type, label);
+  }{
+    TimeSetsQuery q;
+    q.upper = t(1.5);
+    auto results = getTimeSets(db.db, q);
+    EXPECT_EQ(results.size(), 1);
+    auto r = results[0];
+    EXPECT_EQ(r.span.minv(), t(0));
+    EXPECT_EQ(r.span.maxv(), t(1));
+    EXPECT_EQ(r.type, label);
   }
 
 }

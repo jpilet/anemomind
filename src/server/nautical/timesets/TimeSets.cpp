@@ -80,6 +80,7 @@ void queryToMongo(
   // is before upper?
   if (q.upper.defined()) {
     BsonSubDocument begin(dst, tsBegin);
+    bsonAppend(&begin, "$lte", q.upper);
   }
 }
 
