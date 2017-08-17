@@ -107,7 +107,12 @@ class TileInserter {
       const TileGeneratorParameters& params,
       const std::shared_ptr<mongoc_database_t>& db)
     : _db(db),
-      _inserter(params.tileTable().localName(), 1000, db),
+      _inserter(SHARED_MONGO_PTR(
+          mongoc_collection,
+          mongoc_database_get_collection(
+              db.get(),
+              params.tileTable().localName().c_str()))
+          , 1000),
       _params(params) { }
 
   bool insert(const std::pair<BsonTileKey, std::shared_ptr<bson_t>>& kv) {

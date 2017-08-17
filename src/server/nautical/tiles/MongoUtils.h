@@ -132,24 +132,21 @@ std::shared_ptr<mongoc_collection_t> getOrCreateCollection(
 class BulkInserter : private boost::noncopyable {
  public:
   BulkInserter(
-      const std::string& tableName, int batchSize,
-      const std::shared_ptr<mongoc_database_t>& db)
-    : _tableName(tableName), _db(db),
-      _batchSize(batchSize), _success(true) { }
+      const std::shared_ptr<mongoc_collection_t>& coll,
+      int batchSize)
+    : _collection(coll), _batchSize(batchSize) { }
 
   ~BulkInserter() { finish(); }
 
   bool insert(const std::shared_ptr<bson_t>& obj);
 
   bool finish();
-
-  const std::shared_ptr<mongoc_database_t>& db() const { return _db; }
  private:
-  std::string _tableName;
-  std::shared_ptr<mongoc_database_t> _db;
+  bool success() const;
+  void fail();
+  std::shared_ptr<mongoc_collection_t> _collection;
   std::vector<std::shared_ptr<bson_t>> _toInsert;
   int _batchSize;
-  bool _success;
 };
 
 
