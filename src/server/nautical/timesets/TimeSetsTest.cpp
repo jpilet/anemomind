@@ -71,6 +71,16 @@ TEST(TimeSetsTest, BasicTest) {
     EXPECT_EQ(r.span.minv(), t(0));
     EXPECT_EQ(r.span.maxv(), t(1));
     EXPECT_EQ(r.type, label);
+  }{
+    TimeSetsQuery q;
+    q.lower = t(6);
+    q.upper = t(8);
+    auto results = getTimeSets(db.db, q);
+    EXPECT_EQ(results.size(), 1);
+    auto r = results[0];
+    EXPECT_EQ(r.span.minv(), t(5));
+    EXPECT_EQ(r.span.maxv(), t(9));
+    EXPECT_EQ(r.type, label);
   }
 
 }

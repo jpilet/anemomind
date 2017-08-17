@@ -21,8 +21,12 @@ bool insertTimeSets(
     const Array<Span<TimeStamp>>& spans);
 
 struct TimeSetsQuery {
+  // Both boatId and type can be undefined.
   std::string boatId;
   std::string type;
+
+  // Any span that overlaps will be retrieved.
+  // The TimeStamps can be undefined.
   TimeStamp lower;
   TimeStamp upper;
 };
