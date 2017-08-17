@@ -105,11 +105,16 @@ struct MongoDBConnection {
   MongoDBConnection(const std::string& uri);
 };
 
+struct MongoConnectionSettings {
+  std::string dbHost = "localhost";
+  std::string dbName = "anemomind-dev";
+  std::string user;
+  std::string passwd;
+};
+
+
 std::string makeMongoDBURI(
-    const std::string& host,
-    const std::string& dbname,
-    const std::string& user,
-    const std::string& passwd);
+    const MongoConnectionSettings& passwd);
 
 class MongoTableName {
 public:
