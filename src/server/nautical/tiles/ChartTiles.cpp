@@ -325,7 +325,16 @@ bool uploadChartTiles(const NavDataset& data,
     }
   }
 
-  BulkInserter inserter(settings.table().localName(), 1000, db);
+  auto coll = SHARED_MONGO_PTR(
+      mongoc_collection,
+      mongoc_database_get_collection(
+          db.get(),
+          settings.table().localName().c_str()));
+  if (!coll) {
+    LOG(ERROR) << "Failed to collection";
+    return false;
+  }
+  BulkInserter inserter(coll, 1000);
 
   for (auto channel : allSources) {
     for (auto source : channel.second) {

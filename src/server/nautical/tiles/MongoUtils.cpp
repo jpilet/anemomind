@@ -169,11 +169,14 @@ std::string MongoTableName::fullName() const {
 }
 
 bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
+  if (!success()) {
+    return false;
+  }
   _toInsert.push_back(obj);
   if (_toInsert.size() > 1000) {
     return finish();
   }
-  return _success;
+  return success();
 }
 
 bson_t* unwrapBsonPtr(const std::shared_ptr<bson_t>& ptr) {
@@ -208,29 +211,36 @@ bool withBulkOperation(
 
 bool BulkInserter::finish() {
   if (_toInsert.size() == 0) {
-    return _success;
+    return success();
   }
-  auto collection = UNIQUE_MONGO_PTR(
-      mongoc_collection,
-      mongoc_database_get_collection(
-          _db.get(), _tableName.c_str()));
   bool ordered = true;
-  if (_success) {
+  if (success()) {
     auto concern = mongoWriteConcernForLevel(
         MONGOC_WRITE_CONCERN_W_DEFAULT);
-    _success = withBulkOperation(
-        collection.get(), ordered,
+    if (!withBulkOperation(
+        _collection.get(), ordered,
         concern.get(),
         [this](
             mongoc_bulk_operation_t* op) {
       for (auto x: _toInsert) {
         mongoc_bulk_operation_insert(op, x.get());
       }
-    });
+    })) {
+      fail();
+    }
   }
   _toInsert.clear();
-  return _success;
+  return success();
 }
+
+bool BulkInserter::success() const {
+  return bool(_collection);
+}
+
+void BulkInserter::fail() {
+  _collection = std::shared_ptr<mongoc_collection_t>();
+}
+
 
 
 };  // namespace sail
