@@ -154,6 +154,9 @@ class BulkInserter : private boost::noncopyable {
   int _batchSize;
 };
 
+// TODO: Consider implementing a BsonDeepVisitor,
+// that decends into sub documents and tracks the
+// path on a stack or something.
 class BsonVisitor {
 public:
   std::vector<std::string> path;
@@ -161,7 +164,7 @@ public:
   enum Action {Stop, Continue};
 
   // Todo: Support all the things.
-  Action visitUtf8(
+  virtual Action visitUtf8(
       const char *key,
       size_t v_utf8_len,
       const char *v_utf8,
@@ -169,7 +172,7 @@ public:
     return Continue;
   }
 
-  Action visitDateTime(
+  virtual Action visitDateTime(
       const char *key,
       int64_t msec_since_epoch,
       void *data) {
@@ -177,6 +180,7 @@ public:
   }
 
   void visit(const bson_t& bson);
+  virtual ~BsonVisitor() {}
 };
 
 
