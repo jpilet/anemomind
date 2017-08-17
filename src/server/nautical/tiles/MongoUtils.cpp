@@ -113,8 +113,16 @@ void bsonAppend(bson_t* dst, const char* key, double value) {
   BSON_APPEND_DOUBLE(dst, key, value);
 }
 
+void genOid(bson_t* dst) {
+  bson_oid_t _id;
+  bson_oid_init(&_id, nullptr);
+  BSON_APPEND_OID(dst, "_id", &_id); //tile.genOID()
+}
 
-
+void bsonAppendAsOid(bson_t* dst, const char* key, const std::string& s) {
+  auto oid = makeOid(s);
+  BSON_APPEND_OID(dst, key, &oid);
+}
 
 std::string makeMongoDBURI(
     const MongoConnectionSettings& cs) {

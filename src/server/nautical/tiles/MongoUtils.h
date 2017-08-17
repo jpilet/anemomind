@@ -21,6 +21,7 @@ using UniqueMongoPtr = std::unique_ptr<T, MongoDestructor<T>>;
 
 namespace sail {
 
+// Probably you want to use MONGOC_WRITE_CONCERN_W_DEFAULT with this.
 std::shared_ptr<mongoc_write_concern_t> mongoWriteConcernForLevel(
     uint32_t level);
 
@@ -112,6 +113,8 @@ struct MongoConnectionSettings {
   std::string passwd;
 };
 
+void genOid(bson_t* dst);
+void bsonAppendAsOid(bson_t* dst, const char* key, const std::string& s);
 
 std::string makeMongoDBURI(
     const MongoConnectionSettings& passwd);
@@ -133,7 +136,7 @@ class BulkInserter : private boost::noncopyable {
  public:
   BulkInserter(
       const std::shared_ptr<mongoc_collection_t>& coll,
-      int batchSize)
+      int batchSize = 1000)
     : _collection(coll), _batchSize(batchSize) { }
 
   ~BulkInserter() { finish(); }

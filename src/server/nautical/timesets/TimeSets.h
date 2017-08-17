@@ -13,11 +13,33 @@
 
 namespace sail {
 
+// Bulk insertion for common type and boatId.
 bool insertTimeSets(
     const std::shared_ptr<mongoc_database_t>& dstDB,
     const std::string& boatId,
-    const std::string& label,
+    const std::string& type,
     const Array<Span<TimeStamp>>& spans);
+
+struct TimeSetsQuery {
+  std::string boatId;
+  std::string type;
+  TimeStamp lower;
+  TimeStamp upper;
+};
+
+struct TimeSetInterval {
+  std::string type;
+  Span<TimeStamp> span;
+};
+
+bool removeTimeSets(
+    const std::shared_ptr<mongoc_database_t>& db,
+    const TimeSetsQuery& q);
+
+Array<TimeSetInterval> getTimeSets(
+    const std::shared_ptr<mongoc_database_t>& db,
+    const TimeSetsQuery& q);
+
 
 } /* namespace sail */
 

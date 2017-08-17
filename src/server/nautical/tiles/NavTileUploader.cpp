@@ -395,9 +395,7 @@ std::pair<BsonTileKey, std::shared_ptr<bson_t>>
     subCurvesInTile.last().last().time()
   };
 
-  bson_oid_t _id;
-  bson_oid_init(&_id, nullptr);
-  BSON_APPEND_OID(tile.get(), "_id", &_id); //tile.genOID();
+  genOid(tile.get());
   BSON_APPEND_UTF8(tile.get(), "key", btk.key.c_str());
 
   BSON_APPEND_OID(tile.get(), "boat", &btk.boat);
