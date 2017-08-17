@@ -293,7 +293,6 @@ bool visitUtf8Method(
     size_t v_utf8_len,
     const char *v_utf8,
     void *data) {
-  LOG(INFO) << "Visit UTF8";
   return static_cast<BsonVisitor*>(data)->visitUtf8(
       key, v_utf8_len, v_utf8, data) == BsonVisitor::Stop;
 }
@@ -303,7 +302,6 @@ bool visitDateTimeMethod(
     const char *key,
     int64_t msec_since_epoch,
     void *data) {
-  LOG(INFO) << "Visit TIME";
   return static_cast<BsonVisitor*>(data)->visitDateTime(
       key, msec_since_epoch, data) == BsonVisitor::Stop;
 }

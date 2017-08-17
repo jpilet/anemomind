@@ -34,7 +34,6 @@ std::shared_ptr<bson_t> makeTimeSetsInterval(
   BSON_APPEND_UTF8(dst.get(), tsType, type.c_str());
   bsonAppend(dst.get(), tsBegin, sp.minv());
   bsonAppend(dst.get(), tsEnd, sp.maxv());
-  LOG(INFO) << "Inser this: " << bsonToString(*dst);
   return dst;
 }
 
@@ -118,7 +117,6 @@ struct TimeSetVisitor : public BsonVisitor {
       size_t v_utf8_len,
       const char *v_utf8,
       void *data) override {
-    LOG(INFO) << "Visit utf8 key " << key;
     if (strcmp(key, tsType) == 0) {
       type = std::string(v_utf8, v_utf8_len);
     }
@@ -129,7 +127,6 @@ struct TimeSetVisitor : public BsonVisitor {
       const char *key,
       int64_t msec_since_epoch,
       void *data) override {
-    LOG(INFO) << "Visit time key " << key;
     if (strcmp(key, tsBegin) == 0) {
       begin = TimeStamp::fromMilliSecondsSince1970(msec_since_epoch);
     }
@@ -171,9 +168,7 @@ Array<TimeSetInterval> getTimeSets(
           coll.get(), &mq, nullptr, nullptr));
   ArrayBuilder<TimeSetInterval> dst;
   const bson_t* tmp;
-  LOG(INFO) << "Try to read from db...";
   while (mongoc_cursor_next(cursor.get(), &tmp)) {
-    LOG(INFO) << "Read record.";
     auto x = bsonToTimeSetInterval(*tmp);
     if (x.span.initialized()) {
       dst.add(x);
