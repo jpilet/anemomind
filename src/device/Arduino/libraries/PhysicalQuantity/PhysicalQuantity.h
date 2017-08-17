@@ -239,8 +239,17 @@ public:
   static constexpr bool isDimensionless = TimeDim == 0 && LengthDim == 0
       && AngleDim == 0 && MassDim == 0;
 
+  // For example, for "Angle<T>" and "degrees", the following will create within
+  // the class Angle<T>:
+  // static Angle<T> degrees(T x);
+  // static Angle<T> make_degrees(T x);
+  // T degrees() const;
+  //
+  // make_degrees and degrees are synonms, but they help removing the ambiguity
+  // when getting a function pointer: &Angle<T>::make_degrees has no ambiguity.
 #define MAKE_UNIT_CONVERTERS(type, name, factor) \
-  static ThisType name(T x) { \
+  static ThisType name(T x) { return make_##name(x); }\
+  static ThisType make_##name(T x) { \
     static_assert(UnitInfo<Unit::name>::quantity == QInfo::quantity, "Incompatible unit and quantity"); \
     return ThisType(ConvertUnit<T, Unit::name, System::type>::apply(x)); \
   } \

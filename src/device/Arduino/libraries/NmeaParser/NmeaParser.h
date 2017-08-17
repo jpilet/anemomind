@@ -16,6 +16,7 @@
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 #include "../FixedPoint/FixedPoint.h"
+#include <server/common/Optional.h>
 
 #include <stdint.h>
 
@@ -126,7 +127,9 @@ class NmeaParser {
     NMEA_VTG,
     NMEA_ZDA,
     NMEA_TIME_POS = NMEA_RMC,
-    NMEA_RUDDER
+    NMEA_RUDDER,
+    NMEA_MWD,
+    NMEA_RSA
   };
 
   NmeaParser();
@@ -272,6 +275,18 @@ class NmeaParser {
                            bool valid,
                            sail::Angle<double> angle,
                            const char *whichRudder) { }
+
+  // The direction from which the wind blows across the earth’s surface, with
+  // respect to north, and the speed of the wind.
+  // $IIMWD,,T,281.6,M,6.78,N,3.49,M*60
+  virtual void onMWD(const char *senderAndSentence,
+                     Optional<sail::Angle<>> twdir_geo,
+                     Optional<sail::Angle<>> twdir_mag,
+                     Optional<sail::Velocity<>> tws) { }
+  virtual void onRSA(const char *senderAndSentence,
+                     Optional<sail::Angle<>> rudderAngle0,
+                     Optional<sail::Angle<>> rudderAngle1) { }
+
  private:
   enum NPState {
     NP_STATE_SOM, 	        // Search for start of message
@@ -327,6 +342,8 @@ class NmeaParser {
   NmeaSentence processZDA();
   NmeaSentence processVTG();
   NmeaSentence processXDR();
+  NmeaSentence processMWD();
+  NmeaSentence processRSA();
 };
 
 double geoPosDist(GeoPos *a, GeoPos *b);
