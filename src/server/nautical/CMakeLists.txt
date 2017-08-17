@@ -7,6 +7,7 @@ add_subdirectory("calib")
 add_subdirectory("filters")
 add_subdirectory("types")
 add_subdirectory("segment")
+add_subdirectory("timesets")
 
 
 add_library(nautical_nav
