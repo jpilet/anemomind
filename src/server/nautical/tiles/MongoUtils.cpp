@@ -168,6 +168,27 @@ std::string MongoTableName::fullName() const {
   return _db + "." + _table;
 }
 
+std::shared_ptr<mongoc_collection_t> getOrCreateCollection(
+    mongoc_database_t* db, const char* name) {
+  auto coll = SHARED_MONGO_PTR(
+      mongoc_collection,
+      mongoc_database_get_collection(db, name));
+  if (coll) {
+    return coll;
+  } else {
+    bson_error_t e;
+    coll = SHARED_MONGO_PTR(
+        mongoc_collection,
+        mongoc_database_create_collection(
+            db, name, nullptr, &e));
+    if (!coll) {
+      LOG(ERROR) << "Failed to create collection named '" << name << "': "
+          << bsonErrorToString(e);
+    }
+    return coll;
+  }
+}
+
 bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
   _toInsert.push_back(obj);
   if (_toInsert.size() > 1000) {

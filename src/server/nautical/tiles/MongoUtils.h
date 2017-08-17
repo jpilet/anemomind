@@ -126,6 +126,9 @@ private:
   std::string _db, _table;
 };
 
+std::shared_ptr<mongoc_collection_t> getOrCreateCollection(
+    mongoc_database_t* db, const char* name);
+
 class BulkInserter : private boost::noncopyable {
  public:
   BulkInserter(
