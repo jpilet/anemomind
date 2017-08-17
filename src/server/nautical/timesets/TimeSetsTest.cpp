@@ -31,17 +31,28 @@ TEST(TimeSetsTest, BasicTest) {
     return;
   }
   LOG(INFO) << "Successfully connected, unit test continues.";
+  for (int i = 0; i < 3; i++) {
+    {
+      TimeSetsQuery q;
+      EXPECT_TRUE(removeTimeSets(db.db, q));
+    }{
+      EXPECT_TRUE(insertTimeSets(db.db, boatId, label, {
+          Span<TimeStamp>(t(0), t(1)),
+          Span<TimeStamp>(t(2), t(4)),
+          Span<TimeStamp>(t(5), t(9)),
+          Span<TimeStamp>(t(10), t(11))
+      }));
+    }
+  }
   {
     TimeSetsQuery q;
-    q.boatId = boatId;
-    EXPECT_TRUE(removeTimeSets(db.db, q));
+    q.boatId = "ccc";
+    auto results = getTimeSets(db.db, q);
+    EXPECT_EQ(results.size(), 0);
   }{
-    EXPECT_TRUE(insertTimeSets(db.db, boatId, label, {
-        Span<TimeStamp>(t(0), t(1)),
-        Span<TimeStamp>(t(2), t(4)),
-        Span<TimeStamp>(t(5), t(9)),
-        Span<TimeStamp>(t(10), t(11))
-    }));
+    TimeSetsQuery q;
+    auto results = getTimeSets(db.db, q);
+    EXPECT_EQ(results.size(), 4);
   }
 
 }

@@ -36,6 +36,8 @@ struct WrapBson : public bson_t, public boost::noncopyable {
 
 std::ostream& operator<<(std::ostream& s, const bson_error_t& e);
 std::string bsonErrorToString(const bson_error_t& e);
+std::ostream& operator<<(std::ostream& s, const bson_t& x);
+std::string bsonToString(const bson_t& s);
 
 static constexpr int bsonIndexStringLength = 13;
 typedef std::array<char, bsonIndexStringLength> IndexString;

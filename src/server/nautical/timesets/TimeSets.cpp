@@ -34,6 +34,7 @@ std::shared_ptr<bson_t> makeTimeSetsInterval(
   BSON_APPEND_UTF8(dst.get(), tsType, type.c_str());
   bsonAppend(dst.get(), tsBegin, sp.minv());
   bsonAppend(dst.get(), tsEnd, sp.maxv());
+  LOG(INFO) << "Inser this: " << bsonToString(*dst);
   return dst;
 }
 
@@ -120,6 +121,28 @@ struct TimeSetBuilder : public bson_iter_t {
   }
 };
 
+
+
+class BsonVisitor {
+public:
+  std::vector<std::string> path;
+
+  virtual bool visitUtf8(const char *key,
+      size_t v_utf8_len,
+      const char *v_utf8,
+      void *data)
+};
+
+struct BsonIterWithVisitor : public bson_iter_t {
+  BsonIterWithVisitor(BsonVisitor* v) : visitor(v), bson_iter_t({0}) {}
+  BsonVisitor* visitor;
+
+  static BsonVisitor* getVisitor(const bson_iter_t* i) {
+    return reinterpret_cast<BsonIterWithVisitor*>(
+        const_cast<bson_iter_t*>(i))->visitor;
+  }
+};
+
 bool visitTimeSetDateTime(
     const bson_iter_t *iter,
     const char *key,
@@ -127,6 +150,7 @@ bool visitTimeSetDateTime(
     void *data) {
   auto dst = TimeSetBuilder::fromIter(iter);
   auto time = TimeStamp::fromMilliSecondsSince1970(msec_since_epoch);
+  LOG(INFO) << "    --Visit time";
   if (strcmp(tsBegin, key)) {
     dst->begin = time;
   } else if (strcmp(tsEnd, key)) {
@@ -135,18 +159,25 @@ bool visitTimeSetDateTime(
   return true;
 }
 
-bool visitTimeSetString(
+bool visitUtf8(
     const bson_iter_t *iter,
     const char *key,
     size_t v_utf8_len,
     const char *v_utf8,
     void *data) {
-  auto dst = TimeSetBuilder::fromIter(iter);
-  if (strcmp(key, tsType)) {
-    dst->type = std::string(v_utf8, v_utf8_len);
-  }
-  return true;
+  return BsonIterWithVisitor::getVisitor(iter)->visitUtf8(
+      key, v_utf8_len, v_utf8, data);
 }
+
+
+void bsonTraverse(BsonVisitor* visitor, bson_t* x) {
+  BsonIterWithVisitor iter(visitor);
+  bson_visitor_t v = {0};
+  v.visit_document = &visitDocument;
+  v.visit_utf8 = &visitUtf8;
+  v.visit_date_time = &visitDateTime;
+}
+
 
 TimeSetInterval bsonToTimeSetInterval(
     const bson_t& src) {
@@ -155,7 +186,9 @@ TimeSetInterval bsonToTimeSetInterval(
   visitor.visit_date_time = &visitTimeSetDateTime;
   visitor.visit_utf8 = &visitTimeSetString;
   int count = 0;
+  LOG(INFO) << "The data: " << bsonToString(src);
   if (bson_iter_init (&iter, &src)) {
+    LOG(INFO) << "-----Visit them all";
     bson_iter_visit_all (&iter, &visitor, &count);
   }
   return TimeSetInterval{
@@ -184,13 +217,15 @@ Array<TimeSetInterval> getTimeSets(
           coll.get(), &mq, nullptr, nullptr));
   ArrayBuilder<TimeSetInterval> dst;
   const bson_t* tmp;
+  LOG(INFO) << "Try to read from db...";
   while (mongoc_cursor_next(cursor.get(), &tmp)) {
+    LOG(INFO) << "Read record.";
     auto x = bsonToTimeSetInterval(*tmp);
     if (x.span.initialized()) {
       dst.add(x);
     }
   }
-  return true;
+  return dst.get();
 }
 
 

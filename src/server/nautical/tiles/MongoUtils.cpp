@@ -59,6 +59,22 @@ std::string bsonErrorToString(const bson_error_t& e) {
   return ss.str();
 }
 
+std::ostream& operator<<(std::ostream& s, const bson_t& x) {
+  auto c = bson_as_json(&x, nullptr);
+  s << c;
+  bson_free(c);
+  return s;
+}
+
+
+std::string bsonToString(const bson_t& x) {
+  auto c = bson_as_json(&x, nullptr);
+  std::string s(c);
+  bson_free(c);
+  return s;
+}
+
+
 
 const char* keyOrNextIndex(bson_t* dst, const char* key, IndexString* buf) {
   if (key == nullptr) {
