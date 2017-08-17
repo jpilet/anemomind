@@ -109,92 +109,44 @@ bool removeTimeSets(
   return true;
 }
 
-struct TimeSetBuilder : public bson_iter_t {
-  TimeSetBuilder() : bson_iter_t({0}) {}
-
+struct TimeSetVisitor : public BsonVisitor {
   std::string type;
   TimeStamp begin, end;
 
-  static TimeSetBuilder* fromIter(const bson_iter_t* x) {
-    return reinterpret_cast<TimeSetBuilder*>(
-        const_cast<bson_iter_t*>(x));
-  }
-};
-
-
-
-class BsonVisitor {
-public:
-  std::vector<std::string> path;
-
-  virtual bool visitUtf8(const char *key,
+  Action visitUtf8(
+      const char *key,
       size_t v_utf8_len,
       const char *v_utf8,
-      void *data)
-};
+      void *data) {
+    if (strcmp(key, tsType) == 0) {
+      type = std::string(v_utf8, v_utf8_len);
+    }
+    return Continue;
+  }
 
-struct BsonIterWithVisitor : public bson_iter_t {
-  BsonIterWithVisitor(BsonVisitor* v) : visitor(v), bson_iter_t({0}) {}
-  BsonVisitor* visitor;
-
-  static BsonVisitor* getVisitor(const bson_iter_t* i) {
-    return reinterpret_cast<BsonIterWithVisitor*>(
-        const_cast<bson_iter_t*>(i))->visitor;
+  Action visitDateTime(
+      const char *key,
+      int64_t msec_since_epoch,
+      void *data) {
+    if (strcmp(key, tsBegin) == 0) {
+      begin = TimeStamp::fromMilliSecondsSince1970(msec_since_epoch);
+    }
+    if (strcmp(key, tsEnd) == 0) {
+      end = TimeStamp::fromMilliSecondsSince1970(msec_since_epoch);
+    }
+    return Continue;
   }
 };
-
-bool visitTimeSetDateTime(
-    const bson_iter_t *iter,
-    const char *key,
-    int64_t msec_since_epoch,
-    void *data) {
-  auto dst = TimeSetBuilder::fromIter(iter);
-  auto time = TimeStamp::fromMilliSecondsSince1970(msec_since_epoch);
-  LOG(INFO) << "    --Visit time";
-  if (strcmp(tsBegin, key)) {
-    dst->begin = time;
-  } else if (strcmp(tsEnd, key)) {
-    dst->end = time;
-  }
-  return true;
-}
-
-bool visitUtf8(
-    const bson_iter_t *iter,
-    const char *key,
-    size_t v_utf8_len,
-    const char *v_utf8,
-    void *data) {
-  return BsonIterWithVisitor::getVisitor(iter)->visitUtf8(
-      key, v_utf8_len, v_utf8, data);
-}
-
-
-void bsonTraverse(BsonVisitor* visitor, bson_t* x) {
-  BsonIterWithVisitor iter(visitor);
-  bson_visitor_t v = {0};
-  v.visit_document = &visitDocument;
-  v.visit_utf8 = &visitUtf8;
-  v.visit_date_time = &visitDateTime;
-}
 
 
 TimeSetInterval bsonToTimeSetInterval(
     const bson_t& src) {
-  TimeSetBuilder iter;
-  bson_visitor_t visitor = {0};
-  visitor.visit_date_time = &visitTimeSetDateTime;
-  visitor.visit_utf8 = &visitTimeSetString;
-  int count = 0;
-  LOG(INFO) << "The data: " << bsonToString(src);
-  if (bson_iter_init (&iter, &src)) {
-    LOG(INFO) << "-----Visit them all";
-    bson_iter_visit_all (&iter, &visitor, &count);
-  }
+  TimeSetVisitor v;
+  v.visit(src);
   return TimeSetInterval{
-    iter.type,
-    iter.begin.defined() && iter.end.defined()?
-        Span<TimeStamp>(iter.begin, iter.end)
+    v.type,
+    v.begin.defined() && v.end.defined()?
+        Span<TimeStamp>(v.begin, v.end)
         : Span<TimeStamp>()};
 }
 

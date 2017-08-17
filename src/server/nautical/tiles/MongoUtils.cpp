@@ -287,6 +287,34 @@ void BulkInserter::fail() {
 }
 
 
+bool visitUtf8Method(
+    const bson_iter_t *iter,
+    const char *key,
+    size_t v_utf8_len,
+    const char *v_utf8,
+    void *data) {
+  return static_cast<BsonVisitor*>(data)->visitUtf8(
+      key, v_utf8_len, v_utf8, data) == BsonVisitor::Stop;
+}
+
+bool visitDateTimeMethod(
+    const bson_iter_t *iter,
+    const char *key,
+    int64_t msec_since_epoch,
+    void *data) {
+  return static_cast<BsonVisitor*>(data)->visitDateTime(
+      key, msec_since_epoch, data) == BsonVisitor::Stop;
+}
+
+void BsonVisitor::visit(const bson_t& bson) {
+  bson_iter_t iter;
+  bson_visitor_t v = {0};
+  v.visit_utf8 = &visitUtf8Method;
+  v.visit_date_time = &visitDateTimeMethod;
+  if (bson_iter_init (&iter, &bson)) {
+    bson_iter_visit_all(&iter, &v, this);
+  }
+}
 
 };  // namespace sail
 

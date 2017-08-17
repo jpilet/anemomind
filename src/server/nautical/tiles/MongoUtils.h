@@ -154,6 +154,30 @@ class BulkInserter : private boost::noncopyable {
   int _batchSize;
 };
 
+class BsonVisitor {
+public:
+  std::vector<std::string> path;
+
+  enum Action {Stop, Continue};
+
+  // Todo: Support all the things.
+  Action visitUtf8(
+      const char *key,
+      size_t v_utf8_len,
+      const char *v_utf8,
+      void *data) {
+    return Continue;
+  }
+
+  Action visitDateTime(
+      const char *key,
+      int64_t msec_since_epoch,
+      void *data) {
+    return Continue;
+  }
+
+  void visit(const bson_t& bson);
+};
 
 
 
