@@ -498,11 +498,7 @@ bool BoatLogProcessor::prepare(ArgMap* amap) {
 
   if (_generateTiles || _generateChartTiles) {
     db = MongoDBConnection(
-        makeMongoDBURI(
-            _tileParams.dbHost,
-            _tileParams.dbName,
-            _tileParams.user,
-            _tileParams.passwd));
+        makeMongoDBURI(_tileParams));
     if (!db.defined()) {
       return false;
     }

@@ -10,15 +10,11 @@
 
 namespace sail {
 
-struct TileGeneratorParameters {
+struct TileGeneratorParameters : public MongoConnectionSettings {
   DOM::Node log;
-  std::string dbHost;
   int maxScale;
   int maxNumNavsPerSubCurve;
-  std::string dbName;
   bool fullClean;
-  std::string user;
-  std::string passwd;
   Duration<> curveCutThreshold;
 
   MongoTableName tileTable() const {
@@ -30,8 +26,6 @@ struct TileGeneratorParameters {
   }
 
   TileGeneratorParameters() {
-    dbName = "anemomind-dev";
-    dbHost = "localhost";
     maxScale = 17;
     maxNumNavsPerSubCurve = 32;
     _tileTable = "tiles";

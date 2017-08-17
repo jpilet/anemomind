@@ -117,18 +117,15 @@ void bsonAppend(bson_t* dst, const char* key, double value) {
 
 
 std::string makeMongoDBURI(
-  const std::string& host,
-  const std::string& dbname,
-  const std::string& user,
-  const std::string& passwd) {
+    const MongoConnectionSettings& cs) {
   std::string accountString;
-  if (!user.empty() && !passwd.empty()) {
-    accountString = user + ":" + passwd + "@";
+  if (!cs.user.empty() && !cs.passwd.empty()) {
+    accountString = cs.user + ":" + cs.passwd + "@";
   }
 
   // TODO: Do we need to specify anything else, such as what authentication
   // is to be used?
-  return "mongodb://" + accountString + host + "/" + dbname;
+  return "mongodb://" + accountString + cs.dbHost + "/" + cs.dbName;
 }
 
 
