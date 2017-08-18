@@ -21,6 +21,18 @@ bson_oid_t makeOid(const std::string& s) {
   return oid;
 }
 
+void genOid(bson_t* dst) {
+  bson_oid_t _id;
+  bson_oid_init(&_id, nullptr);
+  BSON_APPEND_OID(dst, "_id", &_id); //tile.genOID()
+}
+
+void bsonAppendAsOid(bson_t* dst, const char* key, const std::string& s) {
+  auto oid = makeOid(s);
+  BSON_APPEND_OID(dst, key, &oid);
+}
+
+
 std::shared_ptr<mongoc_write_concern_t> mongoWriteConcernForLevel(
     uint32_t level) {
   auto dst = SHARED_MONGO_PTR(
@@ -64,6 +76,20 @@ std::string bsonErrorToString(const bson_error_t& e) {
   return ss.str();
 }
 
+std::ostream& operator<<(std::ostream& s, const bson_t& x) {
+  auto c = bson_as_json(&x, nullptr);
+  s << c;
+  bson_free(c);
+  return s;
+}
+
+
+std::string bsonToString(const bson_t& x) {
+  auto c = bson_as_json(&x, nullptr);
+  std::string s(c);
+  bson_free(c);
+  return s;
+}
 
 const char* keyOrNextIndex(bson_t* dst, const char* key, IndexString* buf) {
   if (key == nullptr) {
@@ -134,6 +160,18 @@ std::string makeMongoDBURI(
 }
 
 
+bool MongoDBConnection::connected() const {
+  if (!defined()) {
+    return false;
+  }
+  auto cur = UNIQUE_MONGO_PTR(
+      mongoc_cursor,
+      mongoc_database_find_collections(
+          db.get(), nullptr, nullptr));
+  return bool(cur);
+}
+
+
 MongoDBConnection::MongoDBConnection(
     const std::string& uriString) {
   initializeMongo();
@@ -164,6 +202,29 @@ std::string MongoTableName::fullName() const {
   CHECK(!_db.empty());
   return _db + "." + _table;
 }
+
+
+std::shared_ptr<mongoc_collection_t> getOrCreateCollection(
+    mongoc_database_t* db, const char* name) {
+  auto coll = SHARED_MONGO_PTR(
+      mongoc_collection,
+      mongoc_database_get_collection(db, name));
+  if (coll) {
+    return coll;
+  } else {
+    bson_error_t e;
+    coll = SHARED_MONGO_PTR(
+        mongoc_collection,
+        mongoc_database_create_collection(
+            db, name, nullptr, &e));
+    if (!coll) {
+      LOG(ERROR) << "Failed to create collection named '" << name << "': "
+          << bsonErrorToString(e);
+    }
+    return coll;
+  }
+}
+
 
 bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
   if (!success()) {
@@ -248,6 +309,35 @@ void BulkInserter::fail() {
   _collection = std::shared_ptr<mongoc_collection_t>();
 }
 
+
+bool visitUtf8Method(
+    const bson_iter_t *iter,
+    const char *key,
+    size_t v_utf8_len,
+    const char *v_utf8,
+    void *data) {
+  return static_cast<BsonVisitor*>(data)->visitUtf8(
+      key, v_utf8_len, v_utf8, data) == BsonVisitor::Stop;
+}
+
+bool visitDateTimeMethod(
+    const bson_iter_t *iter,
+    const char *key,
+    int64_t msec_since_epoch,
+    void *data) {
+  return static_cast<BsonVisitor*>(data)->visitDateTime(
+      key, msec_since_epoch, data) == BsonVisitor::Stop;
+}
+
+void BsonVisitor::visit(const bson_t& bson) {
+  bson_iter_t iter;
+  bson_visitor_t v = {0};
+  v.visit_utf8 = &visitUtf8Method;
+  v.visit_date_time = &visitDateTimeMethod;
+  if (bson_iter_init (&iter, &bson)) {
+    bson_iter_visit_all(&iter, &v, this);
+  }
+}
 
 
 };  // namespace sail
