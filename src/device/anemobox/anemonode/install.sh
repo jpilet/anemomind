@@ -3,7 +3,7 @@ set -e
 
 # TODO: get the IP from the command line
 # 2.1
-HOST=192.168.1.108
+HOST=192.168.2.1
 DEST=root@${HOST}:/anemonode
 
 #DEST=/mnt/anemonode
