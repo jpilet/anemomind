@@ -8,7 +8,7 @@
 
 namespace sail {
 
-class JsLogger : public node::ObjectWrap {
+class JsLogger : public Nan::ObjectWrap {
  public:
   JsLogger();
 

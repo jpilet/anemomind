@@ -3,6 +3,18 @@ var anemonode = require('../build/Release/anemonode');
 var maxSetTime = 1;
 var numSetTime = 0;
 
+var subscribers = [];
+
+function notifySubscribers() {
+  for (var i = 0; i < subscribers.length; i++) {
+    console.log("Notify subscriber %d/%d", i+1, subscribers.length);
+    subscribers[i]();
+  } 
+  if (subscribers.length == 0) {
+    console.log("No subscribers");
+  }
+}
+
 function adjustTimeFromDispatcher() {
   if (numSetTime >= maxSetTime) {
     return;
@@ -42,8 +54,14 @@ function adjustTimeFromDispatcher() {
     if (numSetTime >= maxSetTime) {
       anemonode.dispatcher.values.dateTime.unsubscribe(subscriptionIndex);
     }
+    notifySubscribers();
   }
 }
+
 var subscriptionIndex =
   anemonode.dispatcher.values.dateTime.subscribe(adjustTimeFromDispatcher);
+
+module.exports.subscribe = function(cb) {
+  subscribers.push(cb);
+}
 

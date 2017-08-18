@@ -8,7 +8,7 @@ namespace sail {
 
 namespace {
 
-v8::Persistent<v8::FunctionTemplate> estimator_constructor;
+Nan::Persistent<v8::FunctionTemplate> estimator_constructor;
 
 }  // namespace
 
@@ -17,62 +17,62 @@ JsEstimator::JsEstimator()
 }
 
 void JsEstimator::Init(v8::Handle<v8::Object> target) {
-  NanScope();
+  Nan::HandleScope scope;
 
   // Prepare constructor template
-  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
-  tpl->SetClassName(NanNew<String>("Estimator"));
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+  tpl->SetClassName(Nan::New<String>("Estimator").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   // Prototype
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
-  NODE_SET_METHOD(proto, "loadCalibration", JsEstimator::loadCalibration);
-  NODE_SET_METHOD(proto, "compute", JsEstimator::compute);
+  Nan::SetMethod(proto, "loadCalibration", JsEstimator::loadCalibration);
+  Nan::SetMethod(proto, "compute", JsEstimator::compute);
 
-  NanAssignPersistent<FunctionTemplate>(estimator_constructor, tpl);
+  estimator_constructor.Reset(tpl);
 
-  target->Set(NanNew<String>("Estimator"), tpl->GetFunction());
+  target->Set(Nan::New<String>("Estimator").ToLocalChecked(), tpl->GetFunction());
 }
 
 NAN_METHOD(JsEstimator::New) {
-  NanScope();
+  Nan::HandleScope scope;
   JsEstimator *obj = new JsEstimator();
-  obj->Wrap(args.This());
-  NanReturnValue(args.This());
+  obj->Wrap(info.This());
+  info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(JsEstimator::loadCalibration) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  JsEstimator* obj = ObjectWrap::Unwrap<JsEstimator>(args.This());
+  JsEstimator* obj = Nan::ObjectWrap::Unwrap<JsEstimator>(info.This());
   if (!obj) {
-    NanThrowTypeError("This is not a Logger");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("This is not a Logger");
+    return;
   }
 
-  if (args.Length() < 1 || !args[0]->IsString()) {
-    NanThrowTypeError(
+  if (info.Length() < 1 || !info[0]->IsString()) {
+    Nan::ThrowTypeError(
         "Bad arguments. "
         "Usage: loadCalibration('path to boat.dat')");
-    NanReturnUndefined();
+    return;
   }
 
-  v8::String::Utf8Value folder(args[0]->ToString());
+  v8::String::Utf8Value folder(info[0]->ToString());
 
   // The loading is synchronous. This is not a very node-ish way to
   // do. But we do not care since it is a small file loaded just once.
-  NanReturnValue(NanNew(obj->_estimator.loadCalibration(*folder)));
+  info.GetReturnValue().Set(Nan::New(obj->_estimator.loadCalibration(*folder)));
 }
 
 NAN_METHOD(JsEstimator::compute) {
-  NanScope();
-  JsEstimator* obj = ObjectWrap::Unwrap<JsEstimator>(args.This());
+  Nan::HandleScope scope;
+  JsEstimator* obj = Nan::ObjectWrap::Unwrap<JsEstimator>(info.This());
   if (!obj) {
-    NanThrowTypeError("This is not a Logger");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("This is not a Logger");
+    return;
   }
   obj->_estimator.compute();
-  NanReturnUndefined();
+  return;
 }
 
 }  // namespace sail
