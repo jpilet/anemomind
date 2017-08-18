@@ -474,7 +474,7 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _exploreGrammar = amap->optionProvided("--explore");
   _logGrammar = amap->optionProvided("--log-grammar");
 
-  _chartTileSettings.dbName = _tileParams.dbName;
+  _chartTileSettings.dbName = _tileParams.dbName();
   if (_debug) {
     LOG(INFO) << "BoatLogProcessor:\n"
       << "boat: " << _boatid << "\n"
@@ -497,8 +497,7 @@ bool BoatLogProcessor::prepare(ArgMap* amap) {
   }
 
   if (_generateTiles || _generateChartTiles) {
-    db = MongoDBConnection(
-        makeMongoDBURI(_tileParams));
+    db = MongoDBConnection(_tileParams.uri());
     if (!db.defined()) {
       return false;
     }
@@ -554,21 +553,13 @@ int mainProcessBoatLogs(int argc, const char **argv) {
   amap.registerOption("-c", "Generate chart tiles and upload to mongodb")
     .setArgCount(0);
 
-  amap.registerOption("--host", "MongoDB hostname").store(&params->dbHost);
+  amap.registerOption("--mongo-uri", "Full URI to Mongo DB")
+      .store(&params->mongoUri);
   amap.registerOption("--scale", "max scale level").store(&params->maxScale);
   amap.registerOption("--maxpoints",
                       "downsample curves if they have more than <maxpoints> points")
     .store(&params->maxNumNavsPerSubCurve);
 
-  amap.registerOption("--db", "Name of the db, such as 'anemomind' or 'anemomind-dev'")
-      .setArgCount(1)
-      .store(&params->dbName);
-
-  amap.registerOption("-u", "username for db connection")
-      .store(&params->user);
-
-  amap.registerOption("-p", "password for db connection")
-      .store(&params->passwd);
 
   amap.registerOption("--clean", "Clean all tiles for this boat before starting");
 

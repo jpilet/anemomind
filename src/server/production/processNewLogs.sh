@@ -74,10 +74,9 @@ processBoat() {
         --boatid "${boatid}" \
         --save-default-calib \
         -t --clean -c \
-        --host anemolab1 \
-        --db anemomind \
+        --mongo-uri "mongodb://anemolab1/anemomind" \
         -u anemomindprod -p ${MONGO_PASSWORD} \
-	--scale 20 ; then
+	--scale 20) ; then
 
       if [ -f "${boatdat}" ] ; then
         # If a boat.dat file has been generated, mail it to the anemobox.
