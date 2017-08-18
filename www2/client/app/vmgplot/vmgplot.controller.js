@@ -75,6 +75,8 @@ angular.module('www2App')
       var vmgtable = data.vmgtable;
       var upwindValues = [];
       var downwindValues = [];
+      var maxVmg = 0;
+      var maxTWS = 0;
       for (var i = 0; i < vmgtable.length; ++i) {
         var d = vmgtable[i];
         if (d.tws < 2) {
@@ -83,11 +85,17 @@ angular.module('www2App')
         }
         if (d.up != undefined) {
           upwindValues.push({x: d.tws, y: d.up});
+          maxVmg = Math.max(maxVmg, d.up);
+          maxTWS = Math.max(maxTWS, d.tws);
         }
         if (d.down != undefined) {
           downwindValues.push({x: d.tws, y: d.down});
+          maxVmg = Math.max(maxVmg, d.down);
+          maxTWS = Math.max(maxTWS, d.tws);
         }
       } 
+      $scope.options.chart.yDomain = [ 0, Math.ceil(maxVmg * 1.1) ];
+      $scope.options.chart.xDomain = [ 2, Math.ceil(maxTWS) ];
       $scope.vmgtable = [
         {
           values: upwindValues,

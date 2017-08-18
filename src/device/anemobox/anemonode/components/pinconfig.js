@@ -2,9 +2,9 @@ var fs = require('fs');
 
 function setPinOutput(pinNo, value) {
   var path = '/sys/kernel/debug/gpio_debug/gpio' + pinNo + '/';
-  fs.writeFile(path + 'current_pinmux', 'mode0', function() {});
-  fs.writeFile(path + 'current_direction', 'out', function() {});
-  fs.writeFile(path + 'current_value', value, function() {});
+  fs.writeFileSync(path + 'current_pinmux', 'mode0');
+  fs.writeFileSync(path + 'current_direction', 'out');
+  fs.writeFileSync(path + 'current_value', value);
 }
 
 module.exports.activateNmea0183 = function () {
@@ -17,5 +17,8 @@ module.exports.activateNmea0183 = function () {
   // For anemobox v1.1x
   // Let flow control make the port work.
   setPinOutput(129, 'high');
+  setInterval(function() {
+    setPinOutput(129, 'high');
+  }, 5000);
 };
 

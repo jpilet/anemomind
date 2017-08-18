@@ -1,6 +1,6 @@
-/** Generated on Wed Mar 02 2016 08:55:52 GMT+0100 (CET) using 
+/** Generated on Wed Jun 21 2017 23:51:39 GMT+0200 (CEST) using 
  *
- *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
+ *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -193,6 +193,29 @@ namespace PgnClasses {
     Optional<sail::Duration<double> > _time; // Seconds since midnight
   };
 
+  // Rudder
+  class Rudder {
+  public:
+    static const int ThisPgn = 127245;
+
+    Rudder();
+    Rudder(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &instance() const {return _instance;}
+    const Optional<uint64_t > &directionOrder() const {return _directionOrder;}
+    const Optional<sail::Angle<double> > &angleOrder() const {return _angleOrder;}
+    const Optional<sail::Angle<double> > &position() const {return _position;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _instance; 
+    Optional<uint64_t > _directionOrder; 
+    Optional<sail::Angle<double> > _angleOrder; 
+    Optional<sail::Angle<double> > _position; 
+  };
+
   // Vessel Heading
   class VesselHeading {
   public:
@@ -220,6 +243,23 @@ namespace PgnClasses {
     Optional<sail::Angle<double> > _deviation; 
     Optional<sail::Angle<double> > _variation; 
     Optional<Reference > _reference; 
+  };
+
+  // Rate of Turn
+  class RateOfTurn {
+  public:
+    static const int ThisPgn = 127251;
+
+    RateOfTurn();
+    RateOfTurn(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &sid() const {return _sid;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _sid; 
   };
 
   // Attitude
@@ -523,7 +563,9 @@ namespace PgnClasses {
     virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementBroadcastAnnounce& packet) { return false; }
     virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementAbort& packet) { return false; }
     virtual bool apply(const CanPacket& src, const SystemTime& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const Rudder& packet) { return false; }
     virtual bool apply(const CanPacket& src, const VesselHeading& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const RateOfTurn& packet) { return false; }
     virtual bool apply(const CanPacket& src, const Attitude& packet) { return false; }
     virtual bool apply(const CanPacket& src, const Speed& packet) { return false; }
     virtual bool apply(const CanPacket& src, const PositionRapidUpdate& packet) { return false; }
