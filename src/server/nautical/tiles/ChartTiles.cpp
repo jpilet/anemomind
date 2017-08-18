@@ -305,13 +305,13 @@ bool uploadChartTiles(const NavDataset& data,
       BsonSubDocument id(&selector, "_id");
       BSON_APPEND_OID(&id, "boat", &oid);
     }
-    auto concern = mongoWriteConcernForLevel(MONGOC_WRITE_CONCERN_W_DEFAULT);
+    auto concern = nullptr;
     bson_error_t error;
     if (!mongoc_collection_remove(
         collection.get(),
         MONGOC_REMOVE_NONE,
         &selector,
-        concern.get(),
+        concern,
         &error)) {
       LOG(ERROR) << "Failed to execute remove old chart "
           "tiles for boat, but we will continue: "
@@ -397,14 +397,13 @@ bool uploadChartSourceIndex(const NavDataset& data,
      WrapBson selector;
      BSON_APPEND_OID(&selector, "_id", &oid);
      bson_error_t error;
-     auto concern = mongoWriteConcernForLevel(
-         MONGOC_WRITE_CONCERN_W_DEFAULT);
+     auto concern = nullptr;
      success = mongoc_collection_update(
         collection.get(),
         MONGOC_UPDATE_UPSERT,
         &selector,
         &index,
-        concern.get(),
+        concern,
         &error);
      if (!success) {
        LOG(ERROR) << bsonErrorToString(error);

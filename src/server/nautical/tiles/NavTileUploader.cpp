@@ -135,12 +135,11 @@ class TileInserter {
           BsonSubDocument lte(&query, "endTime");
           bsonAppend(&lte, "$lte", key.endTime);
         }
-        auto concern = mongoWriteConcernForLevel(
-            MONGOC_WRITE_CONCERN_W_DEFAULT);
+        auto concern = nullptr;
         bson_error_t error;
         if (!mongoc_collection_remove(
             coll.get(), MONGOC_REMOVE_NONE,
-            &query, concern.get(), &error)) {
+            &query, concern, &error)) {
           LOG(ERROR) << bsonErrorToString(error);
         }
       }
@@ -180,11 +179,10 @@ bool insertSession(
       bsonAppend(&query, "_id", kv.first);
 
       bson_error_t error;
-      auto wc = mongoWriteConcernForLevel(
-          MONGOC_WRITE_CONCERN_W_DEFAULT);
+      auto concern = nullptr;
       success = mongoc_collection_update(
           coll.get(), MONGOC_UPDATE_UPSERT,
-          &query, kv.second.get(), wc.get(), &error);
+          &query, kv.second.get(), concern, &error);
       if (!success) {
         LOG(ERROR) << bsonErrorToString(error);
       }
@@ -439,13 +437,12 @@ void removeBoatWithId(
   {
     WrapBson query;
     bson_error_t error;
-    auto concern = mongoWriteConcernForLevel(
-        MONGOC_WRITE_CONCERN_W_DEFAULT);
+    auto concern = nullptr;
     BSON_APPEND_OID(&query, "boat", &oid);
     if (!mongoc_collection_remove(
         coll.get(),
         MONGOC_REMOVE_NONE,
-        &query, concern.get(), &error)) {
+        &query, concern, &error)) {
       LOG(ERROR) << "Removing boat failed: " << bsonErrorToString(error);
     }
   }
