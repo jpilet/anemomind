@@ -103,20 +103,16 @@ struct MongoDBConnection {
     return bool(client) && bool(db);
   }
 
-  MongoDBConnection(const std::string& uri);
+  MongoDBConnection(
+      const std::shared_ptr<mongoc_uri_t>& uri);
 };
 
-struct MongoConnectionSettings {
-  std::string dbHost = "localhost";
-  std::string dbName = "anemomind-dev";
-  std::string user;
-  std::string passwd;
-};
-
-
-std::string makeMongoDBURI(
-    const MongoConnectionSettings& passwd);
-
+/*
+ * The previous C++ API used the "database-name.collection-name"
+ * form to refer to a collection. The C API uses just "collection-name".
+ * Having this little helper object forces us to think about how we
+ * are addressing the collection.
+ */
 class MongoTableName {
 public:
   MongoTableName() {}

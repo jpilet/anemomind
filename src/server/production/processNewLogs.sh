@@ -74,8 +74,7 @@ processBoat() {
         --boatid "${boatid}" \
         --save-default-calib \
         -t --clean -c \
-        --host anemolab1 \
-        --db anemomind \
+        --mongo-uri "mongodb://anemolab1/anemomind" \
         -u anemomindprod -p ${MONGO_PASSWORD} \
 	--scale 20 ; then
 

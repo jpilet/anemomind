@@ -10,19 +10,37 @@
 
 namespace sail {
 
-struct TileGeneratorParameters : public MongoConnectionSettings {
+struct TileGeneratorParameters  {
   DOM::Node log;
   int maxScale;
   int maxNumNavsPerSubCurve;
   bool fullClean;
   Duration<> curveCutThreshold;
+  std::string mongoUri;
+
+  std::string mongoUriStringOrDefault() const {
+    return mongoUri.empty()?
+        std::string("mongodb://localhost/anemomind-dev")
+        : mongoUri;
+  }
+
+  std::shared_ptr<mongoc_uri_t> uri() const {
+    auto d = mongoUriStringOrDefault();
+    return SHARED_MONGO_PTR(
+        mongoc_uri,
+        mongoc_uri_new(d.c_str()));
+  }
+
+  std::string dbName() const {
+    return mongoc_uri_get_database(uri().get());
+  }
 
   MongoTableName tileTable() const {
-    return MongoTableName(dbName, _tileTable);
+    return MongoTableName(dbName(), _tileTable);
   }
 
   MongoTableName sessionTable() const {
-    return MongoTableName(dbName, _sessionTable);
+    return MongoTableName(dbName(), _sessionTable);
   }
 
   TileGeneratorParameters() {
