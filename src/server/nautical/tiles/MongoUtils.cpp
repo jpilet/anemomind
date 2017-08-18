@@ -212,8 +212,7 @@ bool BulkInserter::finish() {
   }
   bool ordered = true;
   if (success()) {
-    auto concern = mongoWriteConcernForLevel(
-        MONGOC_WRITE_CONCERN_W_DEFAULT);
+    auto concern = nullptr;
 
     /*
      * TODO: I'm wondering if you could replace _toInsert
@@ -227,7 +226,7 @@ bool BulkInserter::finish() {
 
     if (!withBulkOperation(
         _collection.get(), ordered,
-        concern.get(),
+        concern,
         [this](
             mongoc_bulk_operation_t* op) {
       for (auto x: _toInsert) {
