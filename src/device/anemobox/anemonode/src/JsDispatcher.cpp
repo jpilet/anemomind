@@ -8,27 +8,27 @@ using namespace v8;
 using namespace node;
 
 void JsDispatcher::Init(Dispatcher* dispatcher, Handle<Object> target) {
-  static Persistent<FunctionTemplate> persistentConstructor;
+  static Nan::Persistent<FunctionTemplate> persistentConstructor;
 
-  NanScope();
+  Nan::HandleScope scope;
 
   Local<FunctionTemplate> constructor = JsDispatcher::functionTemplate();
-  NanAssignPersistent(persistentConstructor, constructor);
+  persistentConstructor.Reset(constructor);
 
   Handle<Object> jsDispatcher = constructor->GetFunction()->NewInstance();
   setDispatcher(jsDispatcher, dispatcher);
 
-  target->Set(NanNew("dispatcher"), jsDispatcher);
+  target->Set(Nan::New("dispatcher").ToLocalChecked(), jsDispatcher);
 }
 
 Local<FunctionTemplate> JsDispatcher::functionTemplate() {
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>(New);
   t->InstanceTemplate()->SetInternalFieldCount(1);
   Local<ObjectTemplate> proto = t->PrototypeTemplate();
 
-  NODE_SET_METHOD(proto, "setSourcePriority", JsDispatcher::setSourcePriority);
-  NODE_SET_METHOD(proto, "sourcePriority", JsDispatcher::sourcePriority);
-  NODE_SET_METHOD(proto, "allSources", JsDispatcher::allSources);
+  Nan::SetMethod(proto, "setSourcePriority", JsDispatcher::setSourcePriority);
+  Nan::SetMethod(proto, "sourcePriority", JsDispatcher::sourcePriority);
+  Nan::SetMethod(proto, "allSources", JsDispatcher::allSources);
   return t;
 }
    
@@ -37,74 +37,74 @@ void JsDispatcher::setDispatcher(Handle<Object> object, Dispatcher* dispatcher) 
   zis->_dispatcher = dispatcher;
 
   Local<FunctionTemplate> constructor = JsDispatchData::functionTemplate();
-  NanAssignPersistent(zis->persistentConstructor, constructor);
+  zis->persistentConstructor.Reset(constructor);
 
-  Handle<Object> entries = NanNew<Object>();
+  Handle<Object> entries = Nan::New<Object>();
   for (auto entry : dispatcher->dispatchers()) {
     Handle<Object> jsentry = constructor->GetFunction()->NewInstance();
     JsDispatchData::setDispatchData(jsentry, entry.second, dispatcher);
 
-    entries->Set(NanNew<String>(entry.second->wordIdentifier().c_str()), jsentry);
+    entries->Set(Nan::New<String>(entry.second->wordIdentifier()).ToLocalChecked(), jsentry);
   }
-  object->Set(NanNew("values"), entries);
+  object->Set(Nan::New("values").ToLocalChecked(), entries);
 }
 
 NAN_METHOD(JsDispatcher::New) {
-  NanScope();
+  Nan::HandleScope scope;
   JsDispatcher* obj = new JsDispatcher();
-  obj->Wrap(args.This());
-  NanReturnValue(args.This());
+  obj->Wrap(info.This());
+  info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(JsDispatcher::setSourcePriority) {
-  NanScope();
-  Dispatcher* dispatcher = obj(args.This())->_dispatcher;
+  Nan::HandleScope scope;
+  Dispatcher* dispatcher = obj(info.This())->_dispatcher;
 
-  if (args.Length() != 2 || !args[0]->IsString() || !args[1]->IsNumber()) {
-      return NanThrowTypeError(
+  if (info.Length() != 2 || !info[0]->IsString() || !info[1]->IsNumber()) {
+      return Nan::ThrowTypeError(
           "setSourcePriority expects a source name (string)"
-          " and a priority (int) as args.");
+          " and a priority (int) as info.");
   }
 
-  v8::String::Utf8Value source(args[0]->ToString());
+  v8::String::Utf8Value source(info[0]->ToString());
 
-  dispatcher->setSourcePriority(*source, args[1]->ToInteger()->Value());
+  dispatcher->setSourcePriority(*source, info[1]->ToInteger()->Value());
 
-  NanReturnUndefined();
+  return;
 }
 
 NAN_METHOD(JsDispatcher::sourcePriority) {
-  NanScope();
-  Dispatcher* dispatcher = obj(args.This())->_dispatcher;
+  Nan::HandleScope scope;
+  Dispatcher* dispatcher = obj(info.This())->_dispatcher;
 
-  if (args.Length() < 1 || !args[0]->IsString()) {
-      return NanThrowTypeError(
+  if (info.Length() < 1 || !info[0]->IsString()) {
+      return Nan::ThrowTypeError(
           "sourcePriority expects a source name (string) as arg.");
   }
 
-  v8::String::Utf8Value source(args[0]->ToString());
-  NanReturnValue(NanNew(dispatcher->sourcePriority(*source)));
+  v8::String::Utf8Value source(info[0]->ToString());
+  info.GetReturnValue().Set(Nan::New(dispatcher->sourcePriority(*source)));
 }
 
 NAN_METHOD(JsDispatcher::allSources) {
-  NanScope();
-  JsDispatcher* me = obj(args.This());
+  Nan::HandleScope scope;
+  JsDispatcher* me = obj(info.This());
   Dispatcher* dispatcher = me->_dispatcher;
 
-  Local<Object> sources = NanNew<Object>();
+  Local<Object> sources = Nan::New<Object>();
   const auto& sourceMap = dispatcher->allSources();
 
-  Local<FunctionTemplate> constructor = NanNew(me->persistentConstructor);
+  Local<FunctionTemplate> constructor = Nan::New(me->persistentConstructor);
 
   for (auto channel : sourceMap) {
-    Local<Object> sourceDict = NanNew<Object>();
+    Local<Object> sourceDict = Nan::New<Object>();
     for (auto source : channel.second) {
       Handle<Object> jsentry = constructor->GetFunction()->NewInstance();
       JsDispatchData::setDispatchData(jsentry, source.second, dispatcher);
-      sourceDict->Set(NanNew(source.first.c_str()), jsentry);
+      sourceDict->Set(Nan::New(source.first).ToLocalChecked(), jsentry);
     }
-    sources->Set(NanNew(wordIdentifierForCode(channel.first)), sourceDict);
+    sources->Set(Nan::New(wordIdentifierForCode(channel.first)).ToLocalChecked(), sourceDict);
   }
 
-  NanReturnValue(sources);
+  info.GetReturnValue().Set(sources);
 }

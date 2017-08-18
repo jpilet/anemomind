@@ -11,66 +11,66 @@ using namespace v8;
 namespace sail {
 
 namespace {
-v8::Persistent<v8::FunctionTemplate> nmea0183_constructor;
+Nan::Persistent<v8::FunctionTemplate> nmea0183_constructor;
 }  // namespace
 
 JsNmea0183Source::JsNmea0183Source(const std::string& sourceName )
   : _nmea0183(globalAnemonodeDispatcher, sourceName) { }
 
 void JsNmea0183Source::Init(v8::Handle<v8::Object> target) {
-  NanScope();
+  Nan::HandleScope scope;
 
   // Prepare constructor template
-  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
-  tpl->SetClassName(NanNew<String>("Nmea0183Source"));
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+  tpl->SetClassName(Nan::New<String>("Nmea0183Source").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   // Prototype
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
-  NODE_SET_METHOD(proto, "process", JsNmea0183Source::process);
+  Nan::SetMethod(proto, "process", JsNmea0183Source::process);
 
-  NanAssignPersistent<FunctionTemplate>(nmea0183_constructor, tpl);
+  nmea0183_constructor.Reset(tpl);
 
-  target->Set(NanNew<String>("Nmea0183Source"), tpl->GetFunction());
+  target->Set(Nan::New<String>("Nmea0183Source").ToLocalChecked(), tpl->GetFunction());
 }
 
 NAN_METHOD(JsNmea0183Source::New) {
-  NanScope();
+  Nan::HandleScope scope;
   std::string name = "NMEA0183";
 
-  if (args.Length() >= 1) {
-    if (args[0]->IsString()) {
-      v8::String::Utf8Value nameArg(args[0]->ToString());
+  if (info.Length() >= 1) {
+    if (info[0]->IsString()) {
+      v8::String::Utf8Value nameArg(info[0]->ToString());
       name = *nameArg;
     } else {
-      NanThrowTypeError("Source name must be a string");
+      Nan::ThrowTypeError("Source name must be a string");
     }
   }
   JsNmea0183Source *obj = new JsNmea0183Source(name);
-  obj->Wrap(args.This());
-  NanReturnValue(args.This());
+  obj->Wrap(info.This());
+  info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(JsNmea0183Source::process) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if(!args[0]->IsObject() || !node::Buffer::HasInstance(args[0])) {
-    NanThrowTypeError("First argument must be a buffer");
-    NanReturnUndefined();
+  if(!info[0]->IsObject() || !node::Buffer::HasInstance(info[0])) {
+    Nan::ThrowTypeError("First argument must be a buffer");
+    return;
   }
   
-  JsNmea0183Source* obj = ObjectWrap::Unwrap<JsNmea0183Source>(args.This());
+  JsNmea0183Source* obj = Nan::ObjectWrap::Unwrap<JsNmea0183Source>(info.This());
   if (!obj) {
-    NanThrowTypeError("This is not a Nmea0183Source");
-    NanReturnUndefined();
+    Nan::ThrowTypeError("This is not a Nmea0183Source");
+    return;
   }
 
-  v8::Local<v8::Object> buffer = args[0]->ToObject();
+  v8::Local<v8::Object> buffer = info[0]->ToObject();
   unsigned char* bufferData = (unsigned char *)node::Buffer::Data(buffer);
   size_t bufferLength = node::Buffer::Length(buffer);
 
   obj->_nmea0183.process(bufferData, bufferLength);
-  NanReturnUndefined();
+  return;
 }
 
 }  // namespace sail
