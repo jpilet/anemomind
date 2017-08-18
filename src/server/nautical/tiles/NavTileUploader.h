@@ -20,13 +20,15 @@ struct TileGeneratorParameters  {
 
   std::string mongoUriStringOrDefault() const {
     return mongoUri.empty()?
-        std::string() : "mongodb://localhost/anemomind-dev";
+        std::string("mongodb://localhost/anemomind-dev")
+        : mongoUri;
   }
 
   std::shared_ptr<mongoc_uri_t> uri() const {
+    auto d = mongoUriStringOrDefault();
     return SHARED_MONGO_PTR(
         mongoc_uri,
-        mongoc_uri_new(mongoUriStringOrDefault().c_str()));
+        mongoc_uri_new(d.c_str()));
   }
 
   std::string dbName() const {
