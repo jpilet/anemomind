@@ -18,27 +18,33 @@ struct ChartTileSettings {
   int lowestZoomLevel = 9; // 2^9 = 512 seconds
   int highestZoomLevel = 28; // 2^28 seconds = about 10 years
   std::string dbName = "anemomind-dev";
+
+  MongoTableName table() const {
+    return MongoTableName(dbName, chartTileTable);
+  }
+
+  MongoTableName sourceTable() const {
+    return MongoTableName(dbName, chartTileSourceTable);
+  }
+private:
   std::string chartTileTable = "charttiles";
   std::string chartTileSourceTable = "chartsources";
-
-  std::string table() const { return dbName + "." + chartTileTable; }
-  std::string sourceTable() const { return dbName + "." + chartTileSourceTable; }
 };
 
 bool uploadChartTiles(const NavDataset& data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
-                      mongo::DBClientConnection *db);
+                      const std::shared_ptr<mongoc_database_t>& db);
 
 bool uploadChartSourceIndex(const NavDataset& data,
                             const std::string& boatId,
                             const ChartTileSettings& settings,
-                            mongo::DBClientConnection *db);
+                            const std::shared_ptr<mongoc_database_t>& db);
 
-
-std::shared_ptr<mongo::BSONArrayBuilder> getBuilder(
-    const std::string& key,
-    std::map<std::string, std::shared_ptr<mongo::BSONArrayBuilder>>* arrays);
+struct StatArrays {
+  std::vector<double> min, max, mean;
+  std::vector<int64_t> count;
+};
 
 template <typename T> struct Statistics {
   MeanAndVar stats;
@@ -52,18 +58,17 @@ template <typename T> struct Statistics {
   static double unit(Velocity<> x) { return x.knots(); }
   static double unit(Length<> x) { return x.meters(); }
 
-  void appendToArrays(std::map<std::string,
-                     std::shared_ptr<mongo::BSONArrayBuilder>>* arrays) const {
+  void appendToArrays(StatArrays* arrays) const {
     if (stats.count() > 0) {
-      getBuilder("count", arrays)->append(1);
-      getBuilder("mean", arrays)->append(stats.mean());
-      getBuilder("max", arrays)->append(stats.max());
-      getBuilder("min", arrays)->append(stats.min());
+      arrays->count.push_back(1);
+      arrays->mean.push_back(stats.mean());
+      arrays->max.push_back(stats.max());
+      arrays->min.push_back(stats.min());
     } else {
-      getBuilder("count", arrays)->append(0);
-      getBuilder("mean", arrays)->append(0);
-      getBuilder("max", arrays)->append(0);
-      getBuilder("min", arrays)->append(0);
+      arrays->count.push_back(0);
+      arrays->mean.push_back(0);
+      arrays->max.push_back(0);
+      arrays->min.push_back(0);
     }
   }
 };
@@ -85,19 +90,13 @@ template <> struct Statistics<Angle<double>> {
     return result;
   }
 
-  void appendToArrays(std::map<std::string,
-                     std::shared_ptr<mongo::BSONArrayBuilder>>* arrays) const {
-    for (std::string key : {"count", "mean" }) {
-      if (arrays->find(key) == arrays->end()) {
-        (*arrays)[key] = std::make_shared<mongo::BSONArrayBuilder>();
-      }
-    }
+  void appendToArrays(StatArrays* arrays) const {
     if (count > 0 && vectorSum.norm() > 0.01_kn) {
-      (*arrays)["count"]->append(static_cast<long long>(count));
-      (*arrays)["mean"]->append( vectorSum.angle().degrees());
+      arrays->count.push_back(static_cast<long long>(count));
+      arrays->mean.push_back( vectorSum.angle().degrees());
     } else {
-      (*arrays)["count"]->append(0);
-      (*arrays)["mean"]->append(0);
+      arrays->count.push_back(0);
+      arrays->mean.push_back(0);
     }
   }
 

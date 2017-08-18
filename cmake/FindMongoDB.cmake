@@ -1,133 +1,66 @@
-# - Find MongoDB; original from
-# https://raw.githubusercontent.com/ros-planning/warehouse_ros/master/cmake/FindMongoDB.cmake
-#
-# Find the MongoDB includes and client library
-# This module defines
-#  MongoDB_INCLUDE_DIR, where to find mongo/client/dbclient.h
-#  MongoDB_LIBRARIES, the libraries needed to use MongoDB.
-#  MongoDB_FOUND, If false, do not try to use MongoDB.
-#  MongoDB_EXPOSE_MACROS, If true, mongo_ros should use '#define MONGO_EXPOSE_MACROS'
+# The C-driver
 
-set(MongoDB_BUILD_FROM_SOURCES "YES")
+include(ExternalProject)
 
-find_package(Boost COMPONENTS filesystem regex thread system REQUIRED)
+set(MONGO_C_BUILD_STATUS "MONGO_C_NOT_BUILT" 
+    CACHE STRING "Mongo build status.
+    Default: Auto dl, config, generate, build and install Mongo project"
+)
+set_property(CACHE MONGO_C_BUILD_STATUS PROPERTY STRINGS
+             "MONGO_C_NOT_BUILT"
+             "MONGO_C_BUILT"
+)
 
-find_package(OpenSSL)
+set(MONGO_C_CMAKE_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-install/lib/cmake/libmongoc-static-1.0")
+set(BSON_CMAKE_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-install/lib/cmake/libbson-static-1.0")
 
-if (MongoDB_BUILD_FROM_SOURCES)
 
-  find_program(SCONS scons)
+if (MONGO_C_BUILD_STATUS MATCHES "MONGO_C_BUILT")
 
-  message(STATUS "Building mongodb in ${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src")
-  message(STATUS "MongoDB config:"
-        "${SCONS} --prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
-        " --c++11=on"
-        " --cpppath=${Boost_INCLUDE_DIR}"
-        " --libpath=${Boost_LIBRARY_DIRS}"
-        " install")
+   # Not sure if this works:
+   	set(CMAKE_MODULE_PATH "${MONGO_C_CMAKE_DIR}" ${CMAKE_MODULE_PATH} )
+   	set(CMAKE_MODULE_PATH "${BSON_CMAKE_DIR}" ${CMAKE_MODULE_PATH} )
 
-  ExternalProject_Add(mongodb_ext
-        GIT_REPOSITORY "https://github.com/jpilet/mongo-cxx-driver.git"
-        GIT_TAG legacy-larger-cache
-        BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
-        SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
-        INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
 
-        UPDATE_COMMAND ""
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND cd "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-src"
-        && test "-f" "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/lib/libmongoclient.a"
-        || ${SCONS} --ssl "--prefix=${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install"
-        --c++11=on --disable-warnings-as-errors=on
-        "--cpppath=${Boost_INCLUDE_DIR}"
-        "--libpath=${Boost_LIBRARY_DIRS}"
-        install
-        INSTALL_COMMAND ""
-        )
 
-  set(MongoDB_INCLUDE_DIR  "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/include")
+  find_package(libbson-static-1.0 REQUIRED)
+  find_package(libmongoc-static-1.0 REQUIRED)
 
-  set(MongDB_FOUND "YES")
+function(target_depends_on_mongoc target)
+    target_link_libraries(${target} ${MONGOC_STATIC_LIBRARIES} ${BSON_STATIC_LIBRARIES})
+    target_include_directories(${target} PRIVATE 
+      ${MONGOC_STATIC_INCLUDE_DIRS} ${BSON_STATIC_INCLUDE_DIRS} )
+endfunction()
 
-  add_library(mongoclient STATIC IMPORTED)
-  set_property(TARGET mongoclient PROPERTY IMPORTED_LOCATION  "${CMAKE_BINARY_DIR}/third-party/mongocxxdriver-install/lib/libmongoclient.a")
-  add_dependencies(mongoclient mongodb_ext)
+add_definitions(-DMONGOC_STATIC -DBSON_STATIC)
 
-  set (MongoDB_LIBRARIES mongoclient ${OPENSSL_LIBRARIES})
+else (MONGO_C_BUILD_STATUS MATCHES "MONGO_C_BUILT") 
 
-else (MongoDB_BUILD_FROM_SOURCES)
+ExternalProject_Add(mongo_ext
+  URL "https://github.com/mongodb/mongo-c-driver/releases/download/1.7.0/mongo-c-driver-1.7.0.tar.gz"
+  BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-build"
+  SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-src"
+  INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-install"
+  CONFIGURE_COMMAND "${CMAKE_BINARY_DIR}/third-party/mongo-c-src/configure" "--prefix=${CMAKE_BINARY_DIR}/third-party/mongo-c-install" "--disable-automatic-init-and-cleanup"
+"--enable-static" "--disable-shared" "--enable-debug"
+  UPDATE_COMMAND ""
+  INSTALL_COMMAND make install
+)
 
-  set(MongoDB_EXPOSE_MACROS "NO")
+## Re-run CMake at make time.
+## So the first pass of cmake->make with autoBuild_at_Make_Time option will install 3rdParty
+## and we launch the second pass of cmake->make with use_external_build witch auto find 3rdParty
+## and update the makeFiles for the superProject
+ExternalProject_Add_Step(mongo_ext after_install
+    COMMENT "--- mongo-c install finished. Start re-run CMake ---"
+    COMMAND cd "${CMAKE_BINARY_DIR}"
+    COMMAND ${CMAKE_COMMAND} "-DMONGO_C_BUILD_STATUS=MONGO_C_BUILT" "-DCMAKE_PREFIX_PATH=${CMAKE_BINARY_DIR}/third-party/mongo-c-install" "${CMAKE_SOURCE_DIR}"
+    DEPENDEES install
+)
 
-  set(MongoDB_PossibleIncludePaths
-    /usr/include/
-    /usr/local/include/
-    /usr/include/mongo/
-    /usr/local/include/mongo/
-    /opt/mongo/include/
-    $ENV{ProgramFiles}/Mongo/*/include
-    $ENV{SystemDrive}/Mongo/*/include
-    )
-  find_path(MongoDB_INCLUDE_DIR mongo/client/dbclient.h
-    ${MongoDB_PossibleIncludePaths})
+function(target_depends_on_mongoc target)
+    add_dependencies(${target} mongo_ext)
+endfunction()
 
-  if(MongoDB_INCLUDE_DIR)
-    find_path(MongoDB_dbclientinterface_Path mongo/client/dbclientinterface.h
-      ${MongoDB_PossibleIncludePaths})
-    if (MongoDB_dbclientinterface_Path)
-      set(MongoDB_EXPOSE_MACROS "YES")
-    endif()
-  endif()
-
-  if(WIN32)
-    find_library(MongoDB_LIBRARIES NAMES mongoclient
-      PATHS
-      $ENV{ProgramFiles}/Mongo/*/lib
-      $ENV{SystemDrive}/Mongo/*/lib
-      )
-  else(WIN32)
-    find_library(MongoDB_LIBRARIES NAMES libmongoclient.a mongoclient
-      PATHS
-      /usr/lib
-      /usr/lib64
-      /usr/lib/mongo
-      /usr/lib64/mongo
-      /usr/local/lib
-      /usr/local/lib64
-      /usr/local/lib/mongo
-      /usr/local/lib64/mongo
-      /opt/mongo/lib
-      /opt/mongo/lib64
-      )
-  endif(WIN32)
-endif (MongoDB_BUILD_FROM_SOURCES)
-
-if(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
-  set(MongoDB_FOUND TRUE)
-  message(STATUS "Found MongoDB: ${MongoDB_INCLUDE_DIR}, ${MongoDB_LIBRARIES}")
-  message(STATUS "MongoDB using new interface: ${MongoDB_EXPOSE_MACROS}")
-  include_directories(${MongoDB_INCLUDE_DIR})
-else(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
-  set(MongoDB_FOUND FALSE)
-  if (MongoDB_FIND_REQUIRED)
-    message(FATAL_ERROR "MongoDB not found.")
-  else (MongoDB_FIND_REQUIRED)
-    message(STATUS "MongoDB not found.")
-  endif (MongoDB_FIND_REQUIRED)
-endif(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
-
-if (UNIX)
-  # MongoDB depends on boost system library.
-  find_package(Boost COMPONENTS filesystem regex thread system REQUIRED)
-  set(MongoDB_LIBRARIES ${MongoDB_LIBRARIES}
-                        ${Boost_REGEX_LIBRARY}
-                        ${Boost_SYSTEM_LIBRARY}
-                        ${Boost_THREAD_LIBRARY}
-                        ${Boost_REGEX_LIBRARY}
-                        ${Boost_FILESYSTEM_LIBRARY}
-			${CMAKE_THREAD_LIBS_INIT}
-			ssl crypto)
-endif (UNIX)
-
-mark_as_advanced(MongoDB_INCLUDE_DIR MongoDB_LIBRARIES MongoDB_EXPOSE_MACROS)
+endif (MONGO_C_BUILD_STATUS MATCHES "MONGO_C_BUILT")
 

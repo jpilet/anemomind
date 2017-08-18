@@ -28,6 +28,7 @@ cxx_test(nautical_BoatLogProcessorTest
          common_Env
          gtest_main
         )
+target_depends_on_mongoc(nautical_BoatLogProcessorTest)        
 
 add_library(nautical_HTreeJson
             HTreeJson.h                     
@@ -108,6 +109,7 @@ add_library(nautical_BoatLogProcessor
             BoatLogProcessor.cpp
             BoatLogProcessor.h
            )
+target_depends_on_mongoc(nautical_BoatLogProcessor)
 target_link_libraries(nautical_BoatLogProcessor
                       anemobox_SimulateBox
                       common_HierarchyJson
@@ -139,7 +141,7 @@ add_executable(nautical_processBoatLogs
 target_link_libraries(nautical_processBoatLogs
                       nautical_BoatLogProcessor
                      )              
-
+target_depends_on_mongoc(nautical_processBoatLogs)        
 
 
 
