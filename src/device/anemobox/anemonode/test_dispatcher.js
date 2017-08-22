@@ -111,4 +111,8 @@ anemonode.dispatcher.values.orient.setValue("test", {heading: 128, roll: 12.2, p
 anemonode.dispatcher.values.orient.setValue("test", {heading: 120, roll: 10.2, pitch: -3.8});
 printHistory('orient');
 
-
+anemonode.dispatcher.values.validGps.setValue("test", true);
+setTimeout(function() {
+  anemonode.dispatcher.values.validGps.setValue("test", false);
+  printHistory('validGps');
+}, 50);

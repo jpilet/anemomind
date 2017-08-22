@@ -64,51 +64,56 @@ std::string TileKey::stringKey() const {
 
 Array<Array<Nav>> generateTiles(TileKey tileKey,
                                 const Array<Nav>& navs,
+                                const std::vector<int>& navIndices,
                                 int maxNumNavs,
                                 Duration<> curveCutThreshold) {
-  Array<bool> inOrOut = toArray(map(navs,
-      [&] (const Nav& nav) -> bool {
-          return tileKey.contains(nav.geographicPosition());
-      }));
   ArrayBuilder<Array<Nav>> result;
 
   // The curve might enter and leave the tile multiple times.
   // Group together consecutive points that are in the tile.
-  int n = navs.size();
-  for (int i = 0; i < n; /*The missing inc here is not a bug!*/) {
-    int first = inOrOut.sliceFrom(i).find(true);
-    if (first == -1) {
-      break;  // nothing more in this tile.
-    }
-    first += i;
-
-    int end = inOrOut.sliceFrom(first).find(false);
-
-    for (int j = first + 1; j < end; ++j) {
-      if ((navs[j].time() - navs[j-1].time()) > curveCutThreshold) {
-          end = j - 1;
+  for (int i = 0; i < navIndices.size(); /*The missing inc here is not a bug!*/) {
+    int first = navIndices[i];
+    int end = first;
+    for (int j = i; (j + 1) < navIndices.size(); ++j) {
+      int a = navIndices[j];
+      int b = navIndices[j + 1];
+      if ((b != (a + 1))
+          || (navs[b].time() - navs[a].time()) > curveCutThreshold) {
+        break;
       }
+      end = b;
+      i = j + 1;
     }
 
-    if (end == -1) {
-      end = inOrOut.size();
-    } else {
-      end += first;
-    }
+    // The loop before sets "end" to the last nav to be included.
+    // slice expects
+    ++end;
 
     if (end > first) {
       result.add(makeTileElement(tileKey, navs.slice(first, end), maxNumNavs));
     }
-    i = end;
+ 
+    // i is now the last processed index. Move the next index to process.
+    ++i;
   }
   return result.get();
 }
 
-std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale) {
-  std::set<TileKey> result;
-  for (const Nav& nav : navs) {
+std::map<TileKey, std::vector<int>> tilesForNav(
+    const Array<Nav>& navs, int maxScale) {
+  std::map<TileKey, std::vector<int>> result;
+  for (int i = 0; i < navs.size(); ++i) {
+    const Nav& nav = navs[i];
     for (int scale = 0; scale < maxScale; scale++) {
-      result.insert(TileKey::fromPos(scale, nav.geographicPosition()));
+      TileKey key = TileKey::fromPos(scale, nav.geographicPosition());
+
+      std::map<TileKey, std::vector<int>>::iterator it = result.find(key);
+
+      if (it != result.end()) {
+        it->second.push_back(i);
+      } else {
+        result[key] = std::vector<int>{i};
+      }
     }
   }
   return result;

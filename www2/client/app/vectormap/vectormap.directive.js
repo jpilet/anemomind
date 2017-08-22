@@ -13,6 +13,7 @@ angular.module('www2App')
         function initializeCanvas() {
           canvas = new CanvasTilesRenderer({
             canvas: element.children()[0],
+            token: Auth.getToken(),
             url: function(scale, x, y) { 
               var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
               return "//stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
@@ -220,20 +221,6 @@ angular.module('www2App')
           };
 
           function updateTileUrl() {
-            function makeTileUrlFunc(boatId, starts, end) {
-              if (starts) {
-                return function (scale, x, y) {
-                  return "/api/tiles/raw/"
-                    + scale + '/' + x + '/' + y + '/' + boatId + '/'
-                    + starts + '/' + end;
-                };
-              } else {
-                return function (scale, x, y) {
-                  return "/api/tiles/raw/"
-                    + scale + '/' + x + '/' + y + '/' + boatId;
-                };
-              }
-            }
             if (scope.selectedCurve) {
               var startsAfter = curveStartTimeStr(scope.selectedCurve);
               var endsBefore = curveEndTimeStr(scope.selectedCurve);
@@ -242,9 +229,7 @@ angular.module('www2App')
               var endsBefore = undefined;
             }
               
-            scope.pathLayer.setUrl(makeTileUrlFunc(scope.boat._id,
-                                                   startsAfter,
-                                                   endsBefore));
+            scope.pathLayer.buildUrl(scope.boat._id,startsAfter,endsBefore);
           }
 
           var selectEventByTime = function(time) {
@@ -253,6 +238,11 @@ angular.module('www2App')
 
             if(scope.eventList.length > 0) {
               for(var i in scope.eventList) {
+                //
+                // avoid crash when data are inconsistent 
+                if(!scope.eventList[i].dataAtEventTime){
+                  continue;
+                }
                 var eventTime = new Date(scope.eventList[i].dataAtEventTime.time);
                 var diffTime = Math.abs(eventTime.getTime() - time.getTime());
 
@@ -282,6 +272,7 @@ angular.module('www2App')
               scope.pathLayer.setCurrentTime(newValue);
               scope.pathLayer.queueSeconds = $location.search().queue;
               scope.pathLayer.tailColor = $location.search().tailColor;
+              scope.pathLayer.allTrack = $location.search().allTrack;
               selectEventByTime(newValue);
             }
           });

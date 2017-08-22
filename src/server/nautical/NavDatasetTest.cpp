@@ -12,11 +12,12 @@ using namespace sail;
 
 namespace {
   auto offset = TimeStamp::UTC(2016, 02, 25, 12, 07, 0);
+  const int numSamples = 60;
 
   std::shared_ptr<Dispatcher> makeTestDispatcher() {
 
     sail::TimedSampleCollection<Velocity<double> >::TimedVector samples;
-    for (int i = 0; i < 60; i++) {
+    for (int i = 0; i < numSamples; i++) {
       samples.push_back(TimedValue<Velocity<double> >(offset + Duration<double>::seconds(i), Velocity<double>::knots(0.3*i)));
     }
     EXPECT_EQ(samples.size(), 60);
@@ -76,8 +77,6 @@ TEST(NavDatasetTest, ConstructionAndSlicing) {
     EXPECT_NEAR(value.value.knots(), 0.3*13, 1.0e-6);
   }
 
-  EXPECT_TRUE(bounded.samples<GPS_POS>().empty());
-
   bounded.outputSummary(&(std::cout));
 }
 
@@ -102,29 +101,22 @@ TEST(NavDatasetTest, TestAddChannels) {
     {offset + 0.6*s,    4.0*kn},
     {offset + 1233.0*s, 13.0*kn}
   };
-  auto a = makeDispatchDataFromSamples<Code>("NMEA0183: A", A);
 
   TimedVector A2{
     {offset + 0.4*s,    17.0*kn}
   };
-  auto a2 = makeDispatchDataFromSamples<Code>("NMEA0183: A", A2);
 
   NavDataset ds;
-  auto ds2 = ds.overrideChannels(std::map<DataCode,
-      std::map<std::string, std::shared_ptr<DispatchData>>>{
-    {Code, {{"NMEA0183: A", a}}}
-  });
+  NavDataset ds2 = ds.addChannel<T>(Code, "NMEA0183: A", A);
+
   EXPECT_FALSE(bool(ds.dispatcher()));
   EXPECT_TRUE(bool(ds2.dispatcher()));
-  EXPECT_EQ(ds2.dispatcher()->maxPriority(), Dispatcher::defaultPriority + 1);
-  EXPECT_EQ(ds2.dispatcher()->dispatchDataForSource(Code, "NMEA0183: A"), a);
   EXPECT_EQ(ds2.samples<Code>().size(), 3);
   EXPECT_NEAR(ds2.samples<Code>()[1].value.knots(), 4.0, 1.0e-6);
 
-  auto ds3 = ds2.overrideChannels("NMEA0183: A", {{Code, a}});
+  NavDataset ds3 = ds2.replaceChannel<T>(Code, "NMEA0183: A", A2);
   EXPECT_TRUE(bool(ds3.dispatcher()));
-  EXPECT_EQ(ds3.dispatcher()->sourcePriority("NMEA0183: A"),
-      Dispatcher::defaultPriority + 2);
+  EXPECT_EQ(ds3.samples<Code>().size(), 1);
 }
 
 TEST(NavDatasetTest, TestReplaceChannel) {
@@ -153,5 +145,59 @@ TEST(NavDatasetTest, StripChannel) {
 
   NavDataset stripped(navs.stripChannel(AWS));
   EXPECT_EQ(0, stripped.dispatcher()->values<AWS>().size());
+}
+
+TEST(NavDatasetTest, CreateMergedChannel) {
+  // 60 samples AWS
+  std::shared_ptr<Dispatcher> dispatcher = makeTestDispatcher();
+  NavDataset navs(dispatcher);
+
+  dispatcher->setSourcePriority("NMEA0183: test", 2);
+  dispatcher->setSourcePriority("NMEA0183: test2", 0);
+
+  TimedSampleCollection<Velocity<>>::TimedVector aws{
+    // This sample should be ignored, because it overlaps with the other
+    // channel and the prio is lower
+    {offset + 5.0 *s, 13.0*kn},
+    {offset + 1000.0 *s, 13.0*kn},
+    {offset + 1001.0 *s, 13.1*kn},
+  };
+
+  NavDataset twoChans =
+    navs.addChannel<Velocity<>>(AWS, "NMEA0183: test2", aws);
+
+  NavDataset merged = twoChans.createMergedChannels(std::set<DataCode>{AWS});
+
+  auto samples = merged.samples<AWS>();
+  EXPECT_EQ(numSamples + 2, samples.size());
+
+  // All the values for the first channel
+  for (int i = 0; i < numSamples; ++i) {
+    EXPECT_EQ(0.3 * i, samples[i].value.knots());
+  }
+
+  // The two values from the second channel
+  EXPECT_EQ(13.0, samples[numSamples + 0].value.knots());
+  EXPECT_EQ(13.1, samples[numSamples + 1].value.knots());
+
+}
+
+TEST(NavDatasetTest, FailIfReadingUnmerged) {
+  NavDataset navs(makeTestDispatcher());
+
+  TimedSampleCollection<Velocity<>>::TimedVector aws{
+    {offset + 5.0 *s, 13.0*kn},
+    {offset + 1001.0 *s, 13.1*kn},
+  };
+
+  NavDataset twoChans =
+    navs.addChannel<Velocity<>>(AWS, "NMEA0183: test2", aws);
+
+  // AWS contains two channel, we merge AWA (but not AWS)
+  // so, there are still two channels in unmerged.
+  NavDataset unmerged = twoChans.createMergedChannels(std::set<DataCode>{AWA});
+
+  // Trying to read without a valid channel selection is an error
+  EXPECT_ANY_THROW(unmerged.samples<AWS>());
 }
 

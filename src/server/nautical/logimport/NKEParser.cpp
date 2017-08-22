@@ -556,7 +556,49 @@ NKEData NKEParser::load(TimeStamp offset, std::istream &file) {
   return NKEData(offset, typeInds, values);
 }
 
-NavDataset NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
+
+template <typename T>
+typename TimedSampleCollection<T>::TimedVector makeTimedVector(
+    const Array<TimeStamp> &times,
+    const Array<T> &values) {
+
+  typename TimedSampleCollection<T>::TimedVector dst;
+
+  if (times.size() != values.size()) {
+    LOG(FATAL) << "Incompatible array sizes";
+    return dst;
+  }
+
+  int n = times.size();
+  for (int i = 0; i < n; i++) {
+    dst.push_back(TimedValue<T>(times[i], values[i]));
+  }
+
+  return dst;
+}
+
+TimedSampleCollection<
+  GeographicPosition<double>>::TimedVector makeTimedPosVector(
+      const Array<TimeStamp> &times,
+      const Array<Angle<double>> &lon,
+      const Array<Angle<double>> &lat) {
+  int n = times.size();
+  TimedSampleCollection<GeographicPosition<double>>::TimedVector dst;
+  if (n != lon.size() || n != lat.size()) {
+    LOG(FATAL) << "Incompatible array sizes";
+    return dst;
+  }
+
+  for (int i = 0; i < n; i++) {
+    dst.push_back(TimedValue<GeographicPosition<double>>(
+        times[i],
+        GeographicPosition<double>(lon[i], lat[i])));
+  }
+
+  return dst;
+}
+
+NavDataset NKEParser::makeNavs(NKEData data) {
   Array<TimeStamp> times = data.timeStamps();
 
   if (!data.hasAllFields({
@@ -597,22 +639,23 @@ NavDataset NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
       data.getByType(type("Longitude")).angles();
 
   int count = data.rows();
-  Array<Nav> dst(count);
-  for (int i = 0; i < count; i++) {
-    GeographicPosition<double> pos(longitude[i], latitude[i]);
-
-    auto &x = dst[i];
-    x.setBoatId(boatId);
-    x.setTime(times[i]);
-    x.setAws(aws[i]);
-    x.setAwa(awa[i]);
-    x.setMagHdg(magHdg[i]);
-    x.setWatSpeed(watSpeed[i]);
-    x.setGpsSpeed(gpsSpeed[i]);
-    x.setGpsBearing(gpsBearing[i]);
-    x.setGeographicPosition(pos);
-  }
-  return NavCompat::fromNavs(dst);
+  std::string sourceName = "NKEParser";
+  auto d = std::make_shared<Dispatcher>();
+  d->insertValues<Velocity<double>>(
+      AWS, sourceName, makeTimedVector(times, aws));
+  d->insertValues<Angle<double>>(
+      AWA, sourceName, makeTimedVector(times, awa));
+  d->insertValues<Angle<double>>(
+      MAG_HEADING, sourceName, makeTimedVector(times, magHdg));
+  d->insertValues<Velocity<double>>(
+      WAT_SPEED, sourceName, makeTimedVector(times, watSpeed));
+  d->insertValues<Velocity<double>>(
+      GPS_SPEED, sourceName, makeTimedVector(times, gpsSpeed));
+  d->insertValues<Angle<double>>(
+      GPS_BEARING, sourceName, makeTimedVector(times, gpsBearing));
+  d->insertValues<GeographicPosition<double>>(
+      GPS_POS, sourceName, makeTimedPosVector(times, longitude, latitude));
+  return NavDataset(d);
 }
 
 

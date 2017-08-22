@@ -16,6 +16,10 @@ describe('Service: userDB', function () {
     // Set up the mock http service responses
     $httpBackend = $injector.get('$httpBackend');
 
+    // I do not understand why angular is fetching home.html.
+    // But it does.
+    $httpBackend.when('GET', 'app/home/home.html').respond('');
+
     userLookupHandler = $httpBackend.when('GET', '/api/users/12345')
       .respond({_id: '12345', name: 'Test User'});
 

@@ -25,6 +25,8 @@ class DispatcherTrueWindEstimator {
 
   static const char* sourceName() { return "Anemomind estimator"; }
 
+  std::string info() const;
+
  private:
   Dispatcher* _dispatcher;
   TrueWindEstimator::Parameters<double> _parameters;

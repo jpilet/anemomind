@@ -1,0 +1,56 @@
+.icon-flag, .icon-note, .icon-photo{
+  width: 19px;
+  height: 23px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.icon-flag{
+  width: 20px;
+  background-image: url(../img/icon-flag.png);
+}
+
+.icon-note{
+  background-image: url(../img/icon-note.png);
+}
+
+.icon-photo{
+  background-image: url(../img/icon-photo.png);
+}
+
+
+
+.cursor-pointer{
+  cursor:pointer;
+}
+
+.fa-1x5{
+  font-size: 1.5em;
+}
+
+.fa-7x {
+  font-size: 8em;
+}
+
+
+
+.slick-arrow {
+    position: absolute;
+    top: 30px;
+    height: 28px;
+    width: 14px;
+    background-color: transparent;
+    border: none;
+    background-size: contain;
+    padding: 0;
+    z-index: 1;
+    outline: none;
+}
+.slick-arrow.slick-prev {
+    background: url('/assets/images/left_arrow.svg') no-repeat;
+    left: 10px;
+}
+.slick-arrow.slick-next {
+    background: url('/assets/images/right_arrow.svg') no-repeat;
+    right: 10px;
+}

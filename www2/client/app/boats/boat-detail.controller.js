@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('BoatDetailCtrl', function ($scope, $stateParams, Auth, $http, userDB) {
+  .controller('BoatDetailCtrl', function ($scope, $stateParams, Auth, $http, userDB, boatList, $location) {
     $scope.boat = { sails: [] };
     $scope.invitationMessage = "";
     $scope.invitedEMail = "";
@@ -9,6 +9,7 @@ angular.module('www2App')
     $scope.users = {};
     $scope.newSails = "";
     $scope.isAdmin = Auth.isAdmin;
+    $scope.boatId=$stateParams.boatId;
 
     var resolveUser = function(user) {
       userDB.resolveUser(user, function(user) {
@@ -16,20 +17,22 @@ angular.module('www2App')
       });
     };
 
-    $http.get('/api/boats/' + $stateParams.boatId)
-    .success(function(data, status, headers, config) {
-      $scope.boat = data;
-      for (var i in data.admins) {
-        resolveUser(data.admins[i]);
-      }
-      for (var i in data.readers) {
-        resolveUser(data.readers[i]);
-      }
-    });
+    boatList.boat($stateParams.boatId)
+      .then(function (boat) {
+        $scope.boat = boat;
+        boat.admins.forEach(resolveUser);
+        boat.readers.forEach(resolveUser);
+      });
 
-    $scope.saveBoat = function() {
-      $http.put('/api/boats/' + $stateParams.boatId, $scope.boat)
-      .success(function(data) { $scope.boat = data; });
+
+    $scope.saveBoat = function(navigateAway) {
+      boatList.save($stateParams.boatId, $scope.boat)
+        .success(function(boat) { 
+          $scope.boat = boat; 
+          if (navigateAway) {
+            $location.path('/boats/' + boat._id);
+          }
+        });
     }
 
     $scope.addMember = function() {
@@ -38,7 +41,7 @@ angular.module('www2App')
         admin: $scope.invitedAdmin
       };
 
-      $http.put('/api/boats/' + $stateParams.boatId + '/invite', invitation)
+      boatList.addMember($stateParams.boatId,invitation)
       .success(function(data, status, header, config) {
         if (data.message) {
           $scope.invitationMessage = data.message;

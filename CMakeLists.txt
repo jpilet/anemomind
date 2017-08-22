@@ -9,11 +9,14 @@ cmake_minimum_required(VERSION 2.8.11)
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include("cmake/FindCXXFeatures.cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_COMPILER_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_COMPILER_FLAGS} -march=native")
 
 include("cmake/GTest.cmake")
 
 set(FULL_BUILD ON CACHE BOOL "enables full build or restrict to minimum")
+
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
 if (${FULL_BUILD})
   include("cmake/ADOLC.cmake")

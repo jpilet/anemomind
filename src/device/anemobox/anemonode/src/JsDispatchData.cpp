@@ -1,6 +1,7 @@
 
 #include <device/anemobox/anemonode/src/JsDispatchData.h>
 
+#include <device/anemobox/BinarySignal.h>
 #include <device/anemobox/Dispatcher.h>
 
 using namespace v8;
@@ -35,12 +36,23 @@ class GetValueVisitor : public DispatchDataVisitor {
       timestamp_ = val.time;
     }
   }
+
   virtual void run(DispatchLengthData *velocity) {
     auto values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
       value_ = NanNew(val.value.nauticalMiles());
+      timestamp_ = val.time;
+    }
+  }
+
+  virtual void run(DispatchBinaryEdge *edge) {
+    auto values = edge->dispatcher()->values();
+    valid_ = values.size() > index_;
+    if (valid_) {
+      auto val = values.back(index_);
+      value_ = NanNew(val.value == BinaryEdge::ToOn ? true : false);
       timestamp_ = val.time;
     }
   }
@@ -115,6 +127,9 @@ class CountValuesVisitor : public DispatchDataVisitor {
   virtual void run(DispatchAbsoluteOrientationData *v) {
     count_ = v->dispatcher()->values().size();
   }
+  virtual void run(DispatchBinaryEdge *v) {
+    count_ = v->dispatcher()->values().size();
+  }
   int numValues() const { return count_; }
 
  private:
@@ -148,6 +163,17 @@ class SetValueVisitor : public DispatchDataVisitor {
           velocity->dataCode(),
           source_.c_str(),
           Length<double>::nauticalMiles(value_->ToNumber()->Value()));
+    }
+  }
+  virtual void run(DispatchBinaryEdge *edge) {
+    success_ = value_->IsBoolean();
+    if (!success_) {
+      error_ = "a boolean is expected.";
+    } else {
+      dispatcher_->publishValue(
+          edge->dataCode(),
+          source_.c_str(),
+          value_->ToBoolean()->Value() ? BinaryEdge::ToOn : BinaryEdge::ToOff);
     }
   }
   virtual void run(DispatchGeoPosData *) {
@@ -222,6 +248,7 @@ class JsListener:
   public Listener<Angle<double>>,
   public Listener<Velocity<double>>,
   public Listener<Length<double>>,
+  public Listener<BinaryEdge>,
   public Listener<GeographicPosition<double>>,
   public Listener<TimeStamp>,
   public Listener<AbsoluteOrientation> {
@@ -242,6 +269,7 @@ class JsListener:
   virtual void onNewValue(const ValueDispatcher<GeographicPosition<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<TimeStamp> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<AbsoluteOrientation> &) { valueChanged(); }
+  virtual void onNewValue(const ValueDispatcher<BinaryEdge> &) { valueChanged(); }
 
   void valueChanged() {
     GetValueVisitor getValue(0);
@@ -282,6 +310,10 @@ class GetTypeAndUnitVisitor : public DispatchDataVisitor {
   virtual void run(DispatchAbsoluteOrientationData *) {
     type_ = "Absolute orientation";
     unit_ = "heading, roll, and pitch, in degrees";
+  }
+  virtual void run(DispatchBinaryEdge *) {
+    type_ = "binary signal";
+    unit_ = "boolean";
   }
 
   const std::string& type() const { return type_; }

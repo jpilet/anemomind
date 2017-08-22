@@ -1,3 +1,4 @@
+var settings = require('./GlobalSettings.js');
 var mb = require('endpoint/endpoint.sqlite.js');
 var naming = require('endpoint/naming.js');
 var file = require('endpoint/logfile.js');
@@ -12,15 +13,14 @@ var DelayedCall = require('./DelayedCall.js');
 var sync = require('./fssync.js').sync;
 
 // The path '/media/sdcard/' is also used in logger.js
-var mailRoot = '/media/sdcard/mail2/';
+var mailRoot = settings.mailRoot;
 var doRemoveLogFiles = false;
-var sentName = 'sentlogs';
+var sentName = settings.sentLogsSubPath;
 var closeTimeoutMillis = 30000;
 var script = require('endpoint/script.js');
 var triggerSync = require('./sync.js').triggerSync;
 var endpoints = {};
 var files = require('endpoint/files.js');
-
 var estimator = require('./estimator.js');
 
 function endpointCount() {
@@ -316,8 +316,6 @@ function reset(cb) {
 module.exports.setMailRoot = function(newMailRoot) {
   mailRoot = newMailRoot;
 }
-
-
 
 module.exports.reset = reset;
 module.exports.getName = getName;

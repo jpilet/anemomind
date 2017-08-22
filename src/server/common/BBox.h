@@ -41,6 +41,17 @@ class BBox {
     }
   }
 
+  void extend(const std::initializer_list<double> &list) {
+    assert(N == list.size());
+    T v[N];
+    int counter = 0;
+    for (auto x: list) {
+      v[counter++] = x;
+    }
+    assert(counter == N);
+    extend(v);
+  }
+
   void extend(const ThisType &other) {
     for (int i = 0; i < N; i++) {
       _span[i].extend(other._span[i]);

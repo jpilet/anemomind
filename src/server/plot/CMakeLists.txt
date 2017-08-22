@@ -29,6 +29,10 @@ add_library(plot_CairoUtils
 
 target_link_libraries(plot_CairoUtils
   ${CAIRO_LIBRARIES}
+  plot_PlotUtils
+  plot_AxisTicks
+  common_Span
+  common_BBox
   )
   
 add_library(plot_PlotUtils
@@ -41,4 +45,40 @@ cxx_test(plot_PlotUtilsTest
   gtest_main
   plot_PlotUtils
   common_Env
+  )
+
+add_library(plot_AxisTicks
+  AxisTicks.h
+  AxisTicks.cpp
+  )
+
+target_link_libraries(plot_AxisTicks
+  common_logging
+  common_string
+  common_TimeStamp
+  )
+
+cxx_test(plot_AxisTicksTest
+  AxisTicksTest.cpp
+  plot_AxisTicks
+  gtest_main
+  common_string
+  common_TimeStamp
+  )
+
+add_library(plot_ColorMap
+  ColorMap.h
+  ColorMap.cpp
+  )
+
+target_link_libraries(plot_ColorMap
+  common_TimeStamp
+  )
+
+add_executable(plot_plotDemo
+  plotDemo.cpp
+  )
+
+target_link_libraries(plot_plotDemo
+  plot_CairoUtils
   )

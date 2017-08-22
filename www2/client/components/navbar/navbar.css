@@ -1,5 +1,146 @@
+.navbar-anemomind .navbar-nav > li > a:hover, 
+.navbar-anemomind .navbar-nav > li > a:focus {
+  color: #000;  /*Sets the text hover color on navbar*/
+}
+
+.navbar-anemomind .navbar-nav > .active > a, 
+.navbar-anemomind .navbar-nav > .active > a:hover, 
+.navbar-anemomind .navbar-nav > .active > a:focus {
+  color: #ff0033; /*BACKGROUND color for active*/
+  background-color: transparent;
+  border-bottom: 4px solid #ff0033;
+}
+
+.navbar-anemomind {
+  color: #ff0033;
+  background-color: rgba(255,255,255,0.92);
+  border-color: transparent;
+}
+
+.navbar-anemomind .navbar-user{
+  text-transform:none!important;  
+}
+
+.navbar-anemomind .navbar-text{
+  color: #ff0033;
+  padding: 15px 10px 5px 5px;
+  margin: 0 10px;
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 8px;  
+}
+
+.navbar-anemomind .dropdown-menu > li > a:hover,
+.navbar-anemomind .dropdown-menu > li > a:focus {
+  color: #ff0033;
+  text-decoration: none;
+  background-color: transparent;  /*change color of links in drop down here*/
+}
+
+.navbar-anemomind .nav > li > a:hover,
+.navbar-anemomind .nav > li > a:focus {
+  text-decoration: none;
+  border-bottom: 2px solid #ff0033;
+  background-color: transparent; /*Change rollover cell color here*/
+}
+
+.navbar-anemomind .navbar-nav > li > a {
+  color: #ff0033; /*Change active text color here*/
+  text-transform:uppercase;
+  padding: 15px 10px 5px 5px;
+  margin: 0 10px;  
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 8px;  
+}
+.navbar-anemomind .navbar-nav .dropdown-menu > li > a{
+  color: #ff0033;
+}
+
+.navbar-anemomind .navbar-nav > .open > a, 
+.navbar-anemomind .navbar-nav > .open > a:hover, 
+.navbar-anemomind .navbar-nav > .open > a:focus{
+  color: inherit;
+  border-color: transparent;
+}
+
+.navbar-anemomind .navbar-nav .dropdown-menu > .active > a, 
+.navbar-anemomind .navbar-nav .dropdown-menu > .active > a:hover,
+.navbar-anemomind .navbar-nav .dropdown-menu > .active > a:focus{
+  background-color: #ff0033;
+  color: #fff;
+}
+
+
+.navbar-anemomind .navbar-brand,
+.navbar-anemomind .navbar-brand:hover{
+  color: #ff0033;
+  font-size: 30px;
+  margin-right: 20px;    
+  margin-top: 5px;
+  font-weight: 900;
+}
+
+/* hamburger */
+.navbar-anemomind .navbar-toggle{
+  border-color: #ff0033;
+}
+.navbar-anemomind .navbar-toggle .icon-bar{
+  background-color: #ff0033;
+}
+
+/**/
+
+@media (max-width: 768px) {
+  .navbar-anemomind .navbar-nav > li > a {
+    padding: 15px 1px 1px 1px;
+    margin: 0 10px;
+  }
+
+  .navbar-anemomind .navbar-brand,
+  .navbar-anemomind .navbar-brand:hover{
+    margin-right: 10px;    
+  }
+
+  .navbar-anemomind .navbar-nav .open .dropdown-menu{
+    border-bottom: 4px solid #eee;    
+  }
+
+  .navbar-anemomind  .navbar-collapse {
+    background-color: #fff;
+    border-bottom: 4px solid #eee;
+  }
+  
+}
+
 .navbar-logo {
 	padding-top: 5px;
     margin-right: 50px;
     float: left;
+}
+@media only screen and (max-width: 767px) {
+    .navbar-logo {
+        margin-left: 15px;
+    }
+}
+
+
+.navbar {
+    position: relative;
+}
+.navbar .navbar-header,
+.navbar .navbar-right {
+    position: absolute;
+}
+.navbar .navbar-header {
+    left: 20px;
+}
+.navbar .navbar-right {
+    right: 20px;
+}
+@media only screen and (max-width: 1450px) {
+    .navbar .navbar-header,
+    .navbar .navbar-right {
+        position: static;
+    }
 }

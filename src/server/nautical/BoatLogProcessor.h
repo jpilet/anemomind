@@ -8,6 +8,7 @@
 
 #include <Poco/Path.h>
 #include <server/common/ArgMap.h>
+#include <server/common/DOMUtils.h>
 #include <server/nautical/Nav.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
@@ -37,10 +38,13 @@ struct BoatLogProcessor {
   bool process(ArgMap* amap);
   void readArgs(ArgMap* amap);
   bool prepare(ArgMap* amap);
+  void infoNavDataset(
+      const std::string& info, const NavDataset& ds);
 
   bool _debug = false;
   Nav::Id _boatid;
   Poco::Path _dstPath;
+  std::string _htmlReportName;
   TileGeneratorParameters _tileParams;
   ChartTileSettings _chartTileSettings;
   GpsFilterSettings _gpsFilterSettings;
@@ -53,8 +57,18 @@ struct BoatLogProcessor {
   std::string _resumeAfterPrepare;
   std::string _savePreparedData;
   bool _verboseCalibrator = false;
+  bool _exploreGrammar = false;
+  bool _logGrammar = false;
+  bool _saveDefaultCalib = false;
 
-  mongo::DBClientConnection db;
+  MongoDBConnection db;
+
+  DOM::Node _htmlReport;
+
+private:
+  void grammarDebug(
+      const std::shared_ptr<HTree> &fulltree,
+      const NavDataset &resampled) const;
 };
 
 int mainProcessBoatLogs(int argc, const char **argv);

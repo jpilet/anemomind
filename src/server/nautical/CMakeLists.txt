@@ -28,6 +28,7 @@ cxx_test(nautical_BoatLogProcessorTest
          common_Env
          gtest_main
         )
+target_depends_on_mongoc(nautical_BoatLogProcessorTest)        
 
 add_library(nautical_HTreeJson
             HTreeJson.h                     
@@ -108,6 +109,7 @@ add_library(nautical_BoatLogProcessor
             BoatLogProcessor.cpp
             BoatLogProcessor.h
            )
+target_depends_on_mongoc(nautical_BoatLogProcessor)
 target_link_libraries(nautical_BoatLogProcessor
                       anemobox_SimulateBox
                       common_HierarchyJson
@@ -121,12 +123,14 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_TargetSpeed
                       nautical_downsamplegps
                       nautical_grammars_WindOrientedGrammar
+                      nautical_grammars_TreeExplorer
                       nautical_tiles_TileUtils
                       common_ArgMap
                       plot_gnuplot
                       common_ScopedLog
                       logimport_LogLoader
                       tiles_ChartTiles
+                      common_DOMUtils
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)
@@ -137,7 +141,7 @@ add_executable(nautical_processBoatLogs
 target_link_libraries(nautical_processBoatLogs
                       nautical_BoatLogProcessor
                      )              
-
+target_depends_on_mongoc(nautical_processBoatLogs)        
 
 
 
@@ -304,6 +308,10 @@ add_library(nautical_InvWGS84
 
 target_depends_on_ceres(nautical_InvWGS84)
 
+target_link_libraries(nautical_InvWGS84
+  common_StreamUtils
+  )
+
 cxx_test(nautical_InvWGS84Test
          InvWGS84Test.cpp
          gtest_main
@@ -328,3 +336,8 @@ target_link_libraries(nautical_MaxSpeed
                       common_TimeStamp
                       )
 
+
+add_executable(nautical_boatDatInfo boatDatInfo.cpp)
+target_link_libraries(nautical_boatDatInfo 
+  anemobox_DispatcherTrueWindEstimator
+  )

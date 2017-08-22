@@ -1,10 +1,9 @@
 var dispatcher = require('./build/Release/anemonode').dispatcher;
 var version = require('./version');
-
+var logRoot = '/media/sdcard/logs/';
 console.log('Anemobox firmware version ' + version.string);
 
 var nmea0183PortPath = '/dev/ttyMFD1';
-var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 var withLocalEndpoint = true;
 var withLogger = true;
@@ -12,7 +11,7 @@ var withGps = true;
 var withTimeEstimator = true;
 var withSetTime = true;
 var withBT = false;
-var echoGpsOnNmea = false;
+var echoGpsOnNmea = true;
 var withEstimator = true;
 var logInternalGpsNmea = false;
 var logExternalNmea = true;
@@ -21,12 +20,22 @@ var withIMU = true;
 var withCUPS = false;
 var withNMEA2000 = true;
 var withWatchdog = !process.env['NO_WATCHDOG'];
-var withNmea0183Udp = true;
-
 var spiBugDetected = false;
-
 var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
+var settings = require('./components/GlobalSettings.js');
+var dof = require('./components/deleteOldFiles.js');
+
+// To free up space if possible.
+function cleanOld() {
+  dof.easyCleanFolder(settings.sentLogsPath, function(err) {
+    console.log("Old files cleanup failed");
+    console.log(err);
+  });
+}
+
+// On startup, but also later, when we post files.
+cleanOld();
 
 var btrpcFuncTable = {};
 if (withBT) {
@@ -44,16 +53,21 @@ if (withLogger) {
 if (withLocalEndpoint) {
   var localEndpoint = require('./components/LocalEndpoint.js');
   var sync = require('./components/sync.js');
-
-  localEndpoint.postRemainingLogFiles(logRoot, function(err, files) {
-    if (err) {
-      console.log('Failed to post logfiles at startup:');
-      console.log(err);
-    } else if (files && 0 < files.length) {
-      console.log('Posted these logfiles at startup:');
-      console.log(files);
-    }
+  function postRemaining(context) {
+    localEndpoint.postRemainingLogFiles(logRoot, function(err, files) {
+      if (err) {
+        console.log('Failed to post logfiles at "%s":', context);
+        console.log(err);
+      } else if (files && 0 < files.length) {
+        console.log('Posted these logfiles at "%s":', context);
+        console.log(files);
+      }
+    });
+  }
+  config.events.on('change', function() {
+    postRemaining('config change');
   });
+  postRemaining('startup');
 }
 
 if (withBT) {
@@ -84,9 +98,12 @@ dispatcher.setSourcePriority("NMEA2000/0", -10);
 
 // Internal GPS with output to NMEA0183
 var gps = (withGps ?  require('./components/gps') : {readGps:function(){}});
+var rmcExpr = /\$GNRMC(,[^*]*)*\*[A-Z0-9]{2}/g;
+
 function gpsData(data) {
   if (echoGpsOnNmea) {
-    nmea0183port.emitNmea0183Sentence(data);
+    var s = (data + '').match(rmcExpr).join('\r\n')+'\r\n';
+    nmea0183port.emitNmea0183Sentence(s);
   }
   if (withLogger && logInternalGpsNmea) {
     logger.logText("Internal GPS NMEA", data.toString('ascii'));
@@ -128,6 +145,7 @@ var getCurrentTime = withTimeEstimator?
 
 function startLogging() {
   logger.startLogging(logRoot, logInterval, getCurrentTime, function(path) {
+    cleanOld();
     if (withLocalEndpoint) {
       localEndpoint.postLogFile(path, function(err, remaining) {
         if (err) {
@@ -181,29 +199,7 @@ if (withWatchdog) {
   require('./components/watchdog.js').startWatchdog();
 }
 
-var wifi = require('./components/wifi.js');
-config.events.on('change', wifi.applyNetworkConfig);
-
 var callrpc = require('./components/callrpc.js');
 callrpc.WITH_BT = withBT;
 callrpc.WITH_HTTP = withHttp;
 
-if (withNmea0183Udp) {
-  var nmea0183udp = require('./components/nmea0183udp.js');
-  function listenUdpPort() {
-    config.get(function(err, cfg) {
-      // default port: Box WiFi NKE
-      var port = cfg.nmea0183UdpPort || 50000;
-      nmea0183udp.listenToUdpPort(
-          port,
-          function(source, data) { 
-            if (withLogger && logExternalNmea) {
-              logger.logText(source, data.toString('ascii'));
-            }
-          }
-      );
-    });
-  }
-  listenUdpPort();
-  config.events.on('change', listenUdpPort);
-}

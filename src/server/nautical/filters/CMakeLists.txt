@@ -61,9 +61,13 @@ add_library(filters_SmoothGpsFilter
 
 target_link_libraries(filters_SmoothGpsFilter
                       filters_GpsUtils
-                      nonlinear_CeresTrajectoryFilter
-                      math_Resampler
+                      math_SampleUtils
                       common_Progress
+                      common_DOMUtils
+                      plot_CairoUtils
+                      plot_PlotUtils
+                      common_BBox
+                      math_Curve2dFilter
                      )
 
 cxx_test(filters_SmoothGpsFilterTest

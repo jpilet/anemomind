@@ -32,6 +32,15 @@ class TimedSampleCollection : public SampledSignal<T> {
 
    void insert(const TimedVector& entries);
 
+   // This method will insert a range of elements at
+   // the front of the collection. It is your responsibility
+   // to ensure that (i) no element inserted is older than any
+   // element already in the collection and (ii) the elements
+   // being inserted are chronologically ordered.
+   void insertAtFront(
+       typename TimedVector::const_iterator begin,
+       typename TimedVector::const_iterator end);
+
    // If inserting in chronological order, use append instead of insert.
    // Crashes or undefined behavior if x.time > lastTimeStamp
    void append(const TimedValue<T>& x);
@@ -97,6 +106,18 @@ void TimedSampleCollection<T>::insert(const TimedVector& entries) {
   sort(_samples.begin(), _samples.end());
   trim();
 }
+
+template <typename T>
+void TimedSampleCollection<T>::insertAtFront(
+    typename TimedVector::const_iterator begin,
+    typename TimedVector::const_iterator end) {
+  assert(std::is_sorted(begin, end));
+  assert(implies(
+    0 < _samples.size() && begin < end,
+    *(end - 1) < *_samples.begin()));
+  _samples.insert(_samples.begin(), begin, end);
+}
+
 
 template <typename T, typename Iterator>
 Optional<TimedValue<T> > findNearestTimedValue(Iterator begin, Iterator end, TimeStamp t) {

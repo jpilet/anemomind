@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 
+#include <device/anemobox/BinarySignal.h>
 #include <device/anemobox/ValueDispatcher.h>
 #include <server/common/string.h>
 
@@ -53,7 +54,8 @@ namespace sail {
   X(TARGET_VMG, 13, "targetVmg", Velocity<>, "Target VMG") \
   X(VMG, 14, "vmg", Velocity<>, "VMG") \
   X(ORIENT, 15, "orient", AbsoluteOrientation, "Absolute anemobox orientation") \
-  X(RUDDER_ANGLE, 16, "rudderAngle", Angle<>, "Rudder angle")
+  X(RUDDER_ANGLE, 16, "rudderAngle", Angle<>, "Rudder angle") \
+  X(VALID_GPS, 17, "validGps", BinaryEdge, "Valid GPS periods")
 
 enum DataCode {
 #define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
@@ -64,6 +66,8 @@ enum DataCode {
 };
 
 template <DataCode Code> struct TypeForCode { };
+
+const std::vector<DataCode>& allDataCodes();
 
 #define DECL_TYPE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
 template<> struct TypeForCode<HANDLE> { typedef TYPE type; };
@@ -135,7 +139,7 @@ class TypedDispatchDataReal : public TypedDispatchData<T> {
   virtual const ValueDispatcher<T> *dispatcher() const { return &_dispatcher; }
 
   virtual void setValue(T value) { _dispatcher.setValue(value); }
-
+  virtual ~TypedDispatchDataReal() {}
  private:
   ValueDispatcher<T> _dispatcher;
 };
@@ -145,11 +149,13 @@ typedef TypedDispatchData<Length<double>> DispatchLengthData;
 typedef TypedDispatchData<GeographicPosition<double>> DispatchGeoPosData;
 typedef TypedDispatchData<TimeStamp> DispatchTimeStampData;
 typedef TypedDispatchData<AbsoluteOrientation> DispatchAbsoluteOrientationData;
+typedef TypedDispatchData<BinaryEdge> DispatchBinaryEdge;
 
 template <typename T>
 class DispatchDataProxy : public TypedDispatchData<T> {
  public:
-   DispatchDataProxy(DataCode code) : TypedDispatchData<T>(code, "") { }
+   DispatchDataProxy(DataCode code) : TypedDispatchData<T>(code, ""),
+     _forward(nullptr) { }
 
   virtual ValueDispatcher<T> *dispatcher() { return &_proxy; }
   virtual const ValueDispatcher<T> *dispatcher() const {
@@ -166,7 +172,7 @@ class DispatchDataProxy : public TypedDispatchData<T> {
   TypedDispatchData<T> *realDispatcher() const { return _forward; }
 
   virtual void setValue(T value) { _proxy.setValue(value); }
-    
+  virtual ~DispatchDataProxy() {}
  private:
   ValueDispatcherProxy<T> _proxy;
   TypedDispatchData<T>* _forward;
@@ -180,6 +186,7 @@ class DispatchDataVisitor {
   virtual void run(DispatchGeoPosData *pos) = 0;
   virtual void run(DispatchTimeStampData *timestamp) = 0;
   virtual void run(DispatchAbsoluteOrientationData *orient) = 0;
+  virtual void run(DispatchBinaryEdge *data) = 0;
   virtual ~DispatchDataVisitor() {}
 };
 
@@ -207,7 +214,9 @@ class Dispatcher : public Clock {
   const std::map<DataCode, std::shared_ptr<DispatchData>>& dispatchers()
     const { return _currentSource; }
 
-  const std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>> &allSources() const {
+  const std::map<DataCode,
+    std::map<std::string,
+      std::shared_ptr<DispatchData>>> &allSources() const {
     return _data;
   }
 
@@ -218,7 +227,8 @@ class Dispatcher : public Clock {
 
   // Return or create a DispatchData for the given source.
   template <typename T>
-  TypedDispatchData<T>* createDispatchDataForSource(DataCode code, const std::string& source, int size);
+  TypedDispatchData<T>* createDispatchDataForSource(
+      DataCode code, const std::string& source, int size);
 
   DispatchData* dispatchData(DataCode code) const {
     auto it = _currentSource.find(code);
@@ -242,7 +252,7 @@ class Dispatcher : public Clock {
   template <DataCode Code>
   TypedDispatchData<typename TypeForCode<Code>::type>* get(
       const std::string& source) const {
-    return toTypedDispatchData<Code>(dispatchDataForSource(Code, source));
+    return toTypedDispatchData<Code>(dispatchDataForSource(Code, source).get());
   }
 
 
@@ -358,10 +368,49 @@ class Dispatcher : public Clock {
 
   int maxPriority() const;
 
- private:
-  static Dispatcher *_globalInstance;
+  std::vector<std::string> sourcesForChannel(DataCode code) const {
+    std::vector<std::string> sources;
+    auto it = _data.find(code);
+    if ((it == _data.end()) || (it->second.size() == 0)) {
+      return sources;
+    }
+    for (auto s : it->second) {
+      sources.push_back(s.first);
+    }
+    return sources;
+  }
 
-  std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>> _data;
+  bool hasSource(DataCode code, const std::string& source) const {
+    auto it = _data.find(code);
+    return (it != _data.end()
+            && it->second.find(source) != it->second.end());
+  }
+ protected:
+  // Override if you want to use a particular DispatchData representation.
+  // It must be downcastable to TypedDispatchData<T> with T
+  // corresponding to 'code'.
+  virtual DispatchData* createNewCustomDispatchData(
+      DataCode code, const std::string& src, int size) {
+    return nullptr;
+  }
+ private:
+  template <typename T>
+  TypedDispatchData<T>* createNewTypedDispatchData(
+      DataCode code, const std::string& source, int size) {
+    auto custom = createNewCustomDispatchData(code, source, size);
+    if (bool(custom)) {
+      auto typed = dynamic_cast<TypedDispatchData<T>*>(custom);
+      assert(bool(typed));
+      return typed;
+    } else {
+      return new TypedDispatchDataReal<T>(code, source, this, size);
+    }
+  }
+
+  std::map<DataCode, std::map<std::string,
+    std::shared_ptr<DispatchData>>> _data;
+
+  static Dispatcher *_globalInstance;
 
   // _currentSource contains the proxies of different types.
   std::map<DataCode, std::shared_ptr<DispatchData>> _currentSource;
@@ -399,6 +448,10 @@ class SubscribeVisitor : public DispatchDataVisitor {
     data->dispatcher()->subscribe(listener_);
   }
 
+  virtual void run(DispatchBinaryEdge *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
  private:
   Listener *listener_;
 };
@@ -411,7 +464,7 @@ TypedDispatchData<T>* Dispatcher::createDispatchDataForSource(
 
   TypedDispatchData<T>* dispatchData;
   if (!ptr) {
-    dispatchData = new TypedDispatchDataReal<T>(code, source, this, size);
+    dispatchData = createNewTypedDispatchData<T>(code, source, size);
     _data[code][source] = std::shared_ptr<DispatchData>(dispatchData);
     newDispatchData(dispatchData);
   } else {

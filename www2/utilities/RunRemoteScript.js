@@ -24,14 +24,14 @@ console.log('Boat id:         ' + boatId);
   Two different calling formats:
 
   (i)
-  node RemoteScript.js dbFilename scriptFilename
+  node RemoteScript.js boatId scriptFilename
 
      where scriptFilename should end with either .js or .sh
 
   or
 
   (ii)
-  node RemoteScript.js dbFilename scriptType scriptData
+  node RemoteScript.js boatId scriptType scriptData
 
      where scriptType is 'js' or 'sh', and
      scriptData is the script. If it is 'js', it

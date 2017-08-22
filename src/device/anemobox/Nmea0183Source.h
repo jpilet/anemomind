@@ -8,7 +8,7 @@
 
 namespace sail {
 
-class Nmea0183Source {
+class Nmea0183Source: public NmeaParser {
  public:
   Nmea0183Source(Dispatcher *dispatcher, const std::string& sourceName)
     : _dispatcher(dispatcher), _sourceName(sourceName) { }
@@ -17,10 +17,14 @@ class Nmea0183Source {
 
   void process(const unsigned char* buffer, int length);
 
-  NmeaParser *parser() {return &_parser;}
+  NmeaParser *parser() { return this; }
+
+ protected:
+  virtual void onRSA(const char *senderAndSentence,
+                     Optional<sail::Angle<>> rudderAngle0,
+                     Optional<sail::Angle<>> rudderAngle1);
  private:
   Dispatcher *_dispatcher;
-  NmeaParser _parser;
   std::string _sourceName;
 };
 

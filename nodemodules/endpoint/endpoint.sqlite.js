@@ -201,8 +201,10 @@ function Endpoint(filename, name, db) {
 }
 
 function tryMakeEndpoint(filename, name, cb) {
-  if (!(common.isString(filename) && common.isIdentifier(name))) {
-    cb(new Error('Invalid input to tryMakeEndpoint'));
+  if (!(common.isString(filename))) {
+    cb(new Error('Invalid filename to tryMakeEndpoint: ' + filename));
+  } else if (!common.isIdentifier(name)) {
+    cb(new Error('Invalid name to tryMakeEndpoint: ' + name));
   } else {
     openDBWithFilename(filename, function(err, db) {
       if (err) {
@@ -367,6 +369,90 @@ Endpoint.prototype.getUpperBound = function(src, dst, cb) {
   // Then the lower bound
   withTransaction(this.db, function(T, cb) {
     getUpperBound(T, src, dst, cb);
+  }, cb);
+}
+
+// lower <= seqNumber < upper 
+Endpoint.prototype.getPacketBounds = function(src, dst, cb) {
+  withTransaction(this.db, function(T, cb) {
+    getFirstPacketIndex(T, src, dst, function(err, lb) {
+      if (err) {
+        cb(err);
+      } else if (!lb) {
+        console.log("NO LOWER");
+        cb();
+      } else {
+        getUpperBound(T, src, dst, function(err, ub) {
+          if (err) {
+            cb(err);
+          } else if (!ub) {
+            cb();
+            console.log("NO UPPER");
+          } else {
+            cb(null, {lower: lb, upper: ub});
+          }
+        });
+      }
+    });
+  }, cb);
+}
+
+function ensureNumberOr0(x) {
+  return x == null? 0 : x;
+}
+
+
+function getSizeOfRange(db, src, dst, lower, upper, cb) {
+  db.get(
+    'SELECT sum(length(data)) AS size FROM packets WHERE src=? AND dst=? AND ? <= seqNumber AND seqNumber < ?',
+    src, dst, lower, upper, function(err, row) {
+      if (err) {
+        cb(err);
+      } else if (row == null) {
+        cb(null, 0);
+      } else {
+        cb(null, ensureNumberOr0(row.size));
+      }
+    });
+}
+
+Endpoint.prototype.getSizeOfRange = function(src, dst, lower, upper, cb) {
+  getSizeOfRange(this.db, src, dst, lower, upper, cb);
+}
+
+function getRangeSizesSub(db, rangeSpecs, result, cb) {
+  if (rangeSpecs.length == 0) {
+    cb(null, result);
+  } else {
+    var spec = rangeSpecs[0];
+    getSizeOfRange(
+      db, spec.src, spec.dst, spec.lower, spec.upper,
+      function(err, s) {
+        if (err) {
+          cb(err);
+        } else {
+          result[result.length - rangeSpecs.length] = {
+            src: spec.src,
+            dst: spec.dst,
+            lower: spec.lower,
+            upper: spec.upper,
+            size: s
+          };
+          getRangeSizesSub(db, rangeSpecs.slice(1), result, cb);
+        }
+      });
+  }
+}
+
+
+function getRangeSizes(db, rangeSpecs, cb) {
+  var result = new Array(rangeSpecs.length);
+  getRangeSizesSub(db, rangeSpecs, result, cb);
+}
+
+Endpoint.prototype.getRangeSizes= function(rangeSpecs, cb) {
+  withTransaction(this.db, function(T, cb) {
+    getRangeSizes(T, rangeSpecs, cb);
   }, cb);
 }
 
@@ -600,8 +686,6 @@ Endpoint.prototype.getSrcDstPairs = function(cb) {
   getUniqueSrcDstPairs(this.db, 'packets', cb);
 }
 
-
-
 function getPerPairData(T, pairs, fun, field, cb) {
   common.withException(function() {
     var counter = 0;
@@ -787,7 +871,7 @@ function withEP(ep, epOperation, done) {
   });
 }
 
-
+module.exports.getAllFromTable = getAllFromTable;
 module.exports.Endpoint = Endpoint;
 module.exports.isEndpoint = isEndpoint;
 module.exports.tryMakeEndpoint = tryMakeEndpoint;

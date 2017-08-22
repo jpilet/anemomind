@@ -1,6 +1,7 @@
+#include <server/nautical/tiles/MongoUtils.h>
 #include <server/nautical/tiles/ChartTiles.h>
-
 #include <functional>
+#include <device/anemobox/Dispatcher.h>
 #include <server/nautical/NavDataset.h>
 #include <string>
 #include <server/common/logging.h>
@@ -8,7 +9,6 @@
 using std::map;
 using std::shared_ptr;
 using std::string;
-using namespace mongo;
 
 namespace sail {
 
@@ -121,19 +121,14 @@ void downSampleData(int64_t tileno, int zoom,
 }
 
 template<class T>
-bool uploadChartTile(const ChartTile<T> tile,
-                     const DispatchData* data,
+std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
                      const std::string& boatId,
-                     const ChartTileSettings& settings,
-                     DBClientConnection *db) {
+                     const DispatchData* data) {
   if (tile.samples.size() == 0) {
-    // Uploading an empty tile does not make sense.
-    // But it is not an error.
-    return true;
+    return std::shared_ptr<bson_t>();
   }
 
-  BSONObjBuilder result;
-
+  auto result = SHARED_MONGO_PTR(bson, bson_new());
   // The key is function of:
   // boatId, zoom, tileno, code, source.
   // The order matters, because mongodb indexes first on boatId, then zoom,
@@ -145,45 +140,53 @@ bool uploadChartTile(const ChartTile<T> tile,
   //   "_id.tileno" : 256});
   // and it will return all codes + all sources available for this boat, zoom,
   // and tileno.
-  BSONObjBuilder key;
-
-
-  key.append("boat", boatId);
-  key.append("zoom", tile.zoom);
-  key.append("tileno", (long long) tile.tileno);
-  key.append("what", data->wordIdentifier());
-  key.append("source", data->source());
-  result.append("_id", key.obj());
-
-  BSONArrayBuilder samples;
-  for (const TimedValue<Statistics<T>>& stats : tile.samples) {
-    BSONObjBuilder bsonStats;
-    //append(bsonStats, "time", stats.time);
-    stats.value.appendBson(&bsonStats);
-    samples.append(bsonStats.obj());
+  {
+    BsonSubDocument key(result.get(), "_id");
+    auto oid = makeOid(boatId);
+    BSON_APPEND_OID(&key, "boat", &oid);
+    BSON_APPEND_INT32(&key, "zoom", tile.zoom);
+    BSON_APPEND_INT64(&key, "tileno", (long long) tile.tileno);
+    bsonAppend(&key, "what", data->wordIdentifier());
+    bsonAppend(&key, "source", data->source());
   }
 
-  result.append("samples", samples.arr());
+  StatArrays arrays;
 
-  auto obj = result.obj();
-  return safeMongoOps(
-      "Inserting a chart tile", db,
-      [=](DBClientConnection *db) {
-        db->update(settings.table(),
-                   MONGO_QUERY("_id" << obj["_id"]),  // <-- what to update
-                   obj,                         // <-- the new data
-                   true,                        // <-- upsert
-                   false);                      // <-- multi
-      }
-    );
+  for (const TimedValue<Statistics<T>>& stats : tile.samples) {
+    stats.value.appendToArrays(&arrays);
+  }
+
+  bsonAppendCollection(result.get(), "mean", arrays.mean);
+  bsonAppendCollection(result.get(), "min", arrays.min);
+  bsonAppendCollection(result.get(), "max", arrays.max);
+  bsonAppendCollection(result.get(), "count", arrays.count);
+
+  return result;
+}
+
+template<class T>
+bool uploadChartTile(const ChartTile<T> tile,
+                     const DispatchData* data,
+                     const std::string& boatId,
+                     const ChartTileSettings& settings,
+                     BulkInserter *inserter) {
+  std::shared_ptr<bson_t> obj = chartTileToBson(
+      tile, boatId, data);
+  if (obj) {
+    return inserter->insert(obj);
+  } else {
+    // Uploading an empty tile does not make sense.
+    // But it is not an error.
+    return true;
+  }
 }
 
 class UploadChartTilesVisitor : public DispatchDataVisitor {
  public:
   UploadChartTilesVisitor(const std::string& boatId,
                           const ChartTileSettings& settings,
-                          DBClientConnection *db)
-    : _boatId(boatId), _settings(settings), _db(db), _result(true) { }
+                          BulkInserter *inserter)
+    : _boatId(boatId), _settings(settings), _inserter(inserter), _result(true) { }
 
   template<class T>
   void makeTiles(TypedDispatchData<T> *data) {
@@ -211,11 +214,12 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
       for (int64_t tileno = firstTile; tileno <= lastTile; ++tileno) {
         ChartTile<T> tile;
         downSampleData(tileno, zoom, data, _settings,
-                       (zoom == _settings.lowestZoomLevel ? nullptr : &prevZoomTiles),
+                       (zoom == _settings.lowestZoomLevel ?
+                           nullptr : &prevZoomTiles),
                        &tile);
         if (!tile.empty()) {
           tiles[tileno] = tile;
-          if (!uploadChartTile(tiles[tileno], data, _boatId, _settings, _db)) {
+          if (!uploadChartTile(tiles[tileno], data, _boatId, _settings, _inserter)) {
             _result = false;
             return;
           }
@@ -234,20 +238,46 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
   virtual void run(DispatchGeoPosData *pos) { /* nothing for pos */ }
   virtual void run(DispatchTimeStampData *timestamp) { /* nothing */ }
   virtual void run(DispatchAbsoluteOrientationData *orient) { /* TODO */ }
+  virtual void run(DispatchBinaryEdge *binary) { /* nothing */ }
 
   bool result() const { return _result; }
 
  private:
   const std::string& _boatId;
   const ChartTileSettings& _settings;
-  DBClientConnection *_db;
+  BulkInserter *_inserter;
   bool _result;
+};
+
+class GetMinMaxTime : public DispatchDataVisitor {
+ public:
+  GetMinMaxTime() : valid(false) { }
+
+  template<typename T>
+  void getFirstLast(TypedDispatchData<T> *tdd) {
+    const TimedSampleCollection<T> values = tdd->dispatcher()->values();
+    if (values.size() > 0) {
+      first = values[0].time;
+      last = values.lastTimeStamp();
+      valid = true;
+    }
+  }
+  TimeStamp first, last;
+  bool valid;
+
+  virtual void run(DispatchAngleData *angle) { getFirstLast(angle); }
+  virtual void run(DispatchVelocityData *velocity) { getFirstLast(velocity); }
+  virtual void run(DispatchLengthData *length) { getFirstLast(length); }
+  virtual void run(DispatchGeoPosData *pos) { /* nothing for pos */ }
+  virtual void run(DispatchTimeStampData *timestamp) { /* nothing */ }
+  virtual void run(DispatchAbsoluteOrientationData *orient) { }
+  virtual void run(DispatchBinaryEdge *orient) { }
 };
 
 bool uploadChartTiles(DispatchData* data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
-                      DBClientConnection *db) {
+                      BulkInserter *db) {
   UploadChartTilesVisitor visitor(boatId, settings, db);
   data->visit(&visitor);
   return visitor.result();
@@ -258,14 +288,51 @@ bool uploadChartTiles(DispatchData* data,
 bool uploadChartTiles(const NavDataset& data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
-                      DBClientConnection *db) {
-
+                      const std::shared_ptr<mongoc_database_t>& db) {
   const map<DataCode, map<string, shared_ptr<DispatchData>>> &allSources =
     data.dispatcher()->allSources();
 
+  auto collection = UNIQUE_MONGO_PTR(
+      mongoc_collection,
+      mongoc_database_get_collection(
+          db.get(),
+          settings.table().localName().c_str()));
+
+  auto oid = makeOid(boatId);
+  {
+    WrapBson selector;
+    {
+      BsonSubDocument id(&selector, "_id");
+      BSON_APPEND_OID(&id, "boat", &oid);
+    }
+    auto concern = nullptr;
+    bson_error_t error;
+    if (!mongoc_collection_remove(
+        collection.get(),
+        MONGOC_REMOVE_NONE,
+        &selector,
+        concern,
+        &error)) {
+      LOG(ERROR) << "Failed to execute remove old chart "
+          "tiles for boat, but we will continue: "
+          << bsonErrorToString(error);
+    }
+  }
+
+  auto coll = SHARED_MONGO_PTR(
+      mongoc_collection,
+      mongoc_database_get_collection(
+          db.get(),
+          settings.table().localName().c_str()));
+  if (!coll) {
+    LOG(ERROR) << "Failed to collection";
+    return false;
+  }
+  BulkInserter inserter(coll, 1000);
+
   for (auto channel : allSources) {
     for (auto source : channel.second) {
-      if (!uploadChartTiles(source.second.get(), boatId, settings, db)) {
+      if (!uploadChartTiles(source.second.get(), boatId, settings, &inserter)) {
         return false;
       }
     }
@@ -273,12 +340,76 @@ bool uploadChartTiles(const NavDataset& data,
   return true;
 }
 
-void appendStats(const MeanAndVar& stats, BSONObjBuilder* builder) {
-  builder->append("count", stats.count());
-  if (stats.count() > 0) {
-    builder->append("mean", stats.mean());
-    builder->append("stdev", stats.standardDeviation());
+std::vector<std::pair<std::string, GetMinMaxTime>>
+  getMinMaxTimes(
+      const std::map<std::string, std::shared_ptr<DispatchData>>& sources) {
+  std::vector<std::pair<std::string, GetMinMaxTime>> dst;
+  dst.reserve(sources.size());
+  for (const auto& source: sources) {
+    GetMinMaxTime minMaxTime;
+    source.second->visit(&minMaxTime);
+    if (minMaxTime.valid) {
+      dst.push_back({source.first, minMaxTime});
+    }
   }
+  return dst;
+}
+
+bool uploadChartSourceIndex(const NavDataset& data,
+                            const std::string& boatId,
+                            const ChartTileSettings& settings,
+                            const std::shared_ptr<mongoc_database_t>& db) {
+  const map<DataCode, map<string, shared_ptr<DispatchData>>> &allSources =
+    data.dispatcher()->allSources();
+
+  auto oid = makeOid(boatId);
+  WrapBson index;
+  BSON_APPEND_OID(&index, "_id", &oid);
+  {
+    BsonSubDocument channels(&index, "channels");
+    for (auto channel : allSources) {
+      auto minMaxTimes = getMinMaxTimes(channel.second);
+      if (0 < minMaxTimes.size()) {
+        BsonSubDocument chanObj(
+            &channels,
+            wordIdentifierForCode(channel.first));
+
+        for (const auto& mmt : minMaxTimes) {
+          BsonSubDocument sourceObj(&chanObj, mmt.first.c_str());
+          bsonAppend(&sourceObj, "first", mmt.second.first);
+          bsonAppend(&sourceObj, "last", mmt.second.last);
+          bsonAppend(&sourceObj, "priority",
+              data.dispatcher()->sourcePriority(mmt.first));
+        }
+      }
+    }
+  }
+
+  auto collection = UNIQUE_MONGO_PTR(
+        mongoc_collection,
+        mongoc_database_get_collection(
+            db.get(),
+            settings.sourceTable()
+            .localName().c_str()));
+
+   bool success = false;
+   {
+     WrapBson selector;
+     BSON_APPEND_OID(&selector, "_id", &oid);
+     bson_error_t error;
+     auto concern = nullptr;
+     success = mongoc_collection_update(
+        collection.get(),
+        MONGOC_UPDATE_UPSERT,
+        &selector,
+        &index,
+        concern,
+        &error);
+     if (!success) {
+       LOG(ERROR) << bsonErrorToString(error);
+     }
+   }
+   return success;
 }
 
 }  // namespace sail

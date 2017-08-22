@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script type="text/javascript" src="/bower_components/d3/d3.js"></script>
+    <script type="text/javascript" src="/bower_components/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="dynloader.js"></script>
+    <script type="text/javascript" src="perfplot.js"></script>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+    <style type="text/css">
+
+svg {
+  font-size: 10px;
+}
+
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke-width: .5px;
+}
+
+.x.axis path {
+  stroke: #000;
+}
+
+.x.axis line {
+  stroke: #fff;
+  stroke-opacity: .5;
+}
+
+.y.axis line {
+  stroke: #ddd;
+}
+
+path.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: .5px;
+}
+
+path.softline {
+  fill: none;
+  stroke: #666;
+  stroke-width: .3px;
+}
+
+rect.pane {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+
+#plotContainer {
+width: 80%;
+height: 200px;
+}
+
+    </style>
+  </head>
+  <body>
+    <div>
+      <select id="boatSelect" name="boat">
+      </select>
+      <select id="channelSelect" name="channel">
+      </select>
+      <select id="sourceSelect" name="source">
+      </select>
+    </div>
+    <div id="body">
+      <div id="plotContainer"></div>
+      <div id="footer">
+        <span>…</span>
+        <div class="hint">mousewheel to zoom, drag to pan</div>
+      </div>
+    </div>
+    <script type="text/javascript">
+
+var apiUrl = "http://localhost:9000/api";
+var chartApiUrl = apiUrl + "/chart";
+
+$.getJSON(apiUrl + '/boats', function(boatList) {
+  var select = $('#boatSelect').html('');
+  for (var i in boatList) {
+    var b = boatList[i];
+    select.append($('<option>', {value: b._id}).text(b.name));
+  }
+  select.val(boatList[0]._id);
+  boatSelected();
+});
+
+var fetchTile = function(zoom, tileno) { };
+
+var channels = {};
+
+function boatSelected() {
+  var boat = $('#boatSelect').val();
+  //var chartApiUrl = "http://192.168.1.100:9000/api/chart";
+
+  $.getJSON(chartApiUrl + '/' + boat, function(data) {
+    channels = (data ? data.channels : []);
+    var select = $('#channelSelect').html('');
+
+    var firstChannel;
+    for (var c in channels) {
+      select.append($('<option>', {value: c}).text(c));
+      if (firstChannel == undefined) {
+        firstChannel = c;
+      }
+    }
+
+    if (currentChannel && currentChannel in data.channels) {
+      select.val(currentChannel);
+    } else {
+      select.val(firstChannel);
+    }
+    channelSelected();
+  });
+    
+  var channelSelected = function() {
+    var chan = $('#channelSelect').val();
+    var select = $('#sourceSelect').html('');
+
+    for (var s in channels[chan]) {
+      var source = channels[chan][s];
+      if (source) {
+        select.append($('<option>', {value: s}).text(s + ' (' + source.priority +')'));
+      }
+    }
+
+    var bestSource;
+    var bestPrio;
+    for (var s in channels[chan]) {
+      var source = channels[chan][s];
+      var prio = +source.priority;
+      if ((bestPrio == undefined) || (bestPrio < prio)) {
+        bestPrio = prio;
+        bestSource = s;
+      }
+    }
+    select.val(bestSource);
+
+    selectionChanged();
+  };
+
+  function timeDomainsOverlap(a, b) {
+    return (a[1] > b[0]) && (a[0] < b[1]);
+  }
+
+  var selectionChanged = function() {
+    currentChannel = $('#channelSelect').val();
+    currentSource = $('#sourceSelect').val();
+    if (!currentSource || !currentChannel) {
+      return;
+    }
+    graph.loader.setFetchTile(fetchTile);
+    graph.preparedRange = undefined;
+
+    var source = channels[currentChannel][currentSource];
+    var d =graph.x.domain();
+    var newDomain = [new Date(source.first), new Date(source.last)];
+    //if (!timeDomainsOverlap(d, newDomain)) {
+    if (!d[0].getTime() || !d[1].getTime()) {
+      graph.setTimeBounds(newDomain[0], newDomain[1]);
+    }
+    graph.draw();
+  };
+
+  $('#boatSelect').change(boatSelected);
+  $('#channelSelect').change(channelSelected);
+
+  var currentChannel, currentSource;
+
+  $('#sourceSelect').change(selectionChanged);
+
+    
+  fetchTile = function(zoom, tileno) {
+    var url = [ chartApiUrl, boat, zoom, tileno,
+        encodeURIComponent(currentChannel),
+        encodeURIComponent(currentSource)]
+      .join('/');
+
+    $.getJSON(url, function(data) {
+      var result= [];
+      for (var t in data) {
+        var tile = data[t];
+        var tileTimeSec = tileno << zoom;
+        var tileDur = 1 << zoom;
+
+        var lastHasBeenExtended = false;
+        var samplesPerTile = tile.mean.length;
+        for (var s = 0 ; s < samplesPerTile; ++s) {
+          var count = tile.count ? tile.count[s] : undefined;
+          var value = undefined;
+          var min = undefined;
+          var max = undefined;
+          if (count > 0) {
+            value = tile.mean ? tile.mean[s] : undefined;
+            min = tile.min[s];
+            max = tile.max[s];
+          }
+
+          if (result.length > 0) {
+            var last = result[result.length - 1];
+            if (!lastHasBeenExtended
+                && value === undefined && last.value !== undefined) {
+              value = last.value;
+              min = last.low;
+              max = last.high;
+              lastHasBeenExtended = true;
+            } else {
+              lastHasBeenExtended = false;
+            }
+          } 
+
+          var obj = {
+            value: value,
+            time: new Date((tileTimeSec + (s/samplesPerTile) * tileDur) * 1000)
+          };
+          if (tile.min) {
+            obj.low = min;
+          }
+          if (tile.max) {
+            obj.high = max;
+          }
+
+          result.push(obj);
+        }
+      }
+      graph.tileFetchSucceeded(zoom, tileno, result);
+    });
+  }
+}
+
+var graph = new Graph($('#plotContainer')[0], fetchTile);
+
+    </script>
+  </body>
+</html>
+

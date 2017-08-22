@@ -29,6 +29,35 @@ TimedSampleCollection<GeographicPosition<double> >
 
 }  // namespace
 
+TimedSampleCollection<GeographicPosition<double>>::TimedVector
+  getCleanGpsPositions(
+    const NavDataset &ds, const std::string &src) {
+  auto data = toTypedDispatchData<GPS_POS>(
+      ds.dispatcher()->dispatchDataForSource(GPS_POS, src).get());
+  TimedSampleCollection<GeographicPosition<double>>::TimedVector dst;
+  if (!data) {
+    LOG(ERROR) << "Conversion to GPS pos failed";
+    return dst;
+  }
+  for (auto x: data->dispatcher()->values()) {
+    if (validPos(x.value)) {
+      dst.push_back(x);
+    }
+  }
+  return dst;
+}
+
+NavDataset removeStrangeGpsPositions(const NavDataset &ds) {
+  std::vector<std::string> sources = ds.sourcesForChannel(GPS_POS);
+  NavDataset result = ds.stripChannel(GPS_POS);
+  for (auto src: sources) {
+    auto cleanData = getCleanGpsPositions(ds, src);
+    result = result.addChannel<GeographicPosition<double>>(
+        GPS_POS, src, cleanData);
+  }
+  return result;
+}
+
 NavDataset downSampleGpsTo1Hz(const NavDataset& navs) {
   return navs.replaceChannel<GeographicPosition<double> >(
       GPS_POS,

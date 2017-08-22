@@ -17,14 +17,9 @@ fi
 
 ./format.sh
 
-if ! [ -f /etc/cron.d/checknetwork ] ; then
-  # install custom network stuff
-  cp /anemonode/checknetwork /etc/cron.d
-  systemctl disable hostapd
-  echo "source-directory interfaces.d" >> /etc/network/interfaces
-fi
-
-/anemonode/ifup-userconfig.sh
+# make sure NMEA0183 output works on anemobox v1.x
+echo mode0 > /sys/kernel/debug/gpio_debug/gpio129/current_pinmux 
+echo high > /sys/kernel/debug/gpio_debug/gpio129/current_value
 
 systemctl restart avahi-daemon
 

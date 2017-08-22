@@ -66,6 +66,9 @@ function OffscreenTileRenderer(params) {
   this.numLoading = 0;
   this.numFailedLoading = 0;
   this.failedImages = [];
+
+  this.renderingDone = function(){};
+  this.renderingFailed = function(){};
 }
 
 OffscreenTileRenderer.prototype = Object.create(CanvasTilesRenderer.prototype);
@@ -147,7 +150,13 @@ OffscreenTileRenderer.prototype.render = function(cb) {
       cb("Failed to load:\n" + me.failedImages.join('\n'));
     };
 
-    this.numLoading = 0;
+    if (this.numLoading != 0) {
+      console.log('PARALLEL CALLS TO render ARE NOT SUPPORTED');
+      console.log('numLoading: ' + this.numLoading + ', numFailedLoading: '
+                  + this.numFailedLoading);
+      cb(new Error('render() called while previous call was not terminated.'));
+      return;
+    }
     this.numFailedLoading = 0;
     this.failedImages = [];
 

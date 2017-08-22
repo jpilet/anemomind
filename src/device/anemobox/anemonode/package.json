@@ -7,6 +7,7 @@
     "bleno": "^0.2.0",
     "body-parser": "^1.13.3",
     "debug": "^2.2.0",
+    "diskspace": "^2.0.0",
     "endpoint": "file:../../../../nodemodules/endpoint",
     "express": "^4.13.3",
     "j1939socket": "git+https://github.com/jpilet/j1939socket.git",
