@@ -95,15 +95,13 @@ struct FromDynamic : public It_seems_like_you_did_not_implement_FromDynamic_for<
     OP(std::string) \
     OP(bool) \
     OP(int32_t) \
-    OP(uint32_t)
-
-
-//OP(uint16_t) \
-//OP(uint8_t) \
-//OP(int16_t) \
-//
-//OP(std::string)*/
-
+    OP(uint32_t) \
+    OP(int16_t) \
+    OP(uint16_t) \
+    OP(uint8_t) \
+    OP(int8_t)
+// Not supported:
+// 64-bit integers. Results in compilation error.
 
 #define PRIMITIVE_OPS(T) \
     SerializationInfo toDynamicObject(const T& x, Poco::Dynamic::Var* dst); \
