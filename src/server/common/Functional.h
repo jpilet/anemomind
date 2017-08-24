@@ -15,6 +15,7 @@
 #include <utility>
 #include <server/common/logging.h>
 #include <cassert>
+#include <server/common/traits.h>
 
 namespace sail {
 
@@ -57,12 +58,6 @@ class ArrayIterator {
     return _index - other._index;
   }
 };
-
-// To make a reference into a value.
-template <typename T>
-constexpr T copyOf(T x) {
-  return x;
-}
 
 // Evaluate an abstract collection to an array
 template <typename Collection>

@@ -13,15 +13,11 @@
 #include <fstream>
 #include <iostream>
 #include <server/common/Env.h>
-#include <server/common/HierarchyJson.h>
-#include <server/common/Json.h>
 #include <server/common/PathBuilder.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/DownsampleGps.h>
-#include <server/nautical/HTreeJson.h>
-#include <server/nautical/NavJson.h>
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
@@ -31,7 +27,6 @@
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
 #include <server/nautical/MaxSpeed.h>
-#include <server/common/Json.impl.h> // This one should probably be the last one.
 
 namespace sail {
 
