@@ -12,11 +12,11 @@
 namespace sail {
 
 // What we name things in the Mongo database
-static const char* tsCollection = "timesets";
-static const char* tsBegin ="begin";
-static const char* tsEnd ="end";
-static const char* tsType ="type";
-static const char* tsBoat ="boat";
+static const char tsCollection[] = "timesets";
+static const char tsBegin[] ="begin";
+static const char tsEnd[] ="end";
+static const char tsType[] ="type";
+static const char tsBoat[] ="boat";
 
 std::shared_ptr<mongoc_collection_t> accessTimesets(
     const std::shared_ptr<mongoc_database_t>& db) {
@@ -56,7 +56,7 @@ bool insertTimeSets(
       return false;
     }
   }
-  return true;
+  return inserter.finish();
 }
 
 void queryToMongo(
