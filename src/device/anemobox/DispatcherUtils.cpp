@@ -39,6 +39,11 @@ class DispVisitor {
     }
 
      *_dst << ")";
+     if (!coll.empty()) {
+       *_dst << " Data from "
+           << coll.samples().front().time.toString()
+           << " to " << coll.samples().back().time.toString();
+     }
 
   }
  private:

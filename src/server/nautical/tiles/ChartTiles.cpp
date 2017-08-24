@@ -241,6 +241,15 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
     TimeStamp firstTime = values.first().time;
     TimeStamp lastTime = values.last().time;
 
+    if (data->dataCode() == TWA) {
+      const auto& samples = values.samples();
+      std::cout << "Working with TWA" << std::endl;
+      for (int i = 0; i < samples.size(); i += 100) {
+        std::cout << "Value " << i << " at "
+            << samples[i].time.toString() << std::endl;
+      }
+    }
+
     map<int64_t, ChartTile<T>> prevZoomTiles;
 
     for (int zoom = _settings.lowestZoomLevel; zoom <= _settings.highestZoomLevel; zoom++) {
