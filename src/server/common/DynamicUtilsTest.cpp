@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <server/common/DynamicUtils.h>
-#include <fstream>
+#include <sstream>
 
 using namespace sail;
 
@@ -75,6 +75,7 @@ TEST(DynamicTest, MapTest) {
 }
 
 TEST(DynamicTest, TestStructSerialization) {
+  std::stringstream file;
   {
     MyData x;
     x.name = "Signe";
@@ -84,11 +85,9 @@ TEST(DynamicTest, TestStructSerialization) {
     x.mappedValues = {{"abra", 119}};
     x.ptrB = std::make_shared<int>(222);
 
-    std::ofstream file("/tmp/mydata.json");
     EXPECT_TRUE(writeJson(x, &file));
   }{
     MyData x;
-    std::ifstream file("/tmp/mydata.json");
     EXPECT_TRUE(readJson(&file, &x));
     EXPECT_EQ(x.name, "Signe");
     EXPECT_EQ(x.age, 13);
