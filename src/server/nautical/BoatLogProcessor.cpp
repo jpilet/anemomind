@@ -344,7 +344,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
     if (_gpsFilter) {
       current = filterNavs(current, &_htmlReport, _gpsFilterSettings);
-      infoNavDataset("After filtering", current);
+      infoNavDataset("After GPS filtering", current);
     }
   }
 
