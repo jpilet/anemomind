@@ -170,15 +170,13 @@ public:
   virtual Action visitUtf8(
       const char *key,
       size_t v_utf8_len,
-      const char *v_utf8,
-      void *data) {
+      const char *v_utf8) {
     return Continue;
   }
 
   virtual Action visitDateTime(
       const char *key,
-      int64_t msec_since_epoch,
-      void *data) {
+      int64_t msec_since_epoch) {
     return Continue;
   }
 

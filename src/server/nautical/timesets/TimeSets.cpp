@@ -116,8 +116,7 @@ struct TimeSetVisitor : public BsonVisitor {
   Action visitUtf8(
       const char *key,
       size_t v_utf8_len,
-      const char *v_utf8,
-      void *data) override {
+      const char *v_utf8) override {
     if (strcmp(key, tsType) == 0) {
       type = std::string(v_utf8, v_utf8_len);
     }
@@ -126,8 +125,7 @@ struct TimeSetVisitor : public BsonVisitor {
 
   Action visitDateTime(
       const char *key,
-      int64_t msec_since_epoch,
-      void *data) override {
+      int64_t msec_since_epoch) override {
     if (strcmp(key, tsBegin) == 0) {
       begin = TimeStamp::fromMilliSecondsSince1970(msec_since_epoch);
     }
