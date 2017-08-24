@@ -34,11 +34,13 @@ TEST(TimeSetsTest, BasicTest) {
   for (int i = 0; i < 3; i++) {
     {
       TimeSetsQuery q;
+      q.boatId = boatId;
       if (!removeTimeSets(db.db, q)) {
         LOG(WARNING) << "Something might be wrong with the connection";
         return;
       }
     }{
+      LOG(INFO) << "Insert time sets";
       EXPECT_TRUE(insertTimeSets(db.db, boatId, label, {
           Span<TimeStamp>(t(0), t(1)),
           Span<TimeStamp>(t(2), t(4)),
@@ -46,18 +48,33 @@ TEST(TimeSetsTest, BasicTest) {
           Span<TimeStamp>(t(10), t(11))
       }));
     }
-  }
-  {
+  }{
+    TimeSetsQuery q;
+    q.boatId = boatId;
+    auto results = getTimeSets(db.db, q);
+    EXPECT_EQ(results.size(), 4);
+  }{
+    TimeSetsQuery q;
+    q.boatId = "ccc";
+    EXPECT_TRUE(removeTimeSets(db.db, q));
+  }{
+    TimeSetsQuery q;
+    q.boatId = boatId;
+    auto results = getTimeSets(db.db, q);
+    EXPECT_EQ(results.size(), 4);
+  }{
     TimeSetsQuery q;
     q.boatId = "ccc";
     auto results = getTimeSets(db.db, q);
     EXPECT_EQ(results.size(), 0);
   }{
     TimeSetsQuery q;
+    q.boatId = boatId;
     auto results = getTimeSets(db.db, q);
     EXPECT_EQ(results.size(), 4);
   }{
     TimeSetsQuery q;
+    q.boatId = boatId;
     q.lower = t(9.5);
     auto results = getTimeSets(db.db, q);
     EXPECT_EQ(results.size(), 1);
@@ -67,6 +84,7 @@ TEST(TimeSetsTest, BasicTest) {
     EXPECT_EQ(r.type, label);
   }{
     TimeSetsQuery q;
+    q.boatId = boatId;
     q.upper = t(1.5);
     auto results = getTimeSets(db.db, q);
     EXPECT_EQ(results.size(), 1);
@@ -76,6 +94,7 @@ TEST(TimeSetsTest, BasicTest) {
     EXPECT_EQ(r.type, label);
   }{
     TimeSetsQuery q;
+    q.boatId = boatId;
     q.lower = t(6);
     q.upper = t(8);
     auto results = getTimeSets(db.db, q);

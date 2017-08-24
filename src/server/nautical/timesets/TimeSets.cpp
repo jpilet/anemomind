@@ -62,9 +62,8 @@ bool insertTimeSets(
 void queryToMongo(
     const TimeSetsQuery& q,
     bson_t* dst) {
-  if (!q.boatId.empty()) {
-    bsonAppendAsOid(dst, tsBoat, q.boatId);
-  }
+  CHECK(!q.boatId.empty());
+  bsonAppendAsOid(dst, tsBoat, q.boatId);
   if (!q.type.empty()) {
     BSON_APPEND_UTF8(dst, tsType, q.type.c_str());
   }
