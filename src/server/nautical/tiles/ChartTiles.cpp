@@ -120,6 +120,32 @@ void downSampleData(int64_t tileno, int zoom,
   }
 }
 
+
+template <typename T>
+std::string summarizeArray(const std::vector<T>& X) {
+  int n = X.size();
+  if (n == 0) {
+    return "Empty";
+  }
+  T sum = T(0);
+  T min = std::numeric_limits<T>::max();
+  T max = std::numeric_limits<T>::min();
+  for (auto x: X) {
+    min = std::min(min, x);
+    max = std::max(max, x);
+    sum += x;
+  }
+  std::stringstream ss;
+  ss << " count=" << n << " mean=" << sum/n << " min="
+      << min << " max=" << max << std::endl;
+  int m = std::min(12, n);
+  ss << "   The first " << m << " elements: ";
+  for (int i = 0; i < m; i++) {
+    ss << X[i] << " ";
+  }
+  return ss.str();
+}
+
 template<class T>
 std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
                      const std::string& boatId,
@@ -160,6 +186,18 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
   bsonAppendCollection(result.get(), "min", arrays.min);
   bsonAppendCollection(result.get(), "max", arrays.max);
   bsonAppendCollection(result.get(), "count", arrays.count);
+
+  if (data->dataCode() == TWA) {
+    std::cout << "Chart tile to bson for src=" << data->source()
+          << " desc=" << data->description() << std::endl;
+    std::cout << "  mean: " << summarizeArray(arrays.mean) << std::endl;
+    std::cout << "  min: " << summarizeArray(arrays.min) << std::endl;
+    std::cout << "  max: " << summarizeArray(arrays.max) << std::endl;
+    std::cout << "  count: " << summarizeArray(arrays.count) << std::endl;
+    std::cout << "  FROM: " << tile.samples.samples().front().time.toString() << std::endl;
+    std::cout << "  TO  : " << tile.samples.samples().back().time.toString() << std::endl;
+  }
+
 
   return result;
 }
