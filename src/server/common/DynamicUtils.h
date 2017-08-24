@@ -263,6 +263,7 @@ SPECIALIZE_FROM_DYNAMIC(EnabledMapFromDynamic<T>::apply);
 
 
 /////////// Shared ptr
+// Serializing cyclic structures is not supported, AFAIK.
 template <typename T>
 SerializationInfo sharedPointerToDynamic(
     const std::shared_ptr<T>& src,
