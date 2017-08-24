@@ -17,9 +17,21 @@
  * GUIDE for providing serialization for any type T:
  *
  * 1. Is the type a class/struct that you implemented? Then provide
- *    serialization for that type using
- *    DYNAMIC_INTERFACE/DYNAMIC_IMPLEMENTATION
- *    Should probably work also in the case of a template type.
+ *    serialization for that type by having a method like below:
+ *
+ *    template <typename V>
+ *    void visitFields(V* v) {
+ *       v->required = false;
+ *       v->visit("field_1", field2); // Optional
+ *
+ *       v->required = true;
+ *       v->visit("field_2", field2); // Required
+ *    }
+ *
+ *    Which when serialized, will result in a JSON object
+ *      {"field_1": ..., "field_2": ... }
+ *    that can be deserialized again. Note that, because field1 is
+ *    not required {"field_2": ...} can also be deserialized.
  *
  * 2. Otherwise, if the above is not possible,
  *    is it a non-template type? In that case,
