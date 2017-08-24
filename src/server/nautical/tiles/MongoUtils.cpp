@@ -230,7 +230,30 @@ bool BulkInserter::finish() {
         [this](
             mongoc_bulk_operation_t* op) {
       for (auto x: _toInsert) {
-        mongoc_bulk_operation_insert(op, x.get());
+        bson_iter_t iter;
+        bson_iter_init (&iter, x.get());
+        if (bson_iter_find(&iter,"_id")) {
+          WrapBson selector;
+          bson_append_value(&selector, "_id", 3, bson_iter_value(&iter));
+
+          WrapBson opts;
+          bson_append_bool(&opts, "upsert", 6, true);
+          WrapBson update;
+          bson_append_document(&update, "$set", 4, x.get());
+          bson_error_t error;
+          if (!mongoc_bulk_operation_update_one_with_opts(
+              op,
+              &selector,
+              &update,
+              &opts,
+              &error)) {
+            LOG(ERROR) << bsonErrorToString(error);
+            fail();
+            break;
+          }
+        } else {
+          mongoc_bulk_operation_insert(op, x.get());
+        }
       }
     })) {
       fail();
