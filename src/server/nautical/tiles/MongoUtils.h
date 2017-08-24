@@ -180,7 +180,15 @@ public:
     return Continue;
   }
 
-  void visit(const bson_t& bson);
+  // Returns a visitor object with all relevant fields
+  // initialized. If there are fields that you don't
+  // want to visit (for performance reasons), you can
+  // set them to zero.
+  static bson_visitor_t makeFullVisitor();
+
+  void visit(const bson_t& bson,
+      const bson_visitor_t& v = makeFullVisitor());
+
   virtual ~BsonVisitor() {}
 };
 

@@ -309,8 +309,7 @@ void BulkInserter::fail() {
   _collection = std::shared_ptr<mongoc_collection_t>();
 }
 
-
-bool visitUtf8Method(
+bool bsonVisitorUtf8Method(
     const bson_iter_t *iter,
     const char *key,
     size_t v_utf8_len,
@@ -320,7 +319,7 @@ bool visitUtf8Method(
       key, v_utf8_len, v_utf8) == BsonVisitor::Stop;
 }
 
-bool visitDateTimeMethod(
+bool bsonVisitorDateTimeMethod(
     const bson_iter_t *iter,
     const char *key,
     int64_t msec_since_epoch,
@@ -329,15 +328,20 @@ bool visitDateTimeMethod(
       key, msec_since_epoch) == BsonVisitor::Stop;
 }
 
-void BsonVisitor::visit(const bson_t& bson) {
-  bson_iter_t iter;
+bson_visitor_t BsonVisitor::makeFullVisitor() {
   bson_visitor_t v = {0};
-  v.visit_utf8 = &visitUtf8Method;
-  v.visit_date_time = &visitDateTimeMethod;
+  v.visit_utf8 = &bsonVisitorUtf8Method;
+  v.visit_date_time = &bsonVisitorDateTimeMethod;
+  return v;
+}
+
+void BsonVisitor::visit(const bson_t& bson, const bson_visitor_t& v) {
+  bson_iter_t iter;
   if (bson_iter_init (&iter, &bson)) {
     bson_iter_visit_all(&iter, &v, this);
   }
 }
+
 
 
 };  // namespace sail
