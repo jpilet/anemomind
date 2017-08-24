@@ -108,8 +108,8 @@ struct OptimizerConfig {
   template <typename V>
   void visitFields(V* v) {
     v->visit("iters", iters);
-    //v->required = false;
-    //v->visit("tol", tol);
+    v->required = false;
+    v->visit("tol", tol);
   }
 };
 
