@@ -385,6 +385,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   // First simulation pass: adds true wind
   current = calibrator.simulate(current);
 
+  infoNavDataset("After first simulation", current);
+
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system
   current = current.preferSourceOrCreateMergedChannels(
@@ -408,6 +410,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   // Second simulation path to apply target speed.
   // Todo: simply lookup the target speed instead of recomputing true wind.
   current = SimulateBox(boatDatPath, current);
+
+  infoNavDataset("After second simulation", current);
 
   if (_debug) {
     visualizeBoatDat(_dstPath);
