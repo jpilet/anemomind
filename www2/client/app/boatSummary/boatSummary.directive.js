@@ -24,7 +24,12 @@ var app = angular.module('www2App')
 
           boatList.boat(scope.boatId).then(function (boat) {
             scope.boat = boat;
-            scope.sessions = boatList.sessionsForBoat(scope.boatId);
+            scope.sessions = boatList.sessionsForBoat(scope.boatId)
+              .filter(function(session) {
+                // Ignore sessions smaller than 0.6 nautical miles
+                return (session.trajectoryLength === undefined
+                   || session.trajectoryLength > 0.6);
+              });
 
             // ensure that sessions is not empty
             scope.sessions=scope.sessions||[];
@@ -66,9 +71,8 @@ var app = angular.module('www2App')
 
 
 
-        // Why those listeners?
-        // scope.$on('boatList:updated', updateSessions);
-        // scope.$on('boatList:sessionsUpdated', updateSessions);
+        scope.$on('boatList:updated', updateSessions);
+        scope.$on('boatList:sessionsUpdated', updateSessions);
         scope.$watch('boatId', updateSessions);
 
 
@@ -149,6 +153,10 @@ var app = angular.module('www2App')
 
 
         scope.twdirToCardinal = function(twdir) {
+          if (typeof(twdir) != 'number') {
+            return '-';
+          }
+
           var index = Math.round(360 + twdir * 8 / 360) % 8;
           var windrose = [
             "N", "NE", "E", "SE", "S", "SW", "W", "NW" ];
@@ -168,7 +176,7 @@ var app = angular.module('www2App')
           if (knots < 47) { return 9; }
           if (knots < 55) { return 10; }
           if (knots < 63) { return 11; }
-          return 12;
+          return '-';
         };
 
         scope.timeToInt = function(time) {
