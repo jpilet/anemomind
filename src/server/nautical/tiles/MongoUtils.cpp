@@ -316,7 +316,7 @@ bool bsonVisitorUtf8Method(
     const char *v_utf8,
     void *data) {
   return static_cast<BsonVisitor*>(data)->visitUtf8(
-      key, v_utf8_len, v_utf8) == BsonVisitor::Stop;
+      key, std::string(v_utf8, v_utf8_len)) == BsonVisitor::Stop;
 }
 
 bool bsonVisitorDateTimeMethod(
@@ -325,7 +325,8 @@ bool bsonVisitorDateTimeMethod(
     int64_t msec_since_epoch,
     void *data) {
   return static_cast<BsonVisitor*>(data)->visitDateTime(
-      key, msec_since_epoch) == BsonVisitor::Stop;
+      key, TimeStamp::fromMilliSecondsSince1970(msec_since_epoch))
+      == BsonVisitor::Stop;
 }
 
 bson_visitor_t BsonVisitor::makeFullVisitor() {

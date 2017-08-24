@@ -34,7 +34,10 @@ TEST(TimeSetsTest, BasicTest) {
   for (int i = 0; i < 3; i++) {
     {
       TimeSetsQuery q;
-      EXPECT_TRUE(removeTimeSets(db.db, q));
+      if (!removeTimeSets(db.db, q)) {
+        LOG(WARNING) << "Something might be wrong with the connection";
+        return;
+      }
     }{
       EXPECT_TRUE(insertTimeSets(db.db, boatId, label, {
           Span<TimeStamp>(t(0), t(1)),

@@ -169,14 +169,13 @@ public:
   // Todo: Support all the things.
   virtual Action visitUtf8(
       const char *key,
-      size_t v_utf8_len,
-      const char *v_utf8) {
+      const std::string& s) {
     return Continue;
   }
 
   virtual Action visitDateTime(
       const char *key,
-      int64_t msec_since_epoch) {
+      TimeStamp t) {
     return Continue;
   }
 
