@@ -50,10 +50,15 @@ function logText(stream, text) {
   }
 }
 
-function getLogger() {
-  return logger;
+function logRawNmea2000(t, id, data) { 
+  if (logger) {
+    logger.logRawNmea2000(t, id, data);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 module.exports.startLogging = startLogging;
 module.exports.logText = logText;
-module.exports.getLogger = getLogger;
+module.exports.logRawNmea2000 = logRawNmea2000;

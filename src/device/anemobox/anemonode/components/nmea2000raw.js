@@ -16,16 +16,14 @@ function logRawPacket(msg) {
   // Solve this EQ: monotonicTime1 - monotonicTime0 = systemTime1 - systemTime0
   monotonicTime0 = monotonicTime1 - (systemTime1 - systemTime0);
 
-  var l = logger.getLogger();
-  if (l) {
+  if (logger.logRawNmea2000(
+    monotonicTime0,
+    msg.id, msg.data)) {
     if (verbose && counter % 10 == 0) {
       console.log("Raw NMEA 2000 packet %d logged, time=%j id=%j data=%j", 
       	counter, monotonicTime0, msg.id, msg.data);
     }
     counter++;
-    l.logRawNmea2000(
-	monotonicTime0,
-	msg.id, msg.data);
   }
   
   // This will, hopefully, trigger a packet to be
