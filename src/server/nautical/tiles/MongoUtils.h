@@ -36,6 +36,9 @@ struct WrapBson : public bson_t, public boost::noncopyable {
 
 std::ostream& operator<<(std::ostream& s, const bson_error_t& e);
 std::string bsonErrorToString(const bson_error_t& e);
+std::ostream& operator<<(std::ostream& s, const bson_t& x);
+std::string bsonToString(const bson_t& s);
+
 
 static constexpr int bsonIndexStringLength = 13;
 typedef std::array<char, bsonIndexStringLength> IndexString;
@@ -104,6 +107,8 @@ struct MongoDBConnection {
   }
 
   MongoDBConnection(const std::string& uri);
+
+  bool connected() const;
 };
 
 struct MongoConnectionSettings {
@@ -113,6 +118,11 @@ struct MongoConnectionSettings {
   std::string passwd;
 };
 
+void genOid(bson_t* dst);
+void bsonAppendAsOid(bson_t* dst, const char* key, const std::string& s);
+
+std::shared_ptr<mongoc_collection_t> getOrCreateCollection(
+    mongoc_database_t* db, const char* name);
 
 std::string makeMongoDBURI(
     const MongoConnectionSettings& passwd);
@@ -131,7 +141,7 @@ class BulkInserter : private boost::noncopyable {
  public:
   BulkInserter(
       const std::shared_ptr<mongoc_collection_t>& coll,
-      int batchSize)
+      int batchSize = 1000)
     : _collection(coll), _batchSize(batchSize) { }
 
   ~BulkInserter() { finish(); }
@@ -147,6 +157,39 @@ class BulkInserter : private boost::noncopyable {
   int _batchSize;
 };
 
+// TODO: Consider implementing a BsonDeepVisitor,
+// that decends into sub documents and tracks the
+// path on a stack or something.
+class BsonVisitor {
+public:
+  std::vector<std::string> path;
+
+  enum Action {Stop, Continue};
+
+  // Todo: Support all the things.
+  virtual Action visitUtf8(
+      const char *key,
+      const std::string& s) {
+    return Continue;
+  }
+
+  virtual Action visitDateTime(
+      const char *key,
+      TimeStamp t) {
+    return Continue;
+  }
+
+  // Returns a visitor object with all relevant fields
+  // initialized. If there are fields that you don't
+  // want to visit (for performance reasons), you can
+  // set them to zero.
+  static bson_visitor_t makeFullVisitor();
+
+  void visit(const bson_t& bson,
+      const bson_visitor_t& v = makeFullVisitor());
+
+  virtual ~BsonVisitor() {}
+};
 
 
 
