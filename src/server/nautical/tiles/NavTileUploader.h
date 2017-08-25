@@ -16,7 +16,7 @@ struct TileGeneratorParameters  {
   int maxNumNavsPerSubCurve;
   bool fullClean;
   Duration<> curveCutThreshold;
-  std::string mongoUri = "mongodb://localhost/anemomind-dev";
+  std::string mongoUri = MongoDBConnection::defaultMongoUri();
 
   std::shared_ptr<mongoc_uri_t> uri() const {
     return SHARED_MONGO_PTR(

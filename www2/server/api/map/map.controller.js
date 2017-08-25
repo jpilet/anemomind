@@ -114,7 +114,9 @@ function generateMapImage(boat, start, end, location, width, height, style,
       prepared.renderer.setLocation(location);
       var pathLayer = prepared.pathLayer;
 
-      pathLayer.setUrl(function(scale, x, y) { return [scale, x, y].join('/'); });
+      // Make sure to reset / clear loaded tiles by changing the URL
+      pathLayer.setUrl(undefined);
+      pathLayer.setUrl(function(scale, x, y) { return [scale, x, y, boat].join('/'); });
       pathLayer.fetchTile = function(url, success, error) {
         var urlAsArray = url.split('/');
         var scale = urlAsArray[0];
