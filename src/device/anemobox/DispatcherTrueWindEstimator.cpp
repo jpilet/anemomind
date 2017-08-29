@@ -100,4 +100,27 @@ void DispatcherTrueWindEstimator::compute(const std::string &srcName) const {
   _dispatcher->publishValue(VMG, srcName, vmg);
 }
 
+std::string DispatcherTrueWindEstimator::info() const {
+  std::string result;
+
+  result += "Calibration parameters: ";
+  result += (_validParameters ? "valid" : "invalid");
+  result += "\nTarge speed table: ";
+  result += (_validTargetSpeedTable ? "valid" : "invalid");
+  result += "\n"; 
+
+  if (_validParameters) {
+    const double* p = _parameters.params;
+    result += 
+      stringFormat("  PARAM_AWA_OFFSET: %f\n", p[TrueWindEstimator::PARAM_AWA_OFFSET])
+      + stringFormat("  PARAM_UPWIND0: %f\n", p[TrueWindEstimator::PARAM_UPWIND0])
+      + stringFormat("  PARAM_DOWNWIND0: %f\n", p[TrueWindEstimator::PARAM_DOWNWIND0])
+      + stringFormat("  PARAM_DOWNWIND1: %f\n", p[TrueWindEstimator::PARAM_DOWNWIND1])
+      + stringFormat("  PARAM_DOWNWIND2: %f\n", p[TrueWindEstimator::PARAM_DOWNWIND2])
+      + stringFormat("  PARAM_DOWNWIND3: %f\n", p[TrueWindEstimator::PARAM_DOWNWIND3]);
+  }
+
+  return result;
+}
+
 }  // namespace sail

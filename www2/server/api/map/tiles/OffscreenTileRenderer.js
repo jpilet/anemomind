@@ -66,6 +66,9 @@ function OffscreenTileRenderer(params) {
   this.numLoading = 0;
   this.numFailedLoading = 0;
   this.failedImages = [];
+
+  this.renderingDone = function(){};
+  this.renderingFailed = function(){};
 }
 
 OffscreenTileRenderer.prototype = Object.create(CanvasTilesRenderer.prototype);

@@ -204,7 +204,14 @@ class ReplayDispatcher : public Dispatcher {
    const std::set<Timeout> &getTimeouts() const {
      return _timeouts;
    }
+ protected:
+   DispatchData* createNewCustomDispatchData(
+         DataCode code, const std::string& src, int size) override;
  private:
+   void finalizeLazyReplay();
+   const Dispatcher* _replayingFrom = nullptr;
+
+   std::vector<DispatchData*> _toFinalize;
    void visitTimeouts();
    int64_t _counter;
    std::set<Timeout> _timeouts;

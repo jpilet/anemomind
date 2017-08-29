@@ -1,12 +1,18 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('VmgplotCtrl', function ($scope, $stateParams, $http, boatList) {
+  .controller('VmgplotCtrl', function ( $scope, $stateParams, $http, boatList) {
     $scope.message = 'Loading...';
-    $scope.boat = boatList.boat($stateParams.boatId);
+    $scope.boatId=$stateParams.boatId;
+    $scope.boat = {};
 
-    $scope.$on('boatList:updated', function(event, boats) {
-      $scope.boat = boatList.boat($stateParams.boatId);
+    boatList.boat($stateParams.boatId).then(function(boat) {
+      $scope.boat = boat;
+      console.log($stateParams.boatId + ': ' + boat.name);
+    });
+
+    $scope.$on("$destroy",function(){
+      $("div.nvtooltip").remove();
     });
 
     $scope.options = {
@@ -69,6 +75,8 @@ angular.module('www2App')
       var vmgtable = data.vmgtable;
       var upwindValues = [];
       var downwindValues = [];
+      var maxVmg = 0;
+      var maxTWS = 0;
       for (var i = 0; i < vmgtable.length; ++i) {
         var d = vmgtable[i];
         if (d.tws < 2) {
@@ -77,11 +85,17 @@ angular.module('www2App')
         }
         if (d.up != undefined) {
           upwindValues.push({x: d.tws, y: d.up});
+          maxVmg = Math.max(maxVmg, d.up);
+          maxTWS = Math.max(maxTWS, d.tws);
         }
         if (d.down != undefined) {
           downwindValues.push({x: d.tws, y: d.down});
+          maxVmg = Math.max(maxVmg, d.down);
+          maxTWS = Math.max(maxTWS, d.tws);
         }
       } 
+      $scope.options.chart.yDomain = [ 0, Math.ceil(maxVmg * 1.1) ];
+      $scope.options.chart.xDomain = [ 2, Math.ceil(maxTWS) ];
       $scope.vmgtable = [
         {
           values: upwindValues,

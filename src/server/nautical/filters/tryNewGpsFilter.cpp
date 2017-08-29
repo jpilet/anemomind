@@ -27,7 +27,8 @@ Array<TimeStamp> getTimeStamps(const NavDataset &ds) {
 }
 
 void outputLocalPositions(const std::string &filename,
-    const Array<CeresTrajectoryFilter::Types<2>::TimedPosition> &positions) {
+    const Array<TimedValue<Curve2dFilter::Vec2<Length<double>>>>
+      &positions) {
   std::ofstream file(filename);
 
   file << "% Matlab-loadable file: First column epoch (time in ms since 1970), "

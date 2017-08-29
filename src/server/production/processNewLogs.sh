@@ -10,6 +10,8 @@ export PROCESSED_DIR="/home/anemomind/processed"
 export SRC_ROOT="/home/jpilet/anemomind/anemomind"
 export BUILD_ROOT=${SRC_ROOT}/build
 
+ulimit -c unlimited
+
 log() {
   echo $(date +"%Y-%m-%d %T") $*
 }
@@ -70,10 +72,9 @@ processBoat() {
         --dir "${boatprocessdir}" \
         --dst "${processed}" \
         --boatid "${boatid}" \
-        -t --clean \
-        --host anemolab1 \
-        --db anemomind \
-        -u anemomindprod -p ${MONGO_PASSWORD} \
+        --save-default-calib \
+        -t --clean -c \
+        --mongo-uri "mongodb://anemomindprod:${MONGO_PASSWORD}@anemolab1,anemolab2,arbiter/anemomind" \
 	--scale 20 ; then
 
       if [ -f "${boatdat}" ] ; then

@@ -6,30 +6,37 @@
 #include <server/common/Array.h>
 #include <server/nautical/NavCompatibility.h>
 #include <server/nautical/tiles/MongoUtils.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 
-struct TileGeneratorParameters {
-  std::string dbHost;
+struct TileGeneratorParameters  {
+  DOM::Node log;
   int maxScale;
   int maxNumNavsPerSubCurve;
-  std::string dbName;
   bool fullClean;
-  std::string user;
-  std::string passwd;
   Duration<> curveCutThreshold;
+  std::string mongoUri = MongoDBConnection::defaultMongoUri();
 
-  std::string tileTable() const {
-    return dbName + "." + _tileTable;
+  std::shared_ptr<mongoc_uri_t> uri() const {
+    return SHARED_MONGO_PTR(
+        mongoc_uri,
+        mongoc_uri_new(mongoUri.c_str()));
   }
 
-  std::string sessionTable() const {
-    return dbName + "." + _sessionTable;
+  std::string dbName() const {
+    return mongoc_uri_get_database(uri().get());
+  }
+
+  MongoTableName tileTable() const {
+    return MongoTableName(dbName(), _tileTable);
+  }
+
+  MongoTableName sessionTable() const {
+    return MongoTableName(dbName(), _sessionTable);
   }
 
   TileGeneratorParameters() {
-    dbName = "anemomind-dev";
-    dbHost = "localhost";
     maxScale = 17;
     maxNumNavsPerSubCurve = 32;
     _tileTable = "tiles";
@@ -43,7 +50,7 @@ struct TileGeneratorParameters {
 
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
-                            mongo::DBClientConnection* db,
+                            const std::shared_ptr<mongoc_database_t>& db,
                             const TileGeneratorParameters& params);
 
 }  // namespace sail

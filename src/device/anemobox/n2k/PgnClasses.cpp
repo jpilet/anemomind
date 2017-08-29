@@ -1,6 +1,6 @@
-/** Generated on Wed Mar 02 2016 08:55:52 GMT+0100 (CET) using 
+/** Generated on Wed Jun 21 2017 23:51:39 GMT+0200 (CEST) using 
  *
- *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
+ *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -165,6 +165,29 @@ namespace PgnClasses {
     _valid = false;
   }
 
+  Rudder::Rudder() {
+    reset();
+  }
+
+  Rudder::Rudder(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (48 <= src.remainingBits()) {
+      _instance = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _directionOrder = src.getUnsigned(2, N2kField::Definedness::AlwaysDefined);
+      // Skipping reserved
+      src.advanceBits(6);
+      _angleOrder = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      _position = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void Rudder::reset() {
+    _valid = false;
+  }
+
   VesselHeading::VesselHeading() {
     reset();
   }
@@ -184,6 +207,26 @@ namespace PgnClasses {
   }
 
   void VesselHeading::reset() {
+    _valid = false;
+  }
+
+  RateOfTurn::RateOfTurn() {
+    reset();
+  }
+
+  RateOfTurn::RateOfTurn(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (40 <= src.remainingBits()) {
+      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      // Skipping rate
+      src.advanceBits(32);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void RateOfTurn::reset() {
     _valid = false;
   }
 
@@ -378,6 +421,7 @@ namespace PgnClasses {
 
 int pgnSize(int pgn) {
   switch(pgn) {
+    case 127251: return 5;
     case 127257: return 7;
     case 128259: return 6;
     case 129029: return 51;
@@ -416,7 +460,9 @@ bool PgnVisitor::visit(const CanPacket &packet) {
       break;
     }
     case 126992: return apply(packet, SystemTime(&(packet.data[0]), packet.data.size()));
+    case 127245: return apply(packet, Rudder(&(packet.data[0]), packet.data.size()));
     case 127250: return apply(packet, VesselHeading(&(packet.data[0]), packet.data.size()));
+    case 127251: return apply(packet, RateOfTurn(&(packet.data[0]), packet.data.size()));
     case 127257: return apply(packet, Attitude(&(packet.data[0]), packet.data.size()));
     case 128259: return apply(packet, Speed(&(packet.data[0]), packet.data.size()));
     case 129025: return apply(packet, PositionRapidUpdate(&(packet.data[0]), packet.data.size()));

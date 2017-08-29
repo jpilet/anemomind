@@ -13,9 +13,11 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/WGS84.h>
 #include <server/common/DOMUtils.h>
-
+#include <server/common/ArrayIO.h>
+#include <server/math/SampleUtils.h>
 
 using namespace sail;
+
 
 namespace {
 
@@ -81,41 +83,14 @@ TimeStamp timeStamp(double x) {
 }
 
 
-CeresTrajectoryFilter::Types<2>::TimedPosition timedPos(double t, double x, double y) {
-  return CeresTrajectoryFilter::Types<2>::TimedPosition(timeStamp(t),
-      Vectorize<Length<double>, 2>{Length<double>::meters(x), Length<double>::meters(y)});
+TimedValue<Curve2dFilter::Vec2<Length<double>>> timedPos(double t, double x, double y) {
+  return TimedValue<Curve2dFilter::Vec2<Length<double>>>(
+      timeStamp(t), {
+          x*1.0_m, y*1.0_m
+  });
 }
 
 }
-
-TEST(SmoothGpsFilterTest, TestComputedMotions) {
-  auto deg = Angle<double>::degrees(1.0);
-
-  Array<CeresTrajectoryFilter::Types<2>::TimedPosition> raw{
-      timedPos(0, 3, 4),
-      timedPos(1, 3, -1)
-    };
-
-  Array<CeresTrajectoryFilter::Types<2>::TimedPosition> filtered{
-      timedPos(2, 3, 4),
-      timedPos(6, 7, 2)
-    };
-
-  LocalGpsFilterResults results{
-    GeographicReference(GeographicPosition<double>(34.4*deg, 344.3*deg)),
-    raw, filtered
-  };
-
-  auto motions = results.getGpsMotions(
-      Duration<double>::minutes(3.0));
-  EXPECT_EQ(motions.size(), 1);
-  auto m = motions[0];
-
-  EXPECT_NEAR((m.time - timeStamp(4.0)).seconds(), 0.0, 1.0e-6);
-  EXPECT_NEAR(m.value[0].metersPerSecond(), 1.0, 1.0e-6);
-  EXPECT_NEAR(m.value[1].metersPerSecond(), -0.5, 1.0e-6);
-}
-
 
 TEST(SmoothGpsFilterTest, TestIt) {
   auto original = getPsarosTestData();
@@ -210,25 +185,25 @@ TEST(SmoothGpsFilter, ApplySplits) {
   {
       Array<TimeStamp> times;
       Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
-      EXPECT_EQ((Array<Array<TimedValue<int>>>{values}),
+      EXPECT_TRUE((Array<Array<TimedValue<int>>>{values}) ==
           applySplits(values, times));
   }{
     Array<TimeStamp> times{lt(-0.3)};
     Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
-    EXPECT_EQ((Array<Array<TimedValue<int>>>{emptyArray, values}),
+    EXPECT_TRUE((Array<Array<TimedValue<int>>>{emptyArray, values}) ==
         applySplits(values, times));
   }{
     Array<TimeStamp> times{lt(0.9)};
     Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
-    EXPECT_EQ((Array<Array<TimedValue<int>>>{values, emptyArray}),
+    EXPECT_TRUE((Array<Array<TimedValue<int>>>{values, emptyArray}) ==
         applySplits(values, times));
   }{
     Array<TimeStamp> times{lt(0.15)};
     Array<TimedValue<int> > values{tvi(0.1, 3), tvi(0.2, 4)};
-    EXPECT_EQ((Array<Array<TimedValue<int>>>{
+    EXPECT_TRUE((Array<Array<TimedValue<int>>>{
       Array<TimedValue<int>>{tvi(0.1, 3)},
       Array<TimedValue<int>>{tvi(0.2, 4)},
-    }),
+    }) ==
     applySplits(values, times));
   }
 }

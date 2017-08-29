@@ -17,6 +17,10 @@ fi
 
 ./format.sh
 
+# make sure NMEA0183 output works on anemobox v1.x
+echo mode0 > /sys/kernel/debug/gpio_debug/gpio129/current_pinmux 
+echo high > /sys/kernel/debug/gpio_debug/gpio129/current_value
+
 systemctl restart avahi-daemon
 
 ps aux | grep -v grep | grep -q jacd || ./start_n2k.sh

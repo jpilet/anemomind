@@ -164,6 +164,13 @@ TEST(DisaptcherUtilsTest, TestSomeMore) {
   EXPECT_EQ(b, d1->dispatchDataForSource(Code, "B"));
 }
 
+std::shared_ptr<TypedDispatchData<Angle<double>>> getAwaData(
+    const Dispatcher* d) {
+  return std::static_pointer_cast<
+        TypedDispatchData<Angle<double>>>(d->allSources().at(AWA).at("src"));
+
+}
+
 TEST(DispatcherUtilsTest, Replay) {
   Dispatcher d;
   auto offset = TimeStamp::UTC(2016, 3, 19, 14, 19, 0);
@@ -202,6 +209,10 @@ TEST(DispatcherUtilsTest, Replay) {
   AwaListener awaListener(&d2);
   d2.get<AWA>()->dispatcher()->subscribe(&awaListener);
   d2.replay(&d);
+
+  // Check that we did not duplicate identical data.
+  EXPECT_EQ(getAwaData(&d)->dispatcher(),
+           getAwaData(&d2)->dispatcher());
 
   EXPECT_EQ(9, awaListener._counter);
 

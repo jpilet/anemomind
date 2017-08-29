@@ -11,6 +11,9 @@ NavDataset removeStrangeGpsPositions(const NavDataset& ds);
 // channel.
 NavDataset downSampleGpsTo1Hz(const NavDataset& navs);
 
+TimedSampleCollection<GeographicPosition<double>>::TimedVector
+  getCleanGpsPositions(const NavDataset &ds, const std::string &src);
+
 }  // namespace sail
 
 #endif  // NAUTICAL_DOWNSAMPLE_GPS

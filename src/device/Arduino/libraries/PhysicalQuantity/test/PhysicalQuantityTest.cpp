@@ -197,3 +197,8 @@ TEST(PhysQuantTest, Literals) {
   EXPECT_NEAR((134.0_deg).degrees(), 134, 1.0e-6);
 }
 
+TEST(PhysQuantTest, VectorizeNorm) {
+  Vectorize<Length<double>, 2> x{3.0_m, 4.0_m};
+  EXPECT_NEAR(x.norm().meters(), 5.0, 1.0e-6);
+}
+

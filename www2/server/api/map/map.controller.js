@@ -58,15 +58,14 @@ function getCanvas(width, height, name, cb) {
     canvas.height = height;
     context = canvas.getContext('2d');
 
-    if (!renderer) {
-      renderer = new OffscreenTileRenderer({
-        canvas: canvas,
-        forceDevicePixelRatio: 1,
-        url: function(scale, x, y) { 
-          var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
-          return "http://stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
-            + scale + "/" + x + "/" + y + ".png";
-        },
+    renderer = new OffscreenTileRenderer({
+      canvas: canvas,
+      forceDevicePixelRatio: 1,
+      url: function(scale, x, y) { 
+        var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
+        return "http://stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
+          + scale + "/" + x + "/" + y + ".png";
+      },
 
       // Allow direct disc access instead of going through a http call
       localImagePath: config.root
@@ -115,7 +114,9 @@ function generateMapImage(boat, start, end, location, width, height, style,
       prepared.renderer.setLocation(location);
       var pathLayer = prepared.pathLayer;
 
-      pathLayer.setUrl(function(scale, x, y) { return [scale, x, y].join('/'); });
+      // Make sure to reset / clear loaded tiles by changing the URL
+      pathLayer.setUrl(undefined);
+      pathLayer.setUrl(function(scale, x, y) { return [scale, x, y, boat].join('/'); });
       pathLayer.fetchTile = function(url, success, error) {
         var urlAsArray = url.split('/');
         var scale = urlAsArray[0];

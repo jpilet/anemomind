@@ -1,0 +1,11 @@
+<div style="height:100%; position:relative;">
+  <div style="height:100%;" class="graph-container"></div>
+  <div class="graph-controls">
+    <select id="channelSelect"
+              ng-model="channel"
+              ng-options="c for c in channelList track by c"></select>
+    <select id="sourceSelect"
+              ng-model="source"
+              ng-options="s for s in sourceList"></select>
+  </div>
+</div>

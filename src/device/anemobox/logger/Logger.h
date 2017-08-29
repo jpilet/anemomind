@@ -21,6 +21,10 @@ void addTimeStampToRepeatedFields(
 
 Optional<int64_t> readIntegerFromTextFile(const std::string &filename);
 
+void unpackTimeStamps(
+    const google::protobuf::RepeatedField<std::int64_t> &times,
+    std::vector<TimeStamp>* result);
+
 
 // Listen and save a single stream of values.
 class LoggerValueListener:
@@ -29,7 +33,8 @@ class LoggerValueListener:
   public Listener<Length<double>>,
   public Listener<GeographicPosition<double>>,
   public Listener<TimeStamp>,
-  public Listener<AbsoluteOrientation> {
+  public Listener<AbsoluteOrientation>,
+  public Listener<BinaryEdge> {
 public:
   LoggerValueListener(const std::string& shortName,
                       const std::string& sourceName)
@@ -125,6 +130,11 @@ public:
                     _valueSet.mutable_orient()->mutable_pitch());
   }
 
+  virtual void onNewValue(const ValueDispatcher<BinaryEdge> &v) {
+    addTimestamp(v.lastTimeStamp());
+    _valueSet.mutable_binary()->add_edges(v.lastValue() == BinaryEdge::ToOn);
+  }
+
   void addText(TimeStamp t, const std::string& text) {
     addTimestamp(t);
     _valueSet.add_text(text);
@@ -133,13 +143,32 @@ public:
   const std::string& source() const { return _sourceName; }
 private:
   ValueSet _valueSet;
-  int intBase;
-  int intBaseRoll;
-  int intBasePitch;
-  std::int64_t timestampBase;
-  std::int64_t extTimesBase;
+  int intBase = 0;
+  int intBaseRoll = 0;
+  int intBasePitch = 0;
+  std::int64_t timestampBase = 0;
+  std::int64_t extTimesBase = 0;
   std::string _sourceName;
   std::string _shortName;
+};
+
+enum class Nmea2000SizeClass {Regular, Odd};
+
+inline Nmea2000SizeClass getNmea2000SizeClass(size_t byteCount) {
+  return byteCount == 8?
+      Nmea2000SizeClass::Regular
+      : Nmea2000SizeClass::Odd;
+}
+
+class Nmea2000SentenceAccumulator {
+public:
+  void add(const TimeStamp& time,
+	   int64_t id, size_t count, const char* data);
+  Nmea2000Sentences* mutableData() {return &_data;}
+private:
+  Nmea2000SizeClass _sizeClass = Nmea2000SizeClass::Regular;
+  std::int64_t timestampBase = 0;
+  Nmea2000Sentences _data;
 };
 
 class Logger {
@@ -147,13 +176,19 @@ class Logger {
   Logger(Dispatcher* dispatcher);
 
   // Move all stored data into <container>. This method should
-  // be called in the dispatcher thread. 
+  // be called in the dispatcher thread.
   void flushTo(LogFile* container);
 
   // Convenience function to call flushTo, nextFilename and save.
   bool flushAndSaveToFile(const std::string& filename);
 
-  void logText(const std::string& streamName, const std::string& content);
+  void logText(const std::string& streamName, 
+	       const std::string& content);
+
+  void logRawNmea2000(
+        int64_t timestampMillisecondsSinceBoot,
+        int64_t id,
+        size_t count, const char* data);
 
   // Save invokes gzip, it might be slightly time consuming.
   static bool save(const std::string& filename, const LogFile& data);
@@ -174,6 +209,9 @@ class Logger {
   static void unpack(const AbsOrientValueSet& values,
                      std::vector<AbsoluteOrientation>* result);
 
+  static void unpack(const BinaryEdgeValueSet& values,
+                     std::vector<BinaryEdge>* result);
+
   static void unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
                       std::vector<TimeStamp>* result);
 
@@ -190,6 +228,7 @@ class Logger {
   Dispatcher* _dispatcher;
   std::vector<std::shared_ptr<LoggerValueListener>> _listeners;
   std::map<std::string, LoggerValueListener> _textLoggers;
+  std::map<std::pair<int64_t, Nmea2000SizeClass>, Nmea2000SentenceAccumulator> _rawNmea2000Sentences;
   boost::signals2::scoped_connection _newDispatchDataListener;
 };
 
@@ -239,6 +278,12 @@ struct ValueSetToTypedVector<TimeStamp> {
   }
 };
 
+template <>
+struct ValueSetToTypedVector<BinaryEdge> {
+  static void extract(const ValueSet &x, std::vector<BinaryEdge> *dst) {
+    Logger::unpack(x.binary(), dst);
+  }
+};
 }  // namespace sail
 
 #endif   // ANEMOBOX_LOGGER_H

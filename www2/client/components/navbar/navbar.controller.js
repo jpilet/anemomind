@@ -8,9 +8,12 @@ angular.module('www2App')
       'link': '/'
     }];
 
-    $scope.boats = boatList.boats();
-    $scope.$on('boatList:updated', function(event,data) {
-      $scope.boats = data;
+    boatList.boats().then(function(boats) {
+      var displayNavbarBoats=11;
+      $scope.boats = boats;
+      $scope.limit = Math.min(displayNavbarBoats,boats.length);
+      $scope.offset= Math.max(boats.length-displayNavbarBoats, 0);
+      $scope.truncated = boats.length > displayNavbarBoats;
     });
 
     $scope.isCollapsed = true;

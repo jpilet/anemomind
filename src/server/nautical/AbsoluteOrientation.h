@@ -9,6 +9,11 @@ struct AbsoluteOrientation {
   Angle<double> heading;
   Angle<double> roll;
   Angle<double> pitch;
+
+  bool operator==(const AbsoluteOrientation& other) const {
+    return heading == other.heading &&
+        roll == other.roll && pitch == other.pitch;
+  }
 };
 
 bool isFinite(const AbsoluteOrientation &x);

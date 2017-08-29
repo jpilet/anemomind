@@ -8,6 +8,7 @@
 
 #include <Poco/Path.h>
 #include <server/common/ArgMap.h>
+#include <server/common/DOMUtils.h>
 #include <server/nautical/Nav.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
@@ -16,8 +17,6 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 namespace sail {
-
-namespace DOM {struct Node;}
 
 enum VmgSampleSelection {
   VMG_SAMPLES_FROM_GRAMMAR,
@@ -40,8 +39,7 @@ struct BoatLogProcessor {
   void readArgs(ArgMap* amap);
   bool prepare(ArgMap* amap);
   void infoNavDataset(
-      const std::string& info, const NavDataset& ds,
-      DOM::Node *dst);
+      const std::string& info, const NavDataset& ds);
 
   bool _debug = false;
   Nav::Id _boatid;
@@ -61,8 +59,12 @@ struct BoatLogProcessor {
   bool _verboseCalibrator = false;
   bool _exploreGrammar = false;
   bool _logGrammar = false;
+  bool _saveDefaultCalib = false;
 
-  mongo::DBClientConnection db;
+  MongoDBConnection db;
+
+  DOM::Node _htmlReport;
+
 private:
   void grammarDebug(
       const std::shared_ptr<HTree> &fulltree,

@@ -1,6 +1,7 @@
 #ifndef NAUTICAL_TILES_CHART_TILES_H
 #define NAUTICAL_TILES_CHART_TILES_H
 
+#include <map>
 #include <string>
 
 #include <device/anemobox/TimedSampleCollection.h>
@@ -12,22 +13,38 @@ namespace sail {
 class NavDataset;
 
 struct ChartTileSettings {
-  int samplesPerTile = 256;
-  int lowestZoomLevel = 7; // 2^7 = 128 seconds
+  // These values should match those in dynloader.js
+  int samplesPerTile = 512;
+  int lowestZoomLevel = 9; // 2^9 = 512 seconds
   int highestZoomLevel = 28; // 2^28 seconds = about 10 years
   std::string dbName = "anemomind-dev";
-  std::string chartTileTable = "charttiles";
 
-  std::string table() const { return dbName + "." + chartTileTable; }
+  MongoTableName table() const {
+    return MongoTableName(dbName, chartTileTable);
+  }
+
+  MongoTableName sourceTable() const {
+    return MongoTableName(dbName, chartTileSourceTable);
+  }
+private:
+  std::string chartTileTable = "charttiles";
+  std::string chartTileSourceTable = "chartsources";
 };
 
 bool uploadChartTiles(const NavDataset& data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
-                      mongo::DBClientConnection *db);
+                      const std::shared_ptr<mongoc_database_t>& db);
 
+bool uploadChartSourceIndex(const NavDataset& data,
+                            const std::string& boatId,
+                            const ChartTileSettings& settings,
+                            const std::shared_ptr<mongoc_database_t>& db);
 
-void appendStats(const MeanAndVar& stats, mongo::BSONObjBuilder* builder);
+struct StatArrays {
+  std::vector<double> min, max, mean;
+  std::vector<int64_t> count;
+};
 
 template <typename T> struct Statistics {
   MeanAndVar stats;
@@ -41,8 +58,18 @@ template <typename T> struct Statistics {
   static double unit(Velocity<> x) { return x.knots(); }
   static double unit(Length<> x) { return x.meters(); }
 
-  void appendBson(mongo::BSONObjBuilder* builder) const {
-    appendStats(stats, builder);
+  void appendToArrays(StatArrays* arrays) const {
+    if (stats.count() > 0) {
+      arrays->count.push_back(1);
+      arrays->mean.push_back(stats.mean());
+      arrays->max.push_back(stats.max());
+      arrays->min.push_back(stats.min());
+    } else {
+      arrays->count.push_back(0);
+      arrays->mean.push_back(0);
+      arrays->max.push_back(0);
+      arrays->min.push_back(0);
+    }
   }
 };
 
@@ -63,10 +90,13 @@ template <> struct Statistics<Angle<double>> {
     return result;
   }
 
-  void appendBson(mongo::BSONObjBuilder* builder) const {
-    builder->append("count", (long long) count);
+  void appendToArrays(StatArrays* arrays) const {
     if (count > 0 && vectorSum.norm() > 0.01_kn) {
-      builder->append("mean", vectorSum.angle().degrees());
+      arrays->count.push_back(static_cast<long long>(count));
+      arrays->mean.push_back( vectorSum.angle().degrees());
+    } else {
+      arrays->count.push_back(0);
+      arrays->mean.push_back(0);
     }
   }
 

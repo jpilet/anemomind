@@ -1,96 +1,122 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
+
 <div class="container">
-<h2>{{ boat.name }}</h2>
-<a ng-href="/map/{{ boat._id }}">Show map</a>
-<h3>Boat profile</h3>
-<p class="input-group">
-<input type="text" class="form-control" placeholder="Boat name" ng-model="boat.name">
-<input type="text" class="form-control" placeholder="Boat type" ng-model="boat.type">
-<input type="text" class="form-control" placeholder="Sail number" ng-model="boat.sailNumber">
-<input type="text"  pattern="\d*\.?\d*" class="form-control" placeholder="Length" ng-model="boat.length">
-<label>
-  <input type="radio" ng-model="boat.lengthUnit" value="meter">
-  meter
-</label>
-<label>
-  <input type="radio" ng-model="boat.lengthUnit" value="feet">
-  feet
-</label>
 
-<input ng-show="isAdmin()" type="text" class="form-control" placeholder="Firmware version" ng-model="boat.firmwareVersion">
+  <ol class="breadcrumb">
+    <li><a href="/boats">Boats</a></li>
+    <li><a href="/boats/{{::boatId}}">{{ boat.name }}</a></li>
+    <li class="active">Edit</li>
+  </ol>
 
-<div>
-Sails:
-<ul>
-  <li ng-repeat="sail in boat.sails track by $index">
-    <input type="text" ng-model="boat.sails[$index]">
-    <a href="" ng-click="removeSail(sail)">&#x2716;</a>
-  </li>
-  <li>
-    <form ng-submit="addSail()">
-      <input type="text" ng-model="newSail">
-      <a href="" ng-click="addSail()">&#x271A;</a>
-    </form>
-  </li>
-</ul>
 
-</div>
+  <!-- PROFILE -->
+  <h3>Boat profile</h3>
+  <form ng-submit="saveBoat()">
+    <ul class="list-group ">
+      <li class="list-group-item">
+        <input type="text" class="form-control form-control-inline" placeholder="Boat name" ng-model="boat.name">
+      </li>
+      <li class="list-group-item">
+        <input type="text" class="form-control form-control-inline" placeholder="Boat type" ng-model="boat.type">
+      </li>
+      <li class="list-group-item">
+        <input type="text" class="form-control form-control-inline" placeholder="Sail number" ng-model="boat.sailNumber">
+      </li>
+      <li class="list-group-item">
+        <input type="text"  pattern="\d*\.?\d*" class="form-control form-control-inline" placeholder="Length" ng-model="boat.length">
+      </li>
+      <li class="list-group-item">
+        <label>
+          <input type="radio" ng-model="boat.lengthUnit" value="meter" class="">
+          meter
+        </label>
+      <label>
+        <input type="radio" ng-model="boat.lengthUnit" value="feet" class="">
+        feet
+      </label>
+      </li>
+      <li class="list-group-item">
+        <input ng-show="isAdmin()" type="text" class="form-control form-control-inline" placeholder="Firmware version" ng-model="boat.firmwareVersion">
+      </li>
+    </ul>
+    <input type="submit" class="hide">
+  </form>
 
-  <div class="input-group-btn">
-    <button type="submit" class="btn btn-primary" ng-click="saveBoat()">Save changes</button>
+  <!-- EDIT SAIL -->
+  <h3>Sails</h3>
+  <ul class="list-group ">
+    <li ng-repeat="sail in boat.sails track by $index" class="list-group-item">
+      <input type="text" ng-model="boat.sails[$index]" class="form-control form-control-inline">
+      <button href="" ng-click="removeSail(sail)" class="close">&#x2716;</button>
+    </li>
+  </ul>
+  <hr/>
+
+  <!-- ADD SAIL -->
+  <form ng-submit="addSail()" class="">
+    <p class="input-group">
+      <input type="text" class="form-control " placeholder="Sail name" ng-model="newSail">
+      <span class="input-group-btn">
+        <button type="submit" class="btn btn-primary" ng-click="addSail()">Add Sail</button>
+      </span>
+    </p>
+  </form>
+
+  <!-- TEAM VISIBILITY -->
+  <h2>Team & Security</h2>
+  <div ng-show="boat.publicAccess" class="panel  panel-body">
+    <div class="text-center">Access for this boat is OPEN TO ANYONE.</div>
+    <button type="submit" class="btn btn-action btn-block" ng-click="changePublicAccess()">Make it PRIVATE</button>
   </div>
 
-<br />
-<h3>Team</h3>
-
-<div ng-show="boat.publicAccess">
-<span>Access for this boat is OPEN TO ANYONE.</span>
-<button type="submit" class="btn btn-primary" ng-click="changePublicAccess()">Make it PRIVATE</button>
-</div>
-
-<div ng-hide="boat.publicAccess">
-<span>Access for this boat is RESTRICTED to team members.</span>
-<button type="submit" class="btn btn-primary" ng-click="changePublicAccess()">Make it PUBLIC</button>
-</div>
-
-<div>
-<h4>Full team members:</h4>
-<ul class="nav nav-tabs nav-stacked" ng-repeat="admin in boat.admins">
-  <li>{{ users[admin].name }}<button type="button" class="close" ng-click="removeMember('admins', admin)">&times;</button></li>
-</ul>
-</div>
-
-<div>
-<h4>Members that can only view:</h4>
-<ul class="nav nav-tabs nav-stacked" ng-repeat="member in boat.readers">
-  <li>{{ users[member].name }}<button type="button" class="close" ng-click="removeMember('readers', member)">&times;</button></li>
-</ul>
-</div>
-
-<div>
-<h4>Pending invitations:</h4>
-<ul class="nav nav-tabs nav-stacked" ng-repeat="guest in boat.invited">
-  <li>{{ guest.email }}<button type="button" class="close" ng-click="removeInvitation(guest)">&times;</button></li>
-</ul>
-</div>
-
-
-
-<p class="input-group">
-Add a team member
-  <input type="email" class="form-control" placeholder="e-mail" ng-model="invitedEMail"/>
-  User can add and modify boat data <input type="checkbox" ng-model="invitedAdmin"/>
-  <div class="input-group-btn">
-    <button type="submit" class="btn btn-primary" ng-click="addMember()">Add member</button>
+  <div ng-hide="boat.publicAccess" class="panel  panel-body">
+    <div class="text-center">Access for this boat is RESTRICTED to team members.</div>
+    <button type="submit" class="btn btn-action-inv btn-block" ng-click="changePublicAccess()">Make it PUBLIC</button>
   </div>
-  <p>{{ invitationMessage }}</p>
-</p>
 
+  <!-- TEAM MEMBERS -->
+  <div class="panel panel-default panel-body">
+    <h4>Full team members:</h4>
+    <ul class="nav nav-tabs nav-stacked" ng-repeat="admin in boat.admins">
+      <li>{{ users[admin].name }}<button type="button" class="close" ng-click="removeMember('admins', admin)">&times;</button></li>
+    </ul>
+  </div>
+
+  <div class="panel panel-default panel-body" ng-if="boat.readers.length">
+    <h4>Members that can only view:</h4>
+    <ul class="nav nav-tabs nav-stacked" ng-repeat="member in boat.readers">
+      <li>{{ users[member].name }}<button type="button" class="close" ng-click="removeMember('readers', member)">&times;</button></li>
+    </ul>
+  </div>
+
+  <div class="panel panel-default panel-body">
+    <h4>Pending invitations:</h4>
+    <ul class="nav nav-tabs nav-stacked" ng-repeat="guest in boat.invited">
+      <li>{{ guest.email }}<button type="button" class="close" ng-click="removeInvitation(guest)">&times;</button></li>
+    </ul>
+  
+    <!-- INVITATION -->
+    <br/>
+    Add a team member
+    <p class="input-group">
+      <input type="text" class="form-control" placeholder="e-mail" ng-model="invitedEMail"/>
+      <span class="input-group-btn">
+        <button type="submit" class="btn btn-primary" ng-click="addMember()">Add member</button>
+      </span>
+    </p>
+      User can add and modify boat data <input type="checkbox" ng-model="invitedAdmin"/>
+    <p>{{ invitationMessage }}</p>
+  </div>
+  <!-- SAVE BOAT -->
+  <div class="panel  panel-body ">
+    <button type="submit" class="btn btn-action-inv  btn-block" ng-click="saveBoat(true)">Save changes</button>
+
+  </div>
+
+
+
+  
 </div>
 
-<footer class="footer">
-  <div class="container">
-      <p>a href="http://anemomind.com">Anemomind</a></p>
-  </div>
-</footer>
+<div ng-include="'components/footer/footer.html'"></div>

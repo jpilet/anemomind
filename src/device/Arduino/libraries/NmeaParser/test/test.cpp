@@ -49,6 +49,15 @@ TEST(NmeaParserTest, TestMWV) {
   EXPECT_EQ(int(4.8f * 256.0f), int(256.0f * (float) parser.aws().knots()));
 }
 
+
+TEST(NmeaParserTest, TestMWV2) {
+  NmeaParser parser;
+  EXPECT_EQ(NmeaParser::NMEA_AW,
+            sendSentence("$IIMWV,290.65,R,7.03,N,A*31", &parser));
+  EXPECT_EQ(290, parser.awa().degrees());
+  EXPECT_EQ(int(7.03f * 256.0f), int(256.0f * (float) parser.aws().knots()));
+}
+
 TEST(NmeaParserTest, TestRMC) {
   NmeaParser parser;
 
@@ -295,11 +304,23 @@ TEST(NmeaParserTest, TestVWT) {
 class MockNmeaParser : public NmeaParser {
   public:
     MOCK_METHOD4(onXDRRudder, void(const char*, bool, Angle<double>, const char*));
+    MOCK_METHOD4(onMWD, void(const char*, Optional<Angle<>> twdir_geo,
+                             Optional<Angle<>> twdire_mag,
+                             Optional<Velocity<>> tws));
+    MOCK_METHOD3(onRSA, void(const char *senderAndSentence,
+                     Optional<sail::Angle<>> rudderAngle0,
+                     Optional<sail::Angle<>> rudderAngle1));
 };
 
-double degrees(const Angle<double>& d) {
-    return d.degrees();
+double degrees(const Angle<double>& d) { return d.degrees(); }
+double degreesOpt(const Optional<Angle<double>>& d) {
+  return d.get().degrees();
 }
+
+double knotsOpt(const Optional<Velocity<double>>& v) { return v.get().knots(); }
+
+template<typename T>
+bool optionalDefined(const Optional<T>& x) { return x.defined(); }
 
 TEST(NmeaParserTest, TestRudder) {
   MockNmeaParser parser;
@@ -322,4 +343,27 @@ TEST(NmeaParserTest, InvalidWind) {
            sendSentence("$IIMWV,20,R,3222.6,N,A*26", &parser));
   EXPECT_EQ(NmeaParser::NMEA_NONE,
            sendSentence("$IIVWR,20,R,3222.6,N,1657.7,M,5968.3,K*51", &parser));
+}
+
+TEST(NmeaParserTest, TestMWD) {
+  MockNmeaParser parser;
+
+  EXPECT_CALL(parser, onMWD(StrEq("IIMWD"),
+                            ResultOf(optionalDefined<Angle<>>, false),
+                            ResultOf(degreesOpt, DoubleEq(281.6)),
+                            ResultOf(knotsOpt, DoubleEq(6.78))));
+
+  EXPECT_EQ(NmeaParser::NMEA_MWD,
+           sendSentence("$IIMWD,,T,281.6,M,6.78,N,3.49,M*60", &parser));
+}
+
+TEST(NmeaParserTest, TestRSA) {
+  MockNmeaParser parser;
+
+  EXPECT_CALL(parser, onRSA(StrEq("IIRSA"),
+                            ResultOf(degreesOpt, DoubleEq(-4.3)),
+                            ResultOf(optionalDefined<Angle<>>, false)));
+
+  EXPECT_EQ(NmeaParser::NMEA_RSA,
+           sendSentence("$IIRSA,4.3,A,,V*7E", &parser));
 }

@@ -242,6 +242,8 @@ NavDataset performCalibration(NavDataset navs0,const ExportSettings& settings) {
 int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::string output) {
   NavDataset navs = loadNavsFromArgs(args);
 
+  navs = navs.createMergedChannels();
+
   if (settings.downSampleGps) {
     navs = downSampleGpsTo1Hz(navs);
   }

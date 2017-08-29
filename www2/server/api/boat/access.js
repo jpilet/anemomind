@@ -41,12 +41,12 @@ module.exports.userCanWrite = function(user, boat) {
   return _.findIndex(boat.admins, userId) >= 0;
 }
 
-function userCanAccessBoatId(checkAccess, userid, boatid) {
+function userCanAccessBoatId(checkAccess, user, boatid) {
   // TODO: Cache results to avoid hitting the database too often.
   return Q.Promise(function(resolve, reject) {
     Boat.findById(boatid, function (err, boat) {
       if(err) { return reject(err); }
-      if (checkAccess({id: userid}, boat)) {
+      if (checkAccess(user, boat)) {
         resolve();
       }
       reject();
@@ -80,19 +80,19 @@ module.exports.readableBoats = function(req) {
       query = { publicAccess: true };
     }
 
-    Boat.find(query, function (err, boats) {
+    Boat.findWithPhotosAndComments(query, function (err, boats) {
       if(err) { reject(err); }
       resolve(boats);
     });
   });
 };
 
-module.exports.userCanReadBoatId = function(userid, boatid) {
-  return userCanAccessBoatId(module.exports.userCanRead, userid, boatid);
+module.exports.userCanReadBoatId = function(user, boatid) {
+  return userCanAccessBoatId(module.exports.userCanRead, user, boatid);
 }
 
-module.exports.userCanWriteBoatId = function(userid, boatid) {
-  return userCanAccessBoatId(module.exports.userCanWrite, userid, boatid);
+module.exports.userCanWriteBoatId = function(user, boatid) {
+  return userCanAccessBoatId(module.exports.userCanWrite, user, boatid);
 }
 
 var checkAccess = function(checkFunc, req, res, next) {
@@ -101,7 +101,7 @@ var checkAccess = function(checkFunc, req, res, next) {
     return res.sendStatus(400);
   }
 
-  checkFunc((req.user ? req.user.id : undefined), boat)
+  checkFunc(req.user, boat)
     .then(next)
     .catch(function() {
       return res.sendStatus(req.user ? 403 : 401);
@@ -114,4 +114,17 @@ exports.boatWriteAccess = function(req, res, next) {
 
 exports.boatReadAccess = function(req, res, next) {
   return checkAccess(module.exports.userCanReadBoatId, req, res, next);
+};
+
+exports.boatReadAccessOrRedirect = function(req, res, next) {
+  var boat = req.params.boatId || req.params.boat;
+  if (!boat) {
+    return res.sendStatus(400);
+  }
+
+  module.exports.userCanReadBoatId((req.user ? req.user.id : undefined), boat)
+    .then(next)
+    .catch(function() {
+      return res.redirect('/login?d=' + encodeURIComponent(req.originalUrl));
+    });
 };

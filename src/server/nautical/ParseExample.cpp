@@ -6,17 +6,12 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/common/Env.h>
 #include <server/common/string.h>
-#include <server/common/HierarchyJson.h>
-#include <server/nautical/NavJson.h>
 #include <fstream>
 #include <Poco/Path.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <iostream>
-#include <server/nautical/HTreeJson.h>
 #include <server/common/PathBuilder.h>
-#include <Poco/JSON/Stringifier.h>
-
-#include <server/common/Json.impl.h>
+#include <server/nautical/NavCompatibility.h>
 
 using namespace sail;
 using namespace sail::NavCompat;
@@ -63,18 +58,6 @@ namespace {
     std::shared_ptr<HTree> tree(new HInner(fulltree->index(), fulltree->child(0)));
 
     NavDataset navs = slice(allnavs, tree->left(), tree->right());
-
-    {
-      ofstream file(prefix + "_tree.js");
-      Poco::JSON::Stringifier::stringify(json::serializeMapped(tree, navs, g.nodeInfo()), file, 0, 0);
-    }{
-      ofstream file(prefix + "_navs.js");
-      Poco::JSON::Stringifier::stringify(json::serialize(makeArray(navs)), file, 0, 0);
-    }{
-      ofstream file(prefix + "_tree_node_info.js");
-      Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
-    }
-
     cout << "Done" << endl;
   }
 }

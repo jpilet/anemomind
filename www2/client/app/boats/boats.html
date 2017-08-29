@@ -1,23 +1,26 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
 <div class="container">
+<div ng-if="isLoggedIn">
 <h4>Add boat</h4>
 <p class="input-group">
-  <input type="text" class="form-control" placeholder="Boat name" ng-model="newBoat">
+  <div ng-if="boatCreated" class="alert alert-success">
+    <a ng-href="/boats/{{boatCreated._id}}">{{boatCreated.name}}</a> has been created
+  </div>
+  <div ng-if="errorMessage" class="alert alert-danger">{{errorMessage}}</div>
+  <input type="text" class="form-control" placeholder="Boat name" ng-model="newBoat.name">
   <span class="input-group-btn">
     <button type="submit" class="btn btn-primary" ng-click="addBoat()">Add Boat</button>
   </span>
 </p>
+</div>
+
 <br />
-<h4>Boat list</h4>
+<h4 ng-if="boats.length">Boat list</h4>
 <ul class="nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6" ng-repeat="boat in boats">
-  <li><a href="/boats/{{ boat._id }}">{{ boat.name }}</a></li>
+  <li><a href="/boats/{{ ::boat._id }}">{{ ::boat.name||'Unknown' }}</a></li>
 </ul>
 
 </div>
 
-<footer class="footer">
-  <div class="container">
-      <p><a href="http://anemomind.com">Anemomind</a></p>
-  </div>
-</footer>
+<div ng-include="'components/footer/footer.html'"></div>

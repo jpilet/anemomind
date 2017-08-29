@@ -167,6 +167,7 @@ NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
     argc_ = 1;
     argv_[0] = data_;
     state_ = NP_STATE_CMD;
+    /* no break */
 
   // Retrieve command (NMEA Address)
   case NP_STATE_CMD :
@@ -328,6 +329,10 @@ NmeaParser::NmeaSentence NmeaParser::processCommand() {
     return processVTG();
   } else if (strcmp(c, "XDR") == 0) {
     return processXDR();
+  } else if (strcmp(c, "MWD") == 0) {
+    return processMWD();
+  } else if (strcmp(c, "RSA") == 0) {
+    return processRSA();
   }
 
   return NMEA_UNKNOWN;
@@ -610,6 +615,98 @@ NmeaParser::NmeaSentence NmeaParser::processXDR() {
               Angle<double>::degrees(angle),
               argv_[3]);
   return NMEA_RUDDER;
+}
+
+Optional<double> readDouble(const char *str) {
+  double x;
+  if (str && (sscanf(str, "%lf", &x) == 1)) {
+    return Optional<double>(x);
+  }
+  return Optional<double>();
+}
+
+Optional<Angle<>> readAngleDegrees(const char *str) {
+  return readDouble(str).applyFun<Angle<>>(Angle<>::make_degrees);
+}
+
+/*
+ The direction from which the wind blows across the earth’s surface, with respect to north, and the speed of the wind.
+ $--MWD,x.x,T,x.x,M,x.x,N,x.x,M*hh<CR><LF>
+ Wind direction, 0 to 359 degrees True
+ Wind direction, 0 to 359 degrees Magnetic
+ Wind speed, knots
+ Wind speed, meters/second
+
+ example $IIMWD,,T,281.6,M,6.78,N,3.49,M*60
+*/
+NmeaParser::NmeaSentence NmeaParser::processMWD() {
+  if (argc_ < 7) {
+    return NMEA_NONE;
+  }
+
+  Optional<Angle<>> twdir_geo;
+  if (argv_[2][0] == 'T') {
+    twdir_geo = readAngleDegrees(argv_[1]);
+  }
+
+  Optional<Angle<>> twdir_mag;
+  if (argv_[4][0] == 'M') {
+    twdir_mag = readAngleDegrees(argv_[3]);
+  }
+
+  Optional<Velocity<>> tws;
+  if (argv_[6][0] == 'N') {
+    tws = readDouble(argv_[5]).applyFun<Velocity<>>(Velocity<>::make_knots);
+  }
+
+  if (!tws.defined() && argc_ == 9 && argv_[8][0] == 'M') {
+    tws = readDouble(argv_[7]).applyFun<Velocity<>>(
+        Velocity<>::make_metersPerSecond);
+  }
+
+  onMWD(argv_[0], twdir_geo, twdir_mag, tws);
+
+  return NMEA_MWD;
+}
+
+/*
+=== RSA - Rudder Sensor Angle ===
+------------------------------------------------------------------------------
+        1   2 3   4 5
+        |   | |   | |
+ $--RSA,x.x,A,x.x,A*hh<CR><LF>
+------------------------------------------------------------------------------
+
+Field Number:
+
+1. Starboard (or single) rudder sensor, "-" means Turn To Port
+2. Status, A means data is valid
+3. Port rudder sensor
+4. Status, A means data is valid
+5. Checksum
+
+NKE example:
+*/
+NmeaParser::NmeaSentence NmeaParser::processRSA() {
+  if (argc_ < 3) {
+    return NMEA_NONE;
+  }
+
+  Optional<Angle<>> rudderAngle[2];
+
+  if (argv_[2][0] == 'A') {
+    rudderAngle[0] = readAngleDegrees(argv_[1]).applyFun<Angle<>>(
+        [](Angle<> a) { return -a; });
+  }
+  if (argc_ > 4 && argv_[4][0] == 'A') {
+    rudderAngle[1] = readAngleDegrees(argv_[3]).applyFun<Angle<>>(
+        [](Angle<> a) { return -a; });
+;
+  }
+
+  onRSA(argv_[0], rudderAngle[0], rudderAngle[1]);
+
+  return NMEA_RSA;
 }
 
 void AccAngle::flip() {

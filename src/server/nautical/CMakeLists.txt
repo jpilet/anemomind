@@ -7,6 +7,7 @@ add_subdirectory("calib")
 add_subdirectory("filters")
 add_subdirectory("types")
 add_subdirectory("segment")
+add_subdirectory("timesets")
 
 
 add_library(nautical_nav
@@ -28,16 +29,8 @@ cxx_test(nautical_BoatLogProcessorTest
          common_Env
          gtest_main
         )
+target_depends_on_mongoc(nautical_BoatLogProcessorTest)        
 
-add_library(nautical_HTreeJson
-            HTreeJson.h                     
-            HTreeJson.cpp
-           )
-target_link_libraries(nautical_HTreeJson
-                      nautical_NavCompatibility
-                      common_Hierarchy
-                     )
-target_depends_on_poco_foundation(nautical_HTreeJson)                                
                      
 add_executable(nautical_ParseExample
                ParseExample.cpp
@@ -46,9 +39,6 @@ target_link_libraries(nautical_ParseExample
                       common_Env
                       common_PathBuilder
                       nautical_grammars_WindOrientedGrammar
-                      nautical_NavJson
-                      nautical_HTreeJson
-                      common_HierarchyJson
                       math_hmm_StateAssign
                       logimport_LogLoader
                      )
@@ -61,31 +51,6 @@ cxx_test(nautical_GeographicPositionTest
   GeographicPositionTest.cpp
   gtest_main)
 
-add_library(nautical_NavJson
-            NavJson.cpp
-            NavJson.h
-           )
-target_depends_on_poco_json(nautical_NavJson)
-
-
-
-target_link_libraries(nautical_NavJson
-                            nautical_nav
-                            common_Json
-                            common_TimeStampJson
-                            common_Json
-                           )
-
-cxx_test(nautical_NavJsonTest
-         NavJsonTest.cpp
-         common_Env
-         common_logging
-         nautical_NavJson
-         logimport_LogLoader
-         nautical_NavCompatibility
-         gtest_main
-        )
-               
 #################################################################
 ### CalibrationExamples
 #################################################################
@@ -108,16 +73,14 @@ add_library(nautical_BoatLogProcessor
             BoatLogProcessor.cpp
             BoatLogProcessor.h
            )
+target_depends_on_mongoc(nautical_BoatLogProcessor)
 target_link_libraries(nautical_BoatLogProcessor
                       anemobox_SimulateBox
-                      common_HierarchyJson
                       common_PathBuilder
                       common_logging
                       device_ChunkFile
                       math_hmm_StateAssign
                       calib_Calibrator
-                      nautical_HTreeJson
-                      nautical_NavJson
                       nautical_TargetSpeed
                       nautical_downsamplegps
                       nautical_grammars_WindOrientedGrammar
@@ -139,7 +102,7 @@ add_executable(nautical_processBoatLogs
 target_link_libraries(nautical_processBoatLogs
                       nautical_BoatLogProcessor
                      )              
-
+target_depends_on_mongoc(nautical_processBoatLogs)        
 
 
 
@@ -172,21 +135,6 @@ cxx_test(nautical_TargetSpeedTest
          gtest_main
         )                     
 
-add_library(nautical_GeographicPositionJson
-            GeographicPositionJson.h
-            GeographicPositionJson.cpp
-           )
-target_link_libraries(nautical_GeographicPositionJson
-                      common_JsonObjDeserializer
-                     )
-
-add_library(nautical_GeographicReferenceJson
-            GeographicReferenceJson.h
-            GeographicReferenceJson.cpp
-           )
-target_link_libraries(nautical_GeographicReferenceJson
-                    nautical_GeographicPositionJson
-                   )
 
 add_executable(nautical_SaveMatrix
                SaveMatrix.cpp
@@ -306,6 +254,10 @@ add_library(nautical_InvWGS84
 
 target_depends_on_ceres(nautical_InvWGS84)
 
+target_link_libraries(nautical_InvWGS84
+  common_StreamUtils
+  )
+
 cxx_test(nautical_InvWGS84Test
          InvWGS84Test.cpp
          gtest_main
@@ -330,3 +282,8 @@ target_link_libraries(nautical_MaxSpeed
                       common_TimeStamp
                       )
 
+
+add_executable(nautical_boatDatInfo boatDatInfo.cpp)
+target_link_libraries(nautical_boatDatInfo 
+  anemobox_DispatcherTrueWindEstimator
+  )

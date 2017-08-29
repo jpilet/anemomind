@@ -6,9 +6,11 @@
 #include <vector>
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <device/anemobox/BinarySignal.h>
 #include <device/anemobox/TimedSampleCollection.h>
 #include <server/nautical/AbsoluteOrientation.h>
 #include <server/nautical/GeographicPosition.h>
+#include <device/anemobox/LocalArrayCopy.h>
 #include <iostream>
 
 namespace sail {
@@ -38,11 +40,8 @@ class Listener {
     // in that case, the listerners list will be modified.
     // thus, we can not iterate safely over listeners,
     // we have to copy the list first.
-    std::vector<Listener<T> *> listenersToCall;
-    listenersToCall.reserve(listeners.size());
-    std::copy(listeners.begin(),
-              listeners.end(),
-              std::back_inserter(listenersToCall));
+    LocalArrayCopy<Listener<T> *, 30> listenersToCall(
+        listeners.begin(), listeners.end());
     for (Listener<T> *listener : listenersToCall) {
       listener->notify(dispatcher);
     }
@@ -75,6 +74,8 @@ class ValueDispatcher {
   virtual TimeStamp lastTimeStamp() const { return values_.lastTimeStamp(); }
 
   virtual const TimedSampleCollection<T>& values() const { return values_; }
+
+  TimedSampleCollection<T>* mutableValues() {return &values_;}
 
   void insert(const typename TimedSampleCollection<T>::TimedVector& values) {
     values_.insert(values);
@@ -143,6 +144,7 @@ typedef ValueDispatcher<Length<double>> LengthDispatcher;
 typedef ValueDispatcher<GeographicPosition<double>> GeoPosDispatcher;
 typedef ValueDispatcher<TimeStamp> TimeStampDispatcher;
 typedef ValueDispatcher<AbsoluteOrientation> AbsoluteOrientationDispatcher;
+typedef ValueDispatcher<BinaryEdge> BinaryEdgeDispatcher;
 
 template <typename T>
 class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
@@ -176,7 +178,6 @@ class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
   virtual void onNewValue(const ValueDispatcher<T> &dispatcher) {
     Listener<T>::safelyNotifyListenerSet(this->listeners_, *this);
   }
-
  private:
   TimedSampleCollection<T> emptyValues_;
   ValueDispatcher<T> *_forward;

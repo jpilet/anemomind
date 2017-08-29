@@ -40,27 +40,77 @@ message AbsOrientValueSet {
   required AngleValueSet pitch = 3;
 }
 
+message BinaryEdgeValueSet {
+  repeated bool edges = 1 [packed = true];
+}
+
 message ValueSet {
+  // shortName is one of:
+  //
+  // "awa" (apparent wind angle)
+  // "aws" (apparent wind speed)
+  // "twa" (true wind angle)
+  // "tws" (true wind speed)
+  // "twdir" (true wind direction)
+  // "gpsSpeed" (GPS speed)
+  // "gpsBearing" (GPS bearing)
+  // "magHdg" (magnetic heading)
+  // "watSpeed" (water speed)
+  // "watDist" (distance over water)
+  // "pos" (GPS position)
+  // "dateTime" (GPS date and time (UTC))
+  // "targetVmg" (Target VMG)
+  // "vmg" (VMG)
+  // "orient" (Absolute anemobox orientation)
+  // "rudderAngle" (Rudder angle)
   required string shortName = 1;
+
+  // Source is a string describing where the information comes from.
+  // examples:
+  // NMEA0183/COM1/II
+  // NMEA2000/c050a0012fb3245a
   optional string source = 8;
   optional int32 priority = 9;
 
-  // Time associated with every value
-  
   // Deprecated, will be empty:
   repeated int64 timestamps = 2 [packed = true];
   
+  // Time associated with every value.
+  // Unit: milliseconds
   repeated int64 timestampssinceboot = 12 [packed = true];
   
-  // Exactly one of the following
+  // Exactly one of the following contains the same number of values contained
+  // in timestampssinceboot
   optional AngleValueSet angles = 3;
   optional VelocityValueSet velocity = 4;
   optional LengthValueSet length = 5;
   optional GeoPosValueSet pos = 6;
   optional AbsOrientValueSet orient = 10;
+  optional BinaryEdgeValueSet binary = 13;
+
+  // Time given by an external source, as milliseconds since 1970.1.1
   repeated int64 exttimes = 11 [packed = true];
   
   repeated string text = 7;
+}
+
+// Sentences are grouped by sentence-id,
+// every sentence id has its own instance
+// of the object below.
+//
+// This class is a bit polymorphic, in the sense that either
+// (i) it only stores sentences of 8 bytes or (ii) it only
+// stores sentences that are *not* 8 bytes.
+message Nmea2000Sentences {
+  required int64 sentence_id = 1;
+  
+  // Delta-coded, in milliseconds (the same instant as the message
+  // was tagged with a system time)
+  repeated int64 timestampssinceboot = 2 [packed = true];
+  
+  // Any of these two must be empty.
+  repeated bytes oddSizeSentences = 3;
+  repeated fixed64 regularSizeSentences = 4;
 }
 
 message LogFile {
@@ -73,5 +123,8 @@ message LogFile {
   // They can contain raw nmea or text logs.
   repeated ValueSet text = 5;
   
+  // Stores the number of times the machine recording the data booted. 
   optional int64 bootcount = 6;
+  
+  repeated Nmea2000Sentences rawNmea2000 = 7;
 }

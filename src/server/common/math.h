@@ -288,11 +288,8 @@ inline double thresholdCloseTo0(double x, double lb) {
   return x;
 }
 
-inline bool implies(bool a, bool b) {
-  return !a || b;
-}
-
-
+// A macro preserves the laziness of evaluation.
+#define implies(a, b) (!(a) || (b))
 
 template <typename T, int dims>
 bool isFinite(MDArray<T, dims> X) {
