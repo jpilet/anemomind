@@ -74,9 +74,7 @@ processBoat() {
         --boatid "${boatid}" \
         --save-default-calib \
         -t --clean -c \
-        --host anemolab1 \
-        --db anemomind \
-        -u anemomindprod -p ${MONGO_PASSWORD} \
+        --mongo-uri "mongodb://anemomindprod:${MONGO_PASSWORD}@anemolab1,anemolab2,arbiter/anemomind" \
 	--scale 20 ; then
 
       if [ -f "${boatdat}" ] ; then

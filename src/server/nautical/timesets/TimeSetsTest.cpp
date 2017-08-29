@@ -20,9 +20,10 @@ TimeStamp t(double s) {
 }
 
 TEST(TimeSetsTest, BasicTest) {
-  MongoConnectionSettings cs;
-  auto db = MongoDBConnection(
-          makeMongoDBURI(cs));
+  auto db = MongoDBConnection(SHARED_MONGO_PTR(
+      mongoc_uri, mongoc_uri_new(
+          MongoDBConnection::defaultMongoUri())));
+
   if (!db.connected()) {
     LOG(WARNING) <<
         "This unit test will not run, "

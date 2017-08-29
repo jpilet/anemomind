@@ -98,6 +98,10 @@ void bsonAppendCollection(bson_t* dst, const char* key, const Coll& src) {
 
 
 struct MongoDBConnection {
+  static const char *defaultMongoUri() {
+    return "mongodb://localhost/anemomind-dev";
+  }
+
   MongoDBConnection() {}
   std::shared_ptr<mongoc_client_t> client;
   std::shared_ptr<mongoc_database_t> db;
@@ -106,16 +110,10 @@ struct MongoDBConnection {
     return bool(client) && bool(db);
   }
 
-  MongoDBConnection(const std::string& uri);
+  MongoDBConnection(
+      const std::shared_ptr<mongoc_uri_t>& uri);
 
   bool connected() const;
-};
-
-struct MongoConnectionSettings {
-  std::string dbHost = "localhost";
-  std::string dbName = "anemomind-dev";
-  std::string user;
-  std::string passwd;
 };
 
 void genOid(bson_t* dst);
@@ -123,9 +121,6 @@ void bsonAppendAsOid(bson_t* dst, const char* key, const std::string& s);
 
 std::shared_ptr<mongoc_collection_t> getOrCreateCollection(
     mongoc_database_t* db, const char* name);
-
-std::string makeMongoDBURI(
-    const MongoConnectionSettings& passwd);
 
 class MongoTableName {
 public:

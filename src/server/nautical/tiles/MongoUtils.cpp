@@ -147,19 +147,6 @@ void bsonAppend(bson_t* dst, const char* key, double value) {
 
 
 
-std::string makeMongoDBURI(
-    const MongoConnectionSettings& cs) {
-  std::string accountString;
-  if (!cs.user.empty() && !cs.passwd.empty()) {
-    accountString = cs.user + ":" + cs.passwd + "@";
-  }
-
-  // TODO: Do we need to specify anything else, such as what authentication
-  // is to be used?
-  return "mongodb://" + accountString + cs.dbHost + "/" + cs.dbName;
-}
-
-
 bool MongoDBConnection::connected() const {
   if (!defined()) {
     return false;
@@ -171,24 +158,23 @@ bool MongoDBConnection::connected() const {
   return bool(cur);
 }
 
-
 MongoDBConnection::MongoDBConnection(
-    const std::string& uriString) {
+    const std::shared_ptr<mongoc_uri_t>& uri) {
+  CHECK(bool(uri));
+
   initializeMongo();
-  auto uri = UNIQUE_MONGO_PTR(
-      mongoc_uri,
-      mongoc_uri_new(uriString.c_str()));
 
   const char* dbname = mongoc_uri_get_database(uri.get());
 
+  auto uris = mongoc_uri_get_string(uri.get());
   LOG(INFO) << "Try to connect to Mongo database '"
-      << mongoc_uri_get_string(uri.get()) << "'";
+      << uris << "'";
 
   client = SHARED_MONGO_PTR(mongoc_client,
       mongoc_client_new_from_uri(uri.get()));
   if (!client) {
     LOG(ERROR) << "Failed to connect to "
-        << uriString << ". Are the authentication things correct?";
+        << uris << ". Are the authentication things correct?";
     return;
   }
   mongoc_client_set_error_api(client.get(), 2);
