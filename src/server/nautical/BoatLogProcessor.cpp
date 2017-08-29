@@ -315,8 +315,8 @@ void outputInfoPerSession(
 // high-level processing logic
 //
 // The goal of this function is to stay small and easy to read,
-// while explicitely showing what is going on.
-// Parameters such as path to files are passed implicitely (as struct
+// while explicitly showing what is going on.
+// Parameters such as path to files are passed implicitly (as struct
 // members), while raw and derived data are kept in local variables,
 // to improve data flow readability.
 

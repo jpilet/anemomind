@@ -20,23 +20,37 @@ bool isFresh(const Dispatcher& dispatcher) {
 
 namespace {
 
-  class EstimateOnNewValue:
-    public Listener<Angle<double>>,
-    public Listener<Velocity<double>> {
+  class EstimateOnNewValue;
+
+  template<typename T>
+  class OnValue : public Listener<T> {
+    public:
+      OnValue<T>(EstimateOnNewValue* estimator) : _estimator(estimator) { }
+      void onNewValue(const ValueDispatcher<T>&) override;
+    private:
+      EstimateOnNewValue* _estimator;
+  };
+
+  class EstimateOnNewValue {
    public:
      EstimateOnNewValue(DispatcherTrueWindEstimator *estimator,
                         const std::string& srcName,
                         ReplayDispatcher *replayDispatcher)
          : _estimator(estimator), _srcName(srcName), _timer(false),
-         _replayDispatcher(replayDispatcher) {
-
+         _replayDispatcher(replayDispatcher),
+          awaListener(this),
+          awsListener(this),
+          gpsSpeedListener(this),
+          gpsBearingListener(this),
+          watSpeedListener(this),
+          magHeadingListener(this) {
        // This list should match the 'triggeringFields' in estimator.js
-       replayDispatcher->get<AWA>()->dispatcher()->subscribe(this);
-       replayDispatcher->get<AWS>()->dispatcher()->subscribe(this);
-       replayDispatcher->get<GPS_SPEED>()->dispatcher()->subscribe(this);
-       replayDispatcher->get<GPS_BEARING>()->dispatcher()->subscribe(this);
-       replayDispatcher->get<WAT_SPEED>()->dispatcher()->subscribe(this);
-       replayDispatcher->get<MAG_HEADING>()->dispatcher()->subscribe(this);
+       replayDispatcher->get<AWA>()->dispatcher()->subscribe(&awaListener);
+       replayDispatcher->get<AWS>()->dispatcher()->subscribe(&awsListener);
+       replayDispatcher->get<GPS_SPEED>()->dispatcher()->subscribe(&gpsSpeedListener);
+       replayDispatcher->get<GPS_BEARING>()->dispatcher()->subscribe(&gpsBearingListener);
+       replayDispatcher->get<WAT_SPEED>()->dispatcher()->subscribe(&watSpeedListener);
+       replayDispatcher->get<MAG_HEADING>()->dispatcher()->subscribe(&magHeadingListener);
 
        // The _onTimeout callback is created as a member to avoid closure
        // creation (and environment capture) at every estimate() call.
@@ -55,24 +69,30 @@ namespace {
       }
     }
 
-    virtual void onNewValue(const ValueDispatcher<Angle<double> > &) {
-      estimate();
-    }
-
-    virtual void onNewValue(const ValueDispatcher<Velocity<double> > &) {
-      estimate();
-    }
-
    private:
     DispatcherTrueWindEstimator* _estimator;
     std::string _srcName;
     bool _timer;
     std::function<void()> _onTimeout;
     ReplayDispatcher *_replayDispatcher;
+
+    // A Listener can listen only to one channel at a time, so we need one
+    // listener per channel.
+    OnValue<Angle<>> awaListener;
+    OnValue<Velocity<>> awsListener;
+    OnValue<Velocity<>> gpsSpeedListener;
+    OnValue<Angle<>> gpsBearingListener;
+    OnValue<Velocity<>> watSpeedListener;
+    OnValue<Angle<>> magHeadingListener;
   };
+
+
+template<typename T>
+void OnValue<T>::onNewValue(const ValueDispatcher<T>&) {
+  _estimator->estimate();
 }
 
-
+}  // namespace
 
 /*
 // Inspired by the function 'start' in anemonode/components/estimator.js
