@@ -245,19 +245,19 @@ bool withBulkOperation(
   f(op.get());
   bson_t uninitialized_reply;
   bson_error_t error;
-  if (!mongoc_bulk_operation_execute(op.get(), &uninitialized_reply, &error)) {
+  bool success = mongoc_bulk_operation_execute(op.get(), &uninitialized_reply, &error);
+  if (!success) {
     LOG(ERROR) << "With bulk operation failed: " << bsonErrorToString(error);
-    return false;
   }
   bson_destroy(&uninitialized_reply);
-  return true;
+  return success;
 }
 
 bool BulkInserter::finish() {
   if (_toInsert.size() == 0) {
     return success();
   }
-  bool ordered = true;
+  bool ordered = false;
   if (success()) {
     auto concern = nullptr;
 
