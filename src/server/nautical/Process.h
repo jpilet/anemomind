@@ -9,17 +9,19 @@
 #define SERVER_COMMON_PROCESS_H_
 
 #include <server/nautical/logimport/LogLoader.h>
-#include <server/common/DynamicInterface.h>
 #include <server/common/Span.h>
 #include <server/common/DOMUtils.h>
 #include <server/math/QuadForm.h>
 #include <array>
 #include <server/math/SegmentOutlierFilter.h>
+#include <server/common/DynamicInterface.h>
 
 namespace sail {
 
-SerializationInfo toDynamicObject(const DataCode& x, Poco::Dynamic::Var* dst);
-SerializationInfo fromDynamicObject(const Poco::Dynamic::Var& src, DataCode *x);
+SerializationInfo toDynamicObject(
+    const DataCode& x, Poco::Dynamic::Var* dst);
+SerializationInfo fromDynamicObject(
+    const Poco::Dynamic::Var& src, DataCode *x);
 
 struct ProcessSettings {
   bool outputHtml = true;
@@ -37,6 +39,7 @@ struct ProcessSettings {
     v->visit("downsample_minperiod_seconds",
         downsampleMinPeriodSeconds);
     v->visit("time_gap_minutes", timeGapMinutes);
+    v->visit("gps_outlier_settings", gpsOutlierSettings);
   }
 };
 

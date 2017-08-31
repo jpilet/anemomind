@@ -208,6 +208,16 @@ struct Settings {
 
   int verbosityThreshold = 0;
 
+  template <typename V>
+  void visitFields(V* v) {
+    v->visit("reg", regularization);
+    v->visit("dif_reg", difRegularization);
+    v->visit("cost_threshold", costThreshold);
+    v->visit("omission_cost", omissionCost);
+    v->visit("max_outlier_segments", maxOutlierSegments);
+    v->visit("verbosity_threshold", verbosityThreshold);
+  }
+
   std::ostream* log = &(std::cout);
 };
 
