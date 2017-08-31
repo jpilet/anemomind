@@ -239,12 +239,6 @@ I stepIter(I i, bool forward) {
   return forward? ++i : --i;
 }
 
-void dispReferees(const std::set<Join>& refs) {
-  for (auto r: refs) {
-    LOG(INFO) << "   referee " << r;
-  }
-}
-
 // A pointer-like object that
 // will remain valid even if the underlying
 // vector storage is reallocated.
@@ -297,16 +291,8 @@ struct SegmentLookUp {
       const SegmentRef& b,
       const Settings& s) {
     CHECK(a != b);
-    LOG(INFO) << ".....Top of makeJoin";
-    LOG(INFO) << "a: " << a.segmentIndex;
-    LOG(INFO) << "b: " << b.segmentIndex;
     auto as = vecRef(a.segmentIndex, &segments);
     auto bs = vecRef(b.segmentIndex, &segments);
-
-    LOG(INFO) << "A";
-    dispReferees((*as).referees);
-    LOG(INFO) << "B";
-    dispReferees((*bs).referees);
 
     auto currentCost = (*as).cost + (*bs).cost;
 
@@ -315,12 +301,6 @@ struct SegmentLookUp {
         s.regularization,
         s.difRegularization);
     auto newRef = addSegment(newSegment);
-
-    LOG(INFO) << "Just before...";
-    LOG(INFO) << "A";
-    dispReferees((*as).referees);
-    LOG(INFO) << "B";
-    dispReferees((*bs).referees);
 
     auto newCost = segments[newRef.segmentIndex].cost
         + s.omissionCost*(
@@ -337,11 +317,6 @@ struct SegmentLookUp {
 
     CHECK(0 < (*as).referees.count(join));
     CHECK(0 < (*bs).referees.count(join));
-    LOG(INFO) << "### Make join " << join << ", after:";
-    LOG(INFO) << "A";
-    dispReferees((*as).referees);
-    LOG(INFO) << "B";
-    dispReferees((*bs).referees);
 
     return join;
   }
@@ -367,9 +342,8 @@ struct SegmentLookUp {
         if (a->position > b->position) {
           std::swap(a, b);
         }
-        LOG(INFO) << "Joining " << a->segmentIndex << " and " << b->segmentIndex;
         joins->insert(makeJoin(*a, *b, settings));
-        checkConsistency(*joins);
+        //checkConsistency(*joins);
       }
       i++;
       iter++;
@@ -441,9 +415,10 @@ Array<bool> optimize(
     LOG(INFO) << "Number of refs: " << lu.refs.size();
   }
   while (!joins.empty()) {
-    lu.checkConsistency(joins);
+    //lu.checkConsistency(joins);
     if (settings.verbose) {
-      LOG(INFO) << "\n\n--- ITERATION. Remaining joins " << joins.size();
+      LOG(INFO) << "\n\n--- ITERATION";
+      LOG(INFO) << "    joins: " << joins.size();
       LOG(INFO) << "    refs: " << lu.refs.size();
       LOG(INFO) << "    segments: " << lu.segments.size();
     }
