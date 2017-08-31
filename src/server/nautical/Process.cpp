@@ -215,8 +215,7 @@ auto makeLogLoaderTransducer(
     const std::string& context,
     const ProcessSettings& settings)
   AUTO_EXPR(composeTransducers(
-      Map<Array<TimedValue<DynamicChannelValue>>, LogFileInfo>(
-          &loadCroppedLogFile),
+      map(&loadCroppedLogFile),
       Cat<Array<TimedValue<DynamicChannelValue>>>(),
       Filter<TimedValue<DynamicChannelValue>>(
           ensureChronological()),

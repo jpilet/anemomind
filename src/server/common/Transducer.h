@@ -115,9 +115,12 @@ private:
   std::function<Y(X)> _f;
 };
 
-template <typename Y, typename X>
-Map<Y, X> map(const std::function<Y(X)>& f) {
-  return Map<Y, X>(f);
+template <typename F>
+Map<typename FunctionTraits<F>::output_type,
+  typename FunctionTraits<F>::input_type> map(
+      F f) {
+  return Map<typename FunctionTraits<F>::output_type,
+      typename FunctionTraits<F>::input_type>(f);
 }
 
 template <typename X>
