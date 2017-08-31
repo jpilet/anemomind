@@ -112,6 +112,7 @@ cxx_test(anemobox_DispatcherUtilsTest
          DispatcherUtilsTest.cpp
          anemobox_DispatcherUtils
          gtest_main
+         gmock
         )        
 
 add_library(anemobox_Sources

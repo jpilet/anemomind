@@ -3,6 +3,7 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <device/anemobox/DispatcherUtils.h>
 
@@ -242,3 +243,32 @@ TEST(DispatcherUtilsTest, Replay) {
 
 }
 
+class MockAngleListener : public Listener<Angle<>> {
+ public:
+  MOCK_METHOD1(onNewValue, void(const ValueDispatcher<Angle<>> &dispatcher));
+};
+
+TEST(DispatcherUtilsTest, Replay2) {
+  ReplayDispatcher replay;
+  replay.setCurrentTime(TimeStamp::now());
+  MockAngleListener listener, twaListener;
+
+  // First subscription
+  replay.get<AWA>()->dispatcher()->subscribe(&listener);
+
+  // We expect the callback when publishing a value.
+  EXPECT_CALL(listener, onNewValue(testing::_));
+  replay.publishValue(AWA, "test source", Angle<>::degrees(42));
+
+  // Second subscription for the listener. Since a listener only
+  // listen to 1 channel at a time, the first subscription is canceled.
+  replay.get<TWA>()->dispatcher()->subscribe(&listener);
+
+  // So the following publish will not trigger a callback
+  replay.advanceTime(Duration<>::seconds(1));
+  replay.publishValue(AWA, "test source", Angle<>::degrees(43));
+  
+  // However, the 2nd subscription still works.
+  EXPECT_CALL(listener, onNewValue(testing::_));
+  replay.publishValue(TWA, "test source", Angle<>::degrees(44));
+}
