@@ -195,8 +195,14 @@ struct Settings {
   double difRegularization = 1.0e-6;
   double costThreshold = 100.0;
   double omissionCost = 1.0;
-  int maxGap = 2;
-  int verbosityThreshold = 30;
+
+  int maxOutlierSegments = 1;
+
+  // Set this number to twice the maximum number
+  // of continuous outlier segments.
+  int maxGap() const {return 2*maxOutlierSegments + 1;}
+
+  int verbosityThreshold = 0;
 };
 
 struct SegmentRef {
@@ -398,7 +404,7 @@ struct SegmentLookUp {
     refs.erase(begin, end);
     refs.insert(join.joined);
     auto i = refs.find(join.joined);
-    addJoins(i, -s.maxGap, s.maxGap, s, all);
+    addJoins(i, -s.maxGap(), s.maxGap(), s, all);
   }
 
   SegmentData findGreatestSegment() {
@@ -473,7 +479,7 @@ Array<bool> optimize(
   SegmentLookUp<N> lu(points);
   std::set<Join> joins;
   for (auto i = lu.refs.begin(); i != lu.refs.end(); i++) {
-    lu.addJoins(i, 1, settings.maxGap, settings, &joins);
+    lu.addJoins(i, 1, settings.maxGap(), settings, &joins);
   }
   if (0 < settings.verbosityThreshold) {
     LOG(INFO) << "Number of points: " << points.size();
@@ -482,7 +488,7 @@ Array<bool> optimize(
   }
   while (!joins.empty()) {
     bool verbose = lu.refs.size() <= settings.verbosityThreshold;
-    lu.checkConsistency(joins);
+    //lu.checkConsistency(joins);
     if (verbose) {
       LOG(INFO) << "\n\n--- ITERATION";
       LOG(INFO) << "    joins: " << joins.size();
@@ -496,7 +502,9 @@ Array<bool> optimize(
           << ", " << join.right.segmentIndex << ")";
     }
     if (join.costIncrease > settings.costThreshold) {
-      LOG(INFO) << "Cost increase exceeds threshold, break.";
+      if (0 < settings.verbosityThreshold) {
+        LOG(INFO) << "Cost increase exceeds threshold, break.";
+      }
       break;
     }
     lu.executeJoin(join, &joins, settings);

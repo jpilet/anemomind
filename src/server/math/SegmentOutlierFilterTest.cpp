@@ -144,7 +144,6 @@ TEST(SegmentOutlierFilterTest, ParabolaTest) {
   }
 
   Settings s;
-  s.maxGap = 3;
   auto mask = optimize<1>(points, s);
   EXPECT_EQ(mask.size(), n);
 }
