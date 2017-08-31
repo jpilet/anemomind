@@ -201,6 +201,8 @@ struct Settings {
   int maxGap() const {return 2*maxOutlierSegments + 1;}
 
   int verbosityThreshold = 0;
+
+  std::ostream* log = &(std::cout);
 };
 
 struct SegmentRef {
@@ -480,28 +482,28 @@ Array<bool> optimize(
     lu.addJoins(i, 1, settings.maxGap(), settings, &joins);
   }
   if (0 < settings.verbosityThreshold) {
-    LOG(INFO) << "Number of points: " << points.size();
-    LOG(INFO) << "Number of joins: " << joins.size();
-    LOG(INFO) << "Number of refs: " << lu.refs.size();
+    *(settings.log) << "Number of points: " << points.size();
+    *(settings.log) << "Number of joins: " << joins.size();
+    *(settings.log) << "Number of refs: " << lu.refs.size();
   }
   while (!joins.empty()) {
     bool verbose = lu.refs.size() <= settings.verbosityThreshold;
     //lu.checkConsistency(joins);
     if (verbose) {
-      LOG(INFO) << "\n\n--- ITERATION";
-      LOG(INFO) << "    joins: " << joins.size();
-      LOG(INFO) << "    refs: " << lu.refs.size();
-      LOG(INFO) << "    segments: " << lu.segments.size();
+      *(settings.log) << "\n\n--- ITERATION";
+      *(settings.log) << "    joins: " << joins.size();
+      *(settings.log) << "    refs: " << lu.refs.size();
+      *(settings.log) << "    segments: " << lu.segments.size();
     }
     const auto& join = *(joins.begin());
     if (verbose) {
-      LOG(INFO) << "Cost increase of joining segments: " << join.costIncrease;
-      LOG(INFO) << "Join(" << join.left.segmentIndex
+      *(settings.log) << "Cost increase of joining segments: " << join.costIncrease;
+      *(settings.log) << "Join(" << join.left.segmentIndex
           << ", " << join.right.segmentIndex << ")";
     }
     if (join.costIncrease > settings.costThreshold) {
       if (0 < settings.verbosityThreshold) {
-        LOG(INFO) << "Cost increase exceeds threshold, break.";
+        *(settings.log) << "Cost increase exceeds threshold, break.";
       }
       break;
     }
@@ -509,7 +511,7 @@ Array<bool> optimize(
   }
   auto greatestSegment = lu.findGreatestSegment();
   if (0 < settings.verbosityThreshold) {
-    LOG(INFO) << "Number of inliers: "
+    *(settings.log) << "Number of inliers: "
         << greatestSegment.segment.pointCount << "/"
         << points.size();
   }
