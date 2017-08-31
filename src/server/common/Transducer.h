@@ -123,10 +123,13 @@ Map<typename FunctionTraits<F>::output_type,
       typename FunctionTraits<F>::input_type>(f);
 }
 
-template <typename X>
-Map<X, X> visit(const std::function<void(X)>& f) {
-  return Map<X, X>([f](const X& x) {
-    f(x);
+template <typename F>
+Map<typename FunctionTraits<F>::input_type,
+typename FunctionTraits<F>::input_type> visit(F f) {
+  typedef typename FunctionTraits<F>::input_type X;
+  return Map<X, X>(
+  [f](const X& x) {
+      f(x);
     return x;
   });
 }

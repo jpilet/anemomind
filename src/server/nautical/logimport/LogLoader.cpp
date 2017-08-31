@@ -176,7 +176,7 @@ std::vector<LogFileInfo> listLogFiles(
       Map<Poco::Path, std::string>(&toPath),
       Map<Array<std::string>, Poco::Path>(&listFilesToLoad),
       Cat<Array<std::string>>(),
-      visit<std::string>(showProgress),
+      visit(showProgress),
       Map<LogFileInfo, std::string>(&analyzeLogFileData),
       Filter<LogFileInfo>(&hasLogFileData));
   std::vector<LogFileInfo> result;

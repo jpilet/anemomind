@@ -217,15 +217,10 @@ auto makeLogLoaderTransducer(
   AUTO_EXPR(composeTransducers(
       map(&loadCroppedLogFile),
       Cat<Array<TimedValue<DynamicChannelValue>>>(),
-      Filter<TimedValue<DynamicChannelValue>>(
-          ensureChronological()),
-      Filter<TimedValue<DynamicChannelValue>>(
-          dataSourceFilter(settings.samplesToRemove)),
-      Filter<TimedValue<DynamicChannelValue>>(
-          downsample(
-              settings.downsampleMinPeriodSeconds*1.0_s)),
-      visit<TimedValue<DynamicChannelValue>>(
-          logLoaderProgress(logFiles, context))));
+      filter(ensureChronological()),
+      filter(dataSourceFilter(settings.samplesToRemove)),
+      filter(downsample(settings.downsampleMinPeriodSeconds*1.0_s)),
+      visit(logLoaderProgress(logFiles, context))));
 
 bool sameClass(const TimedValue<int>& a, const TimedValue<int>& b) {
   return a.value == b.value;
@@ -307,8 +302,7 @@ PrefilteredSession prefilterSession(
   // Extract only the GPS positions as timed values.
   auto T0 = composeTransducers(
       filter(&isGpsPosition),
-      Map<TimedValue<GeographicPosition<double>>,
-        TimedValue<DynamicChannelValue>>(&toTimedGpsPos));
+      map(&toTimedGpsPos));
 
   std::vector<TimedValue<GeographicPosition<double>>> positions;
   reduceIntoCollection(T0, &positions, v);
@@ -338,11 +332,12 @@ PrefilteredSession prefilterSession(
   {
     int at = 0;
     reduceIntoCollection(
-        Filter<TimedValue<GeographicPosition<double>>>(
-            [&](const TimedValue<GeographicPosition<double>>& p) {
+        filter(std::function<bool(TimedValue<GeographicPosition<double>>)>([&](const TimedValue<GeographicPosition<double>>& p) ->bool {
       return mask[at++];
-    }), &inlierPositions, positions);
+    })), &inlierPositions, positions);
   }
+
+  LOG(INFO) << "Number of inliers: " << inlierPositions.size() << "/" << positions.size();
 
   return PrefilteredSession();
 }
@@ -374,19 +369,13 @@ std::vector<Span<TimeStamp>> presegmentData(
           settings),
       Bundle<TimedValue<DynamicChannelValue>>(
           byGpsPosTimeGap(settings.timeGapMinutes*1.0_minutes)),
-      Map<Array<TimedValue<DynamicChannelValue>>,
-        Array<TimedValue<DynamicChannelValue>>>(&cropTrailingData),
-      Filter<Array<TimedValue<DynamicChannelValue>>>(&hasData),
-      Map<std::string, Array<TimedValue<DynamicChannelValue>>>(
-          &summarize));
+      map(&cropTrailingData),
+      filter(&hasData),
+      map(prefilterSession(settings)));
 
-  std::vector<std::string> result;
-  auto iter = std::inserter(result, result.end());
-  reduce(T.apply(iteratorStep(iter)), iter, logFiles);
-  for (auto x: result) {
-    std::cout << x << std::endl;
-  }
-
+  std::vector<PrefilteredSession> result;
+  reduceIntoCollection(T, &result, logFiles);
+  LOG(INFO) << "Number of sessions: " << result.size();
   return std::vector<Span<TimeStamp>>();
 }
 

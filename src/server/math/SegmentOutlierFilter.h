@@ -504,19 +504,19 @@ Array<bool> optimize(
     //lu.checkConsistency(joins);
     if (verbose) {
       *(settings.log) << "\n\n--- ITERATION";
-      *(settings.log) << "    joins: " << joins.size();
-      *(settings.log) << "    refs: " << lu.refs.size();
-      *(settings.log) << "    segments: " << lu.segments.size();
+      *(settings.log) << "\n    joins: " << joins.size();
+      *(settings.log) << "\n    refs: " << lu.refs.size();
+      *(settings.log) << "\n    segments: " << lu.segments.size();
     }
     const auto& join = *(joins.begin());
     if (verbose) {
-      *(settings.log) << "Cost increase of joining segments: " << join.costIncrease;
-      *(settings.log) << "Join(" << join.left.segmentIndex
+      *(settings.log) << "\nCost increase of joining segments: " << join.costIncrease;
+      *(settings.log) << "\nJoin(" << join.left.segmentIndex
           << ", " << join.right.segmentIndex << ")";
     }
     if (join.costIncrease > settings.costThreshold) {
       if (0 < settings.verbosityThreshold) {
-        *(settings.log) << "Cost increase exceeds threshold, break.";
+        *(settings.log) << "\nCost increase exceeds threshold, break.";
       }
       break;
     }
@@ -524,7 +524,7 @@ Array<bool> optimize(
   }
   auto greatestSegment = lu.findGreatestSegment();
   if (0 < settings.verbosityThreshold) {
-    *(settings.log) << "Number of inliers: "
+    *(settings.log) << "\nNumber of inliers: "
         << greatestSegment.segment.pointCount << "/"
         << points.size();
   }
