@@ -131,3 +131,20 @@ TEST(SegmentOutlierFilterTest, Optimize) {
     EXPECT_EQ(counter, 8);
   }
 }
+
+bool isOutlier(int i) {
+  return 9 <= i && i <= 12;
+}
+
+TEST(SegmentOutlierFilterTest, ParabolaTest) {
+  int n = 30;
+  Array<std::pair<double, Vec1>> points(n);
+  for (int i = 0; i < n; i++) {
+    points[i] = {i, {0.1*i*i + (isOutlier(i)? 3000.0 : 0.0)}};
+  }
+
+  Settings s;
+  s.maxGap = 3;
+  auto mask = optimize<1>(points, s);
+  EXPECT_EQ(mask.size(), n);
+}

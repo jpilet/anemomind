@@ -135,7 +135,13 @@ Segment<CoordDim> join(
     const Segment<CoordDim>& left,
     const Segment<CoordDim>& right,
     double regWeight, double difReg) {
-  CHECK(left.rightMost() < right.leftMost());
+
+  if (!(left.rightMost() < right.leftMost())) {
+    LOG(FATAL) << "Trying to join segment ending at "
+        << left.rightMost() << " with segment beginning at "
+        << right.leftMost();
+  }
+
   auto newIndexSet = merge<int, 4>(
       left.inds, left.paramCount,
       right.inds, right.paramCount);
@@ -317,16 +323,19 @@ struct SegmentLookUp {
 
     auto currentCost = (*as).cost + (*bs).cost;
 
+    CHECK((*as).segment.rightMost() < (*bs).segment.leftMost());
     auto newSegment = join(
         (*as).segment, (*bs).segment,
         s.regularization,
         s.difRegularization);
+    CHECK(newSegment.leftMost() == (*as).segment.leftMost());
+    CHECK(newSegment.rightMost() == (*bs).segment.rightMost());
     auto newRef = addSegment(newSegment);
 
-    auto newCost = segments[newRef.segmentIndex].cost
-        + s.omissionCost*(
-            (*bs).segment.rightMost()
-            - (*as).segment.leftMost() - 1);
+    int omitCount = (*bs).segment.rightMost()
+        - (*as).segment.leftMost() - 1;
+    auto omissionCost = s.omissionCost*omitCount;
+    auto newCost = segments[newRef.segmentIndex].cost + omissionCost;
     auto costIncrease = newCost - currentCost;
 
     auto join = Join(costIncrease, a, b, newRef);
@@ -380,11 +389,14 @@ struct SegmentLookUp {
     CHECK(0 < refs.count(join.left));
     CHECK(0 < refs.count(join.right));
     all->erase(join);
-    refs.erase(join.left);
-    refs.erase(join.right);
+    auto begin = refs.find(join.left);
+    auto end = refs.find(join.right);
+    end++;
+    for (auto i = begin; i != end; i++) {
+      segments[i->segmentIndex].removeRefereesFrom(all);
+    }
+    refs.erase(begin, end);
     refs.insert(join.joined);
-    segments[join.left.segmentIndex].removeRefereesFrom(all);
-    segments[join.right.segmentIndex].removeRefereesFrom(all);
     auto i = refs.find(join.joined);
     addJoins(i, -s.maxGap, s.maxGap, s, all);
   }
@@ -470,7 +482,7 @@ Array<bool> optimize(
   }
   while (!joins.empty()) {
     bool verbose = lu.refs.size() <= settings.verbosityThreshold;
-    //lu.checkConsistency(joins);
+    lu.checkConsistency(joins);
     if (verbose) {
       LOG(INFO) << "\n\n--- ITERATION";
       LOG(INFO) << "    joins: " << joins.size();
