@@ -11,8 +11,12 @@
 #include <server/math/QuadForm.h>
 #include <server/common/logging.h>
 #include <array>
+#include <set>
+#include <server/common/indexed.h>
+#include <vector>
 
 namespace sail {
+namespace sof {
 
 template <int CoordDim>
 struct Segment {
@@ -33,13 +37,21 @@ struct Segment {
   // The "time" coordinates of above points
   std::array<double, 4> X = {0, 0, 0, 0};
 
+  double meanX() const {
+    double s = 0.0;
+    for (int i = 0; i < paramCount; i++) {
+      s += X[i];
+    }
+    return (1.0/paramCount)*s;
+  }
+
   const int* indexBegin() const {return inds;}
   const int* indexEnd() const {return inds + paramCount;}
 
   int leftMost() const {return inds[0];}
   int rightMost() const {return inds[paramCount-1];}
 
-  typedef Eigen::Matrix<double, CoordDim, 1> Vec;
+  typedef std::array<double, CoordDim> Vec;
 
   static Segment primitive(
 
@@ -168,6 +180,173 @@ Segment<CoordDim> join(
   return dst;
 }
 
+struct Settings {
+  double regularization = 1.0;
+  double difRegularization = 1.0e-6;
+  double costThreshold = 1.0;
+  double omissionCost = 1.0;
+  int maxGap = 2;
+};
+
+struct SegmentRef {
+  double position = 0;
+  int segmentIndex = 0;
+
+  SegmentRef(double p, int i)
+    : position(p), segmentIndex(i) {}
+
+  std::pair<double, int> key() const {
+    return {position, segmentIndex};
+  }
+
+  bool operator<(const SegmentRef& other) const {
+    return key() < other.key();
+  }
+
+  bool operator!=(const SegmentRef& other) const {
+    return key() != other.key();
+  }
+};
+
+struct Join {
+  double costIncrease = 0;
+  SegmentRef left, right;
+  SegmentRef joined;
+
+  Join(
+      double c, const SegmentRef& l,
+      const SegmentRef& r,
+      const SegmentRef& j) :
+    costIncrease(c), left(l), right(r), joined(j) {}
+
+  std::pair<double, std::pair<SegmentRef, SegmentRef>> key() const {
+    return {costIncrease, {left, right}};
+  }
+
+  bool operator<(const Join& other) const {
+    return key() < other.key();
+  }
+};
+
+template <typename I>
+I stepIter(I i, bool forward) {
+  return forward? ++i : --i;
+}
+
+template <int N>
+struct SegmentLookUp {
+  struct SegmentData {
+    Segment<N> segment;
+    double cost = 0;
+    std::set<Join> referees;
+    SegmentData(const Segment<N>& s, double c) : segment(s), cost(c) {}
+
+    void removeRefereesFrom(std::set<Join>* joins) {
+      for (const auto& r: referees) {
+        joins->erase(r);
+      }
+    }
+  };
+
+  SegmentLookUp(const Array<std::pair<double, std::array<double, N>>>& pts) {
+    segments.reserve(2*pts.size());
+    for (auto ipt: indexed(pts)) {
+      refs.insert(addSegment(Segment<N>::primitive(
+          ipt.first, ipt.second.first, ipt.second.second)));
+    }
+  }
+
+  SegmentRef addSegment(const Segment<N>& seg) {
+    int index = segments.size();
+    segments.push_back({seg, seg.cost()});
+    return SegmentRef(seg.meanX(), index);
+  }
+
+  Join makeJoin(
+      const SegmentRef& a,
+      const SegmentRef& b,
+      const Settings& s) {
+    LOG(INFO) << "a: " << a.segmentIndex;
+    LOG(INFO) << "b: " << b.segmentIndex;
+    CHECK(a != b);
+    auto& as = segments[a.segmentIndex];
+    auto& bs = segments[b.segmentIndex];
+    auto currentCost = as.cost + bs.cost;
+    auto newSegment = join(
+        as.segment, bs.segment,
+        s.regularization,
+        s.difRegularization);
+    auto newRef = addSegment(newSegment);
+    auto newCost = segments[newRef.segmentIndex].cost
+        + s.omissionCost*(bs.segment.rightMost()
+            - as.segment.leftMost());
+    auto costIncrease = newCost - currentCost;
+
+    auto join = Join(costIncrease, a, b, newRef);
+
+    // Necessary? Yes, so that we can remove this join
+    // in case one of the segments gets joined.
+    as.referees.insert(join);
+    bs.referees.insert(join);
+
+    return join;
+  }
+
+  void addJoins(
+      const std::set<SegmentRef>::const_iterator& orig, int from, int to,
+      const Settings& settings, std::set<Join>* joins) {
+    auto iter = orig;
+    int i = 0;
+    while (from < i && iter != refs.begin()) { // Rewind
+      iter--;
+      i--;
+    }
+    while (i < from && iter != refs.end()) { // Step forward
+      iter++;
+      i++;
+    }
+    while (i <= to && iter != refs.end()) { // Make joins
+      CHECK((i == 0) == (iter == orig));
+      if (i != 0) {
+        joins->insert(makeJoin(*orig, *iter, settings));
+      }
+      i++;
+      iter++;
+    }
+  }
+
+  void executeJoin(
+      const Join& join, std::set<Join>* all,
+      const Settings& s) {
+    all->erase(join);
+    refs.erase(join.left);
+    refs.erase(join.right);
+    refs.insert(join.joined);
+    segments[join.left.segmentIndex].removeRefereesFrom(all);
+    segments[join.right.segmentIndex].removeRefereesFrom(all);
+    auto i = refs.find(join.joined);
+    addJoins(i, -s.maxGap, s.maxGap, s, all);
+  }
+
+  std::vector<SegmentData> segments;
+  std::set<SegmentRef> refs;
+};
+
+template <int N>
+Array<bool> optimize(
+    const Array<std::pair<double, std::array<double, N>>>& points,
+    const Settings& settings) {
+  SegmentLookUp<N> lu(points);
+  std::set<Join> joins;
+  for (auto i = lu.refs.begin(); i != lu.refs.end(); i++) {
+    lu.addJoins(i, 1, settings.maxGap, settings, &joins);
+  }
+  LOG(INFO) << "Number of points: " << points.size();
+  LOG(INFO) << "Number of joins: " << joins.size();
+  return Array<bool>();
+}
+
+}
 } /* namespace sail */
 
 #endif /* SERVER_MATH_SEGMENTOUTLIERFILTER_H_ */

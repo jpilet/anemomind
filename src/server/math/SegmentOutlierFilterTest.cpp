@@ -9,11 +9,12 @@
 #include <gtest/gtest.h>
 
 using namespace sail;
+using namespace sof;
 
-Eigen::Matrix<double, 1, 1> v1(double x) {
-  Eigen::Matrix<double, 1, 1> dst;
-  dst(0) = x;
-  return dst;
+typedef std::array<double, 1> Vec1;
+
+Vec1 v1(double x) {
+  return std::array<double, 1>{x};
 }
 
 TEST(SegmentOutlierFilter, BasicTest) {
@@ -91,3 +92,25 @@ TEST(SegmentOutlierFilter, BasicTest) {
 }
 
 
+
+
+void initializePoints(
+    double x, double step, double f,
+    int l, int u,
+    Array<std::pair<double, Vec1>>* dst) {
+  if (l + 1 == u) {
+     (*dst)[l] = {l, {x}};
+  } else if (l < u) {
+    int middle = (l + u)/2;
+    initializePoints(x - step, step*f, f, l, middle, dst);
+    initializePoints(x + step, step*f, f, middle, u, dst);
+  }
+}
+
+
+TEST(SegmentOutlierFilterTest, Optimize) {
+  Settings s;
+  Array<std::pair<double, Vec1>> points(16);
+  initializePoints(0, 1, 0.2, 0, 16, &points);
+  auto mask = optimize<1>(points, s);
+}
