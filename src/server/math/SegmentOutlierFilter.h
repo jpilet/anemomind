@@ -323,6 +323,8 @@ struct SegmentLookUp {
   void executeJoin(
       const Join& join, std::set<Join>* all,
       const Settings& s) {
+    CHECK(0 < refs.count(join.left));
+    CHECK(0 < refs.count(join.right));
     all->erase(join);
     refs.erase(join.left);
     refs.erase(join.right);
@@ -335,6 +337,31 @@ struct SegmentLookUp {
 
   std::vector<SegmentData> segments;
   std::set<SegmentRef> refs;
+
+  void checkConsistency(const std::set<Join>& joins) {
+    LOG(INFO) << "Refs:";
+    for (auto r: refs) {
+      const auto& sd = segments[r.segmentIndex];
+      const auto& s = sd.segment;
+      LOG(INFO) << "  Segment("<< r.segmentIndex <<") from " << s.leftMost() << " to " << s.rightMost()
+          << " at " << s.meanX();
+    }
+    for (auto j: joins) {
+      LOG(INFO) << "Join(" << j.left.segmentIndex <<
+          ", " << j.right.segmentIndex << ")";
+      CHECK(0 < refs.count(j.left));
+      CHECK(0 < refs.count(j.right));
+    }
+    for (auto i = refs.begin(); i != refs.end(); i++) {
+      auto j = i;
+      j++;
+      if (j != refs.end()) {
+        CHECK(
+            segments[i->segmentIndex].segment.rightMost()
+            < segments[j->segmentIndex].segment.leftMost());
+      }
+    }
+  }
 };
 
 template <int N>
@@ -349,10 +376,14 @@ Array<bool> optimize(
   if (settings.verbose) {
     LOG(INFO) << "Number of points: " << points.size();
     LOG(INFO) << "Number of joins: " << joins.size();
+    LOG(INFO) << "Number of refs: " << lu.refs.size();
   }
   while (!joins.empty()) {
+    lu.checkConsistency(joins);
     if (settings.verbose) {
       LOG(INFO) << "--- ITERATION. Remaining joins " << joins.size();
+      LOG(INFO) << "    refs: " << lu.refs.size();
+      LOG(INFO) << "    segments: " << lu.segments.size();
     }
     const auto& join = *(joins.begin());
     if (settings.verbose) {
