@@ -115,6 +115,11 @@ private:
   std::function<Y(X)> _f;
 };
 
+template <typename Y, typename X>
+Map<Y, X> map(const std::function<Y(X)>& f) {
+  return Map<Y, X>(f);
+}
+
 template <typename X>
 Map<X, X> visit(const std::function<void(X)>& f) {
   return Map<X, X>([f](const X& x) {
@@ -159,6 +164,12 @@ public:
 private:
   std::function<bool(X)> _f;
 };
+
+template <typename F>
+Filter<typename FunctionTraits<F>::input_type> filter(F f) {
+  typedef FunctionTraits<F> T;
+  return Filter<typename T::input_type>(f);
+}
 
 // Concatentate collections
 template <typename Coll>

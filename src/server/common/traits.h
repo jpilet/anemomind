@@ -120,6 +120,21 @@ struct IsStringMap {
       && std::is_same<std::string, KeyTypeOf<T>>::value;
 };
 
+template <typename F>
+struct FunctionTraits;
+
+template <typename Y, typename X>
+struct FunctionTraits<std::function<Y(X)>> {
+  typedef X input_type;
+  typedef Y output_type;
+};
+
+template <typename Y, typename X>
+struct FunctionTraits<Y (*)(X)> {
+  typedef X input_type;
+  typedef Y output_type;
+};
+
 }
 
 

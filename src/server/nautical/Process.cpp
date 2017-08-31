@@ -307,7 +307,7 @@ PrefilteredSession prefilterSession(
 
   // Extract only the GPS positions as timed values.
   auto T0 = composeTransducers(
-      Filter<TimedValue<DynamicChannelValue>>(&isGpsPosition),
+      filter(&isGpsPosition),
       Map<TimedValue<GeographicPosition<double>>,
         TimedValue<DynamicChannelValue>>(&toTimedGpsPos));
 
@@ -325,8 +325,7 @@ PrefilteredSession prefilterSession(
   // by the SegmentOutlierFilter
   std::vector<sof::Pair<3>> normalizedEcefData;
   normalizedEcefData.reserve(n);
-  auto T1 = Map<sof::Pair<3>,
-      TimedValue<GeographicPosition<double>>>(toTimedEcef(offset));
+  auto T1 = map(toTimedEcef(offset));
   reduceIntoCollection(T1, &normalizedEcefData, positions);
 
   auto mask = sof::optimize<3>(
