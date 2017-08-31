@@ -39,10 +39,10 @@ function csvEscape(s) {
 }
 
 function sendCsv(res, columns, table) {
-
   var row = [ "Time" ];
   for (var c in columns) { row[1 + columns[c]] = csvEscape(c); }
   res.write(row.join(', ') + '\n');
+  var numCols = row.length;
 
   var times = Object.keys(table);
   times.sort();
@@ -51,9 +51,11 @@ function sendCsv(res, columns, table) {
     var t = times[time_index];
 
     var rowDate = new Date(+t * 1000);
+
+    row = [];
     row[0] = formatTime(rowDate);
     var tableRow = table[t];
-    for (var i = 0; i < tableRow.length; ++i) {
+    for (var i = 0; i < numCols; ++i) {
       row[i + 1] = (tableRow[i] !== undefined ? tableRow[i] : ''); 
     }
     res.write(row.join(', ') + '\n');
@@ -125,6 +127,8 @@ exports.exportCsv = function(req, res, next) {
   var columns = { };
   var table = { };
 
+  var resultSent = false;
+
   // The query bypasses mongoose. It does not like having an object
   // as _id.
   ChartTile.collection.find(query).forEach(function(tile) {
@@ -143,6 +147,11 @@ exports.exportCsv = function(req, res, next) {
         row[colno] = tile.mean[i];
       }
     }
+
+    if (resultSent) {
+      console.warn('ERROR! received DB data to build an reply that has been sent already!');
+      console.warn(new Error().stack);
+    }
   },
   function(err) {
     if (err) {
@@ -151,10 +160,13 @@ exports.exportCsv = function(req, res, next) {
       if (Object.keys(columns).length == 0) {
         res.status(404).send();
       } else {
-        res.contentType('text/csv');
-        res.header("Content-Disposition", "attachment;filename=" + timeRange + ".csv");
-        sendCsv(res, columns, table);
-        res.status(200).end();
+        setTimeout(function() {
+          res.contentType('text/csv');
+          res.header("Content-Disposition", "attachment;filename=" + timeRange + ".csv");
+          resultSent = true;
+          sendCsv(res, columns, table);
+          res.status(200).end();
+        }, 1);
       }
     }
   });
