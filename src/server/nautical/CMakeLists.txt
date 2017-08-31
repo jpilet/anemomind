@@ -297,6 +297,7 @@ target_link_libraries(nautical_Process
   logimport_LogLoader
   common_DynamicUtils
   common_Keyword
+  math_SegmentOutlierFilter
   )
 
 cxx_test(nautical_ProcessTest

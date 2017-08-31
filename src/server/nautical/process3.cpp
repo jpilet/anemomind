@@ -100,7 +100,9 @@ int main(int argc, const char** argv) {
   ArgMap amap;
   amap.setHelpInfo("Process boat logs"
       "\nExample usage:"
-      "\n\n   ./nautical_process3 /Users/jonas/data/boat58b5fde26b146bd2da067681  (Courdileone)");
+      "\n\n   ./nautical_process3 /Users/jonas/data/boat58b5fde26b146bd2da067681  (Courdileone)"
+      "\n\n   ./nautical_process3 /Users/jonas/data/boat5996ed5b035eb352cf36d5a2  (Léon)");
+
   amap.registerOption(
       "--read-config",
       "Read configuration file")

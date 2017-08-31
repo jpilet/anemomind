@@ -14,6 +14,7 @@
 #include <server/common/DOMUtils.h>
 #include <server/math/QuadForm.h>
 #include <array>
+#include <server/math/SegmentOutlierFilter.h>
 
 namespace sail {
 
@@ -21,12 +22,12 @@ SerializationInfo toDynamicObject(const DataCode& x, Poco::Dynamic::Var* dst);
 SerializationInfo fromDynamicObject(const Poco::Dynamic::Var& src, DataCode *x);
 
 struct ProcessSettings {
-  DYNAMIC_INTERFACE;
   bool outputHtml = true;
   std::string resultsDir = "processed";
   double downsampleMinPeriodSeconds = 0.1;
   std::map<std::string, std::set<DataCode>> samplesToRemove;
   double timeGapMinutes = 60.0;
+  sof::Settings gpsOutlierSettings;
 
   template <typename V>
   void visitFields(V* v) {

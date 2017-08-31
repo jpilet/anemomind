@@ -20,6 +20,7 @@
 #include <server/common/HashUtils.h>
 #include <Eigen/Dense>
 #include <server/nautical/WGS84.h>
+#include <server/math/SegmentOutlierFilter.h>
 
 namespace sail {
   struct ChannelDataKey {
@@ -271,6 +272,89 @@ Array<TimedValue<DynamicChannelValue>>
 
 bool hasData(const Array<TimedValue<DynamicChannelValue>>& x) {
   return !x.empty();
+}
+
+struct PrefilteredSession {
+
+};
+
+TimedValue<GeographicPosition<double>> toTimedGpsPos(
+    const TimedValue<DynamicChannelValue>& v) {
+  return {v.time, v.value.get<GPS_POS>()};
+}
+
+std::function<sof::Pair<3>(
+    TimedValue<GeographicPosition<double>>)> toTimedEcef(
+      const TimeStamp& offset) {
+  return [offset](
+      const TimedValue<GeographicPosition<double>>& x) {
+
+    std::array<Length<double>, 3> xyz0;
+    WGS84<double>::toXYZ(x.value, xyz0.data());
+
+    std::array<double, 3> xyz;
+    for (int i = 0; i < 3; i++) {
+      xyz[i] = xyz0[i].meters();
+    }
+    double t = (x.time - offset).seconds();
+    return sof::Pair<3>{t, xyz};
+  };
+}
+
+PrefilteredSession prefilterSession(
+    const Array<TimedValue<DynamicChannelValue>>& v,
+    const ProcessSettings& settings) {
+
+  // Extract only the GPS positions as timed values.
+  auto T0 = composeTransducers(
+      Filter<TimedValue<DynamicChannelValue>>(&isGpsPosition),
+      Map<TimedValue<GeographicPosition<double>>,
+        TimedValue<DynamicChannelValue>>(&toTimedGpsPos));
+
+  std::vector<TimedValue<GeographicPosition<double>>> positions;
+  reduceIntoCollection(T0, &positions, v);
+
+  int n = positions.size();
+  if (n == 0) {
+    LOG(WARNING) << "Empty GPS positions";
+    return PrefilteredSession();
+  }
+  auto offset = positions[n/2].time;
+
+  // Convert the timed GPS positions to the format expected
+  // by the SegmentOutlierFilter
+  std::vector<sof::Pair<3>> normalizedEcefData;
+  normalizedEcefData.reserve(n);
+  auto T1 = Map<sof::Pair<3>,
+      TimedValue<GeographicPosition<double>>>(toTimedEcef(offset));
+  reduceIntoCollection(T1, &normalizedEcefData, positions);
+
+  auto mask = sof::optimize<3>(
+      Array<sof::Pair<3>>::referToVector(normalizedEcefData),
+      settings.gpsOutlierSettings);
+
+  std::vector<TimedValue<
+    GeographicPosition<double>>> inlierPositions;
+  inlierPositions.reserve(n);
+
+  {
+    int at = 0;
+    reduceIntoCollection(
+        Filter<TimedValue<GeographicPosition<double>>>(
+            [&](const TimedValue<GeographicPosition<double>>& p) {
+      return mask[at++];
+    }), &inlierPositions, positions);
+  }
+
+  return PrefilteredSession();
+}
+
+std::function<PrefilteredSession(
+    Array<TimedValue<DynamicChannelValue>>)> prefilterSession(
+        const ProcessSettings& s) {
+  return [s](const Array<TimedValue<DynamicChannelValue>>& v) {
+    return prefilterSession(v, s);
+  };
 }
 
 std::vector<Span<TimeStamp>> presegmentData(

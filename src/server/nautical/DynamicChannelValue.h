@@ -12,6 +12,7 @@
 #include <server/common/logging.h>
 #include <server/common/metaprog.h>
 #include <server/common/Keyword.h>
+#include <boost/variant.hpp>
 
 namespace sail {
 

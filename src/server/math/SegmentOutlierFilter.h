@@ -18,6 +18,12 @@
 namespace sail {
 namespace sof {
 
+template <int N>
+using Vec = std::array<double, N>;
+
+template <int N>
+using Pair = std::pair<double, Vec<N>>;
+
 template <int CoordDim>
 struct Segment {
   typedef QuadForm<4, CoordDim> QF;
@@ -257,10 +263,7 @@ struct Join {
   }
 };
 
-std::ostream& operator<<(std::ostream& s, const Join& j) {
-  s << "Join(" << j.left.segmentIndex << ", " << j.right.segmentIndex << ")";
-  return s;
-}
+std::ostream& operator<<(std::ostream& s, const Join& j);
 
 template <typename I>
 I stepIter(I i, bool forward) {
@@ -474,7 +477,7 @@ struct SegmentLookUp {
 
 template <int N>
 Array<bool> optimize(
-    const Array<std::pair<double, std::array<double, N>>>& points,
+    const Array<Pair<N>>& points,
     const Settings& settings) {
   SegmentLookUp<N> lu(points);
   std::set<Join> joins;

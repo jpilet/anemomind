@@ -379,6 +379,13 @@ ResultType reduce(Step s, ResultType init, const Coll& c) {
   return reduce(s, init, c.begin(), c.end());
 }
 
+template <typename Transducer, typename DstColl, typename SrcColl>
+void reduceIntoCollection(
+    Transducer t, DstColl* dst, const SrcColl& src) {
+  auto iter = std::inserter(*dst, dst->end());
+  reduce(t.apply(iteratorStep(iter)), iter, src);
+}
+
 }
 
 
