@@ -190,7 +190,7 @@ struct Settings {
   double costThreshold = 100.0;
   double omissionCost = 1.0;
   int maxGap = 2;
-  bool verbose = true;
+  int verbosityThreshold = 30;
 };
 
 struct SegmentRef {
@@ -463,32 +463,34 @@ Array<bool> optimize(
   for (auto i = lu.refs.begin(); i != lu.refs.end(); i++) {
     lu.addJoins(i, 1, settings.maxGap, settings, &joins);
   }
-  if (settings.verbose) {
+  if (0 < settings.verbosityThreshold) {
     LOG(INFO) << "Number of points: " << points.size();
     LOG(INFO) << "Number of joins: " << joins.size();
     LOG(INFO) << "Number of refs: " << lu.refs.size();
   }
   while (!joins.empty()) {
+    bool verbose = lu.refs.size() <= settings.verbosityThreshold;
     //lu.checkConsistency(joins);
-    if (settings.verbose) {
+    if (verbose) {
       LOG(INFO) << "\n\n--- ITERATION";
       LOG(INFO) << "    joins: " << joins.size();
       LOG(INFO) << "    refs: " << lu.refs.size();
       LOG(INFO) << "    segments: " << lu.segments.size();
     }
     const auto& join = *(joins.begin());
-    if (settings.verbose) {
+    if (verbose) {
       LOG(INFO) << "Cost increase of joining segments: " << join.costIncrease;
       LOG(INFO) << "Join(" << join.left.segmentIndex
           << ", " << join.right.segmentIndex << ")";
     }
     if (join.costIncrease > settings.costThreshold) {
+      LOG(INFO) << "Cost increase exceeds threshold, break.";
       break;
     }
     lu.executeJoin(join, &joins, settings);
   }
   auto greatestSegment = lu.findGreatestSegment();
-  if (settings.verbose) {
+  if (0 < settings.verbosityThreshold) {
     LOG(INFO) << "Number of inliers: "
         << greatestSegment.segment.pointCount << "/"
         << points.size();
