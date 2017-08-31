@@ -72,5 +72,5 @@ TEST(SimulateBox, Replay) {
   NavDataset simulated = SimulateBox(calibFile, original);
 
   EXPECT_EQ(0, original.samples<TWDIR>().size());
-  EXPECT_EQ(1, simulated.samples<TWDIR>().size());
+  EXPECT_EQ(2, simulated.samples<TWDIR>().size());
 }
