@@ -110,6 +110,7 @@ void initializePoints(
 
 TEST(SegmentOutlierFilterTest, Optimize) {
   Settings s;
+  s.verbose = true;
   Array<std::pair<double, Vec1>> points(16);
   initializePoints(0, 1, 0.2, 0, 16, &points);
   auto mask = optimize<1>(points, s);

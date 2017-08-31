@@ -191,7 +191,13 @@ struct Settings {
 
 struct SegmentRef {
   double position = 0;
-  int segmentIndex = 0;
+  int segmentIndex = -1;
+
+  SegmentRef() {}
+
+  bool defined() const {
+    return segmentIndex != -1;
+  }
 
   SegmentRef(double p, int i)
     : position(p), segmentIndex(i) {}
@@ -213,6 +219,8 @@ struct Join {
   double costIncrease = 0;
   SegmentRef left, right;
   SegmentRef joined;
+
+  Join() {}
 
   Join(
       double c, const SegmentRef& l,
@@ -260,6 +268,10 @@ template <typename T> VecRef<T> vecRef(int i, std::vector<T>* v) {return VecRef<
 template <int N>
 struct SegmentLookUp {
   struct SegmentData {
+
+    // Applicable for composite segments
+    Join join;
+
     Segment<N> segment;
     double cost = 0;
     std::set<Join> referees;
@@ -309,6 +321,9 @@ struct SegmentLookUp {
     auto costIncrease = newCost - currentCost;
 
     auto join = Join(costIncrease, a, b, newRef);
+
+    // So that we can reconstruct
+    segments[newRef.segmentIndex].join = join;
 
     // Necessary? Yes, so that we can remove this join
     // in case one of the segments gets joined.
