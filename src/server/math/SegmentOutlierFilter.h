@@ -22,6 +22,8 @@ template <int CoordDim>
 struct Segment {
   typedef QuadForm<4, CoordDim> QF;
 
+  int pointCount = 0;
+
   // 1 to 4 , not higher
   int paramCount = 0;
 
@@ -60,6 +62,7 @@ struct Segment {
 
       double x, const Vec& y) {
     Segment dst;
+    dst.pointCount = 1;
     dst.inds[0] = i;
     dst.paramCount = 1;
     dst.X[0] = x;
@@ -155,6 +158,7 @@ Segment<CoordDim> join(
         &qf, newXSet, left.paramCount-1, regWeight);
   }
   Segment<CoordDim> dst;
+  dst.pointCount = left.pointCount + right.pointCount;
   if (totalParamCount <= 4) {
     dst.paramCount = totalParamCount;
     dst.inds = slice<4, int, 8>(newIndexSet, 0);
@@ -183,7 +187,7 @@ Segment<CoordDim> join(
 struct Settings {
   double regularization = 1.0;
   double difRegularization = 1.0e-6;
-  double costThreshold = 1.0;
+  double costThreshold = 100.0;
   double omissionCost = 1.0;
   int maxGap = 2;
   bool verbose = true;
@@ -219,6 +223,10 @@ struct Join {
   double costIncrease = 0;
   SegmentRef left, right;
   SegmentRef joined;
+
+  bool defined() const {
+    return joined.defined();
+  }
 
   Join() {}
 
@@ -275,6 +283,7 @@ struct SegmentLookUp {
     Segment<N> segment;
     double cost = 0;
     std::set<Join> referees;
+    SegmentData() {}
     SegmentData(const Segment<N>& s, double c) : segment(s), cost(c) {}
 
     void removeRefereesFrom(std::set<Join>* joins) {
@@ -380,6 +389,36 @@ struct SegmentLookUp {
     addJoins(i, -s.maxGap, s.maxGap, s, all);
   }
 
+  SegmentData findGreatestSegment() {
+    SegmentData d;
+    for (auto r: refs) {
+      const auto& s = segments[r.segmentIndex];
+      if (d.segment.pointCount < s.segment.pointCount) {
+        d = s;
+      }
+    }
+    return d;
+  }
+
+  void unrollInliers(
+      const std::vector<SegmentData>& initStack,
+      Array<bool>* dst) {
+    auto stack = initStack;
+    while (!stack.empty()) {
+      auto x = stack.back();
+      stack.pop_back();
+      if (x.join.defined()) {
+        stack.push_back(segments[x.join.left.segmentIndex]);
+        stack.push_back(segments[x.join.right.segmentIndex]);
+      } else {
+        const auto& s = x.segment;
+        for (int i = s.leftMost(); i <= s.rightMost(); i++) {
+          (*dst)[i] = true;
+        }
+      }
+    }
+  }
+
   std::vector<SegmentData> segments;
   std::set<SegmentRef> refs;
 
@@ -443,10 +482,20 @@ Array<bool> optimize(
       LOG(INFO) << "Join(" << join.left.segmentIndex
           << ", " << join.right.segmentIndex << ")";
     }
+    if (join.costIncrease > settings.costThreshold) {
+      break;
+    }
     lu.executeJoin(join, &joins, settings);
   }
-
-  return Array<bool>();
+  auto greatestSegment = lu.findGreatestSegment();
+  if (settings.verbose) {
+    LOG(INFO) << "Number of inliers: "
+        << greatestSegment.segment.pointCount << "/"
+        << points.size();
+  }
+  auto mask = Array<bool>::fill(points.size(), false);
+  lu.unrollInliers({greatestSegment}, &mask);
+  return mask;
 }
 
 }
