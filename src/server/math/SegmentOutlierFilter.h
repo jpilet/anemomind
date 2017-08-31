@@ -220,8 +220,8 @@ struct Join {
       const SegmentRef& j) :
     costIncrease(c), left(l), right(r), joined(j) {}
 
-  std::pair<double, std::pair<SegmentRef, SegmentRef>> key() const {
-    return {costIncrease, {left, right}};
+  std::tuple<double, SegmentRef, SegmentRef> key() const {
+    return std::tuple<double, SegmentRef, SegmentRef>{costIncrease, left, right};
   }
 
   bool operator<(const Join& other) const {
@@ -229,10 +229,39 @@ struct Join {
   }
 };
 
+std::ostream& operator<<(std::ostream& s, const Join& j) {
+  s << "Join(" << j.left.segmentIndex << ", " << j.right.segmentIndex << ")";
+  return s;
+}
+
 template <typename I>
 I stepIter(I i, bool forward) {
   return forward? ++i : --i;
 }
+
+void dispReferees(const std::set<Join>& refs) {
+  for (auto r: refs) {
+    LOG(INFO) << "   referee " << r;
+  }
+}
+
+// A pointer-like object that
+// will remain valid even if the underlying
+// vector storage is reallocated.
+template <typename T>
+class VecRef {
+public:
+  VecRef(int i, std::vector<T>* d) : _index(i), _data(d) {}
+
+  T& operator*() {
+    return (*_data)[_index];
+  }
+private:
+  int _index;
+  std::vector<T>* _data;
+};
+
+template <typename T> VecRef<T> vecRef(int i, std::vector<T>* v) {return VecRef<T>(i, v);}
 
 template <int N>
 struct SegmentLookUp {
@@ -268,25 +297,51 @@ struct SegmentLookUp {
       const SegmentRef& b,
       const Settings& s) {
     CHECK(a != b);
-    auto& as = segments[a.segmentIndex];
-    auto& bs = segments[b.segmentIndex];
-    auto currentCost = as.cost + bs.cost;
+    LOG(INFO) << ".....Top of makeJoin";
+    LOG(INFO) << "a: " << a.segmentIndex;
+    LOG(INFO) << "b: " << b.segmentIndex;
+    auto as = vecRef(a.segmentIndex, &segments);
+    auto bs = vecRef(b.segmentIndex, &segments);
+
+    LOG(INFO) << "A";
+    dispReferees((*as).referees);
+    LOG(INFO) << "B";
+    dispReferees((*bs).referees);
+
+    auto currentCost = (*as).cost + (*bs).cost;
+
     auto newSegment = join(
-        as.segment, bs.segment,
+        (*as).segment, (*bs).segment,
         s.regularization,
         s.difRegularization);
     auto newRef = addSegment(newSegment);
+
+    LOG(INFO) << "Just before...";
+    LOG(INFO) << "A";
+    dispReferees((*as).referees);
+    LOG(INFO) << "B";
+    dispReferees((*bs).referees);
+
     auto newCost = segments[newRef.segmentIndex].cost
-        + s.omissionCost*(bs.segment.rightMost()
-            - as.segment.leftMost());
+        + s.omissionCost*(
+            (*bs).segment.rightMost()
+            - (*as).segment.leftMost() - 1);
     auto costIncrease = newCost - currentCost;
 
     auto join = Join(costIncrease, a, b, newRef);
 
     // Necessary? Yes, so that we can remove this join
     // in case one of the segments gets joined.
-    as.referees.insert(join);
-    bs.referees.insert(join);
+    (*as).referees.insert(join);
+    (*bs).referees.insert(join);
+
+    CHECK(0 < (*as).referees.count(join));
+    CHECK(0 < (*bs).referees.count(join));
+    LOG(INFO) << "### Make join " << join << ", after:";
+    LOG(INFO) << "A";
+    dispReferees((*as).referees);
+    LOG(INFO) << "B";
+    dispReferees((*bs).referees);
 
     return join;
   }
@@ -312,8 +367,9 @@ struct SegmentLookUp {
         if (a->position > b->position) {
           std::swap(a, b);
         }
-        LOG(INFO) << "Joining " << a->position << " and " << b->position;
+        LOG(INFO) << "Joining " << a->segmentIndex << " and " << b->segmentIndex;
         joins->insert(makeJoin(*a, *b, settings));
+        checkConsistency(*joins);
       }
       i++;
       iter++;
@@ -339,18 +395,24 @@ struct SegmentLookUp {
   std::set<SegmentRef> refs;
 
   void checkConsistency(const std::set<Join>& joins) {
-    LOG(INFO) << "Refs:";
+    LOG(INFO) << "  ****SEGMENTS";
     for (auto r: refs) {
       const auto& sd = segments[r.segmentIndex];
       const auto& s = sd.segment;
-      LOG(INFO) << "  Segment("<< r.segmentIndex <<") from " << s.leftMost() << " to " << s.rightMost()
+      LOG(INFO) << "    Segment("<< r.segmentIndex <<") from " << s.leftMost() << " to " << s.rightMost()
           << " at " << s.meanX();
+      for (auto r: sd.referees) {
+        LOG(INFO) << "        reffed by " << r;
+      }
     }
+    LOG(INFO) << "  ****JOINS";
     for (auto j: joins) {
-      LOG(INFO) << "Join(" << j.left.segmentIndex <<
+      LOG(INFO) << "    Join(" << j.left.segmentIndex <<
           ", " << j.right.segmentIndex << ")";
       CHECK(0 < refs.count(j.left));
       CHECK(0 < refs.count(j.right));
+      CHECK(0 < segments[j.left.segmentIndex].referees.count(j));
+      CHECK(0 < segments[j.right.segmentIndex].referees.count(j));
     }
     for (auto i = refs.begin(); i != refs.end(); i++) {
       auto j = i;
@@ -381,15 +443,15 @@ Array<bool> optimize(
   while (!joins.empty()) {
     lu.checkConsistency(joins);
     if (settings.verbose) {
-      LOG(INFO) << "--- ITERATION. Remaining joins " << joins.size();
+      LOG(INFO) << "\n\n--- ITERATION. Remaining joins " << joins.size();
       LOG(INFO) << "    refs: " << lu.refs.size();
       LOG(INFO) << "    segments: " << lu.segments.size();
     }
     const auto& join = *(joins.begin());
     if (settings.verbose) {
       LOG(INFO) << "Cost increase of joining segments: " << join.costIncrease;
-      LOG(INFO) << "Left segment: " << join.left.segmentIndex;
-      LOG(INFO) << "Right segment: " << join.right.segmentIndex;
+      LOG(INFO) << "Join(" << join.left.segmentIndex
+          << ", " << join.right.segmentIndex << ")";
     }
     lu.executeJoin(join, &joins, settings);
   }
