@@ -186,6 +186,7 @@ struct Settings {
   double costThreshold = 1.0;
   double omissionCost = 1.0;
   int maxGap = 2;
+  bool verbose = true;
 };
 
 struct SegmentRef {
@@ -266,8 +267,6 @@ struct SegmentLookUp {
       const SegmentRef& a,
       const SegmentRef& b,
       const Settings& s) {
-    LOG(INFO) << "a: " << a.segmentIndex;
-    LOG(INFO) << "b: " << b.segmentIndex;
     CHECK(a != b);
     auto& as = segments[a.segmentIndex];
     auto& bs = segments[b.segmentIndex];
@@ -308,7 +307,13 @@ struct SegmentLookUp {
     while (i <= to && iter != refs.end()) { // Make joins
       CHECK((i == 0) == (iter == orig));
       if (i != 0) {
-        joins->insert(makeJoin(*orig, *iter, settings));
+        auto a = orig;
+        auto b = iter;
+        if (a->position > b->position) {
+          std::swap(a, b);
+        }
+        LOG(INFO) << "Joining " << a->position << " and " << b->position;
+        joins->insert(makeJoin(*a, *b, settings));
       }
       i++;
       iter++;
@@ -341,8 +346,23 @@ Array<bool> optimize(
   for (auto i = lu.refs.begin(); i != lu.refs.end(); i++) {
     lu.addJoins(i, 1, settings.maxGap, settings, &joins);
   }
-  LOG(INFO) << "Number of points: " << points.size();
-  LOG(INFO) << "Number of joins: " << joins.size();
+  if (settings.verbose) {
+    LOG(INFO) << "Number of points: " << points.size();
+    LOG(INFO) << "Number of joins: " << joins.size();
+  }
+  while (!joins.empty()) {
+    if (settings.verbose) {
+      LOG(INFO) << "--- ITERATION. Remaining joins " << joins.size();
+    }
+    const auto& join = *(joins.begin());
+    if (settings.verbose) {
+      LOG(INFO) << "Cost increase of joining segments: " << join.costIncrease;
+      LOG(INFO) << "Left segment: " << join.left.segmentIndex;
+      LOG(INFO) << "Right segment: " << join.right.segmentIndex;
+    }
+    lu.executeJoin(join, &joins, settings);
+  }
+
   return Array<bool>();
 }
 
