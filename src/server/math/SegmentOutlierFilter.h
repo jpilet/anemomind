@@ -196,10 +196,8 @@ struct Settings {
   double costThreshold = 100.0;
   double omissionCost = 1.0;
 
-  int maxOutlierSegments = 1;
+  int maxOutlierSegments = 2;
 
-  // Set this number to twice the maximum number
-  // of continuous outlier segments.
   int maxGap() const {return 2*maxOutlierSegments + 1;}
 
   int verbosityThreshold = 0;
