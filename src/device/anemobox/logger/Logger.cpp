@@ -143,10 +143,10 @@ void Logger::flushTo(LogFile* container) {
     ptr->clear();
   }
   for (auto it = _textLoggers.begin();  it != _textLoggers.end(); ++it) {
-    if (hasTimeStamps(it->second.valueSet())) {
-      container->add_text()->Swap(it->second.mutable_valueSet());
+    if (hasTimeStamps(it->second->valueSet())) {
+      container->add_text()->Swap(it->second->mutable_valueSet());
     }
-    it->second.clear();
+    it->second->clear();
   }
   for (auto& kv: _rawNmea2000Sentences) {
     container->add_rawnmea2000()->Swap(kv.second.mutableData());
@@ -196,9 +196,10 @@ void Logger::logText(
   auto it = _textLoggers.find(streamName);
   if (it == _textLoggers.end()) {
     it = _textLoggers.insert(
-        make_pair(streamName, LoggerValueListener("text", streamName))).first;
+        make_pair(streamName,
+            std::make_shared<LoggerValueListener>("text", streamName))).first;
   }
-  it->second.addText(
+  it->second->addText(
       _dispatcher->currentTime(), content);
 }
 

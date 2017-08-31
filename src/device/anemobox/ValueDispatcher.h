@@ -18,10 +18,10 @@ namespace sail {
 template <typename T> class ValueDispatcher;
 
 template <typename T>
-class Listener {
+class Listener : boost::noncopyable {
  public:
   Listener(Duration<> minInterval = Duration<>::seconds(0))
-    : minInterval_(minInterval), listeningTo_(0) { }
+    : minInterval_(minInterval) { }
   virtual ~Listener();
 
   Duration<> minInterval() const { return minInterval; }
@@ -29,10 +29,11 @@ class Listener {
 
   void notify(const ValueDispatcher<T> &dispatcher);
 
-  bool isListening() const { return listeningTo_ != 0; }
-  void listen(ValueDispatcher<T> *dispatcher);
-  void stopListening();
-  ValueDispatcher<T> *listeningTo() const { return listeningTo_; };
+  bool isListeningTo(ValueDispatcher<T>* x) const { return 0 < listeningTo_.count(x); }
+  void listenTo(ValueDispatcher<T> *dispatcher);
+  void stopListeningTo(ValueDispatcher<T>* x);
+  void stopListeningToAll();
+  const std::set<ValueDispatcher<T>*>& listeningTo() const { return listeningTo_; };
 
   static void safelyNotifyListenerSet(const std::set<Listener<T> *>& listeners,
                                       const ValueDispatcher<T> &dispatcher) {
@@ -50,7 +51,7 @@ class Listener {
  private:
   TimeStamp lastNotified_;
   Duration<> minInterval_;
-  ValueDispatcher<T> *listeningTo_;
+  std::set<ValueDispatcher<T>*> listeningTo_;
 };
 
 template <typename T>
@@ -61,7 +62,7 @@ class ValueDispatcher {
 
   void subscribe(Listener<T> *listener) {
     listeners_.insert(listener);
-    listener->listen(this);
+    listener->listenTo(this);
   }
   int unsubscribe(Listener<T> *listener) {
     return listeners_.erase(listener);
@@ -96,7 +97,7 @@ class ValueDispatcher {
 
 template <typename T>
 Listener<T>::~Listener() {
-  stopListening();
+  stopListeningToAll();
 }
 
 template <typename T>
@@ -110,20 +111,27 @@ void Listener<T>::notify(const ValueDispatcher<T> &dispatcher)
 }
 
 template <typename T>
-void Listener<T>::listen(ValueDispatcher<T> *dispatcher) {
-  if (listeningTo_ != dispatcher) {
-    stopListening();
-    listeningTo_ = dispatcher;
-    listeningTo_->subscribe(this);
+void Listener<T>::listenTo(ValueDispatcher<T> *dispatcher) {
+  if (!isListeningTo(dispatcher)) {
+    listeningTo_.insert(dispatcher);
+    dispatcher->subscribe(this);
   }
 }
 
 template <typename T>
-void Listener<T>::stopListening() {
-  if (isListening()) {
-    listeningTo_->unsubscribe(this);
+void Listener<T>::stopListeningTo(ValueDispatcher<T>* x) {
+  if (isListeningTo(x)) {
+    x->unsubscribe(this);
+    listeningTo_.erase(x);
   }
-  listeningTo_ = 0;
+}
+
+template <typename T>
+void Listener<T>::stopListeningToAll() {
+  for (auto x: listeningTo_) {
+    x->unsubscribe(this);
+  }
+  listeningTo_.clear();
 }
 
 template <typename T>
@@ -164,7 +172,7 @@ class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
   virtual Clock* clock() const { return _forward ? _forward->clock() : 0; }
 
   void proxy(ValueDispatcher<T> *dispatcher) {
-    this->stopListening();
+    this->stopListeningTo(_forward); // Is this OK?
     _forward = dispatcher;
     if (_forward) {
       _forward->subscribe(this);

@@ -260,12 +260,17 @@ TEST(DispatcherUtilsTest, Replay2) {
   EXPECT_CALL(listener, onNewValue(testing::_));
   replay.publishValue(AWA, "test source", Angle<>::degrees(42));
 
-  // Second subscription for the listener. Since a listener only
-  // listen to 1 channel at a time, the first subscription is canceled.
+  // Second subscription for the listener.
+  // In the past it used to be: "Since a listener only
+  // listen to 1 channel at a time, the first subscription is canceled."
+  // See issue 635: https://github.com/jpilet/anemomind/issues/635
+  //
+  // But we changed it, so now we can listen to both AWA and TWA.
   replay.get<TWA>()->dispatcher()->subscribe(&listener);
 
-  // So the following publish will not trigger a callback
+  // So the following publish will trigger a callback (which was not the case before).
   replay.advanceTime(Duration<>::seconds(1));
+  EXPECT_CALL(listener, onNewValue(testing::_));
   replay.publishValue(AWA, "test source", Angle<>::degrees(43));
   
   // However, the 2nd subscription still works.
