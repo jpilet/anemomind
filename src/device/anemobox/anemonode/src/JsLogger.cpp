@@ -8,10 +8,10 @@ namespace sail {
 
 namespace {
 
-class FlushWorker : public NanAsyncWorker {
+class FlushWorker : public Nan::AsyncWorker {
  public:
-  FlushWorker(NanCallback *callback, std::string filename)
-    : NanAsyncWorker(callback),
+  FlushWorker(Nan::Callback *callback, std::string filename)
+    : Nan::AsyncWorker(callback),
       _result(false),
       _filename(filename) { }
 
@@ -22,14 +22,15 @@ class FlushWorker : public NanAsyncWorker {
   }
 
   void HandleOKCallback() {
-    NanScope();
-    Handle<Value> argv[2];
+    Nan::HandleScope scope;
+    Local<Value> argv[2];
 
-    argv[0] = NanNew(_filename);
+    argv[0] = Nan::New(_filename).ToLocalChecked();
     if (!_result) {
-      argv[1] = NanNew("Logger::save failed to write " + _filename);
+      argv[1] = Nan::New("Logger::save failed to write " 
+			 + _filename).ToLocalChecked();
     } else {
-      argv[1] = NanUndefined();
+      argv[1] = Nan::Undefined();
     }
 
     callback->Call(2, argv);
@@ -41,83 +42,83 @@ class FlushWorker : public NanAsyncWorker {
   std::string _filename;
 };
 
-v8::Persistent<v8::FunctionTemplate> logger_constructor;
+Nan::Persistent<v8::FunctionTemplate> logger_constructor;
 
 }  // namespace
 
 JsLogger::JsLogger() : _logger(globalAnemonodeDispatcher) { }
 
 void JsLogger::Init(v8::Handle<v8::Object> target) {
-  NanScope();
+  Nan::HandleScope scope;
 
   // Prepare constructor template
-  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
-  tpl->SetClassName(NanNew<String>("Logger"));
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+  tpl->SetClassName(Nan::New<String>("Logger").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   // Prototype
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
-  NODE_SET_METHOD(proto, "flush", JsLogger::flush);
-  NODE_SET_METHOD(proto, "logText", JsLogger::logText);
-  NODE_SET_METHOD(proto, "logRawNmea2000", 
+  Nan::SetMethod(proto, "flush", JsLogger::flush);
+  Nan::SetMethod(proto, "logText", JsLogger::logText);
+  Nan::SetMethod(proto, "logRawNmea2000", 
 		  JsLogger::logRawNmea2000);
 
-  NanAssignPersistent<FunctionTemplate>(logger_constructor, tpl);
+  logger_constructor.Reset(tpl);
 
-  target->Set(NanNew<String>("Logger"), tpl->GetFunction());
+  target->Set(Nan::New<String>("Logger").ToLocalChecked(), tpl->GetFunction());
 }
 
 NAN_METHOD(JsLogger::New) {
-  NanScope();
+  Nan::HandleScope scope;
   JsLogger *obj = new JsLogger();
-  obj->Wrap(args.This());
-  NanReturnValue(args.This());
+  obj->Wrap(info.This());
+  info.GetReturnValue().Set(info.This());
 }
 
 #define GET_TYPED_THIS(TYPE, OBJ)		     \
-  TYPE* OBJ = ObjectWrap::Unwrap<TYPE>(args.This()); \
+  TYPE* OBJ = Nan::ObjectWrap::Unwrap<TYPE>(info.This()); \
   if (!OBJ) {					     \
-    NanThrowTypeError("This is not a " #TYPE);	     \
-    NanReturnUndefined();			     \
+    Nan::ThrowTypeError("This is not a " #TYPE);	     \
+    return;			     \
   }						     
 
 NAN_METHOD(JsLogger::flush) {
-  NanScope();
+  Nan::HandleScope scope;
   GET_TYPED_THIS(JsLogger, obj);
 
-  if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsFunction()) {
-    NanThrowTypeError(
+  if (info.Length() < 2 || !info[0]->IsString() || !info[1]->IsFunction()) {
+    Nan::ThrowTypeError(
         "Bad arguments. "
         "Usage: flush('path', function(writtenFilename, error) {})");
-    NanReturnUndefined();
+    return;
   }
 
-  v8::String::Utf8Value filename(args[0]->ToString());
-  NanCallback *callback = new NanCallback(args[1].As<Function>());
+  v8::String::Utf8Value filename(info[0]->ToString());
+  Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
   FlushWorker* worker = new FlushWorker(callback, *filename);
   obj->_logger.flushTo(worker->dataContainer());
 
-  NanAsyncQueueWorker(worker);
-  NanReturnUndefined();
+  Nan::AsyncQueueWorker(worker);
+  return;
 }
 
 NAN_METHOD(JsLogger::logText) {
-  NanScope();
+  Nan::HandleScope scope;
   GET_TYPED_THIS(JsLogger, obj);
 
-  if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsString()) {
-    NanThrowTypeError(
+  if (info.Length() < 2 || !info[0]->IsString() || !info[1]->IsString()) {
+    Nan::ThrowTypeError(
         "Bad arguments. "
         "Usage: logText('source', 'content')");
-    NanReturnUndefined();
+    return;
   }
 
-  v8::String::Utf8Value source(args[0]->ToString());
-  v8::String::Utf8Value content(args[1]->ToString());
+  v8::String::Utf8Value source(info[0]->ToString());
+  v8::String::Utf8Value content(info[1]->ToString());
 
   obj->_logger.logText(*source, *content);
 
-  NanReturnUndefined();
+  return;
 }
 
 // Expects as input these arguments:
@@ -144,42 +145,42 @@ NAN_METHOD(JsLogger::logText) {
    */
 
 NAN_METHOD(JsLogger::logRawNmea2000) {
-  NanScope();
+  Nan::HandleScope scope;
   GET_TYPED_THIS(JsLogger, obj);
   
-  if (args.Length() < 3) {
-    NanThrowTypeError("Too few arguments. " LOG_RAW_NMEA2000_USAGE);
-    NanReturnUndefined();
+  if (info.Length() < 3) {
+    Nan::ThrowTypeError("Too few arguments. " LOG_RAW_NMEA2000_USAGE);
+    return;
   } 
-  if (args.Length() > 3) {
-    NanThrowTypeError("Too many arguments. " LOG_RAW_NMEA2000_USAGE);
-    NanReturnUndefined();
+  if (info.Length() > 3) {
+    Nan::ThrowTypeError("Too many arguments. " LOG_RAW_NMEA2000_USAGE);
+    return;
   }
-  if (!args[0]->IsNumber()) {
-    NanThrowTypeError("'timestampMillisecondsSinceBoot' is not a number. " 
+  if (!info[0]->IsNumber()) {
+    Nan::ThrowTypeError("'timestampMillisecondsSinceBoot' is not a number. " 
 		      LOG_RAW_NMEA2000_USAGE);
-    NanReturnUndefined();
+    return;
   }
-  if (!args[1]->IsNumber()) {
-    NanThrowTypeError("'id' is not a number. " LOG_RAW_NMEA2000_USAGE);
-    NanReturnUndefined();
+  if (!info[1]->IsNumber()) {
+    Nan::ThrowTypeError("'id' is not a number. " LOG_RAW_NMEA2000_USAGE);
+    return;
   }
-  if (!args[2]->IsObject()) {
-    NanThrowTypeError("'data' is not a buffer. " 
+  if (!info[2]->IsObject()) {
+    Nan::ThrowTypeError("'data' is not a buffer. " 
 		      LOG_RAW_NMEA2000_USAGE);
-    NanReturnUndefined();
+    return;
   }
 
-  double tsMs = args[0]->ToNumber()->Value();
-  double id = args[1]->ToNumber()->Value();
+  double tsMs = info[0]->ToNumber()->Value();
+  double id = info[1]->ToNumber()->Value();
 
-  Local<Object> bufferObj = args[2]->ToObject();
+  Local<Object> bufferObj = info[2]->ToObject();
   char* bufferData = node::Buffer::Data(bufferObj);
   size_t bufferLength = node::Buffer::Length(bufferObj);
 
   obj->_logger.logRawNmea2000(tsMs, id, bufferLength, bufferData);
 
-  NanReturnUndefined();
+  return;
 }
 
 }  // namespace sail

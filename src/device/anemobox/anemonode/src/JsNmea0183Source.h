@@ -8,7 +8,7 @@
 
 namespace sail {
 
-class JsNmea0183Source : public node::ObjectWrap {
+class JsNmea0183Source : public Nan::ObjectWrap {
  public:
   JsNmea0183Source(const std::string& sourceName);
 

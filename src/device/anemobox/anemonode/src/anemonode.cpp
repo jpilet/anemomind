@@ -38,13 +38,13 @@ class MonotonicClockDispatcher : public Dispatcher {
 };
 
 NAN_METHOD(adjTime) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (!args[0]->IsNumber()) {
-    NanThrowTypeError("Expecting time delta in seconds");
-    NanReturnUndefined();
+  if (!info[0]->IsNumber()) {
+    Nan::ThrowTypeError("Expecting time delta in seconds");
+    return;
   }
-  double delta = args[0]->ToNumber()->Value();
+  double delta = info[0]->ToNumber()->Value();
   struct timeval tv;
   gettimeofday(&tv, 0);
   double secs = double(tv.tv_sec) + double(tv.tv_usec)*1e-6 + delta;
@@ -54,17 +54,18 @@ NAN_METHOD(adjTime) {
   if (r) {
     perror("settimeofday");
   }
-  NanReturnValue(r);
+  info.GetReturnValue().Set(r);
 }
 
 NAN_METHOD(currentTime) {
-  NanScope();
+  Nan::HandleScope scope;
 
   if (globalAnemonodeDispatcher) {
     TimeStamp now = globalAnemonodeDispatcher->currentTime();
-    NanReturnValue(NanNew<Date>(now.toMilliSecondsSince1970()));
+
+    info.GetReturnValue().Set(Nan::New<Date>(now.toMilliSecondsSince1970()).ToLocalChecked());
   } else {
-    NanReturnUndefined();
+    return;
   }
 }
 
@@ -80,8 +81,8 @@ void RegisterModule(Handle<Object> target) {
   JsLogger::Init(target);
   JsEstimator::Init(target);
 
-  NODE_SET_METHOD(target, "adjTime", adjTime);
-  NODE_SET_METHOD(target, "currentTime", currentTime);
+  Nan::SetMethod(target, "adjTime", adjTime);
+  Nan::SetMethod(target, "currentTime", currentTime);
 }
 
 // Register the module with node. Note that "modulename" must be the same as

@@ -16,14 +16,14 @@ namespace {
 class JsListener;
 }  // namespace
 
-class JsDispatchData : public node::ObjectWrap {
+class JsDispatchData : public Nan::ObjectWrap {
  public:
   JsDispatchData() : _dispatchData(0) { }
 
   static v8::Local<v8::FunctionTemplate> functionTemplate(); 
    
   static JsDispatchData* obj(const v8::Handle<v8::Object>& obj) {
-    return node::ObjectWrap::Unwrap<JsDispatchData>(obj);
+    return Nan::ObjectWrap::Unwrap<JsDispatchData>(obj);
   }
 
   static void setDispatchData(

@@ -8,7 +8,7 @@
 
 namespace sail {
 
-class JsNmea2000Source : public node::ObjectWrap {
+class JsNmea2000Source : public Nan::ObjectWrap {
  public:
   JsNmea2000Source();
 
