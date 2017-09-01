@@ -8,6 +8,8 @@
 #ifndef SERVER_COMMON_TRAITS_H_
 #define SERVER_COMMON_TRAITS_H_
 
+#include <functional>
+
 namespace sail {
 
 // To make a reference into a value.
