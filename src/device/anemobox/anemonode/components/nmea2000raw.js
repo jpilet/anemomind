@@ -8,7 +8,12 @@ var logger = require('./logger.js');
 var verbose = false;
 var counter = 0;
 
+var running = false;
+
 function logRawPacket(msg) {
+  if (!running) {
+    return;
+  }
   var systemTime0 = 1000*msg.ts_sec + 0.001*msg.ts_usec;
   var systemTime1 = new Date().getTime();
   var monotonicTime1 = anemonode.currentTime();
@@ -31,15 +36,36 @@ function logRawPacket(msg) {
   j1939socket.fetch();
 }
 
+var channel = null;
 function start() { 
-  try {
-    var channel = can.createRawChannel("can0", true /* ask for timestamps */);
-    channel.start();
-    channel.addListener("onMessage", logRawPacket);
-  } catch (e) {
-    console.log("Failed to listen to CAN channel");
-    console.log(e);
+  if (!channel) {
+    try {
+      channel = can.createRawChannel("can0", true /* ask for timestamps */);
+      channel.start();
+      channel.addListener("onMessage", logRawPacket);
+      running = true;
+    } catch (e) {
+      console.log("Failed to listen to CAN channel");
+      console.log(e);
+      running = false;
+    }
+  } else {
+    running = true;
+  }
+}
+
+function stop() {
+  running = false;
+}
+
+function setState(r) {
+  if (r) {
+    start();
+  } else {
+    stop();
   }
 }
 
 module.exports.start = start;
+module.exports.stop = stop
+module.exports.setState = setState;
