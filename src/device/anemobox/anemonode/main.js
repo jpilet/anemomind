@@ -18,7 +18,6 @@ var logExternalNmea = true;
 var withHttp = true;
 var withIMU = true;
 var withCUPS = false;
-var withNmea2000Raw = false; // log raw data? TODO: Make this configurable
 var withNMEA2000 = true;
 var withWatchdog = !process.env['NO_WATCHDOG'];
 var spiBugDetected = false;
@@ -48,11 +47,17 @@ if (withHttp) {
   var http = require('./components/http');
 }
 
+function setLogRawNmea2000FromConfig(err, cfg) {
+  if (err) {
+    console.log("Error reading config setting to set log raw NMEA 2000 state");
+  } else {
+    nmea2000raw.setState(cfg.logRawNmea2000);
+  }
+}
+
 if (withLogger) {
   var logger = require('./components/logger');
-  if (withNmea2000Raw) {
-    nmea2000raw.start();
-  } 
+  config.getAndListen(setLogRawNmea2000FromConfig);
 }
 
 if (withLocalEndpoint) {
