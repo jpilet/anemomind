@@ -19,7 +19,8 @@ function defaultConfig() {
   return {
     boatName: "",
     boatId: "",
-    nmea0183Speed: 4800
+    nmea0183Speed: 4800,
+    logRawNmea2000: false
   };
 }
 
@@ -104,7 +105,15 @@ get(function(err, config) {
   }
 });
 
+function getAndListen(f) {
+  get(f);
+  module.exports.events.on('change', function() {
+    get(f);
+  });
+}
+
 module.exports.get = get;
 module.exports.write = write;
 module.exports.change = change;
 module.exports.getConfigPath = getConfigPath;
+module.exports.getAndListen = getAndListen;
