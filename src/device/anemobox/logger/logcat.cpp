@@ -374,11 +374,17 @@ void dispEntries(std::vector<TimedString> *entries,
     DateFormat fmt) {
   std::sort(entries->begin(), entries->end());
   for (const TimedString& entry : *entries) {
-    if (fmt == DateFormat::HumanReadable) {
-      cout << entry.time.fullPrecisionString() << ": ";
-    } else {
-      cout << "(" << 0.001*entry.time.toMilliSecondsSince1970() << ") ";
-    }
+    switch (fmt) {
+      case DateFormat::HumanReadable: {
+        cout << entry.time.fullPrecisionString() << ": ";
+        break;
+      };
+      case DateFormat::Nmea2000Replay: {
+        cout << "(" << 0.001*entry.time
+            .toMilliSecondsSince1970() << ") ";
+        break;
+      }
+    };
     cout << entry.str << endl;
   }
 }
