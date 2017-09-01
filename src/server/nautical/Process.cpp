@@ -20,7 +20,7 @@
 #include <server/common/HashUtils.h>
 #include <Eigen/Dense>
 #include <server/nautical/WGS84.h>
-#include <server/math/SegmentOutlierFilter.h>
+#include "../math/QuadSegmentOutlierFilter.h"
 
 namespace sail {
   struct ChannelDataKey {

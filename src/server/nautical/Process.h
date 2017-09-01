@@ -13,8 +13,8 @@
 #include <server/common/DOMUtils.h>
 #include <server/math/QuadForm.h>
 #include <array>
-#include <server/math/SegmentOutlierFilter.h>
 #include <server/common/DynamicInterface.h>
+#include "../math/SegmentOutlierFilter.h"
 
 namespace sail {
 

@@ -5,7 +5,8 @@
  *      Author: jonas
  */
 
-#include <server/math/SegmentOutlierFilter.h>
+#include "SegmentOutlierFilter.h"
+
 #include <gtest/gtest.h>
 
 using namespace sail;
@@ -19,11 +20,11 @@ Vec1 v1(double x) {
 
 TEST(SegmentOutlierFilter, BasicTest) {
   double h[5] = {4, 40, 6, 7.33, 1};
-  auto a = Segment<1>::primitive(0, 3, v1(h[0]));
-  auto b = Segment<1>::primitive(1, 4, v1(h[1]));
-  auto c = Segment<1>::primitive(2, 5, v1(h[2]));
-  auto d = Segment<1>::primitive(3, 6, v1(h[3]));
-  auto e = Segment<1>::primitive(4, 7, v1(h[4]));
+  auto a = QuadSegment<1>::primitive(0, 3, v1(h[0]));
+  auto b = QuadSegment<1>::primitive(1, 4, v1(h[1]));
+  auto c = QuadSegment<1>::primitive(2, 5, v1(h[2]));
+  auto d = QuadSegment<1>::primitive(3, 6, v1(h[3]));
+  auto e = QuadSegment<1>::primitive(4, 7, v1(h[4]));
 
   EXPECT_NEAR(a.cost(), 0.0, 1.0e-6);
   EXPECT_NEAR(b.cost(), 0.0, 1.0e-6);
