@@ -23,7 +23,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
-      value_ = NanNew(val.value.degrees());
+      value_ = Nan::New(val.value.degrees());
       timestamp_ = val.time;
     }
   }
@@ -32,7 +32,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
-      value_ = NanNew(val.value.knots());
+      value_ = Nan::New(val.value.knots());
       timestamp_ = val.time;
     }
   }
@@ -42,7 +42,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
-      value_ = NanNew(val.value.nauticalMiles());
+      value_ = Nan::New(val.value.nauticalMiles());
       timestamp_ = val.time;
     }
   }
@@ -52,7 +52,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
-      value_ = NanNew(val.value == BinaryEdge::ToOn ? true : false);
+      value_ = Nan::New(val.value == BinaryEdge::ToOn ? true : false);
       timestamp_ = val.time;
     }
   }
@@ -62,9 +62,9 @@ class GetValueVisitor : public DispatchDataVisitor {
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
-      Local<Object> obj = NanNew<Object>();
-      obj->Set(NanNew("lon"), NanNew(val.value.lon().degrees()));
-      obj->Set(NanNew("lat"), NanNew(val.value.lat().degrees()));
+      Local<Object> obj = Nan::New<Object>();
+      obj->Set(Nan::New("lon").ToLocalChecked(), Nan::New(val.value.lon().degrees()));
+      obj->Set(Nan::New("lat").ToLocalChecked(), Nan::New(val.value.lat().degrees()));
       value_ = obj;
       timestamp_ = val.time;
     }
@@ -75,7 +75,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
-      value_ = NanNew<Date>(double(val.value.toMilliSecondsSince1970()));
+      value_ = Nan::New<Date>(double(val.value.toMilliSecondsSince1970())).ToLocalChecked();
       timestamp_ = val.time;
     }
   }
@@ -85,10 +85,10 @@ class GetValueVisitor : public DispatchDataVisitor {
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
-      Local<Object> obj = NanNew<Object>();
-      obj->Set(NanNew("heading"), NanNew(val.value.heading.degrees()));
-      obj->Set(NanNew("roll"), NanNew(val.value.roll.degrees()));
-      obj->Set(NanNew("pitch"), NanNew(val.value.pitch.degrees()));
+      Local<Object> obj = Nan::New<Object>();
+      obj->Set(Nan::New("heading").ToLocalChecked(), Nan::New(val.value.heading.degrees()));
+      obj->Set(Nan::New("roll").ToLocalChecked(), Nan::New(val.value.roll.degrees()));
+      obj->Set(Nan::New("pitch").ToLocalChecked(), Nan::New(val.value.pitch.degrees()));
       value_ = obj;
       timestamp_ = val.time;
     }
@@ -195,9 +195,9 @@ class SetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchAbsoluteOrientationData *orientDispatch) {
-    auto headingKey = NanNew("heading");
-    auto rollKey = NanNew("roll");
-    auto pitchKey = NanNew("pitch");
+    auto headingKey = Nan::New("heading").ToLocalChecked();
+    auto rollKey = Nan::New("roll").ToLocalChecked();
+    auto pitchKey = Nan::New("pitch").ToLocalChecked();
 
     if (!value_->IsObject()) {
       error_ = "an object is expected";
@@ -258,9 +258,9 @@ class JsListener:
              Duration<> minInterval)
     : Listener<Angle<double>>(minInterval),
     Listener<Velocity<double>>(minInterval),
-    dispatchData_(dispatchData) { NanAssignPersistent(callback_, callback); }
+    dispatchData_(dispatchData) { callback_.Reset(callback); }
   ~JsListener() {
-    NanDisposePersistent(callback_);
+    callback_.Reset();
   }
 
   virtual void onNewValue(const ValueDispatcher<Angle<double>> &) { valueChanged(); }
@@ -275,14 +275,16 @@ class JsListener:
     GetValueVisitor getValue(0);
     dispatchData_->visit(&getValue);
 
-    Handle<Value> argv[1] = { getValue.value() };
-    NanMakeCallback(
-        NanGetCurrentContext()->Global(), NanNew<Function>(callback_), 1, argv);
+    Local<Value> argv[1] = { getValue.value() };
+
+    Nan::MakeCallback(
+        Nan::GetCurrentContext()->Global(), 
+	Nan::New<Function>(callback_), 1, argv);
   }
 
  private:
   std::shared_ptr<DispatchData> dispatchData_;
-  Persistent<Function> callback_;
+  Nan::Persistent<Function> callback_;
 };
 
 class GetTypeAndUnitVisitor : public DispatchDataVisitor {
@@ -327,17 +329,17 @@ class GetTypeAndUnitVisitor : public DispatchDataVisitor {
 }  // namespace
 
 Local<FunctionTemplate> JsDispatchData::functionTemplate() {
-  Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
+  Local<FunctionTemplate> t = Nan::New<FunctionTemplate>(New);
   t->InstanceTemplate()->SetInternalFieldCount(1);
   Local<ObjectTemplate> proto = t->PrototypeTemplate();
 
-  NODE_SET_METHOD(proto, "length", JsDispatchData::length);
-  NODE_SET_METHOD(proto, "value", JsDispatchData::value);
-  NODE_SET_METHOD(proto, "time", JsDispatchData::time);
-  NODE_SET_METHOD(proto, "setValue", JsDispatchData::setValue);
-  NODE_SET_METHOD(proto, "subscribe", JsDispatchData::subscribe);
-  NODE_SET_METHOD(proto, "unsubscribe", JsDispatchData::unsubscribe);
-  NODE_SET_METHOD(proto, "source", JsDispatchData::source);
+  Nan::SetMethod(proto, "length", JsDispatchData::length);
+  Nan::SetMethod(proto, "value", JsDispatchData::value);
+  Nan::SetMethod(proto, "time", JsDispatchData::time);
+  Nan::SetMethod(proto, "setValue", JsDispatchData::setValue);
+  Nan::SetMethod(proto, "subscribe", JsDispatchData::subscribe);
+  Nan::SetMethod(proto, "unsubscribe", JsDispatchData::unsubscribe);
+  Nan::SetMethod(proto, "source", JsDispatchData::source);
   return t;
 }
    
@@ -351,42 +353,47 @@ void JsDispatchData::setDispatchData(
   GetTypeAndUnitVisitor typeAndUnit;
   zis->_dispatchData->visit(&typeAndUnit);
 
-  object->Set(NanNew("unit"), NanNew<String>(typeAndUnit.unit().c_str()));
-  object->Set(NanNew("type"), NanNew<String>(typeAndUnit.type().c_str()));
-  object->Set(NanNew("description"),
-              NanNew<String>(zis->_dispatchData->description()));
-  object->Set(NanNew("dataCode"),
-              NanNew<Integer>(zis->_dispatchData->dataCode()));
+  object->Set(Nan::New("unit").ToLocalChecked(), 
+	      Nan::New<String>(typeAndUnit.unit().c_str())
+	      .ToLocalChecked());
+  object->Set(Nan::New("type").ToLocalChecked(), 
+	      Nan::New<String>(typeAndUnit.type().c_str())
+	      .ToLocalChecked());
+  object->Set(Nan::New("description").ToLocalChecked(),
+              Nan::New<String>(zis->_dispatchData->description())
+	      .ToLocalChecked());
+  object->Set(Nan::New("dataCode").ToLocalChecked(),
+              Nan::New<Integer>(zis->_dispatchData->dataCode()));
 }
 
 NAN_METHOD(JsDispatchData::New) {
-  NanScope();
+  Nan::HandleScope scope;
   JsDispatchData* obj = new JsDispatchData();
-  obj->Wrap(args.This());
-  NanReturnValue(args.This());
+  obj->Wrap(info.This());
+  info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(JsDispatchData::length) {
-  NanScope();
-  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
+  Nan::HandleScope scope;
+  std::shared_ptr<DispatchData> dispatchData = obj(info.This())->_dispatchData;
 
   CountValuesVisitor countValues;
   dispatchData->visit(&countValues);
 
-  NanReturnValue(NanNew<Number>(countValues.numValues()));
+  info.GetReturnValue().Set(Nan::New<Number>(countValues.numValues()));
 }
 
 NAN_METHOD(JsDispatchData::value) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(info.This())->_dispatchData;
 
   unsigned index = 0;
-  if (args.Length() >= 1) {
-    if (!args[0]->IsNumber() || args[0]->ToInteger()->Value() < 0) {
-      return NanThrowTypeError("the index should be a positive integer");
+  if (info.Length() >= 1) {
+    if (!info[0]->IsNumber() || info[0]->ToInteger()->Value() < 0) {
+      return Nan::ThrowTypeError("the index should be a positive integer");
     }
-    index = args[0]->ToInteger()->Value();
+    index = info[0]->ToInteger()->Value();
   }
 
   GetValueVisitor getValue(index);
@@ -394,23 +401,23 @@ NAN_METHOD(JsDispatchData::value) {
   dispatchData->visit(&getValue);
 
   if (getValue.valid()) {
-    NanReturnValue(getValue.value());
+    info.GetReturnValue().Set(getValue.value());
   } else {
-    NanReturnUndefined();
+    return;
   }
 }
 
 NAN_METHOD(JsDispatchData::time) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(info.This())->_dispatchData;
 
   unsigned index = 0;
-  if (args.Length() >= 1) {
-    if (!args[0]->IsNumber() || args[0]->ToInteger()->Value() < 0) {
-      return NanThrowTypeError("the index should be a positive integer");
+  if (info.Length() >= 1) {
+    if (!info[0]->IsNumber() || info[0]->ToInteger()->Value() < 0) {
+      return Nan::ThrowTypeError("the index should be a positive integer");
     }
-    index = args[0]->ToInteger()->Value();
+    index = info[0]->ToInteger()->Value();
   }
 
   GetValueVisitor getValue(index);
@@ -418,71 +425,72 @@ NAN_METHOD(JsDispatchData::time) {
   dispatchData->visit(&getValue);
 
   if (getValue.valid()) {
-    NanReturnValue(NanNew<Date>(
-            double(getValue.time().toMilliSecondsSince1970())));
+    info.GetReturnValue()
+      .Set(Nan::New<Date>(double(getValue.time().toMilliSecondsSince1970()))
+	   .ToLocalChecked());
   } else {
-    NanReturnUndefined();
+    return;
   }
 }
 
 NAN_METHOD(JsDispatchData::setValue) {
-  NanScope();
-  JsDispatchData* zis = obj(args.This());
+  Nan::HandleScope scope;
+  JsDispatchData* zis = obj(info.This());
   std::shared_ptr<DispatchData> dispatchData = zis->_dispatchData;
 
-  if (args.Length() != 2) {
-    return NanThrowTypeError("setValue expects 2 argument: source name and value");
+  if (info.Length() != 2) {
+    return Nan::ThrowTypeError("setValue expects 2 argument: source name and value");
   }
 
-  if (!args[0]->IsString()) {
-    return NanThrowTypeError("setValue a source name string as first argument");
+  if (!info[0]->IsString()) {
+    return Nan::ThrowTypeError("setValue a source name string as first argument");
   }
 
-  v8::String::Utf8Value sourceName(args[0]->ToString());
-  SetValueVisitor setValue(zis->_dispatcher, *sourceName, args[1]);
+  v8::String::Utf8Value sourceName(info[0]->ToString());
+  SetValueVisitor setValue(zis->_dispatcher, *sourceName, info[1]);
   dispatchData->visit(&setValue);
 
   if (!setValue.success()) {
-    return NanThrowError(setValue.error().c_str());
+    return Nan::ThrowError(setValue.error().c_str());
   }
 
-  NanReturnUndefined();
+  return;
 }
 
 NAN_METHOD(JsDispatchData::unsubscribe) {
-  NanScope();
+  Nan::HandleScope scope;
   const char* exception = "First argument must be a subscribe index";
 
-  if (args.Length() < 1) {
-    return NanThrowTypeError(exception);
+  if (info.Length() < 1) {
+    return Nan::ThrowTypeError(exception);
   }
 
-  int index = args[0]->ToInteger()->Value();
+  int index = info[0]->ToInteger()->Value();
   auto iterator = registeredCallbacks.find(index);
   if (iterator == registeredCallbacks.end()) {
-    return NanThrowTypeError(exception);
+    return Nan::ThrowTypeError(exception);
   }
 
   delete iterator->second;
   registeredCallbacks.erase(iterator);
 
-  NanReturnUndefined();
+  return;
 }
 
 NAN_METHOD(JsDispatchData::subscribe) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(info.This())->_dispatchData;
 
-  if (args.Length() < 1 || !args[0]->IsFunction()) {
-    return NanThrowTypeError("First argument must be a function");
+  if (info.Length() < 1 || !info[0]->IsFunction()) {
+    return Nan::ThrowTypeError("First argument must be a function");
   }
 
-  Local<Function> cb = Local<Function>::Cast(args[0]);
+  Local<Function> cb = Local<Function>::Cast(info[0]);
 
   Duration<> minInterval = Duration<>::seconds(0);
-  if (args.Length() >= 2) {
-    minInterval = Duration<>::seconds(args[1]->ToNumber()->Value());
+  if (info.Length() >= 2) {
+    minInterval = Duration<>::seconds(info[1]->ToNumber()->Value());
   }
   JsListener *listener = new JsListener(
       dispatchData, cb, minInterval);
@@ -491,14 +499,15 @@ NAN_METHOD(JsDispatchData::subscribe) {
 
   SubscribeVisitor<JsListener> subscriber(listener);
   dispatchData->visit(&subscriber);
-  NanReturnValue(NanNew<Integer>(index));
+  info.GetReturnValue().Set(Nan::New<Integer>(index));
 }
 
 NAN_METHOD(JsDispatchData::source) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
-  NanReturnValue(NanNew<String>(dispatchData->source()));
+  std::shared_ptr<DispatchData> dispatchData = obj(info.This())->_dispatchData;
+  info.GetReturnValue().Set(Nan::New<String>(dispatchData->source())
+			    .ToLocalChecked());
 }
 
 }  // namespace sail

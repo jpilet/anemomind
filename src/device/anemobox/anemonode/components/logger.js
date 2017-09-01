@@ -50,5 +50,15 @@ function logText(stream, text) {
   }
 }
 
+function logRawNmea2000(t, id, data) { 
+  if (logger) {
+    logger.logRawNmea2000(t, id, data);
+    return true;
+  } else {
+    return false;
+  }
+}
+
 module.exports.startLogging = startLogging;
 module.exports.logText = logText;
+module.exports.logRawNmea2000 = logRawNmea2000;

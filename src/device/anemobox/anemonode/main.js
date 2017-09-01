@@ -18,6 +18,7 @@ var logExternalNmea = true;
 var withHttp = true;
 var withIMU = true;
 var withCUPS = false;
+var withNmea2000Raw = false; // log raw data? TODO: Make this configurable
 var withNMEA2000 = true;
 var withWatchdog = !process.env['NO_WATCHDOG'];
 var spiBugDetected = false;
@@ -25,6 +26,7 @@ var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
 var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
+var nmea2000raw = require('./components/nmea2000raw.js');
 
 // To free up space if possible.
 function cleanOld() {
@@ -48,6 +50,9 @@ if (withHttp) {
 
 if (withLogger) {
   var logger = require('./components/logger');
+  if (withNmea2000Raw) {
+    nmea2000raw.start();
+  } 
 }
 
 if (withLocalEndpoint) {
