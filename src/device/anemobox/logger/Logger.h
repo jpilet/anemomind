@@ -218,6 +218,9 @@ class Logger {
   static void unpackTime(const ValueSet& valueSet,
                          std::vector<TimeStamp>* result);
 
+  static void unpackTime(const Nmea2000Sentences& sentences,
+                         std::vector<TimeStamp>* result);
+
   // For unit testing
   int numListeners() const { return _listeners.size(); }
 
