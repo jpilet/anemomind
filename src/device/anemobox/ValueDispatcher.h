@@ -11,6 +11,7 @@
 #include <server/nautical/AbsoluteOrientation.h>
 #include <server/nautical/GeographicPosition.h>
 #include <device/anemobox/LocalArrayCopy.h>
+#include <server/common/logging.h>
 #include <iostream>
 
 namespace sail {
@@ -113,10 +114,8 @@ template <typename T>
 void Listener<T>::listen(ValueDispatcher<T> *dispatcher) {
   if (listeningTo_ != dispatcher) {
     if (listeningTo_) {
-      std::cerr << "Warning: Listener at " << this
-          << " unsubscribed from "
-          << listeningTo_ << " and subscribed to "
-          << dispatcher << "\n";
+      LOG(WARNING) << "Implicitly unsubscribe from old "
+          "value dispatcher when listening to new value dispatcher";
     }
     stopListening();
     listeningTo_ = dispatcher;
