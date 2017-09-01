@@ -315,6 +315,11 @@ void Logger::unpackTime(const ValueSet& valueSet,
   unpackTimeStamps(getBestKnownTimeStamps(valueSet), result);
 }
 
+void Logger::unpackTime(const Nmea2000Sentences& sentences,
+                        std::vector<TimeStamp>* result) {
+  unpackTimeStamps(sentences.timestampssinceboot(), result);
+}
+
 void Logger::unpack(const BinaryEdgeValueSet& values,
                     std::vector<BinaryEdge>* result) {
   result->clear();
