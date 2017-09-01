@@ -227,7 +227,7 @@ class Logger {
 
   Dispatcher* _dispatcher;
   std::vector<std::shared_ptr<LoggerValueListener>> _listeners;
-  std::map<std::string, LoggerValueListener> _textLoggers;
+  std::map<std::string, std::shared_ptr<LoggerValueListener>> _textLoggers;
   std::map<std::pair<int64_t, Nmea2000SizeClass>, Nmea2000SentenceAccumulator> _rawNmea2000Sentences;
   boost::signals2::scoped_connection _newDispatchDataListener;
 };
