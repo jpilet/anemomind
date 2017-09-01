@@ -111,10 +111,16 @@ void Listener<T>::notify(const ValueDispatcher<T> &dispatcher)
 
 template <typename T>
 void Listener<T>::listen(ValueDispatcher<T> *dispatcher) {
+  auto old = listeningTo_;
   if (listeningTo_ != dispatcher) {
     stopListening();
     listeningTo_ = dispatcher;
     listeningTo_->subscribe(this);
+    if (old && old != listeningTo_) {
+      std::cerr << "Warning: Listener at " << this
+          << " unsubscribed from "
+          << old << " and subscribed to " << listeningTo_ << "\n";
+    }
   }
 }
 
