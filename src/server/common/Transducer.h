@@ -65,7 +65,7 @@ public:
   Map(const F& f) : _f(f) {}
 
   typedef FunctionResultType<F> Y;
-  typedef FunctionArgTypes<F> ArgTypes;
+  typedef CleanTypeList<FunctionArgTypes<F>> ArgTypes;
   typedef FirstType<ArgTypes> X;
   static_assert(Arity<F>::value == 1, "");
 
@@ -93,7 +93,7 @@ struct Filter {
 public:
   Filter(const F& f) : _f(f) {}
 
-  typedef FunctionArgTypes<F> ArgTypes;
+  typedef CleanTypeList<FunctionArgTypes<F>> ArgTypes;
   typedef FirstType<ArgTypes> X;
   static_assert(std::is_same<FunctionResultType<F>, bool>::value, "");
   static_assert(Arity<F>::value == 1, "");
