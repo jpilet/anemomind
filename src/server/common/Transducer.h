@@ -21,6 +21,14 @@ namespace sail {
  * They do not need to allocate intermediate collections for
  * storing intermediate results, and progressively produce the
  * result as elements arrive.
+ *
+ * Standard transducers include Map, which is
+ * the process of applying a function to every element in a sequence,
+ * and Filter, which is the process of rejecting elements that
+ * don't satisfy a condition. But we can create a transducer
+ * for any sequence algorithm we like and combine them however
+ * we like.
+ *
  */
 
 /*
