@@ -57,7 +57,7 @@ Array<QuadSegment<N>> concatenatePairs(
   typedef std::pair<double, QuadSegment<N>> WithCost;
 
   auto T = composeTransducers(
-      Map<WithCost, int>([&](int k) {
+      map([&](int k) {
         if (k == 2) {
           auto a = segments[inputIndex + 0];
           auto b = segments[inputIndex + 1];
@@ -68,7 +68,7 @@ Array<QuadSegment<N>> concatenatePairs(
         }
         inputIndex += k;
       }),
-      Filter<WithCost>(std::function<bool(WithCost)>(
+      filter(std::function<bool(WithCost)>(
           [&](const WithCost& q) {
         if (q.first < settings.maxCost) {
           return true;
@@ -80,7 +80,7 @@ Array<QuadSegment<N>> concatenatePairs(
           return false;
         }
       })),
-      Map<QuadSegment<N>, WithCost>([](const WithCost& x) {
+      map([](const WithCost& x) {
         return x.second;
       }));
   std::uniform_int_distribution<int> distrib(0, n-1);
