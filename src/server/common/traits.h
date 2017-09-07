@@ -125,16 +125,26 @@ struct IteratorInputType<
 
 template <typename ... T> struct TypeList {};
 
-// TODO: Support lambda functions, see
-// https://stackoverflow.com/a/7943765
-template <typename T>
-struct FunctionTraits {};
 
-template <typename Y, typename ... T>
+
+// Based on https://stackoverflow.com/a/7943765
+template <typename T>
+struct CallableTraits : public CallableTraits<decltype(&T::operator())> {};
+
+template <typename ClassType, typename ReturnType, typename... Args>
+struct CallableTraits<ReturnType(ClassType::*)(Args...) const> {
+  typedef ReturnType result_type;
+  typedef TypeList<Args...> arg_types;
+};
+
+template <typename T>
+struct FunctionTraits : public CallableTraits<T> {};
+
+/*template <typename Y, typename ... T>
 struct FunctionTraits<std::function<Y(T...)>> {
   typedef Y result_type;
   typedef TypeList<T...> arg_types;
-};
+};*/
 
 template <typename F>
 using FunctionResultType = typename FunctionTraits<F>::result_type;
