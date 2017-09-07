@@ -179,17 +179,22 @@ template <typename ... T>
 ComposeTransducers<T...> composeTransducers(T... x) {
   return ComposeTransducers<T...>(x...);
 }
-///
+
+// This reduces over a collection
+// (anything that exhibits iterators begin() and end() as in the STL)
+// using a step function, and flushes at the end.
 template <typename Dst, typename X, typename Coll>
 Dst reduce(Step<Dst, X> step, Dst init, const Coll& coll) {
   Dst acc = init;
-  for (X x: coll) {
+  for (const X& x: coll) {
     acc = step.step(acc, x);
   }
   return step.flush(acc);
 }
 
-/// Standard step functions
+/// Step function for adding something at the end of
+/// a collection. The accumulated type is the iterator,
+/// and not the collection itself.
 template <typename Iterator>
 Step<Iterator, typename IteratorInputType<Iterator>::type>
   iteratorStep(Iterator i) {
@@ -199,6 +204,8 @@ Step<Iterator, typename IteratorInputType<Iterator>::type>
   );
 }
 
+// This is a convenience function for reducing, when the accumulated
+// type is a collection.
 template <typename T, typename Dst, typename Src>
 void transduceIntoColl(T transducer, Dst* dst, const Src& src) {
   auto i = std::inserter(*dst, dst->end());

@@ -46,3 +46,44 @@ TEST(TransducerTest, ComposeTest) {
   EXPECT_EQ(dst[1], 6);
   EXPECT_EQ(dst[2], 10);
 }
+
+template <typename T>
+class MyBundler {
+public:
+  MyBundler(std::function<bool(T, T)> f) : _separate(f) {}
+
+  template <typename Acc>
+  Step<Acc, T> operator()(const Step<Acc, std::vector<T>>& s) const {
+    auto current = std::make_shared<std::vector<T>>();
+    auto separate = _separate;
+    return {
+      [current, s, separate](Acc a, T x) {
+        if (current->empty() || !separate(current->back(), x)) {
+          current->push_back(x);
+          return a;
+        } else {
+          auto result = s.step(a, *current);
+          *current = {x};
+          return result;
+        }
+      },
+      [current, s](Acc a) {
+        return s.flush(current->empty()? a : s.step(a, *current));
+      }
+    };
+  }
+private:
+  std::function<bool(T, T)> _separate;
+};
+
+bool notEqual(int a, int b) {return a != b;}
+
+TEST(TransducerTest, TestFlush) {
+  std::vector<int> src{1, 1, 1, 1, 2, 2, 2, 3, 3, 3};
+  std::vector<std::vector<int>> dst;
+  transduceIntoColl(MyBundler<int>(&notEqual), &dst, src);
+  EXPECT_EQ(dst.size(), 3);
+  EXPECT_EQ(dst[0], (std::vector<int>{1, 1, 1, 1}));
+  EXPECT_EQ(dst[1], (std::vector<int>{2, 2, 2}));
+  EXPECT_EQ(dst[2], (std::vector<int>{3, 3, 3}));
+}
