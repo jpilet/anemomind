@@ -88,8 +88,7 @@ TEST(TransducerTest, TestFlush) {
   transduceIntoColl(
       composeTransducers(
           MyBundler<int>(&notEqual),
-          Filter<std::function<bool(std::vector<int>)>>(
-              &sufficientlyLong)), &dst, src);
+          filter(&sufficientlyLong)), &dst, src);
   EXPECT_EQ(dst.size(), 3);
   EXPECT_EQ(dst[0], (std::vector<int>{1, 1, 1, 1}));
   EXPECT_EQ(dst[1], (std::vector<int>{2, 2, 2}));
