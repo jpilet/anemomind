@@ -117,12 +117,56 @@ private:
   Y _y;
 };
 
+
+
+// Composing two transducers results in a new transducer
+template <typename A, typename B>
+class ComposeTransducers2 {
+public:
+  ComposeTransducers2(const A& a, const B& b) : _a(a), _b(b) {}
+
+  template <typename S>
+  auto operator()(const S& b)
+    -> decltype(std::declval<A>()(
+        std::declval<B>()(b))) {
+    return _a(_b(b));
+  }
+private:
+  A _a;
+  B _b;
+};
+
+// Used to compose many transducers into a pipeline.
+template <typename... T> class ComposeTransducers {};
+
+template <typename X, typename... Y>
+class ComposeTransducers<X, Y...> {
+public:
+  typedef ComposeTransducers2<X, ComposeTransducers<Y...>> Inner;
+
+  ComposeTransducers(X x, Y... y)
+    : _inner(x, ComposeTransducers<Y...>(y...)) {}
+
+  template <typename S>
+  auto operator() (const S& s) -> decltype(
+      std::declval<Inner>()(std::declval<S>())) {
+    return _inner(s);
+  }
+private:
+  Inner _inner;
+};
+
+
+template <typename X, typename Y>
+class ComposeTransducers<X, Y> : public ComposeTransducers2<X, Y> {
+public:
+  using ComposeTransducers2<X, Y>::ComposeTransducers2;
+};
+
 template <typename ... T>
-struct Compose {};
-
-template <typename X, typename ... Y>
-struct Compose {};
-
+ComposeTransducers<T...> composeTransducers(T... x) {
+  return ComposeTransducers<T...>(x...);
+}
 ///
 template <typename Dst, typename X, typename Coll>
 Dst reduce(Step<Dst, X> step, Dst init, const Coll& coll) {
