@@ -39,7 +39,10 @@ struct IgnoreTransducer {
 
     // Construct an inner helper transducer based on T.
     return filter([ivals, at](const TimedValue<T>& x) {
-      return !coveredByInterval(at.get(), x.time, ivals);
+      auto keep = !coveredByInterval(at.get(), x.time, ivals);
+      std::cout << "Keep it at time " << x.time.toString() << "? "
+          << keep << std::endl;
+      return keep;
     })(s);
   }
 };

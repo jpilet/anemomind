@@ -30,6 +30,9 @@ namespace sail {
       typename TimedSampleCollection<T>::TimedVector dst;
       transduceIntoColl(transducer, &dst,
           data->dispatcher()->values());
+
+      std::cout << "Number of input samples: " << data->dispatcher()->values().size() << std::endl;
+      std::cout << "Number of output samples: " << dst.size() << std::endl;
       r->dispatcher()->insert(dst);
       result = std::static_pointer_cast<DispatchData>(r);
     }
@@ -42,6 +45,7 @@ namespace sail {
       const Transducer& transducer) {
     DispatchDataTransducerVisitor<Transducer> v(clk, transducer);
     src->template visitX(&v);
+    CHECK(bool(v.result));
     return v.result;
   }
 };
