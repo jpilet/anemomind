@@ -8,8 +8,10 @@
 #ifndef SERVER_NAUTICAL_TIMESETS_TIMESETS_H_
 #define SERVER_NAUTICAL_TIMESETS_TIMESETS_H_
 
-#include <server/nautical/tiles/MongoUtils.h>
 #include <server/common/Span.h>
+#include <server/common/TimeStamp.h>
+
+typedef struct _mongoc_database_t mongoc_database_t;
 
 namespace sail {
 

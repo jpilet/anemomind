@@ -23,7 +23,7 @@ target_link_libraries(timesets_IgnoreData
 
 cxx_test(timesets_IgnoreDataTest
   IgnoreDataTest.cpp
-  timesets_IngoreData
+  timesets_IgnoreData
   gtest_main
   )
   

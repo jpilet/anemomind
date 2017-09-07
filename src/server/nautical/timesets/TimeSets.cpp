@@ -5,6 +5,7 @@
  *      Author: jonas
  */
 
+#include <server/nautical/tiles/MongoUtils.h>
 #include "TimeSets.h"
 #include <server/common/logging.h>
 #include <server/common/ArrayBuilder.h>
