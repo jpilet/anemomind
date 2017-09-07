@@ -14,13 +14,25 @@ TimeStamp t(double s) {
   return TimeStamp::UTC(2017, 9, 7, 16, 15, 0) + s*1.0_s;
 }
 
+bool hasValueNear(
+    const TimedSampleCollection<Velocity<double>>::TimedVector& v,
+    double x) {
+  auto target = t(x);
+  for (auto y: v) {
+    if (fabs((y.time - target).seconds()) < 0.2) {
+      return true;
+    }
+  }
+  return false;
+}
+
 TEST(IgnoreDataTest, TestIt) {
   TimeSetInterval ivl;
 
   typedef TimeSetTypes TST;
 
   Array<TimeSetInterval> intervals{
-    {TST::ignoreButVisualize, Span<TimeStamp>(t(0), t(4))},
+    {TST::ignoreButVisualize, Span<TimeStamp>(t(1), t(4))},
     {TST::merge, Span<TimeStamp>(t(5), t(7.9))},
     {TST::ignoreCompletely, Span<TimeStamp>(t(8), t(12))},
   };
@@ -32,7 +44,8 @@ TEST(IgnoreDataTest, TestIt) {
 
   auto src = std::make_shared<
       TypedDispatchDataReal<Velocity<double>>>(
-      WAT_SPEED, "k", nullptr, -1);
+      WAT_SPEED, "k", nullptr,
+      std::numeric_limits<int>::max());
 
   {
     TimedSampleCollection<Velocity<double>>::TimedVector vec;
@@ -49,9 +62,21 @@ TEST(IgnoreDataTest, TestIt) {
       TypedDispatchData<Velocity<double>>>(dst);
   EXPECT_TRUE(bool(typedDst));
 
-  auto samples = typedDst->dispatcher()->values();
+  auto samples = typedDst->dispatcher()->values().samples();
 
   EXPECT_LT(10, samples.size());
+  auto first = samples.front();
+  EXPECT_NEAR((first.time - t(0)).seconds(), 0.0, 0.2);
+  EXPECT_NEAR(first.value.knots(), 0.0, 0.2);
+
+  auto last = samples.back();
+  EXPECT_NEAR((last.time - t(16)).seconds(), 0.0, 0.2);
+  EXPECT_NEAR(last.value.knots(), 16.0, 0.2);
+
+  EXPECT_TRUE(hasValueNear(samples, 0.5));
+  EXPECT_TRUE(hasValueNear(samples, 6.0));
+  EXPECT_FALSE(hasValueNear(samples, 2.0));
+  EXPECT_FALSE(hasValueNear(samples, 9.0));
 
 }
 

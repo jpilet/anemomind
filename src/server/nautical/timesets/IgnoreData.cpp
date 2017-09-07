@@ -18,10 +18,10 @@ bool coveredByInterval(
     return false;
   } else {
     while (*lastPos < intervals.size()-1
-        && t < intervals[*lastPos].span.minv()) {
+        && intervals[*lastPos].span.maxv() < t) {
       (*lastPos)++;
     }
-    while (*lastPos > 0 && intervals[*lastPos].span.maxv() < t) {
+    while (*lastPos > 0 && t < intervals[*lastPos].span.minv()) {
       (*lastPos)--;
     }
     return intervals[*lastPos].span.contains(t);
@@ -39,10 +39,7 @@ struct IgnoreTransducer {
 
     // Construct an inner helper transducer based on T.
     return filter([ivals, at](const TimedValue<T>& x) {
-      auto keep = !coveredByInterval(at.get(), x.time, ivals);
-      std::cout << "Keep it at time " << x.time.toString() << "? "
-          << keep << std::endl;
-      return keep;
+      return !coveredByInterval(at.get(), x.time, ivals);
     })(s);
   }
 };

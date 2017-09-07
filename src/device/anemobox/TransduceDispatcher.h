@@ -26,13 +26,11 @@ namespace sail {
     template <DataCode code, typename T>
     void visit(const TypedDispatchData<T>* data) {
       auto r = std::make_shared<TypedDispatchDataReal<T>>(
-          data->dataCode(), data->source(), clock, 0);
+          data->dataCode(), data->source(), clock,
+          std::numeric_limits<int>::max());
       typename TimedSampleCollection<T>::TimedVector dst;
-      std::cout << "Number of input samples: " << data->dispatcher()->values().size() << std::endl;
-      std::cout << "Number of output samples: " << dst.size() << std::endl;
       transduceIntoColl(transducer, &dst,
           data->dispatcher()->values());
-
       r->dispatcher()->insert(dst);
       result = std::static_pointer_cast<DispatchData>(r);
     }
