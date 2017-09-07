@@ -209,9 +209,9 @@ struct TypeMapper<CleanTypeOpKey, X> {
       typename std::remove_reference<X>::type>::type type;
 };
 
-template <typename ... T>
+template <typename T>
 using CleanTypeList = typename MapTypes<
-    CleanTypeOpKey, TypeList<T...>>::type;
+    CleanTypeOpKey, T>::type;
 
 template <typename T> struct The_value_is;
 
