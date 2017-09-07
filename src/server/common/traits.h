@@ -140,12 +140,6 @@ struct CallableTraits<ReturnType(ClassType::*)(Args...) const> {
 template <typename T>
 struct FunctionTraits : public CallableTraits<T> {};
 
-/*template <typename Y, typename ... T>
-struct FunctionTraits<std::function<Y(T...)>> {
-  typedef Y result_type;
-  typedef TypeList<T...> arg_types;
-};*/
-
 template <typename F>
 using FunctionResultType = typename FunctionTraits<F>::result_type;
 
