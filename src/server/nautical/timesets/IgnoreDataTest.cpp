@@ -37,15 +37,14 @@ Array<TimeSetInterval> getIntervals() {
   };
 }
 
+std::set<std::string> getToIgnore() {
+  return {
+    TST::ignoreButVisualize,
+    TST::ignoreCompletely
+  };
+}
 
-TEST(IgnoreDataTest, TestIt) {
-
-
-  auto ignore = ignoreDispatchData(getIntervals(), {
-      TST::ignoreButVisualize,
-      TST::ignoreCompletely
-  });
-
+std::shared_ptr<DispatchData> makeTestDispatchData() {
   auto src = std::make_shared<
       TypedDispatchDataReal<Velocity<double>>>(
       WAT_SPEED, "k", nullptr,
@@ -58,6 +57,15 @@ TEST(IgnoreDataTest, TestIt) {
     }
     src->dispatcher()->insert(vec);
   }
+  return src;
+}
+
+
+
+TEST(IgnoreDataTest, TestIt) {
+
+  auto ignore = ignoreDispatchData(getIntervals(), getToIgnore());
+  auto src = makeTestDispatchData();
 
   auto dst = ignore(std::static_pointer_cast<DispatchData>(src));
   EXPECT_TRUE(bool(dst));
