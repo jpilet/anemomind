@@ -41,7 +41,8 @@ struct TimeSetsQuery {
 struct TimeSetInterval {
   std::string type;
   Span<TimeStamp> span;
-  std::string data;
+
+  // TODO: std::string data;
 };
 
 // This is a list of the different time sets type that

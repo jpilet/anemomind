@@ -63,7 +63,6 @@ std::shared_ptr<DispatchData> makeTestDispatchData() {
 
 void checkDispatchData(const std::shared_ptr<DispatchData>& dst) {
   EXPECT_TRUE(bool(dst));
-  std::cout << "Code: " << descriptionForCode(dst->dataCode()) << "\n";
   auto typedDst = std::dynamic_pointer_cast<
       TypedDispatchData<Velocity<double>>>(dst);
   EXPECT_TRUE(bool(typedDst));
