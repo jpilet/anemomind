@@ -375,11 +375,6 @@ cxx_test(common_DynamicUtilsTest
   gtest_main
   )
 
-cxx_test(common_TransducerTest
-  TransducerTest.cpp
-  gtest_main
-  )
-
 add_library(common_FrequencyLimiter
   FrequencyLimiter.h
   FrequencyLimiter.cpp
@@ -406,4 +401,9 @@ cxx_test(common_KeywordTest
   KeywordTest.cpp
   gtest_main
   common_Keyword
+  )
+
+cxx_test(common_TransducerTest
+  TransducerTest.cpp
+  gtest_main
   )

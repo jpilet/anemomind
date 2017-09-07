@@ -1,334 +1,139 @@
 /*
- * Transducer.h
+ * Transducer.hpp
  *
- *  Created on: 28 Jul 2017
+ *  Created on: 7 Sep 2017
  *      Author: jonas
  */
 
 #ifndef SERVER_COMMON_TRANSDUCER_H_
 #define SERVER_COMMON_TRANSDUCER_H_
 
+#include <iterator>
 #include <server/common/traits.h>
-#include <server/common/ArrayBuilder.h>
-#include <server/common/Array.h>
-
-/*
- * NOTE:
- *
- * There are also transducer implementations here
- *
- *   https://github.com/Ableton/atria
- *
- * and here
- *
- *   https://github.com/kirkshoop/transducer
- *
- * Early termination is not implemented.
- *
- */
 
 namespace sail {
 
-// Inherit from this one to get the typedefs needed.
-template <typename R, typename X>
-class TransducerStep {
-public:
-  typedef R ResultType;
-  typedef X InputType;
-};
-
-template <typename Iterator, typename X>
-class IteratorStep: public TransducerStep<
-  Iterator, typename std::iterator_traits<Iterator>::value_type> {
-public:
-  Iterator complete(Iterator i) {return i;}
-
-  Iterator step(Iterator i, X x) {
-    *i = x;
-    return ++i;
-  }
-};
-
-template <typename X>
-class CountingStep : public TransducerStep<int, X> {
-public:
-  int complete(int n) {return n;}
-  int step(int n, X x) {return n+1;}
-};
-
-// For convenience
-template <typename Iterator>
-IteratorStep<Iterator,
-  typename IteratorInputType<Iterator>::type> iteratorStep(Iterator) {
-  return IteratorStep<Iterator,
-      typename IteratorInputType<Iterator>::type>();
-}
-
 /*
- * A complete step function also has the methods with signatures
+ * Transducers can be used to express transformations of data
+ * sequences irrespective how those sequences are represented,
+ * which make them reusable in a wide range of contexts.
+ * Transducers can be composed into more complex transducers.
+ * They do not need to allocate intermediate collections for
+ * storing intermediate results, and progressively produce the
+ * result as elements arrive.
  *
- * R complete(R);
- * R step(R, X);
+ * Standard transducers include Map, which is
+ * the process of applying a function to every element in a sequence,
+ * and Filter, which is the process of rejecting elements that
+ * don't satisfy a condition. But we can create a transducer
+ * for any sequence algorithm we like and combine them however
+ * we like.
  *
- * NOTE: R should not be const, it can actually be mutable.
+ * See also
+ * http://vitiy.info/cpp14-how-to-implement-transducers
+ * https://github.com/Ableton/atria
  *
  */
 
-// A Transducer is any class with a method
-//
-// template <typename S0>
-// S1 apply(S0);
-//
-// That takes a step function S0 as input and
-// returns a tweaked step function as output.
+/*
+ * A step represents a function that
+ * takes a result which is being accumulated and
+ * a new value that should be incorporated, and returns
+ * the accumulated value. It is fine to change the accumulated
+ * value.
+ *
+ * A stateful transducer may have to flush its state. That is
+ * what the flush function is for. If the transducer is stateless,
+ * no need to implement a custom flush, it can just take the flush
+ * function of the state it transforms.
+ */
+template <typename AccumulateType, typename InputType>
+struct Step {
+  typedef std::function<AccumulateType(AccumulateType, InputType)> StepFunction;
+  typedef std::function<AccumulateType(AccumulateType)> FlushFunction;
+  StepFunction step;
+  FlushFunction flush;
 
-/////////////////////////////// Some standard transducers
-template <typename Y, typename X>
+  static Step base(StepFunction step) {
+    return {step, [](AccumulateType x) {return x;}};
+  }
+};
+
+/*
+ * A mapping transducer will tweak a step function so that
+ * the value is mapped before the step is applied.
+ */
+template <typename F>
 class Map {
 public:
-  Map(const std::function<Y(X)>& f) : _f(f) {}
+  Map(const F& f) : _f(f) {}
 
-  template <typename S>
-  class Step : public TransducerStep<typename S::ResultType, X> {
-  public:
-    Step(const std::function<Y(X)>& f, S s) : _f(f), _s(s) {}
+  typedef FunctionResultType<F> Y;
+  typedef CleanTypeList<FunctionArgTypes<F>> ArgTypes;
+  typedef FirstType<ArgTypes> X;
+  static_assert(Arity<F>::value == 1, "");
 
-    typedef typename S::ResultType R;
-
-    R step(R r, X x) {
-      return _s.step(r, _f(x));
-    }
-
-    R complete(R r) {
-      return _s.complete(r);
-    }
-  private:
-    std::function<Y(X)> _f;
-    S _s;
-  };
-
-  template <typename S>
-  Step<S> apply(const S& s) {
-    return Step<S>(_f, s);
+  template <typename R>
+  Step<R, X> operator() (const Step<R, Y>& s) const {
+    auto f = _f;
+    return {
+      [f, s](R r, X x) {return s.step(r, f(x));},
+      s.flush, // no custom flushing.
+    };
   }
 private:
-  std::function<Y(X)> _f;
+  F _f;
+};
+template <typename F> Map<F> map(const F& f) {
+  return Map<F>(f);
 };
 
+/*
+ * A filtering transducer will tweak the step function so that
+ * it will only accept elements that satisfy a condition.
+ */
 template <typename F>
-Map<typename FunctionTraits<F>::output_type,
-  typename FunctionTraits<F>::input_type> map(
-      F f) {
-  return Map<typename FunctionTraits<F>::output_type,
-      typename FunctionTraits<F>::input_type>(f);
-}
-
-template <typename F>
-Map<typename FunctionTraits<F>::input_type,
-typename FunctionTraits<F>::input_type> visit(F f) {
-  typedef typename FunctionTraits<F>::input_type X;
-  return Map<X, X>(
-  [f](const X& x) {
-      f(x);
-    return x;
-  });
-}
-
-// Filter items
-template <typename X>
-class Filter {
+struct Filter {
 public:
-  Filter(const std::function<bool(X)> f) : _f(f) {}
+  Filter(const F& f) : _f(f) {}
 
-  template <typename S>
-  class Step : public TransducerStep<typename S::ResultType, X> {
-  public:
-    typedef typename S::ResultType R;
+  typedef CleanTypeList<FunctionArgTypes<F>> ArgTypes;
+  typedef FirstType<ArgTypes> X;
+  static_assert(std::is_same<FunctionResultType<F>, bool>::value, "");
+  static_assert(Arity<F>::value == 1, "");
 
-    Step(std::function<bool(X)> f, S s) : _f(f), _s(s) {}
-
-    R step(R r, X x) {
-      if (_f(x)) {
-        return _s.step(r, x);
-      } else {
-        return r;
-      }
-    }
-
-    R complete(R r) {
-      return _s.complete(r);
-    }
-  private:
-    std::function<bool(X)> _f;
-    S _s;
-  };
-
-  template <typename S>
-  Step<S> apply(const S& s) {
-    return Step<S>(_f, s);
+  template <typename R>
+  Step<R, X> operator() (const Step<R, X>& s) const {
+    auto f = _f;
+    return {
+      [f, s](R r, X x) {
+        return f(x)? s.step(r, x) : r;
+      },
+      s.flush // no custom flushing.
+    };
   }
 private:
-  std::function<bool(X)> _f;
+  F _f;
+};
+template <typename F> Filter<F> filter(const F& f) {
+  return Filter<F>(f);
 };
 
-template <typename F>
-Filter<typename FunctionTraits<F>::input_type> filter(F f) {
-  typedef FunctionTraits<F> T;
-  return Filter<typename T::input_type>(f);
-}
-
-// Concatentate collections
-template <typename Coll>
-class Cat {
+template <typename X, typename Y>
+class Compose2 {
 public:
-  typedef typename Coll::value_type X;
+  Compose2(X x, Y y) : _x(x), _y(y) {}
 
-  template <typename S>
-  class Step : public TransducerStep<typename S::ResultType, Coll> {
-  public:
-    Step(S s) : _s(s) {}
-
-    typedef typename S::ResultType R;
-
-    R complete(R r) {return _s.complete(r);}
-    R step(R r, Coll c) {
-      R dst = r;
-      for (auto x: c) {
-        dst = _s.step(dst, x);
-      }
-      return dst;
-    }
-  private:
-    S _s;
-  };
-
-  template <typename S>
-  Step<S> apply(S s) {return Step<S>(s);}
-};
-
-template <typename T>
-struct SpanWithCount {
-  T first, last;
-  int count = 0;
-  SpanWithCount(T f, T l, int c) : first(f), last(l), count(c) {}
-};
-
-// Group similar data
-template <typename T>
-class FindSpans {
-public:
-  typedef std::function<bool(T, T)> Same;
-
-  FindSpans(const Same& same) : _same(same) {}
-
-  template <typename S>
-  class Step : public TransducerStep<typename S::ResultType,
-    SpanWithCount<T>> {
-  public:
-    typedef typename S::ResultType R;
-
-    Step(S s, Same same) : _step(s), _same(same) {}
-
-    SpanWithCount<T> current() const {
-      return SpanWithCount<T>(_first, _last, _counter);
-    }
-
-    R complete(R r) {
-      return _step.complete(_hasData?
-        _step.step(r, current()) : r);
-    }
-
-    R step(R r, T x) {
-      if (_hasData) {
-        if (_same(_last, x)) {
-          _last = x;
-          _counter++;
-          return r;
-        } else {
-          auto result = _step.step(r, current());
-          reset(x);
-          return result;
-        }
-      } else {
-        _hasData = true;
-        reset(x);
-        return r;
-      }
-    }
-  private:
-    void reset(T x) {
-      _counter = 1;
-      _first = x;
-      _last = x;
-    }
-
-    int _counter = 0;
-    bool _hasData = false;
-    T _first, _last;
-    S _step;
-    Same _same;
-  };
-
-  template <typename S>
-  Step<S> apply(S s) {return Step<S>(s, _same);}
-private:
-  Same _same;
-};
-
-// Whenever the user-provided function returns true,
-// start a new bundle
-template <typename T>
-class Bundle {
-public:
-  typedef std::function<bool(T)> StartNewBundle;
-
-  Bundle(
-      const StartNewBundle& startNewBundle)
-    : _startNewBundle(startNewBundle) {}
-
-  template <typename S>
-  class Step : public TransducerStep<
-    typename S::ResultType, Array<S>> {
-  public:
-    typedef typename S::ResultType R;
-
-    Step(S s, const StartNewBundle& b) : _step(s), _b(b) {}
-
-    R complete(R r) {
-      return _step.complete(_current.empty()?
-          r : _step.step(r, _current.get()));
-    }
-
-    R step(R r, T x) {
-      if (_b(x)) {
-        auto data = _current.get();
-        _current = ArrayBuilder<T>();
-        _current.add(x);
-        return data.empty()? r : _step.step(r, data);
-      } else if (!_current.empty()) {
-        _current.add(x);
-        return r;
-      } else {
-        return r;
-      }
-    }
-  private:
-    S _step;
-    StartNewBundle _b;
-    ArrayBuilder<T> _current;
-  };
-
-  template <typename S>
-  Step<S> apply(S s) const {
-    return Step<S>(s, _startNewBundle);
+  template <typename T>
+  auto operator()(const T& x) -> decltype(_x(_y(x))) {
+    return _x(_y(x));
   }
-
 private:
-  StartNewBundle _startNewBundle;
+  X _x;
+  Y _y;
 };
 
 
-/////////////// Transducer composition
 
 // Composing two transducers results in a new transducer
 template <typename A, typename B>
@@ -337,16 +142,15 @@ public:
   ComposeTransducers2(const A& a, const B& b) : _a(a), _b(b) {}
 
   template <typename S>
-  auto apply(const S& b)
-    -> decltype(std::declval<A>().apply(
-        std::declval<B>().apply(b))) {
-    return _a.apply(_b.apply(b));
+  auto operator()(const S& b)
+    -> decltype(std::declval<A>()(
+        std::declval<B>()(b))) {
+    return _a(_b(b));
   }
 private:
   A _a;
   B _b;
 };
-
 
 // Used to compose many transducers into a pipeline.
 template <typename... T> class ComposeTransducers {};
@@ -360,9 +164,9 @@ public:
     : _inner(x, ComposeTransducers<Y...>(y...)) {}
 
   template <typename S>
-  auto apply(const S& s) -> decltype(
-      std::declval<Inner>().apply(std::declval<S>())) {
-    return _inner.apply(s);
+  auto operator() (const S& s) -> decltype(
+      std::declval<Inner>()(std::declval<S>())) {
+    return _inner(s);
   }
 private:
   Inner _inner;
@@ -380,27 +184,36 @@ ComposeTransducers<T...> composeTransducers(T... x) {
   return ComposeTransducers<T...>(x...);
 }
 
-////////////////////////// Reducing it
-template <typename Step, typename ResultType, typename Iter>
-ResultType reduce(Step s, ResultType init,
-    Iter begin, Iter end) {
-  ResultType result = init;
-  for (auto i = begin; i != end; i++) {
-    result = s.step(result, *i);
+// This reduces over a collection
+// (anything that exhibits iterators begin() and end() as in the STL)
+// using a step function, and flushes at the end.
+template <typename Dst, typename X, typename Coll>
+Dst reduce(Step<Dst, X> step, Dst init, const Coll& coll) {
+  Dst acc = init;
+  for (const X& x: coll) {
+    acc = step.step(acc, x);
   }
-  return s.complete(result);
+  return step.flush(acc);
 }
 
-template <typename Step, typename ResultType, typename Coll>
-ResultType reduce(Step s, ResultType init, const Coll& c) {
-  return reduce(s, init, c.begin(), c.end());
+/// Step function for adding something at the end of
+/// a collection. The accumulated type is the iterator,
+/// and not the collection itself.
+template <typename Iterator>
+Step<Iterator, typename IteratorInputType<Iterator>::type>
+  iteratorStep(Iterator i) {
+  typedef typename IteratorInputType<Iterator>::type X;
+  return Step<Iterator, X>::base(
+    [](Iterator i, X x) {*i = x; return ++i;}
+  );
 }
 
-template <typename Transducer, typename DstColl, typename SrcColl>
-void reduceIntoCollection(
-    Transducer t, DstColl* dst, const SrcColl& src) {
-  auto iter = std::inserter(*dst, dst->end());
-  reduce(t.apply(iteratorStep(iter)), iter, src);
+// This is a convenience function for reducing, when the accumulated
+// type is a collection.
+template <typename T, typename Dst, typename Src>
+void transduceIntoColl(T transducer, Dst* dst, const Src& src) {
+  auto i = std::inserter(*dst, dst->end());
+  reduce(transducer(iteratorStep(i)), i, src);
 }
 
 }
