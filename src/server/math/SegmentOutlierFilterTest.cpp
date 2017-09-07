@@ -120,7 +120,6 @@ TEST(SegmentOutlierFilterTest, Optimize) {
       EXPECT_TRUE(x);
     }
   }{
-    s.costThreshold = 10;
     auto mask = optimize<1>(points, s);
     EXPECT_EQ(mask.size(), 16);
     int counter = 0;
