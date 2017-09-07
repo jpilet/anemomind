@@ -78,10 +78,18 @@ private:
 
 bool notEqual(int a, int b) {return a != b;}
 
+bool sufficientlyLong(const std::vector<int>& x) {
+  return 2 <= x.size();
+}
+
 TEST(TransducerTest, TestFlush) {
-  std::vector<int> src{1, 1, 1, 1, 2, 2, 2, 3, 3, 3};
+  std::vector<int> src{1, 1, 1, 1, 9, 2, 2, 2, 3, 3, 3};
   std::vector<std::vector<int>> dst;
-  transduceIntoColl(MyBundler<int>(&notEqual), &dst, src);
+  transduceIntoColl(
+      composeTransducers(
+          MyBundler<int>(&notEqual),
+          Filter<std::function<bool(std::vector<int>)>>(
+              &sufficientlyLong)), &dst, src);
   EXPECT_EQ(dst.size(), 3);
   EXPECT_EQ(dst[0], (std::vector<int>{1, 1, 1, 1}));
   EXPECT_EQ(dst[1], (std::vector<int>{2, 2, 2}));

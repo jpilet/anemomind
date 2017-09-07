@@ -152,6 +152,12 @@ template <typename X, typename ... Y> struct TypeListOps<TypeList<X, Y...>> {
   typedef TypeList<Y...> rest;
 };
 
+template <typename X, typename Y> struct Cons {};
+template <typename X, typename ... T>
+struct Cons<X, TypeList<T...>> {
+  typedef TypeList<X, T...> type;
+};
+
 template <typename T>
 using FirstType = typename TypeListOps<T>::first;
 
@@ -177,6 +183,40 @@ template <typename F>
 struct Arity {
   static const int value = TypeListSummary<FunctionArgTypes<F>>::size;
 };
+
+template <typename F, typename T>
+struct MapTypes {};
+
+template <typename F, typename X>
+struct TypeMapper {};
+
+template <typename OpKey, typename X, typename ... Y>
+struct MapTypes<OpKey, TypeList<X, Y...>> {
+  typedef typename Cons<
+      typename TypeMapper<OpKey, X>::type,
+      typename MapTypes<OpKey, TypeList<Y...>>::type>::type type;
+};
+
+template <typename F>
+struct MapTypes<F, TypeList<>> {
+  typedef TypeList<> type;
+};
+
+struct CleanTypeOpKey {};
+template <typename X>
+struct TypeMapper<CleanTypeOpKey, X> {
+  typedef typename std::remove_const<
+      typename std::remove_reference<X>::type>::type type;
+};
+
+template <typename ... T>
+using CleanTypeList = typename MapTypes<
+    CleanTypeOpKey, TypeList<T...>>::type;
+
+template <typename T> struct The_value_is;
+
+template <typename T>
+using Disp = The_value_is<T>;
 
 }
 
