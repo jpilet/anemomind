@@ -5,6 +5,7 @@
  *      Author: jonas
  */
 
+#include <server/nautical/tiles/MongoUtils.h>
 #include "TimeSets.h"
 #include <server/common/logging.h>
 #include <server/common/ArrayBuilder.h>
@@ -82,6 +83,12 @@ void queryToMongo(
     bsonAppend(&begin, "$lte", q.upper);
   }
 }
+
+std::string TimeSetTypes::ignoreButVisualize = "ignore_but_display";
+std::string TimeSetTypes::ignoreCompletely = "ignore_completely";
+std::string TimeSetTypes::merge = "merge";
+std::string TimeSetTypes::split = "split";
+
 
 bool removeTimeSets(
     const std::shared_ptr<mongoc_database_t>& db,

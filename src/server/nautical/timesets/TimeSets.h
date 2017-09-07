@@ -8,8 +8,10 @@
 #ifndef SERVER_NAUTICAL_TIMESETS_TIMESETS_H_
 #define SERVER_NAUTICAL_TIMESETS_TIMESETS_H_
 
-#include <server/nautical/tiles/MongoUtils.h>
 #include <server/common/Span.h>
+#include <server/common/TimeStamp.h>
+#include <server/nautical/tiles/MongoUtils.h>
+
 
 namespace sail {
 
@@ -29,11 +31,25 @@ struct TimeSetsQuery {
   // The TimeStamps can be undefined.
   TimeStamp lower;
   TimeStamp upper;
+
+  // TODO: Time of insertion, so that we can replay the operations
+  // in order.
 };
 
 struct TimeSetInterval {
   std::string type;
   Span<TimeStamp> span;
+
+  // TODO: std::string data;
+};
+
+// This is a list of the different time sets type that
+// we support.
+struct TimeSetTypes {
+  static std::string ignoreButVisualize;
+  static std::string ignoreCompletely;
+  static std::string merge;
+  static std::string split;
 };
 
 bool removeTimeSets(

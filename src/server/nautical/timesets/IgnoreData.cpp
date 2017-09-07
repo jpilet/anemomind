@@ -1,0 +1,85 @@
+/*
+ * IgnoreData.cpp
+ *
+ *  Created on: 7 Sep 2017
+ *      Author: jonas
+ */
+
+#include "IgnoreData.h"
+#include <server/common/TimeStamp.h>
+#include <device/anemobox/TransduceDispatcher.h>
+#include <device/anemobox/DispatcherUtils.h>
+
+namespace sail {
+
+bool coveredByInterval(
+    int* lastPos, TimeStamp t,
+    const std::vector<TimeSetInterval>& intervals) {
+  if (intervals.empty()) {
+    return false;
+  } else {
+    while (*lastPos < intervals.size()-1
+        && intervals[*lastPos].span.maxv() < t) {
+      (*lastPos)++;
+    }
+    while (*lastPos > 0 && t < intervals[*lastPos].span.minv()) {
+      (*lastPos)--;
+    }
+    return intervals[*lastPos].span.contains(t);
+  }
+}
+
+struct IgnoreTransducer {
+  std::vector<TimeSetInterval> intervals;
+
+  template <typename Acc, typename T>
+  Step<Acc, TimedValue<T>> operator()(
+      const Step<Acc, TimedValue<T>>& s) const {
+    auto at = std::make_shared<int>(0);
+    auto ivals = intervals;
+
+    // Construct an inner helper transducer based on T.
+    return filter([ivals, at](const TimedValue<T>& x) {
+      return !coveredByInterval(at.get(), x.time, ivals);
+    })(s);
+  }
+};
+
+std::function<
+  std::shared_ptr<DispatchData>(std::shared_ptr<DispatchData>)>
+    ignoreDispatchData(
+        const Array<TimeSetInterval>& allIntervals,
+        const std::set<std::string>& typesOfInterest) {
+
+  IgnoreTransducer t;
+
+  // Only keep the intervals that we are interested in
+  transduceIntoColl(
+      filter([&typesOfInterest](const TimeSetInterval& t) {
+        return 0 < typesOfInterest.count(t.type);
+      }),
+      &(t.intervals),
+      allIntervals);
+
+  return [t](const std::shared_ptr<DispatchData>& src) {
+    return transduceDispatchData<IgnoreTransducer>(nullptr, src, t);
+  };
+}
+
+std::shared_ptr<Dispatcher> ignoreData(
+    const std::shared_ptr<Dispatcher>& src,
+    const Array<TimeSetInterval>& allIntervals,
+    const std::set<std::string>& types) {
+
+  if (types.empty()) {
+    return src;
+  }
+
+  auto ignore = ignoreDispatchData(allIntervals, types);
+  return cloneAndfilterDispatcher(
+      src.get(),
+      [](DataCode c, std::string) {return true;},
+      ignore);
+}
+
+} /* namespace sail */
