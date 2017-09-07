@@ -148,6 +148,17 @@ using RestTypes = typename TypeListOps<T>::rest;
 template <typename T>
 using SecondType = FirstType<RestTypes<T>>;
 
+template <typename T> struct TypeListSummary {};
+
+template <typename X, typename ... Y>
+struct TypeListSummary<TypeList<X, Y...>> {
+  static const int size = 1 + TypeListSummary<TypeList<Y...>>::size;
+};
+
+template <>
+struct TypeListSummary<TypeList<>> {
+  static const int size = 0;
+};
 
 }
 
