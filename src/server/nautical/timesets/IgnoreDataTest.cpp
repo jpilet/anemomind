@@ -102,6 +102,8 @@ TEST(IgnoreDataTest, TestWithDispatcher) {
       src0.get(),
       {{WAT_SPEED, {{"k", makeTestDispatchData()}}}});
 
+  auto dst = ignoreData(src, getIntervals(), getToIgnore());
+  checkDispatchData(dst->dispatchDataForSource(WAT_SPEED, "k"));
 }
 
 
