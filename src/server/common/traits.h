@@ -8,6 +8,8 @@
 #ifndef SERVER_COMMON_TRAITS_H_
 #define SERVER_COMMON_TRAITS_H_
 
+#include <functional>
+
 namespace sail {
 
 // To make a reference into a value.
@@ -106,6 +108,46 @@ struct IsStringMap {
   static const bool value = IsMap<T>::value
       && std::is_same<std::string, KeyTypeOf<T>>::value;
 };
+
+
+template <typename ... T> struct TypeList {};
+
+template <typename T>
+struct FunctionTraits {};
+
+template <typename Y, typename ... T>
+struct FunctionTraits<std::function<Y(T...)>> {
+  typedef Y result_type;
+  typedef TypeList<T...> arg_types;
+};
+
+template <typename F>
+using FunctionResultType = typename FunctionTraits<F>::result_type;
+
+template <typename F>
+using FunctionArgTypes = typename FunctionTraits<F>::arg_types;
+
+template <typename Y, typename ... T>
+struct FunctionTraits<Y(*)(T...)> {
+  typedef Y result_type;
+  typedef TypeList<T...> arg_types;
+};
+
+template <typename T> struct TypeListOps;
+template <typename X, typename ... Y> struct TypeListOps<TypeList<X, Y...>> {
+  typedef X first;
+  typedef TypeList<Y...> rest;
+};
+
+template <typename T>
+using FirstType = typename TypeListOps<T>::first;
+
+template <typename T>
+using RestTypes = typename TypeListOps<T>::rest;
+
+template <typename T>
+using SecondType = FirstType<RestTypes<T>>;
+
 
 }
 
