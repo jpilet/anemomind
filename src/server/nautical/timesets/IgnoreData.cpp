@@ -8,6 +8,7 @@
 #include "IgnoreData.h"
 #include <server/common/TimeStamp.h>
 #include <device/anemobox/TransduceDispatcher.h>
+#include <device/anemobox/DispatcherUtils.h>
 
 namespace sail {
 
@@ -63,6 +64,22 @@ std::function<
   return [t](const std::shared_ptr<DispatchData>& src) {
     return transduceDispatchData<IgnoreTransducer>(nullptr, src, t);
   };
+}
+
+std::shared_ptr<Dispatcher> ignoreData(
+    const std::shared_ptr<Dispatcher>& src,
+    const Array<TimeSetInterval>& allIntervals,
+    const std::set<std::string>& types) {
+
+  if (types.empty()) {
+    return src;
+  }
+
+  auto ignore = ignoreDispatchData(allIntervals, types);
+  return cloneAndfilterDispatcher(
+      src.get(),
+      [](DataCode c, std::string) {return true;},
+      ignore);
 }
 
 } /* namespace sail */

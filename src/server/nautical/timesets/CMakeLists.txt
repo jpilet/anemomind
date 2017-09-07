@@ -25,6 +25,7 @@ target_depends_on_mongoc(timesets_IgnoreData)
 target_link_libraries(timesets_IgnoreData
   timesets_TimeSets
   anemobox_Dispatcher
+  anemobox_DispatcherUtils
   )
 
 cxx_test(timesets_IgnoreDataTest

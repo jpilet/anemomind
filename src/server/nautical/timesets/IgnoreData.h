@@ -19,6 +19,11 @@ std::function<
         const Array<TimeSetInterval>& x,
         const std::set<std::string>& typesOfInterest);
 
+std::shared_ptr<Dispatcher> ignoreData(
+    const std::shared_ptr<Dispatcher>& src,
+    const Array<TimeSetInterval>& allIntervals,
+    const std::set<std::string>& types);
+
 } /* namespace sail */
 
 #endif /* SERVER_NAUTICAL_TIMESETS_IGNOREDATA_H_ */
