@@ -110,6 +110,19 @@ struct IsStringMap {
 };
 
 
+template <typename Iterator, typename = void>
+struct IteratorInputType {
+  typedef typename std::iterator_traits<Iterator>::value_type type;
+};
+
+template <typename Iterator>
+struct IteratorInputType<
+  Iterator, typename void_<
+    typename Iterator::container_type>::type> {
+  typedef typename Iterator::container_type C;
+  typedef typename C::value_type type;
+};
+
 template <typename ... T> struct TypeList {};
 
 template <typename T>

@@ -8,8 +8,8 @@
 #ifndef SERVER_COMMON_TRANSDUCER_H_
 #define SERVER_COMMON_TRANSDUCER_H_
 
-#include <server/common/traits.h>
 #include <iterator>
+#include <server/common/traits.h>
 
 namespace sail {
 
@@ -38,7 +38,7 @@ struct Step {
   StepFunction step;
   FlushFunction flush;
 
-  Step base(StepFunction step) {
+  static Step base(StepFunction step) {
     return {step, [](AccumulateType x) {return x;}};
   }
 };
@@ -103,6 +103,26 @@ template <typename F> Filter<F> filter(const F& f) {
   return Filter<F>(f);
 };
 
+template <typename X, typename Y>
+class Compose2 {
+public:
+  Compose2(X x, Y y) : _x(x), _y(y) {}
+
+  template <typename T>
+  auto operator()(const T& x) -> decltype(_x(_y(x))) {
+    return _x(_y(x));
+  }
+private:
+  X _x;
+  Y _y;
+};
+
+template <typename ... T>
+struct Compose {};
+
+template <typename X, typename ... Y>
+struct Compose {};
+
 ///
 template <typename Dst, typename X, typename Coll>
 Dst reduce(Step<Dst, X> step, Dst init, const Coll& coll) {
@@ -115,14 +135,19 @@ Dst reduce(Step<Dst, X> step, Dst init, const Coll& coll) {
 
 /// Standard step functions
 template <typename Iterator>
-Step<Iterator, typename std::iterator_traits<Iterator>::value_type>
+Step<Iterator, typename IteratorInputType<Iterator>::type>
   iteratorStep(Iterator i) {
-  typedef typename std::iterator_traits<Iterator>::value_type X;
+  typedef typename IteratorInputType<Iterator>::type X;
   return Step<Iterator, X>::base(
     [](Iterator i, X x) {*i = x; return ++i;}
   );
 }
 
+template <typename T, typename Dst, typename Src>
+void transduceIntoColl(T transducer, Dst* dst, const Src& src) {
+  auto i = std::inserter(*dst, dst->end());
+  reduce(transducer(iteratorStep(i)), i, src);
+}
 
 }
 
