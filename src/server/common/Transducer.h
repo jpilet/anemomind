@@ -14,9 +14,13 @@
 namespace sail {
 
 /*
- * Transducers can be used to express and compose transformations of
- * data sequences irrespective how those sequences are represented,
- * which means they can be used in many different contexts.
+ * Transducers can be used to express transformations of data
+ * sequences irrespective how those sequences are represented,
+ * which make them reusable in a wide range of contexts.
+ * Transducers can be composed into more complex transducers.
+ * They do not need to allocate intermediate collections for
+ * storing intermediate results, and progressively produce the
+ * result as elements arrive.
  */
 
 /*
