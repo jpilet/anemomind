@@ -28,19 +28,6 @@ bool coveredByInterval(
   }
 }
 
-struct IgnoreFactory {
-  std::vector<Span<TimeStamp>> intervals;
-
-  template <DataCode code, typename T>
-  Filter<std::function<bool(TimedValue<T>)>> make() const {
-    auto at = std::make_shared<int>(0);
-    auto ivals = intervals;
-    return Filter<std::function<bool(TimedValue<T>)>>(
-        [at, ivals](const TimedValue<T>& v) {
-      return !coveredByInterval(at.get(), v.time, ivals);
-    });
-  }
-};
 
 std::function<bool(TimeSetInterval)> timeSetIntervalOfType(
     const std::set<std::string>& types) {
@@ -53,20 +40,41 @@ Span<TimeStamp> getTimeSpan(const TimeSetInterval& x) {
   return x.span;
 }
 
+struct IgnoreTransducer {
+  std::vector<Span<TimeStamp>> intervals;
+
+  template <typename Acc, typename T>
+  Step<Acc, TimedValue<T>> operator()(
+      const Step<Acc, TimedValue<T>>& s) const {
+    auto at = std::make_shared<int>(0);
+    auto ivals = intervals;
+    auto T = filter([ivals, at](const TimedValue<T>& x) {
+      return !coveredByInterval(at.get(), x.time, ivals);
+    });
+    return {
+      [ivals, at, s](const Acc& a, const TimedValue<T>& x) {
+        return ?
+            a : s.step(a, x);
+      }, s.flush
+    };
+  }
+};
+
 std::function<
   std::shared_ptr<DispatchData>(std::shared_ptr<DispatchData>)>
     ignoreDispatchData(
         Clock* clk,
         const Array<TimeSetInterval>& allIntervals,
         const std::set<std::string>& typesOfInterest) {
-  IgnoreFactory f;
   auto T = composeTransducers(
             filter(timeSetIntervalOfType(typesOfInterest)),
             map(&getTimeSpan));
+  IgnoreTransducer t;
   transduceIntoColl(
-      T, &(f.intervals), allIntervals);
-  return [clk, f](const std::shared_ptr<DispatchData>& src) {
-    return transduceDispatchData<IgnoreFactory>(clk, src, f);
+      T, &(t.intervals), allIntervals);
+
+  return [clk, t](const std::shared_ptr<DispatchData>& src) {
+    return transduceDispatchData<IgnoreTransducer>(clk, src, t);
   };
 }
 

@@ -13,14 +13,14 @@
 
 namespace sail {
 
-  template <typename TransducerFactory>
+  template <typename Transducer>
   struct DispatchDataTransducerVisitor {
     DispatchDataTransducerVisitor(
         Clock* clk,
-        const TransducerFactory& x) : clock(clk), tf(x) {}
+        const Transducer& x) : clock(clk), transducer(x) {}
 
     Clock* clock;
-    const TransducerFactory& tf;
+    const Transducer& transducer;
     std::shared_ptr<DispatchData> result;
 
     template <DataCode code, typename T>
@@ -28,7 +28,6 @@ namespace sail {
       auto r = std::make_shared<TypedDispatchDataReal<T>>(
           data->dataCode(), data->source(), clock, 0);
       typename TimedSampleCollection<T>::TimedVector dst;
-      auto transducer = tf.template make<code, T>();
       transduceIntoColl(transducer, &dst,
           data->dispatcher()->values());
       r->dispatcher()->insert(dst);
@@ -36,12 +35,12 @@ namespace sail {
     }
   };
 
-  template <typename TransducerFactory>
+  template <typename Transducer>
   std::shared_ptr<DispatchData> transduceDispatchData(
       Clock* clk,
       const std::shared_ptr<DispatchData>& src,
-      const TransducerFactory& tf) {
-    DispatchDataTransducerVisitor<TransducerFactory> v(clk, tf);
+      const Transducer& transducer) {
+    DispatchDataTransducerVisitor<Transducer> v(clk, transducer);
     src->template visitX(&v);
     return v.result;
   }

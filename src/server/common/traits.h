@@ -224,7 +224,7 @@ template <typename T> struct The_value_is;
 template <typename T>
 using Disp = The_value_is<T>;
 
-#define AUTO_EXPR(expr) -> decltype(expr) {return expr;}
+//#define AUTO_BODY(arglist, body) -> decltype(([](arglist) body )()) body
 
 }
 
