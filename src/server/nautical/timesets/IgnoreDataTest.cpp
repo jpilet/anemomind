@@ -6,6 +6,7 @@
  */
 
 #include <server/nautical/timesets/IgnoreData.h>
+#include <device/anemobox/DispatcherUtils.h>
 #include <gtest/gtest.h>
 
 using namespace sail;
@@ -85,13 +86,21 @@ void checkDispatchData(const std::shared_ptr<DispatchData>& dst) {
 }
 
 TEST(IgnoreDataTest, TestIt) {
-
   auto ignore = ignoreDispatchData(getIntervals(), getToIgnore());
   auto src = makeTestDispatchData();
-
   auto dst = ignore(std::static_pointer_cast<DispatchData>(src));
-
   checkDispatchData(dst);
+}
+
+TEST(IgnoreDataTest, TestWithDispatcher) {
+
+  auto src0 = std::make_shared<Dispatcher>();
+
+  // Not sure to create a Dispatcher that contains one
+  // DispatchData.
+  auto src = mergeDispatcherWithDispatchDataMap(
+      src0.get(),
+      {{WAT_SPEED, {{"k", makeTestDispatchData()}}}});
 
 }
 
