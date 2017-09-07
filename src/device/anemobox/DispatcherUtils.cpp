@@ -515,9 +515,7 @@ std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
       }
     }
   }
-
   copyPriorities(srcDispatcher, dst.get());
-
   return dst;
 }
 
