@@ -13,35 +13,23 @@ namespace sail {
 
 bool coveredByInterval(
     int* lastPos, TimeStamp t,
-    const std::vector<Span<TimeStamp>>& intervals) {
+    const std::vector<TimeSetInterval>& intervals) {
   if (intervals.empty()) {
     return false;
   } else {
     while (*lastPos < intervals.size()-1
-        && t < intervals[*lastPos].minv()) {
+        && t < intervals[*lastPos].span.minv()) {
       (*lastPos)++;
     }
-    while (*lastPos > 0 && intervals[*lastPos].maxv() < t) {
+    while (*lastPos > 0 && intervals[*lastPos].span.maxv() < t) {
       (*lastPos)--;
     }
-    return intervals[*lastPos].contains(t);
+    return intervals[*lastPos].span.contains(t);
   }
 }
 
-
-std::function<bool(TimeSetInterval)> timeSetIntervalOfType(
-    const std::set<std::string>& types) {
-  return [types](const TimeSetInterval& v) {
-    return 0 < types.count(v.type);
-  };
-}
-
-Span<TimeStamp> getTimeSpan(const TimeSetInterval& x) {
-  return x.span;
-}
-
 struct IgnoreTransducer {
-  std::vector<Span<TimeStamp>> intervals;
+  std::vector<TimeSetInterval> intervals;
 
   template <typename Acc, typename T>
   Step<Acc, TimedValue<T>> operator()(
@@ -58,18 +46,21 @@ struct IgnoreTransducer {
 std::function<
   std::shared_ptr<DispatchData>(std::shared_ptr<DispatchData>)>
     ignoreDispatchData(
-        Clock* clk,
         const Array<TimeSetInterval>& allIntervals,
         const std::set<std::string>& typesOfInterest) {
-  auto T = composeTransducers(
-            filter(timeSetIntervalOfType(typesOfInterest)),
-            map(&getTimeSpan));
-  IgnoreTransducer t;
-  transduceIntoColl(
-      T, &(t.intervals), allIntervals);
 
-  return [clk, t](const std::shared_ptr<DispatchData>& src) {
-    return transduceDispatchData<IgnoreTransducer>(clk, src, t);
+  IgnoreTransducer t;
+
+  // Only keep the intervals that we are interested in
+  transduceIntoColl(
+      filter([&typesOfInterest](const TimeSetInterval& t) {
+        return 0 < typesOfInterest.count(t.type);
+      }),
+      &(t.intervals),
+      allIntervals);
+
+  return [t](const std::shared_ptr<DispatchData>& src) {
+    return transduceDispatchData<IgnoreTransducer>(nullptr, src, t);
   };
 }
 

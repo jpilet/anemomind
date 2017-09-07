@@ -16,7 +16,6 @@ namespace sail {
 std::function<
   std::shared_ptr<DispatchData>(std::shared_ptr<DispatchData>)>
     ignoreDispatchData(
-        Clock* clk,
         const Array<TimeSetInterval>& x,
         const std::set<std::string>& typesOfInterest);
 
