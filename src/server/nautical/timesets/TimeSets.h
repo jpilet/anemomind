@@ -10,8 +10,8 @@
 
 #include <server/common/Span.h>
 #include <server/common/TimeStamp.h>
+#include <server/nautical/tiles/MongoUtils.h>
 
-typedef struct _mongoc_database_t mongoc_database_t;
 
 namespace sail {
 
@@ -41,25 +41,16 @@ struct TimeSetsQuery {
 struct TimeSetInterval {
   std::string type;
   Span<TimeStamp> span;
+  std::string data;
 };
 
 // This is a list of the different time sets type that
 // we support.
 struct TimeSetTypes {
-  // The data should not be used for statistics, but
-  // can still be visualized.
-  static constexpr char
-    ignoreButVisualize[] = "ignore_but_visualize";
-
-  // The data should be completely ignored, and not even displayed.
-  static constexpr char
-    ignoreCompletely[] = "ignore_completely";
-
-  // The data should be merged.
-  static constexpr char merge[] = "merge";
-
-  // The data should be split into two sessions
-  static constexpr char split[] = "split";
+  static std::string ignoreButVisualize;
+  static std::string ignoreCompletely;
+  static std::string merge;
+  static std::string split;
 };
 
 bool removeTimeSets(

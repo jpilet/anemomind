@@ -36,10 +36,11 @@ struct IgnoreTransducer {
       const Step<Acc, TimedValue<T>>& s) const {
     auto at = std::make_shared<int>(0);
     auto ivals = intervals;
-    auto t = filter([ivals, at](const TimedValue<T>& x) {
+
+    // Construct an inner helper transducer based on T.
+    return filter([ivals, at](const TimedValue<T>& x) {
       return !coveredByInterval(at.get(), x.time, ivals);
-    });
-    return t(s);
+    })(s);
   }
 };
 

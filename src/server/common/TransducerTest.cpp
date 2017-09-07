@@ -47,6 +47,8 @@ TEST(TransducerTest, ComposeTest) {
   EXPECT_EQ(dst[2], 10);
 }
 
+// Example of a custom stateful transducer with a
+// non-trivial flush function.
 template <typename T>
 class MyBundler {
 public:
@@ -67,7 +69,7 @@ public:
           return result;
         }
       },
-      [current, s](Acc a) {
+      [current, s](Acc a) { // If there is something in current, flush it
         return s.flush(current->empty()? a : s.step(a, *current));
       }
     };

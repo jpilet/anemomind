@@ -84,6 +84,12 @@ void queryToMongo(
   }
 }
 
+std::string TimeSetTypes::ignoreButVisualize = "ignore_but_display";
+std::string TimeSetTypes::ignoreCompletely = "ignore_completely";
+std::string TimeSetTypes::merge = "merge";
+std::string TimeSetTypes::split = "split";
+
+
 bool removeTimeSets(
     const std::shared_ptr<mongoc_database_t>& db,
     const TimeSetsQuery& q) {

@@ -29,6 +29,10 @@ namespace sail {
  * for any sequence algorithm we like and combine them however
  * we like.
  *
+ * See also
+ * http://vitiy.info/cpp14-how-to-implement-transducers
+ * https://github.com/Ableton/atria
+ *
  */
 
 /*
