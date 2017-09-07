@@ -86,7 +86,7 @@ Array<QuadSegment<N>> concatenatePairs(
   std::uniform_int_distribution<int> distrib(0, n-1);
   int index = distrib(rng);
   auto iter = arr.begin();
-  auto step = T.apply(iteratorStep(iter));
+  auto step = T(iteratorStep(iter));
   bool odd = n % 2 == 1;
   for (int i = 0; i < outCount; i++) {
     iter = step.step(iter, odd && i == index? 1 : 2);

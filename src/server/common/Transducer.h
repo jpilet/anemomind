@@ -119,6 +119,46 @@ template <typename F> Filter<F> filter(const F& f) {
   return Filter<F>(f);
 };
 
+template <typename Coll>
+struct Cat {
+  typedef typename Coll::value_type X;
+
+  template <typename R>
+  Step<R, X> operator()(const Step<R, Coll>& s) const {
+    return {
+      [s](const R& r, const Coll& c) {
+        auto y = r;
+        for (const auto& x: c) {
+          y = s.step(y, x);
+        }
+        return y;
+      }, s.flush
+    };
+  }
+};
+
+template <typename F>
+class Visit {
+public:
+  typedef CleanTypeList<FunctionArgTypes<F>> ArgTypes;
+  typedef FirstType<ArgTypes> X;
+
+  Visit(F f) : _f(f) {}
+
+  template <typename R>
+  Step<R, X> operator()(const Step<R, X>& s) const {
+    auto f = _f;
+    return {
+      [s, f](R r, X x) {
+        f(x); return s.step(r, x);
+      }, s.flush
+    };
+  }
+private:
+  F _f;
+};
+template <typename F> Visit<F> visit(F f) {return Visit<F>(f);}
+
 template <typename X, typename Y>
 class Compose2 {
 public:

@@ -173,15 +173,14 @@ std::vector<LogFileInfo> listLogFiles(
     LOG(INFO) << "PRE-parsing log file " << filename;
   });
   auto T = composeTransducers(
-      Map<Poco::Path, std::string>(&toPath),
-      Map<Array<std::string>, Poco::Path>(&listFilesToLoad),
+      map(&toPath),
+      map(&listFilesToLoad),
       Cat<Array<std::string>>(),
       visit(showProgress),
-      Map<LogFileInfo, std::string>(&analyzeLogFileData),
-      Filter<LogFileInfo>(&hasLogFileData));
+      map(&analyzeLogFileData),
+      filter(&hasLogFileData));
   std::vector<LogFileInfo> result;
-  auto init = std::inserter(result, result.end());
-  reduce(T.apply(iteratorStep(init)), init, searchPaths);
+  transduceIntoColl(T, &result, searchPaths);
   std::sort(result.begin(), result.end(),
       [](LogFileInfo a, LogFileInfo b) {
     return a.medianTime < b.medianTime;
