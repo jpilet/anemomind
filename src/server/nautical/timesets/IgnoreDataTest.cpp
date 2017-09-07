@@ -60,14 +60,7 @@ std::shared_ptr<DispatchData> makeTestDispatchData() {
   return src;
 }
 
-
-
-TEST(IgnoreDataTest, TestIt) {
-
-  auto ignore = ignoreDispatchData(getIntervals(), getToIgnore());
-  auto src = makeTestDispatchData();
-
-  auto dst = ignore(std::static_pointer_cast<DispatchData>(src));
+void checkDispatchData(const std::shared_ptr<DispatchData>& dst) {
   EXPECT_TRUE(bool(dst));
   std::cout << "Code: " << descriptionForCode(dst->dataCode()) << "\n";
   auto typedDst = std::dynamic_pointer_cast<
@@ -89,6 +82,16 @@ TEST(IgnoreDataTest, TestIt) {
   EXPECT_TRUE(hasValueNear(samples, 6.0));
   EXPECT_FALSE(hasValueNear(samples, 2.0));
   EXPECT_FALSE(hasValueNear(samples, 9.0));
+}
+
+TEST(IgnoreDataTest, TestIt) {
+
+  auto ignore = ignoreDispatchData(getIntervals(), getToIgnore());
+  auto src = makeTestDispatchData();
+
+  auto dst = ignore(std::static_pointer_cast<DispatchData>(src));
+
+  checkDispatchData(dst);
 
 }
 
