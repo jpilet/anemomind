@@ -26,18 +26,22 @@ bool hasValueNear(
   return false;
 }
 
-TEST(IgnoreDataTest, TestIt) {
-  TimeSetInterval ivl;
 
-  typedef TimeSetTypes TST;
+typedef TimeSetTypes TST;
 
-  Array<TimeSetInterval> intervals{
+Array<TimeSetInterval> getIntervals() {
+  return {
     {TST::ignoreButVisualize, Span<TimeStamp>(t(1), t(4))},
     {TST::merge, Span<TimeStamp>(t(5), t(7.9))},
     {TST::ignoreCompletely, Span<TimeStamp>(t(8), t(12))},
   };
+}
 
-  auto ignore = ignoreDispatchData(intervals, {
+
+TEST(IgnoreDataTest, TestIt) {
+
+
+  auto ignore = ignoreDispatchData(getIntervals(), {
       TST::ignoreButVisualize,
       TST::ignoreCompletely
   });
