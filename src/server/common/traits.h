@@ -125,6 +125,8 @@ struct IteratorInputType<
 
 template <typename ... T> struct TypeList {};
 
+// TODO: Support lambda functions, see
+// https://stackoverflow.com/a/7943765
 template <typename T>
 struct FunctionTraits {};
 

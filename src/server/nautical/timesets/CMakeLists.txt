@@ -11,3 +11,19 @@ cxx_test(timesets_TimeSetsTest
   tiles_MongoUtils
   )
 target_depends_on_mongoc(timesets_TimeSetsTest)  
+
+add_library(timesets_IgnoreData
+  IgnoreData.h
+  IgnoreData.cpp
+  )  
+
+target_link_libraries(timesets_IgnoreData
+  timesets_TimeSets
+  )
+
+cxx_test(timesets_IgnoreDataTest
+  IgnoreDataTest.cpp
+  timesets_IngoreData
+  gtest_main
+  )
+  
