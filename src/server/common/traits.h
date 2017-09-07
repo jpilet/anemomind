@@ -160,6 +160,11 @@ struct TypeListSummary<TypeList<>> {
   static const int size = 0;
 };
 
+template <typename F>
+struct Arity {
+  static const int value = TypeListSummary<FunctionArgTypes<F>>::size;
+};
+
 }
 
 
