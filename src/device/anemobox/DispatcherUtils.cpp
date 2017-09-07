@@ -502,14 +502,16 @@ std::shared_ptr<Dispatcher> mergeDispatcherWithDispatchDataMap(
 
 std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
     Dispatcher *srcDispatcher,
-    std::function<bool(DataCode, const std::string&)> filter) {
+    std::function<bool(DataCode, const std::string&)> filter,
+    std::function<std::shared_ptr<DispatchData>(
+            std::shared_ptr<DispatchData>)> op) {
 
   std::shared_ptr<Dispatcher> dst = std::make_shared<Dispatcher>();
   for (const auto &codeAndSources: srcDispatcher->allSources()) {
     auto code = codeAndSources.first;
     for (const auto &sourceAndData: codeAndSources.second) {
       if (filter(code, sourceAndData.first)) {
-        dst->set(code, sourceAndData.first, sourceAndData.second);
+        dst->set(code, sourceAndData.first, op(sourceAndData.second));
       }
     }
   }

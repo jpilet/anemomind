@@ -150,9 +150,14 @@ void copyPriorities(const Dispatcher *src, Dispatcher *dst);
 typedef std::function<void(const std::shared_ptr<Dispatcher> &,
         DataCode, const std::string &)> ReplayVisitor;
 
+inline std::shared_ptr<DispatchData> identityDispatchData(
+    const std::shared_ptr<DispatchData>& x) {return x;}
+
 std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
     Dispatcher *srcDispatcher,
-    std::function<bool(DataCode, const std::string&)> filter);
+    std::function<bool(DataCode, const std::string&)> filter,
+    std::function<std::shared_ptr<DispatchData>(
+            std::shared_ptr<DispatchData>)> op = &identityDispatchData);
 
 
 void exportDispatcherToTextFiles(const std::string &filenamePrefix,
