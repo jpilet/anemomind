@@ -305,7 +305,7 @@ PrefilteredSession prefilterSession(
       map(&toTimedGpsPos));
 
   std::vector<TimedValue<GeographicPosition<double>>> positions;
-  reduceIntoCollection(T0, &positions, v);
+  transduceIntoColl(T0, &positions, v);
 
   int n = positions.size();
   if (n == 0) {
@@ -319,7 +319,7 @@ PrefilteredSession prefilterSession(
   std::vector<sof::Pair<3>> normalizedEcefData;
   normalizedEcefData.reserve(n);
   auto T1 = map(toTimedEcef(offset));
-  reduceIntoCollection(T1, &normalizedEcefData, positions);
+  transduceIntoColl(T1, &normalizedEcefData, positions);
 
   auto mask = sof::optimize<3>(
       Array<sof::Pair<3>>::referToVector(normalizedEcefData),
@@ -331,7 +331,7 @@ PrefilteredSession prefilterSession(
 
   {
     int at = 0;
-    reduceIntoCollection(
+    transduceIntoColl(
         filter(std::function<bool(TimedValue<GeographicPosition<double>>)>([&](const TimedValue<GeographicPosition<double>>& p) ->bool {
       return mask[at++];
     })), &inlierPositions, positions);
@@ -374,7 +374,7 @@ std::vector<Span<TimeStamp>> presegmentData(
       map(prefilterSession(settings)));
 
   std::vector<PrefilteredSession> result;
-  reduceIntoCollection(T, &result, logFiles);
+  reduceIntoColl(T, &result, logFiles);
   LOG(INFO) << "Number of sessions: " << result.size();
   return std::vector<Span<TimeStamp>>();
 }

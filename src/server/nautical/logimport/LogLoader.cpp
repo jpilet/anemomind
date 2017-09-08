@@ -175,21 +175,21 @@ std::vector<LogFileInfo> listLogFiles(
   auto T = composeTransducers(
       map(&toPath),
       map(&listFilesToLoad),
-      Cat<Array<std::string>>()/*,
+      Cat<Array<std::string>>(),
       visit(showProgress),
       map(&analyzeLogFileData),
-      filter(&hasLogFileData)*/);
+      filter(&hasLogFileData));
 
   //std::vector<Array<std::string>> r;
-  std::vector<std::string> r;
-  transduceIntoColl(T, &r, searchPaths);
+  //std::vector<std::string> r;
+  //transduceIntoColl(T, &r, searchPaths);
 
   std::vector<LogFileInfo> result;
-  /*transduceIntoColl(T, &result, searchPaths);
+  transduceIntoColl(T, &result, searchPaths);
   std::sort(result.begin(), result.end(),
       [](LogFileInfo a, LogFileInfo b) {
     return a.medianTime < b.medianTime;
-  });*/
+  });
   return result;
 }
 
