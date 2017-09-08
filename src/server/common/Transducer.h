@@ -49,6 +49,8 @@ namespace sail {
  */
 template <typename AccumulateType, typename InputType>
 struct Step {
+  typedef AccumulateType accumulate_type;
+  typedef InputType input_type;
   typedef std::function<AccumulateType(AccumulateType, InputType)> StepFunction;
   typedef std::function<AccumulateType(AccumulateType)> FlushFunction;
   StepFunction step;
@@ -124,7 +126,7 @@ struct Cat {
   typedef typename Coll::value_type X;
 
   template <typename R>
-  Step<R, X> operator()(const Step<R, Coll>& s) const {
+  Step<R, Coll> operator()(Step<R, X> s) const {
     return {
       [s](const R& r, const Coll& c) {
         auto y = r;
@@ -165,7 +167,7 @@ public:
   Compose2(X x, Y y) : _x(x), _y(y) {}
 
   template <typename T>
-  auto operator()(const T& x) -> decltype(_x(_y(x))) {
+  auto operator()(const T& x) -> decltype(_x(_y(x))) const {
     return _x(_y(x));
   }
 private:
@@ -184,7 +186,7 @@ public:
   template <typename S>
   auto operator()(const S& b)
     -> decltype(std::declval<A>()(
-        std::declval<B>()(b))) {
+        std::declval<B>()(b))) const {
     return _a(_b(b));
   }
 private:
@@ -205,7 +207,7 @@ public:
 
   template <typename S>
   auto operator() (const S& s) -> decltype(
-      std::declval<Inner>()(std::declval<S>())) {
+      std::declval<Inner>()(std::declval<S>())) const {
     return _inner(s);
   }
 private:
@@ -253,7 +255,11 @@ Step<Iterator, typename IteratorInputType<Iterator>::type>
 template <typename T, typename Dst, typename Src>
 void transduceIntoColl(T transducer, Dst* dst, const Src& src) {
   auto i = std::inserter(*dst, dst->end());
-  reduce(transducer(iteratorStep(i)), i, src);
+  auto step = transducer(iteratorStep(i));
+  static_assert(std::is_same<
+      typename decltype(step)::accumulate_type,
+      decltype(i)>::value, "");
+  reduce(step, i, src);
 }
 
 }

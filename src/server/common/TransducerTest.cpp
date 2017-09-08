@@ -100,3 +100,19 @@ TEST(TransducerTest, TestFlush) {
   EXPECT_EQ(dst[1], (std::vector<int>{2, 2, 2}));
   EXPECT_EQ(dst[2], (std::vector<int>{3, 3, 3}));
 }
+
+TEST(TransducerTest, CatTest) {
+  std::vector<std::vector<int>> data{{0, 1, 1, 2}, {1, 1, 1}};
+  auto T = Cat<std::vector<int>>();
+  std::vector<int> dst;
+  transduceIntoColl(T, &dst, data);
+  EXPECT_EQ(dst, (std::vector<int>{0, 1, 1, 2, 1, 1, 1}));
+}
+
+TEST(TransducerTest, ThreeTest) {
+  std::vector<int> data{1, 2, 3};
+  std::vector<int> dst;
+  auto T = composeTransducers(
+      map(&mulBy2), map(&mulBy2), map(&mulBy2));
+  transduceIntoColl(T, &dst, data);
+}
