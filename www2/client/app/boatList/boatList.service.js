@@ -6,6 +6,7 @@ angular.module('www2App')
     var boatDict = { };
     var curves = { };
     var sessionsForBoats = {};
+    var timesetsForBoats = {};
 
     // Either 'anonymous', or a username, or undefined.
     // Used to cache requests
@@ -17,8 +18,9 @@ angular.module('www2App')
     function clear() {
       boats = [ ];
       boatDict = { };
-      curves = { };
-      sessionsForBoats = {};
+      curves = { }; // Map from session id to some data.
+      sessionsForBoats = {}; // Map from boatId to array of sessions
+      timesetsForBoats = {}; // Map from boatId to array of session edits
       loadedFor = undefined;
       loading = undefined;
       console.log('Forgetting boat data');
@@ -128,6 +130,8 @@ angular.module('www2App')
       return promise;
     }
 
+    
+
     function fetchBoat(boatid) {
       // promise for boats methods;
       var deferred = $q.defer();
@@ -193,6 +197,19 @@ angular.module('www2App')
       return c.location;
     }
 
+    function deleteSession(boatId, sessionId) {
+      var session = firstEntryMatchingField(
+        sessionsForBoats[boatId], '_id', sessionId);
+      assert(session, "No session found");
+      var op = {
+        type: "delete",
+        boatId: boatId,
+        lower: session.startTime,
+        upper: session.endTime
+      };
+      accessKey(timesetsForBoats, boatId, []).push(op);
+      alert('deleteSession');
+    }
 
     //
     // service result
@@ -213,5 +230,6 @@ angular.module('www2App')
       getDefaultBoat: getDefaultBoat,
       locationForCurve: locationForCurve,
       update: cachedBoats,
+      deleteSession: deleteSession
     };
   });

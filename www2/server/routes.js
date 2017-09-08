@@ -9,6 +9,7 @@ var errors = require('./components/errors');
 module.exports = function(app) {
 
   // Insert routes below
+  app.use('/api/timesets', require('./api/timeset'));
   app.use('/api/updates', require('./api/update'));
   app.use('/api/boxexecs', require('./api/boxexec'));
   app.use('/api/boatstats', require('./api/boatstat'));
@@ -18,6 +19,7 @@ module.exports = function(app) {
   app.use('/api/mailrpc', require('./api/mailrpc')); // old
   app.use('/api/endpoint', require('./api/endpoint')); // new
   app.use('/api/session', require('./api/session'));  
+  app.use('/api/timeset', require('./api/timeset'));  
   app.use('/api/tiles', require('./api/tiles'));
   app.use('/api/upload', require('./api/upload'));
   app.use('/api/users', require('./api/user'));

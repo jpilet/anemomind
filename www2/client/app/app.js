@@ -75,6 +75,10 @@ angular.module('www2App', [
   })
 
   .run(function ($rootScope, $location, Auth, boatList,$log) {
+    $log.fatalError = function(x) {
+      $log.error(x);
+      alert("Fatal error: '" + x + "'");
+    };
 
     // Redirect to login if route requires auth and you're not logged in
     $rootScope.$on('$stateChangeStart', function (event, next) {

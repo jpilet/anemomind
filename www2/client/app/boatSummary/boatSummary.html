@@ -65,27 +65,45 @@
 <div class="session-container">
   <div class="card card-horizontal cursor-pointer" 
        ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |limitTo:pageSize" >
+
+    <span uib-dropdown class="menu-button" on-toggle="toggled(open)" style="border: 1px solid green; padding: 0px; margin: 0px;">
+      <a href class="no-space" id="simple-dropdown" uib-dropdown-toggle style="border: 1px solid blue; padding: 0px; margin: 0px;">
+        <i class="no-space fa fa-bars" aria-hidden="true" style="border: 1px solid red;  padding: 0px; margin: 0px;"></i>  
+      </a>
+      <ul class="dropdown-menu" 
+          uib-dropdown-menu aria-labelledby="simple-dropdown">
+        <li ng-repeat="choice in edititems">          
+          <a ng-click="choice.action(boatId, session._id)">
+            <i style="display: inline-block; margin-right: 0.5em;" 
+               class="fa {{choice.icon}}" aria-hidden="true"></i>
+            {{choice.label}}
+            <p class="item-desc">{{choice.description}}</p>
+          </a>
+        </li>
+      </ul>
+    </span>
     <a ng-href="/map/{{boatId}}?c={{session._id}}&t={{timeToInt(session.maxSpeedOverGroundTime)}}">
-    <div class="card-image">
-      <div class="" thumbnailspng="{{session._id}}" boat-id="{{boatId}}"></div>
-    </div>
-    <div class="card-content" >
-      <h3>{{session.startTime | date: 'd.M.yyyy'}}</h3>
-      <p>
-        max {{session.maxSpeedOverGround | number: 1}} kn, {{ session.trajectoryLength | number : 1 }} nm<br/>
-        <div class="block">
-          <b>{{ twdirToCardinal(session.avgWindDir) }}</b> {{ knotsToBeaufort(session.avgWindSpeed) }} bf, max: {{ session.strongestWindSpeed | number: 1 }} kn
+      <div class="card-image">
+        <div class="" thumbnailspng="{{session._id}}" boat-id="{{boatId}}"></div>
+      </div>
+      <div class="card-content" >
+        <h3>{{session.startTime | date: 'd.M.yyyy'}}</h3>
+        <p>
+          max {{session.maxSpeedOverGround | number: 1}} kn, {{ session.trajectoryLength | number : 1 }} nm<br/>
+          <div class="block">
+            <b>{{ twdirToCardinal(session.avgWindDir) }}</b> 
+            {{ knotsToBeaufort(session.avgWindSpeed) }} bf, max: {{ session.strongestWindSpeed | number: 1 }} kn
+          </div>
+        </p>                  
+        <div class="card-content-bottom">
+          <i class="fa fa-picture-o red" ng-show="session.hasPhoto"></i>
+          <i class="fa fa-comment-o red" ng-show="session.hasComment"></i>
+          <i class="fa fa-flag red hide"></i>
         </div>
-      </p>                  
-      <div class="card-content-bottom">
-        <i class="fa fa-picture-o red" ng-show="session.hasPhoto"></i>
-        <i class="fa fa-comment-o red" ng-show="session.hasComment"></i>
-        <i class="fa fa-flag red hide"></i>
+        <div class="card-content-mobile">
+          <i class="fa fa-angle-right fa-5x red" aria-hidden="true"></i>
+        </div>
       </div>
-      <div class="card-content-mobile">
-        <i class="fa fa-angle-right fa-5x red" aria-hidden="true"></i>
-      </div>
-    </div>
     </a>
   </div>
   <!-- END OF SESSION -->

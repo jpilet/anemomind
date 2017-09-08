@@ -23,6 +23,35 @@
     text-transform: uppercase;
 }
 
+.menu-button {
+    position: absolute; 
+    right: 4px; 
+    top: 4px;
+    z-index: 1;
+}
+
+
+.item-desc {
+    display: none;
+    color: gray;
+}
+
+/* Doesn't work yet.*/
+a:hover .item-desc {
+    display: block;
+}
+
+.no-space {
+    padding: 0px;
+    margin: 0px;
+}
+
+.menu-button a {
+    margin: 0px;
+    padding: 0px;
+    color: #ff0033;
+}
+
 .card .card-image {
   position: relative;
   overflow: hidden;
