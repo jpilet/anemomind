@@ -77,6 +77,7 @@ FOREACH_CHANNEL(DECL_TYPE)
 const char* descriptionForCode(DataCode code);
 const char* wordIdentifierForCode(DataCode code);
 
+template <typename T> class TypedDispatchData;
 class DispatchDataVisitor;
 class DispatchData {
  public:
@@ -94,6 +95,24 @@ class DispatchData {
   virtual bool isFresh(Duration<> maxAge = Duration<>::seconds(15)) const = 0;
 
   virtual void visit(DispatchDataVisitor *visitor) = 0;
+
+  // Templated version of the above thing
+  template <typename X>
+  void visitX(X* x) {
+    switch (_code) {
+#define VISIT_X(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+    case HANDLE: {typedef TypedDispatchData<TYPE> T; x->template visit<TYPE>( \
+      HANDLE, reinterpret_cast<T*>(this)); break;}
+          /* ^ Dynamic cast would have been nice
+           * but it seems like I get a compilation
+           * error because a forward declaration of
+           * TypedDispatchData is not enough... */
+FOREACH_CHANNEL(VISIT_X)
+#undef VISIT_X
+    default: break;
+    }
+  }
+
   virtual ~DispatchData() {}
 
  protected:
