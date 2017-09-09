@@ -70,14 +70,21 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
 
 namespace {
   struct OffsetWithFitnessError {
+    static const int initPriority = (-std::numeric_limits<int>::max());
+    static constexpr double initError = std::numeric_limits<double>::infinity();
+
     OffsetWithFitnessError() {
       offset = Duration<double>::seconds(0.0);
-      averageErrorFromMedian = std::numeric_limits<double>::infinity();
-      priority = (-std::numeric_limits<int>::max());
+      averageErrorFromMedian = initError;
+      priority = initPriority;
     }
 
     OffsetWithFitnessError(Duration<double> dur, double e, int p) :
       offset(dur), averageErrorFromMedian(e), priority(p) {
+    }
+
+    bool defined() const {
+      return averageErrorFromMedian < initError;
     }
 
     int priority;
@@ -94,6 +101,14 @@ namespace {
       return makePairToMinimize() < e.makePairToMinimize();
     }
   };
+
+  std::ostream& operator<<(
+      std::ostream& s, const OffsetWithFitnessError& x) {
+    s << "\n offset:   " << x.offset.str()
+      << "\n priority: " << x.priority
+      << "\n avg err:  " << x.averageErrorFromMedian;
+    return s;
+  }
 
   OffsetWithFitnessError computeTimeOffset(const ValueSet &stream) {
     std::vector<Duration<double> > diffs;
@@ -152,7 +167,11 @@ namespace {
     for (int i = 0; i < data.stream_size(); i++) {
       auto c = computeTimeOffset(data.stream(i));
       offset = std::min(offset, c);
+      if (c.defined()) {
+        LOG(INFO) << "    Candidate offset: " << c;
+      }
     }
+    LOG(INFO) << "   ---> Final offset is " << offset;
     return offset.offset;
   }
 }
