@@ -465,7 +465,7 @@ void BoatLogProcessor::infoNavDataset(const std::string& info,
     for (const auto& codeSourceAndCount: kv.second) {
       auto codeSource = codeSourceAndCount.first;
       int n = codeSourceAndCount.second;
-      if (1 <= ofInterest.count(codeSource.first)) {
+      if (true || 1 <= ofInterest.count(codeSource.first)) {
         ss << "   " << wordIdentifierForCode(codeSource.first)
             << ", " << codeSource.second << ": " << n << std::endl;
       }
