@@ -8,6 +8,7 @@
 
 #include <Poco/File.h>
 #include <Poco/JSON/Stringifier.h>
+#include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
 #include <device/Arduino/libraries/TargetSpeed/TargetSpeed.h>
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <fstream>
@@ -18,6 +19,7 @@
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/DownsampleGps.h>
+#include <server/nautical/MaxSpeed.h>
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
@@ -26,7 +28,6 @@
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
-#include <server/nautical/MaxSpeed.h>
 
 namespace sail {
 
@@ -325,6 +326,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   if (!prepare(amap)) {
     return false;
+  }
+
+  if (_boatid == "59b1343a0411db0c8d8fbf7c") {
+    hackForceDateForGLL = true;
   }
 
   NavDataset current;
