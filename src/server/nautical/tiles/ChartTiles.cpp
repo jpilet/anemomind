@@ -375,7 +375,13 @@ bool uploadChartSourceIndex(const NavDataset& data,
             wordIdentifierForCode(channel.first));
 
         for (const auto& mmt : minMaxTimes) {
-          BsonSubDocument sourceObj(&chanObj, mmt.first.c_str());
+          std::string sourceName(mmt.first);
+
+          if (sourceName.size() == 0) {
+            sourceName = "(unknown source)";
+          }
+
+          BsonSubDocument sourceObj(&chanObj, sourceName.c_str());
           bsonAppend(&sourceObj, "first", mmt.second.first);
           bsonAppend(&sourceObj, "last", mmt.second.last);
           bsonAppend(&sourceObj, "priority",
@@ -406,7 +412,10 @@ bool uploadChartSourceIndex(const NavDataset& data,
         concern,
         &error);
      if (!success) {
-       LOG(ERROR) << bsonErrorToString(error);
+       char* json = bson_as_canonical_extended_json(&index, NULL);
+       LOG(ERROR) << "for boat ID " << boatId << ": "
+         << bsonErrorToString(error) << "\nReplacement:\n" << json;
+       bson_free(json);
      }
    }
    return success;
