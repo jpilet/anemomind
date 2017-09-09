@@ -14,6 +14,8 @@ namespace sail {
 
 // Helper object to collect all the loaded data
 struct LogAccumulator {
+  bool verbose = false;
+
   #define MAKE_ACCESSORS(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
       std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> \
       *get##HANDLE##sources() { \

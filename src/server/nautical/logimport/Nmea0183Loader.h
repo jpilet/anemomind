@@ -64,19 +64,31 @@ class Nmea0183LogLoaderAdaptor {
     typedef typename TimedSampleCollection<T>::TimedVector TimedVector;
     std::map<std::string, TimedVector> *m = getChannels<Code>(_dst);
     auto dst = allocateSourceIfNeeded<T>(_sourceName, m);
-    _lastTime = updateLastTime(_lastTime, value);
-    if (_lastTime.defined() && isFinite(value)) {
-      dst->push_back(TimedValue<T>(_lastTime, value));
+
+    // This line was commented out to fix the issue with Sensei.
+    // The system is very complicated, so we have to think carefully whether
+    // this introduces some bug. If we include this line (as we did  before),
+    // it means that the timed values might get tagged with a reasonable correct time
+    // when we read them, if the NMEA0183 time data is correct. However, if the
+    // _lastTrueTimeEstimate = updateLastTime(_lastTrueTimeEstimate, value);
+
+    if (_lastTrueTimeEstimate.defined() && isFinite(value)) {
+      dst->push_back(TimedValue<T>(_lastTrueTimeEstimate, value));
     }
   }
 
   void setTime(const TimeStamp& time) {
-    _lastTime = updateLastTime(_lastTime, time);
+    _lastTrueTimeEstimate = updateLastTime(_lastTrueTimeEstimate, time);
   }
 
   const std::string &sourceName() const {return _sourceName;}
  private:
-  TimeStamp _lastTime;
+  // This is a time estimate from the log file
+  TimeStamp _lastLogTime;
+
+  // This is a true time estimate
+  TimeStamp _lastTrueTimeEstimate;
+
   std::string _sourceName;
   NmeaParser *_parser;
   LogAccumulator *_dst;
