@@ -107,6 +107,14 @@ namespace {
     }
   };
 
+  std::ostream& operator<<(
+      std::ostream& s, const OffsetWithFitnessError& x) {
+    s << "\n offset:   " << x.offset.str()
+      << "\n priority: " << x.priority
+      << "\n avg err:  " << x.averageErrorFromMedian;
+    return s;
+  }
+
   OffsetWithFitnessError computeTimeOffset(const ValueSet &stream) {
     std::vector<Duration<double> > diffs;
     std::vector<TimeStamp> extTimes;
