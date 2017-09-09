@@ -328,7 +328,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
-  if (_boatid == "59b1343a0411db0c8d8fbf7c") {
+  if (true || _boatid == "59b1343a0411db0c8d8fbf7c") {
     hackForceDateForGLL = true;
   }
 
@@ -455,6 +455,24 @@ void BoatLogProcessor::infoNavDataset(const std::string& info,
   DOM::addSubTextNode(&_htmlReport, "h2", info);
   std::stringstream ss;
   ds.outputSummary(&ss);
+
+  auto s = summarizeDispatcherOverTime(
+      ds.dispatcher().get(),
+      roundOffToBin(15.0_minutes));
+  std::set<DataCode> ofInterest{AWA, TWA, AWS, TWS};
+  for (const auto& kv: s) {
+    ss << "At "<< kv.first.toString() << std::endl;
+    for (const auto& codeSourceAndCount: kv.second) {
+      auto codeSource = codeSourceAndCount.first;
+      int n = codeSourceAndCount.second;
+      if (1 <= ofInterest.count(codeSource.first)) {
+        ss << "   " << wordIdentifierForCode(codeSource.first)
+            << ", " << codeSource.second << ": " << n << std::endl;
+      }
+    }
+  }
+
+
   DOM::addSubTextNode(&_htmlReport, "pre", ss.str());
 }
 
