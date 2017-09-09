@@ -171,7 +171,11 @@ namespace {
         LOG(INFO) << "    Candidate offset: " << c;
       }
     }
-    LOG(INFO) << "   ---> Final offset is " << offset;
+    if (offset.defined()) {
+      LOG(INFO) << "   ---> Final offset is " << offset;
+    } else {
+      LOG(INFO) << "Undefined correcting offset";
+    }
     return offset.offset;
   }
 }
@@ -199,6 +203,7 @@ void load(const LogFile &data, LogAccumulator *dst) {
 bool load(const std::string &filename, LogAccumulator *dst) {
   LogFile file;
   if (Logger::read(filename, &file)) {
+    LOG(INFO) << "File " << filename;
     load(file, dst);
     return true;
   }
