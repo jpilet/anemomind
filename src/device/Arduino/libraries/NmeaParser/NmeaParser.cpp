@@ -505,7 +505,7 @@ NmeaParser::NmeaSentence NmeaParser::processGLL() {
   }
 
   // Some funny systems do not send the time.
-  if (strlen(argv_[5]) == 6) {
+  if (strlen(argv_[5]) >= 6) {
     hour_ = parse2c(argv_[5]);
     min_ = parse2c(argv_[5]+2);
     sec_ = parse2c(argv_[5]+4);

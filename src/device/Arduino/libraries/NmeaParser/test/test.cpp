@@ -233,6 +233,23 @@ TEST(NmeaParserTest, TestGLL) {
   EXPECT_EQ(2, parser.numSentences());
 }
 
+
+TEST(NmeaParserTest, TestGLLSensei) {
+  NmeaParser parser;
+
+  EXPECT_EQ(
+      NmeaParser::NMEA_GLL,
+      sendSentence(
+	  "$IIGLL,4108.1285,N,00931.8875,E,061653.00,A,A*73",
+          &parser));
+
+  EXPECT_EQ(6, parser.hour());
+  EXPECT_EQ(16, parser.min());
+  EXPECT_EQ(53, parser.sec());
+
+  EXPECT_EQ(1, parser.numSentences());
+}
+
 TEST(NmeaParserTest, TestZDA) {
   NmeaParser parser;
 
