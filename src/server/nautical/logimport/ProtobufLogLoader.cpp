@@ -70,14 +70,21 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
 
 namespace {
   struct OffsetWithFitnessError {
+    static const int initPriority = (-std::numeric_limits<int>::max());
+    static constexpr double initError = std::numeric_limits<double>::infinity();
+
     OffsetWithFitnessError() {
       offset = Duration<double>::seconds(0.0);
-      averageErrorFromMedian = std::numeric_limits<double>::infinity();
-      priority = (-std::numeric_limits<int>::max());
+      averageErrorFromMedian = initError;
+      priority = initPriority;
     }
 
     OffsetWithFitnessError(Duration<double> dur, double e, int p) :
       offset(dur), averageErrorFromMedian(e), priority(p) {
+    }
+
+    bool defined() const {
+      return averageErrorFromMedian < initError;
     }
 
     int priority;
