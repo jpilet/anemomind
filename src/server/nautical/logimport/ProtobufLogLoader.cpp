@@ -184,7 +184,6 @@ namespace {
       auto c = computeTimeOffset(stream);
       offset = std::min(offset, c);
     });
-    }
     return offset.offset;
   }
 }
