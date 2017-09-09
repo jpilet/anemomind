@@ -49,7 +49,12 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
     std::string originalSourceName = stream.source();
     std::string dstSourceName = originalSourceName + " reparsed";
     Nmea0183Loader::LogLoaderNmea0183Parser parser(dst, dstSourceName);
-    Nmea0183Loader::Nmea0183LogLoaderAdaptor adaptor(&parser, dst, dstSourceName);
+    Nmea0183Loader::Nmea0183LogLoaderAdaptor adaptor(
+        false, // <-- All the text log data are string chunks that are tagged
+               // with times that we correct with a provided offset, so
+               // we rely on those values, rather than the time values that we
+               // get from the NMEA0183 data.
+        &parser, dst, dstSourceName);
     for (int i = 0; i < n; i++) {
       auto t = times[i] + offset;
       parser.setProtobufTime(t);
@@ -154,11 +159,23 @@ namespace {
     return OffsetWithFitnessError();
   }
 
+  void forAllValueSets(
+      const LogFile& data,
+      const std::function<void(ValueSet)>& f) {
+    for (int i = 0; i < data.stream_size(); i++) {
+      f(data.stream(i));
+    }
+    for (int i = 0; i < data.text_size(); i++) {
+      f(data.text(i));
+    }
+  }
+
   Duration<double> computeTimeOffset(const LogFile &data) {
     OffsetWithFitnessError offset;
-    for (int i = 0; i < data.stream_size(); i++) {
-      auto c = computeTimeOffset(data.stream(i));
+    forAllValueSets(data, [&](const ValueSet& stream) {
+      auto c = computeTimeOffset(stream);
       offset = std::min(offset, c);
+    });
     }
     return offset.offset;
   }
