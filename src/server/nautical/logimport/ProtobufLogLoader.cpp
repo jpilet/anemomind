@@ -99,20 +99,40 @@ namespace {
     std::vector<Duration<double> > diffs;
     std::vector<TimeStamp> extTimes;
     Logger::unpack(stream.exttimes(), &extTimes);
-    if (!extTimes.empty()) {
-      std::vector<TimeStamp> times;
-      Logger::unpackTime(stream, &times);
-      if (times.size() == extTimes.size()) {
-        int n = times.size();
-        for (int j = 0; j < n; j++) {
-          if (extTimes[j].defined() && times[j].defined()) {
-            diffs.push_back(extTimes[j] - times[j]);
-          }
-        }
-      } else {
-        LOG(WARNING) << "Inconsistent size of times and exttimes for stream";
+
+    std::vector<TimeStamp> times;
+
+    if (extTimes.empty()) {
+      // extTimes is empty, but maybe we do have time info in GLL sentences
+      // in: 'text[NMEA0183 input:0]'
+      LogAccumulator acc;
+      loadTextData(stream, &acc, Duration<double>::seconds(0));
+      std::map<std::string, TimedSampleCollection<TimeStamp>::TimedVector>* map =
+	acc.getDATE_TIMEsources();
+      if (map->size() > 0) {
+	const TimedSampleCollection<TimeStamp>::TimedVector& values(
+	    map->begin()->second);
+
+	for (const TimedValue<TimeStamp>& it : values) {
+	  extTimes.push_back(it.value);
+	  times.push_back(it.time);
+	}
       }
+    } else {
+      Logger::unpackTime(stream, &times);
     }
+
+    if (times.size() == extTimes.size()) {
+      int n = times.size();
+      for (int j = 0; j < n; j++) {
+	if (extTimes[j].defined() && times[j].defined()) {
+	  diffs.push_back(extTimes[j] - times[j]);
+	}
+      }
+    } else {
+      LOG(WARNING) << "Inconsistent size of times and exttimes for stream";
+    }
+
     auto n = diffs.size();
     if (n > 30) { // Sufficiently many?
       auto at = diffs.begin() + n/2;
