@@ -154,9 +154,10 @@ describe('////////////////// Timeset', function() {
         done(err);
         for (var key in data) {
           var x = data[key];
+          console.log("Visiting %j", x);
           if (sameDates(x.begin, d + 1000)) {
-            //assert(sameDates(x.end, d + 3000));
-            //assert(x.type == "ignore");
+            assert(sameDates(x.end, d + 3000));
+            assert(x.type == "ignore");
             //done(err);
           }
         }
