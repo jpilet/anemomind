@@ -1,6 +1,5 @@
 'use strict'
 
-var should = require('should');
 var app = require('../../app');
 var request = require('supertest');
 var Timeset = require('./timeset.model.js');
@@ -10,6 +9,7 @@ var mongoose = require('mongoose');
 var assert = require('assert');
 var Schema = mongoose.Schema;
 var utils = require('../testUtils.spec.js');
+var assert = require('assert');
 
 var d = new Date();
 
@@ -94,6 +94,8 @@ describe('////////////////// Timeset', function() {
       .expect(200)
       .end(function(err, res) {
         console.log("Got this: %j", res.body);
+        var data = res.body;
+        assert(data.length == 1);
         done(err);
       });
   });
