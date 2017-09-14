@@ -8,7 +8,7 @@ var _ = require('lodash');
 // Delete
 module.exports.deleteTimeset = function(req, res, next) {
   var search = {
-    _id: req.params.timesetId,
+    _id: mongoose.Types.ObjectId(req.params.timesetId),
     boat: req.params.boatId
   };
   Timeset.remove(search, function(err) {

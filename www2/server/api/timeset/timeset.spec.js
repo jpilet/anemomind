@@ -176,7 +176,10 @@ describe('////////////////// Timeset', function() {
   it('DELETE /api/timeset nonexistant', function(done) {
     server.delete('/api/timeset/' + boat._id + '/deadbeef')
       .set('Authorization', 'Bearer ' + token)
-      .expect(422)
+    // "deadbeef" cannot be a valid mongoose.Types.ObjectId, 
+    // so an exception will be thrown which results in this 
+    // code later down the chain...
+      .expect(500) 
       .end(done);
   });
 
