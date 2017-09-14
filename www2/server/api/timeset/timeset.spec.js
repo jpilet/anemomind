@@ -57,31 +57,42 @@ describe('////////////////// Timeset', function() {
       user = u;
       data = d;
       boat = b;
-      server
-        .post('/auth/local')
-        .send({ email: 'test@anemomind.com', password: 'anemoTest' })
-        .expect(200)
-        .expect('Content-Type', /json/)
-        .end(function (err, res) {
-          token = res.body.token;
-          return done(err);
-        });
+      if (err) {
+        return done(err);
+      } else if (!user) {
+        return done(new Error("Failed to obtain user"));
+      } else if (!data) {
+        return done(new Error("Failed to create data"));
+      } else if (!boat) {
+        return done(new Error("Failed to obtain boat"));
+      } else {
+        server
+          .post('/auth/local')
+          .send({ email: 'test@anemomind.com', password: 'anemoTest' })
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .end(function (err, res) {
+            token = res.body.token;
+            return done(err);
+          });
+      }
     });
   });
 
-  /*it('GET /api/timeset', function(done) {
+  it('GET /api/timeset', function(done) {
     server
       .get('/api/timeset/' + boat._id)
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .end(function(err, res) {
+        console.log("Received err=%j res=%j", err, res);
         if (err) {
           done(err);
         } else {
           done();
         }
       });
-  });*/
+  });
 
   /*
   it('GET /api/session', function(done) {
