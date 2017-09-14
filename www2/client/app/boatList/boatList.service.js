@@ -6,7 +6,7 @@ angular.module('www2App')
     var boatDict = { };
     var curves = { };
     var sessionsForBoats = {};
-    var timesetsForBoats = {};
+    var perBoatData = {};
 
     // Either 'anonymous', or a username, or undefined.
     // Used to cache requests
@@ -19,8 +19,12 @@ angular.module('www2App')
       boats = [ ];
       boatDict = { };
       curves = { }; // Map from session id to some data.
+
+      // TODO: Consider moving this into perBoatData.
       sessionsForBoats = {}; // Map from boatId to array of sessions
-      timesetsForBoats = {}; // Map from boatId to array of session edits
+
+      perBoatData = {}; // Map from boatId to data related to that boat
+
       loadedFor = undefined;
       loading = undefined;
       console.log('Forgetting boat data');
@@ -207,7 +211,7 @@ angular.module('www2App')
         lower: session.startTime,
         upper: session.endTime
       };
-      accessKey(timesetsForBoats, boatId, []).push(op);
+      accessKey(perBoatData, boatId, []).push(op);
       alert('deleteSession');
     }
 
