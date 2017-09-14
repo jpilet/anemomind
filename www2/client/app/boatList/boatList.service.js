@@ -208,11 +208,23 @@ angular.module('www2App')
       var op = {
         type: "delete",
         boat: boatId,
-        begin: session.startTime,
-        end: session.endTime,
-        creationDate: new Date()
+        lower: session.startTime,
+        upper: session.endTime,
+        creationTime: new Date()
       };
-      //accessKey(perBoatData, boatId, []).push(op);
+      anemoutils.updateIn(perBoatData, [boatId, "edits"], function(x) {
+        var dst = x || [];
+        dst.push(op);
+        return dst;
+      });
+
+      var edits = anemoutils.getIn(perBoatData, [boatId, "edits"]);
+      console.log("----------- All edits");
+      for (var i in edits) {
+        console.log("Edit: ");
+        console.log(edits[i]);
+      }
+
       alert('deleteSession');
     }
 
