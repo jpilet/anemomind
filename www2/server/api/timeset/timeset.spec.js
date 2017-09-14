@@ -124,7 +124,7 @@ describe('////////////////// Timeset', function() {
       .set('Authorization', 'Bearer ' + token)
       .send({
         boat: boat._id,
-        type: "delete",
+        type: "ignore",
         begin: d + 1000,
         end: d + 3000
       })
@@ -142,12 +142,14 @@ describe('////////////////// Timeset', function() {
       .end(function(err, res) {
         var data = res.body;
         assert(data.length == 2);
-        
-        /*var x = data[0];
-        assert(sameDates(x.begin, d));
-        assert(sameDates(x.end, d + 2000));
-        assert(x.type == "delete");*/
-        done(err);
+        for (var key in data) {
+          var x = data[key];
+          if (sameDates(x.begin, d + 1000)) {
+            assert(sameDates(x.end, d + 3000));
+            assert(x.type == "ignore");
+            done(err);
+          }
+        }
       });
   });
 
