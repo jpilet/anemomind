@@ -13,6 +13,21 @@ var assert = require('assert');
 
 var d = new Date();
 
+function sameDates(a, b) {
+  var ad = new Date(a);
+  var bd = new Date(b);
+  if (ad.getTime() === bd.getTime()) {
+    return true;
+  } else {
+    console.log("......... not same dates");
+    console.log("ad");
+    console.log(ad);
+    console.log("bd");
+    console.log(bd);
+    return false;
+  }
+}
+
 function prepareRecord(boat, cb) {
   Timeset.remove({}, function(err) {
     if (err) {
@@ -97,9 +112,8 @@ describe('////////////////// Timeset', function() {
         var data = res.body;
         assert(data.length == 1);
         var x = data[0];
-        //assert(new Date(x.begin) == d);
-        //assert(new Date(x.end) == d + 2000);
-        console.log("-------- %j", new Date(x.begin));
+        assert(sameDates(x.begin, d));
+        assert(sameDates(x.end, d + 2000));
         assert(x.type == "delete");
         done(err);
       });
