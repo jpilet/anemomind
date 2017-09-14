@@ -60,7 +60,10 @@ void streamToNmeaParser(std::istream *src, NmeaParser *dstParser,
 void loadNmea0183Stream(std::istream *stream, LogAccumulator *dst,
     const std::string &srcName) {
   LogLoaderNmea0183Parser parser(dst, srcName);
-  Nmea0183LogLoaderAdaptor adaptor(&parser, dst, srcName);
+  Nmea0183LogLoaderAdaptor adaptor(
+      true, // This is a separate old-style log file, so here we need to rely
+            // on whatever time source there is.
+      &parser, dst, srcName);
   streamToNmeaParser(stream, &parser, &adaptor);
 }
 

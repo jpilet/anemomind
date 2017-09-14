@@ -625,7 +625,53 @@ void exportDispatcherToTextFiles(const std::string &filenamePrefix,
   visitDispatcherChannelsConst(d, &visitor);
 }
 
+std::function<TimeStamp(TimeStamp)> roundOffToBin(
+    Duration<double> dur) {
+  int64_t durMillis = int64_t(dur.milliseconds());
+  return [durMillis](TimeStamp t) {
+    return TimeStamp::fromMilliSecondsSince1970(
+        durMillis*(t.toMilliSecondsSince1970()/durMillis));
+  };
+}
 
+namespace {
+
+  struct SummarizeVisitor {
+    std::map<TimeStamp,
+      std::map<std::pair<DataCode,
+        std::string>, int>> dst;
+
+    std::function<TimeStamp(TimeStamp)> roundOff;
+
+    template <DataCode Code, typename T>
+      void visit(const char *shortName, const std::string &sourceName,
+        const std::shared_ptr<DispatchData> &raw,
+        const TimedSampleCollection<T> &coll) {
+      TimeStamp last;
+      int* n = nullptr;
+      for (const auto& x: coll.samples()) {
+        auto at = roundOff(x.time);
+        if (!(at == last)) {
+          auto& bin = dst[at];
+          last = at;
+          n = &(bin[{Code, sourceName}]);
+        }
+        (*n)++;
+      }
+    }
+  };
+
+}
+
+std::map<TimeStamp, std::map<std::pair<DataCode, std::string>, int>>
+  summarizeDispatcherOverTime(
+      const Dispatcher* d,
+      std::function<TimeStamp(TimeStamp)> roundOff) {
+  SummarizeVisitor v;
+  v.roundOff = roundOff;
+  visitDispatcherChannelsConst<SummarizeVisitor>(d, &v);
+  return v.dst;
+}
 
 namespace {
   const std::map<std::string,
