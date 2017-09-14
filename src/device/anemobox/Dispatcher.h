@@ -98,20 +98,7 @@ class DispatchData {
 
   // Templated version of the above thing
   template <typename X>
-  void visitX(X* x) {
-    switch (_code) {
-#define VISIT_X(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-    case HANDLE: {typedef TypedDispatchData<TYPE> T; x->template visit<TYPE>( \
-      HANDLE, reinterpret_cast<T*>(this)); break;}
-          /* ^ Dynamic cast would have been nice
-           * but it seems like I get a compilation
-           * error because a forward declaration of
-           * TypedDispatchData is not enough... */
-FOREACH_CHANNEL(VISIT_X)
-#undef VISIT_X
-    default: break;
-    }
-  }
+  void visitX(X* x);
 
   virtual ~DispatchData() {}
 
@@ -140,6 +127,18 @@ class TypedDispatchData : public DispatchData {
     return delta < maxAge;
   }
 };
+
+template <typename X>
+void DispatchData::visitX(X* x) {
+  switch (_code) {
+#define VISIT_X(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  case HANDLE: {typedef TypedDispatchData<TYPE> T; x->template visit<TYPE>( \
+    HANDLE, dynamic_cast<T*>(this)); break;}
+FOREACH_CHANNEL(VISIT_X)
+#undef VISIT_X
+  default: break;
+  }
+}
 
 namespace {
   static const int defaultDispatcherBufferLength = 1024;
