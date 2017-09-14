@@ -152,11 +152,9 @@ describe('////////////////// Timeset', function() {
 
         for (var key in data) {
           var x = data[key];
-          console.log("Visiting %j for %d/%d", x, key, data.length);
           if (sameDates(x.begin, d + 1000)) {
             assert(sameDates(x.end, d + 3000));
             assert(x.type == "ignore");
-            //done(err);
           }
         }
         done(err);
