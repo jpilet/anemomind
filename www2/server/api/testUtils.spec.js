@@ -40,6 +40,17 @@ function addTestUser(name) {
   });
 }
 
+/*
+
+  Put this code at the end inside the describe block.
+
+  after(function(done) {
+    testUtils.cleanup();
+    done();
+  });
+
+
+*/
 function cleanup() {
   for (var i in toClean) {
     toClean[i]();

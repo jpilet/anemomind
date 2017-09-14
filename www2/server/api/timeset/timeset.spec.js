@@ -34,13 +34,22 @@ function prepareRecord(boat, cb) {
 
 
 function prepareAll(cb) {
-  utils.addTestUser().then(function(user) {
-    utils.addTestBoat().then(function(boat) {
-      prepareRecord(boat, function(err, data) {
-        cb(err, user, boat, data);
+  User.remove({}, function(err) {
+    if (err) {
+      return cb(err);
+    }
+    utils.addTestUser("timesets").then(function(user) {
+      utils.addTestBoat({
+        name: "boat with timesets", 
+        admins: [user._id]
+      }).then(function(boat) {
+        console.log("The boat: %j", boat);
+        prepareRecord(boat, function(err, data) {
+          cb(err, user, boat, data);
+        });
       });
     });
-  });
+  })
 }
 
 describe('////////////////// Timeset', function() {
@@ -67,10 +76,11 @@ describe('////////////////// Timeset', function() {
       } else {
         server
           .post('/auth/local')
-          .send({ email: 'test@anemomind.com', password: 'anemoTest' })
+          .send({ email: 'timesets@test.anemomind.com', password: 'anemoTest' })
           .expect(200)
           .expect('Content-Type', /json/)
           .end(function (err, res) {
+            console.log("res.body = %j", res.body);
             token = res.body.token;
             return done(err);
           });
@@ -133,5 +143,11 @@ describe('////////////////// Timeset', function() {
     });
   });*/
   
+
+  after(function(done) {
+    utils.cleanup();
+    done();
+  });
+
 });
 
