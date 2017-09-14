@@ -12,6 +12,7 @@ describe('utils', function() {
   });
 
   it('getIn', function() {
-    assert(utils.getIn(null, ['a']) == null);
+    assert(utils.getIn(null, ['a', 'b']) == null);
+    assert(utils.getIn({a: {b: 119}}, ['a', 'b']) == 119);
   });
 });

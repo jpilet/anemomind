@@ -6,6 +6,7 @@
     }
   }
 
+  // Set a value deeply in a datastructure
   exports.setIn = function(dst, path, value) {
     if (path.length == 0) {
       return value;
@@ -23,6 +24,7 @@
     return root;
   };
 
+  // Get a value from deep inside a datastructure
   exports.getIn = function(src, path) {
     var obj = src;
     for (var i in path) {
@@ -34,5 +36,12 @@
     }
     return obj;
   };
+
+  // Update a value in a deep data structure
+  exports.updateIn = function(dst, path, f) {
+    // Not optimized, but simple.
+    // TODO: Optimize it.
+    return exports.setIn(dst, path, f(exports.getIn(dst, path)));
+  }
 
 })(typeof exports === 'undefined'? this['mymodule']={}: exports);
