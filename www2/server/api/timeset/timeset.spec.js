@@ -57,10 +57,6 @@ describe('////////////////// Timeset', function() {
       user = u;
       data = d;
       boat = b;
-      console.log(' err: %j', err);
-      console.log('user: %j', u);
-      console.log('boat: %j', b);
-      console.log('data: %j', d);
       server
         .post('/auth/local')
         .send({ email: 'test@anemomind.com', password: 'anemoTest' })
@@ -68,14 +64,12 @@ describe('////////////////// Timeset', function() {
         .expect('Content-Type', /json/)
         .end(function (err, res) {
           token = res.body.token;
-          if (err) return done(err);
-          
-          return done();
+          return done(err);
         });
     });
   });
 
-  it('GET /api/timeset', function(done) {
+  /*it('GET /api/timeset', function(done) {
     server
       .get('/api/timeset/' + boat._id)
       .set('Authorization', 'Bearer ' + token)
@@ -87,7 +81,8 @@ describe('////////////////// Timeset', function() {
           done();
         }
       });
-  });
+  });*/
+
   /*
   it('GET /api/session', function(done) {
     server
