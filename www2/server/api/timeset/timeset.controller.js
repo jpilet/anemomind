@@ -34,9 +34,6 @@ module.exports.getTimesetsForBoat = function(req, res, next) {
 };
 
 module.exports.addTimeset = function(req, res) {
-  if (!req.user) {
-    return res.sendStatus(403);
-  }
   var timeset = req.body;
   if (timeset.boat != req.params.boatId) {
     return res.sendStatus(400);
