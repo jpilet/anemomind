@@ -9,21 +9,21 @@ var router = express.Router();
 // List all the timesets for a boat.
 router.get( // OK, tested
   '/:boatId', 
-  auth.maybeAuthenticated(), 
+  auth.isAuthenticated(), 
   access.boatReadAccess,
   controller.getTimesetsForBoat);
 
 // Push a new timeset
 router.post(
   '/:boatId', // The boat id is also part of the data, this is actually redundant.
-  auth.maybeAuthenticated(),
+  auth.isAuthenticated(),
   access.boatWriteAccess,
   controller.addTimeset);
 
 // Delete a timeset
 router.delete( // OK
   '/:boatId/:timesetId',
-  auth.maybeAuthenticated(),
+  auth.isAuthenticated(),
   access.boatWriteAccess,
   controller.deleteTimeset);
 
