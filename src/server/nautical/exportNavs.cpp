@@ -15,7 +15,6 @@
 #include <sstream>
 
 using namespace sail;
-using namespace std;
 using namespace sail::NavCompat;
 
 enum Format  {CSV, MATLAB, JSON};
