@@ -9,7 +9,7 @@ var _ = require('lodash');
 module.exports.deleteTimeset = function(req, res, next) {
   var search = {
     _id: mongoose.Types.ObjectId(req.params.timesetId),
-    boat: req.params.boatId
+    boat: req.params.boatId + ''
   };
   Timeset.remove(search, function(err) {
     if (err) {
@@ -23,7 +23,7 @@ module.exports.deleteTimeset = function(req, res, next) {
 // Get a full list
 module.exports.getTimesetsForBoat = function(req, res, next) {
   var boatId = req.params.boatId;
-  var search = { boat: boatId };
+  var search = { boat: boatId + ''};
   Timeset.find(search, function(err, timesets) {
     if (err) {
       res.status(422).end();
