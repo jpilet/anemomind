@@ -28,7 +28,6 @@ function prepareRecord(boat, cb) {
       ts.save(function(err, timesetId) {
         cb(err, timesetId, boatId);
       });
-      cb(err, ts);
     }
   });
 }
@@ -52,7 +51,7 @@ describe('////////////////// Timeset', function() {
   var data;
 
 
-  it('should give the test user an auth token', function(done) {
+  it('Acquire auth token for timesets and initialize everything', function(done) {
     prepareAll(function(err, u, b, d) {
       user = u;
       data = d;
@@ -79,7 +78,7 @@ describe('////////////////// Timeset', function() {
     });
   });
 
-  it('GET /api/timeset', function(done) {
+  /*it('GET /api/timeset', function(done) {
     server
       .get('/api/timeset/' + boat._id)
       .set('Authorization', 'Bearer ' + token)
@@ -92,7 +91,7 @@ describe('////////////////// Timeset', function() {
           done();
         }
       });
-  });
+  });*/
 
   /*
   it('GET /api/session', function(done) {
