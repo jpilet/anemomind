@@ -21,7 +21,7 @@ module.exports.deleteTimeset = function(req, res, next) {
     } else {
       boatAccess.userCanWriteBoatId(req.user, req.params.boatId)
       .then(function() {
-        res.status(200);
+        res.sendStatus(200);
       }).catch(function(err) { 
         res.sendStatus(403); 
       });

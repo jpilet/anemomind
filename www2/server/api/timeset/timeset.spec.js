@@ -73,6 +73,7 @@ describe('////////////////// Timeset', function() {
   var user;
   var boat;
   var data;
+  var idToRemove;
 
 
   it('Acquire auth token for timesets and initialize everything', function(done) {
@@ -129,7 +130,11 @@ describe('////////////////// Timeset', function() {
         end: d + 3000
       })
       .expect(200)
+      .expect('Content-Type', /json/)
       .end(function(err, res) {
+        idToRemove = res.body._id;
+        assert(idToRemove);
+        assert(res.body.boat == boat._id);
         done(err);
       });
   });
@@ -151,6 +156,13 @@ describe('////////////////// Timeset', function() {
           }
         }
       });
+  });
+
+  it('DELETE /api/timeset', function(done) {
+    server.delete('/api/timeset/' + boat._id + '/' + idToRemove)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .end(done);
   });
 
 
