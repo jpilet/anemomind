@@ -19,12 +19,13 @@ function prepareRecord(boat, cb) {
       cb(err);
     } else {
       var boatId = boat._id;
-      var ts = new Timeset({
+      var tsData = {
         boat: boatId,
         type: "delete",
         begin: d,
         end: d + 2000
-      });
+      };
+      var ts = new Timeset(tsData);
       ts.save(function(err, timesetId) {
         cb(err, timesetId, boatId);
       });
@@ -43,7 +44,6 @@ function prepareAll(cb) {
         name: "boat with timesets", 
         admins: [user._id]
       }).then(function(boat) {
-        console.log("The boat: %j", boat);
         prepareRecord(boat, function(err, data) {
           cb(err, user, boat, data);
         });
@@ -80,7 +80,6 @@ describe('////////////////// Timeset', function() {
           .expect(200)
           .expect('Content-Type', /json/)
           .end(function (err, res) {
-            console.log("res.body = %j", res.body);
             token = res.body.token;
             return done(err);
           });
@@ -94,12 +93,8 @@ describe('////////////////// Timeset', function() {
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .end(function(err, res) {
-        console.log("Received err=%j res=%j", err, res);
-        if (err) {
-          done(err);
-        } else {
-          done();
-        }
+        console.log("Got this: %j", res.body);
+        done(err);
       });
   });
 

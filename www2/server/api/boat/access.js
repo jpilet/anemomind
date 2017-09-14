@@ -6,23 +6,14 @@ var User = require('../user/user.model');
 var mongoose = require('mongoose');
 var Q = require('q');
 
-function manyTimes(f) {
-  for (var i = 0; i < 30; i++) {
-    f();
-  }
-}
-
 module.exports.userCanRead = function(user, boat) {
   if (!boat) {
     return false;
   }
+
   if (boat.publicAccess === true) {
     return true;
   }
-
-  manyTimes(function() {console.log("Good so far");});
-  console.log("User is %j", user);
-  console.log("Boat is %j", boat)
 
   if (!user || !user.id || !boat) {
     return false;
