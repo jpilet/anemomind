@@ -40,6 +40,8 @@ function prepareRecord(boat, cb) {
         type: "delete",
         begin: d,
         end: d + 2000,
+        data: "Kattskit",
+        creationDate: c
       };
       var ts = new Timeset(tsData);
       ts.save(function(err, timesetId) {
@@ -114,7 +116,8 @@ describe('////////////////// Timeset', function() {
         assert(data.length == 1);
         var x = data[0];
         assert(sameDates(x.begin, d));
-        //assert(sameDates(x.creationDate, c));
+        assert(sameDates(x.creationDate, c));
+        assert(x.data == "Kattskit");
         assert(sameDates(x.end, d + 2000));
         assert(x.type == "delete");
         done(err);
