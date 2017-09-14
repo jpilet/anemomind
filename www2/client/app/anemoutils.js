@@ -1,12 +1,12 @@
 (function(exports){
 
-  function fatalError(x) {
+  exports.fatalError = function (x) {
     alert('FATAL ERROR: %j', x); 
   }
 
-  function assert(x, msg) {
+  exports.assert = function(x, msg) {
     if (!x) {
-      fatalError("Assertion failed: '%s'", msg);
+      exports.fatalError("Assertion failed: '%s'", msg);
     }
   }
 

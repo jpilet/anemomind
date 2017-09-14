@@ -204,12 +204,13 @@ angular.module('www2App')
     function deleteSession(boatId, sessionId) {
       var session = firstEntryMatchingField(
         sessionsForBoats[boatId], '_id', sessionId);
-      //assert(session, "No session found");
+      anemoutils.assert(session, "No session found");
       var op = {
         type: "delete",
-        boatId: boatId,
-        lower: session.startTime,
-        upper: session.endTime
+        boat: boatId,
+        begin: session.startTime,
+        end: session.endTime,
+        creationDate: new Date()
       };
       //accessKey(perBoatData, boatId, []).push(op);
       alert('deleteSession');
