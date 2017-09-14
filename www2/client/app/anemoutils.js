@@ -44,4 +44,4 @@
     return exports.setIn(dst, path, f(exports.getIn(dst, path)));
   }
 
-})(typeof exports === 'undefined'? this['mymodule']={}: exports);
+})(typeof exports === 'undefined'? this['anemoutils']={}: exports);
