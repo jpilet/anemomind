@@ -21,8 +21,18 @@
     var key = path[last];
     obj[key] = value;
     return root;
-  }
+  };
 
-  
+  exports.getIn = function(src, path) {
+    var obj = src;
+    for (var i in path) {
+      if (!obj) {
+        return null;
+      }
+      var key = path[i];
+      obj = obj[key];
+    }
+    return obj;
+  };
 
 })(typeof exports === 'undefined'? this['mymodule']={}: exports);
