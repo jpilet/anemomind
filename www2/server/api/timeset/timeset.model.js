@@ -9,7 +9,6 @@ var Schema = mongoose.Schema;
   
 // See also server/nautical/timesets/TimeSets.h
 var TimesetSchema = new Schema({
-  _id: Schema.ObjectId,
   boat: Schema.ObjectId,
   begin: Date,
   end: Date,

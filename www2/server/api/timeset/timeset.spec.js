@@ -18,7 +18,7 @@ function prepareRecord(boat, cb) {
     if (err) {
       cb(err);
     } else {
-      /*var boatId = boat._id;
+      var boatId = boat._id;
       var ts = new Timeset({
         boat: boatId,
         type: "delete",
@@ -27,8 +27,8 @@ function prepareRecord(boat, cb) {
       });
       ts.save(function(err, timesetId) {
         cb(err, timesetId, boatId);
-      });*/
-      cb(err);
+      });
+      cb(err, ts);
     }
   });
 }
