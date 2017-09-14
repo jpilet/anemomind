@@ -7,7 +7,7 @@ var access = require('../boat/access');
 var router = express.Router();
 
 // List all the timesets for a boat.
-router.get( // OK
+router.get( // OK, tested
   '/:boatId', 
   auth.maybeAuthenticated(), 
   access.boatReadAccess,

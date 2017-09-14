@@ -108,7 +108,6 @@ describe('////////////////// Timeset', function() {
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .end(function(err, res) {
-        console.log("Got this: %j", res.body);
         var data = res.body;
         assert(data.length == 1);
         var x = data[0];
@@ -119,23 +118,22 @@ describe('////////////////// Timeset', function() {
       });
   });
 
-  /*
-  it('GET /api/session', function(done) {
+  it('POST /api/timeset', function(done) {
     server
-      .get('/api/session/s123')
+      .post('/api/timeset/' + boat._id)
       .set('Authorization', 'Bearer ' + token)
+      .send({
+        boat: boat._id,
+        type: "delete",
+        begin: d + 1000,
+        end: d + 3000
+      })
       .expect(200)
       .end(function(err, res) {
-        if (err) {
-          done(err);
-        } else {
-          res.body.should.have.property('maxSpeedOverGround');
-          res.body.maxSpeedOverGround.should.equal(7.8);
-          done();
-        }
+        done(err);
       });
   });
-  
+  /*
   it('GET /api/session/boat', function(done) {
     getFirstBoat(function(err, boat) {
       var boatId = boat._id;

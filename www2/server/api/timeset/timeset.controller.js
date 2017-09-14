@@ -47,7 +47,9 @@ module.exports.addTimeset = function(req, res) {
     return res.sendStatus(403);
   }
   var timeset = req.body;
-  if (timeset.boatId != req.params.boatId) {
+  if (timeset.boat != req.params.boatId) {
+    console.log('timset is %j', timeset);
+    console.log("BAAAAD Boat ids %j, %j", timeset.boat, req.params.boatId);
     return res.sendStatus(400);
   }
   boatAccess.userCanWriteBoatId(req.user, req.params.boatId)
