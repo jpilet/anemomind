@@ -99,6 +99,7 @@ describe('////////////////// Timeset', function() {
         var x = data[0];
         //assert(new Date(x.begin) == d);
         //assert(new Date(x.end) == d + 2000);
+        console.log("-------- %j", new Date(x.begin));
         assert(x.type == "delete");
         done(err);
       });
