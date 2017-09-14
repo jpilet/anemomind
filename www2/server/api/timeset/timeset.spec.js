@@ -11,7 +11,8 @@ var Schema = mongoose.Schema;
 var utils = require('../testUtils.spec.js');
 var assert = require('assert');
 
-var d = new Date();
+var c = new Date();
+var d = new Date(c.getTime() + 4000);
 
 function sameDates(a, b) {
   var ad = new Date(a);
