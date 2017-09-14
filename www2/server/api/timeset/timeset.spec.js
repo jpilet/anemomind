@@ -11,8 +11,7 @@ var Schema = mongoose.Schema;
 var utils = require('../testUtils.spec.js');
 var assert = require('assert');
 
-var c = new Date()
-var d = c + 200;
+var d = new Date();
 
 function sameDates(a, b) {
   var ad = new Date(a);
@@ -78,10 +77,10 @@ describe('////////////////// Timeset', function() {
 
 
   it('Acquire auth token for timesets and initialize everything', function(done) {
-    prepareAll(function(err, u, b, d) {
-      user = u;
-      data = d;
-      boat = b;
+    prepareAll(function(err, u0, b0, d0) {
+      user = u0;
+      data = d0;
+      boat = b0;
       if (err) {
         return done(err);
       } else if (!user) {
@@ -151,16 +150,17 @@ describe('////////////////// Timeset', function() {
 
         assert(data.length == 2);
 
-        done(err);
         for (var key in data) {
           var x = data[key];
-          console.log("Visiting %j", x);
+          console.log("Visiting %j for %d/%d", x, key, data.length);
           if (sameDates(x.begin, d + 1000)) {
             assert(sameDates(x.end, d + 3000));
             assert(x.type == "ignore");
             //done(err);
           }
         }
+        done(err);
+
       });
   });
 
