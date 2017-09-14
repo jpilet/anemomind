@@ -78,7 +78,7 @@ describe('////////////////// Timeset', function() {
     });
   });
 
-  /*it('GET /api/timeset', function(done) {
+  it('GET /api/timeset', function(done) {
     server
       .get('/api/timeset/' + boat._id)
       .set('Authorization', 'Bearer ' + token)
@@ -91,7 +91,7 @@ describe('////////////////// Timeset', function() {
           done();
         }
       });
-  });*/
+  });
 
   /*
   it('GET /api/session', function(done) {

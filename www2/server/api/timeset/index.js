@@ -10,7 +10,7 @@ var router = express.Router();
 router.get( // OK
   '/:boatId', 
   auth.maybeAuthenticated(), 
-  access.boatReadAccess,
+  //access.boatReadAccess,
   controller.getTimesetsForBoat);
 
 // Push a new timeset
