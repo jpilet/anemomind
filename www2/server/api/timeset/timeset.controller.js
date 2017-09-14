@@ -5,28 +5,24 @@ var mongoose = require('mongoose');
 var boatAccess = require('../boat/access.js');
 var _ = require('lodash');
 
-function handleError(res, err) {
-  return res.status(500).send(err);
-}
-
 // Delete
 module.exports.deleteTimeset = function(req, res, next) {
-  var search = {
-    _id: req.params.timesetId,
-    boat: req.params.boatId
-  };
-  Timeset.remove(search, function(err) {
-    if (err) {
-      handleError(res, err);
-    } else {
-      boatAccess.userCanWriteBoatId(req.user, req.params.boatId)
-      .then(function() {
-        res.sendStatus(200);
-      }).catch(function(err) { 
-        res.sendStatus(403); 
+  boatAccess.userCanWriteBoatId(req.user, req.params.boatId)
+    .then(function() {
+      var search = {
+        _id: req.params.timesetId,
+        boat: req.params.boatId
+      };
+      Timeset.remove(search, function(err) {
+        if (err) {
+          res.sendStatus(422);
+        } else {
+          res.sendStatus(200);
+        }
       });
-    }
-  });
+    }).catch(function(err) { 
+      res.sendStatus(403); 
+    });
 };
 
 // Get a full list
@@ -35,7 +31,7 @@ module.exports.getTimesetsForBoat = function(req, res, next) {
   var search = { boat: boatId };
   Timeset.find(search, function(err, timesets) {
     if (err) {
-      res.status(404).end();
+      res.status(422).end();
     } else {
       res.status(200).json(timesets);
     }

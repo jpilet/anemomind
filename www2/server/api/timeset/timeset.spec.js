@@ -164,6 +164,13 @@ describe('////////////////// Timeset', function() {
       .expect(200)
       .end(done);
   });
+  
+  it('DELETE /api/timeset nonexistant', function(done) {
+    server.delete('/api/timeset/' + boat._id + '/deadbeef')
+      .set('Authorization', 'Bearer ' + token)
+      .expect(422)
+      .end(done);
+  });
 
 
   /*
