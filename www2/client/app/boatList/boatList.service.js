@@ -62,18 +62,30 @@ angular.module('www2App')
     function updateSessionRepo(newSessions) {
       for (var i in newSessions) {
         var newSession = newSessions[i];
-        if (!(newSession.boat in sessionsForBoats)) {
-          sessionsForBoats[newSession.boat] = [ ];
-        }
-        var sessionsForBoat = sessionsForBoats[newSession.boat];
+        var path = [newSession.boat, "sessionsFromServer"];
+        var dpath = [newSession.boat];
+        anemoutils.updateIn(
+          //perBoatData, path,
+          sessionsForBoats, dpath,
+          function(x) {
+            var sessionsForBoat = x || [];
+            var session = firstEntryMatchingField(
+              sessionsForBoat, '_id', newSession._id);
+            if (!session) {
+              sessionsForBoat.push(newSession);
+              curves[newSession._id] = newSession;
+            }
+            console.log("Result value: %j", sessionsForBoat);
+            return sessionsForBoat;
+          });
 
-        // make sure we do not duplicate sessions
-        var session = firstEntryMatchingField(
-          sessionsForBoat, '_id', newSession._id);
-        if (!session) {
-          sessionsForBoat.push(newSession);
-          curves[newSession._id] = newSession;
-        }
+        /*anemoutils.setIn(
+          sessionsForBoats, [newSession.boatId], 
+          anemoutils.getIn(perBoatData, path));
+
+        //console.log(anemoutils.getIn(perBoatData, path));
+        console.log("These are the sessions");
+        console.log(anemoutils.getIn(sessionsForBoats, [newSession.boatId]));*/
       }
     }
 
