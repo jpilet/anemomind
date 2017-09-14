@@ -172,31 +172,21 @@ describe('////////////////// Timeset', function() {
       .end(done);
   });
 
-
-  /*
-  it('GET /api/session/boat', function(done) {
-    getFirstBoat(function(err, boat) {
-      var boatId = boat._id;
-      var addr = '/api/session/boat/' + boatId;
-      server
-        .get(addr)
-        .set('Authorization', 'Bearer ' + token)
-        .expect(200)
-        .end(function(err, res) {
-          if (err) {
-            done(err);
-          } else {
-            var body = res.body;
-            res.body.should.be.instanceof(Array);
-            var session = res.body[0];
-            session.should.have.property('maxSpeedOverGround');
-            session.maxSpeedOverGround.should.equal(7.8);
-            done();
-          }
-        });
-    });
-  });*/
-  
+  it('GET /api/timeset', function(done) {
+    server
+      .get('/api/timeset/' + boat._id)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .end(function(err, res) {
+        var data = res.body;
+        assert(data.length == 1);
+        var x = data[0];
+        assert(sameDates(x.begin, d));
+        assert(sameDates(x.end, d + 2000));
+        assert(x.type == "delete");
+        done(err);
+      });
+  });
 
   after(function(done) {
     utils.cleanup();
