@@ -1,5 +1,15 @@
 (function(exports){
 
+  function fatalError(x) {
+    alert('FATAL ERROR: %j', x); 
+  }
+
+  function assert(x, msg) {
+    if (!x) {
+      fatalError("Assertion failed: '%s'", msg);
+    }
+  }
+
   function allocateFieldIfNeeded(obj, key) {
     if (!(key in obj)) {
       obj[key] = {};
