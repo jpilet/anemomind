@@ -96,6 +96,10 @@ describe('////////////////// Timeset', function() {
         console.log("Got this: %j", res.body);
         var data = res.body;
         assert(data.length == 1);
+        var x = data[0];
+        //assert(new Date(x.begin) == d);
+        //assert(new Date(x.end) == d + 2000);
+        assert(x.type == "delete");
         done(err);
       });
   });
