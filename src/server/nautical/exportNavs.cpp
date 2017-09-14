@@ -109,8 +109,7 @@ Array<NavField> getNavFields(const ExportSettings& format) {
       return timeToLiteralHumanReadable(x.time(), format);
     }},
     NavField{"AWA (degrees)", [=](const Nav &x) {
-      string lit = angleToLiteral(x.awa(), format, 180);
-      return lit;
+      return std::string(angleToLiteral(x.awa(), format, 180));
     }},
     NavField{"AWS (knots)", [=](const Nav &x) {
       return velocityToLiteral(x.aws(), format);
@@ -296,7 +295,14 @@ int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::st
       << output << " with format " << format;
   std::ofstream file(output);
 
-  //navs.outputSummary(&std::cout);
+  /*
+   *
+   * This is what we used to do before:
+   *
+   * navs.outputSummary(&std::cout);
+   *
+   */
+
   std::cout << navs << endl;
 
   auto sampled = makeArray(navs);
