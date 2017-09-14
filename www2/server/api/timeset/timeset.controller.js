@@ -7,22 +7,17 @@ var _ = require('lodash');
 
 // Delete
 module.exports.deleteTimeset = function(req, res, next) {
-  boatAccess.userCanWriteBoatId(req.user, req.params.boatId)
-    .then(function() {
-      var search = {
-        _id: req.params.timesetId,
-        boat: req.params.boatId
-      };
-      Timeset.remove(search, function(err) {
-        if (err) {
-          res.sendStatus(422);
-        } else {
-          res.sendStatus(200);
-        }
-      });
-    }).catch(function(err) { 
-      res.sendStatus(403); 
-    });
+  var search = {
+    _id: req.params.timesetId,
+    boat: req.params.boatId
+  };
+  Timeset.remove(search, function(err) {
+    if (err) {
+      res.sendStatus(422);
+    } else {
+      res.sendStatus(200);
+    }
+  });
 };
 
 // Get a full list
@@ -46,17 +41,12 @@ module.exports.addTimeset = function(req, res) {
   if (timeset.boat != req.params.boatId) {
     return res.sendStatus(400);
   }
-  boatAccess.userCanWriteBoatId(req.user, req.params.boatId)
-    .then(function() {
-      Timeset.create(timeset, function(err, createdTimeset) {
-        if (err) {
-          res.sendStatus(500);
-        } else {
-          res.status(200).json(createdTimeset);
-        }
-      });
-    }).catch(function(err) { 
-      res.sendStatus(403); 
-    });  
+  Timeset.create(timeset, function(err, createdTimeset) {
+    if (err) {
+      res.sendStatus(500);
+    } else {
+      res.status(200).json(createdTimeset);
+    }
+  });
 }
 
