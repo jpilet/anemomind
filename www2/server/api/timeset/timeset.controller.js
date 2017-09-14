@@ -38,7 +38,7 @@ module.exports.addTimeset = function(req, res) {
   if (timeset.boat != req.params.boatId) {
     return res.sendStatus(400);
   }
-  if (!(timeset.lower <= timeset.upper)) {
+  if (!!timeset.lower && !!timeset.upper && !(timeset.lower <= timeset.upper)) {
     return res.endStatus(400);
   }
   Timeset.create(timeset, function(err, createdTimeset) {
