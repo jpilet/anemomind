@@ -133,6 +133,25 @@ describe('////////////////// Timeset', function() {
         done(err);
       });
   });
+
+  it('GET /api/timeset a second time', function(done) {
+    server
+      .get('/api/timeset/' + boat._id)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .end(function(err, res) {
+        var data = res.body;
+        assert(data.length == 2);
+        
+        /*var x = data[0];
+        assert(sameDates(x.begin, d));
+        assert(sameDates(x.end, d + 2000));
+        assert(x.type == "delete");*/
+        done(err);
+      });
+  });
+
+
   /*
   it('GET /api/session/boat', function(done) {
     getFirstBoat(function(err, boat) {
