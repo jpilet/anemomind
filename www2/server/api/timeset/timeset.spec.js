@@ -38,8 +38,8 @@ function prepareRecord(boat, cb) {
       var tsData = {
         boat: boatId,
         type: "delete",
-        begin: d,
-        end: d + 2000,
+        lower: d,
+        upper: d + 2000,
         data: "Kattskit",
         creationDate: c
       };
@@ -115,10 +115,10 @@ describe('////////////////// Timeset', function() {
         var data = res.body;
         assert(data.length == 1);
         var x = data[0];
-        assert(sameDates(x.begin, d));
+        assert(sameDates(x.lower, d));
         assert(sameDates(x.creationDate, c));
         assert(x.data == "Kattskit");
-        assert(sameDates(x.end, d + 2000));
+        assert(sameDates(x.upper, d + 2000));
         assert(x.type == "delete");
         done(err);
       });
@@ -131,8 +131,8 @@ describe('////////////////// Timeset', function() {
       .send({
         boat: boat._id,
         type: "ignore",
-        begin: d + 1000,
-        end: d + 3000
+        lower: d + 1000,
+        upper: d + 3000
       })
       .expect(200)
       .expect('Content-Type', /json/)
@@ -156,8 +156,8 @@ describe('////////////////// Timeset', function() {
 
         for (var key in data) {
           var x = data[key];
-          if (sameDates(x.begin, d + 1000)) {
-            assert(sameDates(x.end, d + 3000));
+          if (sameDates(x.lower, d + 1000)) {
+            assert(sameDates(x.upper, d + 3000));
             assert(x.type == "ignore");
           }
         }
@@ -189,8 +189,8 @@ describe('////////////////// Timeset', function() {
         var data = res.body;
         assert(data.length == 1);
         var x = data[0];
-        assert(sameDates(x.begin, d));
-        assert(sameDates(x.end, d + 2000));
+        assert(sameDates(x.lower, d));
+        assert(sameDates(x.upper, d + 2000));
         assert(x.type == "delete");
         done(err);
       });
