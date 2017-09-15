@@ -339,17 +339,11 @@ angular.module('www2App')
 
       anemoutils.updateIn(perBoatData, [boatId, "sessions"], function(x) {
         var renderer = x || [];
-
-        console.log("Sessions before deletion");
-        console.log(renderer.renderedArray.get());
-
         renderer.addEdit(op);
-
-        console.log("Sessions after deletion");
-        console.log(renderer.renderedArray.get());
-
+        sessionsForBoats[boatId] = renderer.renderedArray.get();
         return renderer;
       });
+      $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
     }
 
     //
