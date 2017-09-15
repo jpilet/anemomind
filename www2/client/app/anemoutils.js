@@ -127,21 +127,29 @@
     this.set(f(this.get()));
   }
 
-  function compareByValue(f) {
+
+  /// Useful functions when sorting
+  function compareByValue(f, mode) {
+    var modes = {
+      'ascend': 1,
+      'descend': -1
+    };
+    var sign = modes[mode] || 1;
+
     return function(a, b) {
       var fa = f(a);
       var fb = f(b);
       if (fa < fb) {
-        return -1;
+        return -sign;
       } else if (fa > fb) {
-        return 1;
+        return sign;
       }
       return 0;
     };
   }
 
-  function compareByKey(key) {
-    return compareByValue(function(x) {return x[key];});
+  function compareByKey(key, mode) {
+    return compareByValue(function(x) {return x[key];}, mode);
   }
 
   exports.map = map;
