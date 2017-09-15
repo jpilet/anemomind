@@ -90,6 +90,9 @@ function SessionRenderer() {
     }, [this.renderedTree]);
 }
 
+// This adds a session to the SessionRenderer. Next time any of 
+// the ValueState objects are queried, they will return 
+// a value that has taken that into account.
 SessionRenderer.prototype.addSession = function(session) {
   var updated = true;
   this.idToSession.update(function(m) {
@@ -103,7 +106,15 @@ SessionRenderer.prototype.addSession = function(session) {
   return updated;
 }
 
+// This adds an edit operation to the SessionRenderer, and
+// that operation will be taken into account next time.
 SessionRenderer.prototype.addEdit = function(edit) {
+  //TODO: Small optimization: If the renderedTree is up-to-date,
+  // then we can maybe directly apply this edit to that object.
+  // For that, we would need some method .forceUpToDateWithValue,
+  // that simply sets the value, and fools the object to believe
+  // that that value is up-to-date w.r.t. its dependencies.
+
   this.edits.update(function(edits) {
     return anemoutils.push(edits, edit);
   });
@@ -312,20 +323,24 @@ angular.module('www2App')
     }
 
     function locationForCurve(curveId) {
-      // TODO: If we have many boats, will this linear search be a problem?
-      for (var boat in perBoatData) { 
-        var renderer = perBoatData[boat].sessions;
-        if (renderer) {
-          var m = renderer.renderedMap.get();
-          if (curveId in m) {
-            return m[curveId].location;
-          }
+      var boat = curveBoatId(curveId);
+      var renderer = perBoatData[boat].sessions;
+      if (renderer) {
+        var m = renderer.renderedMap.get();
+        if (curveId in m) {
+          return m[curveId].location;
         }
       }
       return undefined;
     }
 
     function deleteSession(boatId, sessionId) {
+      // This might look a bit crappy, but probably good enough.
+      // We can do something fancier with bootstrap later.
+      if (!confirm("Do you really want to delete this session?")) {
+        return;
+      }
+
       var session = firstEntryMatchingField(
         sessionsForBoats[boatId], '_id', sessionId);
       anemoutils.assert(session, "No session found");
