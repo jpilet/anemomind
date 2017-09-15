@@ -63,6 +63,10 @@
     return dst;
   }
 
+  // A session tree is a just a binary tree
+  // of sessions, where each inner node summarizes
+  // its subtree. That lets us to, on average, O(log(n))
+  // edits on n sessions.
   function buildSessionTree(nodes0) {
     var nodes = nodes0;
     while (1 < nodes.length) {

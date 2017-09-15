@@ -16,6 +16,8 @@ function countFun(dst, x) {
   return dst + 1;
 };
 
+// A function that takes a total duration and a session, and adds
+// the duration of the session to the total duration.
 var addDur = anemoutils.map(SessionOps.sessionDurationSeconds)(anemoutils.add);
 
 var sessions = rawSessions.map(SessionOps.normalizeSession);
