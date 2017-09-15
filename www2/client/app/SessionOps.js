@@ -1,7 +1,15 @@
 (function(exports){
 
+  function unwrapMaximally(x) {
+    return x.length == 1? unwrapMaximally(x[0]) : x;
+  }
+
   function pairUp(src0) {
-    var src = src0;
+    var src = unwrapMaximally(src0);
+    if (src.length <= 2) {
+      return src;
+    }
+
     var dst = [];
     while (2 <= src.length) {
       dst.push(src.slice(0, 2));
@@ -15,7 +23,7 @@
 
   function buildTree(arr) {
     var dst = arr;
-    while (1 < dst.length) {
+    while (2 < dst.length) {
       dst = pairUp(dst);
     }
     return dst;
