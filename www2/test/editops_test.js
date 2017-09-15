@@ -15,7 +15,7 @@ function stripIrrelevant(x) {
 describe('Edit ops', function() {
   console.log("Number of sessions: %d", rawSessions.length);
 
-  it('Delete operation', function() {
+  it('Delete an entire session', function() {
     var sessions = rawSessions.map(SessionOps.normalizeSession);
     
     var tree = SessionOps.buildSessionTree(sessions.map(stripIrrelevant));
@@ -51,9 +51,12 @@ describe('Edit ops', function() {
 
     var leafCount2 = SessionOps.reduceSessionTreeLeaves(countFun, 0, tree2);
     assert(leafCount2 + 1 == leafCount);
-    
-    
+  });
 
-
+  it('Delete from an empty list', function() {
+    
+    var tree = SessionOps.buildSessionTree([]);
+    assert(tree == null);
+    
   });
 });
