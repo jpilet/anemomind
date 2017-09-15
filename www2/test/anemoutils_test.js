@@ -42,23 +42,39 @@ describe('utils', function() {
     b.set(4);
 
     var c = new utils.ValueState(add, [a, b]);
+
     assert(counter == 0);
     assert(c.get() == 7);
     assert(counter == 1);
+
     assert(c.get() == 7);
-    assert(counter == 1);
+    assert(counter == 1); // no re-evaluation. Used cached value.
+
     assert(c.get() == 7);
     assert(counter == 1);
 
     a.set(10);
     
     assert(c.get() == 14);
+    assert(counter == 2);
+
 
     var d = new utils.ValueState(add, [c, a]);
     assert(d.get() == 24);
+    assert(counter == 3);
+
     assert(d.get() == 24);
+    assert(counter == 3);
     
     c.set(9);
     assert(d.get() == 19);
+    assert(counter == 4);
+
+    a.set(100);
+    assert(d.get() == 204);
+    
+    assert(counter == 6);
+
+
   });
 });
