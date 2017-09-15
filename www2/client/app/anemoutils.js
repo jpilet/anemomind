@@ -19,12 +19,16 @@
   }
 
   function fatalError(x) {
-    alert('FATAL ERROR: %j', x); 
+    alert('FATAL ERROR: ' + x); 
+    
+    // Provoke an error
+    var y = null;
+    y[x] = x;
   }
 
   function assert(x, msg) {
     if (!x) {
-      fatalError("Assertion failed: '%s'", msg);
+      fatalError("Assertion failed: " + msg);
     }
   }
 
@@ -81,10 +85,14 @@
   // other ValueState objects from which it gets
   // those values.
   function ValueState(f, args) {
+    assert(!f || typeof f == "function");
     this.value = null;
     this.version = 0;
     this.f = f;
     this.args = (args || []).map(function(valueState) {
+      if (!(valueState instanceof ValueState)) {
+        fatalError("Not a ValueState!");
+      }
       return {
         'version': null,
         'valueState': valueState
@@ -100,7 +108,11 @@
   ValueState.prototype.isUpToDate = function() {
     for (var i in this.args) {
       var arg = this.args[i];
-      if (arg.version != arg.valueState.version || !arg.valueState.isUpToDate()) {
+      console.log(this.f.toString());
+      console.log('at i = ' + i);
+      console.log('arg is %j', arg);
+      if (arg.version != arg.valueState.version 
+          || !arg.valueState.isUpToDate()) {
         return false;
       }
     }

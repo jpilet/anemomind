@@ -5,51 +5,14 @@ function sessionMapToArray(m) {
   for (var k in m) {
     dst.push(m[k]);
   }
-  dst.sort(compareByKey("startTime")); // By what
+  dst.sort(anemoutils.compareByKey("startTime")); // By what
   return dst;
 }
 
-
-function SessionRenderer() {
-  // Map of id to session. Used to detect duplicates
-  this.idToSession = new anemoutils.ValueState();
-  this.idToSession.set({});
-
-  this.rawSession = new anemoutils.ValueState(
-    s);
-
-  // The session tree
-  this.renderedTree = new anemoutils.ValueState(
-    SessionOps.buildSessionTree, [this.rawSessions]);
-
-  this.renderedArray = new anemoutils.ValueState();
-  this.renderedMap = null;
-
-  this._edits = [];
-}
-
-SessionRenderer.prototype.addSession = function(session) {
-  var updated = true;
-  this.idToSession.update(function(m) {
-    if (session._id in m) {
-      updated = false;
-    } else {
-      m[session._id] = session;
-    }
-    return m;
-  });
-  return updated;
-}
-
-SessionRenderer.prototype.rawSessions = function() {
-}
-
-SessionRenderer.prototype.addEdit = function(edit) {
-  this._edits.push(edit);
-  if (this._renderedTree) {
-    this._renderedTree = SessionOps.applyEdit(
-      this._renderedTree, edit);
-  }
+function makeSessionTree(rawSessions, edits) {
+  return edits.reduce(
+    SessionOps.applyEdit,
+    SessionOps.buildSessionTree(rawSessions));
 }
 
 // This function is needed in case we 
@@ -68,20 +31,13 @@ function assignSessionId(session) {
   return session;
 }
 
-SessionRenderer.prototype.renderSessions = function(addSession, initialCollection) {
-  if (!this._renderedTree) {
-    // Rebuild the tree
-    this._renderedTree = this._edits.reduce(
-      SessionOps.applyEdit, 
-      ));
-  }
+// Takes a function 'addSession', an initial empty collection
+// e.g. ( [] or {} ) and a tree. Populates the provided collection
+// with the data from the tree, using 'addSession'.
+function renderSessions(addSession, initialCollection, tree) {
   return SessionOps.reduceSessionTreeLeaves(
     anemoutils.map(assignSessionId)(addSession), 
-    initialCollection, this._renderedTree);
-}
-
-SessionRenderer.prototype.renderedSessionArray = function() {
-  return this.renderSessions(anemoutils.push, []);
+    initialCollection, tree);
 }
 
 function addSessionToMap(m, session) {
@@ -89,8 +45,53 @@ function addSessionToMap(m, session) {
   return m;
 }
 
-SessionRenderer.prototype.renderedSessionMap = function() {
-  return this.renderSessions(addSessionToMap, {});
+function SessionRenderer() {
+  // Map of id to session. Used to detect duplicates
+  this.idToSession = new anemoutils.ValueState();
+  this.idToSession.set({});
+
+  // Array of edits
+  this.edits = new anemoutils.ValueState();
+  this.edits.set([]);
+
+  // Array of raw sessions
+  this.rawSessions = new anemoutils.ValueState(
+    sessionMapToArray, [this.idToSession]);
+
+  // The session tree, after all edits were applied
+  this.renderedTree = new anemoutils.ValueState(
+    makeSessionTree, [this.rawSessions, this.edits]);
+
+  // Rendered sessions, in the form of an array
+  this.renderedArray = new anemoutils.ValueState(
+    function(tree) {
+      return renderSessions(anemoutils.push, [], tree);
+    }, [this.renderedTree]);
+
+  // A map from all the rendered sessions.
+  this.renderedMap = new anemoutils.ValueState(
+    function(tree) {
+      return renderSessions(addSessionToMap, {}, tree);
+    }, [this.renderedTree]);
+}
+
+SessionRenderer.prototype.addSession = function(session) {
+  var updated = true;
+  this.idToSession.update(function(m) {
+    if (session._id in m) {
+      updated = false;
+    } else {
+      m[session._id] = session;
+    }
+    return m;
+  });
+  return updated;
+}
+
+SessionRenderer.prototype.addEdit = function(edit) {
+  this.edits.update(function(edits) {
+    return anemoutils.push(edits, edit);
+  });
 }
 
 angular.module('www2App')
@@ -180,7 +181,7 @@ angular.module('www2App')
         var renderer = anemoutils.getIn(perBoatData, srcPath);
         anemoutils.setIn(
           sessionsForBoats, dstPath, 
-          renderer.renderedSessionArray());
+          renderer.renderedArray.get());
       }
     }
 
