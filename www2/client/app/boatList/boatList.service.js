@@ -19,9 +19,9 @@ function makeSessionTree(rawSessions, edits) {
 // have two new sessions resulting from splitting 
 // a session.
 function assignSessionId(session) {
-  anemoutils.assert(session.boat);
-  anemoutils.assert(session.startTime instanceof Date);
-  anemoutils.assert(session.endTime instanceof Date);
+  anemoutils.assert(session.boat, "No boat id");
+  anemoutils.assert(session.startTime instanceof Date, "Bad start time");
+  anemoutils.assert(session.endTime instanceof Date, "Bad end time");
   if (!session._id) {
     session._id = makeCurveId(
       session.boat, 
@@ -81,7 +81,7 @@ SessionRenderer.prototype.addSession = function(session) {
     if (session._id in m) {
       updated = false;
     } else {
-      m[session._id] = session;
+      m[session._id] = SessionOps.normalizeSession(session);
     }
     return m;
   });

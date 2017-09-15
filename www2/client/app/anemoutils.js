@@ -85,7 +85,7 @@
   // other ValueState objects from which it gets
   // those values.
   function ValueState(f, args) {
-    assert(!f || typeof f == "function");
+    assert(!f || typeof f == "function", "ValueState, f should be a function");
     this.value = null;
     this.version = 0;
     this.f = f;
