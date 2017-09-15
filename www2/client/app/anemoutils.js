@@ -72,6 +72,57 @@
     return setIn(dst, path, f(getIn(dst, path)));
   }
 
+  // ValueState is used to facilitate caching, so
+  // that we only recompute things when they are
+  // needed.
+  //
+  // As arguments, it accepts a function, that 
+  // will compute its value, and an array of 
+  // other ValueState objects from which it gets
+  // those values.
+  function ValueState(f, args) {
+    this.value = null;
+    this.version = 0;
+    this.f = f;
+    this.args = (args || []).map(function(valueState) {
+      return {
+        'version': null,
+        'valueState': valueState
+      };
+    });
+  }
+
+  ValueState.prototype.set = function(newValue) {
+    this.value = newValue;
+    this.version += 1;
+  }
+
+  ValueState.prototype.isUpToDate = function() {
+    for (var i in this.args) {
+      var arg = this.args[i];
+      if (arg.version != arg.valueState.version || !arg.valueState.isUpToDate()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  ValueState.prototype.get = function() {
+    if (this.isUpToDate()) {
+      return this.value;
+    }
+    var args = new Array(this.args.length);
+    for (var i in this.args) {
+      var arg = this.args[i];
+      args[i] = arg.valueState.get();
+      arg.version = arg.valueState.version;
+    }
+    if (this.f) {
+      this.value = this.f.apply(null, args);
+    }
+    return this.value;
+  }
+
   exports.kattskit = function() {
     console.log("Kattskit");
   }
@@ -83,5 +134,6 @@
   exports.fatalError = fatalError;
   exports.push = push;
   exports.add = add;
+  exports.ValueState = ValueState;
 
 })(typeof exports === 'undefined'? this['anemoutils']={}: exports);

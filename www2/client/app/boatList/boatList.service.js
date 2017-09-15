@@ -6,8 +6,16 @@ function SessionRenderer() {
   
   // The rendered result.
   this._renderedTree = null;
+  this._renderedArray = null;
+  this._renderedMap = null;
 
   this._edits = [];
+}
+
+SessionRenderer.prototype.markAsDirty = function() {
+  this._renderedTree = null;
+  this._renderedArray = null;
+  this._renderedMap = null;
 }
 
 SessionRenderer.prototype.addSession = function(session) {
@@ -15,7 +23,7 @@ SessionRenderer.prototype.addSession = function(session) {
     return false; // Don't accept duplicates
   }
   this.idToSession[session._id] = SessionOps.normalizeSession(session);
-  this._renderedTree = null;
+  this.markAsDirty();
   return true;
 }
 

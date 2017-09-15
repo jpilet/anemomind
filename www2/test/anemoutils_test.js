@@ -25,4 +25,26 @@ describe('utils', function() {
     utils.updateIn(x, ['a', 'b'], inc);
     assert(x.a.b == 2);
   });
+
+  it('valueState', function() {
+    var a = new utils.ValueState();
+    a.set(3);
+
+    var b = new utils.ValueState();
+    b.set(4);
+
+    var c = new utils.ValueState(utils.add, [a, b]);
+    assert(c.get() == 7);
+
+    a.set(10);
+    
+    assert(c.get() == 14);
+
+    var d = new utils.ValueState(utils.add, [c, a]);
+    assert(d.get() == 24);
+    assert(d.get() == 24);
+    
+    c.set(9);
+    assert(d.get() == 19);
+  });
 });
