@@ -312,11 +312,10 @@ angular.module('www2App')
     }
 
     function locationForCurve(curveId) {
-      for (var boat in perBoatData) {
+      // TODO: If we have many boats, will this linear search be a problem?
+      for (var boat in perBoatData) { 
         var renderer = perBoatData[boat].sessions;
         if (renderer) {
-          console.log("Renderer is ");
-          console.log(renderer);
           var m = renderer.renderedMap.get();
           if (curveId in m) {
             return m[curveId].location;
@@ -337,20 +336,20 @@ angular.module('www2App')
         upper: session.endTime,
         creationTime: new Date()
       };
-      anemoutils.updateIn(perBoatData, [boatId, "edits"], function(x) {
-        var dst = x || [];
-        dst.push(op);
-        return dst;
+
+      anemoutils.updateIn(perBoatData, [boatId, "sessions"], function(x) {
+        var renderer = x || [];
+
+        console.log("Sessions before deletion");
+        console.log(renderer.renderedArray.get());
+
+        renderer.addEdit(op);
+
+        console.log("Sessions after deletion");
+        console.log(renderer.renderedArray.get());
+
+        return renderer;
       });
-
-      var edits = anemoutils.getIn(perBoatData, [boatId, "edits"]);
-      console.log("----------- All edits");
-      for (var i in edits) {
-        console.log("Edit: ");
-        console.log(edits[i]);
-      }
-
-      alert('deleteSession');
     }
 
     //

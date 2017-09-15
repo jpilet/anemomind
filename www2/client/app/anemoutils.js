@@ -108,9 +108,6 @@
   ValueState.prototype.isUpToDate = function() {
     for (var i in this.args) {
       var arg = this.args[i];
-      console.log(this.f.toString());
-      console.log('at i = ' + i);
-      console.log('arg is %j', arg);
       if (arg.version != arg.valueState.version 
           || !arg.valueState.isUpToDate()) {
         return false;
