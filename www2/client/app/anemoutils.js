@@ -9,18 +9,11 @@
     return a + b;
   }
 
+  // Lets us generalize the operation of 'map' to many situations.
   function map(f) { // Returns a  mapping transducer
     return function(r /*old reducing function*/) { // The transducer
       return function(acc /*accumulated value*/, x/*new value*/) { // The new reducing function
         return r(acc, f(x));
-      }
-    }
-  }
-
-  function filter(f) { // Returns a filtering transducer
-    return function(r /*old reducing function*/) { // The transducer
-      return function(acc /*accumulated value*/, x/*new value*/) { // The new reducing function
-        return f(x)? r(acc, x) : acc;
       }
     }
   }

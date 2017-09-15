@@ -66,7 +66,6 @@ describe('Edit ops', function() {
 
     assert(renderedSessions instanceof Array);
     assert(renderedSessions.length == 0);
-    
   });
 
   it('Delete a session in the middle, making two sessions', function() {
@@ -77,11 +76,11 @@ describe('Edit ops', function() {
     var index = 3;
     var sessionToDelete = sessions[index];
 
-    var margin = 2*60*60; // Two hours
+    var marginSeconds = 2*60*60; // Two hours, in seconds
     var tree2 = SessionOps.applyEdit(tree, {
       type: "delete",
-      lower: new Date(sessionToDelete.startTime.getTime() + margin*1000),
-      upper: new Date(sessionToDelete.endTime.getTime() - margin*1000),
+      lower: new Date(sessionToDelete.startTime.getTime() + marginSeconds*1000),
+      upper: new Date(sessionToDelete.endTime.getTime() - marginSeconds*1000),
     });
 
     leafCount2 = SessionOps.reduceSessionTreeLeaves(countFun, 0, tree2);
@@ -89,7 +88,8 @@ describe('Edit ops', function() {
     totalDur2 = SessionOps.reduceSessionTreeLeaves(addDur, 0, tree2);
 
     var dif0 = (totalDur - totalDur2);
-    var dif1 = SessionOps.sessionDurationSeconds(sessionToDelete) - margin - margin;
+    var dif1 = SessionOps.sessionDurationSeconds(sessionToDelete) 
+        - marginSeconds - marginSeconds;
     assert(Math.abs(dif0 - dif1) < 0.1);
   });
 });

@@ -24,6 +24,8 @@
                   - session.startTime.getTime());
   }
 
+  // Used to construct a binary session node.
+  // If any argument is null
   function binarySessionNode(left, right) {
     if (!left) {
       return right;
@@ -43,6 +45,9 @@
     return !x.left;
   }
 
+  // Helper function used by 'buildSessionTree':
+  // Given an array of session nodes, 
+  // Make pairs.
   function pairUp(nodes) {
     if (nodes.length <= 1) {
       return nodes;
@@ -124,6 +129,7 @@
       cropSession(tree, edit.upper, tree.endTime));
   }
 
+  // Implementation of the delete operation.
   function applyDelete(tree, edit) {
     if (!overlap(tree, edit)) {
       return tree;
@@ -136,6 +142,8 @@
     }
   }
 
+  // Applies a single edit operation to
+  // a session tree.
   function applyEdit(tree, edit) {
     var ops = {
       "delete": applyDelete
