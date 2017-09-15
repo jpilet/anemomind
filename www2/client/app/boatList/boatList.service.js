@@ -20,9 +20,12 @@ angular.module('www2App')
       boatDict = { };
       curves = { }; // Map from session id to some data.
 
-      // TODO: Consider moving this into perBoatData.
-      sessionsForBoats = {}; // Map from boatId to array of sessions
+      // Stores the edited set of sessions, as they should be
+      // displayed on the client.
+      sessionsForBoats = {}; 
 
+      // Stores all the extra hidden state regarding the boats,
+      // such as per-boat edits, raw server sessions, etc.
       perBoatData = {}; // Map from boatId to data related to that boat
 
       loadedFor = undefined;
@@ -62,30 +65,30 @@ angular.module('www2App')
     function updateSessionRepo(newSessions) {
       for (var i in newSessions) {
         var newSession = newSessions[i];
-        var path = [newSession.boat, "sessionsFromServer"];
+        var path = [newSession.boat, "rawSessions"];
         var dpath = [newSession.boat];
         anemoutils.updateIn(
-          //perBoatData, path,
-          sessionsForBoats, dpath,
+          perBoatData, path,
           function(x) {
             var sessionsForBoat = x || [];
             var session = firstEntryMatchingField(
               sessionsForBoat, '_id', newSession._id);
             if (!session) {
               sessionsForBoat.push(newSession);
+
+              // TODO: Check if it is chronological.
+              // TODO: Also pass it through all the ops
+
               curves[newSession._id] = newSession;
             }
-            console.log("Result value: %j", sessionsForBoat);
             return sessionsForBoat;
           });
 
-        /*anemoutils.setIn(
-          sessionsForBoats, [newSession.boatId], 
+        anemoutils.setIn(
+          sessionsForBoats, dpath, 
           anemoutils.getIn(perBoatData, path));
 
-        //console.log(anemoutils.getIn(perBoatData, path));
-        console.log("These are the sessions");
-        console.log(anemoutils.getIn(sessionsForBoats, [newSession.boatId]));*/
+        console.log("Latest data: %s", JSON.stringify(anemoutils.getIn(perBoatData, path)));
       }
     }
 
