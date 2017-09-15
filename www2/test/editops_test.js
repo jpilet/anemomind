@@ -12,6 +12,12 @@ function stripIrrelevant(x) {
   };
 }
 
+function countFun(dst, x) {
+  return dst + 1;
+};
+
+var addDur = anemoutils.map(SessionOps.sessionDurationSeconds)(anemoutils.add);
+
 var sessions = rawSessions.map(SessionOps.normalizeSession);
 
 describe('Edit ops', function() {
@@ -24,14 +30,10 @@ describe('Edit ops', function() {
     assert(tree.startTime == sessions[0].startTime);
     assert(tree.endTime + '' == sessions[sessions.length-1].endTime);
 
-    var countFun = function(dst, x) {
-      return dst + 1;
-    };
     var leafCount = SessionOps.reduceSessionTreeLeaves(countFun, 0, tree);
 
     assert(sessions.length == leafCount);
 
-    var addDur = anemoutils.map(SessionOps.sessionDurationSeconds)(anemoutils.add);
     var totalDuration = SessionOps.reduceSessionTreeLeaves(addDur, 0, tree);
 
     console.log("Total duration is " + totalDuration/3600 + " hours");
@@ -49,7 +51,7 @@ describe('Edit ops', function() {
     var totalDuration2 = SessionOps.reduceSessionTreeLeaves(addDur, 0, tree2);
     console.log("New duration: " + totalDuration2/3600 + " hours");
     assert(Math.abs((totalDuration - totalDuration2) - durationToDelete) < 1.0e3);
-
+    
     var leafCount2 = SessionOps.reduceSessionTreeLeaves(countFun, 0, tree2);
     assert(leafCount2 + 1 == leafCount);
   });
@@ -69,5 +71,20 @@ describe('Edit ops', function() {
 
   it('Delete a session in the middle, making two sessions', function() {
     var tree = SessionOps.buildSessionTree(sessions);
+
+    var index = 3;
+    var sessionToDelete = sessions[index];
+    var durationToDelete = SessionOps.sessionDurationSeconds(sessionToDelete);
+
+    var margin = 2*60*60*1000; // Two hours
+    var tree2 = SessionOps.applyEdit(tree, {
+      type: "delete",
+      lower: new Date(sessionToDelete.startTime.getTime() + margin),
+      upper: new Date(sessionToDelete.endTime.getTime() - margin),
+    });
+
+    leafCount2 = SessionOps.reduceSessionTreeLeaves(countFun, 0, tree2);
+    assert(leafCount2 == sessions.length + 1);
+    
   });
 });
