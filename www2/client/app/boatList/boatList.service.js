@@ -162,13 +162,9 @@ angular.module('www2App')
         var srcPath = [boatId, "sessions"];
         var dstPath = [boatId];
         var renderer = anemoutils.getIn(perBoatData, srcPath);
-        
-        console.log("The rendered sessions are %j", 
-                    renderer.renderedSessionArray());
-        
         anemoutils.setIn(
           sessionsForBoats, dstPath, 
-          renderer.rawSessions());
+          renderer.renderedSessionArray());
       }
     }
 
