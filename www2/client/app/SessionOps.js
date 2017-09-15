@@ -46,7 +46,7 @@
   // Applies an edit operation to a tree
   function applyEdit(tree, edit) {
     var ops = {
-      "delete": applyDelete;
+      "delete": applyDelete
     };
     var op = ops[edit.type];
     if (op) {
