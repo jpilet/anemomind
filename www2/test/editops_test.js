@@ -50,6 +50,7 @@ describe('Edit ops', function() {
     assert(Math.abs((totalDuration - totalDuration2) - durationToDelete) < 1.0e3);
 
     var leafCount2 = SessionOps.reduceSessionTreeLeaves(countFun, 0, tree2);
+    assert(leafCount2 + 1 == leafCount);
     
     
 
