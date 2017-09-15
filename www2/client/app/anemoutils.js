@@ -72,6 +72,9 @@
     return setIn(dst, path, f(getIn(dst, path)));
   }
 
+  exports.kattskit = function() {
+    console.log("Kattskit");
+  }
   exports.map = map;
   exports.getIn = getIn;
   exports.setIn = setIn;

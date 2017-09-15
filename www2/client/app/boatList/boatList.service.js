@@ -67,6 +67,10 @@ angular.module('www2App')
         var newSession = newSessions[i];
         var path = [newSession.boat, "rawSessions"];
         var dpath = [newSession.boat];
+
+        console.log("anemoutils: ");
+        console.log(anemoutils);
+
         anemoutils.updateIn(
           perBoatData, path,
           function(x) {

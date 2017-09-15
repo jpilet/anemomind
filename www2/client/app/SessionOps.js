@@ -167,4 +167,4 @@
   exports.sessionDurationSeconds = sessionDurationSeconds;
   exports.applyEdit = applyEdit;
 
-})(typeof exports === 'undefined'? this['anemoutils']={}: exports);
+})(typeof exports === 'undefined'? this['SessionOps']={}: exports);
