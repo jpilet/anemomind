@@ -113,7 +113,6 @@ angular.module('www2App')
   .service('boatList', function (Auth, $http, $q,socket, $rootScope,$log) {
     var boats = [ ];
     var boatDict = { };
-    var curves = { };
     var sessionsForBoats = {};
     var perBoatData = {};
 
@@ -127,7 +126,6 @@ angular.module('www2App')
     function clear() {
       boats = [ ];
       boatDict = { };
-      curves = { }; // Map from session id to some data.
 
       // Stores the edited set of sessions, as they should be
       // displayed on the client.
@@ -182,9 +180,7 @@ angular.module('www2App')
           perBoatData, path,
           function(renderer0) {
             var renderer = renderer0 || new SessionRenderer();
-            if (renderer.addSession(newSession)) {
-              curves[newSession._id] = newSession;
-            }
+            renderer.addSession(newSession);
             return renderer;
           });
       }
@@ -315,14 +311,19 @@ angular.module('www2App')
       return promise;
     }
 
-
-    // TODO
     function locationForCurve(curveId) {
-      if (!(curveId in curves)) {
-        return undefined;
+      for (var boat in perBoatData) {
+        var renderer = perBoatData[boat].sessions;
+        if (renderer) {
+          console.log("Renderer is ");
+          console.log(renderer);
+          var m = renderer.renderedMap.get();
+          if (curveId in m) {
+            return m[curveId].location;
+          }
+        }
       }
-      var c = curves[curveId];
-      return c.location;
+      return undefined;
     }
 
     function deleteSession(boatId, sessionId) {
@@ -368,8 +369,7 @@ angular.module('www2App')
       sessions: function() { return $.extend({}, sessionsForBoats); },
       sessionsForBoat: function(boatId) { return sessionsForBoats[boatId]; },
 
-      // This function is no longer used.
-      // getCurveData: function(curveId) { return curves[curveId]; },
+      // This function is no longer used: getCurveData: function(curveId) { return curves[curveId]; },
 
       getDefaultBoat: getDefaultBoat,
       locationForCurve: locationForCurve,
