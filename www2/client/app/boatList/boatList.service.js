@@ -1,5 +1,32 @@
 'use strict';
 
+function SessionRenderer() {
+  // Map of id to session. Used to detect duplicates
+  this.idToSession = {};
+  
+  // The rendered result.
+  this._renderedTree = null;
+}
+
+SessionRenderer.prototype.addSession = function(session) {
+  if (session._id in this.idToSession) {
+    return false; // Don't accept duplicates
+  }
+  this.idToSession[session._id] = SessionOps.normalizeSession(session);
+  this._renderedTree = null;
+  return true;
+}
+
+SessionRenderer.prototype.rawSessions = function() {
+  var dst = [];
+  for (var k in this.idToSession) {
+    dst.push(this.idToSession[k]);
+  }
+  dst.sort();
+  return dst;
+}
+
+
 angular.module('www2App')
   .service('boatList', function (Auth, $http, $q,socket, $rootScope,$log) {
     var boats = [ ];
@@ -65,16 +92,14 @@ angular.module('www2App')
     function updateSessionRepo(newSessions) {
       for (var i in newSessions) {
         var newSession = newSessions[i];
-        var path = [newSession.boat, "rawSessions"];
+        var path = [newSession.boat, "editor"];
         var dpath = [newSession.boat];
-
-        console.log("anemoutils: ");
-        console.log(anemoutils);
 
         anemoutils.updateIn(
           perBoatData, path,
           function(x) {
-            var sessionsForBoat = x || [];
+            var renderer = x || new SessionRenderer();
+            
             var session = firstEntryMatchingField(
               sessionsForBoat, '_id', newSession._id);
             if (!session) {
@@ -92,7 +117,7 @@ angular.module('www2App')
           sessionsForBoats, dpath, 
           anemoutils.getIn(perBoatData, path));
 
-        console.log("Latest data: %s", JSON.stringify(anemoutils.getIn(perBoatData, path)));
+        //console.log("Latest data: %s", JSON.stringify(anemoutils.getIn(perBoatData, path)));
       }
     }
 
