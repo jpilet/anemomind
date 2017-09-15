@@ -1,5 +1,5 @@
-var SessionOps = require('../client/app/SessionOps.js');
 var anemoutils = require('../client/app/anemoutils.js');
+var SessionOps = require('../client/app/SessionOps.js');
 var assert = require('assert');
 
 // From Courdlineone
@@ -12,14 +12,15 @@ function stripIrrelevant(x) {
   };
 }
 
+var sessions = rawSessions.map(SessionOps.normalizeSession);
+
 describe('Edit ops', function() {
   console.log("Number of sessions: %d", rawSessions.length);
 
   it('Delete an entire session', function() {
-    var sessions = rawSessions.map(SessionOps.normalizeSession);
     
     var tree = SessionOps.buildSessionTree(sessions.map(stripIrrelevant));
-    console.log(JSON.stringify(tree, null, 4));
+    //console.log(JSON.stringify(tree, null, 4));
     assert(tree.startTime == sessions[0].startTime);
     assert(tree.endTime + '' == sessions[sessions.length-1].endTime);
 
@@ -64,5 +65,9 @@ describe('Edit ops', function() {
     assert(renderedSessions instanceof Array);
     assert(renderedSessions.length == 0);
     
+  });
+
+  it('Delete a session in the middle, making two sessions', function() {
+    var tree = SessionOps.buildSessionTree(sessions);
   });
 });

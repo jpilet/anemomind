@@ -103,15 +103,25 @@
     return binaryDateOp(Math.min, a, b);
   }
 
-  function applyDeleteToLeaf(tree, edit) {
-    if (edit.lower <= tree.startTime && tree.endTime <= edit.upper) {
-      return null; // Complete overlap
-    } else {
-      var edited = shallowCopy(tree);
-      edited.startTime = maxDate(tree.startTime, edit.lower);
-      edited.endTime = minDate(tree.endTime, edit.upper);
-      return edited;
+  function cropSession(tree, lower, upper) {
+    if (upper <= lower) {
+      return null;
     }
+    var dst = shallowCopy(tree);
+
+    // It could be that deletion results in two new sessions
+    // and then they should not have the same id.
+    delete dst._id;
+
+    dst.startTime = lower;
+    dst.endTime = upper;
+    return dst;
+  }
+
+  function applyDeleteToLeaf(tree, edit) {
+    return binarySessionNode(
+      cropSession(tree, tree.startTime, edit.lower),
+      cropSession(tree, edit.upper, tree.endTime));
   }
 
   function applyDelete(tree, edit) {
