@@ -96,6 +96,10 @@ describe('Edit ops', function() {
     assert(!sessions2[index]._id);
     assert(!sessions2[index+1]._id);
 
+    // But the other ones should have...
+    assert(sessions2[index-1]._id);
+    assert(sessions2[index+2]._id);
+
     var dif0 = (totalDur - totalDur2);
     var dif1 = SessionOps.sessionDurationSeconds(sessionToDelete) 
         - marginSeconds - marginSeconds;
