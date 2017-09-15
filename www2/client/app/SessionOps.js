@@ -43,6 +43,20 @@
       }, dst);
   }
 
+  // Applies an edit operation to a tree
+  function applyEdit(tree, edit) {
+    var ops = {
+      "delete": applyDelete;
+    };
+    var op = ops[edit.type];
+    if (op) {
+      return op(tree, edit);
+    } else {
+      console.log("Edit operation '" + edit.type + "' not recognized");
+      return tree;
+    }
+  }
+
   function Editor() {
 
     // Maps session id to session data
