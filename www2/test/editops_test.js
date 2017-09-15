@@ -72,19 +72,24 @@ describe('Edit ops', function() {
   it('Delete a session in the middle, making two sessions', function() {
     var tree = SessionOps.buildSessionTree(sessions);
 
+    var totalDur = SessionOps.reduceSessionTreeLeaves(addDur, 0, tree);
+
     var index = 3;
     var sessionToDelete = sessions[index];
-    var durationToDelete = SessionOps.sessionDurationSeconds(sessionToDelete);
 
-    var margin = 2*60*60*1000; // Two hours
+    var margin = 2*60*60; // Two hours
     var tree2 = SessionOps.applyEdit(tree, {
       type: "delete",
-      lower: new Date(sessionToDelete.startTime.getTime() + margin),
-      upper: new Date(sessionToDelete.endTime.getTime() - margin),
+      lower: new Date(sessionToDelete.startTime.getTime() + margin*1000),
+      upper: new Date(sessionToDelete.endTime.getTime() - margin*1000),
     });
 
     leafCount2 = SessionOps.reduceSessionTreeLeaves(countFun, 0, tree2);
     assert(leafCount2 == sessions.length + 1);
-    
+    totalDur2 = SessionOps.reduceSessionTreeLeaves(addDur, 0, tree2);
+
+    var dif0 = (totalDur - totalDur2);
+    var dif1 = SessionOps.sessionDurationSeconds(sessionToDelete) - margin - margin;
+    assert(Math.abs(dif0 - dif1) < 0.1);
   });
 });
