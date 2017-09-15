@@ -1,12 +1,17 @@
 (function(exports){
 
-  exports.fatalError = function (x) {
+  function push(dst, x) {
+    dst.push(x);
+    return dst;
+  }
+
+  function fatalError(x) {
     alert('FATAL ERROR: %j', x); 
   }
 
-  exports.assert = function(x, msg) {
+  function assert(x, msg) {
     if (!x) {
-      exports.fatalError("Assertion failed: '%s'", msg);
+      fatalError("Assertion failed: '%s'", msg);
     }
   }
 
@@ -17,7 +22,7 @@
   }
 
   // Set a value deeply in a datastructure
-  exports.setIn = function(dst, path, value) {
+  function setIn(dst, path, value) {
     if (path.length == 0) {
       return value;
     }
@@ -35,7 +40,7 @@
   };
 
   // Get a value from deep inside a datastructure
-  exports.getIn = function(src, path) {
+  function getIn(src, path) {
     var obj = src;
     for (var i in path) {
       if (!obj) {
@@ -48,10 +53,17 @@
   };
 
   // Update a value in a deep data structure
-  exports.updateIn = function(dst, path, f) {
+  function updateIn(dst, path, f) {
     // Not optimized, but simple.
     // TODO: Optimize it.
-    return exports.setIn(dst, path, f(exports.getIn(dst, path)));
+    return setIn(dst, path, f(getIn(dst, path)));
   }
+
+  exports.getIn = getIn;
+  exports.setIn = setIn;
+  exports.updateIn = updateIn;
+  exports.assert = assert;
+  exports.fatalError = fatalError;
+  exports.push = push;
 
 })(typeof exports === 'undefined'? this['anemoutils']={}: exports);

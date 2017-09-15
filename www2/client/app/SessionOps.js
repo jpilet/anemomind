@@ -4,6 +4,9 @@
     return x.length == 1? unwrapMaximally(x[0]) : x;
   }
 
+  // Given an array of items, build pairs.
+  // Removes unnecessary wrapping and, if 
+  // the array is already a pair, returns it.
   function pairUp(src0) {
     var src = unwrapMaximally(src0);
     if (src.length <= 2) {
@@ -20,13 +23,24 @@
     }
     return dst;
   }
-
+  
+  // Constructs a binary tree from an array
   function buildTree(arr) {
     var dst = arr;
     while (2 < dst.length) {
       dst = pairUp(dst);
     }
     return dst;
+  }
+
+  // Flattens a tree into 'dst', by repeatedly applying 
+  // f(dst, x) with x being the next element in the tree,
+  // depth first, left-to-right.
+  function flattenTree(f, dst, src) {
+    return (!(src instanceof Array))?
+      f(dst, src) : src.reduce(function(acc, x) {
+        return flattenTree(f, acc, x)
+      }, dst);
   }
 
   function Editor() {
@@ -56,5 +70,6 @@
 
 
   exports.buildTree = buildTree;
+  exports.flattenTree = flattenTree;
 
 })(typeof exports === 'undefined'? this['anemoutils']={}: exports);
