@@ -2,24 +2,20 @@
 
 function SessionRenderer() {
   // Map of id to session. Used to detect duplicates
-  this.idToSession = {};
+  this.idToSession = new anemoutils.ValueState();
+  this.idToSession.set({});
   
   // The rendered result.
-  this._renderedTree = null;
-  this._renderedArray = null;
+  this._renderedTree = new anemoutils.ValueState();
+
+  this._renderedArray = new anemoutils.ValueState();
   this._renderedMap = null;
 
   this._edits = [];
 }
 
-SessionRenderer.prototype.markAsDirty = function() {
-  this._renderedTree = null;
-  this._renderedArray = null;
-  this._renderedMap = null;
-}
-
 SessionRenderer.prototype.addSession = function(session) {
-  if (session._id in this.idToSession) {
+  if (session._id in this.idToSession.get()) {
     return false; // Don't accept duplicates
   }
   this.idToSession[session._id] = SessionOps.normalizeSession(session);

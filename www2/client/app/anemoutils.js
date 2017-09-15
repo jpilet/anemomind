@@ -123,6 +123,10 @@
     return this.value;
   }
 
+  ValueState.prototype.update = function(f) {
+    this.set(f(this.get()));
+  }
+
   exports.kattskit = function() {
     console.log("Kattskit");
   }

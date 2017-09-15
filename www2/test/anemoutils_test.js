@@ -72,8 +72,14 @@ describe('utils', function() {
 
     a.set(100);
     assert(d.get() == 204);
-    
     assert(counter == 6);
+
+    a.update(function(x) {return x + 1;});
+
+    assert(d.get() == 206);
+    assert(counter == 8);
+
+    
 
 
   });
