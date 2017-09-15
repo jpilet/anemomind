@@ -1,89 +1,79 @@
 (function(exports){
 
-  function unwrapMaximally(x) {
-    return x.length == 1? unwrapMaximally(x[0]) : x;
+  function toDate(x) {
+    return x instanceof Date? x : new Date(x);
   }
 
-  // Given an array of items, build pairs.
-  // Removes unnecessary wrapping and, if 
-  // the array is already a pair, returns it.
-  function pairUp(src0) {
-    var src = unwrapMaximally(src0);
-    if (src.length <= 2) {
-      return src;
-    }
-
-    var dst = [];
-    while (2 <= src.length) {
-      dst.push(src.slice(0, 2));
-      src = src.slice(2);
-    }
-    if (1 == src.length) {
-      dst.push(src[0]);
-    }
-    return dst;
-  }
-  
-  // Constructs a binary tree from an array
-  function buildTree(arr) {
-    var dst = arr;
-    while (2 < dst.length) {
-      dst = pairUp(dst);
-    }
-    return dst;
+  function normalizeSession(session) {
+    session.startTime = toDate(session.startTime);
+    session.endTime = toDate(session.endTime);
+    return session;
   }
 
-  // Flattens a tree into 'dst', by repeatedly applying 
-  // f(dst, x) with x being the next element in the tree,
-  // depth first, left-to-right.
-  function flattenTree(f, dst, src) {
-    return (!(src instanceof Array))?
-      f(dst, src) : src.reduce(function(acc, x) {
-        return flattenTree(f, acc, x)
-      }, dst);
+  function sessionDurationSeconds(session) {
+    return 0.001*(session.endTime.getTime() 
+                  - session.start.getTime());
   }
 
-  // Applies an edit operation to a tree
-  function applyEdit(tree, edit) {
-    var ops = {
-      "delete": applyDelete
+  function binarySessionNode(left, right) {
+    if (!left) {
+      return right;
+    }
+    if (!right) {
+      return left;
+    }
+    return {
+      startTime: left.startTime,
+      endTime: right.endTime,
+      left: left,
+      right: right
     };
-    var op = ops[edit.type];
-    if (op) {
-      return op(tree, edit);
+  }
+
+  function isLeaf(x) {
+    return !x.left;
+  }
+
+  function pairUp(nodes) {
+    if (nodes.length <= 1) {
+      return nodes;
+    }
+    var dst = [];
+    while (2 <= nodes.length) {
+      dst.push(binarySessionNode(nodes[0], nodes[1]));
+      nodes = nodes.slice(2);
+    }
+    if (nodes.length == 1) {
+      dst.push(nodes[0]);
+    }
+    return dst;
+  }
+
+  function buildSessionTree(nodes0) {
+    var nodes = nodes0;
+    while (1 < nodes.length) {
+      nodes = pairUp(nodes);
+    }
+    return nodes.length == 1? nodes[0] : null;
+  }
+
+  // Makes a depth-first left-to-right traversal of the
+  // tree, accumulating the value dst by calling 
+  // f(dst, x) on every visited leaf x.
+  function reduceSessionTreeLeaves(f, dst, tree) {
+    if (isLeaf(tree)) {
+      return f(dst, tree);
     } else {
-      console.log("Edit operation '" + edit.type + "' not recognized");
-      return tree;
+      var g = function(acc, x) {
+        return reduceSessionTreeLeaves(f, acc, x);
+      };
+      return g(g(dst, tree.left), tree.right);
     }
   }
 
-  function Editor() {
-
-    // Maps session id to session data
-    this.sessionMap = {};
-
-    // Edit operations in chronological order
-    this.edits = [];
-
-    // A tree structure used to apply the edits
-    this.sessionTree = null;
-  }
-
-  Editor.prototype.addSession = function(session) {
-    if (session._id in this.sessionMap) {
-      return;
-    }
-    this.sessionTree = null;
-    this.sessionMap[session._id] = session;
-  }
-
-  Editor.prototype.addEdit = function(edit) {
-    this.edits.push(edit);
-    this.sessionTree = applyEdit(this.sessionTree, edit);
-  }
-
-
-  exports.buildTree = buildTree;
-  exports.flattenTree = flattenTree;
+  exports.normalizeSession = normalizeSession; 
+  exports.buildSessionTree = buildSessionTree;
+  exports.reduceSessionTreeLeaves = reduceSessionTreeLeaves;
+  exports.sessionDurationSeconds = sessionDurationSeconds;
 
 })(typeof exports === 'undefined'? this['anemoutils']={}: exports);

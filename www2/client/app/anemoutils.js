@@ -5,6 +5,18 @@
     return dst;
   }
 
+  function add(a, b) { // Because '+' cannot be used as a function.
+    return a + b;
+  }
+
+  function map(f) { // Returns a  mapping transducer
+    return function(r /*old reducing function*/) { // The mapping transducer
+      return function(acc /*accumulated value*/, x/*new value*/) { // The new reducing function
+        return r(acc, f(x));
+      }
+    }
+  }
+
   function fatalError(x) {
     alert('FATAL ERROR: %j', x); 
   }
@@ -59,11 +71,13 @@
     return setIn(dst, path, f(getIn(dst, path)));
   }
 
+  exports.map = map;
   exports.getIn = getIn;
   exports.setIn = setIn;
   exports.updateIn = updateIn;
   exports.assert = assert;
   exports.fatalError = fatalError;
   exports.push = push;
+  exports.add = add;
 
 })(typeof exports === 'undefined'? this['anemoutils']={}: exports);
