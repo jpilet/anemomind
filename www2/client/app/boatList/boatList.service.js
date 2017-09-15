@@ -1,5 +1,8 @@
 'use strict';
 
+// This function takes a map of id-to-session,
+// and flattens the values into an array, then
+// sorts them chronologically.
 function sessionMapToArray(m) {
   var dst = [];
   for (var k in m) {
@@ -9,6 +12,9 @@ function sessionMapToArray(m) {
   return dst;
 }
 
+// This function applies all the edits
+// to an array of rawSessions, and produces 
+// a session tree.
 function makeSessionTree(rawSessions, edits) {
   return edits.reduce(
     SessionOps.applyEdit,
@@ -17,7 +23,7 @@ function makeSessionTree(rawSessions, edits) {
 
 // This function is needed in case we 
 // have two new sessions resulting from splitting 
-// a session.
+// a session. Those session will have their _ids removed
 function assignSessionId(session) {
   anemoutils.assert(session.boat, "No boat id");
   anemoutils.assert(session.startTime instanceof Date, "Bad start time");
@@ -40,11 +46,20 @@ function renderSessions(addSession, initialCollection, tree) {
     initialCollection, tree);
 }
 
+// This function can be passed to .reduce
 function addSessionToMap(m, session) {
   m[session._id] = session;
   return m;
 }
 
+// A SessionRenderer is responsible for providing a consistent view
+// of the sessions with edits applied.
+//
+// Internally, it uses ValueState objects to cache state
+// so that we don't have to recompute it when it is not needed.
+// Whenever we call the .get() method on one of the ValueState's,
+// we can be certain to get an up-to-date value that is held 
+// by that ValueState
 function SessionRenderer() {
   // Map of id to session. Used to detect duplicates
   this.idToSession = new anemoutils.ValueState();
