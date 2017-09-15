@@ -27,20 +27,34 @@ describe('utils', function() {
   });
 
   it('valueState', function() {
+
+    var counter = 0;
+
+    function add(x, y) {
+      counter += 1;
+      return x + y;
+    }
+
     var a = new utils.ValueState();
     a.set(3);
 
     var b = new utils.ValueState();
     b.set(4);
 
-    var c = new utils.ValueState(utils.add, [a, b]);
+    var c = new utils.ValueState(add, [a, b]);
+    assert(counter == 0);
     assert(c.get() == 7);
+    assert(counter == 1);
+    assert(c.get() == 7);
+    assert(counter == 1);
+    assert(c.get() == 7);
+    assert(counter == 1);
 
     a.set(10);
     
     assert(c.get() == 14);
 
-    var d = new utils.ValueState(utils.add, [c, a]);
+    var d = new utils.ValueState(add, [c, a]);
     assert(d.get() == 24);
     assert(d.get() == 24);
     
