@@ -88,10 +88,10 @@ describe('utils', function() {
     assert(xa[1].a = 5);
     assert(xa[2].a = 9);
     
-    var xb = x.sort(utils.compareByValue(function(x) {return x.b;}));
-    assert(xb[0].b = -100);
+    var xb = x.sort(utils.compareByValue(function(x) {return x.b;}, 'descend'));
+    assert(xb[2].b = -100);
     assert(xb[1].b = 500);
-    assert(xb[2].b = 1000);
+    assert(xb[0].b = 1000);
     
   });
 });
