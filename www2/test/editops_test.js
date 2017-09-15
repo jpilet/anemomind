@@ -54,9 +54,15 @@ describe('Edit ops', function() {
   });
 
   it('Delete from an empty list', function() {
-    
     var tree = SessionOps.buildSessionTree([]);
     assert(tree == null);
+
+    // Flatten this tree
+    var renderedSessions = SessionOps.reduceSessionTreeLeaves(
+      anemoutils.push, [], tree);
+
+    assert(renderedSessions instanceof Array);
+    assert(renderedSessions.length == 0);
     
   });
 });
