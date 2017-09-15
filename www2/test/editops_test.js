@@ -89,6 +89,13 @@ describe('Edit ops', function() {
     assert(leafCount2 == sessions.length + 1);
     totalDur2 = SessionOps.reduceSessionTreeLeaves(addDur, 0, tree2);
 
+    var sessions2 = SessionOps.reduceSessionTreeLeaves(anemoutils.push, [], tree2);
+
+    // Make sure the split session does not inherit the _id of the parent
+    // We can assign new ids later.
+    assert(!sessions2[index]._id);
+    assert(!sessions2[index+1]._id);
+
     var dif0 = (totalDur - totalDur2);
     var dif1 = SessionOps.sessionDurationSeconds(sessionToDelete) 
         - marginSeconds - marginSeconds;
