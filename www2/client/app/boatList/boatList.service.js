@@ -52,7 +52,7 @@ function assignSessionId(session) {
   return session;
 }
 
-SessionRenderer.prototype.renderedSessions = function() {
+SessionRenderer.prototype.renderSessions = function(addSession, initialCollection) {
   if (!this._renderedTree) {
     // Rebuild the tree
     this._renderedTree = this._edits.reduce(
@@ -60,8 +60,21 @@ SessionRenderer.prototype.renderedSessions = function() {
       SessionOps.buildSessionTree(this.rawSessions()));
   }
   return SessionOps.reduceSessionTreeLeaves(
-    anemoutils.map(assignSessionId)(anemoutils.push), 
-    [], this._renderedTree);
+    anemoutils.map(assignSessionId)(addSession), 
+    initialCollection, this._renderedTree);
+}
+
+SessionRenderer.prototype.renderedSessionArray = function() {
+  return this.renderSessions(anemoutils.push, []);
+}
+
+function addSessionToMap(m, session) {
+  m[session._id] = session;
+  return m;
+}
+
+SessionRenderer.prototype.renderedSessionMap = function() {
+  return this.renderSessions(addSessionToMap, {});
 }
 
 angular.module('www2App')
@@ -148,9 +161,14 @@ angular.module('www2App')
       for (var boatId in perBoatData) {
         var srcPath = [boatId, "sessions"];
         var dstPath = [boatId];
+        var renderer = anemoutils.getIn(perBoatData, srcPath);
+        
+        console.log("The rendered sessions are %j", 
+                    renderer.renderedSessionArray());
+        
         anemoutils.setIn(
           sessionsForBoats, dstPath, 
-          anemoutils.getIn(perBoatData, srcPath).rawSessions());
+          renderer.rawSessions());
       }
     }
 
