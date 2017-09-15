@@ -78,9 +78,16 @@ describe('utils', function() {
 
     assert(d.get() == 206);
     assert(counter == 8);
+  });
+
+  it('sort by key', function() {
+    var x = [{a: 9, b: -100}, {a: 3, b: 1000}, {a: 5, b: 500}];
+    
+    var xa = x.sort(utils.compareByKey("a"));
+    assert(xa[0].a = 3);
+    assert(xa[1].a = 5);
+    assert(xa[2].a = 9);
 
     
-
-
   });
 });

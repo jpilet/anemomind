@@ -127,9 +127,23 @@
     this.set(f(this.get()));
   }
 
-  exports.kattskit = function() {
-    console.log("Kattskit");
+  function compareByValue(f) {
+    return function(a, b) {
+      var fa = f(a);
+      var fb = f(b);
+      if (fa < fb) {
+        return -1;
+      } else if (fa > fb) {
+        return 1;
+      }
+      return 0;
+    };
   }
+
+  function compareByKey(key) {
+    return compareByValue(function(x) {return x[key];});
+  }
+
   exports.map = map;
   exports.getIn = getIn;
   exports.setIn = setIn;
@@ -139,5 +153,7 @@
   exports.push = push;
   exports.add = add;
   exports.ValueState = ValueState;
+  exports.compareByValue = compareByValue;
+  exports.compareByKey = compareByKey;
 
 })(typeof exports === 'undefined'? this['anemoutils']={}: exports);

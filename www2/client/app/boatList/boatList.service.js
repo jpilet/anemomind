@@ -1,35 +1,47 @@
 'use strict';
 
+function sessionMapToArray(m) {
+  var dst = [];
+  for (var k in m) {
+    dst.push(m[k]);
+  }
+  dst.sort(compareByKey("startTime")); // By what
+  return dst;
+}
+
+
 function SessionRenderer() {
   // Map of id to session. Used to detect duplicates
   this.idToSession = new anemoutils.ValueState();
   this.idToSession.set({});
-  
-  // The rendered result.
-  this._renderedTree = new anemoutils.ValueState();
 
-  this._renderedArray = new anemoutils.ValueState();
-  this._renderedMap = null;
+  this.rawSession = new anemoutils.ValueState(
+    s);
+
+  // The session tree
+  this.renderedTree = new anemoutils.ValueState(
+    SessionOps.buildSessionTree, [this.rawSessions]);
+
+  this.renderedArray = new anemoutils.ValueState();
+  this.renderedMap = null;
 
   this._edits = [];
 }
 
 SessionRenderer.prototype.addSession = function(session) {
-  if (session._id in this.idToSession.get()) {
-    return false; // Don't accept duplicates
-  }
-  this.idToSession[session._id] = SessionOps.normalizeSession(session);
-  this.markAsDirty();
-  return true;
+  var updated = true;
+  this.idToSession.update(function(m) {
+    if (session._id in m) {
+      updated = false;
+    } else {
+      m[session._id] = session;
+    }
+    return m;
+  });
+  return updated;
 }
 
 SessionRenderer.prototype.rawSessions = function() {
-  var dst = [];
-  for (var k in this.idToSession) {
-    dst.push(this.idToSession[k]);
-  }
-  dst.sort();
-  return dst;
 }
 
 SessionRenderer.prototype.addEdit = function(edit) {
@@ -61,7 +73,7 @@ SessionRenderer.prototype.renderSessions = function(addSession, initialCollectio
     // Rebuild the tree
     this._renderedTree = this._edits.reduce(
       SessionOps.applyEdit, 
-      SessionOps.buildSessionTree(this.rawSessions()));
+      ));
   }
   return SessionOps.reduceSessionTreeLeaves(
     anemoutils.map(assignSessionId)(addSession), 
