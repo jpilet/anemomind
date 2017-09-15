@@ -6,6 +6,8 @@ function SessionRenderer() {
   
   // The rendered result.
   this._renderedTree = null;
+
+  this._edits = [];
 }
 
 SessionRenderer.prototype.addSession = function(session) {
@@ -26,6 +28,41 @@ SessionRenderer.prototype.rawSessions = function() {
   return dst;
 }
 
+SessionRenderer.prototype.addEdit = function(edit) {
+  this._edits.push(edit);
+  if (this._renderedTree) {
+    this._renderedTree = SessionOps.applyEdit(
+      this._renderedTree, edit);
+  }
+}
+
+// This function is needed in case we 
+// have two new sessions resulting from splitting 
+// a session.
+function assignSessionId(session) {
+  anemoutils.assert(session.boat);
+  anemoutils.assert(session.startTime instanceof Date);
+  anemoutils.assert(session.endTime instanceof Date);
+  if (!session._id) {
+    session._id = makeCurveId(
+      session.boat, 
+      session.startTime,
+      session.endTime);
+  }
+  return session;
+}
+
+SessionRenderer.prototype.renderedSessions = function() {
+  if (!this._renderedTree) {
+    // Rebuild the tree
+    this._renderedTree = this._edits.reduce(
+      SessionOps.applyEdit, 
+      SessionOps.buildSessionTree(this.rawSessions()));
+  }
+  return SessionOps.reduceSessionTreeLeaves(
+    anemoutils.map(assignSessionId)(anemoutils.push), 
+    [], this._renderedTree);
+}
 
 angular.module('www2App')
   .service('boatList', function (Auth, $http, $q,socket, $rootScope,$log) {
@@ -90,34 +127,30 @@ angular.module('www2App')
     }
 
     function updateSessionRepo(newSessions) {
+
+      // Insert all the sessions, that may
+      // belong to different boats
       for (var i in newSessions) {
         var newSession = newSessions[i];
-        var path = [newSession.boat, "editor"];
-        var dpath = [newSession.boat];
-
+        var path = [newSession.boat, "sessions"];
         anemoutils.updateIn(
           perBoatData, path,
-          function(x) {
-            var renderer = x || new SessionRenderer();
-            
-            var session = firstEntryMatchingField(
-              sessionsForBoat, '_id', newSession._id);
-            if (!session) {
-              sessionsForBoat.push(newSession);
-
-              // TODO: Check if it is chronological.
-              // TODO: Also pass it through all the ops
-
+          function(renderer0) {
+            var renderer = renderer0 || new SessionRenderer();
+            if (renderer.addSession(newSession)) {
               curves[newSession._id] = newSession;
             }
-            return sessionsForBoat;
+            return renderer;
           });
-
+      }
+      
+      // Loop over the boats and produce the rendered sessions
+      for (var boatId in perBoatData) {
+        var srcPath = [boatId, "sessions"];
+        var dstPath = [boatId];
         anemoutils.setIn(
-          sessionsForBoats, dpath, 
-          anemoutils.getIn(perBoatData, path));
-
-        //console.log("Latest data: %s", JSON.stringify(anemoutils.getIn(perBoatData, path)));
+          sessionsForBoats, dstPath, 
+          anemoutils.getIn(perBoatData, srcPath).rawSessions());
       }
     }
 
@@ -237,6 +270,7 @@ angular.module('www2App')
     }
 
 
+    // TODO
     function locationForCurve(curveId) {
       if (!(curveId in curves)) {
         return undefined;
@@ -287,7 +321,10 @@ angular.module('www2App')
       boats: cachedBoats,
       sessions: function() { return $.extend({}, sessionsForBoats); },
       sessionsForBoat: function(boatId) { return sessionsForBoats[boatId]; },
-      getCurveData: function(curveId) { return curves[curveId]; },
+
+      // This function is no longer used.
+      // getCurveData: function(curveId) { return curves[curveId]; },
+
       getDefaultBoat: getDefaultBoat,
       locationForCurve: locationForCurve,
       update: cachedBoats,
