@@ -9,7 +9,7 @@ var router = express.Router();
 // List all the timesets for a boat.
 router.get( // OK, tested
   '/:boatId', 
-  auth.isAuthenticated(), 
+  auth.maybeAuthenticated(), 
   access.boatReadAccess,
   controller.getTimesetsForBoat);
 
