@@ -12,9 +12,16 @@ var app = angular.module('www2App')
         pageSize: "=?"
       },
       link: function (scope, element, attrs) {
-
         scope.currentPage = 1;
         scope.sessions = [];
+        scope.edititems = [{
+          icon: 'fa-minus-square',
+          label: 'Delete', 
+          action: boatList.deleteSession,
+          description: 'The session will be deleted from '
+            + 'this list and excluded from statistics, but can '
+            + 'be restored again later.'
+        }];
 
         function updateSessions() {
 

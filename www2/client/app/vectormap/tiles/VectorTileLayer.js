@@ -1,10 +1,15 @@
+var timeStrLength = 19;
 
 function curveEndTimeStr(curveId) {
-  return curveId.substr(curveId.length-19);
+  return curveId.substr(curveId.length-timeStrLength);
 }
 
 function curveStartTimeStr(curveId) {
-  return curveId.substr(curveId.length-19*2,19);
+  return curveId.substr(curveId.length-timeStrLength*2,timeStrLength);
+}
+
+function curveBoatId(curveId) {
+  return curveId.substr(0, curveId.length-timeStrLength*2);
 }
 
 function curveEndTime(curveId) {

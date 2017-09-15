@@ -1,11 +1,131 @@
 'use strict';
 
+// This function takes a map of id-to-session,
+// and flattens the values into an array, then
+// sorts them chronologically.
+function sessionMapToArray(m) {
+  var dst = [];
+  for (var k in m) {
+    dst.push(m[k]);
+  }
+  dst.sort(anemoutils.compareByKey("startTime")); // By what
+  return dst;
+}
+
+// This function applies all the edits
+// to an array of rawSessions, and produces 
+// a session tree.
+function makeSessionTree(rawSessions, edits) {
+  return edits.reduce(
+    SessionOps.applyEdit,
+    SessionOps.buildSessionTree(rawSessions));
+}
+
+// This function is needed in case we 
+// have two new sessions resulting from splitting 
+// a session. Those session will have their _ids removed
+function assignSessionId(session) {
+  anemoutils.assert(session.boat, "No boat id");
+  anemoutils.assert(session.startTime instanceof Date, "Bad start time");
+  anemoutils.assert(session.endTime instanceof Date, "Bad end time");
+  if (!session._id) {
+    session._id = makeCurveId(
+      session.boat, 
+      session.startTime,
+      session.endTime);
+  }
+  return session;
+}
+
+// Takes a function 'addSession', an initial empty collection
+// e.g. ( [] or {} ) and a tree. Populates the provided collection
+// with the data from the tree, using 'addSession'.
+function renderSessions(addSession, initialCollection, tree) {
+  return SessionOps.reduceSessionTreeLeaves(
+    anemoutils.map(assignSessionId)(addSession), 
+    initialCollection, tree);
+}
+
+// This function can be passed to .reduce
+function addSessionToMap(m, session) {
+  m[session._id] = session;
+  return m;
+}
+
+// A SessionRenderer is responsible for providing a consistent view
+// of the sessions with edits applied.
+//
+// Internally, it uses ValueState objects to cache state
+// so that we don't have to recompute it when it is not needed.
+// Whenever we call the .get() method on one of the ValueState's,
+// we can be certain to get an up-to-date value that is held 
+// by that ValueState
+function SessionRenderer() {
+  // Map of id to session. Used to detect duplicates
+  this.idToSession = new anemoutils.ValueState();
+  this.idToSession.set({});
+
+  // Array of edits
+  this.edits = new anemoutils.ValueState();
+  this.edits.set([]);
+
+  // Array of raw sessions
+  this.rawSessions = new anemoutils.ValueState(
+    sessionMapToArray, [this.idToSession]);
+
+  // The session tree, after all edits were applied
+  this.renderedTree = new anemoutils.ValueState(
+    makeSessionTree, [this.rawSessions, this.edits]);
+
+  // Rendered sessions, in the form of an array
+  this.renderedArray = new anemoutils.ValueState(
+    function(tree) {
+      return renderSessions(anemoutils.push, [], tree);
+    }, [this.renderedTree]);
+
+  // A map from all the rendered sessions.
+  this.renderedMap = new anemoutils.ValueState(
+    function(tree) {
+      return renderSessions(addSessionToMap, {}, tree);
+    }, [this.renderedTree]);
+}
+
+// This adds a session to the SessionRenderer. Next time any of 
+// the ValueState objects are queried, they will return 
+// a value that has taken that into account.
+SessionRenderer.prototype.addSession = function(session) {
+  var updated = true;
+  this.idToSession.update(function(m) {
+    if (session._id in m) {
+      updated = false;
+    } else {
+      m[session._id] = SessionOps.normalizeSession(session);
+    }
+    return m;
+  });
+  return updated;
+}
+
+// This adds an edit operation to the SessionRenderer, and
+// that operation will be taken into account next time.
+SessionRenderer.prototype.addEdit = function(edit) {
+  //TODO: Small optimization: If the renderedTree is up-to-date,
+  // then we can maybe directly apply this edit to that object.
+  // For that, we would need some method .forceUpToDateWithValue,
+  // that simply sets the value, and fools the object to believe
+  // that that value is up-to-date w.r.t. its dependencies.
+
+  this.edits.update(function(edits) {
+    return anemoutils.push(edits, edit);
+  });
+}
+
 angular.module('www2App')
   .service('boatList', function (Auth, $http, $q,socket, $rootScope,$log) {
     var boats = [ ];
     var boatDict = { };
-    var curves = { };
     var sessionsForBoats = {};
+    var perBoatData = {};
 
     // Either 'anonymous', or a username, or undefined.
     // Used to cache requests
@@ -17,8 +137,15 @@ angular.module('www2App')
     function clear() {
       boats = [ ];
       boatDict = { };
-      curves = { };
-      sessionsForBoats = {};
+
+      // Stores the edited set of sessions, as they should be
+      // displayed on the client.
+      sessionsForBoats = {}; 
+
+      // Stores all the extra hidden state regarding the boats,
+      // such as per-boat edits, raw server sessions, etc.
+      perBoatData = {}; // Map from boatId to data related to that boat
+
       loadedFor = undefined;
       loading = undefined;
       console.log('Forgetting boat data');
@@ -54,20 +181,29 @@ angular.module('www2App')
     }
 
     function updateSessionRepo(newSessions) {
+
+      // Insert all the sessions, that may
+      // belong to different boats
       for (var i in newSessions) {
         var newSession = newSessions[i];
-        if (!(newSession.boat in sessionsForBoats)) {
-          sessionsForBoats[newSession.boat] = [ ];
-        }
-        var sessionsForBoat = sessionsForBoats[newSession.boat];
-
-        // make sure we do not duplicate sessions
-        var session = firstEntryMatchingField(
-          sessionsForBoat, '_id', newSession._id);
-        if (!session) {
-          sessionsForBoat.push(newSession);
-          curves[newSession._id] = newSession;
-        }
+        var path = [newSession.boat, "sessions"];
+        anemoutils.updateIn(
+          perBoatData, path,
+          function(renderer0) {
+            var renderer = renderer0 || new SessionRenderer();
+            renderer.addSession(newSession);
+            return renderer;
+          });
+      }
+      
+      // Loop over the boats and produce the rendered sessions
+      for (var boatId in perBoatData) {
+        var srcPath = [boatId, "sessions"];
+        var dstPath = [boatId];
+        var renderer = anemoutils.getIn(perBoatData, srcPath);
+        anemoutils.setIn(
+          sessionsForBoats, dstPath, 
+          renderer.renderedArray.get());
       }
     }
 
@@ -128,6 +264,8 @@ angular.module('www2App')
       return promise;
     }
 
+    
+
     function fetchBoat(boatid) {
       // promise for boats methods;
       var deferred = $q.defer();
@@ -184,15 +322,44 @@ angular.module('www2App')
       return promise;
     }
 
-
     function locationForCurve(curveId) {
-      if (!(curveId in curves)) {
-        return undefined;
+      var boat = curveBoatId(curveId);
+      var renderer = perBoatData[boat].sessions;
+      if (renderer) {
+        var m = renderer.renderedMap.get();
+        if (curveId in m) {
+          return m[curveId].location;
+        }
       }
-      var c = curves[curveId];
-      return c.location;
+      return undefined;
     }
 
+    function deleteSession(boatId, sessionId) {
+      // This might look a bit crappy, but probably good enough.
+      // We can do something fancier with bootstrap later.
+      if (!confirm("Do you really want to delete this session?")) {
+        return;
+      }
+
+      var session = firstEntryMatchingField(
+        sessionsForBoats[boatId], '_id', sessionId);
+      anemoutils.assert(session, "No session found");
+      var op = {
+        type: "delete",
+        boat: boatId,
+        lower: session.startTime,
+        upper: session.endTime,
+        creationTime: new Date()
+      };
+
+      anemoutils.updateIn(perBoatData, [boatId, "sessions"], function(x) {
+        var renderer = x || [];
+        renderer.addEdit(op);
+        sessionsForBoats[boatId] = renderer.renderedArray.get();
+        return renderer;
+      });
+      $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
+    }
 
     //
     // service result
@@ -209,9 +376,12 @@ angular.module('www2App')
       boats: cachedBoats,
       sessions: function() { return $.extend({}, sessionsForBoats); },
       sessionsForBoat: function(boatId) { return sessionsForBoats[boatId]; },
-      getCurveData: function(curveId) { return curves[curveId]; },
+
+      // This function is no longer used: getCurveData: function(curveId) { return curves[curveId]; },
+
       getDefaultBoat: getDefaultBoat,
       locationForCurve: locationForCurve,
       update: cachedBoats,
+      deleteSession: deleteSession
     };
   });
