@@ -2,6 +2,7 @@
 set -e
 
 # TODO: get the IP from the command line
+# 2.1
 HOST=192.168.2.1
 DEST=root@${HOST}:/anemonode
 
@@ -25,7 +26,7 @@ if false; then
   ../canutils/compile-iproute2.sh
 fi
 
-EXCLUDE='--exclude=*.log --exclude=.*.sw[po] --exclude=src --exclude=*\.[oadh] --exclude=binding.gyp --exclude=README.md --exclude=install.sh --exclude=build/Release/obj --exclude=obj.target --exclude=*.target.mk --exclude=Makefile --exclude=*.tar.gz --exclude=*.gypi'
+EXCLUDE='--exclude=*.log --exclude=.*.sw[po] --include=src/*.js --exclude=src/*.* --include=src/*.js --exclude=*\.[oadh] --exclude=binding.gyp --exclude=README.md --exclude=install.sh --exclude=build/Release/obj --exclude=obj.target --exclude=*.target.mk --exclude=Makefile --exclude=*.tar.gz --exclude=*.gypi'
 
 git rev-parse HEAD > commit
 

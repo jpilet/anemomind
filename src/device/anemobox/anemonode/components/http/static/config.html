@@ -23,11 +23,15 @@
           </select>
         </dd>
       </dl>
-
       <dl id="dataTable" class="dl-horizontal">
       </dl>
+      <dl class="dl-horizontal">
+        <dt><label for="logRawNmea2000">Log raw NMEA 2000</label></dt>
+	<dd><input type="checkbox" 
+	  id="logRawNmea2000" 
+          name="logRawNmea2000"/></dd>
+      </dl>
     </div>
-
     <p class="body-link"><a href="/">Input data</a></p>
     <p class="body-link"><a href="/allSources.html">Detailed input data</a></p>
     <p class="body-link"><a href="3d.html">3D view</a></p>
@@ -64,8 +68,11 @@
 
     function readConfig(data) {
           loadedConfig = data;
-          $('#nmea0183Speed option[value=' + data.boxConfig.nmea0183Speed + ']').prop('selected', true);
-
+          $('#nmea0183Speed option[value=' 
+            + data.boxConfig.nmea0183Speed + ']')
+            .prop('selected', true);
+	  logRawNmea2000Checkbox = document.getElementById("logRawNmea2000");
+          logRawNmea2000Checkbox.checked = data.boxConfig.logRawNmea2000;
           var table = $('#dataTable');
           table.html('');
 
@@ -118,6 +125,9 @@
       $("#nmea0183Speed").change(function(e){
         var newSpeed = $("#nmea0183Speed option:selected").val();
         changeBoxConfig('nmea0183Speed', newSpeed);
+      });
+      $("#logRawNmea2000").change(function(e) {
+        changeBoxConfig("logRawNmea2000", this.checked);
       });
     });
   </script>

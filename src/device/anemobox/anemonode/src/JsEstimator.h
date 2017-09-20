@@ -8,7 +8,7 @@
 
 namespace sail {
 
-class JsEstimator : public node::ObjectWrap {
+class JsEstimator : public Nan::ObjectWrap {
  public:
   JsEstimator();
 

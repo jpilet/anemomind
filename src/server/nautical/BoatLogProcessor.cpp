@@ -8,20 +8,18 @@
 
 #include <Poco/File.h>
 #include <Poco/JSON/Stringifier.h>
+#include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
 #include <device/Arduino/libraries/TargetSpeed/TargetSpeed.h>
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <fstream>
 #include <iostream>
 #include <server/common/Env.h>
-#include <server/common/HierarchyJson.h>
-#include <server/common/Json.h>
 #include <server/common/PathBuilder.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/DownsampleGps.h>
-#include <server/nautical/HTreeJson.h>
-#include <server/nautical/NavJson.h>
+#include <server/nautical/MaxSpeed.h>
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
@@ -30,8 +28,6 @@
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
-#include <server/nautical/MaxSpeed.h>
-#include <server/common/Json.impl.h> // This one should probably be the last one.
 
 namespace sail {
 
@@ -320,8 +316,8 @@ void outputInfoPerSession(
 // high-level processing logic
 //
 // The goal of this function is to stay small and easy to read,
-// while explicitely showing what is going on.
-// Parameters such as path to files are passed implicitely (as struct
+// while explicitly showing what is going on.
+// Parameters such as path to files are passed implicitly (as struct
 // members), while raw and derived data are kept in local variables,
 // to improve data flow readability.
 
@@ -330,6 +326,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   if (!prepare(amap)) {
     return false;
+  }
+
+  if (_boatid == "59b1343a0411db0c8d8fbf7c") {
+    hackForceDateForGLL = true;
   }
 
   NavDataset current;
@@ -455,6 +455,24 @@ void BoatLogProcessor::infoNavDataset(const std::string& info,
   DOM::addSubTextNode(&_htmlReport, "h2", info);
   std::stringstream ss;
   ds.outputSummary(&ss);
+
+  auto s = summarizeDispatcherOverTime(
+      ds.dispatcher().get(),
+      roundOffToBin(15.0_minutes));
+  std::set<DataCode> ofInterest{AWA, TWA, AWS, TWS};
+  for (const auto& kv: s) {
+    ss << "At "<< kv.first.toString() << std::endl;
+    for (const auto& codeSourceAndCount: kv.second) {
+      auto codeSource = codeSourceAndCount.first;
+      int n = codeSourceAndCount.second;
+      if (true || 1 <= ofInterest.count(codeSource.first)) {
+        ss << "   " << wordIdentifierForCode(codeSource.first)
+            << ", " << codeSource.second << ": " << n << std::endl;
+      }
+    }
+  }
+
+
   DOM::addSubTextNode(&_htmlReport, "pre", ss.str());
 }
 
@@ -474,7 +492,7 @@ void BoatLogProcessor::readArgs(ArgMap* amap) {
   _exploreGrammar = amap->optionProvided("--explore");
   _logGrammar = amap->optionProvided("--log-grammar");
 
-  _chartTileSettings.dbName = _tileParams.dbName;
+  _chartTileSettings.dbName = _tileParams.dbName();
   if (_debug) {
     LOG(INFO) << "BoatLogProcessor:\n"
       << "boat: " << _boatid << "\n"
@@ -497,8 +515,7 @@ bool BoatLogProcessor::prepare(ArgMap* amap) {
   }
 
   if (_generateTiles || _generateChartTiles) {
-    db = MongoDBConnection(
-        makeMongoDBURI(_tileParams));
+    db = MongoDBConnection(_tileParams.uri());
     if (!db.defined()) {
       return false;
     }
@@ -554,21 +571,13 @@ int mainProcessBoatLogs(int argc, const char **argv) {
   amap.registerOption("-c", "Generate chart tiles and upload to mongodb")
     .setArgCount(0);
 
-  amap.registerOption("--host", "MongoDB hostname").store(&params->dbHost);
+  amap.registerOption("--mongo-uri", "Full URI to Mongo DB")
+      .store(&params->mongoUri);
   amap.registerOption("--scale", "max scale level").store(&params->maxScale);
   amap.registerOption("--maxpoints",
                       "downsample curves if they have more than <maxpoints> points")
     .store(&params->maxNumNavsPerSubCurve);
 
-  amap.registerOption("--db", "Name of the db, such as 'anemomind' or 'anemomind-dev'")
-      .setArgCount(1)
-      .store(&params->dbName);
-
-  amap.registerOption("-u", "username for db connection")
-      .store(&params->user);
-
-  amap.registerOption("-p", "password for db connection")
-      .store(&params->passwd);
 
   amap.registerOption("--clean", "Clean all tiles for this boat before starting");
 

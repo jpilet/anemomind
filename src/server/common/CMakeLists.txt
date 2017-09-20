@@ -96,29 +96,7 @@ cxx_test(common_TimeStampTest
          common_string 
          gtest_main
         )
-
-
         
-if (${FULL_BUILD})
-  add_library(common_Json
-              Json.h
-              Json.cpp
-             )
-  target_depends_on_poco_json(common_Json)                                                     
-  cxx_test(common_JsonTest
-           JsonTest.cpp
-           common_Json
-           gtest_main
-          )                     
-                     
-          
-  add_library(common_TimeStampJson
-              TimeStampJson.cpp
-              TimeStampJson.h
-             )
-  target_depends_on_poco_foundation(common_TimeStampJson)
-endif ()
-
 add_library(common_Array
             Array.cpp
             Array.h
@@ -173,22 +151,6 @@ cxx_test(common_HNodeGroupTest
          gtest_main
         )
 
-add_library(common_HierarchyJson
-            HierarchyJson.cpp        
-            HierarchyJson.h
-           )
-target_link_libraries(common_HierarchyJson
-                      common_Hierarchy
-                      common_Json
-                     )
-target_depends_on_poco_json(common_HierarchyJson)
-
-cxx_test(common_HierarchyJsonTest
-         HierarchyJsonTest.cpp
-         common_HierarchyJson
-         common_HNodeGroup
-         gtest_main
-        )                                
 endif ()
 
 add_library(common_Function
@@ -261,27 +223,13 @@ cxx_test(common_HistogramTest
         )
 
 if (${FULL_BUILD})
-  add_library(common_LineKMJson
-              LineKMJson.cpp
-              LineKMJson.h
-             )
-  target_link_libraries(common_LineKMJson
-                        common_LineKM
-                       )
-  target_depends_on_poco_json(common_LineKMJson)                                
-
+  
   cxx_test(common_SpanOverlapTest
            SpanOverlapTest.cpp
            gtest_main
           )                                
-  target_depends_on_poco_json(common_LineKMJson)
 
 
-  add_library(common_JsonObjDeserializer
-              JsonObjDeserializer.h
-              JsonObjDeserializer.cpp
-             )
-  target_depends_on_poco_json(common_JsonObjDeserializer)
 endif ()
 
 add_library(common_ArgMap
@@ -301,15 +249,6 @@ cxx_test(common_ArgMapTest
          common_logging
          common_string
         )
-
-if (${FULL_BUILD})
-  add_library(common_JsonIO
-              JsonIO.h
-              JsonIO.cpp
-             )
-  target_depends_on_poco_json(common_JsonIO)
-endif ()
-
 
 add_library(common_DataSplits
             DataSplits.h
@@ -423,3 +362,17 @@ add_library(common_StreamUtils
   StreamUtils.h
   StreamUtils.cpp
   )
+
+add_library(common_DynamicUtils
+  DynamicUtils.h
+  DynamicUtils.cpp
+  )
+target_depends_on_poco_json(common_DynamicUtils)
+
+cxx_test(common_DynamicUtilsTest
+  DynamicUtilsTest.cpp
+  common_DynamicUtils
+  gtest_main
+  )
+
+

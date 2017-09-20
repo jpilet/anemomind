@@ -49,7 +49,12 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
     std::string originalSourceName = stream.source();
     std::string dstSourceName = originalSourceName + " reparsed";
     Nmea0183Loader::LogLoaderNmea0183Parser parser(dst, dstSourceName);
-    Nmea0183Loader::Nmea0183LogLoaderAdaptor adaptor(&parser, dst, dstSourceName);
+    Nmea0183Loader::Nmea0183LogLoaderAdaptor adaptor(
+        false, // <-- All the text log data are string chunks that are tagged
+               // with times that we correct with a provided offset, so
+               // we rely on those values, rather than the time values that we
+               // get from the NMEA0183 data.
+        &parser, dst, dstSourceName);
     for (int i = 0; i < n; i++) {
       auto t = times[i] + offset;
       parser.setProtobufTime(t);
@@ -70,14 +75,21 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
 
 namespace {
   struct OffsetWithFitnessError {
+    static const int initPriority = (-std::numeric_limits<int>::max());
+    static constexpr double initError = std::numeric_limits<double>::infinity();
+
     OffsetWithFitnessError() {
       offset = Duration<double>::seconds(0.0);
-      averageErrorFromMedian = std::numeric_limits<double>::infinity();
-      priority = (-std::numeric_limits<int>::max());
+      averageErrorFromMedian = initError;
+      priority = initPriority;
     }
 
     OffsetWithFitnessError(Duration<double> dur, double e, int p) :
       offset(dur), averageErrorFromMedian(e), priority(p) {
+    }
+
+    bool defined() const {
+      return averageErrorFromMedian < initError;
     }
 
     int priority;
@@ -95,24 +107,52 @@ namespace {
     }
   };
 
+  std::ostream& operator<<(
+      std::ostream& s, const OffsetWithFitnessError& x) {
+    s << "\n offset:   " << x.offset.str()
+      << "\n priority: " << x.priority
+      << "\n avg err:  " << x.averageErrorFromMedian;
+    return s;
+  }
+
   OffsetWithFitnessError computeTimeOffset(const ValueSet &stream) {
     std::vector<Duration<double> > diffs;
     std::vector<TimeStamp> extTimes;
     Logger::unpack(stream.exttimes(), &extTimes);
-    if (!extTimes.empty()) {
-      std::vector<TimeStamp> times;
-      Logger::unpackTime(stream, &times);
-      if (times.size() == extTimes.size()) {
-        int n = times.size();
-        for (int j = 0; j < n; j++) {
-          if (extTimes[j].defined() && times[j].defined()) {
-            diffs.push_back(extTimes[j] - times[j]);
-          }
-        }
-      } else {
-        LOG(WARNING) << "Inconsistent size of times and exttimes for stream";
+
+    std::vector<TimeStamp> times;
+
+    if (extTimes.empty()) {
+      // extTimes is empty, but maybe we do have time info in GLL sentences
+      // in: 'text[NMEA0183 input:0]'
+      LogAccumulator acc;
+      loadTextData(stream, &acc, Duration<double>::seconds(0));
+      std::map<std::string, TimedSampleCollection<TimeStamp>::TimedVector>* map =
+	acc.getDATE_TIMEsources();
+      if (map->size() > 0) {
+	const TimedSampleCollection<TimeStamp>::TimedVector& values(
+	    map->begin()->second);
+
+	for (const TimedValue<TimeStamp>& it : values) {
+	  extTimes.push_back(it.value);
+	  times.push_back(it.time);
+	}
       }
+    } else {
+      Logger::unpackTime(stream, &times);
     }
+
+    if (times.size() == extTimes.size()) {
+      int n = times.size();
+      for (int j = 0; j < n; j++) {
+	if (extTimes[j].defined() && times[j].defined()) {
+	  diffs.push_back(extTimes[j] - times[j]);
+	}
+      }
+    } else {
+      LOG(WARNING) << "Inconsistent size of times and exttimes for stream";
+    }
+
     auto n = diffs.size();
     if (n > 30) { // Sufficiently many?
       auto at = diffs.begin() + n/2;
@@ -127,12 +167,23 @@ namespace {
     return OffsetWithFitnessError();
   }
 
+  void forAllValueSets(
+      const LogFile& data,
+      const std::function<void(ValueSet)>& f) {
+    for (int i = 0; i < data.stream_size(); i++) {
+      f(data.stream(i));
+    }
+    for (int i = 0; i < data.text_size(); i++) {
+      f(data.text(i));
+    }
+  }
+
   Duration<double> computeTimeOffset(const LogFile &data) {
     OffsetWithFitnessError offset;
-    for (int i = 0; i < data.stream_size(); i++) {
-      auto c = computeTimeOffset(data.stream(i));
+    forAllValueSets(data, [&](const ValueSet& stream) {
+      auto c = computeTimeOffset(stream);
       offset = std::min(offset, c);
-    }
+    });
     return offset.offset;
   }
 }

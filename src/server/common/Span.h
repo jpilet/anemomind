@@ -129,6 +129,9 @@ class Span {
   // that also have size() methods.
   T size() const {
     static_assert(std::is_integral<T>::value, "Only integers");
+    if (!initialized()) {
+      return 0;
+    }
     return width();
   }
 

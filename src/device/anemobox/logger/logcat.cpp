@@ -72,19 +72,45 @@ std::ostream &operator<<(std::ostream &s, const ChannelSummary &cs) {
 
 typedef std::pair<std::string, std::string> Key;
 
-class Summary {
+enum class DateFormat {
+  HumanReadable,
+  Nmea2000Replay
+};
+
+class Context {
 public:
-  Summary(Duration<double> d) : _threshold(d) {}
-  void add(const std::string &c, const std::string &src,
+  Context(Duration<double> d) : _threshold(d) {}
+  void addSummary(const std::string &c, const std::string &src,
       const std::vector<TimeStamp> &times);
-  bool defined() const {return 0.0_s <= _threshold;}
+  bool briefReport() const {return 0.0_s <= _threshold;}
+  bool fullReport() const {return !briefReport();}
   std::vector<ChannelSummary> getChannelSummaries() const;
+
+  // Settings
+  DateFormat dateFormat = DateFormat::HumanReadable;
+  bool withHeader = true;
+  bool withText = true;
+  bool withStreams = true;
+  bool withNmea2000 = true;
+
 private:
   std::map<Key, std::vector<TimeStamp>> _acc;
+
+  /**
+   * Threshold:
+   *   If threshold is a non-negative number, it means that
+   *   the user wants to see a summary at the end. Then
+   *   the regular behaviour of logcat, of printing everything,
+   *   is suppressed.
+   *
+   *   Otherwise, if it is a negative number, no summary will be
+   *   produced, but instead all data will be displayed.
+   *
+   */
   Duration<double> _threshold;
 };
 
-std::ostream &operator<<(std::ostream &s, const Summary &c) {
+std::ostream &operator<<(std::ostream &s, const Context &c) {
   s << "\nSummary:";
   for (auto x: c.getChannelSummaries()) {
     s << x;
@@ -92,13 +118,13 @@ std::ostream &operator<<(std::ostream &s, const Summary &c) {
   return s;
 }
 
-void Summary::add(const std::string &c, const std::string &src,
+void Context::addSummary(const std::string &c, const std::string &src,
     const std::vector<TimeStamp> &times) {
   auto &dst = _acc[Key(c, src)];
   dst.insert(dst.end(), times.begin(), times.end());
 }
 
-std::vector<ChannelSummary> Summary::getChannelSummaries() const {
+std::vector<ChannelSummary> Context::getChannelSummaries() const {
   std::vector<ChannelSummary> dst;
   for (auto kv: _acc) {
     auto key = kv.first;
@@ -207,8 +233,8 @@ void formatValues<TimeStamp>(const vector<TimeStamp>& times,
 void summarizeValueSet(
     const ValueSet &valueSet,
     const std::vector<TimeStamp> &times,
-    Summary *summary) {
-  summary->add(
+    Context *summary) {
+  summary->addSummary(
       valueSet.shortname(),
       valueSet.source(), times);
 }
@@ -216,7 +242,7 @@ void summarizeValueSet(
   
 void streamCat(const ValueSet& valueSet,
     vector<TimedString>* entries,
-    Summary* summary) {
+    Context* summary) {
   vector<TimeStamp> times;
   Logger::unpackTime(valueSet, &times);
 
@@ -262,46 +288,156 @@ void streamCat(const ValueSet& valueSet,
   summarizeValueSet(valueSet, times, summary);
 }
 
-void dispEntries(std::vector<TimedString> *entries) {
-  std::sort(entries->begin(), entries->end());
-  for (const TimedString& entry : *entries) {
-    cout << entry.time.fullPrecisionString() << ": " << entry.str << endl;
+std::string formatNmea2000Data(
+    int n, const uint8_t* data) {
+  std::stringstream ss;
+  for (int i = 0; i < n; i++) {
+    auto x = data[i];
+    ss << std::setfill('0')
+       << std::setw(2) << std::hex
+       << std::uppercase << x;
+  }
+  auto s = ss.str();
+  CHECK(s.length() == 2*n);
+  return s;
+}
+
+std::string formatNmea2000Data(
+    const std::string& data) {
+  return formatNmea2000Data(
+      data.length(),
+      reinterpret_cast<const uint8_t*>(data.c_str()));
+}
+
+std::string formatNmea2000Data(
+    google::protobuf::uint64 x, int w = 2*8) {
+  std::stringstream ss;
+  ss << std::setfill('0')
+    << std::hex << std::uppercase << std::setw(w) << x;
+  auto s = ss.str();
+  CHECK(s.length() == w);
+  return s;
+}
+
+std::string formatNmea2000Id(
+    google::protobuf::uint64 x) {
+  return formatNmea2000Data(x, 8);
+}
+
+template <typename T>
+void outputRawSentences(
+    google::protobuf::int64 sentenceId,
+    const std::vector<TimeStamp>& times,
+    const google::protobuf::RepeatedField<T>& values,
+    vector<TimedString>* entries,
+    Context* summary) {
+  if (times.size() != values.size()) {
+    LOG(ERROR) << "The number of timestamps "
+        "does not correspond to the number of values";
+    return;
+  }
+  int n = times.size();
+  auto prefix = "can0 " + formatNmea2000Id(sentenceId) + "#";
+  for (int i = 0; i < n; i++) {
+    entries->push_back(
+        TimedString{
+          times[i],
+          prefix + formatNmea2000Data(values.Get(i))});
   }
 }
 
-void logCat(const LogFile& data, Summary *summary) {
-  if (data.has_anemobox()) {
-    cout << "Anemobox: " << data.anemobox() << endl;
+void streamCat(const Nmea2000Sentences& sentences,
+    vector<TimedString>* entries,
+    Context* summary) {
+  vector<TimeStamp> times;
+  Logger::unpackTime(sentences, &times);
+  if (0 < sentences.regularsizesentences_size() &&
+      0 < sentences.oddsizesentences_size()) {
+    LOG(ERROR) << "The Nmea2000Sentences object cannot contain"
+        "both regular- and odd size sentences at the same time.";
+    return;
   }
-  if (data.has_boatid()) {
-    cout << "boatId: " << data.boatid() << endl;
+  auto id = sentences.sentence_id();
+  if (0 < sentences.regularsizesentences_size()) {
+    outputRawSentences(
+        id, times, sentences.regularsizesentences(),
+        entries, summary);
+  } else if (0 < sentences.oddsizesentences_size()) {
+    outputRawSentences(
+        id, times, sentences.regularsizesentences(),
+        entries, summary);
+  }
+  summary->addSummary("raw NMEA 2000", formatNmea2000Id(id), times);
+}
+
+void dispEntries(std::vector<TimedString> *entries,
+    DateFormat fmt) {
+  std::sort(entries->begin(), entries->end());
+  for (const TimedString& entry : *entries) {
+    switch (fmt) {
+      case DateFormat::HumanReadable: {
+        cout << entry.time.fullPrecisionString() << ": ";
+        break;
+      };
+      case DateFormat::Nmea2000Replay: {
+        cout << "(" << 0.001*entry.time
+            .toMilliSecondsSince1970() << ") ";
+        break;
+      }
+    };
+    cout << entry.str << endl;
+  }
+}
+
+void logCat(const LogFile& data, Context *summary) {
+  // Always display this data, because
+  // it doesn't take up much space
+  if (summary->withHeader) {
+    if (data.has_anemobox()) {
+      cout << "Anemobox: " << data.anemobox() << endl;
+    }
+    if (data.has_boatid()) {
+      cout << "boatId: " << data.boatid() << endl;
+    }
+
+    if (data.has_boatname()) {
+      cout << "boatName: " << data.boatname() << endl;
+    }
+
+    if (data.has_bootcount()) {
+      cout << "bootcount: " << data.bootcount() << endl;
+    }
   }
 
-  if (data.has_boatname()) {
-    cout << "boatName: " << data.boatname() << endl;
-  }
-
-  if (data.has_bootcount()) {
-    cout << "bootcount: " << data.bootcount() << endl;
-  }
-
+  // Visit all the data
+  // of the log file and accumulate it
   vector<TimedString> entries;
-  for (int i = 0; i < data.stream_size(); ++i) {
-    streamCat(data.stream(i), &entries, summary);
+  if (summary->withStreams) {
+    for (int i = 0; i < data.stream_size(); ++i) {
+      streamCat(data.stream(i), &entries, summary);
+    }
   }
 
-  for (int i = 0; i < data.text_size(); ++i) {
-    streamCat(data.text(i), &entries, summary);
+  if (summary->withText) {
+    for (int i = 0; i < data.text_size(); ++i) {
+      streamCat(data.text(i), &entries, summary);
+    }
   }
 
-  if (!summary->defined()) {
-    dispEntries(&entries);
+  if (summary->withNmea2000) {
+    for (int i = 0; i < data.rawnmea2000_size(); ++i) {
+      streamCat(data.rawnmea2000(i), &entries, summary);
+    }
+  }
+
+  if (summary->fullReport()) {
+    dispEntries(&entries, summary->dateFormat);
   }
 }
 
 void catField(const LogFile& data,
     const std::string& field,
-    Summary *summary) {
+    Context *summary) {
   vector<TimedString> entries;
   for (int i = 0; i < data.text_size(); ++i) {
     auto valueSet = data.text(i);
@@ -314,14 +450,14 @@ void catField(const LogFile& data,
       summarizeValueSet(valueSet, times, summary);
     }
   }
-  if (!summary->defined()) {
-    dispEntries(&entries);
+  if (summary->fullReport()) {
+    dispEntries(&entries, summary->dateFormat);
   }
 }
 
 void logCat(const std::string& file,
     const std::string& textField,
-    Summary *summary) {
+    Context *summary) {
 
   LogFile data;
   if (!Logger::read(file, &data)) {
@@ -362,8 +498,12 @@ int main(int argc, const char* argv[]) {
       .store(&summaryThreshold)
       .setUnique();
 
-  cmdLine.registerOption("-b", "A brief summary")
+  cmdLine.registerOption("-b", "A briefReport summary")
       .setUnique();
+
+  cmdLine.registerOption(
+      "--raw-nmea2000",
+      "Only raw NMEA 2000 data, formatted to be replayed.");
 
   if (cmdLine.parse(argc, argv) != ArgMap::Continue) {
     return -1;
@@ -376,11 +516,18 @@ int main(int argc, const char* argv[]) {
   Array<ArgMap::Arg*> files = cmdLine.freeArgs();
   sort(files.begin(), files.end(), LexicalOrder());
 
-  Summary summary(summaryThreshold*1.0_s);
+  Context summary(summaryThreshold*1.0_s);
+  if (cmdLine.optionProvided("--raw-nmea2000")) {
+    summary.withHeader = false;
+    summary.withStreams = false;
+    summary.withText = false;
+    summary.withNmea2000 = true;
+    summary.dateFormat = DateFormat::Nmea2000Replay;
+  }
   for (auto arg : cmdLine.freeArgs()) {
     logCat(arg->value(), textField, &summary);
   }
-  if (summary.defined()) {
+  if (summary.briefReport()) {
     std::cout << summary << std::endl;
   }
   return 0;

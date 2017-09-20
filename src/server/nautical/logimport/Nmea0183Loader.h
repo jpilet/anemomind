@@ -54,8 +54,11 @@ private:
 
 class Nmea0183LogLoaderAdaptor {
  public:
-  Nmea0183LogLoaderAdaptor(NmeaParser *parser, LogAccumulator *dst,
+  Nmea0183LogLoaderAdaptor(
+      bool adjustTimeFromNmea0183,
+      NmeaParser *parser, LogAccumulator *dst,
       const std::string &srcName) :
+    _adjustTimeFromNmea0183(adjustTimeFromNmea0183),
     _parser(parser), _sourceName(srcName), _dst(dst) {}
 
   template <DataCode Code>
@@ -64,7 +67,13 @@ class Nmea0183LogLoaderAdaptor {
     typedef typename TimedSampleCollection<T>::TimedVector TimedVector;
     std::map<std::string, TimedVector> *m = getChannels<Code>(_dst);
     auto dst = allocateSourceIfNeeded<T>(_sourceName, m);
-    _lastTime = updateLastTime(_lastTime, value);
+
+    // If we are trying to compute a time correction offset,
+    // we probably *don't* want to do this...
+    if (_adjustTimeFromNmea0183) {
+      _lastTime = updateLastTime(_lastTime, value);
+    }
+
     if (_lastTime.defined() && isFinite(value)) {
       dst->push_back(TimedValue<T>(_lastTime, value));
     }
@@ -76,7 +85,9 @@ class Nmea0183LogLoaderAdaptor {
 
   const std::string &sourceName() const {return _sourceName;}
  private:
+  bool _adjustTimeFromNmea0183 = false;
   TimeStamp _lastTime;
+
   std::string _sourceName;
   NmeaParser *_parser;
   LogAccumulator *_dst;

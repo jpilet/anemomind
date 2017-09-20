@@ -25,6 +25,7 @@ var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
 var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
+var nmea2000raw = require('./components/nmea2000raw.js');
 
 // To free up space if possible.
 function cleanOld() {
@@ -46,8 +47,17 @@ if (withHttp) {
   var http = require('./components/http');
 }
 
+function setLogRawNmea2000FromConfig(err, cfg) {
+  if (err) {
+    console.log("Error reading config setting to set log raw NMEA 2000 state");
+  } else {
+    nmea2000raw.setState(cfg.logRawNmea2000);
+  }
+}
+
 if (withLogger) {
   var logger = require('./components/logger');
+  config.getAndListen(setLogRawNmea2000FromConfig);
 }
 
 if (withLocalEndpoint) {

@@ -17,6 +17,7 @@ add_library(anemobox_Dispatcher
 target_link_libraries(anemobox_Dispatcher
                       common_string
                       common_TimeStamp
+                      common_logging
                      )
 cxx_test(anemobox_DispatcherTest DispatcherTest.cpp
          anemobox_Dispatcher
@@ -112,6 +113,7 @@ cxx_test(anemobox_DispatcherUtilsTest
          DispatcherUtilsTest.cpp
          anemobox_DispatcherUtils
          gtest_main
+         gmock
         )        
 
 add_library(anemobox_Sources

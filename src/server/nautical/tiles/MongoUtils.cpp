@@ -21,6 +21,18 @@ bson_oid_t makeOid(const std::string& s) {
   return oid;
 }
 
+void genOid(bson_t* dst) {
+  bson_oid_t _id;
+  bson_oid_init(&_id, nullptr);
+  BSON_APPEND_OID(dst, "_id", &_id); //tile.genOID()
+}
+
+void bsonAppendAsOid(bson_t* dst, const char* key, const std::string& s) {
+  auto oid = makeOid(s);
+  BSON_APPEND_OID(dst, key, &oid);
+}
+
+
 std::shared_ptr<mongoc_write_concern_t> mongoWriteConcernForLevel(
     uint32_t level) {
   auto dst = SHARED_MONGO_PTR(
@@ -64,6 +76,20 @@ std::string bsonErrorToString(const bson_error_t& e) {
   return ss.str();
 }
 
+std::ostream& operator<<(std::ostream& s, const bson_t& x) {
+  auto c = bson_as_json(&x, nullptr);
+  s << c;
+  bson_free(c);
+  return s;
+}
+
+
+std::string bsonToString(const bson_t& x) {
+  auto c = bson_as_json(&x, nullptr);
+  std::string s(c);
+  bson_free(c);
+  return s;
+}
 
 const char* keyOrNextIndex(bson_t* dst, const char* key, IndexString* buf) {
   if (key == nullptr) {
@@ -121,36 +147,34 @@ void bsonAppend(bson_t* dst, const char* key, double value) {
 
 
 
-std::string makeMongoDBURI(
-    const MongoConnectionSettings& cs) {
-  std::string accountString;
-  if (!cs.user.empty() && !cs.passwd.empty()) {
-    accountString = cs.user + ":" + cs.passwd + "@";
+bool MongoDBConnection::connected() const {
+  if (!defined()) {
+    return false;
   }
-
-  // TODO: Do we need to specify anything else, such as what authentication
-  // is to be used?
-  return "mongodb://" + accountString + cs.dbHost + "/" + cs.dbName;
+  auto cur = UNIQUE_MONGO_PTR(
+      mongoc_cursor,
+      mongoc_database_find_collections(
+          db.get(), nullptr, nullptr));
+  return bool(cur);
 }
 
-
 MongoDBConnection::MongoDBConnection(
-    const std::string& uriString) {
+    const std::shared_ptr<mongoc_uri_t>& uri) {
+  CHECK(bool(uri));
+
   initializeMongo();
-  auto uri = UNIQUE_MONGO_PTR(
-      mongoc_uri,
-      mongoc_uri_new(uriString.c_str()));
 
   const char* dbname = mongoc_uri_get_database(uri.get());
 
+  auto uris = mongoc_uri_get_string(uri.get());
   LOG(INFO) << "Try to connect to Mongo database '"
-      << mongoc_uri_get_string(uri.get()) << "'";
+      << uris << "'";
 
   client = SHARED_MONGO_PTR(mongoc_client,
       mongoc_client_new_from_uri(uri.get()));
   if (!client) {
     LOG(ERROR) << "Failed to connect to "
-        << uriString << ". Are the authentication things correct?";
+        << uris << ". Are the authentication things correct?";
     return;
   }
   mongoc_client_set_error_api(client.get(), 2);
@@ -164,6 +188,29 @@ std::string MongoTableName::fullName() const {
   CHECK(!_db.empty());
   return _db + "." + _table;
 }
+
+
+std::shared_ptr<mongoc_collection_t> getOrCreateCollection(
+    mongoc_database_t* db, const char* name) {
+  auto coll = SHARED_MONGO_PTR(
+      mongoc_collection,
+      mongoc_database_get_collection(db, name));
+  if (coll) {
+    return coll;
+  } else {
+    bson_error_t e;
+    coll = SHARED_MONGO_PTR(
+        mongoc_collection,
+        mongoc_database_create_collection(
+            db, name, nullptr, &e));
+    if (!coll) {
+      LOG(ERROR) << "Failed to create collection named '" << name << "': "
+          << bsonErrorToString(e);
+    }
+    return coll;
+  }
+}
+
 
 bool BulkInserter::insert(const std::shared_ptr<bson_t>& obj) {
   if (!success()) {
@@ -198,19 +245,19 @@ bool withBulkOperation(
   f(op.get());
   bson_t uninitialized_reply;
   bson_error_t error;
-  if (!mongoc_bulk_operation_execute(op.get(), &uninitialized_reply, &error)) {
+  bool success = mongoc_bulk_operation_execute(op.get(), &uninitialized_reply, &error);
+  if (!success) {
     LOG(ERROR) << "With bulk operation failed: " << bsonErrorToString(error);
-    return false;
   }
   bson_destroy(&uninitialized_reply);
-  return true;
+  return success;
 }
 
 bool BulkInserter::finish() {
   if (_toInsert.size() == 0) {
     return success();
   }
-  bool ordered = true;
+  bool ordered = false;
   if (success()) {
     auto concern = nullptr;
 
@@ -230,7 +277,30 @@ bool BulkInserter::finish() {
         [this](
             mongoc_bulk_operation_t* op) {
       for (auto x: _toInsert) {
-        mongoc_bulk_operation_insert(op, x.get());
+        bson_iter_t iter;
+        bson_iter_init (&iter, x.get());
+        if (bson_iter_find(&iter,"_id")) {
+          WrapBson selector;
+          bson_append_value(&selector, "_id", 3, bson_iter_value(&iter));
+
+          WrapBson opts;
+          bson_append_bool(&opts, "upsert", 6, true);
+          WrapBson update;
+          bson_append_document(&update, "$set", 4, x.get());
+          bson_error_t error;
+          if (!mongoc_bulk_operation_update_one_with_opts(
+              op,
+              &selector,
+              &update,
+              &opts,
+              &error)) {
+            LOG(ERROR) << bsonErrorToString(error);
+            fail();
+            break;
+          }
+        } else {
+          mongoc_bulk_operation_insert(op, x.get());
+        }
       }
     })) {
       fail();
@@ -246,6 +316,40 @@ bool BulkInserter::success() const {
 
 void BulkInserter::fail() {
   _collection = std::shared_ptr<mongoc_collection_t>();
+}
+
+bool bsonVisitorUtf8Method(
+    const bson_iter_t *iter,
+    const char *key,
+    size_t v_utf8_len,
+    const char *v_utf8,
+    void *data) {
+  return static_cast<BsonVisitor*>(data)->visitUtf8(
+      key, std::string(v_utf8, v_utf8_len)) == BsonVisitor::Stop;
+}
+
+bool bsonVisitorDateTimeMethod(
+    const bson_iter_t *iter,
+    const char *key,
+    int64_t msec_since_epoch,
+    void *data) {
+  return static_cast<BsonVisitor*>(data)->visitDateTime(
+      key, TimeStamp::fromMilliSecondsSince1970(msec_since_epoch))
+      == BsonVisitor::Stop;
+}
+
+bson_visitor_t BsonVisitor::makeFullVisitor() {
+  bson_visitor_t v = {0};
+  v.visit_utf8 = &bsonVisitorUtf8Method;
+  v.visit_date_time = &bsonVisitorDateTimeMethod;
+  return v;
+}
+
+void BsonVisitor::visit(const bson_t& bson, const bson_visitor_t& v) {
+  bson_iter_t iter;
+  if (bson_iter_init (&iter, &bson)) {
+    bson_iter_visit_all(&iter, &v, this);
+  }
 }
 
 

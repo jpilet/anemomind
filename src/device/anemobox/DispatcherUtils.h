@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <device/anemobox/Dispatcher.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -158,6 +159,18 @@ void exportDispatcherToTextFiles(const std::string &filenamePrefix,
     TimeStamp from, TimeStamp to,
     const Dispatcher *d);
 
+std::function<TimeStamp(TimeStamp)> roundOffToBin(
+    Duration<double> dur);
+
+std::function<TimeStamp(TimeStamp)> roundOffToBin(
+    Duration<double> dur); // Pass this function to the function below
+
+std::map<TimeStamp, std::map<std::pair<DataCode, std::string>, int>>
+  summarizeDispatcherOverTime(
+      const Dispatcher* d,
+      std::function<TimeStamp(TimeStamp)> roundOff);
+
+
 class ReplayDispatcher : public Dispatcher {
  public:
 
@@ -176,6 +189,22 @@ class ReplayDispatcher : public Dispatcher {
    TimeStamp currentTime() override {
      return _currentTime;
    }
+   
+   void setCurrentTime(TimeStamp t) {
+     if (_currentTime.defined()) {
+       // Time can only move forward.
+       CHECK_LE(_currentTime, t);
+     }
+     _currentTime = t;
+ 
+     // This is the only way to advance time of this dispatcher.
+     // Consequently, we only need to visit the timeouts here.
+     visitTimeouts();
+   }
+
+   void advanceTime(Duration<> delta) {
+     setCurrentTime(currentTime() + delta);
+   }
 
    int maxBufferLength() const override {
      return std::numeric_limits<int>::max();
@@ -184,14 +213,7 @@ class ReplayDispatcher : public Dispatcher {
    template <typename T>
      void publishTimedValue(DataCode code, const std::string& source,
                             TimedValue<T> value) {
-
-     // Time can only move forward.
-     assert(!_currentTime.defined() || _currentTime <= value.time);
-
-     // This is the only way to advance time of this dispatcher.
-     // Consequently, we only need to visit the timeouts here.
-     _currentTime = value.time;
-     visitTimeouts();
+     setCurrentTime(value.time);
      publishValue<T>(code, source, value.value);
    }
 
