@@ -393,7 +393,7 @@ angular.module('www2App')
       $scope.deviceTargetVmg = getPointValue(['deviceTargetVmg']);
 
       setLocation();
-    });
+    }, true);
 
     $scope.replaySpeed = 8;
     $scope.slower = function() { $scope.replaySpeed /= 2; }

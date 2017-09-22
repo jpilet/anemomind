@@ -13,6 +13,8 @@ var EventSchema = new Schema({
   comment: String,
   photo: String,
   when: Date,
+  video: String,
+  videoEnd: Date,
   latitude: Number,
   longitude: Number
 });

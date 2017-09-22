@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('events', function ($http, Auth, userDB, Lightbox, $httpParamSerializer) {
+  .directive('events', function (Auth, Lightbox, $httpParamSerializer) {
     return {
       templateUrl: 'app/events/events.html',
       restrict: 'E',
@@ -50,7 +50,13 @@ angular.module('www2App')
           if (index != undefined) {
             Lightbox.openModal(images, index);
           }
-        }
+
+        };
+
+	scope.videoSource = function(event) {
+	    return '/videos/' + event.video + '-s.mp4';
+	};
+
       }
     };
   });

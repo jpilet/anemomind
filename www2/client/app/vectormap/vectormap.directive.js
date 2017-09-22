@@ -275,7 +275,7 @@ angular.module('www2App')
               scope.pathLayer.allTrack = $location.search().allTrack;
               selectEventByTime(newValue);
             }
-          });
+          }, true);
 
           updateTileUrl();
 

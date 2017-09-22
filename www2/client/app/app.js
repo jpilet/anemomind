@@ -11,7 +11,8 @@ angular.module('www2App', [
   'nvd3',
   'bootstrapLightbox',
   'rzModule',
-  'angularModalService'
+  'angularModalService',
+  'vjs.video'
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider, LightboxProvider) {
     $urlRouterProvider

@@ -8,6 +8,9 @@
             <img ng-src="{{ thumbnail(event) }}"></img>
           </a>
         </div>
+	<div ng-if="event.video" class="top">
+	  <video-event event="event" current-time="currentTime"></video-event>
+	</div>
         <div class="bottom" ng-class="{ 'full-border': !event.photo }">
           <div class="timeline-badge" ng-class="{ 'to-top': !event.photo }" ng-click="onTimeSelect(event.when)"></div>
           <div class="eventdate"><a href="" ng-click="onTimeSelect(event.when)">{{event.when | date: "H'h'mm"}}</a></div>
