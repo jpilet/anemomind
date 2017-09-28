@@ -84,9 +84,7 @@
     this.version = 0;
     this.f = f;
     this.args = (args || []).map(function(valueState) {
-      if (!(valueState instanceof ValueState)) {
-        fatalError("Not a ValueState!");
-      }
+      assert(valueState instanceof ValueState, "Not a ValueState!");
       return {
         'version': null,
         'valueState': valueState
