@@ -233,7 +233,7 @@ angular.module('www2App')
       };
 
       anemoutils.updateIn(perBoatData, [boatId, "sessions"], function(x) {
-        var renderer = x || [];
+        var renderer = x || new SessionRenderer();
         renderer.addEdit(op);
         sessionsForBoats[boatId] = renderer.renderedArray.get();
         return renderer;
