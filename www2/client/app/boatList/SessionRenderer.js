@@ -59,32 +59,38 @@ function addSessionToMap(m, session) {
 // by that ValueState
 function SessionRenderer() {
   // Map of id to session. Used to detect duplicates
-  this.idToSession = new anemoutils.ValueState();
-  this.idToSession.set({});
+  this.idToSession = new anemoutils.ValueState({init: {}});
 
   // Array of edits
-  this.edits = new anemoutils.ValueState();
-  this.edits.set([]);
+  this.edits = new anemoutils.ValueState({init: []});
 
   // Array of raw sessions
-  this.rawSessions = new anemoutils.ValueState(
-    sessionMapToArray, [this.idToSession]);
+  this.rawSessions = new anemoutils.ValueState({
+    f: sessionMapToArray,
+    args: [this.idToSession]
+  });
 
   // The session tree, after all edits were applied
-  this.renderedTree = new anemoutils.ValueState(
-    makeSessionTree, [this.rawSessions, this.edits]);
+  this.renderedTree = new anemoutils.ValueState({
+    f: makeSessionTree,
+    args: [this.rawSessions, this.edits]
+  });
 
   // Rendered sessions, in the form of an array
-  this.renderedArray = new anemoutils.ValueState(
-    function(tree) {
+  this.renderedArray = new anemoutils.ValueState({
+    f: function(tree) {
       return renderSessions(anemoutils.push, [], tree);
-    }, [this.renderedTree]);
+    },
+    args: [this.renderedTree]
+  });
 
   // A map from all the rendered sessions.
-  this.renderedMap = new anemoutils.ValueState(
-    function(tree) {
+  this.renderedMap = new anemoutils.ValueState({
+    f: function(tree) {
       return renderSessions(addSessionToMap, {}, tree);
-    }, [this.renderedTree]);
+    },
+    args: [this.renderedTree]
+  });
 }
 
 // This adds a session to the SessionRenderer. Next time any of 

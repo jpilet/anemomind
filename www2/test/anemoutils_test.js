@@ -35,13 +35,11 @@ describe('utils', function() {
       return x + y;
     }
 
-    var a = new utils.ValueState();
-    a.set(3);
+    var a = new utils.ValueState({init: 3});
 
-    var b = new utils.ValueState();
-    b.set(4);
+    var b = new utils.ValueState({init: 4});
 
-    var c = new utils.ValueState(add, [a, b]);
+    var c = new utils.ValueState({f: add, args: [a, b]});
 
     assert(counter == 0);
     assert(c.get() == 7);
@@ -59,7 +57,7 @@ describe('utils', function() {
     assert(counter == 2);
 
 
-    var d = new utils.ValueState(add, [c, a]);
+    var d = new utils.ValueState({f: add, args: [c, a]});
     assert(d.get() == 24);
     assert(counter == 3);
 

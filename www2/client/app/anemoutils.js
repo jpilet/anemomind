@@ -70,26 +70,39 @@
     return setIn(dst, path, f(getIn(dst, path)));
   }
 
-  // ValueState is used to facilitate caching, so
-  // that we only recompute things when they are
-  // needed.
-  //
-  // As arguments, it accepts a function, that 
-  // will compute its value, and an array of 
-  // other ValueState objects from which it gets
-  // those values.
-  function ValueState(f, args) {
-    assert(!f || typeof f == "function", "ValueState, f should be a function");
-    this.value = null;
+  // Pass in the special 'arguments' value
+  // of a function
+  function argumentsToArray(args) {
+    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments
+    return Array.prototype.slice.call(arguments);
+  }
+
+  function validateValueStateCfg(cfg) {
+    assert((cfg.f && (typeof cfg.f == 'function')
+            && cfg.args && !cfg.init
+            && (cfg.args instanceof Array)) 
+           || (cfg.init && !cfg.f && !cfg.args), 
+           "Invalid value state config");
+  }
+
+  function ValueState(cfg) {
+    validateValueStateCfg(cfg);
     this.version = 0;
-    this.f = f;
-    this.args = (args || []).map(function(valueState) {
-      assert(valueState instanceof ValueState, "Not a ValueState!");
-      return {
-        'version': null,
-        'valueState': valueState
-      };
-    });
+
+    if (cfg.f) {
+      this.f = cfg.f;
+      this.args = cfg.args.map(function(valueState) {
+        assert(valueState instanceof ValueState, "Not a ValueState!");
+        return {
+          'version': null,
+          'valueState': valueState
+        };
+      });
+    } else {
+      this.f = null;
+      this.args = [];
+      this.value = cfg.init;
+    }
   }
 
   ValueState.prototype.set = function(newValue) {
