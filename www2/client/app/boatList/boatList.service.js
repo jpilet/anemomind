@@ -51,15 +51,6 @@ angular.module('www2App')
       boats.push(boat);
     }
 
-    function firstEntryMatchingField(array, field, value) {
-      for (var i = 0; i < array.length; ++i) {
-        if (array[i][field] === value) {
-          return array[i];
-        }
-      }
-      return null;
-    }
-
     function updateSessionRepo(newSessions) {
 
       // Insert all the sessions, that may
@@ -221,8 +212,9 @@ angular.module('www2App')
         return;
       }
 
-      var session = firstEntryMatchingField(
-        sessionsForBoats[boatId], '_id', sessionId);
+      var r = anemoutils.getIn(perBoatData, [boatId, "sessions"]);
+      anemoutils.assert(r, "There should be a renderer");
+      var session = r.renderedMap.get()[sessionId];
       anemoutils.assert(session, "No session found");
       var op = {
         type: "delete",
