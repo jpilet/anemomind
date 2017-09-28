@@ -134,31 +134,6 @@
     this.set(f(this.get()));
   }
 
-
-  /// Useful functions when sorting
-  function compareByValue(f, mode) {
-    var modes = {
-      'ascend': 1,
-      'descend': -1
-    };
-    var sign = modes[mode] || 1;
-
-    return function(a, b) {
-      var fa = f(a);
-      var fb = f(b);
-      if (fa < fb) {
-        return -sign;
-      } else if (fa > fb) {
-        return sign;
-      }
-      return 0;
-    };
-  }
-
-  function compareByKey(key, mode) {
-    return compareByValue(function(x) {return x[key];}, mode);
-  }
-
   exports.map = map;
   exports.getIn = getIn;
   exports.setIn = setIn;
@@ -168,7 +143,5 @@
   exports.push = push;
   exports.add = add;
   exports.ValueState = ValueState;
-  exports.compareByValue = compareByValue;
-  exports.compareByKey = compareByKey;
 
 })(typeof exports === 'undefined'? this['anemoutils']={}: exports);

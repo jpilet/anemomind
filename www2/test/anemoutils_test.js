@@ -79,19 +79,4 @@ describe('utils', function() {
     assert(d.get() == 206);
     assert(counter == 8);
   });
-
-  it('sort by key', function() {
-    var x = [{a: 9, b: -100}, {a: 3, b: 1000}, {a: 5, b: 500}];
-    
-    var xa = x.sort(utils.compareByKey("a"));
-    assert(xa[0].a = 3);
-    assert(xa[1].a = 5);
-    assert(xa[2].a = 9);
-    
-    var xb = x.sort(utils.compareByValue(function(x) {return x.b;}, 'descend'));
-    assert(xb[2].b = -100);
-    assert(xb[1].b = 500);
-    assert(xb[0].b = 1000);
-    
-  });
 });
