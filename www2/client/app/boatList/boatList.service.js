@@ -8,8 +8,7 @@ function sessionMapToArray(m) {
   for (var k in m) {
     dst.push(m[k]);
   }
-  dst.sort(anemoutils.compareByKey("startTime")); // By what
-  return dst;
+  return _.sortBy(dst, ["startTime"]);
 }
 
 // This function applies all the edits
