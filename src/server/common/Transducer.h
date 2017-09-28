@@ -33,179 +33,186 @@ namespace sail {
  * http://vitiy.info/cpp14-how-to-implement-transducers
  * https://github.com/Ableton/atria
  *
- */
-
-/*
- * A step represents a function that
- * takes a result which is being accumulated and
- * a new value that should be incorporated, and returns
- * the accumulated value. It is fine to change the accumulated
- * value.
+ * Very good explanation for transducers in JavaScript:
+ * https://tgvashworth.com/2014/08/31/csp-and-transducers.html
  *
- * A stateful transducer may have to flush its state. That is
- * what the flush function is for. If the transducer is stateless,
- * no need to implement a custom flush, it can just take the flush
- * function of the state it transforms.
  */
-template <typename AccumulateType, typename InputType>
-struct Step {
-  typedef std::function<AccumulateType(AccumulateType, InputType)> StepFunction;
-  typedef std::function<AccumulateType(AccumulateType)> FlushFunction;
-  StepFunction step;
-  FlushFunction flush;
 
-  static Step base(StepFunction step) {
-    return {step, [](AccumulateType x) {return x;}};
-  }
-};
-
-/*
- * A mapping transducer will tweak a step function so that
- * the value is mapped before the step is applied.
- */
-template <typename F>
-class Map {
-public:
-  Map(const F& f) : _f(f) {}
-
-  typedef FunctionResultType<F> Y;
-  typedef CleanTypeList<FunctionArgTypes<F>> ArgTypes;
-  typedef FirstType<ArgTypes> X;
-  static_assert(Arity<F>::value == 1, "");
-
-  template <typename R>
-  Step<R, X> operator() (const Step<R, Y>& s) const {
-    auto f = _f;
-    return {
-      [f, s](R r, X x) {return s.step(r, f(x));},
-      s.flush, // no custom flushing.
-    };
-  }
-private:
-  F _f;
-};
-template <typename F> Map<F> map(const F& f) {
-  return Map<F>(f);
-};
-
-/*
- * A filtering transducer will tweak the step function so that
- * it will only accept elements that satisfy a condition.
- */
-template <typename F>
-struct Filter {
-public:
-  Filter(const F& f) : _f(f) {}
-
-  typedef CleanTypeList<FunctionArgTypes<F>> ArgTypes;
-  typedef FirstType<ArgTypes> X;
-  static_assert(std::is_same<FunctionResultType<F>, bool>::value, "");
-  static_assert(Arity<F>::value == 1, "");
-
-  template <typename R>
-  Step<R, X> operator() (const Step<R, X>& s) const {
-    auto f = _f;
-    return {
-      [f, s](R r, X x) {
-        return f(x)? s.step(r, x) : r;
-      },
-      s.flush // no custom flushing.
-    };
-  }
-private:
-  F _f;
-};
-template <typename F> Filter<F> filter(const F& f) {
-  return Filter<F>(f);
-};
-
-template <typename X, typename Y>
-class Compose2 {
-public:
-  Compose2(X x, Y y) : _x(x), _y(y) {}
-
-  template <typename T>
-  auto operator()(const T& x) -> decltype(_x(_y(x))) {
-    return _x(_y(x));
-  }
-private:
-  X _x;
-  Y _y;
+// This is a Step that doesn't change the result
+template <typename R, typename X>
+struct NoStep {
+  typedef R result_type;
+  typedef X input_type;
+  R step(R r, X x) const {return r;}
+  R flush(R r) const {return r;}
 };
 
 
 
-// Composing two transducers results in a new transducer
+// This is a type to denote that the type is undefined
+struct UndefinedType {};
+
+// This is used as a placeholder in transducers
+typedef NoStep<UndefinedType, UndefinedType> UndefinedStep;
+
+/////////////////////////////////////////////////////////////////////
+/////////////// Transducer base type, and composition
+///////////////
+template <typename ThisType>
+class Transducer;
+
 template <typename A, typename B>
-class ComposeTransducers2 {
-public:
-  ComposeTransducers2(const A& a, const B& b) : _a(a), _b(b) {}
-
-  template <typename S>
-  auto operator()(const S& b)
-    -> decltype(std::declval<A>()(
-        std::declval<B>()(b))) {
-    return _a(_b(b));
-  }
+class ComposedTransducer : public Transducer<ComposedTransducer<A, B>> {
 private:
   A _a;
   B _b;
+public:
+  ComposedTransducer(const A& a, const B& b) : _a(a), _b(b) {}
+
+  template <typename Step>
+  auto apply(Step s) -> decltype(_a.apply(_b.apply(s))) {
+    return _a.apply(_b.apply(s));
+  }
 };
 
-// Used to compose many transducers into a pipeline.
-template <typename... T> class ComposeTransducers {};
-
-template <typename X, typename... Y>
-class ComposeTransducers<X, Y...> {
+// Base class. Decorates the transducer with an | operator.
+template <typename ThisType>
+class Transducer {
 public:
-  typedef ComposeTransducers2<X, ComposeTransducers<Y...>> Inner;
+  template <typename Other>
+  ComposedTransducer<ThisType, Other> operator| (const Other& y) const {
+    return ComposedTransducer<ThisType, Other>(
+        *reinterpret_cast<const ThisType*>(this), y);
+  }
+};
 
-  ComposeTransducers(X x, Y... y)
-    : _inner(x, ComposeTransducers<Y...>(y...)) {}
 
+
+
+/*
+ * Implementation detail:
+ *
+ * Here follows some standard transducer types, e.g. Map and Filter.
+ *
+ * Each type is implemented using a single template class that
+ * works both as a Step function (with methods 'step' and 'flush')
+ * and as a Transducer (with a method 'apply').
+ * In the case we use it as a transducer, we don't know the type of
+ * the Step, so we can just use 'UndefinedStep' type as template
+ * parameter.
+ *
+ * The reason for this is that it leads to a more compact implementation
+ * with less code duplication (and therefore also more maintainable).
+ *
+ */
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////// Mapping transducer
+
+template <typename F, typename Step>
+class Map : public Step, public Transducer<Map<F, Step>> {
+public:
+  Map(const F& f, const Step& s = Step()) : _f(f), Step(s) {}
+
+  typedef FirstType<CleanFunctionArgTypes<F>> input_type;
+  typedef typename Step::result_type result_type;
+
+  // Use it as a step function
+  result_type step(result_type y, input_type x) {
+    return Step::step(y, _f(x));
+  }
+
+  // Use it as a transducer
   template <typename S>
-  auto operator() (const S& s) -> decltype(
-      std::declval<Inner>()(std::declval<S>())) {
-    return _inner(s);
+  Map<F, S> apply(S s) const {
+    return Map<F, S>(_f, s);
   }
 private:
-  Inner _inner;
+  F _f;
 };
 
+template <typename F>
+Map<F, UndefinedStep> trMap(const F& f) {
+  return Map<F, UndefinedStep>(f);
+}
 
-template <typename X, typename Y>
-class ComposeTransducers<X, Y> : public ComposeTransducers2<X, Y> {
+/////////////////////////////////////////////////////////////////////
+/////////////////////// Filtering transducer
+template <typename F, typename Step>
+class Filter : public Step, public Transducer<Filter<F, Step>> {
 public:
-  using ComposeTransducers2<X, Y>::ComposeTransducers2;
+  Filter(const F& f, const Step& s = Step()) : _f(f), Step(s) {}
+
+  typedef typename Step::input_type input_type;
+  typedef typename Step::result_type result_type;
+
+  // Use it as a step function
+  result_type step(result_type y, input_type x) {
+    return _f(x)? Step::step(y, x) : y;
+  }
+
+  // Use it as a transducer
+  template <typename S>
+  Filter<F, S> apply(S s) const {
+    return Filter<F, S>(_f, s);
+  }
+private:
+  F _f;
 };
 
-template <typename ... T>
-ComposeTransducers<T...> composeTransducers(T... x) {
-  return ComposeTransducers<T...>(x...);
+template <typename F>
+Filter<F, UndefinedStep> trFilter(const F& f) {
+  return Filter<F, UndefinedStep>(f);
 }
 
-// This reduces over a collection
-// (anything that exhibits iterators begin() and end() as in the STL)
-// using a step function, and flushes at the end.
-template <typename Dst, typename X, typename Coll>
-Dst reduce(Step<Dst, X> step, Dst init, const Coll& coll) {
-  Dst acc = init;
-  for (const X& x: coll) {
-    acc = step.step(acc, x);
+
+///////// Basic step functions
+template <typename T>
+struct AddStep : NoStep<T, T> {
+  T step(T x, T y) const {return x + y;}
+};
+
+template <typename T>
+struct CountStep : NoStep<T, T> {
+  T step(T x, T) const {return x + 1;}
+};
+
+template <typename Iterator>
+using IteratorStepBase = NoStep<Iterator,
+    typename IteratorInputType<Iterator>::type>;
+
+template <typename Iterator>
+struct IteratorStep : public IteratorStepBase<Iterator> {
+  typedef IteratorStepBase<Iterator> Base;
+
+  typename Base::result_type step(
+      typename Base::result_type y,
+      typename Base::input_type x) const {
+    *y = x;
+    return y;
   }
-  return step.flush(acc);
-}
+};
 
 /// Step function for adding something at the end of
 /// a collection. The accumulated type is the iterator,
 /// and not the collection itself.
 template <typename Iterator>
-Step<Iterator, typename IteratorInputType<Iterator>::type>
-  iteratorStep(Iterator i) {
-  typedef typename IteratorInputType<Iterator>::type X;
-  return Step<Iterator, X>::base(
-    [](Iterator i, X x) {*i = x; return ++i;}
-  );
+IteratorStep<Iterator> iteratorStep(Iterator i) {
+  return IteratorStep<Iterator>();
+}
+
+
+
+// This reduces over a collection
+// (anything that exhibits iterators begin() and end() as in the STL)
+// using a step function, and flushes at the end.
+template <typename Step, typename Dst, typename Coll>
+Dst reduce(Step step, Dst init, const Coll& coll) {
+  Dst acc = init;
+  for (const auto& x: coll) {
+    acc = step.step(acc, x);
+  }
+  return step.flush(acc);
 }
 
 // This is a convenience function for reducing, when the accumulated
@@ -213,7 +220,7 @@ Step<Iterator, typename IteratorInputType<Iterator>::type>
 template <typename T, typename Dst, typename Src>
 void transduceIntoColl(T transducer, Dst* dst, const Src& src) {
   auto i = std::inserter(*dst, dst->end());
-  reduce(transducer(iteratorStep(i)), i, src);
+  reduce(transducer.apply(iteratorStep(i)), i, src);
 }
 
 }

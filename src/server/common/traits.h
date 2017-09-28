@@ -219,6 +219,17 @@ template <typename T>
 using CleanTypeList = typename MapTypes<
     CleanTypeOpKey, T>::type;
 
+template <typename T>
+using CleanFunctionArgTypes = CleanTypeList<FunctionArgTypes<T>>;
+
+template <typename T>
+using FirstCleanArgType = FirstType<CleanFunctionArgTypes<T>>;
+
+template <typename F>
+using CleanFunctionResultType =
+    typename TypeMapper<CleanTypeOpKey, FunctionResultType<F>>::type;
+
+
 template <typename T> struct The_value_is;
 
 template <typename T>
