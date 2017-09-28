@@ -19,16 +19,12 @@
   }
 
   function fatalError(x) {
-    alert('FATAL ERROR: ' + x); 
-    
-    // Provoke an error
-    var y = null;
-    y[x] = x;
+    console.log(new Error("FATAL ERROR: " + x).stack);
   }
 
   function assert(x, msg) {
     if (!x) {
-      fatalError("Assertion failed: " + msg);
+      fatalError("Assertion failed: " + msg || "(no message defined)");
     }
   }
 
