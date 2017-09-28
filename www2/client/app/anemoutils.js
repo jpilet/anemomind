@@ -19,12 +19,14 @@
   }
 
   function fatalError(x) {
-    console.log(new Error("FATAL ERROR: " + x).stack);
+    var msg = "FATAL ERROR: " + (x || "(no message defined)");
+    console.log(msg);
+    console.log(new Error(msg).stack);
   }
 
   function assert(x, msg) {
     if (!x) {
-      fatalError("Assertion failed: " + msg || "(no message defined)");
+      fatalError("Assertion failed: " + msg);
     }
   }
 
