@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var anemoutils = require('../client/app/anemoutils.js');
 var SessionOps = require('../client/app/SessionOps.js');
 var assert = require('assert');
@@ -18,7 +19,7 @@ function countFun(dst, x) {
 
 // A function that takes a total duration and a session, and adds
 // the duration of the session to the total duration.
-var addDur = anemoutils.map(SessionOps.sessionDurationSeconds)(anemoutils.add);
+var addDur = anemoutils.map(SessionOps.sessionDurationSeconds)(_.add);
 
 var sessions = rawSessions.map(SessionOps.normalizeSession);
 

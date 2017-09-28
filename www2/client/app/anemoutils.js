@@ -5,10 +5,6 @@
     return dst;
   }
 
-  function add(a, b) { // Because '+' cannot be used as a function.
-    return a + b;
-  }
-
   // Lets us generalize the operation of 'map' to many situations.
   function map(f) { // Returns a  mapping transducer
     return function(r /*old reducing function*/) { // The transducer
@@ -141,7 +137,6 @@
   exports.assert = assert;
   exports.fatalError = fatalError;
   exports.push = push;
-  exports.add = add;
   exports.ValueState = ValueState;
 
 })(typeof exports === 'undefined'? this['anemoutils']={}: exports);
