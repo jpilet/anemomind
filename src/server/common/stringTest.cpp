@@ -34,19 +34,6 @@ TEST(StringTest, FormatTest) {
   EXPECT_EQ(result, "Nine is 9");
 }
 
-TEST(StringTest, Int64Test) {
-  int64_t x = 0x1234567890ABCDEF;
-  EXPECT_EQ("1234567890ABCDEF", int64ToHex(x));
-}
-
-TEST(StringTest, Int64TestOrdering) {
-  int64_t a = 234;
-  int64_t b = 3456;
-
-  EXPECT_LE(a, b);
-  EXPECT_LE(int64ToHex(a), int64ToHex(b));
-}
-
 TEST(StringTetst, joinTest) {
   EXPECT_EQ("a+b+c", join(std::vector<std::string>{"a", "b", "c"}, "+"));
   EXPECT_EQ("a", join(std::vector<std::string>{"a"}, "\n"));
