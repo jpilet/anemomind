@@ -99,7 +99,6 @@ class Nav {
   // TODO: Require this method to return true before a Nav is inserted to a database.
   bool isIndexed() const {return hasId() && hasBoatId();}
 
-  Id id() const;
   bool hasId() const;
   const Id &boatId() const {return _boatId;}
 

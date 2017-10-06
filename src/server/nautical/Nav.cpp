@@ -49,16 +49,6 @@ HorizontalMotion<double> Nav::gpsMotion() const {
   return HorizontalMotion<double>::polar(gpsSpeed(), gpsBearing());
 }
 
-Nav::Id Nav::id() const {
-  if (hasId()) {
-    int64_t time = _time.toMilliSecondsSince1970();
-    static_assert(sizeof(time) == 8, "The size of the time datatype seems to have changed.");
-    return _boatId + int64ToHex(time);
-  } else {
-    return "";
-  }
-}
-
 bool Nav::hasId() const {
   return hasBoatId() && _time.defined();
 }
