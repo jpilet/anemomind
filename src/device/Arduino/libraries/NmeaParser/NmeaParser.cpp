@@ -9,9 +9,6 @@
 
 using namespace sail;
 
-
-bool hackForceDateForGLL = false;
-
 #endif
 
 namespace {

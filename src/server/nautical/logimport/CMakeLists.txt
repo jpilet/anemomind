@@ -19,6 +19,7 @@ add_library(logimport_Nmea0183Loader
 target_link_libraries(logimport_Nmea0183Loader
                       device_NmeaParser
                       anemobox_Nmea0183Source                      
+                      nautical_BoatSpecificHacks
                      )
 
 add_library(logimport_LogLoader
@@ -31,6 +32,7 @@ target_link_libraries(logimport_LogLoader
                       logimport_CsvLoader
                       logimport_ProtobufLogLoader
                       logimport_Nmea0183Loader
+                      nautical_BoatSpecificHacks
                      )
 
 cxx_test(logimport_LogLoaderTest 
