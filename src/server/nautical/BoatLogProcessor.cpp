@@ -28,6 +28,7 @@
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
+#include <server/nautical/BoatSpecificHacks.h>
 
 namespace sail {
 
@@ -329,7 +330,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   }
 
   if (_boatid == "59b1343a0411db0c8d8fbf7c") {
-    hackForceDateForGLL = true;
+    hack::forceDateForGLL = true;
   }
 
   NavDataset current;

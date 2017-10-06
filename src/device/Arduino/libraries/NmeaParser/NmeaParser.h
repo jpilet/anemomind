@@ -349,8 +349,4 @@ class NmeaParser {
 double geoPosDist(GeoPos *a, GeoPos *b);
 void secToStr(int sec, char *str);
 
-#ifdef ON_SERVER
-extern bool hackForceDateForGLL;
-#endif
-
 #endif

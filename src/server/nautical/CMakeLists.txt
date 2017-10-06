@@ -75,6 +75,7 @@ add_library(nautical_BoatLogProcessor
            )
 target_depends_on_mongoc(nautical_BoatLogProcessor)
 target_link_libraries(nautical_BoatLogProcessor
+                      nautical_BoatSpecificHacks
                       anemobox_SimulateBox
                       common_PathBuilder
                       common_logging
@@ -282,6 +283,10 @@ target_link_libraries(nautical_MaxSpeed
                       common_TimeStamp
                       )
 
+add_library(nautical_BoatSpecificHacks
+  BoatSpecificHacks.h
+  BoatSpecificHacks.cpp
+  )
 
 add_executable(nautical_boatDatInfo boatDatInfo.cpp)
 target_link_libraries(nautical_boatDatInfo 

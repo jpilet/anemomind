@@ -10,6 +10,7 @@
 #include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/common/logging.h>
 #include <vector>
+#include <server/nautical/BoatSpecificHacks.h>
 
 namespace sail {
 namespace ProtobufLogLoader {
@@ -190,6 +191,9 @@ namespace {
 
 
 void load(const LogFile &data, LogAccumulator *dst) {
+
+  hack::bootCount = data.bootcount() - 101;
+
   // TODO: Define a set of standard priorities in a file somewhere
   auto rawStreamPriority = -16;
 
