@@ -62,6 +62,7 @@ void Nmea0183ProcessByte(const std::string &sourceName,
       break;
     case NmeaParser::NMEA_GLL:
       handler->template add<GPS_POS>(sourceName, getPos(*parser));
+      handler->setTimeOfDay(parser->hour(), parser->min(), parser->sec());
 #ifdef ENABLE_HACKS
 #ifdef ON_SERVER
       if (hack::forceDateForGLL) {

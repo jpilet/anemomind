@@ -19,6 +19,7 @@ namespace {
       _dispatcher->publishValue(Code, sourceName, value);
     }
 
+    void setTimeOfDay(int, int, int) {}
    private:
     Dispatcher *_dispatcher;
   };

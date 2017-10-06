@@ -15,6 +15,20 @@
 namespace sail {
 namespace Nmea0183Loader {
 
+TimeStamp updateLastTime(const TimeStamp &current, const TimeStamp &candidate) {
+  if (!candidate.defined()) {
+    return current;
+  } else if (!current.defined()) {
+    return candidate;
+  }
+  return std::max(current, candidate);
+}
+
+template <>
+TimeStamp timestampOrUndefined<TimeStamp>(TimeStamp x) {
+  return x;
+}
+
 LogLoaderNmea0183Parser::LogLoaderNmea0183Parser(LogAccumulator *dst,
   const std::string &s) : _dst(dst), _sourceName(s) {
   setIgnoreWrongChecksum(true);

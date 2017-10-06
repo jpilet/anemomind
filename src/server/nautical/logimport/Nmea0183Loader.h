@@ -18,23 +18,12 @@ namespace sail {
 namespace Nmea0183Loader {
 
 
-
+TimeStamp updateLastTime(const TimeStamp &current, const TimeStamp &candidate);
 
 template <typename T>
-inline TimeStamp updateLastTime(const TimeStamp &current, const T &candidate) {
-  return current;
+TimeStamp timestampOrUndefined(T x) {
+  return TimeStamp();
 }
-
-template <>
-inline TimeStamp updateLastTime(const TimeStamp &current, const TimeStamp &candidate) {
-  if (!candidate.defined()) {
-    return current;
-  } else if (!current.defined()) {
-    return candidate;
-  }
-  return std::max(current, candidate);
-}
-
 
 class LogLoaderNmea0183Parser : public NmeaParser {
 public:
@@ -71,12 +60,16 @@ class Nmea0183LogLoaderAdaptor {
     // If we are trying to compute a time correction offset,
     // we probably *don't* want to do this...
     if (_adjustTimeFromNmea0183) {
-      _lastTime = updateLastTime(_lastTime, value);
+      setTime(timestampOrUndefined(value));
     }
 
     if (_lastTime.defined() && isFinite(value)) {
       dst->push_back(TimedValue<T>(_lastTime, value));
     }
+  }
+
+  void setTimeOfDay(int hour, int minute, int second) {
+
   }
 
   void setTime(const TimeStamp& time) {
