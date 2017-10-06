@@ -4,7 +4,7 @@
 #define DEVICE_FIXED_POINT_H
 
 #include <stdint.h>
-#include <math.h>
+#include <cmath>
 
 // workaround some arduino #define..
 #ifdef round
