@@ -41,6 +41,17 @@ private:
   TimeStamp _protobufTime;
 };
 
+class Nmea0183TimeFuser {
+public:
+  TimeStamp estimate() const;
+  void setTime(TimeStamp t);
+  void setTimeSinceMidnight(Duration<double> d);
+private:
+  TimeStamp _lastTime;
+  Optional<Duration<double>> _offsetTimeOfDay;
+  Duration<double> _lastTimeOfDay;
+};
+
 class Nmea0183LogLoaderAdaptor {
  public:
   Nmea0183LogLoaderAdaptor(
@@ -63,23 +74,25 @@ class Nmea0183LogLoaderAdaptor {
       setTime(timestampOrUndefined(value));
     }
 
-    if (_lastTime.defined() && isFinite(value)) {
-      dst->push_back(TimedValue<T>(_lastTime, value));
+    auto estTime = _time.estimate();
+    if (estTime.defined() && isFinite(value)) {
+      dst->push_back(TimedValue<T>(estTime, value));
     }
   }
 
   void setTimeOfDay(int hour, int minute, int second) {
-
+    _time.setTimeSinceMidnight(
+        hour*1.0_hours + minute*1.0_minutes + second*1.0_seconds);
   }
 
   void setTime(const TimeStamp& time) {
-    _lastTime = updateLastTime(_lastTime, time);
+    _time.setTime(time);
   }
 
   const std::string &sourceName() const {return _sourceName;}
  private:
   bool _adjustTimeFromNmea0183 = false;
-  TimeStamp _lastTime;
+  Nmea0183TimeFuser _time;
 
   std::string _sourceName;
   NmeaParser *_parser;

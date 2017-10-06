@@ -24,6 +24,35 @@ TimeStamp updateLastTime(const TimeStamp &current, const TimeStamp &candidate) {
   return std::max(current, candidate);
 }
 
+TimeStamp Nmea0183TimeFuser::estimate() const {
+  if (_offsetTimeOfDay.undefined()) {
+    return _lastTime;
+  } else {
+    Duration<double> elapsed = positiveMod<Duration<double>>(
+        _lastTimeOfDay - _offsetTimeOfDay, 1.0_days);
+    if (elapsed < 1.0_hours) {
+      return _lastTime + elapsed;
+    } else {
+
+    }
+  }
+}
+
+void Nmea0183TimeFuser::setTime(TimeStamp t) {
+  if (t.defined()) {
+    _offsetTimeOfDay = Optional<Duration<double>>();
+    _lastTimeOfDay = Optional<Duration<double>>();
+    _lastTime = updateLastTime(_lastTime, t);
+  }
+}
+
+void Nmea0183TimeFuser::setTimeSinceMidnight(Duration<double> d) {
+  if (_offsetTimeOfDay.undefined()) {
+    _offsetTimeOfDay = d;
+  }
+  _lastTimeOfDay = d;
+}
+
 template <>
 TimeStamp timestampOrUndefined<TimeStamp>(TimeStamp x) {
   return x;
