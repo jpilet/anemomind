@@ -159,6 +159,18 @@ void exportDispatcherToTextFiles(const std::string &filenamePrefix,
     TimeStamp from, TimeStamp to,
     const Dispatcher *d);
 
+std::function<TimeStamp(TimeStamp)> roundOffToBin(
+    Duration<double> dur);
+
+std::function<TimeStamp(TimeStamp)> roundOffToBin(
+    Duration<double> dur); // Pass this function to the function below
+
+std::map<TimeStamp, std::map<std::pair<DataCode, std::string>, int>>
+  summarizeDispatcherOverTime(
+      const Dispatcher* d,
+      std::function<TimeStamp(TimeStamp)> roundOff);
+
+
 class ReplayDispatcher : public Dispatcher {
  public:
 

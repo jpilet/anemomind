@@ -44,7 +44,11 @@ function ensureNotBusy(cb) {
 var preparedCanvases = {};
 function getCanvas(width, height, name, cb) {
     if (preparedCanvases[name]) {
-      cb(preparedCanvases[name]);
+      var prepared = preparedCanvases[name];
+      prepared.canvas.width = width;
+      prepared.canvas.height = height;
+      prepared.context = prepared.canvas.getContext('2d');
+      cb(prepared);
       return;
     }
 

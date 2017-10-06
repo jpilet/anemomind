@@ -28,6 +28,7 @@
 #include <server/nautical/tiles/ChartTiles.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
+#include <server/nautical/BoatSpecificHacks.h>
 
 namespace sail {
 
@@ -328,9 +329,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
-  if (_boatid == "59b1343a0411db0c8d8fbf7c") {
-    hackForceDateForGLL = true;
-  }
+  hack::ConfigureForBoat(_boatid);
 
   NavDataset current;
 
@@ -455,6 +454,24 @@ void BoatLogProcessor::infoNavDataset(const std::string& info,
   DOM::addSubTextNode(&_htmlReport, "h2", info);
   std::stringstream ss;
   ds.outputSummary(&ss);
+
+  auto s = summarizeDispatcherOverTime(
+      ds.dispatcher().get(),
+      roundOffToBin(15.0_minutes));
+  std::set<DataCode> ofInterest{AWA, TWA, AWS, TWS};
+  for (const auto& kv: s) {
+    ss << "At "<< kv.first.toString() << std::endl;
+    for (const auto& codeSourceAndCount: kv.second) {
+      auto codeSource = codeSourceAndCount.first;
+      int n = codeSourceAndCount.second;
+      if (true || 1 <= ofInterest.count(codeSource.first)) {
+        ss << "   " << wordIdentifierForCode(codeSource.first)
+            << ", " << codeSource.second << ": " << n << std::endl;
+      }
+    }
+  }
+
+
   DOM::addSubTextNode(&_htmlReport, "pre", ss.str());
 }
 

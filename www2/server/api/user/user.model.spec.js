@@ -4,12 +4,13 @@ var should = require('should');
 var app = require('../../app');
 var User = require('./user.model');
 
-var user = new User({
+var userData = {
   provider: 'local',
   name: 'Fake User',
   email: 'test@test.com',
   password: 'password'
-});
+};
+var user = new User(userData);
 
 describe('User Model', function() {
   before(function(done) {
@@ -34,11 +35,11 @@ describe('User Model', function() {
 
   it('should fail when saving a duplicate user', function(done) {
     user.save(function() {
-      var userDup = new User(user);
-      userDup.save(function(err) {
-        should.exist(err);
-        done();
-      });
+        var userDup = new User(userData);
+        userDup.save(function(err) {
+          should.exist(err);
+          done();
+        });
     });
   });
 

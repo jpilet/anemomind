@@ -161,17 +161,6 @@ std::string toLower(const std::string &src) {
 }
 
 
-std::string int64ToHex(int64_t x) {
-  constexpr int len = 2*sizeof(x);
-  std::string result(len, '0');
-  for (int i = 0; i < sizeof(x); ++i) {
-    int offs = 2*i;
-    result[offs + 0] = toHexDigit((x >> ((15 - i) * 8 + 4)) & 0xf);
-    result[offs + 1] = toHexDigit((x >> ((15 - i) * 8)) & 0xf);
-  }
-  return result;
-}
-
 void splitFilenamePrefixSuffix(const std::string &filename,
                                std::string &prefix, std::string &suffix) {
   int index = filename.find_last_of('.');

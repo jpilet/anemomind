@@ -10,6 +10,7 @@
 #include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/common/logging.h>
 #include <vector>
+#include <server/nautical/BoatSpecificHacks.h>
 
 namespace sail {
 namespace ProtobufLogLoader {
@@ -49,7 +50,12 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
     std::string originalSourceName = stream.source();
     std::string dstSourceName = originalSourceName + " reparsed";
     Nmea0183Loader::LogLoaderNmea0183Parser parser(dst, dstSourceName);
-    Nmea0183Loader::Nmea0183LogLoaderAdaptor adaptor(&parser, dst, dstSourceName);
+    Nmea0183Loader::Nmea0183LogLoaderAdaptor adaptor(
+        false, // <-- All the text log data are string chunks that are tagged
+               // with times that we correct with a provided offset, so
+               // we rely on those values, rather than the time values that we
+               // get from the NMEA0183 data.
+        &parser, dst, dstSourceName);
     for (int i = 0; i < n; i++) {
       auto t = times[i] + offset;
       parser.setProtobufTime(t);
@@ -70,14 +76,21 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
 
 namespace {
   struct OffsetWithFitnessError {
+    static const int initPriority = (-std::numeric_limits<int>::max());
+    static constexpr double initError = std::numeric_limits<double>::infinity();
+
     OffsetWithFitnessError() {
       offset = Duration<double>::seconds(0.0);
-      averageErrorFromMedian = std::numeric_limits<double>::infinity();
-      priority = (-std::numeric_limits<int>::max());
+      averageErrorFromMedian = initError;
+      priority = initPriority;
     }
 
     OffsetWithFitnessError(Duration<double> dur, double e, int p) :
       offset(dur), averageErrorFromMedian(e), priority(p) {
+    }
+
+    bool defined() const {
+      return averageErrorFromMedian < initError;
     }
 
     int priority;
@@ -94,6 +107,14 @@ namespace {
       return makePairToMinimize() < e.makePairToMinimize();
     }
   };
+
+  std::ostream& operator<<(
+      std::ostream& s, const OffsetWithFitnessError& x) {
+    s << "\n offset:   " << x.offset.str()
+      << "\n priority: " << x.priority
+      << "\n avg err:  " << x.averageErrorFromMedian;
+    return s;
+  }
 
   OffsetWithFitnessError computeTimeOffset(const ValueSet &stream) {
     std::vector<Duration<double> > diffs;
@@ -147,18 +168,32 @@ namespace {
     return OffsetWithFitnessError();
   }
 
+  void forAllValueSets(
+      const LogFile& data,
+      const std::function<void(ValueSet)>& f) {
+    for (int i = 0; i < data.stream_size(); i++) {
+      f(data.stream(i));
+    }
+    for (int i = 0; i < data.text_size(); i++) {
+      f(data.text(i));
+    }
+  }
+
   Duration<double> computeTimeOffset(const LogFile &data) {
     OffsetWithFitnessError offset;
-    for (int i = 0; i < data.stream_size(); i++) {
-      auto c = computeTimeOffset(data.stream(i));
+    forAllValueSets(data, [&](const ValueSet& stream) {
+      auto c = computeTimeOffset(stream);
       offset = std::min(offset, c);
-    }
+    });
     return offset.offset;
   }
 }
 
 
 void load(const LogFile &data, LogAccumulator *dst) {
+
+  hack::bootCount = data.bootcount() - 101;
+
   // TODO: Define a set of standard priorities in a file somewhere
   auto rawStreamPriority = -16;
 

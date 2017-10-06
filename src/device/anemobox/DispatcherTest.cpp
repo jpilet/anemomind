@@ -140,6 +140,15 @@ TEST(DispatcherTest, sourcesForChannelTest) {
             dispatcher.sourcesForChannel(AWA));
 }
 
+struct CountVisitor {
+  int n = 0;
+
+  template <typename T>
+  void visit(DataCode code, TypedDispatchData<T>* d) {
+    n = d->dispatcher()->values().size();
+  }
+};
+
 TEST(DispatcherTest, hasSourceTest) {
   Dispatcher dispatcher;
   EXPECT_FALSE(dispatcher.hasSource(AWA, "source 1"));
@@ -153,4 +162,10 @@ TEST(DispatcherTest, hasSourceTest) {
   EXPECT_TRUE(dispatcher.hasSource(AWA, "source 2"));
 
   EXPECT_FALSE(dispatcher.hasSource(AWA, "source 3"));
+
+  {
+    CountVisitor v;
+    dispatcher.dispatchDataForSource(AWA, "source 2")->visitX(&v);
+    EXPECT_EQ(v.n, 1);
+  }
 }
