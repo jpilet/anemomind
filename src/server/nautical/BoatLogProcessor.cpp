@@ -329,9 +329,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     return false;
   }
 
-  if (_boatid == "59b1343a0411db0c8d8fbf7c") {
-    hack::forceDateForGLL = true;
-  }
+  hack::ConfigureForBoat(_boatid);
 
   NavDataset current;
 

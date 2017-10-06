@@ -8,6 +8,8 @@
 #ifndef SERVER_NAUTICAL_BOATSPECIFICHACKS_H_
 #define SERVER_NAUTICAL_BOATSPECIFICHACKS_H_
 
+#include <string>
+
 namespace hack {
 
 /*
@@ -21,6 +23,12 @@ extern bool forceDateForGLL;
 
 // Used to generate dates when the above is true.
 extern int bootCount;
+
+
+
+
+
+void ConfigureForBoat(const std::string& boatId);
 
 }
 
