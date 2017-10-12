@@ -24,19 +24,14 @@ struct Bundle : public Step, public Transducer<Bundle<Split, Step>> {
   typedef typename Step::result_type result_type;
 
   result_type step(result_type y, const input_type& X) {
-    if (_nextBundle.empty() || !_split(_nextBundle.last(), X)) {
-      std::cout << "Just add it: " << X << std::endl;
-      _nextBundle.add(X);
-      std::cout << "Added\n";
+    if (_nextBundle.empty() || !_split(_nextBundle.back(), X)) {
+      _nextBundle.push_back(X);
       return y;
     } else {
-      auto result = Step::step(y, _nextBundle.get());
-      std::cout << "Reset next bundle\n";
-      _nextBundle = ArrayBuilder<input_type>();
-      std::cout << "Done\n";
-      _nextBundle.add(X);
-      std::cout << "Added" << std::endl;
-      return y;
+      auto result = Step::step(y, _nextBundle);
+      _nextBundle = std::vector<input_type>();
+      _nextBundle.push_back(X);
+      return result;
     }
   }
 
@@ -44,7 +39,7 @@ struct Bundle : public Step, public Transducer<Bundle<Split, Step>> {
     if (_nextBundle.empty()) {
       return y;
     } else {
-      return Step::step(y, _nextBundle.get());
+      return Step::step(y, _nextBundle);
     }
   }
 
@@ -54,7 +49,7 @@ struct Bundle : public Step, public Transducer<Bundle<Split, Step>> {
   }
 private:
   Split _split;
-  ArrayBuilder<input_type> _nextBundle;
+  std::vector<input_type> _nextBundle;
 };
 
 template <typename Split>
