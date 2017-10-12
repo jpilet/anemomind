@@ -37,6 +37,9 @@ void Nmea0183TimeFuser::setTime(TimeStamp t) {
 }
 
 void Nmea0183TimeFuser::setTimeSinceMidnight(Duration<double> d) {
+  if (_lastTime.undefined()) {
+    return;
+  }
   if (_offsetTimeOfDay.undefined()) {
     _offsetTimeOfDay = d;
   }

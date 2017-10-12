@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/common/string.h>
 #include <server/nautical/NavCompatibility.h>
 
@@ -114,7 +115,35 @@ TEST(Nmea0183Test, TestIncludeLastTwo) {
   EXPECT_EQ(getNavSize(navs), 3);
 }
 
+TimeStamp t(double s) {
+  return TimeStamp::UTC(2017, 10, 12, 10, 14, 0) + s*1.0_seconds;
+}
 
+TEST(Nmea0183Test, TimeFuserTest) {
+  using namespace sail;
+  using namespace Nmea0183Loader;
+
+  Nmea0183TimeFuser fuser;
+  EXPECT_FALSE(fuser.estimate().defined());
+
+  // Set full time
+  fuser.setTime(t(3.0));
+  EXPECT_EQ(fuser.estimate(), t(3.0));
+
+  fuser.setTimeSinceMidnight(15.0_hours);
+  EXPECT_EQ(fuser.estimate(), t(3.0));
+
+  fuser.setTimeSinceMidnight(15.0_hours + 9.0_seconds);
+  EXPECT_EQ(fuser.estimate(), t(12.0));
+
+  // Outlier, ignore it.
+  fuser.setTimeSinceMidnight(17.0_hours);
+  EXPECT_EQ(fuser.estimate(), t(12.0));
+
+  // New full time.
+  fuser.setTime(t(20.0));
+  EXPECT_EQ(fuser.estimate(), t(20.0));
+}
 
 
 
