@@ -130,13 +130,21 @@ TEST(Nmea0183Test, TimeFuserTest) {
   fuser.setTime(t(3.0));
   EXPECT_EQ(fuser.estimate(), t(3.0));
 
+  // Two time updates since midnight
+  // These time updates could be NMEA0183 sentences that
+  // we are parsing. There are sentences that don't contain
+  // the full time, just the time of day.
+
+  // The first time update will be used as a relative offset,
+  // and the estimate remains unaffacted
   fuser.setTimeSinceMidnight(15.0_hours);
   EXPECT_EQ(fuser.estimate(), t(3.0));
 
+  // The second time update will use the offset...
   fuser.setTimeSinceMidnight(15.0_hours + 9.0_seconds);
   EXPECT_EQ(fuser.estimate(), t(12.0));
 
-  // Outlier, ignore it.
+  // Probable outlier, ignore it.
   fuser.setTimeSinceMidnight(17.0_hours);
   EXPECT_EQ(fuser.estimate(), t(12.0));
 
