@@ -47,9 +47,15 @@ public:
   void setTime(TimeStamp t);
   void setTimeSinceMidnight(Duration<double> d);
 private:
+  // Last full time provided
   TimeStamp _lastTime;
+
+  // Best estimate to return from estimate()
+  TimeStamp _lastEstimate;
+
+  // Defined iff setTimeSinceMidnight was called
+  // *after* last call to setTime.
   Optional<Duration<double>> _offsetTimeOfDay;
-  Duration<double> _lastTimeOfDay;
 };
 
 class Nmea0183LogLoaderAdaptor {
@@ -82,7 +88,9 @@ class Nmea0183LogLoaderAdaptor {
 
   void setTimeOfDay(int hour, int minute, int second) {
     _time.setTimeSinceMidnight(
-        hour*1.0_hours + minute*1.0_minutes + second*1.0_seconds);
+          double(hour)*1.0_hours
+        + double(minute)*1.0_minutes
+        + double(second)*1.0_s);
   }
 
   void setTime(const TimeStamp& time) {

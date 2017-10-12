@@ -25,24 +25,14 @@ TimeStamp updateLastTime(const TimeStamp &current, const TimeStamp &candidate) {
 }
 
 TimeStamp Nmea0183TimeFuser::estimate() const {
-  if (_offsetTimeOfDay.undefined()) {
-    return _lastTime;
-  } else {
-    Duration<double> elapsed = positiveMod<Duration<double>>(
-        _lastTimeOfDay - _offsetTimeOfDay, 1.0_days);
-    if (elapsed < 1.0_hours) {
-      return _lastTime + elapsed;
-    } else {
-
-    }
-  }
+  return _lastEstimate;
 }
 
 void Nmea0183TimeFuser::setTime(TimeStamp t) {
   if (t.defined()) {
     _offsetTimeOfDay = Optional<Duration<double>>();
-    _lastTimeOfDay = Optional<Duration<double>>();
     _lastTime = updateLastTime(_lastTime, t);
+    _lastEstimate = _lastTime;
   }
 }
 
@@ -50,7 +40,18 @@ void Nmea0183TimeFuser::setTimeSinceMidnight(Duration<double> d) {
   if (_offsetTimeOfDay.undefined()) {
     _offsetTimeOfDay = d;
   }
-  _lastTimeOfDay = d;
+
+  // Elapsed is in cycles of days.
+  Duration<double> elapsed = positiveMod<Duration<double>>(
+      d - _offsetTimeOfDay.get(), 1.0_days);
+
+  // Will we ever buffer during longer than this?
+  auto maxElapsed = 5.0_minutes;
+
+  // Only update _lastEstimate if elapsed seems reasonable.
+  if (0.0_hours <= elapsed && elapsed < maxElapsed) {
+    _lastEstimate = _lastTime + elapsed;
+  }
 }
 
 template <>
