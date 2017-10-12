@@ -143,7 +143,7 @@ TEST(TransducerTest, BundleTransducer) {
   std::vector<int> src{0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3};
   auto T = trBundle([](int a, int b) {return a != b;})
            |
-           trMap([](const std::vector<int>& x) {
+           trMap([](const Array<int>& x) {
               return x.size();
            });
 

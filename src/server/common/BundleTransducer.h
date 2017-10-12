@@ -24,13 +24,13 @@ struct Bundle : public Step, public Transducer<Bundle<Split, Step>> {
   typedef typename Step::result_type result_type;
 
   result_type step(result_type y, const input_type& X) {
-    if (_nextBundle.empty() || !_split(_nextBundle.back(), X)) {
-      _nextBundle.push_back(X);
+    if (_nextBundle.empty() || !_split(_nextBundle.last(), X)) {
+      _nextBundle.add(X);
       return y;
     } else {
-      auto result = Step::step(y, _nextBundle);
-      _nextBundle = std::vector<input_type>();
-      _nextBundle.push_back(X);
+      auto result = Step::step(y, _nextBundle.get());
+      _nextBundle = ArrayBuilder<input_type>();
+      _nextBundle.add(X);
       return result;
     }
   }
@@ -39,7 +39,7 @@ struct Bundle : public Step, public Transducer<Bundle<Split, Step>> {
     if (_nextBundle.empty()) {
       return y;
     } else {
-      return Step::step(y, _nextBundle);
+      return Step::step(y, _nextBundle.get());
     }
   }
 
@@ -49,7 +49,7 @@ struct Bundle : public Step, public Transducer<Bundle<Split, Step>> {
   }
 private:
   Split _split;
-  std::vector<input_type> _nextBundle;
+  ArrayBuilder<input_type> _nextBundle;
 };
 
 template <typename Split>
