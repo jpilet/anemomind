@@ -136,6 +136,11 @@ Map<F, UndefinedStep> trMap(const F& f) {
   return Map<F, UndefinedStep>(f);
 }
 
+///////////////////////////////////////////////////////////////////
+/// trVisit: Like map, but only for side effects. The input argument
+///          is returned.
+
+// Helper struct
 template <typename F>
 struct Visitor {
   typedef FirstType<CleanFunctionArgTypes<F>> input_type;
@@ -145,7 +150,6 @@ struct Visitor {
     _f(x);
     return x;
   }
-
 private:
   F _f;
 };

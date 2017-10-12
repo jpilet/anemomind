@@ -367,14 +367,15 @@ std::vector<Span<TimeStamp>> presegmentData(
     LOG(INFO) << "Loaded up to " << v.time.toString();
   });
 
-  typedef SpanWithCount<TimedValue<int>> TimeBounds;
+  // TODO: Implement bundle!!!
+  CHECK(false);
 
-  auto T =
+  /*auto T =
       makeLogLoaderTransducer(
           logFiles, "Presegment data",
           settings)
       |
-      trBundle<TimedValue<DynamicChannelValue>>(
+      trBundle1<TimedValue<DynamicChannelValue>>(
           byGpsPosTimeGap(settings.timeGapMinutes*1.0_minutes))
       |
       trMap(&cropTrailingData)
@@ -386,7 +387,7 @@ std::vector<Span<TimeStamp>> presegmentData(
   std::vector<PrefilteredSession> result;
   reduceIntoColl(T, &result, logFiles);
   LOG(INFO) << "Number of sessions: " << result.size();
-  return std::vector<Span<TimeStamp>>();
+  return std::vector<Span<TimeStamp>>();*/
 }
 
 

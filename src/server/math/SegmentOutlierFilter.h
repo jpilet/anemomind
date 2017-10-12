@@ -30,6 +30,14 @@ struct Settings {
   double reg1 = 1.0e-6;
   double maxCost = 100.0;
   bool verbosity = 1; // 0, 1, 2
+
+  template <typename V>
+  void visitFields(V* v) {
+    v->visit("reg2", reg2);
+    v->visit("reg1", reg1);
+    v->visit("maxCost", maxCost);
+    v->visit("verbosity", verbosity);
+  }
 };
 
 template <int N>
