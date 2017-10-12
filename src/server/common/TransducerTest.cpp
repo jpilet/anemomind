@@ -87,18 +87,15 @@ TEST(TransducerTest, BundleTransducer) {
   auto T = trBundle([](int a, int b) {return a != b;})
            |
            trMap([](const Array<int>& x) {
-              return x.size();
+              return std::pair<int, int>(x[0], x.size());
            });
 
-  auto step = T.apply(CountStep<int>());
-  int result = reduce(step, 0, src);
-
-  std::vector<int> dst;
+  std::vector<std::pair<int, int>> dst;
   transduceIntoColl(T, &dst, src);
 
   EXPECT_EQ(dst.size(), 4);
-  EXPECT_EQ(dst[0], 1);
-  EXPECT_EQ(dst[1], 3);
-  EXPECT_EQ(dst[2], 6);
-  EXPECT_EQ(dst[3], 3);
+  EXPECT_EQ(dst[0], std::make_pair(0, 1));
+  EXPECT_EQ(dst[1], std::make_pair(1, 3));
+  EXPECT_EQ(dst[2], std::make_pair(2, 6));
+  EXPECT_EQ(dst[3], std::make_pair(3, 3));
 }
