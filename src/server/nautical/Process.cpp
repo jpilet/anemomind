@@ -214,13 +214,18 @@ auto makeLogLoaderTransducer(
     const std::vector<LogFileInfo>& logFiles,
     const std::string& context,
     const ProcessSettings& settings)
-  AUTO_EXPR(composeTransducers(
-      map(&loadCroppedLogFile),
-      Cat<Array<TimedValue<DynamicChannelValue>>>(),
-      filter(ensureChronological()),
-      filter(dataSourceFilter(settings.samplesToRemove)),
-      filter(downsample(settings.downsampleMinPeriodSeconds*1.0_s)),
-      visit(logLoaderProgress(logFiles, context))));
+  AUTO_EXPR(
+      trMap(&loadCroppedLogFile)
+      |
+      trCat<Array<TimedValue<DynamicChannelValue>>>()
+      |
+      trFilter(ensureChronological())
+      |
+      trFilter(dataSourceFilter(settings.samplesToRemove))
+      |
+      trFilter(downsample(settings.downsampleMinPeriodSeconds*1.0_s))
+      |
+      trVisit(logLoaderProgress(logFiles, context)));
 
 bool sameClass(const TimedValue<int>& a, const TimedValue<int>& b) {
   return a.value == b.value;
@@ -300,9 +305,10 @@ PrefilteredSession prefilterSession(
     const ProcessSettings& settings) {
 
   // Extract only the GPS positions as timed values.
-  auto T0 = composeTransducers(
-      filter(&isGpsPosition),
-      map(&toTimedGpsPos));
+  auto T0 =
+      trFilter(&isGpsPosition)
+      |
+      trMap(&toTimedGpsPos);
 
   std::vector<TimedValue<GeographicPosition<double>>> positions;
   transduceIntoColl(T0, &positions, v);
@@ -318,7 +324,7 @@ PrefilteredSession prefilterSession(
   // by the SegmentOutlierFilter
   std::vector<sof::Pair<3>> normalizedEcefData;
   normalizedEcefData.reserve(n);
-  auto T1 = map(toTimedEcef(offset));
+  auto T1 = trMap(toTimedEcef(offset));
   transduceIntoColl(T1, &normalizedEcefData, positions);
 
   auto mask = sof::optimize<3>(
@@ -332,7 +338,7 @@ PrefilteredSession prefilterSession(
   {
     int at = 0;
     transduceIntoColl(
-        filter(std::function<bool(TimedValue<GeographicPosition<double>>)>([&](const TimedValue<GeographicPosition<double>>& p) ->bool {
+        trFilter(std::function<bool(TimedValue<GeographicPosition<double>>)>([&](const TimedValue<GeographicPosition<double>>& p) ->bool {
       return mask[at++];
     })), &inlierPositions, positions);
   }
@@ -363,15 +369,19 @@ std::vector<Span<TimeStamp>> presegmentData(
 
   typedef SpanWithCount<TimedValue<int>> TimeBounds;
 
-  auto T = composeTransducers(
+  auto T =
       makeLogLoaderTransducer(
           logFiles, "Presegment data",
-          settings),
-      Bundle<TimedValue<DynamicChannelValue>>(
-          byGpsPosTimeGap(settings.timeGapMinutes*1.0_minutes)),
-      map(&cropTrailingData),
-      filter(&hasData),
-      map(prefilterSession(settings)));
+          settings)
+      |
+      trBundle<TimedValue<DynamicChannelValue>>(
+          byGpsPosTimeGap(settings.timeGapMinutes*1.0_minutes))
+      |
+      trMap(&cropTrailingData)
+      |
+      trFilter(&hasData)
+      |
+      trMap(prefilterSession(settings));
 
   std::vector<PrefilteredSession> result;
   reduceIntoColl(T, &result, logFiles);

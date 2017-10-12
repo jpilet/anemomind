@@ -183,7 +183,7 @@ std::vector<LogFileInfo> listLogFiles(
       |
       trMap(&analyzeLogFileData)
       |
-      trFilter(&hasLogFileData)
+      trFilter(&hasLogFileData);
 
   //std::vector<Array<std::string>> r;
   //std::vector<std::string> r;
