@@ -68,63 +68,6 @@ TEST(TransducerTest, ComposeTest) {
   EXPECT_EQ(dst[2], 10);
 }
 
-// Example of a custom stateful transducer with a
-// non-trivial flush function.
-template <typename T, typename Step>
-class MyBundler : public Step, public Transducer<MyBundler<T, Step>> {
-public:
-  MyBundler() {}
-  MyBundler(
-      std::function<bool(T, T)> f,
-      const Step& s = Step()) : _separate(f), Step(s) {}
-
-  template <typename S>
-  MyBundler<T, S> apply(const S& step) const {
-    return MyBundler<T, S>(_separate, step);
-  }
-
-  typedef typename Step::input_type input_type;
-  typedef typename Step::result_type result_type;
-
-  result_type step(result_type r, T x) {
-    if (_current.empty() || !_separate(_current.back(), x)) {
-      _current.push_back(x);
-      return r;
-    } else {
-      auto result = Step::step(r, _current);
-      _current = {x};
-      return result;
-    }
-  }
-
-  // If there is something in current, flush it
-  result_type flush(result_type r) {
-    return Step::flush(_current.empty()?
-        r : Step::step(r, _current));
-  }
-private:
-  std::function<bool(T, T)> _separate;
-  std::vector<T> _current;
-};
-
-bool notEqual(int a, int b) {return a != b;}
-
-bool sufficientlyLong(const std::vector<int>& x) {
-  return 2 <= x.size();
-}
-
-TEST(TransducerTest, TestFlush) {
-  std::vector<int> src{1, 1, 1, 1, 9, 2, 2, 2, 3, 3, 3};
-  std::vector<std::vector<int>> dst;
-  transduceIntoColl(
-      MyBundler<int, UndefinedStep>(&notEqual) |
-      trFilter(&sufficientlyLong), &dst, src);
-  EXPECT_EQ(dst.size(), 3);
-  EXPECT_EQ(dst[0], (std::vector<int>{1, 1, 1, 1}));
-  EXPECT_EQ(dst[1], (std::vector<int>{2, 2, 2}));
-  EXPECT_EQ(dst[2], (std::vector<int>{3, 3, 3}));
-}
-
 TEST(TransducerTest, CatTest) {
   std::vector<std::vector<int>> src{{3, 4, 5}, {6, 7}};
 
@@ -148,8 +91,8 @@ TEST(TransducerTest, BundleTransducer) {
            });
 
   auto step = T.apply(CountStep<int>());
-
   int result = reduce(step, 0, src);
+
   std::vector<int> dst;
   transduceIntoColl(T, &dst, src);
 
