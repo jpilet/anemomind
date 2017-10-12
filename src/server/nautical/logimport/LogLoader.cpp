@@ -196,14 +196,29 @@ std::vector<LogFileInfo> listLogFiles(
 NavDataset loadUsingBootCountInsteadOfTime(
     const std::vector<std::string>& searchPaths) {
 
-  // Activate the hack in this scope.
-  Bind<bool> binding(&(hack::performTimeGuessNow), true);
-
   auto files = listLogFiles(searchPaths);
   LogLoader loader;
+  auto filename = "/tmp/hackinfo.txt";
+  std::ofstream ofile(filename);
+
+
+
+  // Activate the hack
+  Bind<bool> binding(&(hack::performTimeGuessNow), true);
   for (const auto& file: files) {
+    std::cout << "LOAD FILE " << file.filename << std::endl;
+    if (file.bootCount.defined()) {
+      ofile << "Boot count: " << (file.bootCount.get()) << std::endl;
+    }
+    auto from = hack::nmea0183TimeGuess;
     loader.load(file.filename);
+    ofile << "Loaded file spanning from "
+        << from.toString() << " to " << hack::nmea0183TimeGuess.toString()
+        << std::endl;
+    ofile << "Spanning time of "
+        << (hack::nmea0183TimeGuess - from).str() << std::endl;
   }
+  std::cout << "Loaded it all, see " << filename << std::endl;
   return loader.makeNavDataset();
 }
 

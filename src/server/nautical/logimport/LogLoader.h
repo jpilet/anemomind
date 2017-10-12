@@ -65,11 +65,15 @@ struct LogFileInfo {
   std::string filename;
   Optional<int> bootCount;
 
+  std::pair<int, std::string> bootCountAndFilenameKey() const {
+    return std::pair<int, std::string>(
+        bootCount.defined()? bootCount.get() : -1,
+            filename);
+  }
+
   struct OrderByBootCount {
     bool operator()(const LogFileInfo& a, const LogFileInfo& b) const {
-      return !a.bootCount.defined()? true
-          : (!b.bootCount.defined()? false
-              : a.bootCount.get() < b.bootCount.get());
+      return a.bootCountAndFilenameKey() < b.bootCountAndFilenameKey();
     }
   };
 };

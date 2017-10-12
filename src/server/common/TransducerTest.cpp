@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <server/common/Transducer.h>
+#include <server/common/BundleTransducer.h>
 
 using namespace sail;
 
@@ -136,4 +137,23 @@ TEST(TransducerTest, CatTest) {
   EXPECT_EQ(dst.size(), 5);
   EXPECT_EQ(dst[3], 6);
   EXPECT_EQ(m, 5);
+}
+
+TEST(TransducerTest, BundleTransducer) {
+  std::vector<int> src{0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3};
+  auto T = trBundle([](int a, int b) {return a != b;})
+           |
+           trMap([](const Array<int>& x) {
+              std::cout << "Got size " << x.size() << std::endl;
+              return x.size();
+           });
+
+  std::vector<int> dst;
+  transduceIntoColl(T, &dst, src);
+
+  /*EXPECT_EQ(dst.size(), 4);
+  EXPECT_EQ(dst[0], 1);
+  EXPECT_EQ(dst[1], 3);
+  EXPECT_EQ(dst[2], 6);
+  EXPECT_EQ(dst[3], 3);*/
 }
