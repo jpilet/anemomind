@@ -136,6 +136,26 @@ Map<F, UndefinedStep> trMap(const F& f) {
   return Map<F, UndefinedStep>(f);
 }
 
+template <typename F>
+struct Visitor {
+  typedef FirstType<CleanFunctionArgTypes<F>> input_type;
+  Visitor(F f) : _f(f) {}
+
+  input_type operator()(input_type x) const {
+    _f(x);
+    return x;
+  }
+
+private:
+  F _f;
+};
+
+template <typename F>
+Map<Visitor<F>, UndefinedStep> trVisit(F f) {
+  return Map<Visitor<F>, UndefinedStep>(Visitor<F>(f));
+}
+
+
 /////////////////////////////////////////////////////////////////////
 /////////////////////// Filtering transducer
 template <typename F, typename Step>

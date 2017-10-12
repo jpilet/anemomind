@@ -127,9 +127,13 @@ TEST(TransducerTest, TestFlush) {
 TEST(TransducerTest, CatTest) {
   std::vector<std::vector<int>> src{{3, 4, 5}, {6, 7}};
 
+  int m = 0;
+
   std::vector<int> dst;
-  transduceIntoColl(trCat<std::vector<int>>(), &dst, src);
+  transduceIntoColl(
+      trCat<std::vector<int>>() | trVisit([&](int) {m++;}), &dst, src);
 
   EXPECT_EQ(dst.size(), 5);
   EXPECT_EQ(dst[3], 6);
+  EXPECT_EQ(m, 5);
 }
