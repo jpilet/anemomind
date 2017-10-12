@@ -56,8 +56,14 @@ class LogLoader {
   void loadTextData(const ValueSet &stream);
 };
 
+struct LogFileInfo {
+  TimeStamp minTime, medianTime, maxTime;
+  int size = 0;
+  std::string filename;
+};
 
-
+std::vector<LogFileInfo> listLogFiles(
+    const std::vector<std::string>& searchPaths);
 }
 
 #endif /* DEVICE_ANEMOBOX_LOGGER_LOGLOADER_H_ */

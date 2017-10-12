@@ -136,6 +136,30 @@ Map<F, UndefinedStep> trMap(const F& f) {
   return Map<F, UndefinedStep>(f);
 }
 
+///////////////////////////////////////////////////////////////////
+/// trVisit: Like map, but only for side effects. The input argument
+///          is returned.
+
+// Helper struct
+template <typename F>
+struct Visitor {
+  typedef FirstType<CleanFunctionArgTypes<F>> input_type;
+  Visitor(F f) : _f(f) {}
+
+  input_type operator()(input_type x) const {
+    _f(x);
+    return x;
+  }
+private:
+  F _f;
+};
+
+template <typename F>
+Map<Visitor<F>, UndefinedStep> trVisit(F f) {
+  return Map<Visitor<F>, UndefinedStep>(Visitor<F>(f));
+}
+
+
 /////////////////////////////////////////////////////////////////////
 /////////////////////// Filtering transducer
 template <typename F, typename Step>
@@ -164,6 +188,35 @@ template <typename F>
 Filter<F, UndefinedStep> trFilter(const F& f) {
   return Filter<F, UndefinedStep>(f);
 }
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////// Concatenating transducer
+template <typename Coll, typename Step>
+struct Cat : public Step, public Transducer<Cat<Coll, Step>> {
+  Cat(const Step& s = Step()) : Step(s) {}
+
+  typedef Coll input_type;
+  typedef typename Step::result_type result_type;
+
+  result_type step(result_type y, const input_type& X) {
+    auto dst = y;
+    for (auto x: X) {
+      dst = Step::step(dst, x);
+    }
+    return dst;
+  }
+
+  template <typename S>
+  Cat<Coll, S> apply(S s) const {
+    return Cat<Coll, S>(s);
+  }
+};
+
+template <typename Coll>
+Cat<Coll, UndefinedStep> trCat() {
+  return Cat<Coll, UndefinedStep>();
+}
+
 
 
 ///////// Basic step functions

@@ -379,6 +379,14 @@ add_executable(common_traitsTest # only static tests
   traitsTest.cpp
   )
 
+add_library(common_FrequencyLimiter
+  FrequencyLimiter.h
+  FrequencyLimiter.cpp
+  )
+
+target_link_libraries(common_FrequencyLimiter
+  common_TimeStamp)
+
 cxx_test(common_TransducerTest
   TransducerTest.cpp
   gtest_main
