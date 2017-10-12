@@ -191,5 +191,14 @@ std::vector<LogFileInfo> listLogFiles(
   return result;
 }
 
+NavDataset loadUsingBootCountInsteadOfTime(
+    const std::vector<std::string>& searchPaths) {
+  auto files = listLogFiles(searchPaths);
+  LogLoader loader;
+  for (const auto& file: files) {
+
+  }
+  return loader.makeNavDataset();
+}
 
 }

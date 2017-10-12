@@ -76,6 +76,10 @@ struct LogFileInfo {
 
 std::vector<LogFileInfo> listLogFiles(
     const std::vector<std::string>& searchPaths);
+
+NavDataset loadUsingBootCountInsteadOfTime(
+    const std::vector<std::string>& searchPaths);
+
 }
 
 #endif /* DEVICE_ANEMOBOX_LOGGER_LOGLOADER_H_ */
