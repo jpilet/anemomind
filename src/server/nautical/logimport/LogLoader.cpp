@@ -189,7 +189,7 @@ std::vector<LogFileInfo> listLogFiles(
 
   std::vector<LogFileInfo> result;
   transduceIntoColl(T, &result, searchPaths);
-  std::sort(result.begin(), result.end(), LogFileInfo::OrderByBootCount());
+  std::sort(result.begin(), result.end(), LogFileInfo::OrderByBootCountAndFilename());
   return result;
 }
 

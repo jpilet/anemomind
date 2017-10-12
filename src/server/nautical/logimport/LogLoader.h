@@ -71,7 +71,7 @@ struct LogFileInfo {
             filename);
   }
 
-  struct OrderByBootCount {
+  struct OrderByBootCountAndFilename {
     bool operator()(const LogFileInfo& a, const LogFileInfo& b) const {
       return a.bootCountAndFilenameKey() < b.bootCountAndFilenameKey();
     }
