@@ -244,15 +244,24 @@ std::string grammarNodeInfo(const NavDataset& navs, std::shared_ptr<HTree> tree)
       + " with duration of " + (right.time() - left.time()).str();
 }
 
-}  // namespace
-
-NavDataset loadNavs(ArgMap &amap, std::string boatId) {
-  LogLoader loader;
+std::vector<std::string> getPathsToLoad(ArgMap &amap) {
+  std::vector<std::string> paths;
   for (auto dirNameObj: amap.optionArgs("--dir")) {
-    loader.load(dirNameObj->value());
+    paths.push_back(dirNameObj->value());
   }
   for (auto fileNameObj: amap.optionArgs("--file")) {
-    loader.load(fileNameObj->value());
+    paths.push_back(fileNameObj->value());
+  }
+  return paths;
+}
+
+}  // namespace
+
+NavDataset loadNavs(ArgMap &amap) {
+  LogLoader loader;
+  auto paths = getPathsToLoad(amap);
+  for (const auto& p: paths) {
+    loader.load(p);
   }
   return loader.makeNavDataset();
 }
@@ -336,8 +345,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   if (_resumeAfterPrepare.size() > 0) {
     current = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    current = removeStrangeGpsPositions(
-        loadNavs(*amap, _boatid));
+    current = removeStrangeGpsPositions(loadNavs(*amap));
     infoNavDataset("After loading", current);
 
     auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?

@@ -23,7 +23,7 @@ extern bool forceDateForGLL;
 // Used to generate dates when the above is true.
 extern int bootCount;
 
-
+extern bool bootCountToDateHack;
 
 
 

@@ -11,10 +11,12 @@ namespace hack {
 
 bool forceDateForGLL = false;
 int bootCount = 0;
+extern bool bootCountToDateHack = false;
 
 void ConfigureForBoat(const std::string& boatId) {
   if (boatId == "59b1343a0411db0c8d8fbf7c") {
     hack::forceDateForGLL = true;
+    hack::bootCountToDateHack = true;
   }
 }
 
