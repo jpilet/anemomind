@@ -64,13 +64,13 @@ void Nmea0183ProcessByte(const std::string &sourceName,
       handler->template add<GPS_POS>(sourceName, getPos(*parser));
 #ifdef ENABLE_HACKS
 #ifdef ON_SERVER
-      if (hack::forceDateForGLL) {
-        TimeStamp t = TimeStamp::tryUTC(
-            2017, 9, 9, parser->hour(), parser->min(), parser->sec())
-          + double(hack::bootCount)*1.0_days;
-        if (t.defined()) {
-          handler->template add<DATE_TIME>(sourceName, t);
-        }
+      if (hack::forceDateForGLL && hack::performTimeGuessNow) {
+
+        hack::nmea0183TimeGuess = hack::advanceTime(
+            hack::nmea0183TimeGuess,
+            parser->hour(), parser->min(), parser->sec());
+        handler->template add<DATE_TIME>(
+            sourceName, hack::nmea0183TimeGuess);
       }
 #endif
 #endif

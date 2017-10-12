@@ -52,6 +52,12 @@ private:
   TimeStamp _protobufTime;
 };
 
+TimeStamp advanceTime(
+    TimeStamp last,
+    int hour,
+    int minute,
+    int second);
+
 class Nmea0183LogLoaderAdaptor {
  public:
   Nmea0183LogLoaderAdaptor(
@@ -94,6 +100,12 @@ class Nmea0183LogLoaderAdaptor {
 };
 
 std::string getDefaultSourceName();
+
+TimeStamp advanceTime(
+    TimeStamp last,
+    int hour,
+    int minute,
+    int second);
 
 void streamToNmeaParser(const std::string &src,
     NmeaParser *dstParser,

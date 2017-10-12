@@ -35,7 +35,6 @@ void LogLoaderNmea0183Parser::onXDRRudder(const char *senderAndSentence,
   }
 }
 
-
 std::string defaultNmea0183SourceName = "NMEA0183";
 
 std::string getDefaultSourceName() {

@@ -258,12 +258,17 @@ std::vector<std::string> getPathsToLoad(ArgMap &amap) {
 }  // namespace
 
 NavDataset loadNavs(ArgMap &amap) {
-  LogLoader loader;
+
   auto paths = getPathsToLoad(amap);
-  for (const auto& p: paths) {
-    loader.load(p);
+  if (hack::bootCountToDateHack) {
+    return loadUsingBootCountInsteadOfTime(paths);
+  } else {
+    LogLoader loader;
+    for (const auto& p: paths) {
+      loader.load(p);
+    }
+    return loader.makeNavDataset();
   }
-  return loader.makeNavDataset();
 }
 
 Nav::Id getBoatId(ArgMap &amap) {

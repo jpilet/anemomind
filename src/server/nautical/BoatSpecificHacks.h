@@ -8,8 +8,15 @@
 #define SERVER_NAUTICAL_BOATSPECIFICHACKS_H_
 
 #include <string>
+#include <server/common/TimeStamp.h>
 
 namespace hack {
+
+sail::TimeStamp advanceTime(
+    sail::TimeStamp last,
+    int hour,
+    int minute,
+    int second);
 
 /*
  *  Sensei
@@ -19,9 +26,10 @@ namespace hack {
 // because their GPS device does not produce
 // full dates (only time of the day, not *which* day).
 extern bool forceDateForGLL;
+extern bool performTimeGuessNow;
 
 // Used to generate dates when the above is true.
-extern int bootCount;
+extern sail::TimeStamp nmea0183TimeGuess;
 
 extern bool bootCountToDateHack;
 

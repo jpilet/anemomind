@@ -21,6 +21,8 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/Transducer.h>
 #include <server/common/FrequencyLimiter.h>
+#include <server/nautical/BoatSpecificHacks.h>
+#include <server/common/DynamicScope.h>
 
 namespace sail {
 
@@ -193,10 +195,14 @@ std::vector<LogFileInfo> listLogFiles(
 
 NavDataset loadUsingBootCountInsteadOfTime(
     const std::vector<std::string>& searchPaths) {
+
+  // Activate the hack in this scope.
+  Bind<bool> binding(&(hack::performTimeGuessNow), true);
+
   auto files = listLogFiles(searchPaths);
   LogLoader loader;
   for (const auto& file: files) {
-
+    loader.load(file.filename);
   }
   return loader.makeNavDataset();
 }
