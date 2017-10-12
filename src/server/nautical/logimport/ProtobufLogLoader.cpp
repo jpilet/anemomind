@@ -194,6 +194,8 @@ void load(const LogFile &data, LogAccumulator *dst) {
 
   hack::bootCount = data.bootcount() - 101;
 
+  dst->bootCounts.insert(data.bootcount());
+
   // TODO: Define a set of standard priorities in a file somewhere
   auto rawStreamPriority = -16;
 

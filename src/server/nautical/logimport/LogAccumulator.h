@@ -27,6 +27,8 @@ struct LogAccumulator {
   #undef  MAKE_SOURCE_MAP
 
   std::map<std::string, int> _sourcePriority;
+
+  std::set<int> bootCounts;
 };
 
 

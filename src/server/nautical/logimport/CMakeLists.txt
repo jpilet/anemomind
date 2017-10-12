@@ -33,7 +33,6 @@ target_link_libraries(logimport_LogLoader
                       logimport_ProtobufLogLoader
                       logimport_Nmea0183Loader
                       nautical_BoatSpecificHacks
-                      nautical_DynamicChannelValue
                       common_FrequencyLimiter
                      )
 

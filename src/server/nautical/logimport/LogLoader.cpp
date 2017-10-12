@@ -20,7 +20,6 @@
 #include <server/nautical/logimport/ProtobufLogLoader.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/Transducer.h>
-#include <server/nautical/DynamicChannelValue.h>
 #include <server/common/FrequencyLimiter.h>
 
 namespace sail {
@@ -142,18 +141,19 @@ NavDataset loadNavDataset(const std::string& filename) {
 }
 
 LogFileInfo analyzeLogFileData(const std::string& filename) {
-  auto ds = loadNavDataset(filename);
+  LogLoader loader;
+  loader.load(filename);
 
-  auto values = getDynamicValues(ds.dispatcher().get());
-  if (values.empty()) {
+  auto ds = loader.makeNavDataset();
+
+  if (ds.isDefaultConstructed()) {
     return LogFileInfo();
   } else {
     LogFileInfo dst;
     dst.filename = filename;
-    dst.medianTime = values[values.size()/2].time;
-    dst.minTime = values.first().time;
-    dst.maxTime = values.last().time;
-    dst.size = values.size();
+    if (!loader.acc().bootCounts.empty()) {
+      dst.bootCount = *(loader.acc().bootCounts.begin());
+    }
     return dst;
   }
 }
@@ -185,16 +185,9 @@ std::vector<LogFileInfo> listLogFiles(
       |
       trFilter(&hasLogFileData);
 
-  //std::vector<Array<std::string>> r;
-  //std::vector<std::string> r;
-  //transduceIntoColl(T, &r, searchPaths);
-
   std::vector<LogFileInfo> result;
   transduceIntoColl(T, &result, searchPaths);
-  std::sort(result.begin(), result.end(),
-      [](LogFileInfo a, LogFileInfo b) {
-    return a.medianTime < b.medianTime;
-  });
+  std::sort(result.begin(), result.end(), LogFileInfo::OrderByBootCount());
   return result;
 }
 

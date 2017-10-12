@@ -50,6 +50,7 @@ class LogLoader {
   void loadNmea0183(std::istream *s);
   bool load(const LogFile &data);
 
+  const LogAccumulator& acc() const {return _acc;}
  private:
   LogAccumulator _acc;
   void loadValueSet(const ValueSet &set);
@@ -57,9 +58,20 @@ class LogLoader {
 };
 
 struct LogFileInfo {
-  TimeStamp minTime, medianTime, maxTime;
-  int size = 0;
+  // TODO: In a more sophisticated setting, we
+  // can put other things here too, such as
+  // max time, min time, median time, and so on.
+
   std::string filename;
+  Optional<int> bootCount;
+
+  struct OrderByBootCount {
+    bool operator()(const LogFileInfo& a, const LogFileInfo& b) const {
+      return !a.bootCount.defined()? true
+          : (!b.bootCount.defined()? false
+              : a.bootCount.get() < b.bootCount.get());
+    }
+  };
 };
 
 std::vector<LogFileInfo> listLogFiles(
