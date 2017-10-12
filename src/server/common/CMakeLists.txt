@@ -379,7 +379,6 @@ add_executable(common_traitsTest # only static tests
   traitsTest.cpp
   )
 
-=======
 add_library(common_FrequencyLimiter
   FrequencyLimiter.h
   FrequencyLimiter.cpp
@@ -387,11 +386,6 @@ add_library(common_FrequencyLimiter
 
 target_link_libraries(common_FrequencyLimiter
   common_TimeStamp)
-
-add_executable(common_traitsTest # only static tests
-  traitsTest.cpp
-  )
-
 
 add_library(common_Keyword
   Keyword.h

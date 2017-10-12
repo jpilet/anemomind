@@ -172,13 +172,18 @@ std::vector<LogFileInfo> listLogFiles(
       [](int count, const std::string& filename) {
     LOG(INFO) << "PRE-parsing log file " << filename;
   });
-  auto T = composeTransducers(
-      map(&toPath),
-      map(&listFilesToLoad),
-      Cat<Array<std::string>>(),
-      visit(showProgress),
-      map(&analyzeLogFileData),
-      filter(&hasLogFileData));
+  auto T =
+      trMap(&toPath)
+      |
+      trMap(&listFilesToLoad)
+      |
+      trCat<Array<std::string>>()
+      |
+      trVisit(showProgress)
+      |
+      trMap(&analyzeLogFileData)
+      |
+      trFilter(&hasLogFileData)
 
   //std::vector<Array<std::string>> r;
   //std::vector<std::string> r;

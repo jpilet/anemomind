@@ -165,6 +165,35 @@ Filter<F, UndefinedStep> trFilter(const F& f) {
   return Filter<F, UndefinedStep>(f);
 }
 
+/////////////////////////////////////////////////////////////////////
+/////////////////////// Concatenating transducer
+template <typename Coll, typename Step>
+struct Cat : public Step, public Transducer<Cat<Coll, Step>> {
+  Cat(const Step& s = Step()) : Step(s) {}
+
+  typedef Coll input_type;
+  typedef typename Step::result_type result_type;
+
+  result_type step(result_type y, const input_type& X) {
+    auto dst = y;
+    for (auto x: X) {
+      dst = Step::step(dst, x);
+    }
+    return dst;
+  }
+
+  template <typename S>
+  Cat<Coll, S> apply(S s) const {
+    return Cat<Coll, S>(s);
+  }
+};
+
+template <typename Coll>
+Cat<Coll, UndefinedStep> trCat() {
+  return Cat<Coll, UndefinedStep>();
+}
+
+
 
 ///////// Basic step functions
 template <typename T>

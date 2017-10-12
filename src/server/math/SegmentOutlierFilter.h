@@ -56,8 +56,8 @@ Array<QuadSegment<N>> concatenatePairs(
 
   typedef std::pair<double, QuadSegment<N>> WithCost;
 
-  auto T = composeTransducers(
-      map([&](int k) {
+  auto T =
+      trMap([&](int k) {
         if (k == 2) {
           auto a = segments[inputIndex + 0];
           auto b = segments[inputIndex + 1];
@@ -67,9 +67,11 @@ Array<QuadSegment<N>> concatenatePairs(
           return WithCost{0, segments[inputIndex]};
         }
         inputIndex += k;
-      }),
-      filter(std::function<bool(WithCost)>(
-          [&](const WithCost& q) {
+      })
+
+      |
+
+      trFilter([&](const WithCost& q) {
         if (q.first < settings.maxCost) {
           return true;
         } else {
@@ -79,14 +81,17 @@ Array<QuadSegment<N>> concatenatePairs(
           }
           return false;
         }
-      })),
-      map([](const WithCost& x) {
+      })
+
+      |
+
+      trMap([](const WithCost& x) {
         return x.second;
-      }));
+      });
   std::uniform_int_distribution<int> distrib(0, n-1);
   int index = distrib(rng);
   auto iter = arr.begin();
-  auto step = T(iteratorStep(iter));
+  auto step = T.apply(iteratorStep(iter));
   bool odd = n % 2 == 1;
   for (int i = 0; i < outCount; i++) {
     iter = step.step(iter, odd && i == index? 1 : 2);
