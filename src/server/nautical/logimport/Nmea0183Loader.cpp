@@ -24,62 +24,39 @@ TimeStamp updateLastTime(const TimeStamp &current, const TimeStamp &candidate) {
   return std::max(current, candidate);
 }
 
-TimeStamp Nmea0183TimeFuser::estimate(const std::string& s) {
-  _log << "      estimate(" << s << ")\n";
-  return _lastEstimate;
-}
-
-std::string logFilename() {
-  static int counter = 0;
-  std::stringstream ss;
-  ss << "/tmp/timefuser_log" << counter++ << ".txt";
-  return ss.str();
-}
-
-void dispOldAndNew(
-    std::ostream* log,
-    const std::string& tag,
-    TimeStamp old, TimeStamp n) {
-  if (old.defined()) {
-    *log << "     gap of " << (n - old).str() << "\n";
+void Nmea0183TimeFuser::bufferOperation(TimedOperation op) {
+  if (_lastTimeSinceMidnight.defined()) {
+    _delayedOps.push_back({_lastTimeSinceMidnight.get(), op});
+  } else if (_lastTime.defined()) {
+    op(_lastTime);
+  } else {
+    // Drop it. No reasonable way of assigning a time to it.
   }
-  *log << tag << ": " << n << std::endl;
+}
+
+void Nmea0183TimeFuser::flush() {
+  if (_lastTime.defined() && !_delayedOps.empty()) {
+    CHECK(_lastTimeSinceMidnight.defined());
+    for (auto op: _delayedOps) {
+
+      // _lastTime - estimatedTimeOfOp(?) = _lastTimeSinceMidnight - op.first
+      //    / where op.first is time since midnight of op /
+      //  <===>
+      // estimatedTimeOfOp = _lastTime - (_lastTimeSinceMidnight - op.first)
+      op.second(_lastTime - (
+          _lastTimeSinceMidnight.get() - op.first));
+    }
+    _delayedOps.clear();
+  }
 }
 
 void Nmea0183TimeFuser::setTime(TimeStamp t) {
-  auto le = _lastEstimate;
-  if (t.defined()) {
-    _offsetTimeOfDay = Optional<Duration<double>>();
-    _lastTime = updateLastTime(_lastTime, t);
-    _lastEstimate = _lastTime;
-
-    dispOldAndNew(&_log, "  local update", le, _lastEstimate);
-  }
+  _lastTime = updateLastTime(_lastTime, t);
+  flush();
 }
 
 void Nmea0183TimeFuser::setTimeSinceMidnight(Duration<double> d) {
-  auto le = _lastEstimate;
-
-  if (_lastTime.undefined()) {
-    return;
-  }
-  if (_offsetTimeOfDay.undefined()) {
-    _offsetTimeOfDay = d;
-  }
-
-  // Elapsed is in cycles of days.
-  Duration<double> elapsed = positiveMod<Duration<double>>(
-      d - _offsetTimeOfDay.get(), 1.0_days);
-
-  // Will we ever buffer during longer than this?
-  auto maxElapsed = 5.0_minutes;
-
-  // Only update _lastEstimate if elapsed seems reasonable.
-  if (0.0_hours <= elapsed && elapsed < maxElapsed) {
-    _lastEstimate = _lastTime + elapsed;
-  }
-
-  dispOldAndNew(&_log, "  local update", le, _lastEstimate);
+  _lastTimeSinceMidnight = d;
 }
 
 template <>

@@ -44,26 +44,45 @@ private:
 
 std::string logFilename();
 
-class Nmea0183TimeFuser {
+typedef std::function<void(TimeStamp)> TimedOperation;
+
+class Nmea0183TimeFuser : boost::noncopyable {
 public:
-  Nmea0183TimeFuser() : _log(logFilename()) {}
-  TimeStamp estimate(const std::string& s);
+  Nmea0183TimeFuser() {}
+
   void setTime(TimeStamp t);
   void setTimeSinceMidnight(Duration<double> d);
+  void bufferOperation(TimedOperation op);
 
-  ~Nmea0183TimeFuser() {}
+  ~Nmea0183TimeFuser() {flush();}
 private:
-  std::ofstream _log;
+  void flush();
+/*
+ * Let T=1 iff _lastTime defined, T=0 iff _lastTime undefined,
+ * Let L=1 iff _lastTimeSinceMidnight defined, L=0 it is undefined
+ *
+ * Four possiblities when buffering an operation
+ *
+ *   - T=0, L=0 (possible just after object instantiation for instance)
+ *     => We cannot assign any time to the operation, so drop it.
+ *
+ *   - T=1, L=0 (possible in case only setTime has been called so far.)
+ *     => Perform the operation *now* using the value of _lastTime
+ *
+ *   - T=0, L=1 (possible in case only setTimeSinceMidnight has been called so far)
+ *     => Put the operation in the buffer with the value of _lastTimeSinceMidnight
+ *
+ *   - T=1, L=1
+ *     => (Same as for T=0, L=1)
+ *
+ *  Note that buffering happens iff L=1.
+ */
 
   // Last full time provided
   TimeStamp _lastTime;
-
-  // Best estimate to return from estimate()
-  TimeStamp _lastEstimate;
-
-  // Defined iff setTimeSinceMidnight was called
-  // *after* last call to setTime.
-  Optional<Duration<double>> _offsetTimeOfDay;
+  Optional<Duration<double>> _lastTimeSinceMidnight;
+  std::vector<std::pair<Duration<double>, TimedOperation>> _delayedOps;
+  std::ofstream _log;
 };
 
 class Nmea0183LogLoaderAdaptor {
@@ -85,14 +104,14 @@ class Nmea0183LogLoaderAdaptor {
     // If we are trying to compute a time correction offset,
     // we probably *don't* want to do this...
     if (_adjustTimeFromNmea0183) {
-      CHECK(false);
       setTime(timestampOrUndefined(value));
     }
-
-    auto estTime = _time.estimate(
-        sourceName + " " + wordIdentifierForCode(Code));
-    if (estTime.defined() && isFinite(value)) {
-      dst->push_back(TimedValue<T>(estTime, value));
+    if (isFinite(value)) {
+      // This puts the operation in a buffer, and
+      // it will be performed once we have a good time estimate.
+      _time.bufferOperation([dst, value](TimeStamp timeEst) {
+        dst->push_back(TimedValue<T>(timeEst, value));
+      });
     }
   }
 
