@@ -13,6 +13,7 @@
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
 #include <server/nautical/logimport/SourceGroup.h>
 #include <string>
+#include <fstream>
 
 namespace sail {
 namespace Nmea0183Loader {
@@ -41,12 +42,19 @@ private:
   TimeStamp _protobufTime;
 };
 
+std::string logFilename();
+
 class Nmea0183TimeFuser {
 public:
-  TimeStamp estimate() const;
+  Nmea0183TimeFuser() : _log(logFilename()) {}
+  TimeStamp estimate(const std::string& s);
   void setTime(TimeStamp t);
   void setTimeSinceMidnight(Duration<double> d);
+
+  ~Nmea0183TimeFuser() {}
 private:
+  std::ofstream _log;
+
   // Last full time provided
   TimeStamp _lastTime;
 
@@ -77,10 +85,12 @@ class Nmea0183LogLoaderAdaptor {
     // If we are trying to compute a time correction offset,
     // we probably *don't* want to do this...
     if (_adjustTimeFromNmea0183) {
+      CHECK(false);
       setTime(timestampOrUndefined(value));
     }
 
-    auto estTime = _time.estimate();
+    auto estTime = _time.estimate(
+        sourceName + " " + wordIdentifierForCode(Code));
     if (estTime.defined() && isFinite(value)) {
       dst->push_back(TimedValue<T>(estTime, value));
     }

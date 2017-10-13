@@ -24,19 +24,42 @@ TimeStamp updateLastTime(const TimeStamp &current, const TimeStamp &candidate) {
   return std::max(current, candidate);
 }
 
-TimeStamp Nmea0183TimeFuser::estimate() const {
+TimeStamp Nmea0183TimeFuser::estimate(const std::string& s) {
+  _log << "      estimate(" << s << ")\n";
   return _lastEstimate;
 }
 
+std::string logFilename() {
+  static int counter = 0;
+  std::stringstream ss;
+  ss << "/tmp/timefuser_log" << counter++ << ".txt";
+  return ss.str();
+}
+
+void dispOldAndNew(
+    std::ostream* log,
+    const std::string& tag,
+    TimeStamp old, TimeStamp n) {
+  if (old.defined()) {
+    *log << "     gap of " << (n - old).str() << "\n";
+  }
+  *log << tag << ": " << n << std::endl;
+}
+
 void Nmea0183TimeFuser::setTime(TimeStamp t) {
+  auto le = _lastEstimate;
   if (t.defined()) {
     _offsetTimeOfDay = Optional<Duration<double>>();
     _lastTime = updateLastTime(_lastTime, t);
     _lastEstimate = _lastTime;
+
+    dispOldAndNew(&_log, "  local update", le, _lastEstimate);
   }
 }
 
 void Nmea0183TimeFuser::setTimeSinceMidnight(Duration<double> d) {
+  auto le = _lastEstimate;
+
   if (_lastTime.undefined()) {
     return;
   }
@@ -55,6 +78,8 @@ void Nmea0183TimeFuser::setTimeSinceMidnight(Duration<double> d) {
   if (0.0_hours <= elapsed && elapsed < maxElapsed) {
     _lastEstimate = _lastTime + elapsed;
   }
+
+  dispOldAndNew(&_log, "  local update", le, _lastEstimate);
 }
 
 template <>
