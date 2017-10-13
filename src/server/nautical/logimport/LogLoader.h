@@ -64,6 +64,7 @@ struct LogFileInfo {
 
   std::string filename;
   Optional<int> bootCount;
+  TimeStamp minTime, medianTime, maxTime;
 
   std::pair<int, std::string> bootCountAndFilenameKey() const {
     return std::pair<int, std::string>(
@@ -78,7 +79,7 @@ struct LogFileInfo {
   };
 };
 
-std::vector<LogFileInfo> listLogFiles(
+std::vector<LogFileInfo> listLogFilesForSensei(
     const std::vector<std::string>& searchPaths);
 
 NavDataset loadUsingBootCountInsteadOfTime(

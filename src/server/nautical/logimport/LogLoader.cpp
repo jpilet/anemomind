@@ -23,6 +23,8 @@
 #include <server/common/FrequencyLimiter.h>
 #include <server/nautical/BoatSpecificHacks.h>
 #include <server/common/DynamicScope.h>
+#include <server/common/BundleTransducer.h>
+#include <server/common/PositiveMod.h>
 
 namespace sail {
 
@@ -156,6 +158,28 @@ LogFileInfo analyzeLogFileData(const std::string& filename) {
     if (!loader.acc().bootCounts.empty()) {
       dst.bootCount = *(loader.acc().bootCounts.begin());
     }
+
+    // Summarize all the timestamps.
+    TimestampsVisitor v;
+    visitDispatcherChannelsConst(ds.dispatcher().get(), &v);
+
+    auto T
+      = trMap([](const std::pair<
+          std::pair<DataCode, std::string>, std::vector<TimeStamp>>& x) {
+          return x.second;
+        })
+        |
+        trCat<std::vector<TimeStamp>>();
+
+    std::vector<TimeStamp> allTimestamps;
+    transduceIntoColl(T, &allTimestamps, v.timestamps);
+    if (!allTimestamps.empty()) {
+      std::sort(allTimestamps.begin(), allTimestamps.end());
+      dst.minTime = allTimestamps.front();
+      dst.medianTime = allTimestamps[allTimestamps.size()/2];
+      dst.maxTime = allTimestamps.back();
+    }
+
     return dst;
   }
 }
@@ -168,13 +192,38 @@ Poco::Path toPath(const std::string& s) {
   return Poco::Path(s);
 }
 
-std::vector<LogFileInfo> listLogFiles(
+Array<LogFileInfo>
+  rotateLogFilesSoThatTheFirstOneStartsAfterTheBiggestGap(
+      const Array<LogFileInfo>& info) {
+  if (info.size() < 2) {
+    return info;
+  }
+
+  // Find the max gap
+  int n = info.size();
+  std::pair<Duration<double>, int> best(1.0_days, 1);
+  for (int i = 0; i < n; i++) {
+    int next = (i + 1) % n;
+    Duration<double> gap = positiveMod<Duration<double>>(
+        info[next].medianTime - info[i].medianTime, 1.0_days);
+    best = std::max(best, std::make_pair(gap, next));
+  }
+
+  // Create the rotate result
+  Array<LogFileInfo> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = info[(i + best.second) % n];
+  }
+  return dst;
+}
+
+std::vector<LogFileInfo> listLogFilesForSensei(
     const std::vector<std::string>& searchPaths) {
   auto showProgress = progressNotifier<std::string>(
       [](int count, const std::string& filename) {
     LOG(INFO) << "PRE-parsing log file " << filename;
   });
-  auto T =
+  auto T0 =
       trMap(&toPath)
       |
       trMap(&listFilesToLoad)
@@ -187,16 +236,30 @@ std::vector<LogFileInfo> listLogFiles(
       |
       trFilter(&hasLogFileData);
 
-  std::vector<LogFileInfo> result;
-  transduceIntoColl(T, &result, searchPaths);
-  std::sort(result.begin(), result.end(), LogFileInfo::OrderByBootCountAndFilename());
-  return result;
+  std::vector<LogFileInfo> summaries0;
+  transduceIntoColl(T0, &summaries0, searchPaths);
+  std::sort(summaries0.begin(), summaries0.end(),
+      LogFileInfo::OrderByBootCountAndFilename());
+
+  auto T1 =
+      trBundle([](const LogFileInfo& a, const LogFileInfo& b) {
+        return a.bootCountAndFilenameKey().first
+            != b.bootCountAndFilenameKey().first;
+      })
+      |
+      trMap(&rotateLogFilesSoThatTheFirstOneStartsAfterTheBiggestGap)
+      |
+      trCat<Array<LogFileInfo>>();
+
+  std::vector<LogFileInfo> summaries1;
+  transduceIntoColl(T1, &summaries1, summaries0);
+  return summaries1;
 }
 
 NavDataset loadUsingBootCountInsteadOfTime(
     const std::vector<std::string>& searchPaths) {
 
-  auto files = listLogFiles(searchPaths);
+  auto files = listLogFilesForSensei(searchPaths);
   LogLoader loader;
   auto filename = "/tmp/hackinfo.txt";
   std::ofstream ofile(filename);
@@ -206,10 +269,12 @@ NavDataset loadUsingBootCountInsteadOfTime(
   // Activate the hack
   Bind<bool> binding(&(hack::performTimeGuessNow), true);
   for (const auto& file: files) {
-    std::cout << "LOAD FILE " << file.filename << std::endl;
+    std::cout << "LOAD FILE    " << file.filename << std::endl;
     if (file.bootCount.defined()) {
+      std::cout << "boot count: " << file.bootCount.get() << std::endl;
       ofile << "Boot count: " << (file.bootCount.get()) << std::endl;
     }
+
     auto from = hack::nmea0183TimeGuess;
     loader.load(file.filename);
     ofile << "Loaded file spanning from "

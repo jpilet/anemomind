@@ -30,6 +30,20 @@ class VisitorTemplate {
 
 */
 
+class TimestampsVisitor {
+ public:
+  std::map<std::pair<DataCode, std::string>, std::vector<TimeStamp>> timestamps;
+  template <DataCode Code, typename T>
+  void visit(const char *shortName, const std::string &sourceName,
+    const std::shared_ptr<DispatchData> &raw,
+    const TimedSampleCollection<T> &coll) {
+      auto& dst = timestamps[{Code, sourceName}];
+      for (const auto& x: coll) {
+        dst.push_back(x.time);
+      }
+  }
+};
+
 // Visit every channel of a Dispatcher, for side effects.
 template <typename Mapper>
 void visitDispatcherChannels(Dispatcher *dispatcher, Mapper *m) {

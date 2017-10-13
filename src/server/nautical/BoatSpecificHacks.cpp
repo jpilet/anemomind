@@ -36,7 +36,7 @@ sail::TimeStamp advanceTime(
   auto toAdd = positiveMod<Duration<double>>(newTms - lastTms, 1.0_days);
   auto newTime =  last + toAdd;
 
-  if (toAdd > 1.0_minutes) {
+  if (toAdd > 1.0_minutes && hack::performTimeGuessNow) {
     std::cout << "Counter is " << counter << "\n";
     std::cout << "Advance time by " << toAdd.str() << "\n";
     std::cout << "  Starting at " << last.toString() << "\n";
