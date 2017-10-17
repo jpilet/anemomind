@@ -4,7 +4,6 @@
  *  Created on: 6 Oct 2017
  *      Author: jonas
  */
-
 #ifndef SERVER_NAUTICAL_BOATSPECIFICHACKS_H_
 #define SERVER_NAUTICAL_BOATSPECIFICHACKS_H_
 

@@ -34,6 +34,7 @@ if (${FULL_BUILD})
   find_package(LAPACK REQUIRED)
   find_package(BLAS REQUIRED)
   find_package(Armadillo REQUIRED)
+  add_definitions(-DENABLE_HACKS)
   add_definitions(-DARMA_DONT_USE_WRAPPER)
   add_definitions(-DARMA_USE_LAPACK)
 

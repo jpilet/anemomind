@@ -8,7 +8,9 @@
 #ifndef DEVICE_ANEMOBOX_NMEA0183ADAPTOR_H_
 #define DEVICE_ANEMOBOX_NMEA0183ADAPTOR_H_
 
+#ifdef ENABLE_HACKS
 #include <server/nautical/BoatSpecificHacks.h>
+#endif
 
 class NmeaParser;
 
@@ -60,6 +62,7 @@ void Nmea0183ProcessByte(const std::string &sourceName,
       break;
     case NmeaParser::NMEA_GLL:
       handler->template add<GPS_POS>(sourceName, getPos(*parser));
+#ifdef ENABLE_HACKS
 #ifdef ON_SERVER
       if (hack::forceDateForGLL) {
         TimeStamp t = TimeStamp::tryUTC(
@@ -69,6 +72,7 @@ void Nmea0183ProcessByte(const std::string &sourceName,
           handler->template add<DATE_TIME>(sourceName, t);
         }
       }
+#endif
 #endif
       break;
     case NmeaParser::NMEA_VTG:
