@@ -288,6 +288,8 @@ void renderAxis(int dim,
     mat.xy = 1;
     mat.yx = 1;
     mat.yy = 0;
+    mat.x0 = 0;
+    mat.y0 = 0;
     cairo_transform(dst, &mat);
   }
   cairo_move_to(dst, ticks.first().position, position);
