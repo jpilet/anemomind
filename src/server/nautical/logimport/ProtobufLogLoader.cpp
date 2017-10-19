@@ -58,9 +58,14 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
         &parser, dst, dstSourceName);
     for (int i = 0; i < n; i++) {
       auto t = times[i] + offset;
+
+      // Not sure where this line should be...
       parser.setProtobufTime(t);
-      adaptor.setTime(t);
+
       streamToNmeaParser(stream.text(i), &parser, &adaptor);
+
+      // The time corresponding to the last byte.
+      adaptor.setTime(t);
     }
   }
 }
