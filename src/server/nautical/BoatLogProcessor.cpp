@@ -336,8 +336,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   if (_resumeAfterPrepare.size() > 0) {
     current = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    current = removeStrangeGpsPositions(
-        loadNavs(*amap, _boatid));
+    NavDataset loaded = loadNavs(*amap, _boatid);
+    loaded.preferSourceAll("NMEA0183 input reparsed");
+    current = removeStrangeGpsPositions(loaded);
     infoNavDataset("After loading", current);
 
     auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?
@@ -358,6 +359,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
+  current.dispatcher()->setSourcePriority("NMEA0183 input reparsed", 1);
   current = current.createMergedChannels(
       std::set<DataCode>{AWA, AWS}, Duration<>::seconds(.3));
   std::shared_ptr<HTree> fulltree = _grammar.parse(current);

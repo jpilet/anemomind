@@ -95,9 +95,12 @@ class Nmea0183LogLoaderAdaptor {
 
 std::string getDefaultSourceName();
 
-void streamToNmeaParser(const std::string &src,
-    NmeaParser *dstParser,
-    Nmea0183LogLoaderAdaptor *adaptor);
+void streamToNmeaParser(TimeStamp endTime,
+                        const std::string &src,
+                        Duration<> interval,
+                        LogLoaderNmea0183Parser *dstParser,
+                        Nmea0183LogLoaderAdaptor *adaptor);
+
 void streamToNmeaParser(std::istream *src, NmeaParser *dstParser,
     Nmea0183LogLoaderAdaptor *adaptor);
 
