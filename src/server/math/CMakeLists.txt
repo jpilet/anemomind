@@ -128,6 +128,7 @@ target_link_libraries(math_Curve2dFilter
   math_OutlierRejector
   common_DOMUtils
   math_SampleUtils
+  nautical_BoatSpecificHacks
   )
 
 cxx_test(math_Curve2dFilterTest

@@ -67,8 +67,9 @@ public:
       const Eigen::Matrix<double, rows, cols>& A,
       const Eigen::Matrix<double, rows, rhs>& B,
       const ExponentialWeighting& weighting,
-      double inlierThreshold) : _at(at), _A(A), _B(B),
-      _weighting(weighting) {
+      double inlierThreshold,
+      double constantWeight = 1.0) : _at(at), _A(A), _B(B),
+      _weighting(weighting), _constantWeight(constantWeight) {
     OutlierRejector::Settings s;
     s.initialAlpha = weighting.evaluate(0);
     s.initialBeta = s.initialAlpha;
@@ -109,7 +110,8 @@ public:
 
   int rightHandSideDimension() const override {return rhs;}
 private:
-  void addWithWeight(double w, BandProblem *dst) const {
+  void addWithWeight(double w0, BandProblem *dst) const {
+    double w = w0*_constantWeight;
     dst->addNormalEquations<rows, cols, rhs>(_at, w*_A, w*_B);
   }
 
@@ -124,6 +126,7 @@ private:
   }
 
   int _at;
+  double _constantWeight;
   Eigen::Matrix<double, rows, cols> _A;
   Eigen::Matrix<double, rows, rhs> _B;
   ExponentialWeighting _weighting;
