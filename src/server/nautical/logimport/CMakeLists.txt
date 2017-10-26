@@ -9,6 +9,7 @@ add_library(logimport_ProtobufLogLoader
 target_link_libraries(logimport_ProtobufLogLoader
                       anemobox_Logger
                       anemobox_Dispatcher
+                      logimport_Nmea0183Loader
                      )  
 
 add_library(logimport_Nmea0183Loader
