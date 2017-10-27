@@ -2,6 +2,7 @@
 \documentclass[a4paper]{article}
 \usepackage{tikz}
 \usepackage{fontspec,lipsum}
+\usepackage{color}
 
 % https://tex.stackexchange.com/questions/172234/define-and-set-length-in-one-command
 \newcommand{\deflen}[2]{%      
@@ -51,7 +52,6 @@
 % A paragraph: Args (X, Y, text)
 \newcommand{\anemoparagraph}[3]{
   \node[anchor=north west,style={inner sep=0,outer sep=0}] at (#1,#2) {
-    %\hspace{-0.25cm}
     \begin{minipage}[l]{\the\colwidth}
       #3
     \end{minipage}
@@ -78,11 +78,24 @@
 \pagenumbering{gobble}
 \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
 
-% (x, y, pos)
+% (x, y, contents)
 \newcommand{\mainheader}[3]{
   \setmainfont[Path=../fonts/]{BoingBold.otf}
   \node[anchor=north west] at (#1,#2) {\Huge #3};
   \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
+}
+
+
+
+\definecolor{Anemored}{RGB}{255, 33, 63}
+
+% To be used inside a column
+% contents
+\newcommand{\subheader}[1]{
+  \begin{flushleft}
+    \Large #1
+    \noindent\rule{\the\colwidth}{0.4pt}
+  \end{flushleft}
 }
 
 % TODO: See if Melissa provided some design document
@@ -94,16 +107,22 @@
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
 \helpers
 
-\mainheader{\the\haligni}{\the\valigni}{anemobox product description}
+\mainheader{\the\haligni}{\the\valigni}{Anemobox Product Description}
 \anemoparagraph{\the\haligni}{\the\valignii}{
   \includegraphics[width=\the\colwidth]{../images/anemobox10.jpg}
-  Image and minimum requirements go here. Image and minimum requirements go here. Image and minimum requirements go here.
+  \subheader{Minimum requirements}
+  To use the Anemobox, you need at least
+  \begin{itemize}
+    \item A boat equiped with an NMEA2000/NMEA0183 wind sensor
+    \item An iOS device, such as iPad or iPhone
+    \item 9-24 Volts DC power supply
+  \end{itemize}
 }
 \anemoparagraph{\the\haligniii}{\the\valignii}{
   Specs go here
 }
 
-\mainheader{\the\haligni}{\the\valigniii}{order form}
+\mainheader{\the\haligni}{\the\valigniii}{Order Form}
 
 %
 
