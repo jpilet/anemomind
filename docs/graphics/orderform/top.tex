@@ -120,7 +120,15 @@
 }
 
 
+\newcommand{\featuretable}[1]{
+  \begin{tabularx}{\colwidth}{|X|X|}
+    #1
+  \end{tabularx}
+}
+
+
 % A two-column table suitable for specs
+% Alternating colours
 \newcommand{\spectable}[1]{
   \begin{tabularx}{\colwidth}{X X}
     #1
@@ -153,6 +161,7 @@
   \subheader{Features}
   {
   \begin{itemize}
+    \setlength\itemsep{-1em}
     \item Auto calibrated true wind computation
     \item Boat performance computation
     \item Wireless connectivity Bluetooth 4.0 and WiFi
@@ -165,8 +174,8 @@
   \subheader{Specs}
   \spectable{
     GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
-    GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
-    GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
+    GPS accuracy & 2.5 m CEP \\
+    GPS Frequency & 1-10 Hz \\
   }
   
 }
