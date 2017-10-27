@@ -136,6 +136,8 @@
   \end{tabularx}\vspace{0.3cm}
 }
 
+\newcommand{\textfield}[1]{#1: ......}
+
 % TODO: See if Melissa provided some design document
 % with precise specs of margins, font sizes, etc.
 
@@ -209,6 +211,24 @@
 }
 
 \mainheader{\the\haligni}{\the\valigniii}{Order Form}
+
+\anemoparagraph{\the\haligni}{\the\valigniv}{
+  \subheader{Order specification}
+  I would like to order (please tick one)
+
+}
+
+\anemoparagraph{\the\haligniii}{\the\valigniv}{
+  \subheader{Contact information}
+  \textfield{First name}
+
+  \fboxrule=0.4pt
+  \noindent\fbox{
+    \begin{minipage}[t][1cm][t]{0.95\colwidth}
+      \textbf{Full name}
+    \end{minipage}
+  }
+}
 
 %
 
