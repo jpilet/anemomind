@@ -89,14 +89,24 @@
 
 \definecolor{Anemored}{RGB}{255, 33, 63}
 
+
+% https://tex.stackexchange.com/a/159576
+\newcommand{\HRule}[1][\medskipamount]{\par
+  \vspace*{\dimexpr-\parskip-\baselineskip+#1}
+  \noindent\rule{\linewidth}{0.2mm}\par
+  \vspace*{\dimexpr-\parskip-.5\baselineskip+#1}}
+
 % To be used inside a column
 % contents
 \newcommand{\subheader}[1]{
+  \color{Anemored}
   \begin{flushleft}
-    \color{Anemored}
     \Large #1
-    \noindent\rule{\the\colwidth}{0.4pt}
   \end{flushleft}
+  %\noindent\rule{\the\colwidth}{0.4pt}
+  \HRule[0cm]
+  \vspace{0.5cm}
+  \color{black}
 }
 
 % TODO: See if Melissa provided some design document
@@ -106,7 +116,7 @@
 \noindent
 \begin{tikzpicture}[x=1cm, y=1cm]
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
-\helpers
+%\helpers
 
 \mainheader{\the\haligni}{\the\valigni}{Anemobox Product Description}
 \anemoparagraph{\the\haligni}{\the\valignii}{
@@ -114,7 +124,7 @@
   \subheader{Minimum requirements}
   To use the Anemobox, you need at least
   \begin{itemize}
-    \item A boat equiped with an NMEA2000/NMEA0183 wind sensor
+    \item A boat equipped with an NMEA2000/NMEA0183 wind sensor
     \item An iOS device, such as iPad or iPhone
     \item 9-24 Volts DC power supply
   \end{itemize}
