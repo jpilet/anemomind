@@ -10,31 +10,43 @@
 \newcommand{\goldenratio}{1.618}
 
 \deflen{horizontalmarg}{1.0cm}
-\deflen{verticalmarg}{1.618cm}
+\deflen{verticalmarg}{\dimexpr(\goldenratio\horizontalmarg)}
 
 \usepackage[top=\the\verticalmarg, bottom=\the\verticalmarg, 
   left=\the\horizontalmarg, right=\the\horizontalmarg]{geometry}
 
 
+\deflen{lowerbaroffset}{0.8cm}
 
-\newlength{\lowerbaroffset}
-\setlength{\lowerbaroffset}{0.8cm}
 
 \newlength{\localpwidth}
 
-\newlength{\contentswidth}
-\setlength{\contentswidth}{\dimexpr(\paperwidth-2\horizontalmarg)}
-\newlength{\contentsheight}
-\setlength{\contentsheight}{\dimexpr(\paperheight-2.01\verticalmarg)}
+\deflen{contentswidth}{\dimexpr(\paperwidth-2\horizontalmarg)}
+\deflen{contentsheight}{\dimexpr(\paperheight-2.01\verticalmarg)}
+
+\deflen{halfwidth}{\dimexpr(0.5\contentswidth)}
 
 
-\newlength{\halfwidth}
-\setlength{\halfwidth}{\dimexpr(0.5\contentswidth)}
+\deflen{paramarg}{0.5cm}
+\deflen{aligni}{0cm}
+\deflen{alignii}{\dimexpr(\halfwidth-\paramarg)}
+\deflen{aligniii}{\dimexpr(\halfwidth+\paramarg)}
+\deflen{aligniv}{\dimexpr(\contentswidth)}
+
+
 
 \usepackage{fontspec,lipsum}
 
+
+
+\newcommand{\vhelper}[1]{\draw[color=gray] (#1,0cm) -- (#1,\the\contentsheight);}
+
 % Just to display the page bounds
-\newcommand{\helperrect}{\draw[color=gray] (0,0) rectangle (\the\contentswidth, \the\contentsheight);}
+\newcommand{\helpers}{
+  \draw[color=gray] (0,0) rectangle (\the\contentswidth, \the\contentsheight);
+  \vhelper{\the\alignii}
+  \vhelper{\the\aligniii}
+}
 
 % A4: 21.0 × 29.7
 \pagenumbering{gobble}
@@ -48,7 +60,7 @@
 \noindent
 \begin{tikzpicture}[x=1cm, y=1cm]
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
-\helperrect
+\helpers
 
 
 \setlength{\localpwidth}{10cm}
