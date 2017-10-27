@@ -2,11 +2,13 @@
 \documentclass[a4paper]{article}
 
 \newlength{\horizontalmarg}
-\setlength{\horizontalmarg}{1.618cm}
+\setlength{\horizontalmarg}{1.0cm}
 \newlength{\verticalmarg}
-\setlength{\verticalmarg}{1.0cm}
+\setlength{\verticalmarg}{1.618cm}
 
-\usepackage[top=1.618cm, bottom=1.618cm, left=1.0cm, right=1.0cm]{geometry}
+\usepackage[top=\the\verticalmarg, bottom=\the\verticalmarg, 
+  left=\the\horizontalmarg, right=\the\horizontalmarg]{geometry}
+
 \usepackage{fontspec,lipsum}
 
 % Just to display the page bounds
