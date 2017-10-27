@@ -1,18 +1,17 @@
 % !TEX TS-program = XeLaTeX
 \documentclass[a4paper]{article}
 
-
-\usepackage{a4wide}
+\usepackage[top=0.5cm, bottom=0cm, left=0.5cm, right=0.5cm]{geometry}
 \usepackage{fontspec,lipsum}
-\usepackage{fancyhdr}
-\pagestyle{fancy}
 
 \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
-
 \usepackage{tikz}
 
 \begin{document}
+\noindent
 \begin{tikzpicture}
-
+\draw (0,0) rectangle (20cm, 28.7cm);
+\draw (0,0) --(1,2) -- (2,3) -- (1,0);
+  
 \end{tikzpicture}
 \end{document} 
