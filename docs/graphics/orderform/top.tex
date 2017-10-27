@@ -28,12 +28,19 @@
 
 
 \deflen{paramarg}{0.5cm}
+
+\deflen{colwidth}{\dimexpr(\halfwidth-\paramarg)}
+
+
+%% The vertical lines at which things should align
 \deflen{aligni}{0cm}
-\deflen{alignii}{\dimexpr(\halfwidth-\paramarg)}
+\deflen{alignii}{\colwidth}
 \deflen{aligniii}{\dimexpr(\halfwidth+\paramarg)}
 \deflen{aligniv}{\dimexpr(\contentswidth)}
 
 
+
+\deflen{topcontentsmarg}{2cm}
 
 \usepackage{fontspec,lipsum}
 
@@ -63,8 +70,12 @@
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
 \helpers
 
-
-\setlength{\localpwidth}{10cm}
+% Right column
+\node[anchor=north west] at (\the\aligniii,\the\topcontentsmarg) {
+  \begin{minipage}[l]{\the\colwidth}
+    This is really great!
+  \end{minipage}
+};
 
 
 %\node[inner sep=0pt, anchor=north west] (anemobox) at (0cm,\the\contentsheight) {\includegraphics[width=\the\halfwidth]{../images/anemobox10.jpg}};
