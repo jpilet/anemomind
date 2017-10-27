@@ -1,17 +1,22 @@
 % !TEX TS-program = XeLaTeX
 \documentclass[a4paper]{article}
 
-\usepackage[top=0.5cm, bottom=0cm, left=0.5cm, right=0.5cm]{geometry}
+\usepackage[top=1.618cm, bottom=1.618cm, left=1.0cm, right=1.0cm]{geometry}
 \usepackage{fontspec,lipsum}
 
+% A4: 21.0 × 29.7
+\pagenumbering{gobble}
 \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
 \usepackage{tikz}
 
+% TODO: See if Melissa provided some design document
+% with precise specs of margins, font sizes, etc.
+
 \begin{document}
 \noindent
-\begin{tikzpicture}
-\draw (0,0) rectangle (20cm, 28.7cm);
-\draw (0,0) --(1,2) -- (2,3) -- (1,0);
-  
+\begin{tikzpicture}[x=1cm, y=1cm]
+\definecolor{anemored}{rgb} {1.00,0.129,0.247}
+\draw (0,0) rectangle (19.0cm, 26.4cm);
 \end{tikzpicture}
 \end{document} 
+
