@@ -31,16 +31,19 @@
 
 \deflen{colwidth}{\dimexpr(\halfwidth-\paramarg)}
 
+\deflen{lowersectionstart}{\dimexpr(0.5\contentsheight)}
+\deflen{headermarg}{2cm}
 
 %% The vertical lines at which things should align
-\deflen{aligni}{0cm}
-\deflen{alignii}{\colwidth}
-\deflen{aligniii}{\dimexpr(\halfwidth+\paramarg)}
-\deflen{aligniv}{\dimexpr(\contentswidth)}
+\deflen{haligni}{0cm}
+\deflen{halignii}{\colwidth}
+\deflen{haligniii}{\dimexpr(\halfwidth+\paramarg)}
+\deflen{haligniv}{\dimexpr(\contentswidth)}
 
-
-
-\deflen{topcontentsmarg}{2cm}
+\deflen{valigni}{\contentsheight}
+\deflen{valignii}{\dimexpr(\contentsheight-\headermarg)}
+\deflen{valigniii}{\lowersectionstart}
+\deflen{valigniv}{\dimexpr(\lowersectionstart-\headermarg)}
 
 \usepackage{fontspec,lipsum}
 
@@ -52,8 +55,11 @@
 % Just to display the page bounds
 \newcommand{\helpers}{
   \draw[color=gray] (0,0) rectangle (\the\contentswidth, \the\contentsheight);
-  \vhelper{\the\alignii}
-  \vhelper{\the\aligniii}
+  \vhelper{\the\halignii}
+  \vhelper{\the\haligniii}
+  \hhelper{\the\valignii}
+  \hhelper{\the\valigniii}
+  \hhelper{\the\valigniv}
 }
 
 % A4: 21.0 × 29.7
@@ -71,7 +77,7 @@
 \helpers
 
 % Right column
-\node[anchor=north west] at (\the\aligniii,\the\topcontentsmarg) {
+\node[anchor=north west] at (\the\haligniii,\the\valignii) {
   \begin{minipage}[l]{\the\colwidth}
     This is really great!
   \end{minipage}
