@@ -12,11 +12,13 @@
 
 \newlength{\contentswidth}
 \setlength{\contentswidth}{\dimexpr(\paperwidth-2\horizontalmarg)}
+\newlength{\contentsheight}
+\setlength{\contentsheight}{\dimexpr(\paperheight-2\verticalmarg)}
 
 \usepackage{fontspec,lipsum}
 
 % Just to display the page bounds
-\newcommand{\helperrect}{\draw[color=gray] (0,0) rectangle (\the\contentswidth, 26.4cm);}
+\newcommand{\helperrect}{\draw[color=gray] (0,0) rectangle (\the\contentswidth, \the\contentsheight);}
 
 % A4: 21.0 × 29.7
 \pagenumbering{gobble}
