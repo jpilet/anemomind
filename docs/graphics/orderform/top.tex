@@ -1,5 +1,6 @@
 % !TEX TS-program = XeLaTeX
 \documentclass[a4paper]{article}
+\usepackage{tikz}
 
 % https://tex.stackexchange.com/questions/172234/define-and-set-length-in-one-command
 \newcommand{\deflen}[2]{%      
@@ -48,11 +49,13 @@
 \usepackage{fontspec,lipsum}
 
 
-
+% Draw a vertical bar across the contents area
 \newcommand{\vhelper}[1]{\draw[color=gray] (#1,0cm) -- (#1,\the\contentsheight);}
+
+% Draw a horizontal bar across the contents area
 \newcommand{\hhelper}[1]{\draw[color=gray] (0cm,#1) -- (\the\contentswidth,#1);}
 
-% Just to display the page bounds
+% Display helper lines
 \newcommand{\helpers}{
   \draw[color=gray] (0,0) rectangle (\the\contentswidth, \the\contentsheight);
   \vhelper{\the\halignii}
@@ -65,7 +68,16 @@
 % A4: 21.0 × 29.7
 \pagenumbering{gobble}
 \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
-\usepackage{tikz}
+
+
+% (x, y, pos)
+\newcommand{\mainheader}[3]{
+  \setmainfont[Path=../fonts/]{BoingBold.otf}
+  \node[anchor=north west] at (#1,#2) {\Huge #3};
+  \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
+}
+
+
 
 % TODO: See if Melissa provided some design document
 % with precise specs of margins, font sizes, etc.
@@ -76,6 +88,8 @@
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
 \helpers
 
+\mainheader{\the\haligni}{\the\valigni}{anemobox specs}
+
 % Right column
 \node[anchor=north west] at (\the\haligniii,\the\valignii) {
   \begin{minipage}[l]{\the\colwidth}
@@ -83,6 +97,7 @@
   \end{minipage}
 };
 
+\mainheader{\the\haligni}{\the\valigniii}{anemobox order form}
 
 %\node[inner sep=0pt, anchor=north west] (anemobox) at (0cm,\the\contentsheight) {\includegraphics[width=\the\halfwidth]{../images/anemobox10.jpg}};
 
