@@ -219,45 +219,40 @@
   }
 }
 
-\mainheader{\the\haligni}{\the\valigniii}{Order Form}
 
-\anemoparagraph{\the\haligni}{\the\valigniv}{
-  \subheader{Order specification}
 
-  Please fill the number of items you want to buy in the left column.
+%% Lydia thought that the Order Form should be an a separate sheet,
+%% so that the client can keep this information sheet. I think that
+%% is a good idea.
+\iffalse
+  \mainheader{\the\haligni}{\the\valigniii}{Order Form}
+  \anemoparagraph{\the\haligni}{\the\valigniv}{
+    \subheader{Order specification}
 
-  \medskip
-  \rowcolors{2}{white}{white}
-  \begin{tabularx}{\colwidth}{|l|X|r|}
-    \hline 
-    Quantity & Description & Price \\ \hline
-    & Buy anemobox & CHF 2000 \\ \hline
-    & Rent anemobox for 1 year & CHF 300 \\ \hline
-  \end{tabularx}
-}
+    Please fill the number of items you want to buy in the left column.
 
-\anemoparagraph{\the\haligniii}{\the\valigniv}{
-  \subheader{Contact information}
-  \textfield{First name}
-  \textfield{Family name}
-  \textfield{Street address}
-  \textfield{Zip-code}
-  \textfield{City}
-  \textfield{Country}
-  \textfield{E-mail address}
-  \textfield{Phone}
-}
+    \medskip
+    \rowcolors{2}{white}{white}
+    \begin{tabularx}{\colwidth}{|l|X|r|}
+      \hline 
+      Quantity & Description & Price \\ \hline
+      & Buy anemobox & CHF 2000 \\ \hline
+      & Rent anemobox for 1 year & CHF 300 \\ \hline
+    \end{tabularx}
+  }
 
-%
-
-%% \foreach \bound in {north,south,west,east,45} {
-%%       \node[anchor=\bound] at (current page.\bound) {I am \bound-bound...};
-%%   }
-  %\node[anchor=north west, color=anemored] at (0, \the\contentsheight) {\Large Specifications!};
-  %\draw[color=anemored, line width=0.25mm] (0, \the\dimexpr(\contentsheight-\lowerbaroffset)) -- (\the\localpwidth, \the\dimexpr(\contentsheight-\lowerbaroffset));
-%\node[draw=none] at (0,0) {some text};
-%\node[draw] at (0,0) {some text};
-
+  \anemoparagraph{\the\haligniii}{\the\valigniv}{
+    \subheader{Contact information}
+    \textfield{First name}
+    \textfield{Family name}
+    \textfield{Street address}
+    \textfield{Zip-code}
+    \textfield{City}
+    \textfield{Country}
+    \textfield{E-mail address}
+    \textfield{Phone}
+  }
+\fi
 \end{tikzpicture}
 \end{document} 
 
