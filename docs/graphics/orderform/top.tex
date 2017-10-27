@@ -111,10 +111,10 @@
 \newcommand{\subheader}[1]{
   \color{Anemored}
   \begin{flushleft}
-    \Large #1
+    \large #1
   \end{flushleft}
   %\noindent\rule{\the\colwidth}{0.4pt}
-  \HRule[0cm]
+  \HRule[-0.1cm]
   \vspace{0.5cm}
   \color{black}
 }
@@ -122,7 +122,7 @@
 
 \newcommand{\featuretable}[1]{
   \begin{tabularx}{\colwidth}{|X|X|}
-    #1
+    \hline #1 \hline
   \end{tabularx}
 }
 
@@ -152,55 +152,59 @@
   \subheader{Minimum requirements}
   To use the Anemobox, you need at least
   \begin{itemize}
+    \setlength\itemsep{-0.1cm}
     \item A boat equipped with an NMEA2000/NMEA0183 wind sensor
     \item An iOS device, such as iPad or iPhone
     \item 9-24 Volts DC power supply
   \end{itemize}
+  In addition, the Anemobox can receive data from other NMEA connected sensors too, such as magnetic compass or water speed.
 }
 \anemoparagraph{\the\haligniii}{\the\valignii}{
-  \tiny
-  %% \subheader{Feature summary}
-  %% \vspace{-0.3cm}
-  %% {
+  \subheader{Feature summary}
   %% \begin{itemize}
   %%   \setlength\itemsep{-0.1cm}
-  %%   \item Auto calibrated true wind computation
-  %%   \item Boat performance computation
-  %%   \item Wireless connectivity Bluetooth 4.0 and WiFi
-  %%   \item Data logging with automatic cloud sync
-  %%   \item Waterproof
-  %%   \item NMEA 0183 and 2000 input/output
-  %%   \item 10Hz satellite positioning (GPS, GLONASS and BeiDou)
   %% \end{itemize}
-  %% }
+
+  {  
+    \scriptsize
+    \featuretable{
+      Auto calibrated true wind computation & Boat performance computation \\
+      Wireless connectivity Bluetooth 4.0 and WiFi & Data logging with automatic cloud sync \\
+      Waterproof & NMEA 0183 and 2000 input/output \\
+      10Hz satellite positioning (GPS, GLONASS and BeiDou) & Cloud-based sharing and visualization platform at www.anemolab.com \\
+    }
+  }
   \subheader{Specs}
-  \spectable{Embedded sensors}{
-    GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
-    GPS accuracy & 2.5 m CEP \\
-    GPS Frequency & 1-10 Hz \\
-    External GPS support & NMEA 0183 and 2000 \\
-    Inertial Measurement Unit &	9 axis, 1kHz \\
-    Compass & 3 axis magnetometer, compensated with 3 gyroscopes \\
-  }
-  \spectable{Processing Characteristics}{
-    Processing & dual-core, dual-threaded Intel® Atom CPU at 500 MHz \\
-    RAM & 1GB \\
-    Logging storage & 8GB \\
-    System storage & 4GB \\
-  }
-  \spectable{Connections}{
-    Wireless & Wifi, Bluetooth 4.0 \\
-    8-poles IP67 connector & Power, NMEA input + output \\
-    NMEA 2000 connector & Power, data input + output \\
-  }
-  \spectable{Physical Characteristics}{
-    Size & 11 $\times$ 15 $\times$ 4 cm \\
-    Weight & 227 g \\
-  }
-  \spectable{Electrical Characteristics}{
-    Supply voltage & 9--24 V DC \\
-    Power consumption & 1.5 W \\
-    Current at 12V & 0.12 A \\
+  {
+    \tiny
+    \spectable{Embedded sensors}{
+      GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
+      GPS accuracy & 2.5 m CEP \\
+      GPS Frequency & 1-10 Hz \\
+      External GPS support & NMEA 0183 and 2000 \\
+      Inertial Measurement Unit &	9 axis, 1kHz \\
+      Compass & 3 axis magnetometer, compensated with 3 gyroscopes \\
+    }
+    \spectable{Processing Characteristics}{
+      Processing & dual-core, dual-threaded Intel® Atom CPU at 500 MHz \\
+      RAM & 1GB \\
+      Logging storage & 8GB \\
+      System storage & 4GB \\
+    }
+    \spectable{Connections}{
+      Wireless & Wifi, Bluetooth 4.0 \\
+      8-poles IP67 connector & Power, NMEA input + output \\
+      NMEA 2000 connector & Power, data input + output \\
+    }
+    \spectable{Physical Characteristics}{
+      Size & 11 $\times$ 15 $\times$ 4 cm \\
+      Weight & 227 g \\
+    }
+    \spectable{Electrical Characteristics}{
+      Supply voltage & 9--24 V DC \\
+      Power consumption & 1.5 W \\
+      Current at 12V & 0.12 A \\
+    }
   }
 }
 
