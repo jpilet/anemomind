@@ -129,10 +129,11 @@
 
 % A two-column table suitable for specs
 % Alternating colours
-\newcommand{\spectable}[1]{
+\newcommand{\spectable}[2]{
+  #1 \\
   \begin{tabularx}{\colwidth}{X X}
-    #1
-  \end{tabularx}
+    \hline #2
+  \end{tabularx}\vspace{0.3cm}
 }
 
 % TODO: See if Melissa provided some design document
@@ -158,7 +159,7 @@
 }
 \anemoparagraph{\the\haligniii}{\the\valignii}{
   \tiny
-  \subheader{Features}
+  \subheader{Specs}
   \vspace{-0.3cm}
   {
   \begin{itemize}
@@ -173,12 +174,29 @@
   \end{itemize}
   }
   \subheader{Specs}
-  \spectable{
+  \spectable{Embedded sensors}{
     GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
     GPS accuracy & 2.5 m CEP \\
     GPS Frequency & 1-10 Hz \\
+    External GPS support & NMEA 0183 and 2000 \\
+    Inertial Measurement Unit &	9 axis, 1kHz \\
+    Compass & 3 axis magnetometer, compensated with 3 gyroscopes \\
   }
-  
+  \spectable{Processing Characteristics}{
+    Processing & dual-core, dual-threaded Intel® Atom CPU at 500 MHz \\
+    RAM & 1GB \\
+    Logging storage & 8GB \\
+    System storage & 4GB \\
+  }
+  \spectable{Connections}{
+    Wireless & Wifi, Bluetooth 4.0 \\
+    8-poles IP67 connector & Power, NMEA input + output \\
+    NMEA 2000 connector & Power, data input + output \\
+  }
+  \spectable{Physical Characteristics}{
+    Size & 11 x 15 x 4 cm \\
+    Weight & 227 g \\
+  }
 }
 
 \mainheader{\the\haligni}{\the\valigniii}{Order Form}
