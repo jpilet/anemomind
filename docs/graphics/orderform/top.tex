@@ -48,14 +48,15 @@
 \deflen{valigniv}{\dimexpr(\lowersectionstart-\headermarg)}
 
 
-% Right column
-\node[anchor=north west] at (\the\haligniii,\the\valignii) {
-  \begin{minipage}[l]{\the\colwidth}
-    This is really great!
-  \end{minipage}
-};
-
-
+% A paragraph: Args (X, Y, text)
+\newcommand{\anemoparagraph}[3]{
+  \node[anchor=north west,style={inner sep=0,outer sep=0}] at (#1,#2) {
+    %\hspace{-0.25cm}
+    \begin{minipage}[l]{\the\colwidth}
+      #3
+    \end{minipage}
+  };
+}
 
 % Draw a vertical bar across the contents area
 \newcommand{\vhelper}[1]{\draw[color=gray] (#1,0cm) -- (#1,\the\contentsheight);}
@@ -77,15 +78,12 @@
 \pagenumbering{gobble}
 \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
 
-
 % (x, y, pos)
 \newcommand{\mainheader}[3]{
   \setmainfont[Path=../fonts/]{BoingBold.otf}
   \node[anchor=north west] at (#1,#2) {\Huge #3};
   \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
 }
-
-
 
 % TODO: See if Melissa provided some design document
 % with precise specs of margins, font sizes, etc.
@@ -96,12 +94,18 @@
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
 \helpers
 
-\mainheader{\the\haligni}{\the\valigni}{anemobox specs}
+\mainheader{\the\haligni}{\the\valigni}{anemobox product description}
+\anemoparagraph{\the\haligni}{\the\valignii}{
+  \includegraphics[width=\the\colwidth]{../images/anemobox10.jpg}
+  Image and minimum requirements go here. Image and minimum requirements go here. Image and minimum requirements go here.
+}
+\anemoparagraph{\the\haligniii}{\the\valignii}{
+  Specs go here
+}
 
+\mainheader{\the\haligni}{\the\valigniii}{order form}
 
-\mainheader{\the\haligni}{\the\valigniii}{anemobox order form}
-
-%\node[inner sep=0pt, anchor=north west] (anemobox) at (0cm,\the\contentsheight) {\includegraphics[width=\the\halfwidth]{../images/anemobox10.jpg}};
+%
 
 %% \foreach \bound in {north,south,west,east,45} {
 %%       \node[anchor=\bound] at (current page.\bound) {I am \bound-bound...};
