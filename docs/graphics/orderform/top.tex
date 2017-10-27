@@ -119,8 +119,12 @@
   \color{black}
 }
 
-\newcommand{\spectable}[1]{
 
+% A two-column table suitable for specs
+\newcommand{\spectable}[1]{
+  \begin{tabularx}{\colwidth}{X X}
+    #1
+  \end{tabularx}
 }
 
 % TODO: See if Melissa provided some design document
@@ -159,11 +163,12 @@
   \end{itemize}
   }
   \subheader{Specs}
-  \begin{tabularx}{\colwidth}{X X}
+  \spectable{
     GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
     GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
     GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
-  \end{tabularx}
+  }
+  
 }
 
 \mainheader{\the\haligni}{\the\valigniii}{Order Form}
