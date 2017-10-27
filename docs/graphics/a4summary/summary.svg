@@ -16,7 +16,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
-   sodipodi:docname="poster-v013-new-image.svg">
+   sodipodi:docname="summary.svg">
   <defs
      id="defs4">
     <marker
@@ -4162,9 +4162,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.5"
-     inkscape:cx="363.37705"
-     inkscape:cy="518.67761"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="172.79841"
+     inkscape:cy="52.40344"
      inkscape:document-units="cm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -7892,13 +7892,14 @@
        xml:space="preserve"
        id="flowRoot27848"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;line-height:125%;font-family:muli;-inkscape-font-specification:muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       transform="matrix(0.93750001,0,0,0.93750001,0.66291261,30.493924)"><flowRegion
+       transform="matrix(0.93750001,0,0,0.93750001,0.66291261,17.898584)"><flowRegion
          id="flowRegion27850"><rect
            id="rect27852"
            width="431.33514"
            height="57.982758"
            x="29.698484"
            y="1017.1608" /></flowRegion><flowPara
-         id="flowPara27854">© 2017 Anemomind SaRL, Ch. de la Raye 13, 1024 Ecublens, Switzerland</flowPara><flowPara
-         id="flowPara27856">Contact: Julien Pilet, julien@anemomind.com, +41799352857</flowPara></flowRoot>  </g>
+         id="flowPara27856">© 2017 Anemomind SaRL, </flowPara><flowPara
+         id="flowPara6070">c/o UniverCité, Chemin du Closel 5, 1020 Renens, Switzerland</flowPara><flowPara
+         id="flowPara6068">Contact: Julien Pilet, julien@anemomind.com, +41799352857</flowPara></flowRoot>  </g>
 </svg>
