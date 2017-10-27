@@ -136,10 +136,19 @@
   \end{tabularx}\vspace{0.3cm}
 }
 
-\newcommand{\textfield}[1]{#1: ......}
-
 % TODO: See if Melissa provided some design document
 % with precise specs of margins, font sizes, etc.
+
+
+\newcommand{\textfield}[1]{
+  \fboxrule=0.4pt
+  \fbox{
+    \begin{minipage}[t][1cm][t]{0.95\colwidth}
+      \textbf{#1}
+    \end{minipage}
+  }
+}
+
 
 \begin{document}
 \rowcolors{2}{gray!25}{white}
@@ -221,14 +230,13 @@
 \anemoparagraph{\the\haligniii}{\the\valigniv}{
   \subheader{Contact information}
   \textfield{First name}
-
-  \fboxrule=0.4pt
-  \setlength\FrameSep{0pt}
-  \noindent\fbox{
-    \begin{minipage}[t][1cm][t]{0.95\colwidth}
-      \textbf{Full name}
-    \end{minipage}
-  }
+  \textfield{Family name}
+  \textfield{Street address}
+  \textfield{Zip-code}
+  \textfield{City}
+  \textfield{Country}
+  \textfield{E-mail address}
+  \textfield{Phone}
 }
 
 %
