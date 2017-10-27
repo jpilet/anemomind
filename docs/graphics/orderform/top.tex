@@ -9,7 +9,39 @@
 
 \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
 
+\usepackage{pgf}
+\newcommand\setform{\pgfqkeys{/form }}
+\setform{field1/.store in=\fieldi,
+  field2/.store in=\fieldii,
+}
+
 \begin{document}
-\section{Good stuff}
-\lipsum
+%% \begin{tabular}{ll}
+%%   First name & & Street address & \\
+%%   Family name & & Floor & \\
+%%   E-mail address & & Zip-code & \\
+%%   Phone & & 
+
+%% \end{tabular}
+
+\newcommand\myform{%
+\fboxrule=0.4pt
+\fbox{\begin{minipage}{\textwidth}
+\fbox{\begin{minipage}[t][3cm][t]{0.25\textwidth}
+  \textbf{Name} \fieldi
+\end{minipage}}%
+\fbox{\begin{minipage}[t][3cm][t]{0.4\textwidth}
+  \textbf{Subject} \fieldii
+\end{minipage}}
+\fbox{\begin{minipage}[t][3cm][t]{0.25\textwidth}
+test
+\end{minipage}}
+\end{minipage}}
+}
+
+\setform{field1 = G. Wales,
+         field2 = Mathematics}
+\myform
+
+
 \end{document} 
