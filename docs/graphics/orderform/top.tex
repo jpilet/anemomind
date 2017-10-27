@@ -1,8 +1,16 @@
 % !TEX TS-program = XeLaTeX
 \documentclass[a4paper]{article}
+
+
+% https://tex.stackexchange.com/a/5365
+% Must
+\usepackage[table]{xcolor}
+
+
 \usepackage{tikz}
 \usepackage{fontspec,lipsum}
-\usepackage{color}
+%\usepackage{color}
+
 
 % https://tex.stackexchange.com/questions/172234/define-and-set-length-in-one-command
 \newcommand{\deflen}[2]{%      
@@ -113,6 +121,7 @@
 % with precise specs of margins, font sizes, etc.
 
 \begin{document}
+\rowcolors{2}{gray!25}{white}
 \noindent
 \begin{tikzpicture}[x=1cm, y=1cm]
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
@@ -130,9 +139,9 @@
   \end{itemize}
 }
 \anemoparagraph{\the\haligniii}{\the\valignii}{
+  \tiny
   \subheader{Features}
   {
-  \small
   \begin{itemize}
     \item Auto calibrated true wind computation
     \item Boat performance computation
@@ -144,7 +153,12 @@
   \end{itemize}
   }
   \subheader{Specs}
-  
+  \begin{tabular}{|l|l|}
+    GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
+    GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
+    GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
+    \hline 
+  \end{tabular}
 }
 
 \mainheader{\the\haligni}{\the\valigniii}{Order Form}
