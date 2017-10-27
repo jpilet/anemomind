@@ -10,6 +10,11 @@
   left=\the\horizontalmarg, right=\the\horizontalmarg]{geometry}
 
 
+\newlength{\lowerbaroffset}
+\setlength{\lowerbaroffset}{2cm}
+
+\newlength{\localpwidth}
+
 \newlength{\contentswidth}
 \setlength{\contentswidth}{\dimexpr(\paperwidth-2\horizontalmarg)}
 \newlength{\contentsheight}
@@ -35,10 +40,13 @@
 \helperrect
 
 
+\setlength{\localpwidth}{10cm}
+
 %% \foreach \bound in {north,south,west,east,45} {
 %%       \node[anchor=\bound] at (current page.\bound) {I am \bound-bound...};
 %%   }
-  \node[anchor=north west] at (0, \the\contentsheight) {I am NOT MOOVING!};
+  \node[anchor=north west, color=anemored] at (0, \the\contentsheight) {\Large Specifications!};
+  \draw[color=anemored, line width=0.5mm] (0, \the\dimexpr(\contentsheight-\lowerbaroffset)) -- (\the\localpwidth, \the\dimexpr(\contentsheight-\lowerbaroffset));
 %\node[draw=none] at (0,0) {some text};
 %\node[draw] at (0,0) {some text};
 
