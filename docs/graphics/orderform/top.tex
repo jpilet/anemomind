@@ -4,6 +4,9 @@
 \usepackage[top=1.618cm, bottom=1.618cm, left=1.0cm, right=1.0cm]{geometry}
 \usepackage{fontspec,lipsum}
 
+
+\newcommand{\helperrect}{\draw[color=gray] (0,0) rectangle (19.0cm, 26.4cm);}
+
 % A4: 21.0 × 29.7
 \pagenumbering{gobble}
 \setmainfont[Path=../fonts/]{Muli-Regular.ttf}
@@ -16,7 +19,7 @@
 \noindent
 \begin{tikzpicture}[x=1cm, y=1cm]
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
-\draw (0,0) rectangle (19.0cm, 26.4cm);
+\helperrect
 \end{tikzpicture}
 \end{document} 
 
