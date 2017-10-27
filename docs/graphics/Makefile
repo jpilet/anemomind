@@ -1,5 +1,5 @@
 a4summary.pdf: a4summary/summary.svg
-	"/usr/local/bin/inkscape" a4summary/summary.svg -A=a4summary.pdf --without-gui
+	inkscape a4summary/summary.svg -A=a4summary.pdf --without-gui
 
 a4details.pdf: a4details/top.tex
 	cd a4details && xelatex top.tex && mv top.pdf ../a4details.pdf
@@ -9,5 +9,12 @@ a4productinfo.pdf: a4summary.pdf a4details.pdf
 
 all: a4productinfo.pdf
 
+clean:
+	rm a4productinfo.pdf a4details.pdf a4summary.pdf
+
+# Display stuff
 disp: a4productinfo.pdf
 	open a4productinfo.pdf
+
+disp-details: a4details.pdf
+	open a4details.pdf
