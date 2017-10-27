@@ -13,7 +13,7 @@
 \newlength{\contentswidth}
 \setlength{\contentswidth}{\dimexpr(\paperwidth-2\horizontalmarg)}
 \newlength{\contentsheight}
-\setlength{\contentsheight}{\dimexpr(\paperheight-2.1\verticalmarg)}
+\setlength{\contentsheight}{\dimexpr(\paperheight-2.01\verticalmarg)}
 
 \usepackage{fontspec,lipsum}
 
@@ -33,6 +33,9 @@
 \begin{tikzpicture}[x=1cm, y=1cm]
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
 \helperrect
+
+\node[draw,text width=4cm] at (0,0) {some text};
+
 \end{tikzpicture}
 \end{document} 
 
