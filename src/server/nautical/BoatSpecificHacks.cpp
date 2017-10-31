@@ -14,7 +14,7 @@ namespace hack {
 namespace {
 std::string gBoatId;
 
-const char[] kRealTeamD35 = "5992fcc6035eb352cf36d594";
+const char kRealTeamD35[] = "5992fcc6035eb352cf36d594";
 }
 
 bool forceDateForGLL = false;
