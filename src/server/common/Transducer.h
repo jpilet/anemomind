@@ -189,7 +189,7 @@ struct IteratorStep : public IteratorStepBase<Iterator> {
       typename Base::result_type y,
       typename Base::input_type x) const {
     *y = x;
-    return y;
+    return ++y;
   }
 };
 

@@ -123,3 +123,15 @@ TEST(TransducerTest, TestFlush) {
   EXPECT_EQ(dst[1], (std::vector<int>{2, 2, 2}));
   EXPECT_EQ(dst[2], (std::vector<int>{3, 3, 3}));
 }
+
+TEST(TransducerTest, SimpleIterator) {
+  std::vector<int> data{0, 0, 0};
+  auto iter = data.data();
+  auto step = trMap([](int i) {return i + 11;}).apply(iteratorStep(iter));
+  for (int i = 0; i < 3; i++) {
+    iter = step.step(iter, i);
+  }
+  EXPECT_EQ(data[0], 11);
+  EXPECT_EQ(data[1], 12);
+  EXPECT_EQ(data[2], 13);
+}
