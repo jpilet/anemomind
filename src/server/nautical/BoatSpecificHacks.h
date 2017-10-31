@@ -9,6 +9,10 @@
 
 #include <string>
 
+namespace sail {
+
+class NavDataset;
+
 namespace hack {
 
 /*
@@ -29,6 +33,11 @@ extern double motionWeight;
 
 void ConfigureForBoat(const std::string& boatId);
 
+void SelectSources(NavDataset *dataset);
+
 }
+
+} // namespace sail
+
 
 #endif /* SERVER_NAUTICAL_BOATSPECIFICHACKS_H_ */
