@@ -13,6 +13,8 @@ namespace hack {
 
 namespace {
 std::string gBoatId;
+
+const char[] kRealTeamD35 = "5992fcc6035eb352cf36d594";
 }
 
 bool forceDateForGLL = false;
@@ -29,7 +31,7 @@ void ConfigureForBoat(const std::string& boatId) {
     // to make it look good.
     forceDateForGLL = true;
   }
-  if (boatId == "5992fcc6035eb352cf36d594") {
+  if (boatId == kRealTeamD35) {
     // Realteam, issue #1138. NMEA0183 buffering likely
     // leads to a slight staircase effect in the positions,
     // which in turn leads to a very noisy filtered GPS speed.
@@ -39,7 +41,7 @@ void ConfigureForBoat(const std::string& boatId) {
 }
 
 void SelectSources(NavDataset *dataset) {
-  if (gBoatId == "5992fcc6035eb352cf36d594") {
+  if (gBoatId == kRealTeamD35) {
     // Realteam, issue #1138. NMEA0183 buffering likely
     dataset->dispatcher()->setSourcePriority("NMEA0183: /dev/ttyMFD1", -10);
   }
