@@ -11,7 +11,9 @@
 \usepackage{tikz}
 \usepackage{fontspec,lipsum}
 %\usepackage{color}
+\usepackage{color,colortbl}
 
+\definecolor{Gray}{gray}{0.9}
 
 % https://tex.stackexchange.com/questions/172234/define-and-set-length-in-one-command
 \newcommand{\deflen}[2]{%      
@@ -41,7 +43,7 @@
 
 \deflen{colwidth}{\dimexpr(\halfwidth-\paramarg)}
 
-\deflen{lowersectionstart}{\dimexpr(0.5\contentsheight)}
+\deflen{lowersectionstart}{\dimexpr(0.6\contentsheight)}
 \deflen{headermarg}{2cm}
 
 %% The vertical lines at which things should align
@@ -58,7 +60,6 @@
 \deflen{valigniv}{\dimexpr(\lowersectionstart-\headermarg)}
 
 
-
 %% TODO: If we just need two columns, maybe it is better to use a style for that
 %% rather than laying out the columns ourselves using Tikz.
 
@@ -69,6 +70,16 @@
       #3
     \end{minipage}
   };
+}
+
+%% TODO: Can easily convert USD or EUR
+
+\newcounter{cumulativechf}
+
+\newcommand{\resetchf}{\setcounter{cumulativechf}{0}}
+\newcommand{\chf}[1]{
+  #1 CHF
+  \addtocounter{cumulativechf}{#1}
 }
 
 % Draw a vertical bar across the contents area
@@ -156,61 +167,135 @@
 }
 
 
+
+%% Page on how to make rotated headers
+%% and check marks, just what we want
+%% for the feature list:
+%% https://tex.stackexchange.com/a/98439
+\usepackage{pifont}
+\newcommand*\rot{\rotatebox{90}}
+\newcommand*\OK{\ding{51}}
+
+% Table headers
+\newcommand{\tabh}[1]{\textbf{#1}}
+\newcommand{\roth}[1]{\rot{\textbf{#1}}}
+
 \begin{document}
-\rowcolors{2}{gray!25}{white}
 \noindent
 \begin{tikzpicture}[x=1cm, y=1cm]
 \definecolor{anemored}{rgb} {1.00,0.129,0.247}
 
+\small
 
 % Helper lines
 %\helpers
-
-\mainheader{\the\haligni}{\the\valigni}{Anemobox Product Description}
+\mainheader{\the\haligni}{\the\valigni}{Anemomind Packages}
 \anemoparagraph{\the\haligni}{\the\valignii}{
   \includegraphics[width=\the\colwidth]{../images/anemobox10.jpg}
-  \subheader{What you get}
-  You can either buy or rent the Anemobox. The full package includes
-  \begin{itemize}
-    \item The Anemobox
-    \item One year subscription to Anemolab
-    \item iOS application for synchronization and real-time display
-    \item An iPad
-  \end{itemize}
-  
-  
-  \textbf{TODO}
-  Pricing information.
-  Discounts?
-  Predefined packages? (e.g. [rent anemobox+ipad][rent anemobox][buy anemobox]
+  A package consists of three parts: The Anemobox (part I), the services that go with it (part II) and accessories needed to operate it (part III). Beyond a package, all you need is a power supply on your boat to take advantage of Anemomind.
 
+  \subheader{Part I -- The Anemobox}
+  You can either buy or rent the anemobox.
 
-  \subheader{Minimum requirements}
-  To use the Anemobox, you need at least
-  \begin{itemize}
-    \setlength\itemsep{-0.1cm}
-    \item A boat equipped with an NMEA2000/NMEA0183 wind sensor
-    \item An iOS device, such as iPad or iPhone
-    \item 9-24 Volts DC power supply
-  \end{itemize}
-  In addition, the Anemobox can receive data from other NMEA connected sensors too, such as magnetic compass or water speed.
+  
+  \begin{tabularx}{\colwidth}{|>{\columncolor[gray]{0.9}}l|X|}
+    \hline
+    \tabh{Buy} & \chf{850} \\ \hline
+    \tabh{Rent per year} & \chf{200} + \chf{300} deposit \\ \hline
+  \end{tabularx}
 }
-\anemoparagraph{\the\haligniii}{\the\valignii}{
-  \subheader{Feature summary}
-  %% \begin{itemize}
-  %%   \setlength\itemsep{-0.1cm}
-  %% \end{itemize}
 
-  {  
-    \scriptsize
-    \featuretable{
-      Auto calibrated true wind computation & Boat performance computation \\
-      Wireless connectivity Bluetooth 4.0 and WiFi & Data logging with automatic cloud sync \\
-      Waterproof & NMEA 0183 and 2000 input/output \\
-      10Hz satellite positioning (GPS, GLONASS and BeiDou) & Cloud-based sharing and visualization platform at www.anemolab.com \\
-    }
-  }
-  \subheader{Specs}
+\anemoparagraph{\the\haligni}{\the\valigniv}{
+  \subheader{Part II -- The services}
+  Choose either the \emph{Social sailors} package, 
+  the \emph{Amateur racers} package or the \emph{Professional racers} package, and whether to pay an annual subscription or lifetime subscription.
+
+  %% \medskip
+  %% Prices
+  
+  %% \smallskip
+  %% \begin{tabularx}{\colwidth}{|X|r|r|}
+  %%   \hline
+  %%   \tabh{Package} & \tabh{Buy} & \tabh{Rent} \\ \hline
+  %%   Social sailor & 0 CHF & 0 CHF \\ \hline
+  %%   Amateur & (fill in) & (fill in) \\ \hline
+  %%   Professional & (fill in) & (fill in) \\ \hline
+  %% \end{tabularx}
+
+  \medskip
+  Features and prices per package
+  
+  \smallskip
+  \begin{tabularx}{\colwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{Gray}
+     & \roth{Social sailors} & \roth{Amateur racers} & \roth{Professional racers} \\ \hline
+    Public navigation sharing & \OK & \OK & \OK \\ \hline
+    Unlimited navigation data storage & \OK & \OK & \OK \\ \hline
+    Performance estimation & & \OK & \OK \\ \hline
+    Full instrument display & & \OK & \OK \\ \hline
+    VMG table & & \OK & \OK \\ \hline
+    Private sharing with team & & & \OK \\ \hline
+    Raw data export (CSV) & & & \OK \\ \hline
+    \rowcolor{Gray}
+    Lifetime subscription & \chf{0} & \chf{500} & \chf{1500} \\ \hline
+    \rowcolor{Gray}
+    Annual subscription & \chf{0} & \chf{100} & \chf{300} \\ \hline
+  \end{tabularx}
+}
+
+
+%% https://www.senero-marine.ch/wp-content/uploads/2017/01/BandG_Preisliste_2017.pdf
+\anemoparagraph{\the\haligniii}{\the\valigniv}{
+  \subheader{Part III -- The accessories}
+  Complete your package by choosing the accessories you might need.
+
+  \medskip
+
+  \resetchf
+  \begin{tabularx}{\colwidth}{|X|r|}
+    \hline
+    \rowcolor{Gray}
+    \tabh{Accessory} & \tabh{Buy} \\ \hline
+    B\&G 508 wind sensor + 20 m cable & \chf{611} \\ \hline %% b&g 000-10652-001
+    N2K-T-RD - NMEA 2000® T-connector & \chf{27} \\ \hline %% 000-0119-79
+    TR-120-KIT terminators & \chf{27} \\ \hline %% 000-0127-52
+    iPad mini 4 (WiFi but no SIM)& \chf{479} \\ \hline %% https://www.apple.com/chfr/ipad/compare/
+    CaseProof waterproof case for iPad & \chf{80} \\ \hline %% http://www.caseproof.net/coque-caseproof-etanche-anti-choc-pour-ipad-air-pro-mini/104-coque-ipad-mini-2-etanche-anti-choc-caseproof--3760066550693.html
+    \rowcolor{Gray}
+    Total & \chf{\thecumulativechf} \\ \hline
+  \end{tabularx}
+
+  \vspace{0.5cm}
+  \subheader{Example package}
+  Here is a hypothetical calculation: Buy Anemobox (from part I), 1 year subscription \emph{Amateur racers} (from part II), buy 1 iPad (from part III).
+  
+  \medskip
+  \resetchf
+  \begin{tabularx}{\colwidth}{|X|r|}
+    \hline
+    \rowcolor{Gray}
+    \tabh{Part} & \tabh{Price} \\ \hline
+    Buy Anemobox & \chf{850} \\ \hline
+    1 year subscription \emph{Amateur racers} & \chf{100} \\ \hline
+    iPad & \chf{479} \\ \hline
+    iPad waterproof case & \chf{80} \\ \hline
+    \rowcolor{Gray}
+    What you pay & \chf{\thecumulativechf} \\ \hline
+  \end{tabularx}
+}
+
+
+\node[anchor=south east,style={inner sep=0,outer sep=0}] at (\the\contentswidth,0cm) {
+  \begin{minipage}[l]{3.5cm}
+    \includegraphics[width=\textwidth]{../images/logosmall.pdf}
+  \end{minipage}
+};
+
+
+\anemoparagraph{\the\haligniii}{\the\valignii}{
+  \subheader{Anemobox Specs}
+  %\rowcolors{2}{gray!25}{white}
   {
     \scriptsize
     \spectable{Embedded sensors}{
@@ -242,43 +327,8 @@
       Current at 12 V & 0.12 A \\
     }
   }
+  \rowcolors{2}{white}{white}
 }
-
-%% TODO: It would be nice to have a small Anemomind logo in the bottom right corner.
-
-
-%% Lydia thought that the Order Form should be an a separate sheet,
-%% so that the client can keep this information sheet. I think that
-%% is a good idea.
-\iffalse
-  \mainheader{\the\haligni}{\the\valigniii}{Order Form}
-  \anemoparagraph{\the\haligni}{\the\valigniv}{
-    \subheader{Order specification}
-
-    Please fill the number of items you want to buy in the left column.
-
-    \medskip
-    \rowcolors{2}{white}{white}
-    \begin{tabularx}{\colwidth}{|l|X|r|}
-      \hline 
-      Quantity & Description & Price \\ \hline
-      & Buy anemobox & CHF 2000 \\ \hline
-      & Rent anemobox for 1 year & CHF 300 \\ \hline
-    \end{tabularx}
-  }
-
-  \anemoparagraph{\the\haligniii}{\the\valigniv}{
-    \subheader{Contact information}
-    \textfield{First name}
-    \textfield{Family name}
-    \textfield{Street address}
-    \textfield{Zip-code}
-    \textfield{City}
-    \textfield{Country}
-    \textfield{E-mail address}
-    \textfield{Phone}
-  }
-\fi
 \end{tikzpicture}
 \end{document} 
 
