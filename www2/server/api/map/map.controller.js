@@ -57,7 +57,7 @@ function getCanvas(width, height, name, cb) {
     var pathLayer;
     var context;
 
-    canvas = new Canvas(width, height);
+    canvas = new Canvas.createCanvas(width, height);
     canvas.width = width;
     canvas.height = height;
     context = canvas.getContext('2d');
