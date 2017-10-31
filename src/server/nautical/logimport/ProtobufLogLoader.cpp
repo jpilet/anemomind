@@ -56,16 +56,16 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
                // we rely on those values, rather than the time values that we
                // get from the NMEA0183 data.
         &parser, dst, dstSourceName);
+
+    int byteCount = 0;
+    for (int i = 0; i < n; i++) {
+      byteCount += stream.text(i).size();
+    }
+    Duration<> interval = (times[n - 1] - times[0]).scaled(1.0 / double(byteCount));
+
     for (int i = 0; i < n; i++) {
       auto t = times[i] + offset;
-
-      // Not sure where this line should be...
-      parser.setProtobufTime(t);
-
-      streamToNmeaParser(stream.text(i), &parser, &adaptor);
-
-      // The time corresponding to the last byte.
-      adaptor.setTime(t);
+      streamToNmeaParser(t, stream.text(i), interval, &parser, &adaptor);
     }
   }
 }

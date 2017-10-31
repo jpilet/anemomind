@@ -91,10 +91,16 @@ std::string getDefaultSourceName() {
   return defaultNmea0183SourceName;
 }
 
-void streamToNmeaParser(const std::string &src,
-    NmeaParser *dstParser,
-    Nmea0183LogLoaderAdaptor *adaptor) {
+void streamToNmeaParser(TimeStamp endTime,
+                        const std::string &src,
+                        Duration<> interval,
+                        LogLoaderNmea0183Parser *dstParser,
+                        Nmea0183LogLoaderAdaptor *adaptor) {
+  TimeStamp t = endTime - interval.scaled(src.size());
   for (auto c: src) {
+    adaptor->setTime(t);
+    dstParser->setProtobufTime(t);
+    t += interval;
     Nmea0183ProcessByte(adaptor->sourceName(), c, dstParser, adaptor);
   }
 }

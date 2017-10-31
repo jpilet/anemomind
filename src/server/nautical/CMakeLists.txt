@@ -287,6 +287,9 @@ add_library(nautical_BoatSpecificHacks
   BoatSpecificHacks.h
   BoatSpecificHacks.cpp
   )
+target_link_libraries(nautical_BoatSpecificHacks
+  nautical_NavDataset
+  )
 
 add_executable(nautical_boatDatInfo boatDatInfo.cpp)
 target_link_libraries(nautical_boatDatInfo 
