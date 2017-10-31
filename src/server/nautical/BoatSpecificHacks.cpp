@@ -41,8 +41,6 @@ void ConfigureForBoat(const std::string& boatId) {
 void SelectSources(NavDataset *dataset) {
   if (gBoatId == "5992fcc6035eb352cf36d594") {
     // Realteam, issue #1138. NMEA0183 buffering likely
-    //dataset->preferSourceAll("NMEA0183 input reparsed");
-    //dataset->dispatcher()->setSourcePriority("NMEA0183 input reparsed", 1);
     dataset->dispatcher()->setSourcePriority("NMEA0183: /dev/ttyMFD1", -10);
   }
 }
