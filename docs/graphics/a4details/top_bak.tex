@@ -191,20 +191,45 @@
 %\helpers
 \mainheader{\the\haligni}{\the\valigni}{Anemomind Packages}
 \anemoparagraph{\the\haligni}{\the\valignii}{
-  \subheader{The Anemobox}
   \includegraphics[width=\the\colwidth]{../images/anemobox10.jpg}
-  The Anemobox is the heart of the Anemomind system. It is a small onboard computer that captures data from sensors via NMEA. Those data are recorded to log files for deep analysis but also available in real-time via WiFi from your tablet or phone.
+  A package consists of three parts: The Anemobox (part I), the services that go with it (part II) and accessories needed to operate it (part III). Beyond a package, all you need is a power supply on your boat to take advantage of Anemomind.
+
+  \subheader{Part I -- The Anemobox}
+  You can either buy or rent the anemobox.
+
+  
+  \begin{tabularx}{\colwidth}{|>{\columncolor[gray]{0.9}}l|X|}
+    \hline
+    \tabh{Buy} & \chf{850} \\ \hline
+    \tabh{Rent per year} & \chf{200} + \chf{300} deposit \\ \hline
+  \end{tabularx}
 }
 
-\anemoparagraph{\the\haligniii}{\the\valigniv}{
-  \subheader{The services}
-  The cloud-based services and connectivity to iOS devices are what sets Anemomind apart from most existing systems, enabling real-time feedback, as well as a rich analysis and social experience. The services come in three versions: \emph{Social sailors}, \emph{Amateur racers} and \emph{Professional racers}. You can either subscribe to these services per year or lifetime.
-  
-  \bigskip
+\anemoparagraph{\the\haligni}{\the\valigniv}{
+  \subheader{Part II -- The services}
+  Choose either the \emph{Social sailors} package, 
+  the \emph{Amateur racers} package or the \emph{Professional racers} package, and whether to pay an annual subscription or lifetime subscription.
 
+  %% \medskip
+  %% Prices
+  
+  %% \smallskip
+  %% \begin{tabularx}{\colwidth}{|X|r|r|}
+  %%   \hline
+  %%   \tabh{Package} & \tabh{Buy} & \tabh{Rent} \\ \hline
+  %%   Social sailor & 0 CHF & 0 CHF \\ \hline
+  %%   Amateur & (fill in) & (fill in) \\ \hline
+  %%   Professional & (fill in) & (fill in) \\ \hline
+  %% \end{tabularx}
+
+  \medskip
+  Features and prices per package
+  
+  \smallskip
   \begin{tabularx}{\colwidth}{|X|c|c|c|}
     \hline
-    & \roth{Social sailors} & \roth{Amateur racers} & \roth{Professional racers} \\ \hline
+    \rowcolor{Gray}
+     & \roth{Social sailors} & \roth{Amateur racers} & \roth{Professional racers} \\ \hline
     Public navigation sharing & \OK & \OK & \OK \\ \hline
     Unlimited navigation data storage & \OK & \OK & \OK \\ \hline
     Performance estimation & & \OK & \OK \\ \hline
@@ -212,17 +237,15 @@
     VMG table & & \OK & \OK \\ \hline
     Private sharing with team & & & \OK \\ \hline
     Raw data export (CSV) & & & \OK \\ \hline
+    \rowcolor{Gray}
+    Lifetime subscription & \chf{0} & \chf{500} & \chf{1500} \\ \hline
+    \rowcolor{Gray}
+    Annual subscription & \chf{0} & \chf{100} & \chf{300} \\ \hline
   \end{tabularx}
 }
 
 
 %% https://www.senero-marine.ch/wp-content/uploads/2017/01/BandG_Preisliste_2017.pdf
-\anemoparagraph{\the\haligni}{\the\valigniv}{
-  \subheader{Compose your package}
-  \includegraphics[width=0.95\textwidth]{../priceflowchart.pdf}
-}
-
-\iffalse
 \anemoparagraph{\the\haligniii}{\the\valigniv}{
   \subheader{Part III -- The accessories}
   Complete your package by choosing the accessories you might need.
@@ -261,13 +284,14 @@
     What you pay & \chf{\thecumulativechf} \\ \hline
   \end{tabularx}
 }
-\fi
+
 
 \node[anchor=south east,style={inner sep=0,outer sep=0}] at (\the\contentswidth,0cm) {
   \begin{minipage}[l]{3.5cm}
     \includegraphics[width=\textwidth]{../images/logosmall.pdf}
   \end{minipage}
 };
+
 
 \anemoparagraph{\the\haligniii}{\the\valignii}{
   \subheader{Anemobox Specs}
