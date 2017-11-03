@@ -24,7 +24,7 @@
 \newcommand{\goldenratio}{1.618}
 
 % Page margins
-\deflen{horizontalmarg}{1.0cm}
+\deflen{horizontalmarg}{0.7cm}
 \deflen{verticalmarg}{\dimexpr(\goldenratio\horizontalmarg)}
 
 \usepackage[top=\the\verticalmarg, bottom=\the\verticalmarg, 
@@ -36,10 +36,10 @@
 \deflen{contentswidth}{\dimexpr(\paperwidth-2\horizontalmarg)}
 \deflen{contentsheight}{\dimexpr(\paperheight-2.01\verticalmarg)}
 
-\deflen{halfwidth}{\dimexpr(0.5\contentswidth)}
+\deflen{halfwidth}{\dimexpr(0.6\contentswidth)}
 
 
-\deflen{paramarg}{0.5cm}
+\deflen{paramarg}{0.25cm}
 
 \deflen{colwidth}{\dimexpr(\halfwidth-\paramarg)}
 
@@ -50,6 +50,7 @@
 \deflen{haligni}{0cm}
 \deflen{halignii}{\colwidth}
 \deflen{haligniii}{\dimexpr(\halfwidth+\paramarg)}
+\deflen{colwidthr}{\dimexpr(\contentswidth-\haligniii)}
 \deflen{haligniv}{\dimexpr(\contentswidth)}
 
 
@@ -64,10 +65,10 @@
 %% rather than laying out the columns ourselves using Tikz.
 
 % A paragraph: Args (X, Y, text)
-\newcommand{\anemoparagraph}[3]{
+\newcommand{\anemoparagraph}[4]{
   \node[anchor=north west,style={inner sep=0,outer sep=0}] at (#1,#2) {
-    \begin{minipage}[l]{\the\colwidth}
-      #3
+    \begin{minipage}[l]{#3}
+      #4
     \end{minipage}
   };
 }
@@ -137,18 +138,11 @@
 }
 
 
-\newcommand{\featuretable}[1]{
-  \begin{tabularx}{\colwidth}{|X|X|}
-    \hline #1 \hline
-  \end{tabularx}
-}
-
-
 % A two-column table suitable for specs
 % Alternating colours
 \newcommand{\spectable}[2]{
   #1 \\
-  \begin{tabularx}{\colwidth}{X X}
+  \begin{tabularx}{\colwidthr}{X X}
     \hline #2
   \end{tabularx}\vspace{0.3cm}
 }
@@ -190,19 +184,19 @@
 % Helper lines
 %\helpers
 \mainheader{\the\haligni}{\the\valigni}{Anemomind Plans}
-\anemoparagraph{\the\haligni}{\the\valignii}{
+\anemoparagraph{\the\haligni}{\the\valignii}{\the\colwidth}{
   \subheader{The Anemobox}
   \includegraphics[width=\the\colwidth]{../images/anemobox10.jpg}
   The Anemobox is the heart of the Anemomind system. It is a small onboard computer that captures data from sensors via NMEA. Those data are recorded to log files for deep analysis but also available in real-time via WiFi on your tablet or phone.
 }
 
-\anemoparagraph{\the\haligniii}{\the\valigniv}{
+\anemoparagraph{\the\haligniii}{\the\valigniv}{\the\colwidthr}{
   \subheader{Subscription Plans}
 
   \bigskip
       {
         \renewcommand{\arraystretch}{2}
-        \begin{tabularx}{\colwidth}{|X|c|c|c|}
+        \begin{tabularx}{\colwidthr}{|X|c|c|c|}
           \cline{2-4} % https://tex.stackexchange.com/a/64827 : Remove certain borders
           \multicolumn{1}{c|}{} & \roth{Social sailors} & \roth{Amateur racers} & \roth{Professional racers } \\ \hline
           Public navigation sharing & \OK & \OK & \OK \\ \hline
@@ -218,21 +212,25 @@
 
 
 %% https://www.senero-marine.ch/wp-content/uploads/2017/01/BandG_Preisliste_2017.pdf
-\anemoparagraph{\the\haligni}{\the\valigniv}{
+\anemoparagraph{\the\haligni}{\the\valigniv}{\the\colwidth}{
   \subheader{Prices}
   \includegraphics[width=\textwidth]{../croppedpricechart.pdf}
-  \begin{tabularx}{\colwidth}{|X|r|}
-    %% b&g 000-10652-001
-    %% 000-0119-79
-    %% 000-0127-52
-    \hline
-    \rowcolor{Gray}
-    \tabh{Accessory} & \tabh{Price} \\ \hline
-    B\&G wind sensor with cables and connectors & \chf{665} \\ \hline
-    iPad mini 4 (WiFi but no SIM)& \chf{479} \\ \hline %% https://www.apple.com/chfr/ipad/compare/
-    CaseProof waterproof case for iPad & \chf{80} \\ \hline %% http://www.caseproof.net/coque-caseproof-etanche-anti-choc-pour-ipad-air-pro-mini/104-coque-ipad-mini-2-etanche-anti-choc-caseproof--3760066550693.html
-  \end{tabularx}
 
+  \smallskip
+  {
+    \renewcommand{\arraystretch}{2}
+    \begin{tabularx}{\colwidth}{|X|r|}
+      %% b&g 000-10652-001
+      %% 000-0119-79
+      %% 000-0127-52
+      \hline
+      \rowcolor{Gray}
+      \tabh{Accessory} & \tabh{Price} \\ \hline
+      B\&G wind sensor with cables and connectors & \chf{665} \\ \hline
+      iPad mini 4 (WiFi but no SIM)& \chf{479} \\ \hline %% https://www.apple.com/chfr/ipad/compare/
+      CaseProof waterproof case for iPad & \chf{80} \\ \hline %% http://www.caseproof.net/coque-caseproof-etanche-anti-choc-pour-ipad-air-pro-mini/104-coque-ipad-mini-2-etanche-anti-choc-caseproof--3760066550693.html
+    \end{tabularx}
+  }
 }
 
 \node[anchor=south east,style={inner sep=0,outer sep=0}] at (\the\contentswidth,0cm) {
@@ -241,7 +239,7 @@
   \end{minipage}
 };
 
-\anemoparagraph{\the\haligniii}{\the\valignii}{
+\anemoparagraph{\the\haligniii}{\the\valignii}{\the\colwidthr}{
   \subheader{Anemobox Specs}
   %\rowcolors{2}{gray!25}{white}
   {
