@@ -4,7 +4,10 @@ a4summary.pdf: a4summary/summary.svg
 priceflowchart.pdf: priceflowchart/priceflowchart.svg
 	inkscape priceflowchart/priceflowchart.svg -A=priceflowchart.pdf --without-gui
 
-a4details.pdf: a4details/top.tex priceflowchart.pdf
+croppedpricechart.pdf: priceflowchart.pdf
+	pdfcrop priceflowchart.pdf croppedpricechart.pdf
+
+a4details.pdf: a4details/top.tex croppedpricechart.pdf
 	cd a4details && xelatex top.tex && mv top.pdf ../a4details.pdf
 
 a4productinfo.pdf: a4summary.pdf a4details.pdf
