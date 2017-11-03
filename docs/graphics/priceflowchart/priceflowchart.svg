@@ -396,7 +396,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.49497475"
-     inkscape:cx="-52.565688"
+     inkscape:cx="313.10953"
      inkscape:cy="587.65619"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -427,7 +427,7 @@
      id="layer1">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.34999990000000025px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332000000001px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
        x="105.24054"
        y="11.234265"
        id="text817"><tspan
@@ -435,22 +435,22 @@
          id="tspan815"
          x="105.24054"
          y="11.234265"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px">Buy or rent Anemobox?</tspan></text>
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;">Buy or rent Anemobox?</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.565;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.565;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend);fill-opacity:1"
        d="M 99.843488,13.618323 60.817529,40.380004"
        id="path1145"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-9)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-9);fill-opacity:1"
        d="m 112.20892,13.839535 34.93864,22.722518"
        id="path1145-5"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.34999990000000025px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332000000001px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
        x="73.914787"
        y="25.452486"
        id="text817-5"><tspan
@@ -458,10 +458,10 @@
          id="tspan815-5"
          x="68.625191"
          y="25.452486"
-         style="fill:#ff213f;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center">Buy</tspan></text>
+         style="fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center;">Buy</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.34999990000000025px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332000000001px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
        x="135.92635"
        y="23.147818"
        id="text817-5-5"><tspan
@@ -469,10 +469,10 @@
          id="tspan815-5-8"
          x="129.45543"
          y="23.147818"
-         style="fill:#ff213f;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center">Rent</tspan></text>
+         style="fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center;">Rent</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.34999990000000025px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332000000001px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
        x="61.604435"
        y="46.86311"
        id="text817-5-1"><tspan
@@ -480,10 +480,10 @@
          id="tspan815-5-5"
          x="49.079617"
          y="46.86311"
-         style="fill:#ff213f;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center">850 CHF</tspan></text>
+         style="fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center;">850 CHF</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.34999990000000025px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332000000001px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
        x="158.76479"
        y="43.373547"
        id="text817-5-1-2"><tspan
@@ -491,11 +491,11 @@
          id="tspan815-5-5-8"
          x="131.00679"
          y="43.373547"
-         style="fill:#ff213f;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center">200 CHF/year</tspan><tspan
+         style="fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center;">200 CHF/year</tspan><tspan
          sodipodi:role="line"
          x="131.00679"
          y="51.311047"
-         style="fill:#ff213f;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center"
+         style="fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;text-anchor:middle;text-align:center;"
          id="tspan2280">+ 300 CHF deposit</tspan></text>
     <text
        xml:space="preserve"
@@ -510,7 +510,7 @@
          style="stroke-width:0.26458332px" /></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.34999990000000025px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332000000001px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
        x="60.133213"
        y="73.377251"
        id="text817-51"><tspan
@@ -518,144 +518,133 @@
          id="tspan815-3"
          x="60.133213"
          y="73.377251"
-         style="fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px">Choose your <tspan
-   style="text-align:center;text-anchor:middle"
+         style="fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;">Choose your <tspan
+   style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;"
    id="tspan6448">subscription</tspan> plan</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-0)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-0);fill-opacity:1"
        d="M 61.792143,48.699057 84.376297,67.523239"
        id="path1145-4"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-5)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-5);fill-opacity:1"
        d="M 148.65947,53.193006 126.26446,67.481474"
        id="path1145-7"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.565;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.565;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55);fill-opacity:1"
        d="m 105.40304,75.535366 -0.0944,19.720969"
        id="path1145-3"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-2)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-2);fill-opacity:1"
        d="M 85.604642,77.047271 42.836908,95.256325"
        id="path1145-9"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-1)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-1);fill-opacity:1"
        d="m 126.04809,75.913343 45.34333,19.812669"
        id="path1145-8"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.34999990000000025px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332000000001px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
        x="105.35216"
        y="100.89394"
        id="text817-51-7"><tspan
          sodipodi:role="line"
          x="105.35216"
          y="100.89394"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;"
          id="tspan6471">Amateur racers</tspan><tspan
          sodipodi:role="line"
          x="105.35216"
          y="108.83144"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;"
          id="tspan6475">100 CHF/year</tspan><tspan
          sodipodi:role="line"
          x="105.35216"
          y="116.76894"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;"
          id="tspan14386">or 500 CHF/lifetime</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="39.408001"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="42.583004"
        y="100.95327"
        id="text817-51-7-9"><tspan
          sodipodi:role="line"
-         x="39.408001"
+         x="42.583004"
          y="100.95327"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332px"
          id="tspan6471-9">Social sailors</tspan><tspan
          sodipodi:role="line"
-         x="39.408001"
+         x="42.583004"
          y="108.89077"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332px"
          id="tspan6475-3">0 CHF/year</tspan><tspan
          sodipodi:role="line"
-         x="39.408001"
+         x="42.583004"
          y="116.82827"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332px"
          id="tspan14390">or 0 CHF/lifetime</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="175.52032"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="170.75789"
        y="101.32946"
        id="text817-51-7-5"><tspan
          sodipodi:role="line"
-         x="175.52032"
+         x="170.75789"
          y="101.32946"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332px"
          id="tspan6471-6">Professional racers</tspan><tspan
          sodipodi:role="line"
-         x="175.52032"
+         x="170.75789"
          y="109.26696"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332px"
          id="tspan6475-7">100 CHF/year</tspan><tspan
          sodipodi:role="line"
-         x="175.52032"
+         x="170.75789"
          y="117.20446"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332px"
          id="tspan14388">or 1500 CHF/lifetime</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55-9)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55-9);fill-opacity:1"
        d="m 171.91859,119.09509 -44.19388,16.781"
        id="path1145-3-9"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.565;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55-1)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.565;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55-1);fill-opacity:1"
        d="m 105.39798,119.62426 -0.0944,16.78101"
        id="path1145-3-93"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55-0)"
+       style="fill:#000000;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55-0);fill-opacity:1"
        d="m 43.094675,119.35699 43.203263,16.24646"
        id="path1145-3-0"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.34999990000000025px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332000000001px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
        x="105.43433"
        y="142.48837"
        id="text817-51-5-1-7"><tspan
          sodipodi:role="line"
          x="105.43433"
          y="142.48837"
-         style="text-align:center;text-anchor:middle;fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px"
+         style="text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:0.26458332000000001px;"
          id="tspan8838">Choose accessories...</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3499999px;line-height:125%;font-family:Muli;-inkscape-font-specification:Muli;letter-spacing:0px;word-spacing:0px;fill:#ff213f;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="97.168159"
-       y="163.6423"
-       id="text817-51-5-1-9-5"><tspan
-         sodipodi:role="line"
-         id="tspan815-3-9-9-8-9"
-         x="97.168159"
-         y="163.6423"
-         style="fill:#ff213f;fill-opacity:1;stroke-width:0.26458332px">Done</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55-1-5-5)"
+       style="fill:#ff213f;fill-rule:evenodd;stroke:#ff213f;stroke-width:0.56500006;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend-55-1-5-5);fill-opacity:1"
        d="m 105.39013,145.47071 -0.0998,12.76257"
        id="path1145-3-93-1-2"
        inkscape:connector-curvature="0"
