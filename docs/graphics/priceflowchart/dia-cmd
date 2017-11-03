@@ -1,0 +1,146 @@
+#!/bin/sh
+#
+# Author: Aaron Voisine <aaron@voisine.org>
+# Modifications:
+#	Michael Wybrow <mjwybrow@users.sourceforge.net>
+#	Jean-Olivier Irisson <jo.irisson@gmail.com>
+#       Steffen Macke <sdteffen@sdteffen.de>
+
+#CWD="`(cd \"\`dirname \\\"$0\\\"\`\"; echo \"$PWD\")`"
+CWD="/Applications/Dia.app/Contents/Resources/bin"
+# e.g. /Applications/Dia.app/Contents/Resources/bin
+
+TOP="`dirname \"$CWD\"`"
+# e.g. /Applications/Dia.app/Contents/Resources
+
+
+# Brutally add many things to the PATH. If the directories do not exist, they won't be used anyway. 
+# People should really use ~/.macosx/environment.plist to set environment variables as explained by Apple:
+#	http://developer.apple.com/qa/qa2001/qa1067.html
+# but since no one does, we correct this by making the 'classic' PATH additions here:
+#	/usr/local/bin which, though standard, doesn't seem to be in the PATH
+# 	newer python as recommended by MacPython http://www.python.org/download/mac/
+#	Fink
+#	MacPorts (former DarwinPorts)
+#	LaTeX distribution for Mac OS X
+#export PATH="/usr/texbin:/opt/local/bin:/sw/bin/:/Library/Frameworks/Python.framework/Versions/Current/bin:/usr/local/bin:$CWD:$PATH"
+
+# Check for X11
+if [[ "" == $DISPLAY ]]; then
+  export DISPLAY=:0
+fi
+startx=`which startx`
+if [[ "" == $startx ]]; then
+ if [[ ! -e /opt/X11/bin/startx ]]; then
+   osascript -e 'tell app "System Events" to display dialog "X11 (XQuartz) is not installed or not running. Would you like to visit xquartz.macosforge.org now in order to download and install XQuartz?" with icon 0'
+   if [[ $? -eq 0 ]]; then
+     open http://xquartz.macosforge.org
+     exit
+   fi
+  fi
+fi
+osascript -e 'tell app "XQuartz" to launch'
+for i in `seq 1 30`; do
+  if [[ `ps aux | grep -v grep | grep startx | wc -l` -lt 1 ]]; then
+    sleep 1
+  fi
+done
+if [[ "$DISPLAY" =~ "/tmp" ]]; then
+  if [[ ! -e $DISPLAY ]]; then
+    export DISPLAY=:0
+  fi
+fi 
+
+# Setup PYTHONPATH to use python modules shipped with Dia
+ARCH=`arch`
+PYTHON_VERS=`python -V 2>&1 | cut -c 8-10`
+export PYTHONPATH="$TOP/python/site-packages/$ARCH/$PYTHON_VERS"
+# NB: we are only preprending some stuff to the default python path so if the directory does not exist it should not harm the rest
+
+# No longer required if path rewriting has been conducted.
+export DYLD_FALLBACK_LIBRARY_PATH="$TOP/lib"
+
+export DIA_BASE_PATH="$TOP"
+export DIA_LIB_PATH="$TOP/dia"
+export DIA_SHEET_PATH="$TOP/sheets"
+export DIA_SHAPE_PATH="$TOP/shapes"
+export DIA_XSLT_PATH="$TOP/xslt"
+export DIA_SHAREDIR="$TOP"
+export DIA_LOCALE_PATH="$TOP/share/locale"
+
+mkdir -p "${HOME}/.dia-etc"
+
+export FONTCONFIG_PATH="$TOP/etc/fonts"
+export PANGO_RC_FILE="$HOME/.dia-etc/pangorc"
+export GTK_IM_MODULE_FILE="$HOME/.dia-etc/gtk.immodules"
+export GDK_PIXBUF_MODULE_FILE="$HOME/.dia-etc/gdk-pixbuf.loaders"
+export GTK_DATA_PREFIX="$TOP"
+export GTK_EXE_PREFIX="$TOP"
+export XDG_DATA_DIRS="$TOP/share"
+
+# Handle the case where the directory storing Dia has special characters
+# ('#', '&', '|') in the name.  These need to be escaped to work properly for 
+# various configuration files.
+ESCAPEDTOP=`echo "$TOP" | sed 's/#/\\\\\\\\#/' | sed 's/&/\\\\\\&/g' | sed 's/|/\\\\\\|/g'`
+
+# Set GTK theme (only if there is no .gtkrc-2.0 in the user's home)
+if [[ ! -e "$HOME/.gtkrc-2.0" ]]; then
+	# Appearance setting
+	aquaStyle=`defaults read "Apple Global Domain" AppleAquaColorVariant 2>/dev/null`
+	# 1 for aqua, 6 for graphite, inexistant if the default color was never changed
+	if [[ "$aquaStyle" == "" ]]; then
+		aquaStyle=1		# set aqua as default
+	fi
+
+	# Highlight Color setting
+	hiliColor=`defaults read "Apple Global Domain" AppleHighlightColor 2>/dev/null`
+	# a RGB value, with components between 0 and 1, also inexistant if it was not changed
+	if [[ "$hiliColor" == "" ]]; then
+		hiliColor="0.709800 0.835300 1.000000"	# set blue as default
+	fi
+
+	# Menu items color
+	if [[ aquaStyle -eq 1 ]]; then
+		menuColor="#4a76cd"	# blue
+	else
+		menuColor="#7c8da4"	# graphite
+	fi
+	# Format highlight color as a GTK rgb value
+	hiliColorFormated=`echo $hiliColor | awk -F " " '{print "\\\{"$1","$2","$3"\\\}"}'`
+
+	# echo $menuColor
+	# echo $hiliColorFormated
+
+	# Modify the gtkrc
+	#	- with the correct colors
+	#	- to point to the correct scrollbars folder
+	sed 's/OSX_HILI_COLOR_PLACEHOLDER/'$hiliColorFormated'/g' "$DIA_SHAREDIR/themes/CL/gtk-2.0/pre_gtkrc" | sed 's/OSX_MENU_COLOR_PLACEHOLDER/\"'$menuColor'\"/g' | sed 's/AQUASTYLE_PLACEHOLDER/'$aquaStyle'/g' | sed 's|${THEMEDIR}|'"$ESCAPEDTOP/themes/CL/gtk-2.0|g" > "${HOME}/.dia-etc/gtkrc"
+
+	export GTK2_RC_FILES="$HOME/.dia-etc/gtkrc"
+fi
+
+# If the AppleCollationOrder preference doesn't exist, we fall back to using
+# the AppleLocale preference.
+LANGSTR=`defaults read .GlobalPreferences AppleCollationOrder 2>/dev/null`
+if [ "x$LANGSTR" == "x" ]
+then
+    echo "Warning: AppleCollationOrder setting not found, using AppleLocale." 1>&2
+    LANGSTR=`defaults read .GlobalPreferences AppleLocale 2>/dev/null | \
+            sed 's/_.*//'`
+fi
+
+# NOTE: Have to add ".UTF-8" to the LANG since omitting causes Dia
+#       to crash on startup in locale_from_utf8().
+export LANG="$LANGSTR.UTF8"
+echo "Setting Language: $LANG" 1>&2
+
+sed 's|${HOME}|'"$HOME|g" "$TOP/etc/pango/pangorc" > "${HOME}/.dia-etc/pangorc"
+sed 's|${CWD}|'"$ESCAPEDTOP|g" "$TOP/etc/pango/pango.modules" \
+    > "${HOME}/.dia-etc/pango.modules"
+cp -f "$TOP/etc/pango/pangox.aliases" "${HOME}/.dia-etc/"
+sed 's|${CWD}|'"$ESCAPEDTOP|g" "$TOP/etc/gtk-2.0/gtk.immodules" \
+    > "${HOME}/.dia-etc/gtk.immodules"
+sed 's|${CWD}|'"$ESCAPEDTOP|g" "$TOP/etc/gtk-2.0/gdk-pixbuf.loaders" \
+    > "${HOME}/.dia-etc/gdk-pixbuf.loaders"
+
+DISPLAY=:0 exec "$CWD/dia-bin" --integrated "$@"

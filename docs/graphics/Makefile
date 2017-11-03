@@ -1,13 +1,10 @@
 a4summary.pdf: a4summary/summary.svg
 	inkscape a4summary/summary.svg -A=a4summary.pdf --without-gui
 
-priceflowchart.pdf: priceflowchart/priceflowchart.svg
-	inkscape priceflowchart/priceflowchart.svg -A=priceflowchart.pdf --without-gui
+priceflow.eps: priceflowchart/priceflow.dia
+	cd priceflowchart && ./dia-cmd priceflow.dia --export ../priceflow.eps
 
-croppedpricechart.pdf: priceflowchart.pdf
-	pdfcrop priceflowchart.pdf croppedpricechart.pdf
-
-a4details.pdf: a4details/top.tex croppedpricechart.pdf
+a4details.pdf: a4details/top.tex priceflow.eps
 	cd a4details && xelatex top.tex && mv top.pdf ../a4details.pdf
 
 a4productinfo.pdf: a4summary.pdf a4details.pdf
@@ -16,7 +13,7 @@ a4productinfo.pdf: a4summary.pdf a4details.pdf
 all: a4productinfo.pdf priceflowchart.pdf
 
 clean:
-	rm a4productinfo.pdf a4details.pdf a4summary.pdf priceflowchart.pdf
+	rm -f priceflow.eps a4productinfo.pdf a4details.pdf a4summary.pdf priceflowchart.pdf
 
 # Display stuff
 disp: a4productinfo.pdf

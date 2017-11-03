@@ -24,8 +24,9 @@
 \newcommand{\goldenratio}{1.618}
 
 % Page margins
-\deflen{horizontalmarg}{0.7cm}
-\deflen{verticalmarg}{\dimexpr(\goldenratio\horizontalmarg)}
+%\deflen{verticalmarg}{\dimexpr(\goldenratio\horizontalmarg)}
+\deflen{verticalmarg}{0.7cm}
+\deflen{horizontalmarg}{\dimexpr(\verticalmarg)}
 
 \usepackage[top=\the\verticalmarg, bottom=\the\verticalmarg, 
   left=\the\horizontalmarg, right=\the\horizontalmarg]{geometry}
@@ -43,7 +44,7 @@
 
 \deflen{colwidth}{\dimexpr(\halfwidth-\paramarg)}
 
-\deflen{lowersectionstart}{\dimexpr(0.55\contentsheight)}
+\deflen{lowersectionstart}{\dimexpr(0.56\contentsheight)}
 \deflen{headermarg}{2cm}
 
 %% The vertical lines at which things should align
@@ -216,7 +217,7 @@
 %% https://www.senero-marine.ch/wp-content/uploads/2017/01/BandG_Preisliste_2017.pdf
 \anemoparagraph{\the\haligni}{\the\valigniv}{\the\colwidth}{
   \subheader{Prices}
-  \includegraphics[width=\textwidth]{../croppedpricechart.pdf}
+  \includegraphics[width=\textwidth]{../priceflow.eps}
 
   \smallskip
   {
