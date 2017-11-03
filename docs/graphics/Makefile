@@ -10,10 +10,10 @@ a4details.pdf: a4details/top.tex priceflow.eps
 a4productinfo.pdf: a4summary.pdf a4details.pdf
 	pdfjoin --paper a4paper --rotateoversize false a4summary.pdf a4details.pdf -o a4productinfo.pdf
 
-all: a4productinfo.pdf priceflowchart.pdf
+all: a4productinfo.pdf
 
 clean:
-	rm -f priceflow.eps a4productinfo.pdf a4details.pdf a4summary.pdf priceflowchart.pdf
+	rm -f priceflow.eps a4productinfo.pdf a4details.pdf a4summary.pdf
 
 # Display stuff
 disp: a4productinfo.pdf
