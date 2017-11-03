@@ -219,49 +219,14 @@
 %% https://www.senero-marine.ch/wp-content/uploads/2017/01/BandG_Preisliste_2017.pdf
 \anemoparagraph{\the\haligni}{\the\valigniv}{
   \subheader{Compose your package}
-  \includegraphics[width=0.95\textwidth]{../priceflowchart.pdf}
 }
 
-\iffalse
-\anemoparagraph{\the\haligniii}{\the\valigniv}{
-  \subheader{Part III -- The accessories}
-  Complete your package by choosing the accessories you might need.
 
-  \medskip
-
-  \resetchf
-  \begin{tabularx}{\colwidth}{|X|r|}
-    \hline
-    \rowcolor{Gray}
-    \tabh{Accessory} & \tabh{Buy} \\ \hline
-    B\&G 508 wind sensor + 20 m cable & \chf{611} \\ \hline %% b&g 000-10652-001
-    N2K-T-RD - NMEA 2000® T-connector & \chf{27} \\ \hline %% 000-0119-79
-    TR-120-KIT terminators & \chf{27} \\ \hline %% 000-0127-52
-    iPad mini 4 (WiFi but no SIM)& \chf{479} \\ \hline %% https://www.apple.com/chfr/ipad/compare/
-    CaseProof waterproof case for iPad & \chf{80} \\ \hline %% http://www.caseproof.net/coque-caseproof-etanche-anti-choc-pour-ipad-air-pro-mini/104-coque-ipad-mini-2-etanche-anti-choc-caseproof--3760066550693.html
-    \rowcolor{Gray}
-    Total & \chf{\thecumulativechf} \\ \hline
-  \end{tabularx}
-
-  \vspace{0.5cm}
-  \subheader{Example package}
-  Here is a hypothetical calculation: Buy Anemobox (from part I), 1 year subscription \emph{Amateur racers} (from part II), buy 1 iPad (from part III).
-  
-  \medskip
-  \resetchf
-  \begin{tabularx}{\colwidth}{|X|r|}
-    \hline
-    \rowcolor{Gray}
-    \tabh{Part} & \tabh{Price} \\ \hline
-    Buy Anemobox & \chf{850} \\ \hline
-    1 year subscription \emph{Amateur racers} & \chf{100} \\ \hline
-    iPad & \chf{479} \\ \hline
-    iPad waterproof case & \chf{80} \\ \hline
-    \rowcolor{Gray}
-    What you pay & \chf{\thecumulativechf} \\ \hline
-  \end{tabularx}
-}
-\fi
+\node[anchor=south west,style={inner sep=0,outer sep=0}] at (0cm,0cm) {
+  \begin{minipage}[l]{\the\dimexpr(1.05\colwidth)}
+    \includegraphics[width=\textwidth]{../priceflowchart.pdf}
+  \end{minipage}
+};
 
 \node[anchor=south east,style={inner sep=0,outer sep=0}] at (\the\contentswidth,0cm) {
   \begin{minipage}[l]{3.5cm}
