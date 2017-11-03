@@ -43,7 +43,7 @@
 
 \deflen{colwidth}{\dimexpr(\halfwidth-\paramarg)}
 
-\deflen{lowersectionstart}{\dimexpr(0.6\contentsheight)}
+\deflen{lowersectionstart}{\dimexpr(0.55\contentsheight)}
 \deflen{headermarg}{2cm}
 
 %% The vertical lines at which things should align
@@ -141,6 +141,7 @@
 % A two-column table suitable for specs
 % Alternating colours
 \newcommand{\spectable}[2]{
+  \renewcommand{\arraystretch}{1.4}
   #1 \\
   \begin{tabularx}{\colwidthr}{X X}
     \hline #2
