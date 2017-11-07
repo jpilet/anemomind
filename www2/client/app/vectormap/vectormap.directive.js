@@ -1,5 +1,12 @@
 'use strict';
 
+// Hack necessary for safari on mobile, because safari now ignores
+// "userscalable=no".
+// https://stackoverflow.com/questions/4389932/how-do-you-disable-viewport-zooming-on-mobile-safari/39711930#39711930
+document.addEventListener('gesturestart', function (e) {
+    e.preventDefault();
+});
+
 angular.module('www2App')
   .directive('vectormap', function ($timeout, $window, $http,
                                     $httpParamSerializer, $location,
