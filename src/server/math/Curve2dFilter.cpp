@@ -14,6 +14,7 @@
 #include <server/common/Functional.h>
 #include <server/common/string.h>
 #include <server/math/SampleUtils.h>
+#include <server/nautical/BoatSpecificHacks.h>
 
 
 namespace sail {
@@ -128,7 +129,8 @@ Array<std::shared_ptr<DataCost>> makeMotionCosts(
               m.value[0].metersPerSecond(),
               m.value[1].metersPerSecond()),
           weights,
-          settings.inlierThreshold.meters()));
+          settings.inlierThreshold.meters(),
+          hack::motionWeight));
     }
   }
   return costs.get();

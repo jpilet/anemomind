@@ -10,6 +10,7 @@
 #include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/common/logging.h>
 #include <vector>
+#include <server/nautical/BoatSpecificHacks.h>
 
 namespace sail {
 namespace ProtobufLogLoader {
@@ -55,11 +56,16 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
                // we rely on those values, rather than the time values that we
                // get from the NMEA0183 data.
         &parser, dst, dstSourceName);
+
+    int byteCount = 0;
+    for (int i = 0; i < n; i++) {
+      byteCount += stream.text(i).size();
+    }
+    Duration<> interval = (times[n - 1] - times[0]).scaled(1.0 / double(byteCount));
+
     for (int i = 0; i < n; i++) {
       auto t = times[i] + offset;
-      parser.setProtobufTime(t);
-      adaptor.setTime(t);
-      streamToNmeaParser(stream.text(i), &parser, &adaptor);
+      streamToNmeaParser(t, stream.text(i), interval, &parser, &adaptor);
     }
   }
 }
@@ -190,6 +196,9 @@ namespace {
 
 
 void load(const LogFile &data, LogAccumulator *dst) {
+
+  hack::bootCount = data.bootcount() - 101;
+
   // TODO: Define a set of standard priorities in a file somewhere
   auto rawStreamPriority = -16;
 

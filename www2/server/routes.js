@@ -18,6 +18,7 @@ module.exports = function(app) {
   app.use('/api/mailrpc', require('./api/mailrpc')); // old
   app.use('/api/endpoint', require('./api/endpoint')); // new
   app.use('/api/session', require('./api/session'));  
+  app.use('/api/timeset', require('./api/timeset'));  
   app.use('/api/tiles', require('./api/tiles'));
   app.use('/api/upload', require('./api/upload'));
   app.use('/api/users', require('./api/user'));

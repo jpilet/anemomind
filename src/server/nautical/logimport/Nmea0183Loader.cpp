@@ -15,6 +15,55 @@
 namespace sail {
 namespace Nmea0183Loader {
 
+TimeStamp updateLastTime(const TimeStamp &current, const TimeStamp &candidate) {
+  if (!candidate.defined()) {
+    return current;
+  } else if (!current.defined()) {
+    return candidate;
+  }
+  return std::max(current, candidate);
+}
+
+void Nmea0183TimeFuser::bufferOperation(TimedOperation op) {
+  if (_lastTimeSinceMidnight.defined()) {
+    _delayedOps.push_back({_lastTimeSinceMidnight.get(), op});
+  } else if (_lastTime.defined()) {
+    op(_lastTime);
+  } else {
+    // Drop it. No reasonable way of assigning a time to it.
+  }
+}
+
+void Nmea0183TimeFuser::flush() {
+  if (_lastTime.defined() && !_delayedOps.empty()) {
+    CHECK(_lastTimeSinceMidnight.defined());
+    for (auto op: _delayedOps) {
+
+      // _lastTime - estimatedTimeOfOp(?) = _lastTimeSinceMidnight - op.first
+      //    / where op.first is time since midnight of op /
+      //  <===>
+      // estimatedTimeOfOp = _lastTime - (_lastTimeSinceMidnight - op.first)
+      op.second(_lastTime - (
+          _lastTimeSinceMidnight.get() - op.first));
+    }
+    _delayedOps.clear();
+  }
+}
+
+void Nmea0183TimeFuser::setTime(TimeStamp t) {
+  _lastTime = updateLastTime(_lastTime, t);
+  flush();
+}
+
+void Nmea0183TimeFuser::setTimeSinceMidnight(Duration<double> d) {
+  _lastTimeSinceMidnight = d;
+}
+
+template <>
+TimeStamp timestampOrUndefined<TimeStamp>(TimeStamp x) {
+  return x;
+}
+
 LogLoaderNmea0183Parser::LogLoaderNmea0183Parser(LogAccumulator *dst,
   const std::string &s) : _dst(dst), _sourceName(s) {
   setIgnoreWrongChecksum(true);
@@ -42,10 +91,16 @@ std::string getDefaultSourceName() {
   return defaultNmea0183SourceName;
 }
 
-void streamToNmeaParser(const std::string &src,
-    NmeaParser *dstParser,
-    Nmea0183LogLoaderAdaptor *adaptor) {
+void streamToNmeaParser(TimeStamp endTime,
+                        const std::string &src,
+                        Duration<> interval,
+                        LogLoaderNmea0183Parser *dstParser,
+                        Nmea0183LogLoaderAdaptor *adaptor) {
+  TimeStamp t = endTime - interval.scaled(src.size());
   for (auto c: src) {
+    adaptor->setTime(t);
+    dstParser->setProtobufTime(t);
+    t += interval;
     Nmea0183ProcessByte(adaptor->sourceName(), c, dstParser, adaptor);
   }
 }

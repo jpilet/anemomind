@@ -10,6 +10,7 @@ module.exports.userCanRead = function(user, boat) {
   if (!boat) {
     return false;
   }
+
   if (boat.publicAccess === true) {
     return true;
   }

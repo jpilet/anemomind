@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/common/string.h>
 #include <server/nautical/NavCompatibility.h>
 
@@ -113,9 +114,5 @@ TEST(Nmea0183Test, TestIncludeLastTwo) {
   auto navs = loader.makeNavDataset();
   EXPECT_EQ(getNavSize(navs), 3);
 }
-
-
-
-
 
 

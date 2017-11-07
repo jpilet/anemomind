@@ -8,6 +8,10 @@
 #ifndef DEVICE_ANEMOBOX_NMEA0183ADAPTOR_H_
 #define DEVICE_ANEMOBOX_NMEA0183ADAPTOR_H_
 
+#ifdef ENABLE_HACKS
+#include <server/nautical/BoatSpecificHacks.h>
+#endif
+
 class NmeaParser;
 
 namespace sail {
@@ -57,16 +61,20 @@ void Nmea0183ProcessByte(const std::string &sourceName,
           sourceName, static_cast<Length<double>>(parser->watDist()));
       break;
     case NmeaParser::NMEA_GLL:
-      handler->template add<GPS_POS>(sourceName, getPos(*parser));
+      handler->setTimeOfDay(parser->hour(), parser->min(), parser->sec());
+#ifdef ENABLE_HACKS
 #ifdef ON_SERVER
-      if (hackForceDateForGLL) {
+      if (hack::forceDateForGLL) {
         TimeStamp t = TimeStamp::tryUTC(
-            2017, 9, 9, parser->hour(), parser->min(), parser->sec());
+            2017, 9, 9, parser->hour(), parser->min(), parser->sec())
+          + double(hack::bootCount)*1.0_days;
         if (t.defined()) {
           handler->template add<DATE_TIME>(sourceName, t);
         }
       }
 #endif
+#endif
+      handler->template add<GPS_POS>(sourceName, getPos(*parser));
       break;
     case NmeaParser::NMEA_VTG:
       handler->template add<GPS_BEARING>(

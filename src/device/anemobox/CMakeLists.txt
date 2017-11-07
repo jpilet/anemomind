@@ -32,6 +32,7 @@ add_library(anemobox_Nmea0183Source
 target_link_libraries(anemobox_Nmea0183Source
                       anemobox_Dispatcher
                       device_NmeaParser
+                      nautical_BoatSpecificHacks
                      )
 
 

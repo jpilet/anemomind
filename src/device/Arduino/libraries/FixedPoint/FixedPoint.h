@@ -4,6 +4,7 @@
 #define DEVICE_FIXED_POINT_H
 
 #include <stdint.h>
+#include <cmath>
 
 // workaround some arduino #define..
 #ifdef round
@@ -116,5 +117,19 @@ FixedPoint<StoreType, LongType, Shift>::FixedPoint(double x) { _value = (x * (St
 
 template <typename StoreType, typename LongType, int Shift>
 bool isnan(FixedPoint<StoreType, LongType, Shift>) { return false; }
+
+template <typename StoreType, typename LongType, int Shift>
+float sin(FixedPoint<StoreType, LongType, Shift> x) {return sin(float(x));}
+
+template <typename StoreType, typename LongType, int Shift>
+float cos(FixedPoint<StoreType, LongType, Shift> x) {return cos(float(x));}
+
+template <typename StoreType, typename LongType, int Shift>
+float sqrt(FixedPoint<StoreType, LongType, Shift> x) {return sqrt(float(x));}
+
+template <typename StoreType, typename LongType, int Shift>
+float atan2(
+    FixedPoint<StoreType, LongType, Shift> y,
+    FixedPoint<StoreType, LongType, Shift> x) {return atan2(float(y), float(x));}
 
 #endif // DEVICE_FIXED_POINT_H

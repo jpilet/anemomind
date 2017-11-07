@@ -64,7 +64,7 @@ On debian/ubuntu:
 
 On macOS with macports:
 
-    sudo port install cairo cmake eigen3
+    sudo port install cairo cmake eigen3 f2c armadillo protobuf-cpp
 
 ### For the web server
   * **node** and **npm**. Find packages here: ```https://nodejs.org/en/download/package-manager/```
