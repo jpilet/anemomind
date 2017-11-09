@@ -13,7 +13,7 @@ priceflowfr.eps: priceflowchart/priceflowfr.dia
 A4DET = "a4details$(ANEMOLANG).pdf"
 
 A4DET: a4details/top.tex priceflowen.eps priceflowfr.eps a4details/lang.tex
-	cd a4details && xelatex top.tex && mv top.pdf "../$(A4DET)"
+	cd a4details && xelatex top.tex && mv top.pdf "../$(A4DET)" && rm lang.tex
 
 A4INFO = "a4productinfo$(ANEMOLANG).pdf"
 A4INFO: a4summary.pdf A4DET
