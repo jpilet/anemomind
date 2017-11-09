@@ -1,23 +1,32 @@
+a4details/lang.tex:
+	cd a4details && ./configure_language.sh
+
 a4summary.pdf: a4summary/summary.svg
 	inkscape a4summary/summary.svg -A=a4summary.pdf --without-gui
 
-priceflow.eps: priceflowchart/priceflow.dia
-	cd priceflowchart && ./dia-cmd priceflow.dia --export ../priceflow.eps
+priceflowen.eps: priceflowchart/priceflowen.dia
+	cd priceflowchart && ./dia-cmd priceflowen.dia --export ../priceflowen.eps
 
-a4details.pdf: a4details/top.tex priceflow.eps
-	cd a4details && xelatex top.tex && mv top.pdf ../a4details.pdf
+priceflowfr.eps: priceflowchart/priceflowfr.dia
+	cd priceflowchart && ./dia-cmd priceflowfr.dia --export ../priceflowfr.eps
 
-a4productinfo.pdf: a4summary.pdf a4details.pdf
-	pdfjoin --paper a4paper --rotateoversize false a4summary.pdf a4details.pdf -o a4productinfo.pdf
+A4DET = "a4details$(ANEMOLANG).pdf"
 
-all: a4productinfo.pdf
+A4DET: a4details/top.tex priceflowen.eps priceflowfr.eps a4details/lang.tex
+	cd a4details && xelatex top.tex && mv top.pdf "../$(A4DET)"
+
+A4INFO = "a4productinfo$(ANEMOLANG).pdf"
+A4INFO: a4summary.pdf A4DET
+	pdfjoin --paper a4paper --rotateoversize false a4summary.pdf "$(A4DET)" -o "$(A4INFO)"
+
+all: "$(A4INFO)"
 
 clean:
-	rm -f priceflow.eps a4productinfo.pdf a4details.pdf a4summary.pdf
+	rm -f priceflow.eps "$(A4INFO)" a4details.pdf a4summary.pdf
 
 # Display stuff
-disp: a4productinfo.pdf
-	open a4productinfo.pdf
+disp: A4INFO
+	open "$(A4INFO)"
 
-disp-details: a4details.pdf
-	open a4details.pdf
+disp-details: A4DET
+	open "$(A4DET)"
