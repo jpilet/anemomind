@@ -25,4 +25,15 @@ add_library(nautical_tgtspeed_table
            )               
 target_link_libraries(nautical_tgtspeed_table
                       common_string
-                     )                                     
+                     )
+
+add_library(tgtspeed_PerfSurf
+  PerfSurf.h
+  PerfSurf.cpp
+  )
+
+cxx_test(tgtspeed_PerfSurf
+  PerfSurfTest.cpp
+  tgtspeed_PerfSurf
+  gtest_main
+  )
