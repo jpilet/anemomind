@@ -157,17 +157,32 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
       CHECK(0 <= t.col());
       Eigen::Triplet<double> newTriplet{
         t.row(), t.col(), factor.getK()*t.value()};
+      CHECK(0 <= newTriplet.value());
       triplets.push_back(newTriplet);
     }
 
-    rhs.push_back(double(observed/unit) - factor.getM());
+    rhs.push_back(std::max(0.0, double(observed/unit) - factor.getM()));
   }
   //LOG(INFO) << "Build the matrix";
   Eigen::SparseMatrix<double> mat(rhs.size(), vertices.size());
   mat.setFromTriplets(triplets.begin(), triplets.end());
-  //Eigen::SparseMatrix<double> AtA = mat.transpose()*mat;
+  Eigen::SparseMatrix<double> AtA = mat.transpose()*mat;
+  Eigen::VectorXd AtB = mat.transpose()*Eigen::Map<Eigen::VectorXd>(
+      rhs.data(), rhs.size());
+  CHECK(AtB.size() == vertices.size());
 
-  return vertices;
+  Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> decomp(AtA);
+  Eigen::VectorXd nextVertices = decomp.solve(AtB);
+  CHECK(nextVertices.size() == AtB.size());
+
+  std::cout << "Next vertices: " << nextVertices.transpose() << std::endl;
+
+  int n = vertices.size();
+  Array<Velocity<double>> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = nextVertices(i)*unit;
+  }
+  return dst;
 }
 
 Array<Velocity<double>> iterateSurfaceVertices(
@@ -192,19 +207,22 @@ int countOverlaps(const Array<Span<int>>& windows) {
   return n;
 }
 
-Array<Velocity<double>> optimizePerfSurface(
+Array<Array<Velocity<double>>> optimizePerfSurface(
     const Array<PerfSurfPt>& samples,
     const Array<Span<int>>& windows,
     const Array<Velocity<double>>& initialSurfaceVertices,
     const PerfSurfSettings& settings) {
   int overlaps = countOverlaps(windows);
   auto surfaceVertices = initialSurfaceVertices.dup();
+  ArrayBuilder<Array<Velocity<double>>> solutions;
+  solutions.add(surfaceVertices);
   for (int i = 0; i < settings.iterations; i++) {
     surfaceVertices = iterateSurfaceVertices(
         samples, windows, surfaceVertices,
         settings, overlaps);
+    solutions.add(surfaceVertices);
   }
-  return surfaceVertices;
+  return solutions.get();
 }
 
 } /* namespace sail */

@@ -59,7 +59,7 @@ struct PerfSurfSettings {
    * A weight for every point will make the surface
    * have some gravity.
    */
-  Velocity<double> weightPerPoint = 0.1_kn;
+  Velocity<double> weightPerPoint = 1.0_kn;
 
   int iterations = 30;
 };
@@ -74,7 +74,7 @@ ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0);
  * A vertex is a discrete sample on the surface and
  * is the target speed at that point.
  */
-Array<Velocity<double>> optimizePerfSurface(
+Array<Array<Velocity<double>>> optimizePerfSurface(
     const Array<PerfSurfPt>& samples,
     const Array<Span<int>>& windows,
     const Array<Velocity<double>>& initialSurfaceVertices,

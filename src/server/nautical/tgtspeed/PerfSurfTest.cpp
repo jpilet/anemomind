@@ -12,6 +12,7 @@
 #include <server/plot/CairoUtils.h>
 #include <stdlib.h>
 #include <server/common/logging.h>
+#include <server/common/LineKM.h>
 
 using namespace sail;
 
@@ -145,20 +146,21 @@ TEST(PerfSurfTest, Huber) {
   }
 }
 
+Array<Eigen::Vector2d> solutionToCoords(
+    const Array<Velocity<double>>& src) {
+  int n = src.size();
+  Array<Eigen::Vector2d> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = Eigen::Vector2d(
+        double(double(i)*resolution/unit),
+        double(src[i]/unit));
+  }
+  return dst;
+}
+
 TEST(PerfSurfTest, TestIt) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
-
-  if (getenv("ANEMOPLOT")) {
-    PlotUtils::Settings2d plotSettings;
-    auto p = Cairo::Setup::svg(
-        "input_data.svg",
-        plotSettings.width, plotSettings.height);
-    Cairo::renderPlot(plotSettings, [&](cairo_t* cr) {
-      Cairo::plotDots(
-          cr, dataToPlotPoints(data), 1.0);
-    }, "Wind speed", "Boat speed", p.cr.get());
-  }
 
   int vc = getRequiredVertexCount(data);
   auto vertices = initializeVertices(vc);
@@ -170,4 +172,26 @@ TEST(PerfSurfTest, TestIt) {
 
   auto optimized = optimizePerfSurface(
       data, windows, vertices, settings);
+
+
+  if (getenv("ANEMOPLOT")) {
+    int solutionCount = optimized.size();
+
+    auto hue = LineKM(0, solutionCount-1, 240.0, 360.0);
+
+    PlotUtils::Settings2d plotSettings;
+    auto p = Cairo::Setup::svg(
+        "input_data.svg",
+        plotSettings.width, plotSettings.height);
+    Cairo::renderPlot(plotSettings, [&](cairo_t* cr) {
+      Cairo::plotDots(
+          cr, dataToPlotPoints(data), 1.0);
+      for (int i = 0; i < solutionCount; i++) {
+        LOG(INFO) << "Plot solution";
+        Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(hue(i)*1.0_deg));
+        Cairo::plotLineStrip(cr, solutionToCoords(optimized[i]));
+      }
+    }, "Wind speed", "Boat speed", p.cr.get());
+  }
+
 }
