@@ -8,6 +8,7 @@
 #include <server/nautical/tgtspeed/PerfSurf.h>
 #include <random>
 #include <server/common/math.h>
+#include <gtest/gtest.h>
 
 using namespace sail;
 
@@ -34,6 +35,31 @@ private:
   double _maxVal;
 };
 
+Velocity<double> resolution = 0.5_mps;
+
+// Represent the wind as a linear combination of some "vertices"
+Array<WeightedIndex> encodeWindSpeed(const Velocity<double>& v) {
+  double k = v/resolution;
+  double fi = floor(k);
+  int i = int(fi);
+  double lambda = k - fi;
+  return {{i, 1.0 - lambda}, {i+1, lambda}};
+}
+
+Velocity<double> decodeWindSpeed(const Array<WeightedIndex>& w) {
+  Velocity<double> sum = 0.0_kn;
+  for (auto x: w) {
+    sum += x.weight*x.index*resolution;
+  }
+  return sum;
+}
+
+TEST(PerfSurfTest, WindCoding) {
+  auto y = 12.34_mps;
+  EXPECT_NEAR(decodeWindSpeed(encodeWindSpeed(y)).knots(), y.knots(), 1.0e-5);
+}
+
+
 Array<double> makeData(int n) {
   double perf = 0;
   Velocity<double> maxWind = 15.0_mps;
@@ -51,6 +77,7 @@ Array<double> makeData(int n) {
     PerfSurfPt pt;
     pt.performance = perf;
     pt.speed = perf*maxSpeed;
+
 
     perf = perfGen(perf);
     wind = windGen(wind/unit)*unit;
