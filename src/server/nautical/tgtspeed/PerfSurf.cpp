@@ -65,6 +65,7 @@ Array<Array<PerfSurfPt>> computeConstantPerformancePerWindow(
     }
     std::sort(performances.begin(), performances.end());
     double commonPerformance = performances[performances.size()/2];
+    LOG(INFO) << "Common performance: " << commonPerformance;
     for (auto& x: local) {
       x.performance = commonPerformance;
     }
