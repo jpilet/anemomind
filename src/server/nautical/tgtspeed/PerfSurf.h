@@ -59,7 +59,11 @@ struct PerfSurfSettings {
    * have some gravity.
    */
   double weightPerPoint = 0.1;
+
+  int iterations = 30;
 };
+
+Array<Span<int>> makeWindowsInSpan(int width, Span<int> span);
 
 /**
  * This is the algorithm that optimize the surface.
@@ -70,8 +74,8 @@ struct PerfSurfSettings {
 Array<Velocity<double>> optimizePerfSurface(
     const Array<TimedValue<PerfSurfPt>>& samples,
     const Array<Span<int>>& windows,
-    const PerfSurfSettings& settings,
-    const Array<Velocity<double>>& initialSurfaceVertices);
+    const Array<Velocity<double>>& initialSurfaceVertices,
+    const PerfSurfSettings& settings);
 
 } /* namespace sail */
 

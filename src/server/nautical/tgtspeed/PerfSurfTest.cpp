@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 #include <server/plot/CairoUtils.h>
 #include <stdlib.h>
+#include <server/common/logging.h>
 
 using namespace sail;
 
@@ -145,5 +146,7 @@ TEST(PerfSurfTest, TestIt) {
   int vc = getRequiredVertexCount(data);
   auto vertices = initializeVertices(vc);
 
+  auto windows = makeWindowsInSpan(5, {0, data.size()});
+  LOG(INFO) << "Made " << windows.size() << " windows.";
 
 }

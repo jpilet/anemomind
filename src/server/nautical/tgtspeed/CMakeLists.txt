@@ -32,6 +32,10 @@ add_library(tgtspeed_PerfSurf
   PerfSurf.cpp
   )
 
+target_link_libraries(tgtspeed_PerfSurf
+  common_logging
+  )
+
 cxx_test(tgtspeed_PerfSurfTest
   PerfSurfTest.cpp
   tgtspeed_PerfSurf
