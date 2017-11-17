@@ -11,7 +11,7 @@
 #include <server/common/Array.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/Span.h>
-#include <server/common/TimeStamp.h>
+#include <server/common/TimedValue.h>
 
 namespace sail {
 
@@ -67,7 +67,7 @@ struct PerfSurfSettings {
  * is the target speed at that point.
  */
 Array<Velocity<double>> optimizePerfSurface(
-    const Array<PerfSurfPt>& samples,
+    const Array<TimedValue<PerfSurfPt>>& samples,
     const Array<Span<int>>& windows,
     const PerfSurfSettings& settings,
     const Array<Velocity<double>>& initialSurfaceVertices);

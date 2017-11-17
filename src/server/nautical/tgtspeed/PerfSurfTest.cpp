@@ -60,13 +60,13 @@ TEST(PerfSurfTest, WindCoding) {
 }
 
 
-Array<double> makeData(int n) {
+Array<TimedValue<PerfSurfPt>> makeData(int n) {
   double perf = 0;
   Velocity<double> maxWind = 15.0_mps;
   Velocity<double> wind = 0.0_kn;
   TimeStamp offset = TimeStamp::UTC(2017, 11, 12, 15, 1, 0);
   Duration<double> stepSize = 0.1_s;
-  Array<PerfSurfPt> pts(n);
+  Array<TimedValue<PerfSurfPt>> pts(n);
   SmoothGen perfGen(1.0, 0.05);
   SmoothGen windGen(16.0_mps/unit, 0.1_mps/unit);
   for (int i = 0; i < n; i++) {
@@ -77,10 +77,12 @@ Array<double> makeData(int n) {
     PerfSurfPt pt;
     pt.performance = perf;
     pt.speed = perf*maxSpeed;
+    pt.weights = encodeWindSpeed(wind);
 
+    pts[i] = {time, pt};
 
     perf = perfGen(perf);
     wind = windGen(wind/unit)*unit;
   }
-  return n;
+  return pts;
 }
