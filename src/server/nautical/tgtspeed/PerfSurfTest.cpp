@@ -138,6 +138,10 @@ TEST(PerfSurfTest, Huber) {
     auto y = evaluateHuber(1.0, sigma);
     EXPECT_NEAR(y.a, 1.0, 1.0e-6);
     EXPECT_NEAR(y.v[0], 2.0, 1.0e-6);
+  }{
+    auto y = evaluateHuber(2.000001, sigma);
+    EXPECT_NEAR(y.a, 4.0, 1.0e-3);
+    EXPECT_NEAR(y.v[0], 4.0, 1.0e-3);
   }
 }
 

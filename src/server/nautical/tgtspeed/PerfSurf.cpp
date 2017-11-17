@@ -86,7 +86,7 @@ ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0) {
   } else {
     ceres::Jet<double, 1> sigma(sigma0, 0);
     ceres::Jet<double, 1> s2 = sigma*sigma;
-    return s2.a + (x - sigma)*s2.v[0];
+    return s2.a + (x - sigma0)*s2.v[0];
   }
 }
 
