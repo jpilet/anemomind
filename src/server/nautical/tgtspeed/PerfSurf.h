@@ -61,9 +61,9 @@ struct PerfSurfSettings {
    */
   Velocity<double> weightPerPoint = 0.2_kn;
 
-  double regWeight = 10.0;
+  double regWeight = 1.0;
 
-  int iterations = 30;
+  int iterations = 300;
 };
 
 Array<Span<int>> makeWindowsInSpan(int width, Span<int> span);

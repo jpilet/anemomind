@@ -58,16 +58,18 @@ Array<PerfSurfPt> updateAndRegularizePerformancePerWindow(
     samples.slice(w.minv(), w.maxv()).copyToSafe(local);
 
     performances.resize(w.width()); // Windows are mostly the same size.
+    double totalPerf = 0.0;
     for (int i = 0; i < local.size(); i++) {
       const auto& x = local[i];
       double rawPerf = x.boatSpeed/std::max(1.0e-6_kn, evaluateSurfaceSpeed(
           x.windVertexWeights, surfaceVertices));
-      performances[i] = clamp<double>(
-          rawPerf,
-          0, 1);
+      double perf = clamp<double>(rawPerf, 0, 1);
+      performances[i] = perf;
+      totalPerf += perf;
     }
-    std::sort(performances.begin(), performances.end());
-    double commonPerformance = performances[performances.size()/2];
+    //std::sort(performances.begin(), performances.end());
+    //double commonPerformance = performances[performances.size()/2];
+    double commonPerformance = totalPerf/local.size();
     for (auto& x: local) {
       x.performance = commonPerformance;
     }
@@ -138,7 +140,8 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
     MajQuad maj = (error < settings.sigma?
          MajQuad::fit(0.0) :
          MajQuad::majorize(error0, h.a, h.v[0]))
-      + MajQuad::linear(settings.weightPerPoint/unit);
+             + MajQuad::linear(settings.weightPerPoint/unit);
+
 
     /*LOG(INFO) << "Current: " << current.knots();
     LOG(INFO) << "Observed: " << observed.knots();

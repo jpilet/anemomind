@@ -158,11 +158,20 @@ Array<Eigen::Vector2d> solutionToCoords(
   return dst;
 }
 
-Array<Array<WeightedIndex>> makeRegTerms(int n) {
+Array<Array<WeightedIndex>> makeRegTerms2(int n) {
   int m = n-2;
   Array<Array<WeightedIndex>> dst(m);
   for (int i = 0; i < m; i++) {
     dst[i] = {{i, 1}, {i+1, -2}, {i+2, 1}};
+  }
+  return dst;
+}
+
+Array<Array<WeightedIndex>> makeRegTerms1(int n) {
+  int m = n-1;
+  Array<Array<WeightedIndex>> dst(m);
+  for (int i = 0; i < m; i++) {
+    dst[i] = {{i, 1}, {i+1, -1}};
   }
   return dst;
 }
@@ -174,13 +183,13 @@ TEST(PerfSurfTest, TestIt) {
   int vc = getRequiredVertexCount(data);
   auto vertices = initializeVertices(vc);
 
-  int windowWidth = 3;
+  int windowWidth = 5;
   auto windows = makeWindowsInSpan(windowWidth, {0, data.size()});
   LOG(INFO) << "Made " << windows.size() << " windows.";
 
   PerfSurfSettings settings;
 
-  auto regTerms = makeRegTerms(vc);
+  auto regTerms = makeRegTerms1(vc);
 
   auto optimized = optimizePerfSurface(
       data, windows, regTerms, vertices, settings);
