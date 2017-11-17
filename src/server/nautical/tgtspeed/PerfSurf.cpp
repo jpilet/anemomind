@@ -10,6 +10,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/Span.h>
 #include <server/common/math.h>
+#include <Eigen/SparseCholesky>
 
 namespace sail {
 
@@ -36,7 +37,7 @@ Velocity<double> evaluateSurfaceSpeed(
   return v;
 }
 
-Array<Array<PerfSurfPt>> computeConstantPerformancePerWindow(
+Array<PerfSurfPt> updateAndRegularizePerformancePerWindow(
     const Array<PerfSurfPt>& samples,
     const Array<Span<int>>& windows,
     const Array<Velocity<double>>& surfaceVertices,
@@ -65,14 +66,30 @@ Array<Array<PerfSurfPt>> computeConstantPerformancePerWindow(
     }
     std::sort(performances.begin(), performances.end());
     double commonPerformance = performances[performances.size()/2];
-    LOG(INFO) << "Common performance: " << commonPerformance;
     for (auto& x: local) {
       x.performance = commonPerformance;
     }
-    dst.add(local);
     at = next;
   }
-  return dst.get();
+  CHECK(at == pts.size());
+  return pts;
+}
+
+Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
+    const Array<PerfSurfPt>& pts,
+    const Array<Velocity<double>>& vertices,
+    const PerfSurfSettings& settings) {
+  std::vector<Eigen::Triplet<double>> triplets;
+  Eigen::SparseMatrix<double> mat;
+  std::vector<double> rhs;
+  rhs.reserve(pts.size());
+  mat.setFromTriplets(triplets.begin(), triplets.end());
+  for (const auto& pt: pts) {
+    int row = rhs.size();
+    for (const auto& w : pt.windVertexWeights) {
+      triplets.push_back({row, w.index, w.weight*pt.performance});
+    }
+  }
 }
 
 Array<Velocity<double>> iterateSurfaceVertices(
@@ -81,10 +98,12 @@ Array<Velocity<double>> iterateSurfaceVertices(
     const Array<Velocity<double>>& surfaceVertices,
     const PerfSurfSettings& settings,
     int overlaps) {
-  auto windowsWithPerf = computeConstantPerformancePerWindow(
+  auto updated = updateAndRegularizePerformancePerWindow(
       samples, windows, surfaceVertices, settings, overlaps);
-
-  return surfaceVertices;
+  return solveSurfaceVerticesLocalOptimizationProblem(
+      updated,
+      surfaceVertices,
+      settings);
 }
 
 int countOverlaps(const Array<Span<int>>& windows) {
