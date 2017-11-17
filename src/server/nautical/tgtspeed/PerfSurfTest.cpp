@@ -158,10 +158,11 @@ Array<Eigen::Vector2d> solutionToCoords(
   return dst;
 }
 
-Array<std::pair<int, int>> makePairs(int n) {
-  Array<std::pair<int, int>> dst(n);
-  for (int i = 0; i < n-1; i++) {
-    dst[i] = {i, i+1};
+Array<Array<WeightedIndex>> makeRegTerms(int n) {
+  int m = n-2;
+  Array<Array<WeightedIndex>> dst(m);
+  for (int i = 0; i < m; i++) {
+    dst[i] = {{i, 1}, {i+1, -2}, {i+2, 1}};
   }
   return dst;
 }
@@ -179,10 +180,10 @@ TEST(PerfSurfTest, TestIt) {
 
   PerfSurfSettings settings;
 
-  auto pairs = makePairs(vc);
+  auto regTerms = makeRegTerms(vc);
 
   auto optimized = optimizePerfSurface(
-      data, windows, pairs, vertices, settings);
+      data, windows, regTerms, vertices, settings);
 
 
   if (getenv("ANEMOPLOT")) {

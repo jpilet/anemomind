@@ -79,7 +79,7 @@ ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0);
 Array<Array<Velocity<double>>> optimizePerfSurface(
     const Array<PerfSurfPt>& samples,
     const Array<Span<int>>& windows,
-    const Array<std::pair<int, int>>& vertexPairs,
+    const Array<Array<WeightedIndex>>& regTerms,
     const Array<Velocity<double>>& initialSurfaceVertices,
     const PerfSurfSettings& settings);
 
