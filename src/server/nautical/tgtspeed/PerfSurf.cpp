@@ -11,6 +11,7 @@
 #include <server/common/Span.h>
 #include <server/common/math.h>
 #include <Eigen/SparseCholesky>
+#include <Eigen/EigenValues>
 #include <server/math/Majorize.h>
 #include <ceres/jet.h>
 
@@ -98,6 +99,21 @@ ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0) {
   return evaluateHuberSub(x, sigma0);
 }
 
+Eigen::VectorXd solveLsq(
+    const Eigen::SparseMatrix<double>& mat,
+    std::vector<double>& rhs) {
+  CHECK(mat.rows() == rhs.size());
+  Eigen::SparseMatrix<double> AtA = mat.transpose()*mat;
+  Eigen::VectorXd AtB = mat.transpose()*Eigen::Map<Eigen::VectorXd>(
+      rhs.data(), rhs.size());
+
+  Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> decomp(AtA);
+  Eigen::VectorXd nextVertices = decomp.solve(AtB);
+  CHECK(nextVertices.size() == AtB.size());
+  return nextVertices;
+}
+
+
 Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
     const Array<PerfSurfPt>& pts,
     const Array<Array<WeightedIndex>>& regTerms,
@@ -177,14 +193,7 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
   //LOG(INFO) << "Build the matrix";
   Eigen::SparseMatrix<double> mat(rhs.size(), vertices.size());
   mat.setFromTriplets(triplets.begin(), triplets.end());
-  Eigen::SparseMatrix<double> AtA = mat.transpose()*mat;
-  Eigen::VectorXd AtB = mat.transpose()*Eigen::Map<Eigen::VectorXd>(
-      rhs.data(), rhs.size());
-  CHECK(AtB.size() == vertices.size());
-
-  Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> decomp(AtA);
-  Eigen::VectorXd nextVertices = decomp.solve(AtB);
-  CHECK(nextVertices.size() == AtB.size());
+  auto nextVertices = solveLsq(mat, rhs);
 
   std::cout << "Next vertices: " << nextVertices.transpose() << std::endl;
 
@@ -237,6 +246,63 @@ Array<Array<Velocity<double>>> optimizePerfSurface(
     solutions.add(surfaceVertices);
   }
   return solutions.get();
+}
+
+bool goodSample(const PerfSurfPt& pt) {
+  auto minBoatSpeed = 0.001_kn;
+  return minBoatSpeed <= pt.boatSpeed;
+}
+
+
+Array<Velocity<double>> optimizePerfSurfaceHomogeneous(
+    const Array<PerfSurfPt>& samples,
+    int vertexCount,
+    double regWeight) {
+
+  auto unit = 1.0_kn;
+
+
+  std::vector<Eigen::Triplet<double>> triplets;
+  std::vector<double> rhs;
+  for (auto s: samples) {
+    if (goodSample(s)) {
+      int row = rhs.size();
+      double w = 1.0/(s.boatSpeed/unit);
+      for (auto x: s.windVertexWeights) {
+        triplets.push_back({row, x.index, x.weight*w});
+      }
+      rhs.push_back(0.0);
+    }
+  }
+  for (int i = 0; i < samples.size()-1; i++) {
+    auto x = samples[i];
+    auto y = samples[i+1];
+    if (goodSample(x) && goodSample(y)) {
+      int row = rhs.size();
+      double w = regWeight/(x.boatSpeed/unit);
+      for (auto k: x.windVertexWeights) {
+        triplets.push_back({row, k.index, k.weight*w});
+      }
+      for (auto k: y.windVertexWeights) {
+        triplets.push_back({row, k.index, -k.weight*w});
+      }
+      rhs.push_back(0.0);
+    }
+  }
+  Eigen::SparseMatrix<double> mat(rhs.size(), vertexCount);
+  mat.setFromTriplets(triplets.begin(), triplets.end());
+  Eigen::MatrixXd AtA = (mat.transpose()*mat).toDense();
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> decomp(AtA);
+
+
+  std::cout << "Eigenvalues: " << decomp.eigenvalues() << std::endl;
+
+  Eigen::VectorXd sol = decomp.eigenvectors().col(0);
+
+  std::cout << "The mat: " << AtA << std::endl;
+  std::cout << "Solution: " << sol.transpose() << std::endl;
+
+  return Array<Velocity<double>>();
 }
 
 } /* namespace sail */

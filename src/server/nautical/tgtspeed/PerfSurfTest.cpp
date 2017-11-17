@@ -176,10 +176,33 @@ Array<Array<WeightedIndex>> makeRegTerms1(int n) {
   return dst;
 }
 
-TEST(PerfSurfTest, TestIt) {
+
+void displaySolution(
+    const Array<PerfSurfPt>& data,
+    const Array<Array<Velocity<double>>>& optimized) {
+  int solutionCount = optimized.size();
+
+  auto hue = LineKM(0, solutionCount-1, 240.0, 360.0);
+
+  PlotUtils::Settings2d plotSettings;
+  auto p = Cairo::Setup::svg(
+      "input_data.svg",
+      plotSettings.width, plotSettings.height);
+  Cairo::renderPlot(plotSettings, [&](cairo_t* cr) {
+    for (int i = 0; i < solutionCount; i++) {
+      LOG(INFO) << "Plot solution";
+      Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(hue(i)*1.0_deg));
+      Cairo::plotLineStrip(cr, solutionToCoords(optimized[i]));
+    }
+    Cairo::setSourceColor(cr, PlotUtils::RGB::black());
+    Cairo::plotDots(
+        cr, dataToPlotPoints(data), 1.0);
+  }, "Wind speed", "Boat speed", p.cr.get());
+}
+
+/*TEST(PerfSurfTest, TestIt1) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
-
   int vc = getRequiredVertexCount(data);
   auto vertices = initializeVertices(vc);
 
@@ -196,24 +219,15 @@ TEST(PerfSurfTest, TestIt) {
 
 
   if (getenv("ANEMOPLOT")) {
-    int solutionCount = optimized.size();
-
-    auto hue = LineKM(0, solutionCount-1, 240.0, 360.0);
-
-    PlotUtils::Settings2d plotSettings;
-    auto p = Cairo::Setup::svg(
-        "input_data.svg",
-        plotSettings.width, plotSettings.height);
-    Cairo::renderPlot(plotSettings, [&](cairo_t* cr) {
-      for (int i = 0; i < solutionCount; i++) {
-        LOG(INFO) << "Plot solution";
-        Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(hue(i)*1.0_deg));
-        Cairo::plotLineStrip(cr, solutionToCoords(optimized[i]));
-      }
-      Cairo::setSourceColor(cr, PlotUtils::RGB::black());
-      Cairo::plotDots(
-          cr, dataToPlotPoints(data), 1.0);
-    }, "Wind speed", "Boat speed", p.cr.get());
+    displaySolution(data, optimized);
   }
+}*/
 
+TEST(PerfSurfTest, TestIt2) {
+  int dataSize = 6000;
+  auto data = makeData(dataSize);
+  int vc = getRequiredVertexCount(data);
+  auto vertices = initializeVertices(vc);
+
+  auto sol = optimizePerfSurfaceHomogeneous(data, vc, 100.0);
 }

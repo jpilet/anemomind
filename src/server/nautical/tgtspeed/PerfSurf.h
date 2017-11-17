@@ -83,6 +83,14 @@ Array<Array<Velocity<double>>> optimizePerfSurface(
     const Array<Velocity<double>>& initialSurfaceVertices,
     const PerfSurfSettings& settings);
 
+Array<Velocity<double>> optimizePerfSurfaceHomogeneous(
+    const Array<PerfSurfPt>& samples,
+    int vertexCount,
+    double regWeight);
+
+
+
+
 } /* namespace sail */
 
 #endif /* SERVER_NAUTICAL_PERFSURF_H_ */
