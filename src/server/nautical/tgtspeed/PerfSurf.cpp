@@ -78,16 +78,22 @@ Array<PerfSurfPt> updateAndRegularizePerformancePerWindow(
 }
 
 
-ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0) {
-  ceres::Jet<double, 1> x(x0, 0);
-
-  if (x0 < sigma0) {
+ceres::Jet<double, 1> evaluateHuberSub(
+    const ceres::Jet<double, 1>& x, double sigma0) {
+  if (x < 0.0) {
+    return evaluateHuberSub(-x, sigma0);
+  } else if (x < sigma0) {
     return x*x;
   } else {
     ceres::Jet<double, 1> sigma(sigma0, 0);
     ceres::Jet<double, 1> s2 = sigma*sigma;
     return s2.a + (x - sigma0)*s2.v[0];
   }
+}
+
+ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0) {
+  ceres::Jet<double, 1> x(x0, 0);
+  return evaluateHuberSub(x, sigma0);
 }
 
 Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
@@ -100,16 +106,17 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
   Eigen::SparseMatrix<double> mat;
   std::vector<double> rhs;
   rhs.reserve(pts.size());
-  mat.setFromTriplets(triplets.begin(), triplets.end());
+  std::vector<Eigen::Triplet<double>> localTriplets;
   for (const auto& pt: pts) {
     int row = rhs.size();
 
     Velocity<double> current = 0.0_kn;
+    localTriplets.resize(pt.windVertexWeights.size());
     for (const auto& w : pt.windVertexWeights) {
 
       // Note: *All* samples contribute to the shape of the surface.
       double weight = w.weight*pt.performance;
-      triplets.push_back({row, w.index, weight});
+      localTriplets.push_back({row, w.index, weight});
 
       current += weight*vertices[w.index];
     }
@@ -123,9 +130,24 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
      */
     Velocity<double> error = current - observed;
     auto h = evaluateHuber(error/unit, settings.sigma/unit);
-    auto maj = MajQuad::majorize(error/unit, h.a, h.v[0]);
 
+    LOG(INFO) << "h.a="<< h.a <<"  h.v=" << h.v[0];
+
+    MajQuad maj = MajQuad::majorize(error/unit, h.a, h.v[0])
+      + MajQuad::linear(settings.weightPerPoint/unit);
+    auto factor = maj.factor();
+
+    LOG(INFO) << "Factor k=" << factor.getK() << " m=" << factor.getM();
+
+    for (auto t: localTriplets) {
+      //triplets.push_back({t.row(), t.col(), factor.getK()*t.value()});
+    }
+
+    //rhs.push_back(double(observed/unit) - factor.getM());
   }
+  mat.setFromTriplets(triplets.begin(), triplets.end());
+  //Eigen::SparseMatrix<double> AtA = mat.transpose()*mat;
+
   return vertices;
 }
 
