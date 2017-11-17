@@ -37,4 +37,5 @@ cxx_test(tgtspeed_PerfSurfTest
   tgtspeed_PerfSurf
   gtest_main
   common_TimeStamp
+  plot_CairoUtils
   )

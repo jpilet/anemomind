@@ -10,6 +10,14 @@
 #include <vector>
 #include <cassert>
 
+namespace Eigen {
+  template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+  class Matrix;
+
+  template <typename T>
+  class aligned_allocator;
+};
+
 namespace sail {
 
 namespace ArrayStorageInternal {
@@ -35,6 +43,20 @@ namespace ArrayStorageInternal {
     typedef unsigned char InternalType;
     static_assert(sizeof(InternalType) == sizeof(bool), "Bad size");
   };
+
+  template <typename T>
+  struct VectorType {
+    typedef std::vector<T> type;
+  };
+
+  template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+  struct VectorType<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>> {
+    typedef Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> value_type;
+    typedef std::vector<value_type, Eigen::aligned_allocator<value_type>> type;
+  };
+
+  template <typename T>
+  using AlignedVector = typename VectorType<T>::type;
 }
 
 
@@ -44,7 +66,8 @@ class ArrayStorage {
  private:
   typedef ArrayStorage<T> ThisType;
  public:
-  typedef std::vector<typename ArrayStorageInternal::ElementType<T>::InternalType> Vector;
+  typedef ArrayStorageInternal::AlignedVector<
+      typename ArrayStorageInternal::ElementType<T>::InternalType> Vector;
   typedef std::shared_ptr<Vector> VectorPtr;
 
   ArrayStorage() {}

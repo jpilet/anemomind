@@ -37,8 +37,9 @@ struct WeightedIndex {
  * value to anything inside the algorithm.
  */
 struct PerfSurfPt {
-  Array<WeightedIndex> weights; // Representation of the point on perf surface
-  Velocity<double> speed; // Measured speed at that point
+  TimeStamp time; // Time, if applicable
+  Array<WeightedIndex> windVertexWeights; // Representation of the point on perf surface
+  Velocity<double> boatSpeed; // Measured speed at that point
   double performance = 0.0; // Should be in the interval [0, 1]
 };
 
