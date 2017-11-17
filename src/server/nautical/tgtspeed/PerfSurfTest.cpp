@@ -109,6 +109,24 @@ Array<Eigen::Vector2d> dataToPlotPoints(
   return dst;
 }
 
+int getRequiredVertexCount(const Array<PerfSurfPt>& pts) {
+  int n = 0;
+  for (const auto& pt: pts) {
+    for (const auto& w: pt.windVertexWeights) {
+      n = std::max(n, w.index+1);
+    }
+  }
+  return n;
+}
+
+Array<Velocity<double>> initializeVertices(int n) {
+  Array<Velocity<double>> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = double(i)*resolution;
+  }
+  return dst;
+}
+
 TEST(PerfSurfTest, TestIt) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
@@ -123,5 +141,9 @@ TEST(PerfSurfTest, TestIt) {
           cr, dataToPlotPoints(data), 1.0);
     }, "Wind speed", "Boat speed", p.cr.get());
   }
+
+  int vc = getRequiredVertexCount(data);
+  auto vertices = initializeVertices(vc);
+
 
 }
