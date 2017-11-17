@@ -25,21 +25,25 @@ Array<Span<int>> makeWindowsInSpan(int width, Span<int> span) {
   return result;
 }
 
+
+
 Array<Velocity<double>> iterateSurfaceVertices(
-    const Array<TimedValue<PerfSurfPt>>& samples,
+    const Array<PerfSurfPt>& samples,
     const Array<Span<int>>& windows,
     const Array<Velocity<double>>& surfaceVertices,
     const PerfSurfSettings& settings) {
+  /*auto windowsWithPerf = computeConstantPerformancePerWindow(
+      samples, windows, surfaceVertices, settings);*/
+
   return surfaceVertices;
 }
 
 
 Array<Velocity<double>> optimizePerfSurface(
-    const Array<TimedValue<PerfSurfPt>>& samples0,
+    const Array<PerfSurfPt>& samples,
     const Array<Span<int>>& windows,
     const Array<Velocity<double>>& initialSurfaceVertices,
     const PerfSurfSettings& settings) {
-  auto samples = samples0.dup();
   auto surfaceVertices = initialSurfaceVertices.dup();
   for (int i = 0; i < settings.iterations; i++) {
     surfaceVertices = iterateSurfaceVertices(

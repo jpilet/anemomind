@@ -149,4 +149,8 @@ TEST(PerfSurfTest, TestIt) {
   auto windows = makeWindowsInSpan(5, {0, data.size()});
   LOG(INFO) << "Made " << windows.size() << " windows.";
 
+  PerfSurfSettings settings;
+
+  auto optimized = optimizePerfSurface(
+      data, windows, vertices, settings);
 }
