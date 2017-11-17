@@ -106,12 +106,12 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
   Eigen::SparseMatrix<double> mat;
   std::vector<double> rhs;
   rhs.reserve(pts.size());
-  std::vector<Eigen::Triplet<double>> localTriplets;
   for (const auto& pt: pts) {
     int row = rhs.size();
 
     Velocity<double> current = 0.0_kn;
-    localTriplets.resize(pt.windVertexWeights.size());
+    std::vector<Eigen::Triplet<double>> localTriplets;
+    localTriplets.reserve(pt.windVertexWeights.size());
     for (const auto& w : pt.windVertexWeights) {
 
       // Note: *All* samples contribute to the shape of the surface.
@@ -135,16 +135,25 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
 
     MajQuad maj = MajQuad::majorize(error/unit, h.a, h.v[0])
       + MajQuad::linear(settings.weightPerPoint/unit);
+
+
     auto factor = maj.factor();
 
     LOG(INFO) << "Factor k=" << factor.getK() << " m=" << factor.getM();
 
     for (auto t: localTriplets) {
-      //triplets.push_back({t.row(), t.col(), factor.getK()*t.value()});
+      LOG(INFO) << "Local triplet size: " << localTriplets.size();
+      LOG(INFO) << "Triplet size: " << triplets.size();
+      CHECK(0 <= t.row());
+      CHECK(0 <= t.col());
+      Eigen::Triplet<double> newTriplet{
+        t.row(), t.col(), factor.getK()*t.value()};
+      triplets.push_back(newTriplet);
     }
 
     //rhs.push_back(double(observed/unit) - factor.getM());
   }
+  LOG(INFO) << "Build the matrix";
   mat.setFromTriplets(triplets.begin(), triplets.end());
   //Eigen::SparseMatrix<double> AtA = mat.transpose()*mat;
 
