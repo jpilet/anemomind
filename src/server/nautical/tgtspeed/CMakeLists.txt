@@ -32,8 +32,9 @@ add_library(tgtspeed_PerfSurf
   PerfSurf.cpp
   )
 
-cxx_test(tgtspeed_PerfSurf
+cxx_test(tgtspeed_PerfSurfTest
   PerfSurfTest.cpp
   tgtspeed_PerfSurf
   gtest_main
+  common_TimeStamp
   )
