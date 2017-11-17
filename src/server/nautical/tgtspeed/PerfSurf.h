@@ -12,6 +12,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/Span.h>
 #include <server/common/TimedValue.h>
+#include <ceres/jet.h>
 
 namespace sail {
 

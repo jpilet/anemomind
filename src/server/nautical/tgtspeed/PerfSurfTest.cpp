@@ -128,6 +128,19 @@ Array<Velocity<double>> initializeVertices(int n) {
   return dst;
 }
 
+TEST(PerfSurfTest, Huber) {
+  double sigma = 2.0;
+  {
+    auto y = evaluateHuber(0.0, sigma);
+    EXPECT_NEAR(y.a, 0.0, 1.0e-6);
+    EXPECT_NEAR(y.v[0], 0.0, 1.0e-6);
+  }{
+    auto y = evaluateHuber(1.0, sigma);
+    EXPECT_NEAR(y.a, 1.0, 1.0e-6);
+    EXPECT_NEAR(y.v[0], 2.0, 1.0e-6);
+  }
+}
+
 TEST(PerfSurfTest, TestIt) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
