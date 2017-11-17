@@ -165,7 +165,7 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
       triplets.push_back(newTriplet);
     }
 
-    rhs.push_back(double(observed/unit) - factor.getM());
+    rhs.push_back(factor.getK()*double(observed/unit) - factor.getM());
   }
   for (auto p: regTerms) {
     int row = rhs.size();
