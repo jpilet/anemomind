@@ -60,8 +60,8 @@ Array<PerfSurfPt> updateAndRegularizePerformancePerWindow(
     performances.resize(w.width()); // Windows are mostly the same size.
     for (int i = 0; i < local.size(); i++) {
       const auto& x = local[i];
-      double rawPerf = x.boatSpeed/evaluateSurfaceSpeed(
-          x.windVertexWeights, surfaceVertices);
+      double rawPerf = x.boatSpeed/std::max(1.0e-6_kn, evaluateSurfaceSpeed(
+          x.windVertexWeights, surfaceVertices));
       performances[i] = clamp<double>(
           rawPerf,
           0, 1);
@@ -117,6 +117,7 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
       double weight = w.weight*pt.performance;
       localTriplets.push_back({row, w.index, weight});
 
+      CHECK(std::isfinite(weight));
       current += weight*vertices[w.index];
     }
 
@@ -130,7 +131,7 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
     Velocity<double> error = current - observed;
     auto h = evaluateHuber(error/unit, settings.sigma/unit);
 
-    LOG(INFO) << "h.a="<< h.a <<"  h.v=" << h.v[0];
+    //LOG(INFO) << "h.a="<< h.a <<"  h.v=" << h.v[0];
 
     double error0 = error/unit;
     MajQuad maj = (error < settings.sigma?
@@ -138,15 +139,20 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
          MajQuad::majorize(error0, h.a, h.v[0]))
       + MajQuad::linear(settings.weightPerPoint/unit);
 
+    LOG(INFO) << "Current: " << current.knots();
+    LOG(INFO) << "Observed: " << observed.knots();
+    LOG(INFO) << "error: " <<error0;
     LOG(INFO) << " maj.a = " << maj.a << " maj.b = " << maj.b;
 
     auto factor = maj.factor();
+    CHECK(std::isfinite(factor.getK()));
+    CHECK(std::isfinite(factor.getM()));
 
-    LOG(INFO) << "Factor k=" << factor.getK() << " m=" << factor.getM();
+    //LOG(INFO) << "Factor k=" << factor.getK() << " m=" << factor.getM();
 
     for (auto t: localTriplets) {
-      LOG(INFO) << "Local triplet size: " << localTriplets.size();
-      LOG(INFO) << "Triplet size: " << triplets.size();
+      //LOG(INFO) << "Local triplet size: " << localTriplets.size();
+      //LOG(INFO) << "Triplet size: " << triplets.size();
       CHECK(0 <= t.row());
       CHECK(0 <= t.col());
       Eigen::Triplet<double> newTriplet{
@@ -156,11 +162,8 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
 
     rhs.push_back(double(observed/unit) - factor.getM());
   }
-  LOG(INFO) << "Build the matrix";
+  //LOG(INFO) << "Build the matrix";
   Eigen::SparseMatrix<double> mat(rhs.size(), vertices.size());
-  for (auto t: triplets) {
-    LOG(INFO) << " i=" << t.row() << " j=" << t.col() << " x=" << t.value();
-  }
   mat.setFromTriplets(triplets.begin(), triplets.end());
   //Eigen::SparseMatrix<double> AtA = mat.transpose()*mat;
 
