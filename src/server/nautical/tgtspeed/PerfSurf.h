@@ -65,6 +65,8 @@ struct PerfSurfSettings {
 
 Array<Span<int>> makeWindowsInSpan(int width, Span<int> span);
 
+ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0);
+
 /**
  * This is the algorithm that optimize the surface.
  * The surface is parameterized by a number of vertices.

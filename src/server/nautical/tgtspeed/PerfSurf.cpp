@@ -11,6 +11,8 @@
 #include <server/common/Span.h>
 #include <server/common/math.h>
 #include <Eigen/SparseCholesky>
+#include <server/math/Majorize.h>
+#include <ceres/jet.h>
 
 namespace sail {
 
@@ -75,10 +77,25 @@ Array<PerfSurfPt> updateAndRegularizePerformancePerWindow(
   return pts;
 }
 
+
+ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0) {
+  ceres::Jet<double, 1> x(x0, 0);
+
+  if (x0 < sigma0) {
+    return x*x;
+  } else {
+    ceres::Jet<double, 1> sigma(sigma0, 0);
+    ceres::Jet<double, 1> s2 = sigma*sigma;
+    return s2.a + (x - sigma)*s2.v[0];
+  }
+}
+
 Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
     const Array<PerfSurfPt>& pts,
     const Array<Velocity<double>>& vertices,
     const PerfSurfSettings& settings) {
+  Velocity<double> unit = 1.0_kn;
+
   std::vector<Eigen::Triplet<double>> triplets;
   Eigen::SparseMatrix<double> mat;
   std::vector<double> rhs;
@@ -86,10 +103,30 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
   mat.setFromTriplets(triplets.begin(), triplets.end());
   for (const auto& pt: pts) {
     int row = rhs.size();
+
+    Velocity<double> current = 0.0_kn;
     for (const auto& w : pt.windVertexWeights) {
-      triplets.push_back({row, w.index, w.weight*pt.performance});
+
+      // Note: *All* samples contribute to the shape of the surface.
+      double weight = w.weight*pt.performance;
+      triplets.push_back({row, w.index, weight});
+
+      current += weight*vertices[w.index];
     }
+
+    Velocity<double> observed = pt.boatSpeed;
+
+    /*
+     * In most cases, we expect the error to be small and due to
+     * the regularization. But for the high-performance points and
+     * outliers the error might be large.
+     */
+    Velocity<double> error = current - observed;
+    auto h = evaluateHuber(error/unit, settings.sigma/unit);
+    auto maj = MajQuad::majorize(error/unit, h.a, h.v[0]);
+
   }
+  return vertices;
 }
 
 Array<Velocity<double>> iterateSurfaceVertices(
