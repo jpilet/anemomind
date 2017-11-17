@@ -146,7 +146,7 @@ TEST(PerfSurfTest, Huber) {
 }
 
 TEST(PerfSurfTest, TestIt) {
-  int dataSize = 6000;
+  int dataSize = 10; // 6000
   auto data = makeData(dataSize);
 
   if (getenv("ANEMOPLOT")) {

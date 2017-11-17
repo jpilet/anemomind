@@ -103,7 +103,6 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
   Velocity<double> unit = 1.0_kn;
 
   std::vector<Eigen::Triplet<double>> triplets;
-  Eigen::SparseMatrix<double> mat;
   std::vector<double> rhs;
   rhs.reserve(pts.size());
   for (const auto& pt: pts) {
@@ -133,9 +132,13 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
 
     LOG(INFO) << "h.a="<< h.a <<"  h.v=" << h.v[0];
 
-    MajQuad maj = MajQuad::majorize(error/unit, h.a, h.v[0])
+    double error0 = error/unit;
+    MajQuad maj = (error < settings.sigma?
+         MajQuad::fit(0.0) :
+         MajQuad::majorize(error0, h.a, h.v[0]))
       + MajQuad::linear(settings.weightPerPoint/unit);
 
+    LOG(INFO) << " maj.a = " << maj.a << " maj.b = " << maj.b;
 
     auto factor = maj.factor();
 
@@ -151,9 +154,13 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
       triplets.push_back(newTriplet);
     }
 
-    //rhs.push_back(double(observed/unit) - factor.getM());
+    rhs.push_back(double(observed/unit) - factor.getM());
   }
   LOG(INFO) << "Build the matrix";
+  Eigen::SparseMatrix<double> mat(rhs.size(), vertices.size());
+  for (auto t: triplets) {
+    LOG(INFO) << " i=" << t.row() << " j=" << t.col() << " x=" << t.value();
+  }
   mat.setFromTriplets(triplets.begin(), triplets.end());
   //Eigen::SparseMatrix<double> AtA = mat.transpose()*mat;
 
