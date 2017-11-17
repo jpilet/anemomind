@@ -173,7 +173,8 @@ TEST(PerfSurfTest, TestIt) {
   int vc = getRequiredVertexCount(data);
   auto vertices = initializeVertices(vc);
 
-  auto windows = makeWindowsInSpan(5, {0, data.size()});
+  int windowWidth = 3;
+  auto windows = makeWindowsInSpan(windowWidth, {0, data.size()});
   LOG(INFO) << "Made " << windows.size() << " windows.";
 
   PerfSurfSettings settings;

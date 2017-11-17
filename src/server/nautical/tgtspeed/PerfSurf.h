@@ -59,9 +59,9 @@ struct PerfSurfSettings {
    * A weight for every point will make the surface
    * have some gravity.
    */
-  Velocity<double> weightPerPoint = 0.5_kn;
+  Velocity<double> weightPerPoint = 0.2_kn;
 
-  double regWeight = 1.0;
+  double regWeight = 10.0;
 
   int iterations = 30;
 };
