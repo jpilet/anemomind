@@ -205,13 +205,14 @@ TEST(PerfSurfTest, TestIt) {
         "input_data.svg",
         plotSettings.width, plotSettings.height);
     Cairo::renderPlot(plotSettings, [&](cairo_t* cr) {
-      Cairo::plotDots(
-          cr, dataToPlotPoints(data), 1.0);
       for (int i = 0; i < solutionCount; i++) {
         LOG(INFO) << "Plot solution";
         Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(hue(i)*1.0_deg));
         Cairo::plotLineStrip(cr, solutionToCoords(optimized[i]));
       }
+      Cairo::setSourceColor(cr, PlotUtils::RGB::black());
+      Cairo::plotDots(
+          cr, dataToPlotPoints(data), 1.0);
     }, "Wind speed", "Boat speed", p.cr.get());
   }
 
