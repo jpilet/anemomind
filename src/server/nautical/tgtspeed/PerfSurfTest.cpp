@@ -21,18 +21,18 @@ Velocity<double> trueMaxSpeed(const Velocity<double>& src) {
 
 std::default_random_engine rng(0);
 
-// Returns a function that given a value, produces a random value
-// close to that value and within bounds. Random walk.
-//
-// We will use that to produce random wind and performance values,
-// with some temporal continuity.
-std::function<double(double)> smoothGen(double maxVal, double maxChange) {
-  auto distrib = std::make_shared<
-      std::uniform_real_distribution<double>>(-maxChange, maxChange);
-  return [maxVal, distrib](double x) {
-    return clamp<double>(x + (*distrib)(rng), 0, maxVal);
-  };
-}
+struct SmoothGen {
+  SmoothGen(double maxVal, double maxChange)
+    : _distrib(-maxChange, maxChange),
+      _maxVal(maxVal) {}
+
+  double operator()(double x) {
+    return clamp<double>(x + _distrib(rng), 0, _maxVal);
+  }
+private:
+  std::uniform_real_distribution<double> _distrib;
+  double _maxVal;
+};
 
 Array<double> makeData(int n) {
   double perf = 0;
@@ -41,6 +41,8 @@ Array<double> makeData(int n) {
   TimeStamp offset = TimeStamp::UTC(2017, 11, 12, 15, 1, 0);
   Duration<double> stepSize = 0.1_s;
   Array<PerfSurfPt> pts(n);
+  SmoothGen perfGen(1.0, 0.05);
+  SmoothGen windGen(16.0_mps/unit, 0.1_mps/unit);
   for (int i = 0; i < n; i++) {
     TimeStamp time = offset + double(i)*stepSize;
 
@@ -49,6 +51,9 @@ Array<double> makeData(int n) {
     PerfSurfPt pt;
     pt.performance = perf;
     pt.speed = perf*maxSpeed;
+
+    perf = perfGen(perf);
+    wind = windGen(wind/unit)*unit;
   }
   return n;
 }
