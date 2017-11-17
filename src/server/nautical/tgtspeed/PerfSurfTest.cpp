@@ -114,11 +114,11 @@ TEST(PerfSurfTest, TestIt) {
   auto data = makeData(dataSize);
 
   if (getenv("ANEMOPLOT")) {
-    PlotUtils::Settings2d settings;
+    PlotUtils::Settings2d plotSettings;
     auto p = Cairo::Setup::svg(
         "input_data.svg",
-        settings.width, settings.height);
-    Cairo::renderPlot(settings, [&](cairo_t* cr) {
+        plotSettings.width, plotSettings.height);
+    Cairo::renderPlot(plotSettings, [&](cairo_t* cr) {
       Cairo::plotDots(
           cr, dataToPlotPoints(data), 1.0);
     }, "Wind speed", "Boat speed", p.cr.get());
