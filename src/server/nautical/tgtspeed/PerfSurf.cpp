@@ -98,6 +98,7 @@ ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0) {
 
 Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
     const Array<PerfSurfPt>& pts,
+    const Array<std::pair<int, int>>& vertexPairs,
     const Array<Velocity<double>>& vertices,
     const PerfSurfSettings& settings) {
   Velocity<double> unit = 1.0_kn;
@@ -161,7 +162,13 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
       triplets.push_back(newTriplet);
     }
 
-    rhs.push_back(std::max(0.0, double(observed/unit) - factor.getM()));
+    rhs.push_back(double(observed/unit) - factor.getM());
+  }
+  for (auto p: vertexPairs) {
+    int row = rhs.size();
+    triplets.push_back({row, p.first, settings.regWeight});
+    triplets.push_back({row, p.second, -settings.regWeight});
+    rhs.push_back(0.0);
   }
   //LOG(INFO) << "Build the matrix";
   Eigen::SparseMatrix<double> mat(rhs.size(), vertices.size());
@@ -188,6 +195,7 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
 Array<Velocity<double>> iterateSurfaceVertices(
     const Array<PerfSurfPt>& samples,
     const Array<Span<int>>& windows,
+    const Array<std::pair<int, int>>& vertexPairs,
     const Array<Velocity<double>>& surfaceVertices,
     const PerfSurfSettings& settings,
     int overlaps) {
@@ -195,6 +203,7 @@ Array<Velocity<double>> iterateSurfaceVertices(
       samples, windows, surfaceVertices, settings, overlaps);
   return solveSurfaceVerticesLocalOptimizationProblem(
       updated,
+      vertexPairs,
       surfaceVertices,
       settings);
 }
@@ -210,6 +219,7 @@ int countOverlaps(const Array<Span<int>>& windows) {
 Array<Array<Velocity<double>>> optimizePerfSurface(
     const Array<PerfSurfPt>& samples,
     const Array<Span<int>>& windows,
+    const Array<std::pair<int, int>>& vertexPairs,
     const Array<Velocity<double>>& initialSurfaceVertices,
     const PerfSurfSettings& settings) {
   int overlaps = countOverlaps(windows);
@@ -218,7 +228,7 @@ Array<Array<Velocity<double>>> optimizePerfSurface(
   solutions.add(surfaceVertices);
   for (int i = 0; i < settings.iterations; i++) {
     surfaceVertices = iterateSurfaceVertices(
-        samples, windows, surfaceVertices,
+        samples, windows, vertexPairs, surfaceVertices,
         settings, overlaps);
     solutions.add(surfaceVertices);
   }
