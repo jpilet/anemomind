@@ -139,10 +139,10 @@ Array<Velocity<double>> solveSurfaceVerticesLocalOptimizationProblem(
          MajQuad::majorize(error0, h.a, h.v[0]))
       + MajQuad::linear(settings.weightPerPoint/unit);
 
-    LOG(INFO) << "Current: " << current.knots();
+    /*LOG(INFO) << "Current: " << current.knots();
     LOG(INFO) << "Observed: " << observed.knots();
     LOG(INFO) << "error: " <<error0;
-    LOG(INFO) << " maj.a = " << maj.a << " maj.b = " << maj.b;
+    LOG(INFO) << " maj.a = " << maj.a << " maj.b = " << maj.b;*/
 
     auto factor = maj.factor();
     CHECK(std::isfinite(factor.getK()));
