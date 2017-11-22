@@ -1,6 +1,8 @@
 % !TEX TS-program = XeLaTeX
 \documentclass[a4paper]{article}
 
+\input{lang}
+
 % https://tex.stackexchange.com/a/5365
 % Must
 \usepackage[table]{xcolor}
@@ -185,16 +187,16 @@
 
 % Helper lines
 %\helpers
-\mainheader{\the\haligni}{\the\valigni}{Anemomind Plans}
+\mainheader{\the\haligni}{\the\valigni}{\enfr{Anemomind Plans}{Plans Anemomind}}
 \anemoparagraph{\the\haligni}{\the\valignii}{\the\colwidth}{
   \large
-  \subheader{The Anemobox}
+  \subheader{\enfr{The Anemobox}{L'Anemobox}}
   \includegraphics[width=\the\colwidth]{../images/anemobox10.jpg}
-  The Anemobox is the heart of the Anemomind system. It is a small onboard computer that captures data from sensors via NMEA. Those data are recorded to log files for deep analysis but also available in real-time via WiFi on your tablet or phone.
+  \enfr{The Anemobox is the heart of the Anemomind system. It is a small onboard computer that captures data from sensors via NMEA. Those data are recorded to log files for deep analysis but also available in real-time via WiFi on your tablet or phone.}{L'Anemobox est le c\oe ur de la système Anemomind. C'est une petite ordinateur abord qui capture les données des senseurs par NMEA. Ces données sont enregistrées sur des fichiers log pour une analyse profonde mais aussi affichées en temps réelle par WiFi sur ta tablette ou smartphone.}
 }
 
 \anemoparagraph{\the\haligniii}{\the\valigniv}{\the\colwidthr}{
-  \subheader{Subscription Plans}
+  \subheader{\enfr{Subscription Plans}{Plans de souscription}}
 
   \bigskip
       {
@@ -202,13 +204,13 @@
         \begin{tabularx}{\colwidthr}{|X|c|c|c|}
           \cline{2-4} % https://tex.stackexchange.com/a/64827 : Remove certain borders
           \multicolumn{1}{c|}{} & \roth{Social sailors} & \roth{Amateur racers} & \roth{Professional racers } \\ \hline
-          Public navigation sharing & \OK & \OK & \OK \\ \hline
-          Unlimited navigation data storage & \OK & \OK & \OK \\ \hline
-          Performance estimation & & \OK & \OK \\ \hline
-          Full instrument display & & \OK & \OK \\ \hline
-          VMG table & & \OK & \OK \\ \hline
-          Private sharing with team & & & \OK \\ \hline
-          Raw data export (CSV) & & & \OK \\ \hline
+          \enfr{Public navigation sharing}{Partage navigations publique} & \OK & \OK & \OK \\ \hline
+          \enfr{Unlimited navigation data storage}{Espace illimité de données navigation} & \OK & \OK & \OK \\ \hline
+          \enfr{Performance estimation}{Estimation pérformance} & & \OK & \OK \\ \hline
+          \enfr{Full instrument display}{Affichage d'instruments} & & \OK & \OK \\ \hline
+          \enfr{VMG table}{Tableau VMG} & & \OK & \OK \\ \hline
+          \enfr{Private sharing with team}{Partage privé avec équipe} & & & \OK \\ \hline
+          \enfr{Raw data export (CSV)}{Export données bruts (CSV)} & & & \OK \\ \hline
         \end{tabularx}
       }
 }
@@ -216,8 +218,8 @@
 
 %% https://www.senero-marine.ch/wp-content/uploads/2017/01/BandG_Preisliste_2017.pdf
 \anemoparagraph{\the\haligni}{\the\valigniv}{\the\colwidth}{
-  \subheader{Prices}
-  \includegraphics[width=\textwidth]{../priceflow.eps}
+  \subheader{\enfr{Prices}{Les prix}}
+  \includegraphics[width=\textwidth]{\enfr{../priceflowen.eps}{../priceflowfr.eps}}
 }
 
 \node[anchor=south east,style={inner sep=0,outer sep=0}] at (\the\contentswidth,0cm) {
@@ -226,38 +228,41 @@
   \end{minipage}
 };
 
+\newcommand{\gigabytes}{\enfr{GB}{Go}}
+
 \anemoparagraph{\the\haligniii}{\the\valignii}{\the\colwidthr}{
-  \subheader{Anemobox Specs}
+  \subheader{\enfr{Anemobox Specs}{Spécs Anemobox}}
   %\rowcolors{2}{gray!25}{white}
   {
     \scriptsize
-    \spectable{Embedded sensors}{
-      GPS networks & multi-GNSS (GPS/QZSS, GLONASS and BeiDou) \\
-      GPS accuracy & 2.5 m CEP \\
-      GPS Frequency & 1-10 Hz \\
-      External GPS support & NMEA 0183 and 2000 \\
-      Inertial Measurement Unit &	9 axis, 1 kHz \\
-      Compass & 3 axis magnetometer, compensated with 3 gyroscopes \\
+    \spectable{\enfr{Embedded sensors}{Senseurs embarquées}}{
+      \enfr{GPS networks}{Réseaux GPS} & multi-GNSS (GPS/QZSS, GLONASS \enfr{and}{et} BeiDou) \\
+      \enfr{GPS accuracy}{GPS qualité mésures} & 2.5 m CEP \\ %% Comment traduire accuracy?
+      \enfr{GPS Frequency}{Fréquence GPS} & 1-10 Hz \\
+      \enfr{External GPS connectivity}{Connectivitée GPS externe} & NMEA 0183 \enfr{and}{et} 2000 \\
+      \enfr{Inertial Measurement Unit}{Centrale inertielle} &	9 axis, 1 kHz \\
+      \enfr{Compass}{Compas} & 3 axis magnetometer, \enfr{compensated with}{compensé par} 3 gyroscopes \\
     }
-    \spectable{Processing Characteristics}{
-      Processing & dual-core, dual-threaded Intel® Atom CPU at 500 MHz \\
-      RAM & 1 GB \\
-      Logging storage & 8 GB \\
-      System storage & 4 GB \\
+    \spectable{\enfr{Processing Characteristics}{Caractèristiques traitement}}{
+      \enfr{Processing}{Traitement} & dual-core, dual-threaded Intel® Atom CPU \enfr{at}{de} 500 MHz \\
+      RAM & 1 \gigabytes \\
+      \enfr{Logging storage}{Espace fichiers log} & 8 \gigabytes \\
+      \enfr{System storage}{Espace système} & 4 \gigabytes \\
     }
+\newcommand{\inputoutput}{\enfr{input}{entré} + \enfr{output}{sorti}}
     \spectable{Connections}{
-      Wireless & Wifi, Bluetooth 4.0 \\
-      8-poles IP67 connector & Power, NMEA input + output \\
-      NMEA 2000 connector & Power, data input + output \\
+      \enfr{Wireless}{Sans fil} & Wifi, Bluetooth 4.0 \\
+      8-poles IP67 \enfr{connector}{connecteur} & \enfr{Power}{Alimentation}, NMEA \inputoutput \\
+      NMEA 2000 \enfr{connector}{connecteur} & \enfr{Power}{Alimentation}, data \inputoutput \\
     }
-    \spectable{Physical Characteristics}{
-      Size & 11 $\times$ 15 $\times$ 4 cm \\
-      Weight & 227 g \\
+    \spectable{\enfr{Physical Characteristics}{Caractèristiques physiques}}{
+      \enfr{Size}{Taille} & 11 $\times$ 15 $\times$ 4 cm \\
+      \enfr{Weight}{Poids} & 227 g \\
     }
-    \spectable{Electrical Characteristics}{
-      Supply voltage & 9--24 V DC \\
-      Power consumption & 1.5 W \\
-      Current at 12 V & 0.12 A \\
+    \spectable{\enfr{Electrical Characteristics}{Caractèristiques éléctriques}}{
+      \enfr{Supply voltage}{Tension alimentation} & 9--24 V DC \\
+      \enfr{Power consumption}{Consommation} & 1.5 W \\
+      \enfr{Current at}{Courrant à} 12 V & 0.12 A \\
     }
   }
   \rowcolors{2}{white}{white}
