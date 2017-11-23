@@ -193,12 +193,12 @@ Eigen::VectorXd iterateLevels(
     Eigen::MatrixXd* AtA,
     const Array<PerfFitPair>& pairs,
     const Eigen::MatrixXd& R,
-    SystemConstraintType type) {
+    const PerfSurfSettings& s) {
   int n = AtA->rows();
   auto dataMat = makeDataMatrix(n, pairs);
   Eigen::MatrixXd DtD = (dataMat.transpose()*dataMat).toDense();
-  (*AtA) += (R + DtD);
-  return solveConstrained(*AtA, type);
+  (*AtA) += ((s.regPerCorr*pairs.size() + s.constantReg)*R + DtD);
+  return solveConstrained(*AtA, s.type);
 }
 
 Array<Array<double>> optimizeLevels(
@@ -218,8 +218,9 @@ Array<Array<double>> optimizeLevels(
     LOG(INFO) << "Iteration " << i << " median diff: "
         << goodPairs[goodPairs.size()/2].diff;
     LOG(INFO) << "Max diff: " << goodPairs.last().diff;
-    X = iterateLevels(&AtA, goodPairs, R, settings.type);
+    X = iterateLevels(&AtA, goodPairs, R, settings);
     results.add(Array<double>(vertex_count, X.data()).dup());
+    LOG(INFO) << "X = " << X.transpose();
   }
   return results.get();
 }
