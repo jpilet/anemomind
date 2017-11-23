@@ -116,8 +116,8 @@ PerfFitPoint makePerfFitPoint(
   const auto& x = data[index];
   PerfFitPoint pt;
   pt.index = index;
-  pt.level = evaluateLevel(x.windVertexWeights, level);
   pt.normedSpeed = x.boatSpeed/s.refSpeed(x);
+  pt.level = pt.normedSpeed*evaluateLevel(x.windVertexWeights, level);
   pt.weights = x.windVertexWeights;
   pt.good = std::isfinite(pt.normedSpeed);
   return pt;
@@ -162,6 +162,9 @@ Array<Array<double>> optimizeLevels(
   ArrayBuilder<Array<double>> results;
   for (int i = 0; i < settings.iterations; i++) {
     auto goodPairs = identifyGoodPairs(data, pairs, X, settings);
+    LOG(INFO) << "Iteration " << i << " median diff: "
+        << goodPairs[goodPairs.size()/2].diff;
+    LOG(INFO) << "Max diff: " << goodPairs.last().diff;
     results.add(Array<double>(vertex_count, X.data()).dup());
   }
   return results.get();

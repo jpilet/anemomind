@@ -60,7 +60,7 @@ struct PerfSurfSettings {
   std::function<Velocity<double>(PerfSurfPt)> refSpeed;
   double maxFactor = 4.0;
   int iterations = 1;
-  double goodFraction = 0.5;
+  double goodFraction = 1.0;
   SystemConstraintType type = SystemConstraintType::Sum1;
 };
 

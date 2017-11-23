@@ -250,7 +250,13 @@ TEST(PerfSurfTest, TestIt1) {
     }, "Wind speed", "Boat speed", p.cr.get());
   }
 
-  auto A = makeOneDimensionalReg(vc, 2);
+  auto reg = makeOneDimensionalReg(vc, 2);
+
+  auto results = optimizeLevels(
+      data,
+      pairs,
+      0.1*reg,
+      settings);
 
   if (true) {
     DOM::addSubTextNode(&page, "h2",
