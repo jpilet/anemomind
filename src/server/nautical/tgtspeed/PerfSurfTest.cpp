@@ -15,6 +15,7 @@
 #include <server/common/logging.h>
 #include <server/common/LineKM.h>
 #include <server/common/DOMUtils.h>
+#include <server/common/string.h>
 
 using namespace sail;
 
@@ -221,6 +222,19 @@ TEST(PerfSurfTest, SpanTest) {
   EXPECT_EQ(sp.second, 5);
 }
 
+
+Array<Eigen::Vector2d> levelsToCoords(
+    const Eigen::VectorXd& X) {
+  int n = X.size();
+  Array<Eigen::Vector2d> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = Eigen::Vector2d(
+        double(double(i)*resolution/unit),
+        double(1.0/X(i)));
+  }
+  return dst;
+}
+
 TEST(PerfSurfTest, TestIt1) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
@@ -252,7 +266,7 @@ TEST(PerfSurfTest, TestIt1) {
 
   auto reg = makeOneDimensionalReg(vc, 2);
 
-  auto results = optimizeLevels(
+  auto results0 = optimizeLevels(
       data,
       pairs,
       0.1*reg,
@@ -281,4 +295,30 @@ TEST(PerfSurfTest, TestIt1) {
       }
     }, "Wind speed", "Boat speed", p.cr.get());
   }
+  double quantile = 0.9;
+
+  auto results = results0.normalize(quantile);
+
+  double perf = computePerfAtQuantile(results, quantile);
+  DOM::addSubTextNode(&page, "p", stringFormat("Performance at %.3g is %.3g",
+      quantile, perf));
+
+  LOG(INFO) << "Perfs: " << results.final().transpose();
+  if (true) {
+      DOM::addSubTextNode(&page, "h2",
+          "Optimization results");
+      auto im = DOM::makeGeneratedImageNode(&page, ".svg");
+      auto p = Cairo::Setup::svg(
+          im.toString(),
+          ps.width,
+          ps.height);
+      Cairo::renderPlot(ps, [&](cairo_t* cr) {
+        auto pts = normalizedDataToPlotPoints(data, settings);
+        Cairo::plotDots(cr, pts, 1);
+
+        Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
+        cairo_set_line_width(cr, 0.2);
+        Cairo::plotLineStrip(cr, levelsToCoords(results.final()));
+      }, "Wind speed", "Boat speed", p.cr.get());
+    }
 }

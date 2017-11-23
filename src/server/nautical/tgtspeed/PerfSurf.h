@@ -93,6 +93,12 @@ struct LevelResults {
   Array<Eigen::VectorXd> levels;
   Array<PerfFitPoint> processed;
   Array<PerfFitPair> finalPairs;
+
+  Eigen::VectorXd final() const {
+    return levels.last();
+  }
+
+  LevelResults normalize(double quantile) const;
 };
 
 /// Returns an unnormalized level function for every wind vertex
@@ -102,7 +108,9 @@ LevelResults optimizeLevels(
     const Eigen::MatrixXd& reg,
     const PerfSurfSettings& settings);
 
-
+double computePerfAtQuantile(
+    const LevelResults& r,
+    double q);
 
 
 } /* namespace sail */

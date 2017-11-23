@@ -280,4 +280,42 @@ LevelResults optimizeLevels(
   return r;
 }
 
+double computePerfAtQuantile(
+    const LevelResults& r,
+    double q) {
+  int n = r.processed.size();
+  CHECK(0 < n);
+  CHECK(0 <= q && q <= 1.0);
+  ArrayBuilder<double> perfs(n);
+  auto X = r.final();
+  for (int i = 0; i < n; i++) {
+    const auto& x = r.processed[i];
+    if (x.good) {
+      perfs.add(evaluateLevel(x.weights, X));
+    }
+  }
+  auto p = perfs.get();
+  auto nth = p.begin() + clamp(int(round(q*p.size())), 0, n-1);
+  std::nth_element(p.begin(), nth, p.end());
+  return *nth;
+}
+
+LevelResults LevelResults::normalize(double quantile) const {
+  double k = computePerfAtQuantile(*this, quantile);
+  if (std::abs(k) <= 1.0e-6) {
+    LOG(ERROR) << "Cannot normalize";
+    return *this;
+  }
+  double f = 1.0/k;
+
+  LevelResults dst = *this;
+  dst.levels = levels.dup();
+
+  int n = levels.size();
+  for (int i = 0; i < n; i++) {
+    dst.levels[i] = f*levels[i];
+  }
+  return dst;
+}
+
 } /* namespace sail */
