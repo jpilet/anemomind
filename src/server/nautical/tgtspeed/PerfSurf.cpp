@@ -53,6 +53,16 @@ Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step) {
   return dst.get();
 }
 
+Eigen::MatrixXd makeOneDimensionalReg(int n, int order) {
+  if (order <= 0) {
+    return Eigen::MatrixXd::Identity(n, n);
+  } else {
+    auto A = makeOneDimensionalReg(n, order-1);
+    int m = A.rows();
+    return A.block(0, 0, m-1, n) - A.block(1, 0, m-1, n);
+  }
+}
+
 Eigen::MatrixXd makeC(int n) {
   Eigen::MatrixXd C = Eigen::MatrixXd::Zero(n, n-1);
   for (int i = 0; i < n-1; i++) {

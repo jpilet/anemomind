@@ -65,6 +65,8 @@ struct PerfSurfSettings {
 
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
 
+Eigen::MatrixXd makeOneDimensionalReg(int n, int order);
+
 /// Returns an unnormalized level function for every wind vertex
 Array<Array<double>> optimizeLevels(
     const Array<PerfSurfPt>& data,
