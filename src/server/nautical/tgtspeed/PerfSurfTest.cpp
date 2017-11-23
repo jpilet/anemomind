@@ -250,8 +250,7 @@ TEST(PerfSurfTest, TestIt1) {
     }, "Wind speed", "Boat speed", p.cr.get());
   }
 
-  auto A = makeOneDimensionalReg(vc, 1);
-  std::cout << "A = \n" << A << std::endl;
+  auto A = makeOneDimensionalReg(vc, 2);
 
   if (true) {
     DOM::addSubTextNode(&page, "h2",
