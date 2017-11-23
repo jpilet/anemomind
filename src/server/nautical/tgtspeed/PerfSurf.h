@@ -62,7 +62,7 @@ struct PerfSurfSettings {
   int iterations = 10;
   double goodFraction = 0.5;
   double regPerCorr = 0.0;
-  double constantReg = 1.0;
+  double constantReg = 10.0;
   SystemConstraintType type = SystemConstraintType::Sum1;
 };
 

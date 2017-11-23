@@ -269,10 +269,10 @@ TEST(PerfSurfTest, TestIt1) {
   auto results0 = optimizeLevels(
       data,
       pairs,
-      0.1*reg,
+      reg,
       settings);
 
-  if (true) {
+  if (false) {
     DOM::addSubTextNode(&page, "h2",
         "Divide all the boatspeeds by the reference speed");
     auto im = DOM::makeGeneratedImageNode(&page, ".svg");
@@ -304,6 +304,8 @@ TEST(PerfSurfTest, TestIt1) {
       quantile, perf));
 
   LOG(INFO) << "Perfs: " << results.final().transpose();
+  int ln = results.levels.size();
+  LineKM hueDeg(0, ln-1, 240.0, 360.0);
   if (true) {
       DOM::addSubTextNode(&page, "h2",
           "Optimization results");
@@ -316,9 +318,12 @@ TEST(PerfSurfTest, TestIt1) {
         auto pts = normalizedDataToPlotPoints(data, settings);
         Cairo::plotDots(cr, pts, 1);
 
-        Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
         cairo_set_line_width(cr, 0.2);
-        Cairo::plotLineStrip(cr, levelsToCoords(results.final()));
+        for (int i = 0; i < ln; i++) {
+          auto lev = results.levels[i];
+          Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(hueDeg(i)*1.0_deg));
+          Cairo::plotLineStrip(cr, levelsToCoords(lev));
+        }
       }, "Wind speed", "Boat speed", p.cr.get());
     }
 }
