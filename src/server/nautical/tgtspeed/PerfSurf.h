@@ -45,25 +45,8 @@ struct PerfSurfPt {
 };
 
 struct PerfSurfSettings {
-  /**
-   * This is the breadth of the smoothness of the Huber estimator
-   * used for fitting the surface. A little a bit of smoothness is
-   * necessary of the sake of convergence. A lower value of sigma
-   * means a slower convergence, but possibly a better result,
-   * requiring more iterations of the algorithm.
-   *
-   */
-  Velocity<double> sigma = 0.001_kn;
-
-  /**
-   * A weight for every point will make the surface
-   * have some gravity.
-   */
-  Velocity<double> weightPerPoint = 0.1_kn;
-
-  double regWeight = 1.0;
-
-  int iterations = 300;
+  std::function<Velocity<double>(PerfSurfPt)> refSpeed;
+  double maxFactor = 4.0;
 };
 
 Array<Span<int>> makeWindowsInSpan(int width, Span<int> span);

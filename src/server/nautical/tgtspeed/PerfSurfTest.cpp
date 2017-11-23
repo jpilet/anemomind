@@ -6,6 +6,7 @@
  */
 
 #include <server/nautical/tgtspeed/PerfSurf.h>
+#include <server/common/ArrayBuilder.h>
 #include <random>
 #include <server/common/math.h>
 #include <gtest/gtest.h>
@@ -170,6 +171,23 @@ Velocity<double> referenceSpeed(const PerfSurfPt& pt) {
   return decodeWindSpeed(pt.windVertexWeights);
 }
 
+Array<Eigen::Vector2d> normalizedDataToPlotPoints(
+    const Array<PerfSurfPt>& src,
+    const PerfSurfSettings& s) {
+  int n = src.size();
+  ArrayBuilder<Eigen::Vector2d> dst(n);
+  for (int i = 0; i < n; i++) {
+    const auto& x = src[i];
+    double normed = double(x.boatSpeed/s.refSpeed(x));
+    if (std::isfinite(normed) && 0 <= normed && normed < s.maxFactor) {
+      dst.add(Eigen::Vector2d(
+          decodeWindSpeed(x.windVertexWeights).knots(),
+          normed));
+    }
+  }
+  return dst.get();
+}
+
 TEST(PerfSurfTest, TestIt1) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
@@ -177,12 +195,34 @@ TEST(PerfSurfTest, TestIt1) {
   auto vertices = initializeVertices(vc);
 
   PerfSurfSettings settings;
+  settings.refSpeed = &referenceSpeed;
 
-  auto page = DOM::makeBasicHtmlPage("Perf test");
+  auto page = DOM::makeBasicHtmlPage("Perf test", "", "results");
+  DOM::addSubTextNode(&page, "h1", "Perf surf");
 
-  std::function<Velocity<double>(PerfSurfPt)> refSpeed(&referenceSpeed);
+  PlotUtils::Settings2d ps;
+  ps.orthonormal = false;
 
-  if (getenv("ANEMOPLOT")) {
-    //displaySolution(data, optimized);
+  {
+    DOM::addSubTextNode(&page, "h2", "Input data");
+    auto im = DOM::makeGeneratedImageNode(&page, ".svg");
+    auto p = Cairo::Setup::svg(
+        im.toString(),
+        ps.width,
+        ps.height);
+    Cairo::renderPlot(ps, [&](cairo_t* cr) {
+      Cairo::plotDots(cr, dataToPlotPoints(data), 1);
+    }, "Wind speed", "Boat speed", p.cr.get());
+  }{
+    DOM::addSubTextNode(&page, "h2",
+        "Divide all the boatspeeds by the reference speed");
+    auto im = DOM::makeGeneratedImageNode(&page, ".svg");
+    auto p = Cairo::Setup::svg(
+        im.toString(),
+        ps.width,
+        ps.height);
+    Cairo::renderPlot(ps, [&](cairo_t* cr) {
+      Cairo::plotDots(cr, normalizedDataToPlotPoints(data, settings), 1);
+    }, "Wind speed", "Boat speed", p.cr.get());
   }
 }
