@@ -83,6 +83,11 @@ TEST(PerfSurfTest, ConstraintedSolve) {
   }
   EXPECT_NEAR(X(0), 0.0, 1.0e-6);
   EXPECT_NEAR(X(1), 1.0, 1.0e-6);
+
+  Eigen::VectorXd Y = solveConstrained(AtA, SystemConstraintType::Sum1);
+  std::cout << "Y = \n" << Y << std::endl;
+  EXPECT_NEAR(Y(0), 0.0, 1.0e-6);
+  EXPECT_NEAR(Y(1), 1.0, 1.0e-6);
 }
 
 Array<PerfSurfPt> makeData(int n) {

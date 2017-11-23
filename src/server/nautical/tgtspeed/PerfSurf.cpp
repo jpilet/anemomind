@@ -55,7 +55,7 @@ Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step) {
 
 Eigen::MatrixXd makeC(int n) {
   Eigen::MatrixXd C = Eigen::MatrixXd::Zero(n, n-1);
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n-1; i++) {
     C(i, i) = 1.0;
     C(i+1, i) = -1.0;
   }
@@ -66,14 +66,27 @@ Eigen::VectorXd solveConstrained(
     const Eigen::MatrixXd& AtA,
     SystemConstraintType type) {
   if (type == SystemConstraintType::Norm1) {
+    // Select the minimum eigen vector
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> decomp(AtA);
     return decomp.eigenvectors().col(0);
   } else {
-    int n = AtA.size();
+
+    // Solve AY = 0 with
+    // Y = CX + D
+    // C and D are chose so that the sum of Y is 1 for any real vector X.
+
+    CHECK(AtA.rows() == AtA.cols());
+    int n = AtA.rows();
     Eigen::MatrixXd C = makeC(n);
     Eigen::VectorXd D = (1.0/n)*Eigen::VectorXd::Ones(n);
     Eigen::MatrixXd CtAtA = C.transpose()*AtA;
-    return (CtAtA*C).ldlt().solve(-CtAtA*D);
+    Eigen::MatrixXd CtAtAC = CtAtA*C;
+    Eigen::MatrixXd minusCtAtAD = -CtAtA*D;
+    CHECK(CtAtAC.rows() == n-1);
+    CHECK(CtAtAC.cols() == n-1);
+    CHECK(minusCtAtAD.rows() == n-1);
+    CHECK(minusCtAtAD.cols() == 1);
+    return C*CtAtAC.ldlt().solve(minusCtAtAD) + D;
   }
 }
 
