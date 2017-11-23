@@ -42,4 +42,5 @@ cxx_test(tgtspeed_PerfSurfTest
   gtest_main
   common_TimeStamp
   plot_CairoUtils
+  common_DOMUtils
   )

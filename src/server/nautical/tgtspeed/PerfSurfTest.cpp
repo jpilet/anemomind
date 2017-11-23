@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <server/common/logging.h>
 #include <server/common/LineKM.h>
+#include <server/common/DOMUtils.h>
 
 using namespace sail;
 
@@ -129,22 +130,6 @@ Array<Velocity<double>> initializeVertices(int n) {
   return dst;
 }
 
-TEST(PerfSurfTest, Huber) {
-  double sigma = 2.0;
-  {
-    auto y = evaluateHuber(0.0, sigma);
-    EXPECT_NEAR(y.a, 0.0, 1.0e-6);
-    EXPECT_NEAR(y.v[0], 0.0, 1.0e-6);
-  }{
-    auto y = evaluateHuber(1.0, sigma);
-    EXPECT_NEAR(y.a, 1.0, 1.0e-6);
-    EXPECT_NEAR(y.v[0], 2.0, 1.0e-6);
-  }{
-    auto y = evaluateHuber(2.000001, sigma);
-    EXPECT_NEAR(y.a, 4.0, 1.0e-3);
-    EXPECT_NEAR(y.v[0], 4.0, 1.0e-3);
-  }
-}
 
 Array<Eigen::Vector2d> solutionToCoords(
     const Array<Velocity<double>>& src) {
@@ -157,25 +142,6 @@ Array<Eigen::Vector2d> solutionToCoords(
   }
   return dst;
 }
-
-Array<Array<WeightedIndex>> makeRegTerms2(int n) {
-  int m = n-2;
-  Array<Array<WeightedIndex>> dst(m);
-  for (int i = 0; i < m; i++) {
-    dst[i] = {{i, 1}, {i+1, -2}, {i+2, 1}};
-  }
-  return dst;
-}
-
-Array<Array<WeightedIndex>> makeRegTerms1(int n) {
-  int m = n-1;
-  Array<Array<WeightedIndex>> dst(m);
-  for (int i = 0; i < m; i++) {
-    dst[i] = {{i, 1}, {i+1, -1}};
-  }
-  return dst;
-}
-
 
 void displaySolution(
     const Array<PerfSurfPt>& data,
@@ -200,34 +166,23 @@ void displaySolution(
   }, "Wind speed", "Boat speed", p.cr.get());
 }
 
-/*TEST(PerfSurfTest, TestIt1) {
+Velocity<double> referenceSpeed(const PerfSurfPt& pt) {
+  return decodeWindSpeed(pt.windVertexWeights);
+}
+
+TEST(PerfSurfTest, TestIt1) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
   int vc = getRequiredVertexCount(data);
   auto vertices = initializeVertices(vc);
-
-  int windowWidth = 5;
-  auto windows = makeWindowsInSpan(windowWidth, {0, data.size()});
-  LOG(INFO) << "Made " << windows.size() << " windows.";
 
   PerfSurfSettings settings;
 
-  auto regTerms = makeRegTerms1(vc);
+  auto page = DOM::makeBasicHtmlPage("Perf test");
 
-  auto optimized = optimizePerfSurface(
-      data, windows, regTerms, vertices, settings);
-
+  std::function<Velocity<double>(PerfSurfPt)> refSpeed(&referenceSpeed);
 
   if (getenv("ANEMOPLOT")) {
-    displaySolution(data, optimized);
+    //displaySolution(data, optimized);
   }
-}*/
-
-TEST(PerfSurfTest, TestIt2) {
-  int dataSize = 6000;
-  auto data = makeData(dataSize);
-  int vc = getRequiredVertexCount(data);
-  auto vertices = initializeVertices(vc);
-
-  auto sol = optimizePerfSurfaceHomogeneous(data, vc, 100.0);
 }
