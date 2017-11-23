@@ -171,21 +171,36 @@ Velocity<double> referenceSpeed(const PerfSurfPt& pt) {
   return decodeWindSpeed(pt.windVertexWeights);
 }
 
+Optional<Eigen::Vector2d> toNormed(const PerfSurfPt& x, const PerfSurfSettings& s) {
+  double normed = double(x.boatSpeed/s.refSpeed(x));
+  if (std::isfinite(normed) && 0 <= normed && normed < s.maxFactor) {
+    return Eigen::Vector2d(
+        decodeWindSpeed(x.windVertexWeights).knots(),
+        normed);
+  }
+  return {};
+}
+
 Array<Eigen::Vector2d> normalizedDataToPlotPoints(
     const Array<PerfSurfPt>& src,
     const PerfSurfSettings& s) {
   int n = src.size();
   ArrayBuilder<Eigen::Vector2d> dst(n);
   for (int i = 0; i < n; i++) {
-    const auto& x = src[i];
-    double normed = double(x.boatSpeed/s.refSpeed(x));
-    if (std::isfinite(normed) && 0 <= normed && normed < s.maxFactor) {
-      dst.add(Eigen::Vector2d(
-          decodeWindSpeed(x.windVertexWeights).knots(),
-          normed));
+    auto x = toNormed(src[i], s);
+    if (x.defined()) {
+      dst.add(x.get());
     }
   }
   return dst.get();
+}
+
+TEST(PerfSurfTest, SpanTest) {
+  auto spans = generatePairs({{1, 6}}, 4);
+  EXPECT_EQ(spans.size(), 1);
+  auto sp = spans[0];
+  EXPECT_EQ(sp.first, 1);
+  EXPECT_EQ(sp.second, 5);
 }
 
 TEST(PerfSurfTest, TestIt1) {
@@ -202,6 +217,8 @@ TEST(PerfSurfTest, TestIt1) {
 
   PlotUtils::Settings2d ps;
   ps.orthonormal = false;
+
+  auto pairs = generatePairs({{0, data.size()}}, 1);
 
   {
     DOM::addSubTextNode(&page, "h2", "Input data");
@@ -222,7 +239,18 @@ TEST(PerfSurfTest, TestIt1) {
         ps.width,
         ps.height);
     Cairo::renderPlot(ps, [&](cairo_t* cr) {
-      Cairo::plotDots(cr, normalizedDataToPlotPoints(data, settings), 1);
+      auto pts = normalizedDataToPlotPoints(data, settings);
+      Cairo::plotDots(cr, pts, 1);
+
+      Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
+      cairo_set_line_width(cr, 1.0);
+      for (auto p: pairs) {
+        auto a = toNormed(data[p.first], settings);
+        auto b = toNormed(data[p.second], settings);
+        if (a.defined() && b.defined()) {
+          Cairo::plotLineStrip(cr, {a.get(), b.get()});
+        }
+      }
     }, "Wind speed", "Boat speed", p.cr.get());
   }
 }

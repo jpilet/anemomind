@@ -43,4 +43,14 @@ Eigen::VectorXd solveLsq(
   return nextVertices;
 }
 
+Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step) {
+  ArrayBuilder<std::pair<int, int>> dst;
+  for (auto span: spans) {
+    for (auto i = span.minv(); i + step < span.maxv(); i++) {
+      dst.add(std::pair<int, int>(i, i + step));
+    }
+  }
+  return dst.get();
+}
+
 } /* namespace sail */

@@ -49,29 +49,8 @@ struct PerfSurfSettings {
   double maxFactor = 4.0;
 };
 
-Array<Span<int>> makeWindowsInSpan(int width, Span<int> span);
 
-ceres::Jet<double, 1> evaluateHuber(double x0, double sigma0);
-
-/**
- * This is the algorithm that optimize the surface.
- * The surface is parameterized by a number of vertices.
- * A vertex is a discrete sample on the surface and
- * is the target speed at that point.
- */
-Array<Array<Velocity<double>>> optimizePerfSurface(
-    const Array<PerfSurfPt>& samples,
-    const Array<Span<int>>& windows,
-    const Array<Array<WeightedIndex>>& regTerms,
-    const Array<Velocity<double>>& initialSurfaceVertices,
-    const PerfSurfSettings& settings);
-
-Array<Velocity<double>> optimizePerfSurfaceHomogeneous(
-    const Array<PerfSurfPt>& samples,
-    int vertexCount,
-    double regWeight);
-
-
+Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
 
 
 } /* namespace sail */
