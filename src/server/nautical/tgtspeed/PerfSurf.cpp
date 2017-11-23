@@ -100,19 +100,68 @@ Eigen::VectorXd solveConstrained(
   }
 }
 
+double evaluateLevel(
+    const Array<WeightedIndex>& weights,
+    const Eigen::VectorXd& X) {
+  double s = 0.0;
+  for (auto w: weights) {
+    s += X(w.index)*w.weight;
+  }
+  return s;
+}
+
+PerfFitPoint makePerfFitPoint(
+    const Array<PerfSurfPt>& data, int index,
+    const Eigen::VectorXd& level, const PerfSurfSettings& s) {
+  const auto& x = data[index];
+  PerfFitPoint pt;
+  pt.index = index;
+  pt.level = evaluateLevel(x.windVertexWeights, level);
+  pt.normedSpeed = x.boatSpeed/s.refSpeed(x);
+  pt.weights = x.windVertexWeights;
+  pt.good = std::isfinite(pt.normedSpeed);
+  return pt;
+}
+
+
+
+Array<PerfFitPair> identifyGoodPairs(
+    const Array<PerfSurfPt>& data,
+    const Array<std::pair<int, int>>& pairs,
+    const Eigen::VectorXd& X,
+    const PerfSurfSettings& s) {
+  int n = pairs.size();
+  ArrayBuilder<PerfFitPair> candidates(n);
+  {
+    for (int i = 0; i < n; i++) {
+      auto p = pairs[i];
+      PerfFitPair c;
+      c.a = makePerfFitPoint(data, p.first, X, s);
+      c.b = makePerfFitPoint(data, p.second, X, s);
+      if (c.a.good && c.b.good) {
+        c.diff = std::abs(c.a.level - c.b.level);
+        candidates.add(c);
+      }
+    }
+  }
+  auto cands = candidates.get();
+  std::sort(cands.begin(), cands.end());
+  return cands.sliceTo(int(round(cands.size()*s.goodFraction)));
+}
+
 Array<Array<double>> optimizeLevels(
     const Array<PerfSurfPt>& data,
+    const Array<std::pair<int, int>>& pairs,
     const Eigen::MatrixXd& reg,
     const PerfSurfSettings& settings) {
 
   int vertex_count = reg.cols();
   Eigen::MatrixXd AtA = Eigen::MatrixXd::Zero(vertex_count, vertex_count);
-  Eigen::MatrixXd AtB = Eigen::MatrixXd::Zero(vertex_count, 1);
   Eigen::VectorXd X = Eigen::VectorXd::Ones(vertex_count);
 
   ArrayBuilder<Array<double>> results;
   for (int i = 0; i < settings.iterations; i++) {
-    //X = iterateLevels();
+    auto goodPairs = identifyGoodPairs(data, pairs, X, settings);
     results.add(Array<double>(vertex_count, X.data()).dup());
   }
   return results.get();

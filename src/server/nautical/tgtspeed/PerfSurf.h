@@ -60,12 +60,29 @@ struct PerfSurfSettings {
   std::function<Velocity<double>(PerfSurfPt)> refSpeed;
   double maxFactor = 4.0;
   int iterations = 1;
+  double goodFraction = 0.5;
   SystemConstraintType type = SystemConstraintType::Sum1;
 };
 
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
 
 Eigen::MatrixXd makeOneDimensionalReg(int n, int order);
+
+struct PerfFitPoint {
+  int index = 0;
+  double normedSpeed = 0.0;
+  Array<WeightedIndex> weights;
+  double level = 0.0;
+  bool good = false;
+};
+
+struct PerfFitPair {
+  PerfFitPoint a, b;
+  double diff = 0.0;
+  bool operator<(const PerfFitPair& other) const {
+    return diff < other.diff;
+  }
+};
 
 /// Returns an unnormalized level function for every wind vertex
 Array<Array<double>> optimizeLevels(
