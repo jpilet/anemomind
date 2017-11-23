@@ -79,7 +79,7 @@ Array<PerfSurfPt> makeData(int n) {
   TimeStamp offset = TimeStamp::UTC(2017, 11, 12, 15, 1, 0);
   Duration<double> stepSize = 0.1_s;
   Array<PerfSurfPt> pts(n);
-  SmoothGen perfGen(1.0, 0.05);
+  SmoothGen perfGen(1.0, 0.025);
   SmoothGen windGen(16.0_mps/unit, 0.1_mps/unit);
   for (int i = 0; i < n; i++) {
     TimeStamp time = offset + double(i)*stepSize;
@@ -218,9 +218,9 @@ TEST(PerfSurfTest, TestIt1) {
   PlotUtils::Settings2d ps;
   ps.orthonormal = false;
 
-  auto pairs = generatePairs({{0, data.size()}}, 1);
+  auto pairs = generatePairs({{0, data.size()}}, 5);
 
-  {
+  if (false) {
     DOM::addSubTextNode(&page, "h2", "Input data");
     auto im = DOM::makeGeneratedImageNode(&page, ".svg");
     auto p = Cairo::Setup::svg(
@@ -230,7 +230,9 @@ TEST(PerfSurfTest, TestIt1) {
     Cairo::renderPlot(ps, [&](cairo_t* cr) {
       Cairo::plotDots(cr, dataToPlotPoints(data), 1);
     }, "Wind speed", "Boat speed", p.cr.get());
-  }{
+  }
+
+  if (true) {
     DOM::addSubTextNode(&page, "h2",
         "Divide all the boatspeeds by the reference speed");
     auto im = DOM::makeGeneratedImageNode(&page, ".svg");
