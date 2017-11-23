@@ -110,6 +110,16 @@ double evaluateLevel(
   return s;
 }
 
+Array<WeightedIndex> scaleWeights(double s, const Array<WeightedIndex>& src) {
+  int n = src.size();
+  Array<WeightedIndex> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = src[i];
+    dst[i].weight *= s;
+  }
+  return dst;
+}
+
 PerfFitPoint makePerfFitPoint(
     const Array<PerfSurfPt>& data, int index,
     const Eigen::VectorXd& level, const PerfSurfSettings& s) {
@@ -117,8 +127,8 @@ PerfFitPoint makePerfFitPoint(
   PerfFitPoint pt;
   pt.index = index;
   pt.normedSpeed = x.boatSpeed/s.refSpeed(x);
-  pt.level = pt.normedSpeed*evaluateLevel(x.windVertexWeights, level);
-  pt.weights = x.windVertexWeights;
+  pt.weights = scaleWeights(pt.normedSpeed, x.windVertexWeights);
+  pt.level = evaluateLevel(pt.weights, level);
   pt.good = std::isfinite(pt.normedSpeed);
   return pt;
 }
@@ -149,6 +159,48 @@ Array<PerfFitPair> identifyGoodPairs(
   return cands.sliceTo(int(round(cands.size()*s.goodFraction)));
 }
 
+void outputWeights(
+    int row, double s,
+    const Array<WeightedIndex>& weights,
+    std::vector<Eigen::Triplet<double>>* dst) {
+  for (auto w: weights) {
+    dst->push_back(Eigen::Triplet<double>(row, w.index, w.weight*s));
+  }
+}
+
+void generateTriplets(
+    const PerfFitPair& p,
+    int row,
+    std::vector<Eigen::Triplet<double>>* dst) {
+  outputWeights(row, 1, p.a.weights, dst);
+  outputWeights(row, -1, p.b.weights, dst);
+}
+
+Eigen::SparseMatrix<double> makeDataMatrix(
+    int n,
+    const Array<PerfFitPair>& pairs) {
+  std::vector<Eigen::Triplet<double>> triplets;
+  for (int i = 0; i < pairs.size(); i++) {
+    const auto& p = pairs[i];
+    generateTriplets(p, i, &triplets);
+  }
+  Eigen::SparseMatrix<double> A(pairs.size(), n);
+  A.setFromTriplets(triplets.begin(), triplets.end());
+  return A;
+}
+
+Eigen::VectorXd iterateLevels(
+    Eigen::MatrixXd* AtA,
+    const Array<PerfFitPair>& pairs,
+    const Eigen::MatrixXd& R,
+    SystemConstraintType type) {
+  int n = AtA->rows();
+  auto dataMat = makeDataMatrix(n, pairs);
+  Eigen::MatrixXd DtD = (dataMat.transpose()*dataMat).toDense();
+  (*AtA) += (R + DtD);
+  return solveConstrained(*AtA, type);
+}
+
 Array<Array<double>> optimizeLevels(
     const Array<PerfSurfPt>& data,
     const Array<std::pair<int, int>>& pairs,
@@ -156,6 +208,7 @@ Array<Array<double>> optimizeLevels(
     const PerfSurfSettings& settings) {
 
   int vertex_count = reg.cols();
+  Eigen::MatrixXd R = reg.transpose()*reg;
   Eigen::MatrixXd AtA = Eigen::MatrixXd::Zero(vertex_count, vertex_count);
   Eigen::VectorXd X = Eigen::VectorXd::Ones(vertex_count);
 
@@ -165,6 +218,7 @@ Array<Array<double>> optimizeLevels(
     LOG(INFO) << "Iteration " << i << " median diff: "
         << goodPairs[goodPairs.size()/2].diff;
     LOG(INFO) << "Max diff: " << goodPairs.last().diff;
+    X = iterateLevels(&AtA, goodPairs, R, settings.type);
     results.add(Array<double>(vertex_count, X.data()).dup());
   }
   return results.get();
