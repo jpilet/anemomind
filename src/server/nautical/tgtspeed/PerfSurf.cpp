@@ -53,4 +53,46 @@ Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step) {
   return dst.get();
 }
 
+Eigen::MatrixXd makeC(int n) {
+  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(n, n-1);
+  for (int i = 0; i < n; i++) {
+    C(i, i) = 1.0;
+    C(i+1, i) = -1.0;
+  }
+  return C;
+}
+
+Eigen::VectorXd solveConstrained(
+    const Eigen::MatrixXd& AtA,
+    SystemConstraintType type) {
+  if (type == SystemConstraintType::Norm1) {
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> decomp(AtA);
+    return decomp.eigenvectors().col(0);
+  } else {
+    int n = AtA.size();
+    Eigen::MatrixXd C = makeC(n);
+    Eigen::VectorXd D = (1.0/n)*Eigen::VectorXd::Ones(n);
+    Eigen::MatrixXd CtAtA = C.transpose()*AtA;
+    return (CtAtA*C).ldlt().solve(-CtAtA*D);
+  }
+}
+
+Array<Array<double>> optimizeLevels(
+    const Array<PerfSurfPt>& data,
+    const Eigen::MatrixXd& reg,
+    const PerfSurfSettings& settings) {
+
+  int vertex_count = reg.cols();
+  Eigen::MatrixXd AtA = Eigen::MatrixXd::Zero(vertex_count, vertex_count);
+  Eigen::MatrixXd AtB = Eigen::MatrixXd::Zero(vertex_count, 1);
+  Eigen::VectorXd X = Eigen::VectorXd::Ones(vertex_count);
+
+  ArrayBuilder<Array<double>> results;
+  for (int i = 0; i < settings.iterations; i++) {
+    //X = iterateLevels();
+    results.add(Array<double>(vertex_count, X.data()).dup());
+  }
+  return results.get();
+}
+
 } /* namespace sail */

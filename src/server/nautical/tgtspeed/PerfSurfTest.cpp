@@ -72,6 +72,19 @@ std::ostream& operator<<(std::ostream& s, const PerfSurfPt& pt) {
   return s;
 }
 
+TEST(PerfSurfTest, ConstraintedSolve) {
+  Eigen::MatrixXd A(1, 2);
+  A << 1, 0;
+  Eigen::MatrixXd AtA = A.transpose()*A;
+
+  Eigen::VectorXd X = solveConstrained(AtA, SystemConstraintType::Norm1);
+  if (X(1) < 0) {
+    X = -X;
+  }
+  EXPECT_NEAR(X(0), 0.0, 1.0e-6);
+  EXPECT_NEAR(X(1), 1.0, 1.0e-6);
+}
+
 Array<PerfSurfPt> makeData(int n) {
   double perf = 0;
   Velocity<double> maxWind = 15.0_mps;

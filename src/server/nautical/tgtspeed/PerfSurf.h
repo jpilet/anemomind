@@ -13,6 +13,7 @@
 #include <server/common/Span.h>
 #include <server/common/TimedValue.h>
 #include <ceres/jet.h>
+#include <Eigen/Dense>
 
 namespace sail {
 
@@ -44,13 +45,34 @@ struct PerfSurfPt {
   double performance = 0.0; // Should be in the interval [0, 1]
 };
 
+enum SystemConstraintType {
+  Norm1,
+  Sum1
+};
+
+// Minimize |AX|^2 subject to either sum(X)=1 or |X|=1
+// Input argument is the matrix A'*A
+Eigen::VectorXd solveConstrained(
+    const Eigen::MatrixXd& AtA,
+    SystemConstraintType type);
+
 struct PerfSurfSettings {
   std::function<Velocity<double>(PerfSurfPt)> refSpeed;
   double maxFactor = 4.0;
+  int iterations = 1;
+  SystemConstraintType type = SystemConstraintType::Sum1;
 };
 
-
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
+
+/// Returns an unnormalized level function for every wind vertex
+Array<Array<double>> optimizeLevels(
+    const Array<PerfSurfPt>& data,
+    const Array<std::pair<int, int>>& data_pairs,
+    const Eigen::MatrixXd& reg,
+    const PerfSurfSettings& settings);
+
+
 
 
 } /* namespace sail */
