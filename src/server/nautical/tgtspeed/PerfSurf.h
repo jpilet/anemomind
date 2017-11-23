@@ -60,7 +60,7 @@ struct PerfSurfSettings {
   std::function<Velocity<double>(PerfSurfPt)> refSpeed;
   double maxFactor = 4.0;
   int iterations = 10;
-  double goodFraction = 1.0;
+  double goodFraction = 0.5;
   double regPerCorr = 0.0;
   double constantReg = 1.0;
   SystemConstraintType type = SystemConstraintType::Sum1;
@@ -90,7 +90,8 @@ struct PerfFitPair {
 };
 
 struct LevelResults {
-  Array<Array<double>> levels;
+  Array<Eigen::VectorXd> levels;
+  Array<PerfFitPoint> processed;
   Array<PerfFitPair> finalPairs;
 };
 

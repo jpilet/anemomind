@@ -149,8 +149,7 @@ void generateTriplets(
     const PerfFitPair& p,
     int row,
     std::vector<Eigen::Triplet<double>>* dst) {
-  outputWeights(row, 1, p.a.weights, dst);
-  outputWeights(row, -1, p.b.weights, dst);
+  outputWeights(row, 1, p.weights, dst);
 }
 
 Eigen::SparseMatrix<double> makeDataMatrix(
@@ -263,7 +262,7 @@ LevelResults optimizeLevels(
   Eigen::MatrixXd AtA = Eigen::MatrixXd::Zero(vertex_count, vertex_count);
   Eigen::VectorXd X = Eigen::VectorXd::Ones(vertex_count);
 
-  ArrayBuilder<Array<double>> levels;
+  ArrayBuilder<Eigen::VectorXd> levels;
   Array<PerfFitPair> goodPairs;
   for (int i = 0; i < settings.iterations; i++) {
     goodPairs = updatePairs(processedPairs, X, settings);
@@ -271,12 +270,13 @@ LevelResults optimizeLevels(
         << goodPairs[goodPairs.size()/2].diff;
     LOG(INFO) << "Max diff: " << goodPairs.last().diff;
     X = iterateLevels(&AtA, goodPairs, R, settings);
-    levels.add(Array<double>(vertex_count, X.data()).dup());
+    levels.add(X);
     LOG(INFO) << "X = " << X.transpose();
   }
   LevelResults r;
   r.levels = levels.get();
   r.finalPairs = goodPairs;
+  r.processed = processed;
   return r;
 }
 
