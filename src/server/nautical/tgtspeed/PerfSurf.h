@@ -74,12 +74,15 @@ struct PerfFitPoint {
   int index = 0;
   double normedSpeed = 0.0;
   Array<WeightedIndex> weights;
-  double level = 0.0;
   bool good = false;
+
+  PerfFitPoint evaluateLevel(double* levelData) const;
 };
 
 struct PerfFitPair {
   PerfFitPoint a, b;
+  bool good() const {return a.good && b.good;};
+  Array<WeightedIndex> weights;
   double diff = 0.0;
   bool operator<(const PerfFitPair& other) const {
     return diff < other.diff;

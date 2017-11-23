@@ -120,43 +120,20 @@ Array<WeightedIndex> scaleWeights(double s, const Array<WeightedIndex>& src) {
   return dst;
 }
 
-PerfFitPoint makePerfFitPoint(
-    const Array<PerfSurfPt>& data, int index,
-    const Eigen::VectorXd& level, const PerfSurfSettings& s) {
-  const auto& x = data[index];
-  PerfFitPoint pt;
-  pt.index = index;
-  pt.normedSpeed = x.boatSpeed/s.refSpeed(x);
-  pt.weights = scaleWeights(pt.normedSpeed, x.windVertexWeights);
-  pt.level = evaluateLevel(pt.weights, level);
-  pt.good = std::isfinite(pt.normedSpeed);
-  return pt;
-}
 
-
-
-Array<PerfFitPair> identifyGoodPairs(
-    const Array<PerfSurfPt>& data,
-    const Array<std::pair<int, int>>& pairs,
+Array<PerfFitPair> updatePairs(
+    const Array<PerfFitPair>& pairs,
     const Eigen::VectorXd& X,
     const PerfSurfSettings& s) {
   int n = pairs.size();
-  ArrayBuilder<PerfFitPair> candidates(n);
-  {
-    for (int i = 0; i < n; i++) {
-      auto p = pairs[i];
-      PerfFitPair c;
-      c.a = makePerfFitPoint(data, p.first, X, s);
-      c.b = makePerfFitPoint(data, p.second, X, s);
-      if (c.a.good && c.b.good) {
-        c.diff = std::abs(c.a.level - c.b.level);
-        candidates.add(c);
-      }
-    }
+  Array<PerfFitPair> dst(n);
+  for (int i = 0; i < n; i++) {
+    PerfFitPair p = pairs[i];
+    p.diff = evaluateLevel(p.weights, X);
+    dst[i] = p;
   }
-  auto cands = candidates.get();
-  std::sort(cands.begin(), cands.end());
-  return cands.sliceTo(int(round(cands.size()*s.goodFraction)));
+  std::sort(dst.begin(), dst.end());
+  return dst.sliceTo(int(round(dst.size()*s.goodFraction)));
 }
 
 void outputWeights(
@@ -201,11 +178,85 @@ Eigen::VectorXd iterateLevels(
   return solveConstrained(*AtA, s.type);
 }
 
+PerfFitPoint makePerfFitPoint(
+    const Array<PerfSurfPt>& data,
+    int index, const PerfSurfSettings& s) {
+  const auto& x = data[index];
+  PerfFitPoint pt;
+  pt.index = index;
+  pt.normedSpeed = x.boatSpeed/s.refSpeed(x);
+  pt.weights = scaleWeights(pt.normedSpeed, x.windVertexWeights);
+  pt.good = std::isfinite(pt.normedSpeed) && pt.normedSpeed < s.maxFactor;
+  return pt;
+}
+
+Array<PerfFitPoint> preprocessData(
+    const Array<PerfSurfPt>& pts,
+    const PerfSurfSettings& s) {
+  int n = pts.size();
+  Array<PerfFitPoint> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = makePerfFitPoint(pts, i, s);
+  }
+  return dst;
+}
+
+void populateMap(
+    const Array<WeightedIndex>& src,
+    std::map<int, double>* dst) {
+  for (auto w: src) {
+    auto f = dst->find(w.index);
+    if (f == dst->end()) {
+      (*dst)[w.index] = w.weight;
+    } else {
+      f->second += w.weight;
+    }
+  }
+}
+
+Array<WeightedIndex> toWeightedInds(const std::map<int, double>& src) {
+  int n = src.size();
+  ArrayBuilder<WeightedIndex> dst;
+  for (auto kv: src) {
+    dst.add({kv.first, kv.second});
+  }
+  return dst.get();
+}
+
+Array<WeightedIndex> add(
+    const Array<WeightedIndex>& a,
+    const Array<WeightedIndex>& b) {
+  std::map<int, double> m;
+  populateMap(a, &m);
+  populateMap(b, &m);
+  return toWeightedInds(m);
+}
+
+Array<PerfFitPair> makePerfPairs(
+    const Array<std::pair<int, int>>& pairs,
+    const Array<PerfFitPoint>& processed) {
+  int n = pairs.size();
+  ArrayBuilder<PerfFitPair> dst(n);
+  for (auto p: pairs) {
+    PerfFitPair c;
+    c.a = processed[p.first];
+    c.b = processed[p.second];
+    c.weights = add(c.a.weights, scaleWeights(-1, c.b.weights));
+    if (c.good()) {
+      dst.add(c);
+    }
+  }
+  return dst.get();
+}
+
 LevelResults optimizeLevels(
     const Array<PerfSurfPt>& data,
     const Array<std::pair<int, int>>& pairs,
     const Eigen::MatrixXd& reg,
     const PerfSurfSettings& settings) {
+
+  auto processed = preprocessData(data, settings);
+  auto processedPairs = makePerfPairs(pairs, processed);
 
   int vertex_count = reg.cols();
   Eigen::MatrixXd R = reg.transpose()*reg;
@@ -215,7 +266,7 @@ LevelResults optimizeLevels(
   ArrayBuilder<Array<double>> levels;
   Array<PerfFitPair> goodPairs;
   for (int i = 0; i < settings.iterations; i++) {
-    goodPairs = identifyGoodPairs(data, pairs, X, settings);
+    goodPairs = updatePairs(processedPairs, X, settings);
     LOG(INFO) << "Iteration " << i << " median diff: "
         << goodPairs[goodPairs.size()/2].diff;
     LOG(INFO) << "Max diff: " << goodPairs.last().diff;
