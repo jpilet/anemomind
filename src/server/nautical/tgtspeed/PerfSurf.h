@@ -86,8 +86,13 @@ struct PerfFitPair {
   }
 };
 
+struct LevelResults {
+  Array<Array<double>> levels;
+  Array<PerfFitPair> finalPairs;
+};
+
 /// Returns an unnormalized level function for every wind vertex
-Array<Array<double>> optimizeLevels(
+LevelResults optimizeLevels(
     const Array<PerfSurfPt>& data,
     const Array<std::pair<int, int>>& data_pairs,
     const Eigen::MatrixXd& reg,

@@ -271,7 +271,7 @@ TEST(PerfSurfTest, TestIt1) {
       Cairo::plotDots(cr, pts, 1);
 
       Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
-      cairo_set_line_width(cr, 1.0);
+      cairo_set_line_width(cr, 0.2);
       for (auto p: pairs) {
         auto a = toNormed(data[p.first], settings);
         auto b = toNormed(data[p.second], settings);

@@ -201,7 +201,7 @@ Eigen::VectorXd iterateLevels(
   return solveConstrained(*AtA, s.type);
 }
 
-Array<Array<double>> optimizeLevels(
+LevelResults optimizeLevels(
     const Array<PerfSurfPt>& data,
     const Array<std::pair<int, int>>& pairs,
     const Eigen::MatrixXd& reg,
@@ -212,17 +212,21 @@ Array<Array<double>> optimizeLevels(
   Eigen::MatrixXd AtA = Eigen::MatrixXd::Zero(vertex_count, vertex_count);
   Eigen::VectorXd X = Eigen::VectorXd::Ones(vertex_count);
 
-  ArrayBuilder<Array<double>> results;
+  ArrayBuilder<Array<double>> levels;
+  Array<PerfFitPair> goodPairs;
   for (int i = 0; i < settings.iterations; i++) {
-    auto goodPairs = identifyGoodPairs(data, pairs, X, settings);
+    goodPairs = identifyGoodPairs(data, pairs, X, settings);
     LOG(INFO) << "Iteration " << i << " median diff: "
         << goodPairs[goodPairs.size()/2].diff;
     LOG(INFO) << "Max diff: " << goodPairs.last().diff;
     X = iterateLevels(&AtA, goodPairs, R, settings);
-    results.add(Array<double>(vertex_count, X.data()).dup());
+    levels.add(Array<double>(vertex_count, X.data()).dup());
     LOG(INFO) << "X = " << X.transpose();
   }
-  return results.get();
+  LevelResults r;
+  r.levels = levels.get();
+  r.finalPairs = goodPairs;
+  return r;
 }
 
 } /* namespace sail */
