@@ -11,7 +11,7 @@ std::string path = std::string(Env::SOURCE_DIR) + "/datasets/sailmon/sample.db";
 TEST(SailmonDbLoaderTest, TimeTable) {
   auto db = openSailmonDb(path);
   EXPECT_TRUE(bool(db));
-  auto corr = getSailmonTimeCorrectionTable(db.get());
+  auto corr = getSailmonTimeCorrectionTable(db);
   EXPECT_LE(100, corr.size());
   EXPECT_TRUE(std::is_sorted(corr.begin(), corr.end()));
 
