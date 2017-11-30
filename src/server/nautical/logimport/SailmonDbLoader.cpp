@@ -74,6 +74,15 @@ LocalAndAbsoluteTimePair findClosest(
   return *y;
 }
 
+auto logTimeUnit = 0.001_s;
+
+TimeStamp estimateTime(
+    const std::vector<LocalAndAbsoluteTimePair>& pairs,
+    int logTime) {
+  auto closest = findClosest(pairs, logTime);
+  return closest.absoluteTime + double(logTime - closest.logTime)*logTimeUnit;
+}
+
 bool sailmonDbLoad(const std::string &filename, LogAccumulator *dst) {
   sqlite3 *db = nullptr;
   int rc = sqlite3_open(filename.c_str(), &db);

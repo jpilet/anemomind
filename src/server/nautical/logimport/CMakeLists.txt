@@ -161,3 +161,10 @@ target_link_libraries(logimport_summary
                       logimport_LogLoader
                       nautical_NavDataset
                      )
+
+cxx_test(logimport_SailmonDbLoaderTest
+  SailmonDbLoaderTest.cpp
+  gtest_main
+  logimport_SailmonDbLoader
+  )
+  
