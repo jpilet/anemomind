@@ -83,20 +83,24 @@ TimeStamp estimateTime(
   return closest.absoluteTime + double(logTime - closest.logTime)*logTimeUnit;
 }
 
-bool sailmonDbLoad(const std::string &filename, LogAccumulator *dst) {
+
+std::shared_ptr<sqlite3> loadDB(const std::string& filename) {
   sqlite3 *db = nullptr;
   int rc = sqlite3_open(filename.c_str(), &db);
-  bool success = false;
 
   if (rc) {
     LOG(ERROR) << "Can't open database: " << filename << ": "
       << sqlite3_errmsg(db);
-    return false;
+    return std::shared_ptr<sqlite3>();
   } else {
     // proceed with loading
   }
-  sqlite3_close(db);
-  return success;
+  return std::shared_ptr<sqlite3>(db, &sqlite3_close);
+}
+
+bool sailmonDbLoad(const std::string &filename, LogAccumulator *dst) {
+  auto db = loadDB(filename);
+  return true;
 }
 
 }  // namespace sail
