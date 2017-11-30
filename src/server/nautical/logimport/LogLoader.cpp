@@ -12,6 +12,7 @@
 #include <server/common/math.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/logimport/CsvLoader.h>
+#include <server/nautical/logimport/SailmonDbLoader.h>
 #include <server/nautical/logimport/SourceGroup.h>
 #include <device/anemobox/DispatcherUtils.h>
 #include <server/common/math.h>
@@ -33,6 +34,8 @@ bool LogLoader::loadFile(const std::string &filename) {
     return true;
   } else if (ext == "log") {
     return ProtobufLogLoader::load(filename, &_acc);
+  } else if (ext == "db") {
+    return sailmonDbLoad(filename, &_acc);
   } else {
     LOG(ERROR) << filename << ": unknown log file extension.";
     return false;
