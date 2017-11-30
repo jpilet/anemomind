@@ -54,6 +54,57 @@ std::vector<LocalAndAbsoluteTimePair> getSailmonTimeCorrectionTable(sqlite3 *db)
   return dst;
 }
 
+
+std::string sensorIdToSourceString(char* c) {
+  return std::string("sailmonSensorId(") + c + ")";
+}
+
+
+struct Acc {
+  std::vector<LocalAndAbsoluteTimePair> timePairs;
+  LogAccumulator acc;
+
+  TimeStamp toAbsoluteTime(int64_t i) const {
+    return estimateTime(timePairs, i);
+  }
+};
+
+int gpsQueryCallback(
+    void *data, int argc, char **argv,
+    char **azColName) {
+  auto acc = reinterpret_cast<Acc*>(data);
+  CHECK(argc == 4);
+  auto sensorId = sensorIdToSourceString(argv[0]);
+  auto logTime = stringToX<int64_t>(argv[1]);
+  auto lat = stringToX<double>(argv[2]);
+  auto lon = stringToX<double>(argv[3]);
+
+  acc->acc._GPS_POSsources[sensorId].push_back({
+    acc->toAbsoluteTime(logTime),
+    GeographicPosition<double>(
+        Angle<double>::degrees(lon),
+        Angle<double>::degrees(lat))
+  });
+
+  return 0;
+}
+
+void accumulateGpsData(
+    const std::shared_ptr<sqlite3>& db,
+    Acc* dst) {
+  const char query[] = "select "
+      "a.sensorId, "
+      "a.log_time, "
+      "a.value as latitude, "
+      "b.value as longitude FROM "
+      "LogData as a, LogData as b WHERE "
+      "a.sensorId = b.sensorId AND a.log_time = b.log_time "
+      "AND a.rawId = 4 AND b.rawId = 5";
+  char* errMsg = nullptr;
+  auto rc = sqlite3_exec(db, query, &gpsQueryCallback, dst, &errMsg);
+}
+
+
 LocalAndAbsoluteTimePair findClosest(
     const std::vector<LocalAndAbsoluteTimePair>& pairs,
     int logTime) {
