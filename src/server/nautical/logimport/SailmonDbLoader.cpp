@@ -5,15 +5,6 @@
 
 namespace sail {
 
-struct LocalAndAbsoluteTimePair {
-  int logTime = 0;
-  TimeStamp absoluteTime;
-
-  bool operator<(const LocalAndAbsoluteTimePair& p) const {
-    return logTime < p.logTime;
-  }
-};
-
 int64_t stringToInt(char* arg) {
   std::stringstream ss;
   ss << arg;
@@ -42,12 +33,12 @@ int callback(
   return 0;
 }
 
-std::vector<LocalAndAbsoluteTimePair> getTimeTable(sqlite3 *db) {
+std::vector<LocalAndAbsoluteTimePair> getSailmonTimeCorrectionTable(sqlite3 *db) {
   const char sql[] = "select l1.log_time, l1.value "
       "+ l2.value * 24 * 60 * 60 as time_sec from "
       "LogData as l1, LogData as l2 where l1.log_time"
       " = l2.log_time and l1.rawId=1 and l2.rawId=0 "
-      "and l1.sensorId = l2.sensorId sort by l1.log_time";
+      "and l1.sensorId = l2.sensorId order by l1.log_time asc";
   char* errMsg = nullptr;
   std::vector<LocalAndAbsoluteTimePair> dst;
   auto rc = sqlite3_exec(db, sql, &callback, &dst, &errMsg);
@@ -84,7 +75,7 @@ TimeStamp estimateTime(
 }
 
 
-std::shared_ptr<sqlite3> loadDB(const std::string& filename) {
+std::shared_ptr<sqlite3> openSailmonDb(const std::string& filename) {
   sqlite3 *db = nullptr;
   int rc = sqlite3_open(filename.c_str(), &db);
 
@@ -99,7 +90,10 @@ std::shared_ptr<sqlite3> loadDB(const std::string& filename) {
 }
 
 bool sailmonDbLoad(const std::string &filename, LogAccumulator *dst) {
-  auto db = loadDB(filename);
+  auto db = openSailmonDb(filename);
+  if (!db) {
+    return false;
+  }
   return true;
 }
 
