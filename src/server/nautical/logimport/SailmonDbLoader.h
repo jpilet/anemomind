@@ -21,9 +21,11 @@ struct LocalAndAbsoluteTimePair {
   }
 };
 
-
 std::vector<LocalAndAbsoluteTimePair> getSailmonTimeCorrectionTable(sqlite3 *db);
 std::shared_ptr<sqlite3> openSailmonDb(const std::string& filename);
+TimeStamp estimateTime(
+    const std::vector<LocalAndAbsoluteTimePair>& pairs,
+    int logTime);
 bool sailmonDbLoad(const std::string &filename, LogAccumulator *dst);
 
 }  // namespace sail
