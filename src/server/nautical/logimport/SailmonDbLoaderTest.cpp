@@ -35,7 +35,21 @@ TEST(SailmonDbLoaderTest, TimeTable) {
 
     auto diff = t0 - t1;
     EXPECT_NEAR(diff.seconds(), 0.0, 1.0);
-
+  }{
+    auto p = *(corr.end()-1);
+    {
+      auto t = estimateTime(corr, p.logTime);
+      auto diff = t - p.absoluteTime;
+      EXPECT_NEAR(diff.seconds(), 0.0, 1.0);
+    }
+    auto q = p;
+    q.logTime += 4000;
+    q.absoluteTime += 4.0_s;
+    {
+      auto t = estimateTime(corr, q.logTime);
+      auto diff = t - q.absoluteTime;
+      EXPECT_NEAR(diff.seconds(), 0.0, 1.0);
+    }
   }
 }
 
