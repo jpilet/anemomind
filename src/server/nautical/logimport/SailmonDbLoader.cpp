@@ -67,6 +67,14 @@ struct Acc {
   TimeStamp toAbsoluteTime(int64_t i) const {
     return estimateTime(timePairs, i);
   }
+
+  template <DataCode code>
+  void accumulate(
+      const std::string& source,
+      TimeStamp time,
+      typename TypeForCode<code>::type value) {
+    (*getChannels<code>(dst))[source].push_back({time, value});
+  }
 };
 
 int gpsQueryCallback(
