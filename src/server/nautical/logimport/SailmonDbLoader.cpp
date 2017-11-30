@@ -5,23 +5,25 @@
 
 namespace sail {
 
-int64_t stringToInt(char* arg) {
+template <typename X>
+X stringToX(char* arg) {
   std::stringstream ss;
   ss << arg;
-  int64_t i = 0;
+  X i = 0;
   ss >> i;
   return i;
 }
 
+
 TimeStamp parseAbsoluteTime(char* arg) {
-  return TimeStamp::fromMilliSecondsSince1970(stringToInt(arg)*1000);
+  return TimeStamp::fromMilliSecondsSince1970(stringToX<int64_t>(arg)*1000);
 }
 
 int64_t parseLogTime(char* arg) {
-  return stringToInt(arg);
+  return stringToX<int64_t>(arg);
 }
 
-int callback(
+int localAndAbsoluteTimeCallback(
     void *data, int argc, char **argv,
     char **azColName) {
   CHECK(argc == 2);
@@ -41,7 +43,7 @@ std::vector<LocalAndAbsoluteTimePair> getSailmonTimeCorrectionTable(sqlite3 *db)
       "and l1.sensorId = l2.sensorId order by l1.log_time asc";
   char* errMsg = nullptr;
   std::vector<LocalAndAbsoluteTimePair> dst;
-  auto rc = sqlite3_exec(db, sql, &callback, &dst, &errMsg);
+  auto rc = sqlite3_exec(db, sql, &localAndAbsoluteTimeCallback, &dst, &errMsg);
   if (rc != SQLITE_OK ) {
     fprintf(stderr, "Failed to select data\n");
     fprintf(stderr, "SQL error: %s\n", errMsg);
@@ -84,9 +86,8 @@ std::shared_ptr<sqlite3> openSailmonDb(const std::string& filename) {
       << sqlite3_errmsg(db);
     return std::shared_ptr<sqlite3>();
   } else {
-    // proceed with loading
+    return std::shared_ptr<sqlite3>(db, &sqlite3_close);
   }
-  return std::shared_ptr<sqlite3>(db, &sqlite3_close);
 }
 
 bool sailmonDbLoad(const std::string &filename, LogAccumulator *dst) {
