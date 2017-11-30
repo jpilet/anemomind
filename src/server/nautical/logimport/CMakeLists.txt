@@ -16,7 +16,11 @@ add_library(logimport_SailmonDbLoader
             SailmonDbLoader.h
             SailmonDbLoader.cpp
            )
-target_link_libraries(logimport_SailmonDbLoader sqlite3 common_logging)
+target_link_libraries(logimport_SailmonDbLoader 
+  sqlite3 
+  common_logging
+  common_TimeStamp
+  )
 cxx_test(logimport_SailmonDbLoaderTest SailmonDbLoaderTest.cpp
   gtest_main
   logimport_SailmonDbLoader
