@@ -2,6 +2,7 @@
 #include <server/common/logging.h>
 #include <third_party/sqlite/sqlite3.h>
 #include <server/common/TimeStamp.h>
+#include <server/nautical/logimport/LogAccumulator.h>
 
 namespace sail {
 
@@ -48,7 +49,6 @@ std::vector<LocalAndAbsoluteTimePair> getSailmonTimeCorrectionTable(sqlite3 *db)
     fprintf(stderr, "Failed to select data\n");
     fprintf(stderr, "SQL error: %s\n", errMsg);
     sqlite3_free(errMsg);
-    sqlite3_close(db);
     return std::vector<LocalAndAbsoluteTimePair>();
   }
   return dst;
@@ -62,7 +62,7 @@ std::string sensorIdToSourceString(char* c) {
 
 struct Acc {
   std::vector<LocalAndAbsoluteTimePair> timePairs;
-  LogAccumulator acc;
+  LogAccumulator* dst = nullptr;
 
   TimeStamp toAbsoluteTime(int64_t i) const {
     return estimateTime(timePairs, i);
@@ -79,7 +79,7 @@ int gpsQueryCallback(
   auto lat = stringToX<double>(argv[2]);
   auto lon = stringToX<double>(argv[3]);
 
-  acc->acc._GPS_POSsources[sensorId].push_back({
+  acc->dst->_GPS_POSsources[sensorId].push_back({
     acc->toAbsoluteTime(logTime),
     GeographicPosition<double>(
         Angle<double>::degrees(lon),
@@ -89,7 +89,7 @@ int gpsQueryCallback(
   return 0;
 }
 
-void accumulateGpsData(
+bool accumulateGpsData(
     const std::shared_ptr<sqlite3>& db,
     Acc* dst) {
   const char query[] = "select "
@@ -99,9 +99,16 @@ void accumulateGpsData(
       "b.value as longitude FROM "
       "LogData as a, LogData as b WHERE "
       "a.sensorId = b.sensorId AND a.log_time = b.log_time "
-      "AND a.rawId = 4 AND b.rawId = 5";
+      "AND a.rawId = 4 AND b.rawId = 5 order by a.log_time asc";
   char* errMsg = nullptr;
-  auto rc = sqlite3_exec(db, query, &gpsQueryCallback, dst, &errMsg);
+  auto rc = sqlite3_exec(db.get(), query, &gpsQueryCallback, dst, &errMsg);
+  if (rc != SQLITE_OK ) {
+    LOG(ERROR) << "Failed to select data\n";
+    LOG(ERROR) << "SQL error: %s\n", errMsg;
+    sqlite3_free(errMsg);
+    return false;
+  }
+  return true;
 }
 
 
@@ -144,6 +151,16 @@ std::shared_ptr<sqlite3> openSailmonDb(const std::string& filename) {
 bool sailmonDbLoad(const std::string &filename, LogAccumulator *dst) {
   auto db = openSailmonDb(filename);
   if (!db) {
+    return false;
+  }
+  Acc acc;
+  acc.dst = dst;
+  acc.timePairs = getSailmonTimeCorrectionTable(db.get());
+  if (acc.timePairs.empty()) {
+    return false;
+  }
+  if (!accumulateGpsData(db, &acc)) {
+    LOG(ERROR) << "Failed to get GPS data";
     return false;
   }
   return true;

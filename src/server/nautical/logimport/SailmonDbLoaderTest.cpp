@@ -56,6 +56,16 @@ TEST(SailmonDbLoaderTest, TimeTable) {
 TEST(SailmonDbLoaderTest, SmokeTest) {
   LogAccumulator accumulator;
   EXPECT_TRUE(sailmonDbLoad(path, &accumulator));
+  const auto& gpsPos = accumulator._GPS_POSsources;
+  EXPECT_LT(0, gpsPos.size());
+  const auto& gpsPosFirstSource = accumulator._GPS_POSsources.begin()->second;
+  EXPECT_LT(0, gpsPosFirstSource.size());
+  const auto& firstGpsPosSample = gpsPosFirstSource[0];
+
+  TimeStamp t1 = TimeStamp::UTC(2017, 9, 29, 12, 33, 57);
+  EXPECT_NEAR((t1 - firstGpsPosSample.time).seconds(), 0.0, 2.0);
+  LOG(INFO) << "Lon " << firstGpsPosSample.value.lon().degrees() << " deg";
+  LOG(INFO) << "Lat " << firstGpsPosSample.value.lat().degrees() << " deg";
 }
 
 
