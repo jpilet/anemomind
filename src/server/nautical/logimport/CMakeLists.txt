@@ -12,6 +12,13 @@ target_link_libraries(logimport_ProtobufLogLoader
                       logimport_Nmea0183Loader
                      )  
 
+add_library(logimport_SailmonDbLoader
+            SailmonDbLoader.h
+            SailmonDbLoader.cpp
+           )
+target_link_libraries(logimport_SailmonDbLoader sqlite3)
+
+
 add_library(logimport_Nmea0183Loader
             Nmea0183Loader.h
             Nmea0183Loader.cpp
@@ -28,12 +35,13 @@ add_library(logimport_LogLoader
             LogLoader.cpp
            )
 target_link_libraries(logimport_LogLoader
-                      nautical_NavDataset
                       common_filesystem
                       logimport_CsvLoader
-                      logimport_ProtobufLogLoader
                       logimport_Nmea0183Loader
+                      logimport_ProtobufLogLoader
+                      logimport_SailmonDbLoader
                       nautical_BoatSpecificHacks
+                      nautical_NavDataset
                      )
 
 cxx_test(logimport_LogLoaderTest 
