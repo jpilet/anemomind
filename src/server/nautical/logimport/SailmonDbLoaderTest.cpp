@@ -69,3 +69,19 @@ TEST(SailmonDbLoaderTest, SmokeTest) {
 }
 
 
+
+TEST(SailmonDbLoaderTest, GpsTest) {
+  NavDataset current =   LogLoader::loadNavDataset(path);
+  hack::SelectSources(&loaded);
+  current = removeStrangeGpsPositions(current);
+  auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?
+  current = current.createMergedChannels(
+      std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
+      minGpsSamplingPeriod);
+  auto report = DOM::makeBasicHtmlPage(
+      "SailmonDbLoaderTest::GpsTest",
+      "/Users/jonas/", "sailmon");
+  GpsFilterSettings gpsFilterSettings;
+  current = filterNavs(current, &report, gpsFilterSettings);
+
+}
