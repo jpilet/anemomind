@@ -1,14 +1,19 @@
 #include <server/nautical/logimport/SailmonDbLoader.h>
+#include <server/nautical/BoatSpecificHacks.h>
 #include <server/common/Env.h>
 #include <server/nautical/logimport/LogAccumulator.h>
 #include <server/common/logging.h>
 #include <gtest/gtest.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/DownsampleGps.h>
+#include <server/nautical/tiles/TileUtils.h>
 
 using namespace sail;
 
 std::string path = std::string(Env::SOURCE_DIR) + "/datasets/sailmon/sample.db";
 
-TEST(SailmonDbLoaderTest, TimeTable) {
+/*TEST(SailmonDbLoaderTest, TimeTable) {
   auto db = openSailmonDb(path);
   EXPECT_TRUE(bool(db));
   auto corr = getSailmonTimeCorrectionTable(db);
@@ -66,13 +71,20 @@ TEST(SailmonDbLoaderTest, SmokeTest) {
   EXPECT_NEAR((t1 - firstGpsPosSample.time).seconds(), 0.0, 2.0);
   LOG(INFO) << "Lon " << firstGpsPosSample.value.lon().degrees() << " deg";
   LOG(INFO) << "Lat " << firstGpsPosSample.value.lat().degrees() << " deg";
-}
-
-
+}*/
 
 TEST(SailmonDbLoaderTest, GpsTest) {
-  NavDataset current =   LogLoader::loadNavDataset(path);
-  hack::SelectSources(&loaded);
+  std::string path25 = "/Users/jonas/data/boatsailmon/raw_log-2017-09-25.db";
+  NavDataset current =   LogLoader::loadNavDataset(path25);
+
+  std::cout << "Dataset " << current.boundsAsString() << std::endl;
+
+  current = current.slice(
+      TimeStamp::UTC(2017, 9, 25, 11, 14, 19),
+      TimeStamp::UTC(2017, 9, 25, 11, 27, 0));
+
+
+  hack::SelectSources(&current);
   current = removeStrangeGpsPositions(current);
   auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?
   current = current.createMergedChannels(

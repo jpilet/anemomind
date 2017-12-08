@@ -20,6 +20,8 @@ target_link_libraries(logimport_SailmonDbLoader
   sqlite3 
   common_logging
   common_TimeStamp
+  filters_SmoothGpsFilter
+  nautical_tiles_TileUtils
   )
 cxx_test(logimport_SailmonDbLoaderTest SailmonDbLoaderTest.cpp
   gtest_main
