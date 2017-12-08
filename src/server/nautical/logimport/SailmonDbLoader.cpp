@@ -3,6 +3,7 @@
 #include <third_party/sqlite/sqlite3.h>
 #include <server/common/TimeStamp.h>
 #include <server/nautical/logimport/LogAccumulator.h>
+#include <server/nautical/BoatSpecificHacks.h>
 
 namespace sail {
 
@@ -277,6 +278,8 @@ bool sailmonDbLoad(const std::string &filename, LogAccumulator *dst) {
     LOG(ERROR) << filename << ": no GPS time information";
     return false;
   }
+
+  hack::motionWeight = 10.0;
 
   accumulateValues<GPS_BEARING, AngleConverter>(db, SM_COURSE_OVER_GROUND_TRUE, &acc);
   accumulateValues<WAT_SPEED, SpeedConverter>(db, SM_SPEED_OVER_WATER, &acc);

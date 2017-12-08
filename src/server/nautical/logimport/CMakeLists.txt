@@ -22,6 +22,7 @@ target_link_libraries(logimport_SailmonDbLoader
   common_TimeStamp
   filters_SmoothGpsFilter
   nautical_tiles_TileUtils
+  nautical_BoatSpecificHacks
   )
 cxx_test(logimport_SailmonDbLoaderTest SailmonDbLoaderTest.cpp
   gtest_main

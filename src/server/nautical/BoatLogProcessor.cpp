@@ -23,6 +23,7 @@
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/grammars/TreeExplorer.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/tiles/ChartTiles.h>
@@ -341,7 +342,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     current = removeStrangeGpsPositions(loaded);
     infoNavDataset("After loading", current);
 
-    current = deduplicateGpsPositions(current);
+    current = GpsUtils::deduplicateGpsPositions(current);
 
     auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?
     current = current.createMergedChannels(
