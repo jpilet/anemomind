@@ -565,7 +565,7 @@ Array<Eigen::Vector2d> toV2Dim(
   auto span = curve.indexSpan();
   ArrayBuilder<Eigen::Vector2d> pts(span.size());
   auto sp = curve.indexSpan();
-  for (double i = sp.minv(); i < sp.maxv(); i += 0.1) {
+  for (double i = sp.minv(); i < sp.maxv(); i += 1.0) {
     auto t = m.toTimeStamp(i);
     pts.add(Eigen::Vector2d(
         (t - ref.time).seconds(),
