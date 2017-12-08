@@ -92,6 +92,16 @@ NavDataset slice2(const NavDataset& ds) {
   return ds.slice(
       TimeStamp::UTC(2017, 9, 25, 11, 14, 19) - marg,
       TimeStamp::UTC(2017, 9, 25, 11, 27, 0) + marg);
+}
+
+NavDataset slice3(const NavDataset& ds) {
+  auto marg = 1.0_minutes;
+  auto a = TimeStamp::UTC(2017, 9, 25, 13, 14, 19);
+  auto b = TimeStamp::UTC(2017, 9, 25, 13, 27, 0);
+  auto middle = a + 0.5*(b - a);
+  return ds.slice(
+       middle - marg,
+       middle + marg);
 
 }
 
@@ -100,7 +110,7 @@ TEST(SailmonDbLoaderTest, GpsTest) {
   NavDataset current =   GpsUtils::deduplicateGpsPositions(
       LogLoader::loadNavDataset(path25));
 
-  current = slice1(current);
+  current = slice3(current);
   std::cout << "Dataset " << current.boundsAsString() << std::endl;
   saveDispatcher("/tmp/sailmonslice.log", *(current.dispatcher()));
 
@@ -114,7 +124,6 @@ TEST(SailmonDbLoaderTest, GpsTest) {
       "SailmonDbLoaderTest::GpsTest",
       "/Users/jonas/", "sailmon");
   GpsFilterSettings gpsFilterSettings;
-  hack::motionWeight = 10;
   current = filterNavs(current, &report, gpsFilterSettings);
 
 }
