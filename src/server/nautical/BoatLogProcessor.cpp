@@ -341,6 +341,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     current = removeStrangeGpsPositions(loaded);
     infoNavDataset("After loading", current);
 
+    current = deduplicateGpsPositions(current);
+
     auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?
     current = current.createMergedChannels(
         std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},

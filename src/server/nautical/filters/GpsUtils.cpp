@@ -10,6 +10,7 @@
 #include <server/nautical/filters/MotionsFromPairs.h>
 #include <server/nautical/InvWGS84.h>
 #include <server/nautical/WGS84.h>
+#include <device/anemobox/DispatcherUtils.h>
 
 namespace sail {
 namespace GpsUtils {
@@ -63,9 +64,43 @@ TimeStamp getReferenceTime(
     LOG(WARNING) << "Empty positions means undefined time";
     return TimeStamp();
   }
-
   int middle = positions.size()/2;
   return positions[middle].time;
+}
+
+std::shared_ptr<DispatchData> deduplicateGpsPositionsForChannel(
+    DataCode code, std::string source,
+    std::shared_ptr<DispatchData> src0) {
+  if (code != GPS_POS) {
+    return src0;
+  }
+  auto src = toTypedDispatchData<GPS_POS>(src0.get());
+  const auto& srcValues = src->dispatcher()->values().samples();
+  auto dst = std::make_shared<TypedDispatchDataReal<
+      GeographicPosition<double>>>(
+          code, source, nullptr, srcValues.size());
+
+  auto dstValues = dst->dispatcher()->mutableValues();
+
+  GeographicPosition<double> lastPos;
+  for (auto x: srcValues) {
+    if (!(x.value == lastPos)) {
+      dstValues->append(x);
+    }
+    lastPos = x.value;
+  }
+
+  LOG(INFO) << "Deplicated GPS positions at " << source
+      << " from " << srcValues.size() << " to "
+      << dstValues->size();
+
+  return dst;
+}
+
+NavDataset deduplicateGpsPositions(const NavDataset& ds) {
+  return filterChannels(
+      ds.dispatcher().get(), [](DataCode,std::string) {return true;},
+      true, &deduplicateGpsPositionsForChannel);
 }
 
 }
