@@ -75,10 +75,13 @@ TEST(SailmonDbLoaderTest, SmokeTest) {
 
 
 NavDataset slice1(const NavDataset& ds) {
-  auto marg = -0.1_h;
+  auto marg = 8.0_s;
+  auto a = TimeStamp::UTC(2017, 9, 25, 13, 14, 19);
+  auto b = TimeStamp::UTC(2017, 9, 25, 13, 27, 0);
+  auto middle = a + 0.5*(b - a);
   return ds.slice(
-      TimeStamp::UTC(2017, 9, 25, 13, 14, 19) - marg,
-      TimeStamp::UTC(2017, 9, 25, 13, 27, 0) + marg);
+       middle - marg,
+       middle + marg);
 
 }
 
