@@ -8,6 +8,7 @@
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/DownsampleGps.h>
 #include <server/nautical/tiles/TileUtils.h>
+#include <device/anemobox/DispatcherUtils.h>
 
 using namespace sail;
 
@@ -99,6 +100,7 @@ TEST(SailmonDbLoaderTest, GpsTest) {
 
   current = slice1(current);
   std::cout << "Dataset " << current.boundsAsString() << std::endl;
+  saveDispatcher("/tmp/sailmonslice.log", *(current.dispatcher()));
 
   hack::SelectSources(&current);
   current = removeStrangeGpsPositions(current);

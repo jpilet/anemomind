@@ -542,6 +542,66 @@ Array<Eigen::Vector2d> toV2(
   return pts.get();
 }
 
+Array<Eigen::Vector2d> toV2Dim(
+    TimedValue<Position2d> ref,
+    int k,
+    const Array<TimedValue<Position2d>> &src) {
+  int n = src.size();
+  Array<Eigen::Vector2d> dst(n);
+  for (int i = 0; i < n; i++) {
+    auto x = src[i];
+    dst[i] = Eigen::Vector2d(
+        (x.time - ref.time).seconds(),
+        (x.value[k] - ref.value[k]).meters());
+  }
+  return dst;
+}
+
+Array<Eigen::Vector2d> toV2Dim(
+    TimedValue<Position2d> ref,
+    int k,
+    const LocalGpsFilterResults::Curve& curve) {
+  auto m = curve.timeMapper();
+  auto span = curve.indexSpan();
+  ArrayBuilder<Eigen::Vector2d> pts(span.size());
+  auto sp = curve.indexSpan();
+  for (double i = sp.minv(); i < sp.maxv(); i += 0.1) {
+    auto t = m.toTimeStamp(i);
+    pts.add(Eigen::Vector2d(
+        (t - ref.time).seconds(),
+        (curve.evaluate(k, t) - ref.value[k]).meters()));
+  }
+  return pts.get();
+}
+
+
+void dispLengthDimPlot(
+    const std::string& d,
+    int i,
+    const LocalGpsFilterResults& r,
+    DOM::Node *dst) {
+  auto p = DOM::makeSubNode(dst, "p");
+  auto page = DOM::linkToSubPage(&p, d);
+  auto imageFilename = DOM::makeGeneratedImageNode(
+      &page, ".svg").toString();
+
+  auto setup = Cairo::Setup::svg(imageFilename, 800, 600);
+
+  PlotUtils::Settings2d settings;
+  settings.orthonormal = false;
+  Cairo::renderPlot(settings, [&](cairo_t *cr) {
+    auto start = r.rawLocalPositions.first();
+    cairo_set_line_width (cr, 0.5);
+    for (auto curve: r.curves) {
+      auto pts = toV2Dim(start, i, curve);
+      Cairo::plotDots(cr, pts, 1.0);
+    }
+
+    Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
+    Cairo::plotDots(cr, toV2Dim(start, i, r.rawLocalPositions), 0.5);
+  }, "X", "Y", setup.cr.get());
+}
+
 void outputLocalResults(
     const LocalGpsFilterResults& r,
     DOM::Node *dst) {
@@ -581,8 +641,10 @@ void outputLocalResults(
       Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
       Cairo::plotDots(cr, toV2(start, r.rawLocalMotions), 0.5);
       cairo_set_line_width (cr, 0.5);
-    }, "X", "Y", setup.cr.get());
+    }, "Time", "Speed", setup.cr.get());
   }
+  dispLengthDimPlot("X-dimension", 0, r, dst);
+  dispLengthDimPlot("Y-dimension", 1, r, dst);
 }
 
 template <typename T>
