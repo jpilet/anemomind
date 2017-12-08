@@ -419,6 +419,7 @@ LocalGpsFilterResults solveGpsSubproblem(
     geoRef, results,
     TimeStamp::now() - start,
     rawLocalPositions,
+    motions,
     curves
   };
 }
@@ -505,10 +506,27 @@ Eigen::Vector2d tov2(
       x.value[1]/plotUnit);
 }
 
+
+
 Array<Eigen::Vector2d> toV2(
     const Array<TimedValue<Position2d>> &src) {
   return map(src, &tov2);
 }
+
+Array<Eigen::Vector2d> toV2(
+    TimeStamp start,
+    const Array<TimedValue<HorizontalMotion<double>>> &src) {
+  int n = src.size();
+  Array<Eigen::Vector2d> dst(n);
+  for (int i = 0; i < n; i++) {
+    const auto& x = src[i];
+    dst[i] = Eigen::Vector2d(
+        (x.time - start).seconds(),
+        x.value.norm().metersPerSecond());
+  }
+  return dst;
+}
+
 
 Array<Eigen::Vector2d> toV2(
     const LocalGpsFilterResults::Curve& curve) {
@@ -527,23 +545,44 @@ Array<Eigen::Vector2d> toV2(
 void outputLocalResults(
     const LocalGpsFilterResults& r,
     DOM::Node *dst) {
-  auto page = DOM::linkToSubPage(dst, "Trajectory");
-  auto imageFilename = DOM::makeGeneratedImageNode(
-      &page, ".svg").toString();
+  {
+    auto p = DOM::makeSubNode(dst, "p");
+    auto page = DOM::linkToSubPage(&p, "Trajectory");
+    auto imageFilename = DOM::makeGeneratedImageNode(
+        &page, ".svg").toString();
 
-  auto setup = Cairo::Setup::svg(imageFilename, 800, 600);
+    auto setup = Cairo::Setup::svg(imageFilename, 800, 600);
 
+    PlotUtils::Settings2d settings;
+    Cairo::renderPlot(settings, [&](cairo_t *cr) {
+      Cairo::plotDots(cr, toV2(r.rawLocalPositions), 0.5);
+      Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
+      cairo_set_line_width (cr, 0.5);
+      for (auto curve: r.curves) {
+        auto pts = toV2(curve);
+        Cairo::plotLineStrip(cr, pts);
+      }
+    }, "X", "Y", setup.cr.get());
+  }{
+    auto p = DOM::makeSubNode(dst, "p");
+    auto page = DOM::linkToSubPage(&p, "Speed");
+    auto imageFilename = DOM::makeGeneratedImageNode(
+        &page, ".svg").toString();
 
-  PlotUtils::Settings2d settings;
-  Cairo::renderPlot(settings, [&](cairo_t *cr) {
-    Cairo::plotDots(cr, toV2(r.rawLocalPositions), 0.5);
-    Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
-    cairo_set_line_width (cr, 0.5);
-    for (auto curve: r.curves) {
-      auto pts = toV2(curve);
-      Cairo::plotLineStrip(cr, pts);
-    }
-  }, "X", "Y", setup.cr.get());
+    auto setup = Cairo::Setup::svg(imageFilename, 800, 600);
+
+    PlotUtils::Settings2d settings;
+    settings.orthonormal = false;
+    Cairo::renderPlot(settings, [&](cairo_t *cr) {
+      cairo_set_line_width (cr, 0.5);
+      auto samples = r.sampleMotions();
+      auto start = samples.first().time;
+      Cairo::plotLineStrip(cr, toV2(start, samples));
+      Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
+      Cairo::plotDots(cr, toV2(start, r.rawLocalMotions), 0.5);
+      cairo_set_line_width (cr, 0.5);
+    }, "X", "Y", setup.cr.get());
+  }
 }
 
 template <typename T>

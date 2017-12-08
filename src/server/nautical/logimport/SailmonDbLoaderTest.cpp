@@ -94,7 +94,7 @@ TEST(SailmonDbLoaderTest, GpsTest) {
   std::string path25 = "/Users/jonas/data/boatsailmon/raw_log-2017-09-25.db";
   NavDataset current =   LogLoader::loadNavDataset(path25);
 
-  //current = slice2(current);
+  current = slice1(current);
   std::cout << "Dataset " << current.boundsAsString() << std::endl;
 
   hack::SelectSources(&current);
