@@ -950,6 +950,12 @@ Array<TimedValue<GeographicPosition<double>>> getPositions(
   int n = src0.size();
   Array<TimedValue<GeographicPosition<double>>> dst(n);
   std::copy(src0.begin(), src0.end(), dst.begin());
+
+  if (0 < n) {
+    LOG(INFO) << "POSITIONS from " << dst.first().time.toString()
+        << " to "<< dst.last().time.toString();
+  }
+
   return dst;
 }
 

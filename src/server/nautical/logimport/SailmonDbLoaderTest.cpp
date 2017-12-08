@@ -73,16 +73,29 @@ TEST(SailmonDbLoaderTest, SmokeTest) {
   LOG(INFO) << "Lat " << firstGpsPosSample.value.lat().degrees() << " deg";
 }*/
 
+
+NavDataset slice1(const NavDataset& ds) {
+  auto marg = -0.1_h;
+  return ds.slice(
+      TimeStamp::UTC(2017, 9, 25, 13, 14, 19) - marg,
+      TimeStamp::UTC(2017, 9, 25, 13, 27, 0) + marg);
+
+}
+
+NavDataset slice2(const NavDataset& ds) {
+  auto marg = 1.0_h;
+  return ds.slice(
+      TimeStamp::UTC(2017, 9, 25, 11, 14, 19) - marg,
+      TimeStamp::UTC(2017, 9, 25, 11, 27, 0) + marg);
+
+}
+
 TEST(SailmonDbLoaderTest, GpsTest) {
   std::string path25 = "/Users/jonas/data/boatsailmon/raw_log-2017-09-25.db";
   NavDataset current =   LogLoader::loadNavDataset(path25);
 
+  //current = slice2(current);
   std::cout << "Dataset " << current.boundsAsString() << std::endl;
-
-  current = current.slice(
-      TimeStamp::UTC(2017, 9, 25, 11, 14, 19),
-      TimeStamp::UTC(2017, 9, 25, 11, 27, 0));
-
 
   hack::SelectSources(&current);
   current = removeStrangeGpsPositions(current);
