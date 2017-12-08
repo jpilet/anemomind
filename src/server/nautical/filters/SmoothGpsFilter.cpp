@@ -574,6 +574,31 @@ Array<Eigen::Vector2d> toV2Dim(
   return pts.get();
 }
 
+Array<Eigen::Vector2d> toFiniteDifPts(
+    TimeStamp start,
+    const LocalGpsFilterResults::Curve& curve) {
+  auto m = curve.timeMapper();
+  auto span = curve.indexSpan();
+  ArrayBuilder<Eigen::Vector2d> pts(span.size());
+  auto sp = curve.indexSpan();
+  for (int i = sp.minv(); i < sp.maxv()-1; i++) {
+    auto t0 = m.toTimeStamp(i);
+    auto t1 = m.toTimeStamp(i+1);
+
+    auto y = sqrt(1.0e-9 +
+        sqr((curve.evaluate(0, t1) - curve.evaluate(0, t0)).meters())
+        + sqr((curve.evaluate(1, t1) - curve.evaluate(1, t0)).meters()));
+
+    auto speed = (y*1.0_m)/(t1 - t0);
+
+    pts.add(
+        Eigen::Vector2d(((t0 + 0.5*(t1 - t0)) - start).seconds(),
+            speed.metersPerSecond()));
+  }
+  return pts.get();
+}
+
+
 
 void dispLengthDimPlot(
     const std::string& d,
@@ -645,6 +670,28 @@ void outputLocalResults(
   }
   dispLengthDimPlot("X-dimension", 0, r, dst);
   dispLengthDimPlot("Y-dimension", 1, r, dst);
+  {
+    auto p = DOM::makeSubNode(dst, "p");
+    auto page = DOM::linkToSubPage(&p, "Finite differences");
+    auto imageFilename = DOM::makeGeneratedImageNode(
+        &page, ".svg").toString();
+
+    auto setup = Cairo::Setup::svg(imageFilename, 800, 600);
+
+    PlotUtils::Settings2d settings;
+    settings.orthonormal = false;
+    Cairo::renderPlot(settings, [&](cairo_t *cr) {
+      auto samples = r.sampleMotions();
+      auto start = samples.first().time;
+      Cairo::plotDots(cr, toV2(start, r.rawLocalMotions), 0.5);
+      Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
+      cairo_set_line_width (cr, 0.5);
+      for (auto curve: r.curves) {
+        auto pts = toFiniteDifPts(start, curve);
+        Cairo::plotLineStrip(cr, pts);
+      }
+    }, "X", "Y", setup.cr.get());
+  }
 }
 
 template <typename T>
