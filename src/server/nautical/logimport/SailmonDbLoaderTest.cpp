@@ -114,6 +114,7 @@ TEST(SailmonDbLoaderTest, GpsTest) {
       "SailmonDbLoaderTest::GpsTest",
       "/Users/jonas/", "sailmon");
   GpsFilterSettings gpsFilterSettings;
+  hack::motionWeight = 10;
   current = filterNavs(current, &report, gpsFilterSettings);
 
 }
