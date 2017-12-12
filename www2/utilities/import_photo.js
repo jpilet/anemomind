@@ -45,7 +45,7 @@ function importPhoto(path, boatid, dstpath) {
   image
   .metadata()
   .then(function(metadata) {
-    let w,h;
+    var w,h;
     if (metadata.orientation) {
       h = 1600;
     } else {
