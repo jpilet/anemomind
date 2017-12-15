@@ -21,11 +21,25 @@ namespace {
   auto pairThreshold = Duration<double>::seconds(12.0);
 }
 
+bool includeTime(TimeStamp x) {
+  static auto lower = TimeStamp::UTC(2017, 9, 25, 11, 10, 0);
+  static auto upper = TimeStamp::UTC(2017, 9, 25, 11, 14, 0);
+  return lower <= x && x <= upper;
+}
+
+
 Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(const NavDataset &ds) {
   auto angle = ds.samples<GPS_BEARING>();
   auto speed = ds.samples<GPS_SPEED>();
-  return makeMotionsFromVelocityAnglePairs(
+  auto motions = makeMotionsFromVelocityAnglePairs(
       speed.begin(), speed.end(), angle.begin(), angle.end(), pairThreshold);
+  ArrayBuilder<TimedValue<HorizontalMotion<double>>> dst;
+  for (auto x: motions) {
+    if (includeTime(x.time)) {
+      dst.add(x);
+    }
+  }
+  return dst.get();
 }
 
 template <typename Container>

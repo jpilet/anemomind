@@ -15,6 +15,7 @@
 namespace sail {
 namespace GpsUtils {
 
+bool includeTime(TimeStamp x);
 Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(const NavDataset &ds);
 
 GeographicPosition<double>

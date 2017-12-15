@@ -630,7 +630,7 @@ void dispLengthDimPlot(
 void outputLocalResults(
     const LocalGpsFilterResults& r,
     DOM::Node *dst) {
-  /*{
+  {
     auto p = DOM::makeSubNode(dst, "p");
     auto page = DOM::linkToSubPage(&p, "Trajectory");
     auto imageFilename = DOM::makeGeneratedImageNode(
@@ -691,7 +691,7 @@ void outputLocalResults(
         Cairo::plotLineStrip(cr, pts);
       }
     }, "X", "Y", setup.cr.get());
-  }*/
+  }
 }
 
 template <typename T>
@@ -1096,15 +1096,20 @@ Array<TimedValue<GeographicPosition<double>>> getPositions(
     const NavDataset &src) {
   auto src0 = src.samples<GPS_POS>();
   int n = src0.size();
-  Array<TimedValue<GeographicPosition<double>>> dst(n);
-  std::copy(src0.begin(), src0.end(), dst.begin());
+  ArrayBuilder<TimedValue<GeographicPosition<double>>> dst(n);
+  for (auto x: src0) {
+    if (GpsUtils::includeTime(x.time)) {
+      dst.add(x);
+    }
+  }
+  return dst.get();
 
-  if (0 < n) {
+  /*if (0 < n) {
     LOG(INFO) << "POSITIONS from " << dst.first().time.toString()
         << " to "<< dst.last().time.toString();
-  }
+  }*/
 
-  return dst;
+  //return dst;
 }
 
 GpsData getGpsData(const NavDataset &src) {

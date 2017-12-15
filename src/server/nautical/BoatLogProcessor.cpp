@@ -362,9 +362,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
         std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
         minGpsSamplingPeriod);
 
-    current.preferSource(GPS_POS, "sailmonSensorId(14)");
+    /*current.preferSource(GPS_POS, "sailmonSensorId(14)");
     current.preferSource(GPS_BEARING, "sailmonSensorId(20)");
-    current.preferSource(GPS_SPEED, "sailmonSensorId(14)");
+    current.preferSource(GPS_SPEED, "sailmonSensorId(14)");*/
 
     infoNavDataset("After resampling GPS", current);
 
