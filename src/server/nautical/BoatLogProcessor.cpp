@@ -314,7 +314,7 @@ void outputInfoPerSession(
 }
 
 Span<TimeStamp> getSpan() {
-  auto marg = 3.0_hours;
+  auto marg = 96.0_hours;//24.0_hours;
   auto a = TimeStamp::UTC(2017, 9, 25, 13, 14, 19);
   auto b = TimeStamp::UTC(2017, 9, 25, 13, 27, 0);
   auto middle = a + 0.5*(b - a);
@@ -344,12 +344,12 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     CHECK(false);
     current = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    auto span = getSpan();
     auto rawLoaded = loadNavs(*amap, _boatid);
+    auto span = getSpan();
     NavDataset loaded = NavDataset(cropDispatcher(
         rawLoaded.dispatcher().get(),
         span.minv(), span.maxv()));
-    //auto loaded = rawLoaded;
+    /*auto loaded = rawLoaded;*/
 
     hack::SelectSources(&loaded);
     current = removeStrangeGpsPositions(loaded);
@@ -361,6 +361,11 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     current = current.createMergedChannels(
         std::set<DataCode>{GPS_POS, GPS_SPEED, GPS_BEARING},
         minGpsSamplingPeriod);
+
+    current.preferSource(GPS_POS, "sailmonSensorId(14)");
+    current.preferSource(GPS_BEARING, "sailmonSensorId(20)");
+    current.preferSource(GPS_SPEED, "sailmonSensorId(14)");
+
     infoNavDataset("After resampling GPS", current);
 
     if (_gpsFilter) {
@@ -473,7 +478,7 @@ void BoatLogProcessor::infoNavDataset(const std::string& info,
   std::stringstream ss;
   ds.outputSummary(&ss);
 
-  auto s = summarizeDispatcherOverTime(
+  /*auto s = summarizeDispatcherOverTime(
       ds.dispatcher().get(),
       roundOffToBin(15.0_minutes));
   std::set<DataCode> ofInterest{AWA, TWA, AWS, TWS};
@@ -487,7 +492,7 @@ void BoatLogProcessor::infoNavDataset(const std::string& info,
             << ", " << codeSource.second << ": " << n << std::endl;
       }
     }
-  }
+  }*/
 
 
   DOM::addSubTextNode(&_htmlReport, "pre", ss.str());

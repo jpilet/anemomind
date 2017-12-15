@@ -20,7 +20,7 @@ const char kRealTeamD35[] = "5992fcc6035eb352cf36d594";
 bool forceDateForGLL = false;
 int bootCount = 0;
 double motionWeight = 1.0;
-
+std::set<std::string> excludedSailmonSensorIds{"20"};
 
 void ConfigureForBoat(const std::string& boatId) {
   gBoatId = boatId;

@@ -8,6 +8,7 @@
 #define SERVER_NAUTICAL_BOATSPECIFICHACKS_H_
 
 #include <string>
+#include <set>
 
 namespace sail {
 
@@ -28,7 +29,7 @@ extern bool forceDateForGLL;
 extern int bootCount;
 
 extern double motionWeight;
-
+extern std::set<std::string> excludedSailmonSensorIds;
 
 
 void ConfigureForBoat(const std::string& boatId);
