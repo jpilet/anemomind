@@ -186,15 +186,20 @@ public:
       DataCode code,
       const std::string& source,
       const typename TimedSampleCollection<T>::TimedVector& values) const {
+    LOG(INFO) << "Add channel";
     NavDataset r;
     if (_dispatcher) {
       // we can't modify dispatcher directly, because it is shared.
       // We have to clone it first.
+      LOG(INFO) << "Clone it";
       r = clone();
     } else {
       r._dispatcher =  std::make_shared<Dispatcher>();
     }
+    LOG(INFO) << "Insert the values";
     r.dispatcher()->insertValues<T>(code, source, values);
+    LOG(INFO) << "Buffer length: " << r.dispatcher()->maxBufferLength();
+    LOG(INFO) << "Inserted them";
     return r;
   }
 

@@ -347,6 +347,8 @@ namespace {
    public:
     PublishListener<T>(Dispatcher *d, DataCode code, Duration<> interval)
       : Listener<T>(interval), _dispatcher(d), _code(code) { }
+
+
     virtual void onNewValue(const ValueDispatcher<T> &valueDispatcher) {
       _values.push_back(TimedValue<T>(valueDispatcher.lastTimeStamp(),
                                        valueDispatcher.lastValue()));
@@ -354,6 +356,14 @@ namespace {
     }
 
     NavDataset addChannel(const NavDataset& ds) {
+      bool verbose = _code == GPS_BEARING;
+
+      if (verbose) {
+        LOG(INFO) << "Values from "
+            << _values.front().time << " to "
+            << _values.back().time;
+      }
+
       std::string source;
       if (sources.size() == 1) {
         source = *sources.begin();
@@ -362,11 +372,31 @@ namespace {
         source += join(sources, ", ") + ")";
       }
 
+      if (verbose) {
+        LOG(INFO) << "The source name is " << source;
+      }
+
       if (_values.size() > 0) {
+        if (verbose) {
+          LOG(INFO) << "The source name is still " << source;
+        }
         NavDataset result = ds.addChannel<T>(_code, source, _values);
+
+        if (verbose) {
+          LOG(INFO) << "Got the result";
+        }
+
         result.selectSource(_code, source);
+        if (verbose) {
+          LOG(INFO) << "Add channel and select source";
+        }
+        CHECK(!verbose);
         return result;
       } else {
+        if (verbose) {
+          LOG(INFO) << "Do nothering";
+        }
+        CHECK(!verbose);
         return ds;
       }
     }
