@@ -28,6 +28,11 @@ bool includeTime(TimeStamp x) {
   return lower <= x && x <= upper;
 }
 
+std::string timeSpanToString(Span<TimeStamp> sp) {
+  return stringFormat("From %s to %s",
+      sp.minv().toString().c_str(),
+      sp.maxv().toString().c_str());
+}
 
 Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(
     const NavDataset &ds,
@@ -37,6 +42,15 @@ Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(
   auto motions = makeMotionsFromVelocityAnglePairs(
       speed.begin(), speed.end(), angle.begin(), angle.end(), pairThreshold);
   Span<TimeStamp> sp;
+  Span<TimeStamp> angleSpan, speedSpan;
+
+  for (auto a: angle) {
+    angleSpan.extend(a.time);
+  }
+  for (auto s: speed) {
+    speedSpan.extend(s.time);
+  }
+
   ArrayBuilder<TimedValue<HorizontalMotion<double>>> dst;
   for (auto x: motions) {
     if (includeTime(x.time)) {
@@ -57,6 +71,9 @@ Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(
               "SAMPLES are not chronologically ordered!!! at %d", i)).warning();
     }
   }
+
+  DOM::addSubTextNode(log, "p", "Speed span " + timeSpanToString(speedSpan));
+  DOM::addSubTextNode(log, "p", "Angle span " + timeSpanToString(angleSpan));
 
   DOM::addSubTextNode(log, "p", stringFormat("Span from %s to %s",
         sp.minv().toString().c_str(),
