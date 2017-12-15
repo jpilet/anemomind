@@ -355,7 +355,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     current = removeStrangeGpsPositions(loaded);
     infoNavDataset("After loading", current);
 
-    current = GpsUtils::deduplicateGpsPositions(current);
+    //current = GpsUtils::deduplicateGpsPositions(current);
 
     auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?
     current = current.createMergedChannels(
@@ -367,6 +367,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     current.preferSource(GPS_SPEED, "sailmonSensorId(14)");*/
 
     infoNavDataset("After resampling GPS", current);
+
+    return true;
 
     if (_gpsFilter) {
       current = filterNavs(current, &_htmlReport, _gpsFilterSettings);
