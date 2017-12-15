@@ -11,6 +11,7 @@
 #include <server/nautical/InvWGS84.h>
 #include <server/nautical/WGS84.h>
 #include <device/anemobox/DispatcherUtils.h>
+#include <server/common/Span.h>
 
 namespace sail {
 namespace GpsUtils {
@@ -28,18 +29,43 @@ bool includeTime(TimeStamp x) {
 }
 
 
-Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(const NavDataset &ds) {
+Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(
+    const NavDataset &ds,
+    DOM::Node* log) {
   auto angle = ds.samples<GPS_BEARING>();
   auto speed = ds.samples<GPS_SPEED>();
   auto motions = makeMotionsFromVelocityAnglePairs(
       speed.begin(), speed.end(), angle.begin(), angle.end(), pairThreshold);
+  Span<TimeStamp> sp;
   ArrayBuilder<TimedValue<HorizontalMotion<double>>> dst;
   for (auto x: motions) {
     if (includeTime(x.time)) {
       dst.add(x);
+      sp.extend(x.time);
     }
   }
-  return dst.get();
+
+  LOG(INFO) << "Times from " << sp.minv().toString() << " to "
+      << sp.maxv().toString();
+
+  auto samples = dst.get();
+
+  for (int i = 0; i < samples.size()-1; i++) {
+    if (samples[i].time > samples[i+1].time) {
+      DOM::addSubTextNode(log, "p",
+          stringFormat(
+              "SAMPLES are not chronologically ordered!!! at %d", i)).warning();
+    }
+  }
+
+  DOM::addSubTextNode(log, "p", stringFormat("Span from %s to %s",
+        sp.minv().toString().c_str(),
+        sp.maxv().toString().c_str()));
+  DOM::addSubTextNode(log, "p", stringFormat("Motion samples from %s to %s",
+        samples.first().time.toString().c_str(),
+        samples.last().time.toString().c_str()));
+
+  return samples;
 }
 
 template <typename Container>

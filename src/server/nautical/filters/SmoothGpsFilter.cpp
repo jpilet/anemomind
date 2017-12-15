@@ -1112,10 +1112,10 @@ Array<TimedValue<GeographicPosition<double>>> getPositions(
   //return dst;
 }
 
-GpsData getGpsData(const NavDataset &src) {
+GpsData getGpsData(const NavDataset &src, DOM::Node* log) {
   return GpsData{
     getPositions(src),
-    GpsUtils::getGpsMotions(src)
+    GpsUtils::getGpsMotions(src, log)
   };
 }
 
@@ -1142,17 +1142,29 @@ GpsFilterResults filterGpsData(
     return GpsFilterResults();
   }
 
-  auto rawData = getGpsData(ds);
+  auto rawData = getGpsData(ds, log);
   if (rawData.positions.empty()) {
     LOG(ERROR) << "No GPS positions in dataset, cannot filter";
     return GpsFilterResults();
   }
 
+  DOM::addSubTextNode(log, "p",
+      stringFormat("RAW!!!!! data motions from %s to %s",
+          rawData.motions.first().time.toString().c_str(),
+          rawData.motions.last().time.toString().c_str()));
   auto cleanData = prefilterAllData(rawData, settings, log);
 
   auto time = segmentTime(cleanData, settings, false);
+
   auto positionSlices = applySplits(cleanData.positions, time.splits);
   auto motionSlices = applySplits(cleanData.motions, time.splits);
+
+  DOM::addSubTextNode(log, "h2", "Motion slices");
+  for (auto motionSlice: motionSlices) {
+    DOM::addSubTextNode(log, "p", stringFormat("Slice from %s to %s",
+        motionSlice.first().time.toString().c_str(),
+        motionSlice.last().time.toString().c_str()));
+  }
 
   std::vector<LocalGpsFilterResults> subResults;
   subResults.reserve(time.spans.size());
