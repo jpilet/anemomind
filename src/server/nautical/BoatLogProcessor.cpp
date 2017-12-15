@@ -314,7 +314,7 @@ void outputInfoPerSession(
 }
 
 Span<TimeStamp> getSpan() {
-  auto marg = 96.0_hours;//24.0_hours;
+  auto marg = 48.0_hours;//24.0_hours;
   auto a = TimeStamp::UTC(2017, 9, 25, 13, 14, 19);
   auto b = TimeStamp::UTC(2017, 9, 25, 13, 27, 0);
   auto middle = a + 0.5*(b - a);
