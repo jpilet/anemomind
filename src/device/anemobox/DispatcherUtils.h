@@ -137,6 +137,10 @@ std::shared_ptr<Dispatcher> filterChannels(Dispatcher *src,
   DispatcherChannelMapperFunction tr = &identityDispatcherChannelMapper);
 std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src);
 
+std::shared_ptr<Dispatcher> cropDispatcher(
+    Dispatcher *src,
+      TimeStamp from, TimeStamp to);
+
 
 std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>>
   mergeDispatchDataMaps(

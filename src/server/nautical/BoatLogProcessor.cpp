@@ -313,7 +313,13 @@ void outputInfoPerSession(
   }
 }
 
-
+Span<TimeStamp> getSpan() {
+  auto marg = 3.0_hours;
+  auto a = TimeStamp::UTC(2017, 9, 25, 13, 14, 19);
+  auto b = TimeStamp::UTC(2017, 9, 25, 13, 27, 0);
+  auto middle = a + 0.5*(b - a);
+  return {middle - marg, middle + marg};
+}
 //
 // high-level processing logic
 //
@@ -335,9 +341,16 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   NavDataset current;
 
   if (_resumeAfterPrepare.size() > 0) {
+    CHECK(false);
     current = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    NavDataset loaded = loadNavs(*amap, _boatid);
+    auto span = getSpan();
+    auto rawLoaded = loadNavs(*amap, _boatid);
+    NavDataset loaded = NavDataset(cropDispatcher(
+        rawLoaded.dispatcher().get(),
+        span.minv(), span.maxv()));
+    //auto loaded = rawLoaded;
+
     hack::SelectSources(&loaded);
     current = removeStrangeGpsPositions(loaded);
     infoNavDataset("After loading", current);

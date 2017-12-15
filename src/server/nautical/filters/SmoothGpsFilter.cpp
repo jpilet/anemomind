@@ -630,7 +630,7 @@ void dispLengthDimPlot(
 void outputLocalResults(
     const LocalGpsFilterResults& r,
     DOM::Node *dst) {
-  {
+  /*{
     auto p = DOM::makeSubNode(dst, "p");
     auto page = DOM::linkToSubPage(&p, "Trajectory");
     auto imageFilename = DOM::makeGeneratedImageNode(
@@ -691,7 +691,7 @@ void outputLocalResults(
         Cairo::plotLineStrip(cr, pts);
       }
     }, "X", "Y", setup.cr.get());
-  }
+  }*/
 }
 
 template <typename T>

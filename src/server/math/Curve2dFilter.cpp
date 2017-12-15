@@ -119,6 +119,7 @@ Array<std::shared_ptr<DataCost>> makeMotionCosts(
       settings.initialWeight, settings.finalWeight);
   auto span = b.basis.raw().dataSpan();
   double period = mapper.period().seconds();
+  CHECK(9 < hack::motionWeight);
   for (auto m: motions) {
     double t = mapper.toRealIndex(m.time);
     if (span.contains(t)) {

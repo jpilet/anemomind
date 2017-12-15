@@ -447,6 +447,56 @@ std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src) {
   }, true);
 }
 
+bool constantlyTrueForCodeAndSource(DataCode, const std::string& ) {
+  return true;
+}
+
+bool timeInRange(TimeStamp x, TimeStamp lower, TimeStamp upper) {
+  return (lower.undefined() || (lower <= x))
+      && (upper.undefined() || (x <= upper));
+}
+
+template <DataCode code>
+std::shared_ptr<DispatchData> filterByTimeForType(
+    const std::string& src,
+    TimeStamp from,
+    TimeStamp to,
+    const std::shared_ptr<DispatchData>& data0) {
+  typedef typename TypeForCode<code>::type T;
+  TypedDispatchData<T>* data = toTypedDispatchData<code>(data0.get());
+  const auto& samples = data->dispatcher()->values().samples();
+
+  auto dst = new TypedDispatchDataReal<T>(code, src, nullptr, samples.size());
+  for (const auto& x: samples) {
+    if (timeInRange(x.time, from, to)) {
+      dst->dispatcher()->mutableValues()->append(x);
+    }
+  }
+
+  return std::shared_ptr<DispatchData>(dst);
+}
+
+DispatcherChannelMapperFunction filterByTime(TimeStamp from, TimeStamp to) {
+  return [from,to](
+      DataCode code,
+      const std::string& src,
+      const std::shared_ptr<DispatchData>& data) {
+#define FILTER_BY_TIME_FOR_CODE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  if (code == HANDLE) {return filterByTimeForType<HANDLE>(src, from, to, data);}
+    FOREACH_CHANNEL(FILTER_BY_TIME_FOR_CODE)
+#undef FILTER_BY_TIME_FOR_CODE
+    return std::shared_ptr<DispatchData>();
+  };
+}
+
+std::shared_ptr<Dispatcher> cropDispatcher(
+    Dispatcher *src,
+      TimeStamp from, TimeStamp to) {
+  return filterChannels(src,
+      &constantlyTrueForCodeAndSource, true,
+      filterByTime(from, to));
+}
+
 std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>>
   mergeDispatchDataMaps(
       const std::map<DataCode, std::map<std::string,
