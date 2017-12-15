@@ -55,16 +55,44 @@ function csvEscape(s) {
   return '"' + s.replace(/"/g, '""') + '"';
 }
 
-function formatNumber(s) {
+function formatNumber(s, decimals) {
   s = s + '';
   if (s.match(/^[ ]*[-]?\d+\.\d+$/)) {
-    var fixed = parseFloat(s).toFixed(2);
+    var fixed = parseFloat(s).toFixed(decimals);
     return fixed.match(/(.*?)\.?0*$/)[1];
   }
   return s;
 }
 
-function sendCsv(res, columns, table) {
+function formatColumnEntry(type, entry) {
+  if (entry === undefined) {
+    return '';
+  }
+
+  switch (type) {
+    case 'longitude':
+    case 'latitude':
+      return entry;
+    case 'awa':
+    case 'twa':
+    case 'gpsBearing':
+    case 'magHdg':
+    case 'twdir':
+      return formatNumber(entry, 1);
+    case 'aws':
+    case 'tws':
+    case 'rudderAngle':
+    case 'waterSpeed':
+    case 'gpsSpeed':
+      return formatNumber(entry, 2);
+    default:
+      console.log('unknown type: ' + type);
+      return formatNumber(entry, 2);
+  }
+}
+
+
+function sendCsv(res, columns, table, columnType) {
   var row = [ "Time" ];
   for (var c in columns) { row[1 + columns[c]] = csvEscape(c); }
   res.write(row.join(', ') + '\n');
@@ -82,7 +110,7 @@ function sendCsv(res, columns, table) {
     row[0] = formatTime(rowDate);
     var tableRow = table[t];
     for (var i = 0; i < numCols; ++i) {
-      row[i + 1] = formatNumber(tableRow[i] !== undefined ? tableRow[i] : ''); 
+      row[i + 1] = formatColumnEntry(columnType[i], tableRow[i]); 
     }
     res.write(row.join(', ') + '\n');
   }
@@ -152,6 +180,7 @@ exports.exportCsv = function(req, res, next) {
 
   var columns = { };
   var table = { };
+  var columnType = { };
 
   var resultSent = false;
 
@@ -168,6 +197,7 @@ exports.exportCsv = function(req, res, next) {
     var endTimeSec = end.getTime() / 1000;
 
     var colno = getColumn(columns, columnTitle);
+    columnType[colno] = tile._id.what;
     for (var i = 0; i < samplesPerTile; ++i) {
       if (tile.count && tile.count[i] > 0) {
         var time = firstTimeSec + i * increment;
@@ -194,7 +224,7 @@ exports.exportCsv = function(req, res, next) {
           res.contentType('text/csv');
           res.header("Content-Disposition", "attachment;filename=" + timeRange + ".csv");
           resultSent = true;
-          sendCsv(res, columns, table);
+          sendCsv(res, columns, table, columnType);
           res.status(200).end();
         }, 1);
       }
