@@ -22,6 +22,9 @@ function formatTime(date, locale) {
   var S = pad(date.getUTCSeconds(), 2);
   var T = [H, M, S].join(':');
 
+  // For now, there is no way for our users to choose a locale.
+  // Because Alinghi needs the 'us' locale to import into KND sailing performance,
+  // the default is 'us'.
   locale = locale || 'us';
 
   // Same time locale as in exportNavs
@@ -65,7 +68,7 @@ function formatNumber(s, decimals) {
 }
 
 function formatColumnEntry(type, entry) {
-  if (entry === undefined) {
+  if (entry == undefined) {
     return '';
   }
 
@@ -78,6 +81,8 @@ function formatColumnEntry(type, entry) {
     case 'gpsBearing':
     case 'magHdg':
     case 'twdir':
+    case 'vmg':
+    case 'targetVmg':
       return formatNumber(entry, 1);
     case 'aws':
     case 'tws':
@@ -86,7 +91,6 @@ function formatColumnEntry(type, entry) {
     case 'gpsSpeed':
       return formatNumber(entry, 2);
     default:
-      console.log('unknown type: ' + type);
       return formatNumber(entry, 2);
   }
 }
@@ -99,12 +103,12 @@ function sendCsv(res, columns, table, columnType) {
   var numCols = row.length;
 
   var times = Object.keys(table);
-  times.sort();
+  times.sort(function(a, b) { return parseInt(a) - parseInt(b); });
 
   for (var time_index = 0 ; time_index < times.length; ++ time_index) {
     var t = times[time_index];
 
-    var rowDate = new Date(+t * 1000);
+    var rowDate = new Date(parseInt(t) * 1000);
 
     row = [];
     row[0] = formatTime(rowDate);
