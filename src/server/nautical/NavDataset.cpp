@@ -176,6 +176,21 @@ std::string NavDataset::boundsAsString() const {
   return result;
 }
 
+template <typename T>
+std::string typedDispatchDataStringSummary(
+    TypedDispatchData<T>* data) {
+  const typename TimedSampleCollection<T>::TimedVector& values = data->dispatcher()->values().samples();
+  if (values.size() == 0) {
+    return "Empty";
+  } else {
+    return stringFormat("%d samples from %s to %s",
+        values.size(),
+        values.front().time.toString().c_str(),
+        values.back().time.toString().c_str());
+  }
+
+}
+
 void NavDataset::outputSummary(std::ostream *dst) const {
   std::stringstream ss;
   *dst << "\n\nNavDataset summary: " << boundsAsString();
@@ -184,13 +199,12 @@ void NavDataset::outputSummary(std::ostream *dst) const {
   { \
     std::vector<std::string> sources = sourcesForChannel(HANDLE); \
     for (std::string& it : sources) { \
-      it += stringFormat("(%d)", \
-              dispatcher()->get<HANDLE>(it)->dispatcher()->values().size()); \
+      it += "  (" + typedDispatchDataStringSummary(dispatcher()->get<HANDLE>(it)) + ")"; \
     } \
     if (sources.size() == 0) { \
       ss << SHORTNAME << " "; \
     } else { \
-      *dst << "\n  * Channel " << SHORTNAME << ": " << join(sources, ", "); \
+      *dst << "\n  * Channel " << SHORTNAME << ": \n  " << join(sources, "\n  "); \
     } \
   }
   FOREACH_CHANNEL(DISP_CHANNEL)
