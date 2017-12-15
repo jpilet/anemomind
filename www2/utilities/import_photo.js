@@ -22,9 +22,17 @@ function checkBoatInDb(boatid) {
 }
 
 function extractDateFromExifData(exifData) {
-  const ymd = exifData[0].gps.GPSDateStamp.split(':');
-  const hms = exifData[0].gps.GPSTimeStamp;
-  console.log(exifData[0].gps.GPSDateStamp + exifData[0].gps.GPSTimeStamp);
+  if (!exifData || !Array.isArray(exifData) || exifData.length < 1
+      || !exifData[0].gps) {
+    console.warn('EXIF data does not contain GPS, and no alternate method '
+                 + ' to extract time has been implemented !');
+    return undefined;
+  }
+
+  const gps = exifData[0].gps;
+  const ymd = gps.GPSDateStamp.split(':');
+  const hms = gps.GPSTimeStamp;
+  console.log(gps.GPSDateStamp + gps.GPSTimeStamp);
   const array = ymd.map(function(x) { return parseInt(x); }).concat(hms);
   array[1] -= 1; // months start at 0, not 1.
   return new Date(Date.UTC.apply(null, array));
