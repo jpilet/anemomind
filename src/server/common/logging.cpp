@@ -50,6 +50,8 @@
 
 using std::string;
 
+namespace sail {
+
 namespace internal {
 
 LogMessage& LogMessage::operator<<(const string& value) {
@@ -150,3 +152,5 @@ void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int
 void SetLogLevelThreshold(LogLevel level) {
   internal::LogLevelThreshold = level;
 }
+
+}  // namespace sail

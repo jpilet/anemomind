@@ -8,6 +8,8 @@
 #include <gtest/gtest.h>
 #include <server/math/PointQuad.h>
 
+using namespace sail;
+
 typedef PointQuad<double, 2> PQ2;
 
 TEST(PointQuadTest, TestMeanAndVariance) {
