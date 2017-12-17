@@ -379,8 +379,8 @@ namespace {
       if (_values.size() > 0) {
         if (verbose) {
           LOG(INFO) << "The source name is still " << source;
+          LOG(INFO) << "The first value is " << _values.front().time.toString();
         }
-        LOG(INFO) << "The first value is " << _values.front().time.toString();
         NavDataset result = ds.addChannel<T>(_code, source, _values);
 
         if (verbose) {

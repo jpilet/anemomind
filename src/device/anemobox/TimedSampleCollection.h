@@ -8,6 +8,7 @@
 #include <server/common/TimedValue.h>
 #include <server/nautical/types/SampledSignal.h>
 #include <iostream>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -104,6 +105,7 @@ template <typename T>
 void TimedSampleCollection<T>::insert(const TimedVector& entries) {
   _samples.insert(_samples.end(), entries.begin(), entries.end());
   sort(_samples.begin(), _samples.end());
+  LOG(INFO) << "The first time is " << _samples.front().time.toString();
   trim();
 }
 
@@ -159,6 +161,8 @@ Optional<T> TimedSampleCollection<T>::nearest(TimeStamp t) const {
 template <typename T>
 void TimedSampleCollection<T>::trim() {
   int toRemove = _samples.size() - _maxBufferLength;
+  LOG(INFO) << "We have samples=" << _samples.size() << " and maxbuflen="
+      << _maxBufferLength << ", so we will remove " << toRemove;
   if (toRemove > 0) {
     _samples.erase(_samples.begin(), _samples.begin() + toRemove);
   }

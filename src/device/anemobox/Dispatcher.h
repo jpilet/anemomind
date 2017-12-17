@@ -329,10 +329,23 @@ class Dispatcher : public Clock {
   void insertValues(DataCode code, const std::string& source,
                     const typename TimedSampleCollection<T>::TimedVector& values) {
     if (!values.empty()) {
+      LOG(INFO) << "Number of values to insert: " << values.size();
+
+      LOG(INFO) << "Already existing for " << source << "?" <<
+          _data[code].count(source);
+
       TypedDispatchData<T>* dispatchData =
         createDispatchDataForSource<T>(code, source, values.size());
 
-      dispatchData->dispatcher()->insert(values);
+      ValueDispatcher<T>* dst = dispatchData->dispatcher();
+      if (code == GPS_BEARING) {
+        LOG(INFO) << "First time to insert is " << values.front().time.toString();
+      }
+      dst->insert(values);
+      if (code == GPS_BEARING) {
+        LOG(INFO) << "After insertion, the first inserted value is "
+            << dst->values().samples().front().time.toString();
+      }
     }
   }
 
@@ -417,10 +430,16 @@ class Dispatcher : public Clock {
       DataCode code, const std::string& source, int size) {
     auto custom = createNewCustomDispatchData(code, source, size);
     if (bool(custom)) {
+      if (code == GPS_BEARING) {
+        LOG(INFO) << "Create the custom one one";
+      }
       auto typed = dynamic_cast<TypedDispatchData<T>*>(custom);
       assert(bool(typed));
       return typed;
     } else {
+      if (code == GPS_BEARING) {
+        LOG(INFO) << "Create the standard one";
+      }
       return new TypedDispatchDataReal<T>(code, source, this, size);
     }
   }
@@ -482,10 +501,16 @@ TypedDispatchData<T>* Dispatcher::createDispatchDataForSource(
 
   TypedDispatchData<T>* dispatchData;
   if (!ptr) {
+    if (code == GPS_BEARING) {
+      LOG(INFO) << "Create a new dispatchdata of size " << size;
+    }
     dispatchData = createNewTypedDispatchData<T>(code, source, size);
     _data[code][source] = std::shared_ptr<DispatchData>(dispatchData);
     newDispatchData(dispatchData);
   } else {
+    /*if (code == GPS_BEARING) {
+      LOG(INFO) << "There is already a dispatch data.";
+    }*/
     dispatchData = dynamic_cast<TypedDispatchData<T>*>(ptr.get());
     // wrong type for this code.
     assert(dispatchData);
