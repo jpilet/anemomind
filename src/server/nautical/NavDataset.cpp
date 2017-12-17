@@ -380,23 +380,41 @@ namespace {
         if (verbose) {
           LOG(INFO) << "The source name is still " << source;
         }
+        LOG(INFO) << "The first value is " << _values.front().time.toString();
         NavDataset result = ds.addChannel<T>(_code, source, _values);
 
         if (verbose) {
           LOG(INFO) << "Got the result";
         }
 
+        if (verbose) {
+          auto samples = result.samples<GPS_BEARING>();
+          LOG(INFO) << "Inserted samples from (BEFORE SOURCE SELECTION)" <<
+              samples.first().time.toString() << " to " <<
+              samples.last().time.toString();
+        }
+
         result.selectSource(_code, source);
         if (verbose) {
           LOG(INFO) << "Add channel and select source";
         }
-        CHECK(!verbose);
+
+        if (verbose) {
+          auto samples = result.samples<GPS_BEARING>();
+          LOG(INFO) << "Inserted samples from (AFTER SOURCE SELECTION) " <<
+              samples.first().time.toString() << " to " <<
+              samples.last().time.toString();
+        }
+
+
+
+        //CHECK(!verbose);
         return result;
       } else {
         if (verbose) {
           LOG(INFO) << "Do nothering";
+          CHECK(false);
         }
-        CHECK(!verbose);
         return ds;
       }
     }
