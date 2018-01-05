@@ -342,7 +342,7 @@ namespace {
     NavDataset addChannel(const NavDataset& ds) {
       std::string source;
       if (sources.size() == 1) {
-        source = *sources.begin();
+        return ds;
       } else {
         source = "mix (";
         source += join(sources, ", ") + ")";

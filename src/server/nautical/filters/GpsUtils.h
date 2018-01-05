@@ -11,11 +11,14 @@
 #include <server/common/TimedValue.h>
 #include <server/nautical/GeographicReference.h>
 #include <server/nautical/NavDataset.h>
+#include <server/common/DOMUtils.h>
 
 namespace sail {
 namespace GpsUtils {
 
-Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(const NavDataset &ds);
+bool includeTime(TimeStamp x);
+Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(
+    const NavDataset &ds);
 
 GeographicPosition<double>
   getReferencePosition(
@@ -27,6 +30,8 @@ GeographicPosition<double>
 
 TimeStamp getReferenceTime(
     const TimedSampleRange<GeographicPosition<double> > &positions);
+
+NavDataset deduplicateGpsPositions(const NavDataset& ds);
 
 }
 }
