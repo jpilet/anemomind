@@ -18,8 +18,7 @@ namespace GpsUtils {
 
 bool includeTime(TimeStamp x);
 Array<TimedValue<HorizontalMotion<double> > > getGpsMotions(
-    const NavDataset &ds,
-    DOM::Node* log = nullptr);
+    const NavDataset &ds);
 
 GeographicPosition<double>
   getReferencePosition(
