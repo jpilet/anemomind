@@ -3,6 +3,7 @@
 #include <third_party/sqlite/sqlite3.h>
 #include <server/common/TimeStamp.h>
 #include <server/nautical/logimport/LogAccumulator.h>
+#include <server/nautical/BoatSpecificHacks.h>
 
 namespace sail {
 
@@ -141,12 +142,14 @@ int gpsQueryCallback(
     char **azColName) {
   auto acc = reinterpret_cast<Acc*>(data);
   CHECK(argc == 4);
-  auto sensorId = sensorIdToSourceString(argv[0]);
+  auto sensorId = argv[0];
+
+  auto src = sensorIdToSourceString(sensorId);
   auto logTime = stringToX<int64_t>(argv[1]);
   auto lat = stringToX<double>(argv[2]);
   auto lon = stringToX<double>(argv[3]);
 
-  acc->dst->_GPS_POSsources[sensorId].push_back({
+  acc->dst->_GPS_POSsources[src].push_back({
     acc->toAbsoluteTime(logTime),
     GeographicPosition<double>(
         Angle<double>::degrees(lon),
@@ -184,7 +187,11 @@ int accumulateCallback(
     char **azColName) {
   auto acc = reinterpret_cast<Acc*>(data);
   CHECK(argc == 3);
-  std::string source = sensorIdToSourceString(argv[0]);
+  auto sensorId = argv[0];
+  /*if (Code == GPS_SPEED && std::string(sensorId) == "20") {
+    return 0;
+  }*/
+  std::string source = sensorIdToSourceString(sensorId);
   auto logTime = stringToX<int64_t>(argv[2]);
   Converter converter;
   auto value = converter(argv[1]);
@@ -277,6 +284,8 @@ bool sailmonDbLoad(const std::string &filename, LogAccumulator *dst) {
     LOG(ERROR) << filename << ": no GPS time information";
     return false;
   }
+
+  hack::motionWeight = 10.0;
 
   accumulateValues<GPS_BEARING, AngleConverter>(db, SM_COURSE_OVER_GROUND_TRUE, &acc);
   accumulateValues<WAT_SPEED, SpeedConverter>(db, SM_SPEED_OVER_WATER, &acc);

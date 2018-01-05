@@ -122,9 +122,24 @@ Array<std::string> getSourceNames(const Dispatcher &d);
 typedef std::function<bool(DataCode, const std::string&)>
   DispatcherChannelFilterFunction;
 
+typedef std::function<
+    std::shared_ptr<DispatchData>(
+        DataCode,std::string,std::shared_ptr<DispatchData>)>
+  DispatcherChannelMapperFunction;
+
+inline std::shared_ptr<DispatchData> identityDispatcherChannelMapper(
+    DataCode, std::string, const std::shared_ptr<DispatchData>& x) {
+  return x;
+}
+
 std::shared_ptr<Dispatcher> filterChannels(Dispatcher *src,
-  DispatcherChannelFilterFunction f, bool includePrios);
+  DispatcherChannelFilterFunction f, bool includePrios,
+  DispatcherChannelMapperFunction tr = &identityDispatcherChannelMapper);
 std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src);
+
+std::shared_ptr<Dispatcher> cropDispatcher(
+    Dispatcher *src,
+      TimeStamp from, TimeStamp to);
 
 
 std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>>
