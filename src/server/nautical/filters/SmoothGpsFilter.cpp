@@ -419,6 +419,7 @@ LocalGpsFilterResults solveGpsSubproblem(
     geoRef, results,
     TimeStamp::now() - start,
     rawLocalPositions,
+    motions,
     curves
   };
 }
