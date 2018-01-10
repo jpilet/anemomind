@@ -553,10 +553,14 @@ angular.module('www2App')
       $window.history[where]();
     };
 
+    $scope.canDownloadCsv = function() {
+      return ($scope.boat && $scope.boat._id
+          && $scope.startTime && $scope.endTime);
+    };
+
     $scope.downloadAsCsvLink = function() {
-      if (!$scope.boat || !$scope.boat._id
-          || !$scope.startTime || !$scope.endTime) {
-        return undefined;
+      if (!$scope.canDownloadCsv()) {
+        return '';
       }
 
       var url = [
@@ -568,5 +572,5 @@ angular.module('www2App')
         url += '?access_token=' + Auth.getToken();
       }
       return url;
-    }();
+    };
 });

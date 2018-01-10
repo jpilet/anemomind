@@ -12,6 +12,7 @@
 #include <server/common/math.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/logimport/CsvLoader.h>
+#include <server/nautical/logimport/SailmonDbLoader.h>
 #include <server/nautical/logimport/SourceGroup.h>
 #include <device/anemobox/DispatcherUtils.h>
 #include <server/common/math.h>
@@ -33,6 +34,8 @@ bool LogLoader::loadFile(const std::string &filename) {
     return true;
   } else if (ext == "log") {
     return ProtobufLogLoader::load(filename, &_acc);
+  } else if (ext == "db") {
+    return sailmonDbLoad(filename, &_acc);
   } else {
     LOG(ERROR) << filename << ": unknown log file extension.";
     return false;
@@ -62,7 +65,7 @@ bool LogLoader::load(const Poco::Path &name) {
       name,
       [&](const Poco::Path &path) {
     std::string ext = toLower(path.getExtension());
-    if (ext == "txt" || ext == "csv" || ext == "log") {
+    if (ext == "txt" || ext == "csv" || ext == "log" || ext == "db") {
       if (!loadFile(path.toString())) {
         if (failCount < 12) { // So that we don't flood the log file if there are many files.
           LOG(ERROR) << "Failed to load log file " << path.toString();

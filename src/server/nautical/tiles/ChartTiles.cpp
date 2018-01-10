@@ -33,7 +33,7 @@ namespace {
 
 template <typename T>
 void downSampleData(int64_t tileno, int zoom,
-                    TypedDispatchData<T>* data,
+                    const TimedSampleCollection<T>& data,
                     const ChartTileSettings& settings,
                     const map<int64_t, ChartTile<T>>* prevZoomTiles,
                     ChartTile<T> *result) {
@@ -88,7 +88,7 @@ void downSampleData(int64_t tileno, int zoom,
     }
   } else {
     // build from data
-    const std::deque<TimedValue<T>>& values = data->dispatcher()->values().samples();
+    const std::deque<TimedValue<T>>& values = data.samples();
     auto firstOfTile = std::lower_bound(values.begin(), values.end(),
                                         tileBeginTime(tileno, zoom));
     auto firstAfterTile = std::lower_bound(values.begin(), values.end(),
@@ -120,10 +120,29 @@ void downSampleData(int64_t tileno, int zoom,
   }
 }
 
+struct TileMetaData {
+  std::string what;
+  std::string source;
+
+  TileMetaData() {}
+  TileMetaData(const std::string& w, const std::string& src)
+    : what(w), source(src) {}
+
+  bool defined() const {
+    return !what.empty();
+  }
+
+  TileMetaData(DispatchData* x)
+    : what(x->wordIdentifier()),
+      source(x->source()) {}
+};
+
 template<class T>
 std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
                      const std::string& boatId,
-                     const DispatchData* data) {
+                     const TileMetaData& data) {
+  CHECK(data.defined());
+
   if (tile.samples.size() == 0) {
     return std::shared_ptr<bson_t>();
   }
@@ -146,8 +165,8 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
     BSON_APPEND_OID(&key, "boat", &oid);
     BSON_APPEND_INT32(&key, "zoom", tile.zoom);
     BSON_APPEND_INT64(&key, "tileno", (long long) tile.tileno);
-    bsonAppend(&key, "what", data->wordIdentifier());
-    bsonAppend(&key, "source", data->source());
+    bsonAppend(&key, "what", data.what);
+    bsonAppend(&key, "source", data.source);
   }
 
   StatArrays arrays;
@@ -166,7 +185,7 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
 
 template<class T>
 bool uploadChartTile(const ChartTile<T> tile,
-                     const DispatchData* data,
+                     const TileMetaData& data,
                      const std::string& boatId,
                      const ChartTileSettings& settings,
                      BulkInserter *inserter) {
@@ -181,6 +200,29 @@ bool uploadChartTile(const ChartTile<T> tile,
   }
 }
 
+template <typename T>
+struct ValuesWithMetaData {
+  TileMetaData metadata;
+  TimedSampleCollection<T> values;
+};
+
+struct LonAndLatValues {
+  ValuesWithMetaData<Angle<double>> lon, lat;
+};
+
+LonAndLatValues splitGeoPositions(
+    const TypedDispatchData<GeographicPosition<double>>* src) {
+  LonAndLatValues dst;
+  dst.lat.metadata = TileMetaData("latitude", src->source());
+  dst.lon.metadata = TileMetaData("longitude", src->source());
+  const auto& values = src->dispatcher()->values();
+  for (auto x: values) {
+    dst.lat.values.append(x.time, x.value.lat());
+    dst.lon.values.append(x.time, x.value.lon());
+  }
+  return dst;
+}
+
 class UploadChartTilesVisitor : public DispatchDataVisitor {
  public:
   UploadChartTilesVisitor(const std::string& boatId,
@@ -189,8 +231,9 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
     : _boatId(boatId), _settings(settings), _inserter(inserter), _result(true) { }
 
   template<class T>
-  void makeTiles(TypedDispatchData<T> *data) {
-    const TimedSampleCollection<T>& values = data->dispatcher()->values();
+  void makeTiles(
+      const TileMetaData& tileMetaData,
+      const TimedSampleCollection<T>& values) {
     if (values.size() == 0) {
       // nothing to do on empty collections.
       return;
@@ -213,13 +256,15 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
 
       for (int64_t tileno = firstTile; tileno <= lastTile; ++tileno) {
         ChartTile<T> tile;
-        downSampleData(tileno, zoom, data, _settings,
+        downSampleData(tileno, zoom, values, _settings,
                        (zoom == _settings.lowestZoomLevel ?
                            nullptr : &prevZoomTiles),
                        &tile);
         if (!tile.empty()) {
           tiles[tileno] = tile;
-          if (!uploadChartTile(tiles[tileno], data, _boatId, _settings, _inserter)) {
+          if (!uploadChartTile(
+              tiles[tileno], tileMetaData, _boatId,
+              _settings, _inserter)) {
             _result = false;
             return;
           }
@@ -232,10 +277,28 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
     }
   }
 
-  virtual void run(DispatchAngleData *angle) { makeTiles(angle); }
-  virtual void run(DispatchVelocityData *velocity) { makeTiles(velocity); }
-  virtual void run(DispatchLengthData *length) { makeTiles(length); }
-  virtual void run(DispatchGeoPosData *pos) { /* nothing for pos */ }
+  template<class T>
+  void makeTilesFromDispatcher(
+      TypedDispatchData<T>* data) {
+    makeTiles(
+        TileMetaData(data),
+        data->dispatcher()->values());
+  }
+
+  virtual void run(DispatchAngleData *angle) {
+    makeTilesFromDispatcher(angle);
+  }
+  virtual void run(DispatchVelocityData *velocity) {
+    makeTilesFromDispatcher(velocity);
+  }
+  virtual void run(DispatchLengthData *length) {
+    makeTilesFromDispatcher(length);
+  }
+  virtual void run(DispatchGeoPosData *pos) {
+    auto s = splitGeoPositions(pos);
+    makeTiles<Angle<double>>(s.lon.metadata, s.lon.values);
+    makeTiles<Angle<double>>(s.lat.metadata, s.lat.values);
+  }
   virtual void run(DispatchTimeStampData *timestamp) { /* nothing */ }
   virtual void run(DispatchAbsoluteOrientationData *orient) { /* TODO */ }
   virtual void run(DispatchBinaryEdge *binary) { /* nothing */ }
