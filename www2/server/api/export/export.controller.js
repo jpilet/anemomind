@@ -10,13 +10,33 @@ function pad(num, size) {
   return s;
 }
 
+function formatTime(date, locale) {
+  // the letters follow strftime convention
+  var Y = date.getUTCFullYear();
+  var m = pad(date.getUTCMonth() + 1, 2);
+  var d = pad(date.getUTCDate(), 2);
+  var H = pad(date.getUTCHours(), 2);
+  var I = pad((H > 12 ? H - 12 : H), 2);
+  var p = (H > 12 ? 'pm' : 'am');
+  var M = pad(date.getUTCMinutes(), 2);
+  var S = pad(date.getUTCSeconds(), 2);
+  var T = [H, M, S].join(':');
 
-function formatTime(d) {
-  // TODO: handle timezones
-  //return d.toISOString();
-  return [d.getFullYear(), pad(d.getMonth() + 1, 2), d.getDate()].join('-')
-   + ' '
-   + [pad(d.getHours(), 2), pad(d.getMinutes(), 2), pad(d.getSeconds(), 2)].join(':');
+  // For now, there is no way for our users to choose a locale.
+  // Because Alinghi needs the 'us' locale to import into KND sailing performance,
+  // the default is 'us'.
+  locale = locale || 'us';
+
+  // Same time locale as in exportNavs
+  if (locale == 'us') {
+    return [m, d, Y].join('/') + ' ' + [I, M, S].join(':') + ' ' + p;
+  } else if (locale == 'fr') {
+    return [d, m, Y].join('.') + ' ' + T;
+  } else {
+    // iso locale
+    // use it also in case of unknown locale.
+    return [Y, m, d].join('-') + 'T' + T + 'Z';
+  }
 }
 
 function getColumn (columns, title) {
@@ -35,28 +55,66 @@ function getRow(table, timeSec) {
 }
 
 function csvEscape(s) {
-  return '"' + s.replace(/"/g, '""') + '"';
+  return '"' + s.replace(/"/g, '""').replace(/,/g,';') + '"';
 }
 
-function sendCsv(res, columns, table) {
-  var row = [ "Time" ];
+function formatNumber(s, decimals) {
+  s = s + '';
+  if (s.match(/^[ ]*[-]?\d+\.\d+$/)) {
+    var fixed = parseFloat(s).toFixed(decimals);
+    return fixed.match(/(.*?)\.?0*$/)[1];
+  }
+  return s;
+}
+
+function formatColumnEntry(type, entry) {
+  if (entry == undefined) {
+    return '';
+  }
+
+  switch (type) {
+    case 'longitude':
+    case 'latitude':
+      return entry;
+    case 'awa':
+    case 'twa':
+    case 'gpsBearing':
+    case 'magHdg':
+    case 'twdir':
+    case 'vmg':
+    case 'targetVmg':
+      return formatNumber(entry, 1);
+    case 'aws':
+    case 'tws':
+    case 'rudderAngle':
+    case 'waterSpeed':
+    case 'gpsSpeed':
+      return formatNumber(entry, 2);
+    default:
+      return formatNumber(entry, 2);
+  }
+}
+
+
+function sendCsv(res, columns, table, columnType) {
+  var row = [ "DATE/TIME(UTC)" ];
   for (var c in columns) { row[1 + columns[c]] = csvEscape(c); }
-  res.write(row.join(', ') + '\n');
+  res.write(row.join(',') + '\n');
   var numCols = row.length;
 
   var times = Object.keys(table);
-  times.sort();
+  times.sort(function(a, b) { return parseInt(a) - parseInt(b); });
 
   for (var time_index = 0 ; time_index < times.length; ++ time_index) {
     var t = times[time_index];
 
-    var rowDate = new Date(+t * 1000);
+    var rowDate = new Date(parseInt(t) * 1000);
 
     row = [];
     row[0] = formatTime(rowDate);
     var tableRow = table[t];
     for (var i = 0; i < numCols; ++i) {
-      row[i + 1] = (tableRow[i] !== undefined ? tableRow[i] : ''); 
+      row[i + 1] = formatColumnEntry(columnType[i], tableRow[i]); 
     }
     res.write(row.join(', ') + '\n');
   }
@@ -126,6 +184,7 @@ exports.exportCsv = function(req, res, next) {
 
   var columns = { };
   var table = { };
+  var columnType = { };
 
   var resultSent = false;
 
@@ -138,13 +197,18 @@ exports.exportCsv = function(req, res, next) {
     // increment between samples in s
     var increment = (1 << tile._id.zoom) / samplesPerTile;
     var firstTimeSec = Math.floor(firstTime / 1000);
+    var startTimeSec = start.getTime() / 1000;
+    var endTimeSec = end.getTime() / 1000;
 
     var colno = getColumn(columns, columnTitle);
+    columnType[colno] = tile._id.what;
     for (var i = 0; i < samplesPerTile; ++i) {
       if (tile.count && tile.count[i] > 0) {
         var time = firstTimeSec + i * increment;
-        var row = getRow(table, time);
-        row[colno] = tile.mean[i];
+        if (time > startTimeSec && time < endTimeSec) {
+          var row = getRow(table, time);
+          row[colno] = tile.mean[i];
+        }
       }
     }
 
@@ -164,7 +228,7 @@ exports.exportCsv = function(req, res, next) {
           res.contentType('text/csv');
           res.header("Content-Disposition", "attachment;filename=" + timeRange + ".csv");
           resultSent = true;
-          sendCsv(res, columns, table);
+          sendCsv(res, columns, table, columnType);
           res.status(200).end();
         }, 1);
       }

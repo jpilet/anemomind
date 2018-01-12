@@ -26,8 +26,8 @@
                 <i class="anemomind-icon">&nbsp;</i>
               </button>
             </div>
-            <a ng-if="downloadAsCsvLink" target="_blank"
-               ng-href="{{ downloadAsCsvLink }}"><i
+            <a ng-if="canDownloadCsv()" target="_blank"
+               ng-href="{{ downloadAsCsvLink() }}"><i
                 class="anemomind-icon download-csv button-round fa fa-file-o" title="Download as CSV"></i></a>
             <i class="anemomind-icon cut-before" ng-click="cutBefore()" title="Cut Before" show-boat="boat">&nbsp;</i>
             <i class="anemomind-icon cut-after" ng-click="cutAfter()" title="Cut After" show-boat="boat">&nbsp;</i>
