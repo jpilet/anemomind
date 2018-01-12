@@ -130,6 +130,16 @@ Although this will not perform any correctness checks in particular, a great dea
 
 If you used the second example for starting mongodb indirectly using grunt ```grunt serve:dev```, the result will be visible on http://localhost:9000.
 
+
+# Running in interactive shell ROOT
+
+Install CERN's ROOT. On mac, do it with: ```sudo port install root6```
+Then got to the build folder and type:
+```make root```
+
+To check that it worked, you can type:
+```NavDataset().outputSummary(&std::cout)```
+
 ## Platform specific notes
 
 ### Mac OSX
