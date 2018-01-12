@@ -23,6 +23,7 @@
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/grammars/TreeExplorer.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/tiles/ChartTiles.h>
@@ -336,9 +337,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   if (_resumeAfterPrepare.size() > 0) {
     current = LogLoader::loadNavDataset(_resumeAfterPrepare);
   } else {
-    NavDataset loaded = loadNavs(*amap, _boatid);
-    hack::SelectSources(&loaded);
-    current = removeStrangeGpsPositions(loaded);
+    current = loadNavs(*amap, _boatid);
+    hack::SelectSources(&current);
+    current = GpsUtils::deduplicateGpsPositions(current);
+    current = removeStrangeGpsPositions(current);
     infoNavDataset("After loading", current);
 
     auto minGpsSamplingPeriod = 0.01_s; // Should be enough, right?

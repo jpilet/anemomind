@@ -34,6 +34,7 @@ struct LocalGpsFilterResults {
   Curve2dFilter::Results filterResults;
   Duration<double> computationTime;
   Array<TimedValue<Curve2dFilter::Vec2<Length<double>>>> rawLocalPositions;
+  Array<TimedValue<HorizontalMotion<double>>> rawLocalMotions;
   Array<Curve> curves;
 
   bool empty() const {return curves.empty();}
