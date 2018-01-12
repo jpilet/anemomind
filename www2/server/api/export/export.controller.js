@@ -55,7 +55,7 @@ function getRow(table, timeSec) {
 }
 
 function csvEscape(s) {
-  return '"' + s.replace(/"/g, '""') + '"';
+  return '"' + s.replace(/"/g, '""').replace(/,/g,';') + '"';
 }
 
 function formatNumber(s, decimals) {
@@ -97,9 +97,9 @@ function formatColumnEntry(type, entry) {
 
 
 function sendCsv(res, columns, table, columnType) {
-  var row = [ "Time" ];
+  var row = [ "DATE/TIME(UTC)" ];
   for (var c in columns) { row[1 + columns[c]] = csvEscape(c); }
-  res.write(row.join(', ') + '\n');
+  res.write(row.join(',') + '\n');
   var numCols = row.length;
 
   var times = Object.keys(table);
