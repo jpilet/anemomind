@@ -75,3 +75,33 @@ TEST(GpsUtilsTest, TestSomeFunctions) {
   auto refTime = GpsUtils::getReferenceTime(positions);
   EXPECT_NEAR((refTime - offset).seconds(), 1.0, 1.0e-6);
 }
+
+bool operator==(const TimedValue<GeoPos>& a, const TimedValue<GeoPos>& b) {
+  return a.time == b.time && a.value == b.value;
+}
+
+TEST(GpsUtilsTest, Deduplication) {
+  //GeoPos(34.0*degrees, 23.0*degrees, 0.4*meters)
+  auto dispatcher = std::make_shared<Dispatcher>();
+
+  auto a = TimedValue<GeoPos>{offset + 0.0_s, GeoPos(3.4_deg, 90.0_deg, 0.0_m)}; // I
+  auto b = TimedValue<GeoPos>{offset + 0.1_s, GeoPos(3.4_deg, 90.0_deg, 0.0_m)};
+  auto c = TimedValue<GeoPos>{offset + 9.0_s, GeoPos(3.4_deg, 90.0_deg, 0.0_m)}; // I
+  auto d = TimedValue<GeoPos>{offset + 9.0_s, GeoPos(3.4_deg, 91.0_deg, 0.0_m)}; // I
+  auto e = TimedValue<GeoPos>{offset + 9.1_s, GeoPos(3.4_deg, 91.0_deg, 0.0_m)};
+  auto f = TimedValue<GeoPos>{offset + 20.0_s, GeoPos(3.4_deg, 91.0_deg, 0.0_m)}; // I
+
+  dispatcher->insertValues<GeoPos>(
+      GPS_POS, src,
+      TimedSampleCollection<GeoPos>::TimedVector{a, b, c, d, e, f});
+  auto deduped = GpsUtils::deduplicateGpsPositions(NavDataset(dispatcher));
+  auto data0 = deduped.dispatcher()->dispatchDataForSource(GPS_POS, src);
+  auto data = toTypedDispatchData<GPS_POS>(data0.get());
+  const auto& samples = data->dispatcher()->values().samples();
+  EXPECT_EQ(samples.size(), 4);
+
+  EXPECT_TRUE(samples[0] == a); // EXPECT_EQ does not work here, for some reason
+  EXPECT_TRUE(samples[1] == c);
+  EXPECT_TRUE(samples[2] == d);
+  EXPECT_TRUE(samples[3] == f);
+}

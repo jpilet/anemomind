@@ -404,8 +404,11 @@ namespace {
   class FilterVisitor {
    public:
     FilterVisitor(Dispatcher *src,
-        DispatcherChannelFilterFunction f, bool includePrios) :
-        _src(src), _dst(new Dispatcher()), _f(f), _includePrios(includePrios) {}
+        DispatcherChannelFilterFunction f, bool includePrios,
+        DispatcherChannelMapperFunction transform) :
+        _src(src), _dst(new Dispatcher()), _f(f),
+        _includePrios(includePrios),
+        _transform(transform) {}
 
     template <DataCode Code, typename T>
     void visit(const char *shortName, const std::string &sourceName,
@@ -413,7 +416,7 @@ namespace {
       const TimedSampleCollection<T> &coll) {
       bool x = _f(Code, sourceName);
       if (x) {
-        _dst->set(Code, sourceName, raw);
+        _dst->set(Code, sourceName, _transform(Code, sourceName, raw));
       }
       if (x || _includePrios) {
         _dst->setSourcePriority(sourceName, _src->sourcePriority(sourceName));
@@ -423,6 +426,7 @@ namespace {
     Dispatcher *get() {return _dst;}
    private:
     DispatcherChannelFilterFunction _f;
+    DispatcherChannelMapperFunction _transform;
     Dispatcher *_src, *_dst;
     bool _includePrios;
   };
@@ -430,8 +434,9 @@ namespace {
 
 
 std::shared_ptr<Dispatcher> filterChannels(Dispatcher *src,
-  DispatcherChannelFilterFunction f, bool includePrios) {
-  FilterVisitor v(src, f, includePrios);
+  DispatcherChannelFilterFunction f, bool includePrios,
+  DispatcherChannelMapperFunction tr) {
+  FilterVisitor v(src, f, includePrios, tr);
   visitDispatcherChannels(src, &v);
   return std::shared_ptr<Dispatcher>(v.get());
 }

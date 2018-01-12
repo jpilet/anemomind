@@ -28,6 +28,8 @@ GeographicPosition<double>
 TimeStamp getReferenceTime(
     const TimedSampleRange<GeographicPosition<double> > &positions);
 
+NavDataset deduplicateGpsPositions(const NavDataset& ds);
+
 }
 }
 
