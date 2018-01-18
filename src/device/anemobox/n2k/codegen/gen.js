@@ -451,6 +451,7 @@ function makeVisitorDeclaration(pgns) {
   var multiDefs = getMultiDefs(defMap);
   var s = [
     '\n\n',
+    'int pgnSize(int pgn); // If greater than 8, encode as FastPacket.',
     'class PgnVisitor : FastPacketBuffer {',
     ' public:',
     [
