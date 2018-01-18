@@ -928,7 +928,8 @@ function makeFieldAssignment(field, depth) {
 function makeEncodeFieldStatement(field) {
   var bits = getBitLength(field);
   if (skipField(field)) {
-    return "dst.skipBits(" + bits + ", true); // TODO: Can we safely do this?";
+    return "dst.skipBits(" + bits + ", true); // TODO: "
+      + "Can we safely do this? The field name is '" + field.Name + "'";
   } else {
     var valueExpr = getInstanceVariableName(field);
     var signed = isSigned(field);

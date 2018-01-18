@@ -1,4 +1,4 @@
-/** Generated on Thu Jan 18 2018 18:28:22 GMT+0100 (CET) using 
+/** Generated on Thu Jan 18 2018 18:32:45 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -96,7 +96,7 @@ namespace PgnClasses {
       dst.pushUnsigned(8, _groupFunctionCode);
       dst.pushUnsigned(8, _maxPackets);
       dst.pushUnsigned(8, _nextSid);
-      dst.skipBits(16, true); // TODO: Can we safely do this?
+      dst.skipBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushUnsigned(24, _pgn);
     return dst.data();
   }
@@ -129,7 +129,7 @@ namespace PgnClasses {
       dst.pushUnsigned(8, _groupFunctionCode);
       dst.pushUnsigned(16, _totalMessageSize);
       dst.pushUnsigned(8, _totalNumberOfPacketsReceived);
-      dst.skipBits(8, true); // TODO: Can we safely do this?
+      dst.skipBits(8, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushUnsigned(24, _pgn);
     return dst.data();
   }
@@ -162,7 +162,7 @@ namespace PgnClasses {
       dst.pushUnsigned(8, _groupFunctionCode);
       dst.pushUnsigned(16, _messageSize);
       dst.pushUnsigned(8, _packets);
-      dst.skipBits(8, true); // TODO: Can we safely do this?
+      dst.skipBits(8, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushUnsigned(24, _pgn);
     return dst.data();
   }
@@ -193,7 +193,7 @@ namespace PgnClasses {
     N2kField::N2kFieldOutputStream dst;
       dst.pushUnsigned(8, _groupFunctionCode);
       dst.pushUnsigned(8, _reason);
-      dst.skipBits(16, true); // TODO: Can we safely do this?
+      dst.skipBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushUnsigned(24, _pgn);
     return dst.data();
   }
@@ -225,7 +225,7 @@ namespace PgnClasses {
     N2kField::N2kFieldOutputStream dst;
       dst.pushUnsigned(8, _sid);
       dst.pushUnsigned(4, _source.cast<uint64_t>());
-      dst.skipBits(4, true); // TODO: Can we safely do this?
+      dst.skipBits(4, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
       dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
     return dst.data();
@@ -258,7 +258,7 @@ namespace PgnClasses {
     N2kField::N2kFieldOutputStream dst;
       dst.pushUnsigned(8, _instance);
       dst.pushUnsigned(2, _directionOrder);
-      dst.skipBits(6, true); // TODO: Can we safely do this?
+      dst.skipBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _angleOrder);
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _position);
     return dst.data();
@@ -439,10 +439,10 @@ namespace PgnClasses {
     N2kField::N2kFieldOutputStream dst;
       dst.pushUnsigned(8, _sid);
       dst.pushUnsigned(2, _cogReference.cast<uint64_t>());
-      dst.skipBits(6, true); // TODO: Can we safely do this?
+      dst.skipBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _cog);
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _sog);
-      dst.skipBits(16, true); // TODO: Can we safely do this?
+      dst.skipBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
     return dst.data();
   }
 
@@ -491,14 +491,14 @@ namespace PgnClasses {
       dst.pushUnsigned(4, _gnssType.cast<uint64_t>());
       dst.pushUnsigned(4, _method.cast<uint64_t>());
       dst.pushUnsigned(2, _integrity.cast<uint64_t>());
-      dst.skipBits(6, true); // TODO: Can we safely do this?
+      dst.skipBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushUnsigned(8, _numberOfSvs);
       dst.pushSigned(16, 0, _hdop);
       dst.pushSigned(16, 0, _pdop);
       dst.pushPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0, _geoidalSeparation);
       dst.pushUnsigned(8, _referenceStations);
       dst.pushUnsigned(4, _referenceStationType.cast<uint64_t>());
-      dst.skipBits(12, true); // TODO: Can we safely do this?
+      dst.skipBits(12, true); // TODO: Can we safely do this? The field name is 'Reference Station ID'
       dst.pushPhysicalQuantity(false, 0.01, sail::Duration<double>::seconds(1.0), 16, 0, _ageOfDgnssCorrections);
     return dst.data();
   }
@@ -593,7 +593,7 @@ namespace PgnClasses {
     N2kField::N2kFieldOutputStream dst;
       dst.pushUnsigned(4, _dataMode.cast<uint64_t>());
       dst.pushUnsigned(2, _cogReference.cast<uint64_t>());
-      dst.skipBits(2, true); // TODO: Can we safely do this?
+      dst.skipBits(2, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushUnsigned(8, _sid);
       dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _cog);
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _sog);
