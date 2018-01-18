@@ -1,4 +1,4 @@
-/** Generated on Thu Jan 18 2018 17:46:45 GMT+0100 (CET) using 
+/** Generated on Thu Jan 18 2018 17:59:48 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -31,8 +31,8 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolDataTransfer::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushBytes(56, _data);
     return dst.data();
   }
 
@@ -60,11 +60,11 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementRequestToSend::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(16, _messageSize);
+      dst.pushUnsigned(8, _packets);
+      dst.pushUnsigned(8, _packetsReply);
+      dst.pushUnsigned(24, _pgn);
     return dst.data();
   }
 
@@ -93,11 +93,11 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementClearToSend::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(8, _maxPackets);
+      dst.pushUnsigned(8, _nextSid);
       dst.skipBits(16, true); // TODO: Can we safely do this?
-      // TODO
+      dst.pushUnsigned(24, _pgn);
     return dst.data();
   }
 
@@ -126,11 +126,11 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementEndOfMessage::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(16, _totalMessageSize);
+      dst.pushUnsigned(8, _totalNumberOfPacketsReceived);
       dst.skipBits(8, true); // TODO: Can we safely do this?
-      // TODO
+      dst.pushUnsigned(24, _pgn);
     return dst.data();
   }
 
@@ -159,11 +159,11 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementBroadcastAnnounce::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(16, _messageSize);
+      dst.pushUnsigned(8, _packets);
       dst.skipBits(8, true); // TODO: Can we safely do this?
-      // TODO
+      dst.pushUnsigned(24, _pgn);
     return dst.data();
   }
 
@@ -191,10 +191,10 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementAbort::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(8, _reason);
       dst.skipBits(16, true); // TODO: Can we safely do this?
-      // TODO
+      dst.pushUnsigned(24, _pgn);
     return dst.data();
   }
 
@@ -223,11 +223,11 @@ namespace PgnClasses {
   std::vector<uint8_t> SystemTime::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushUnsigned(4, _source.cast<uint64_t>());
       dst.skipBits(4, true); // TODO: Can we safely do this?
-      // TODO
-      // TODO
+      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
     return dst.data();
   }
 
@@ -256,11 +256,11 @@ namespace PgnClasses {
   std::vector<uint8_t> Rudder::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _instance);
+      dst.pushUnsigned(2, _directionOrder);
       dst.skipBits(6, true); // TODO: Can we safely do this?
-      // TODO
-      // TODO
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _angleOrder);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _position);
     return dst.data();
   }
 
@@ -288,11 +288,11 @@ namespace PgnClasses {
   std::vector<uint8_t> VesselHeading::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _heading);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _deviation);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _variation);
+      dst.pushUnsigned(2, _reference.cast<uint64_t>());
     return dst.data();
   }
 
@@ -317,8 +317,8 @@ namespace PgnClasses {
   std::vector<uint8_t> RateOfTurn::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(true, 3.125e-08, (sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0)), 32, 0, _rate);
     return dst.data();
   }
 
@@ -345,10 +345,10 @@ namespace PgnClasses {
   std::vector<uint8_t> Attitude::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _yaw);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _pitch);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _roll);
     return dst.data();
   }
 
@@ -376,11 +376,11 @@ namespace PgnClasses {
   std::vector<uint8_t> Speed::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _speedWaterReferenced);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _speedGroundReferenced);
+      dst.pushUnsigned(8, _speedWaterReferencedType.cast<uint64_t>());
+      dst.pushUnsigned(4, _speedDirection);
     return dst.data();
   }
 
@@ -405,8 +405,8 @@ namespace PgnClasses {
   std::vector<uint8_t> PositionRapidUpdate::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
+      dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, _latitude);
+      dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, _longitude);
     return dst.data();
   }
 
@@ -437,11 +437,11 @@ namespace PgnClasses {
   std::vector<uint8_t> CogSogRapidUpdate::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushUnsigned(2, _cogReference.cast<uint64_t>());
       dst.skipBits(6, true); // TODO: Can we safely do this?
-      // TODO
-      // TODO
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _cog);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _sog);
       dst.skipBits(16, true); // TODO: Can we safely do this?
     return dst.data();
   }
@@ -482,24 +482,24 @@ namespace PgnClasses {
   std::vector<uint8_t> GnssPositionData::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
+      dst.pushPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0, _latitude);
+      dst.pushPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0, _longitude);
+      dst.pushPhysicalQuantity(true, 1e-06, sail::Length<double>::meters(1.0), 64, 0, _altitude);
+      dst.pushUnsigned(4, _gnssType.cast<uint64_t>());
+      dst.pushUnsigned(4, _method.cast<uint64_t>());
+      dst.pushUnsigned(2, _integrity.cast<uint64_t>());
       dst.skipBits(6, true); // TODO: Can we safely do this?
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _numberOfSvs);
+      dst.pushSigned(16, 0, _hdop);
+      dst.pushSigned(16, 0, _pdop);
+      dst.pushPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0, _geoidalSeparation);
+      dst.pushUnsigned(8, _referenceStations);
+      dst.pushUnsigned(4, _referenceStationType.cast<uint64_t>());
       dst.skipBits(12, true); // TODO: Can we safely do this?
-      // TODO
+      dst.pushPhysicalQuantity(false, 0.01, sail::Duration<double>::seconds(1.0), 16, 0, _ageOfDgnssCorrections);
     return dst.data();
   }
 
@@ -525,9 +525,9 @@ namespace PgnClasses {
   std::vector<uint8_t> TimeDate::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
+      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
+      dst.pushPhysicalQuantity(true, 1, sail::Duration<double>::minutes(1.0), 16, 0, _localOffset);
     return dst.data();
   }
 
@@ -554,10 +554,10 @@ namespace PgnClasses {
   std::vector<uint8_t> WindData::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _windSpeed);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _windAngle);
+      dst.pushUnsigned(3, _reference.cast<uint64_t>());
     return dst.data();
   }
 
@@ -591,16 +591,16 @@ namespace PgnClasses {
   std::vector<uint8_t> DirectionData::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO
-      // TODO
+      dst.pushUnsigned(4, _dataMode.cast<uint64_t>());
+      dst.pushUnsigned(2, _cogReference.cast<uint64_t>());
       dst.skipBits(2, true); // TODO: Can we safely do this?
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
-      // TODO
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _cog);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _sog);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _heading);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _speedThroughWater);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _set);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _drift);
     return dst.data();
   }
 

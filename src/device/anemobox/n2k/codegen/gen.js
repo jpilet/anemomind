@@ -925,11 +925,31 @@ function makeFieldAssignment(field, depth) {
 }
 
 function makeEncodeFieldStatement(field) {
-  var bitLength = getBitLength(field);
+  var bits = getBitLength(field);
   if (skipField(field)) {
-    return "dst.skipBits(" + bitLength + ", true); // TODO: Can we safely do this?";
+    return "dst.skipBits(" + bits + ", true); // TODO: Can we safely do this?";
   } else {
-    return "// TODO";
+    var valueExpr = getInstanceVariableName(field);
+    var signed = isSigned(field);
+    var signedExpr = boolToString(signed);
+    var offset = getOffset(field);
+    if (isPhysicalQuantity(field)) {
+      var info = getUnitInfo(field);
+      return "dst.pushPhysicalQuantity(" 
+        + signedExpr + ", " + getResolution(field) 
+        + ", " + info.unit + ", " + bits + ", " + offset + ", " + valueExpr + ");";
+    } else if (isLookupTable(field)) {
+      return "dst.pushUnsigned(" 
+        + bits + ", " + valueExpr + ".cast<uint64_t>());" 
+    } else if (isData(field)) {
+      assert(bits % 8 == 0, 
+             "Cannot write bytes, because the number of bits is not a multiple of 8.");
+      return "dst.pushBytes(" + bits + ", " + valueExpr + ");"
+    } else { // Something else.
+      return (signed? "dst.pushSigned(" : "dst.pushUnsigned(")
+        + bits + (signed? ", " + offset : "") 
+        + ", " + valueExpr + ");";
+    }
   }
 }
 

@@ -200,5 +200,23 @@ void N2kFieldOutputStream::pushDouble(
   }
 }
 
+void N2kFieldOutputStream::pushBytes(
+    int bits, const Optional<sail::Array<uint8_t>>& bytes0) {
+  if (bytes0.defined()) {
+    auto bytes = bytes0.get();
+    if (bits == 8*bytes.size()) {
+      for (auto x: bytes) {
+        _dst.pushUnsigned(8, x);
+      }
+    } else {
+      // Output warning here?
+      skipBits(bits, true);
+    }
+  } else {
+    // Output warning here?
+    skipBits(bits, true);
+  }
+}
+
 
 }
