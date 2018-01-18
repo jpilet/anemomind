@@ -925,7 +925,12 @@ function makeFieldAssignment(field, depth) {
 }
 
 function makeEncodeFieldStatement(field) {
-  return "// TODO: Encode field";
+  var bitLength = getBitLength(field);
+  if (skipField(field)) {
+    return "dst.skipBits(" + bitLength + ", true); // TODO: Can we safely do this?";
+  } else {
+    return "// TODO";
+  }
 }
 
 function getTotalBitLength(fields) {

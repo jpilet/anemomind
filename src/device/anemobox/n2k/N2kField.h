@@ -89,6 +89,8 @@ public:
 
   void writeBytes(const sail::Array<uint8_t>& bytes);
   const std::vector<uint8_t>& data() const {return _dst.data();}
+
+  void skipBits(int n, bool fillValue) {_dst.skipBits(n, fillValue);}
 private:
   BitOutputStream _dst;
 };

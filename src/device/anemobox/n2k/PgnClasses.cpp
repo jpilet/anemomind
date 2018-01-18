@@ -1,4 +1,4 @@
-/** Generated on Thu Jan 18 2018 17:40:26 GMT+0100 (CET) using 
+/** Generated on Thu Jan 18 2018 17:46:45 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -31,8 +31,8 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolDataTransfer::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -60,11 +60,11 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementRequestToSend::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -93,11 +93,11 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementClearToSend::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
+      dst.skipBits(16, true); // TODO: Can we safely do this?
+      // TODO
     return dst.data();
   }
 
@@ -126,11 +126,11 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementEndOfMessage::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
+      dst.skipBits(8, true); // TODO: Can we safely do this?
+      // TODO
     return dst.data();
   }
 
@@ -159,11 +159,11 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementBroadcastAnnounce::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
+      dst.skipBits(8, true); // TODO: Can we safely do this?
+      // TODO
     return dst.data();
   }
 
@@ -191,10 +191,10 @@ namespace PgnClasses {
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementAbort::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      dst.skipBits(16, true); // TODO: Can we safely do this?
+      // TODO
     return dst.data();
   }
 
@@ -223,11 +223,11 @@ namespace PgnClasses {
   std::vector<uint8_t> SystemTime::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      dst.skipBits(4, true); // TODO: Can we safely do this?
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -256,11 +256,11 @@ namespace PgnClasses {
   std::vector<uint8_t> Rudder::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      dst.skipBits(6, true); // TODO: Can we safely do this?
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -288,11 +288,11 @@ namespace PgnClasses {
   std::vector<uint8_t> VesselHeading::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -317,8 +317,8 @@ namespace PgnClasses {
   std::vector<uint8_t> RateOfTurn::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -345,10 +345,10 @@ namespace PgnClasses {
   std::vector<uint8_t> Attitude::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -376,11 +376,11 @@ namespace PgnClasses {
   std::vector<uint8_t> Speed::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -405,8 +405,8 @@ namespace PgnClasses {
   std::vector<uint8_t> PositionRapidUpdate::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -437,12 +437,12 @@ namespace PgnClasses {
   std::vector<uint8_t> CogSogRapidUpdate::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      dst.skipBits(6, true); // TODO: Can we safely do this?
+      // TODO
+      // TODO
+      dst.skipBits(16, true); // TODO: Can we safely do this?
     return dst.data();
   }
 
@@ -482,24 +482,24 @@ namespace PgnClasses {
   std::vector<uint8_t> GnssPositionData::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      dst.skipBits(6, true); // TODO: Can we safely do this?
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      dst.skipBits(12, true); // TODO: Can we safely do this?
+      // TODO
     return dst.data();
   }
 
@@ -525,9 +525,9 @@ namespace PgnClasses {
   std::vector<uint8_t> TimeDate::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -554,10 +554,10 @@ namespace PgnClasses {
   std::vector<uint8_t> WindData::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      // TODO
+      // TODO
     return dst.data();
   }
 
@@ -591,16 +591,16 @@ namespace PgnClasses {
   std::vector<uint8_t> DirectionData::encode() const {
     if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
-      // TODO: Encode field
+      // TODO
+      // TODO
+      dst.skipBits(2, true); // TODO: Can we safely do this?
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
+      // TODO
     return dst.data();
   }
 
