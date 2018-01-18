@@ -99,6 +99,15 @@ TEST(PgnClassesTest, PositionRapidUpdate) {
   testPositionRapidUpdate(recode(pru));
 }
 
+void testGnssPositionData(const GnssPositionData& pos) {
+  EXPECT_TRUE(pos.valid());
+  EXPECT_TRUE(pos.latitude().defined());
+  EXPECT_TRUE(pos.longitude().defined());
+  EXPECT_NEAR(41.37972459, pos.latitude().get().degrees(), 1e-8);
+  EXPECT_NEAR(2.1857592038, pos.longitude().get().degrees(), 1e-8);
+  EXPECT_NEAR(52.861289, pos.altitude().get().meters(), 1e-6);
+}
+
 TEST(PgnClassesTest, GnssPositionData) {
   uint8_t data[] = {
     // Commented out bytes are the header bytes used by the fastpacket
@@ -113,12 +122,7 @@ TEST(PgnClassesTest, GnssPositionData) {
   };
 
   GnssPositionData pos(data, sizeof(data));
-
-  EXPECT_TRUE(pos.valid());
-  EXPECT_TRUE(pos.latitude().defined());
-  EXPECT_TRUE(pos.longitude().defined());
-  EXPECT_NEAR(41.37972459, pos.latitude().get().degrees(), 1e-8);
-  EXPECT_NEAR(2.1857592038, pos.longitude().get().degrees(), 1e-8);
-  EXPECT_NEAR(52.861289, pos.altitude().get().meters(), 1e-6);
+  testGnssPositionData(pos);
+  testGnssPositionData(recode(pos));
 }
 
