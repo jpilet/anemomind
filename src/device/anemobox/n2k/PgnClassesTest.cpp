@@ -27,6 +27,7 @@ TEST(PgnClassesTest, InvalidWindData) {
 
   PgnClasses::WindData x(data, 1);
   EXPECT_FALSE(x.valid());
+  EXPECT_FALSE(recode(x).valid());
 }
 
 void testWindData(const WindData& windData) {
