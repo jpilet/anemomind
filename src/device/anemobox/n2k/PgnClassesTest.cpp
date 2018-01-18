@@ -84,14 +84,19 @@ TEST(PgnClassesTest, WindVisitor) {
     "MyWindsensor", shortSrc, PgnClasses::WindData::ThisPgn, data}));
 }
 
-TEST(PgnClassesTest, PositionRapidUpdate) {
-  uint8_t data[] = { 0x41, 0x0b, 0xaa, 0x18, 0xcd, 0x84, 0x4d, 0x01 };
-
-  PositionRapidUpdate pru(data, sizeof(data));
+void testPositionRapidUpdate(const PositionRapidUpdate& pru) {
   EXPECT_TRUE(pru.latitude().defined());
   EXPECT_TRUE(pru.longitude().defined());
   EXPECT_NEAR(41.3797185, pru.latitude().get().degrees(), 1e-7);
   EXPECT_NEAR(2.1857485, pru.longitude().get().degrees(), 1e-7);
+}
+
+TEST(PgnClassesTest, PositionRapidUpdate) {
+  uint8_t data[] = { 0x41, 0x0b, 0xaa, 0x18, 0xcd, 0x84, 0x4d, 0x01 };
+
+  PositionRapidUpdate pru(data, sizeof(data));
+  testPositionRapidUpdate(pru);
+  testPositionRapidUpdate(recode(pru));
 }
 
 TEST(PgnClassesTest, GnssPositionData) {
