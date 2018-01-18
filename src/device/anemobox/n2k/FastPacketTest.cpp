@@ -110,3 +110,53 @@ TEST(FastPacketTest, DuplicatePacketTest) {
   EXPECT_EQ(1, fastPacketBuffer.numCalls());
 }
 
+int getSeqCounter(uint8_t firstByte) {
+  return (firstByte >> 5) & 0x07;
+}
+
+int getFrameCounter(uint8_t firstByte) {
+  return (firstByte & 0x1F);
+}
+
+TEST(FastPacketSplitterTest, DecodeIt) {
+  FastPacketSplitter splitter;
+  auto fullPacket = getInputPacket(0);
+  fullPacket.data.resize(sizeof(testResult));
+  std::copy(testResult, testResult + sizeof(testResult),
+      fullPacket.data.data());
+
+  auto packets = splitter.split(fullPacket);
+  EXPECT_EQ(7, packets.size());
+
+  // The seqCounter is not necessarily that of the test data,
+  // the important thing is that all split packets have the
+  // same seqCounter.
+  int commonSeqCounter = -119;
+
+  for (int i = 0; i < packets.size(); i++) {
+    auto expected = getInputPacket(i);
+    const auto& p = packets[i];
+    auto firstByte = p.data[0];
+    EXPECT_EQ(i, getFrameCounter(firstByte));
+    if (i == 0) {
+      EXPECT_EQ(p.data[1], sizeof(testResult));
+      commonSeqCounter = getSeqCounter(firstByte);
+      EXPECT_LE(0, commonSeqCounter);
+      EXPECT_LT(commonSeqCounter, 8);
+    } else {
+      EXPECT_EQ(commonSeqCounter, getSeqCounter(firstByte));
+    }
+    EXPECT_EQ(expected.pgn, p.pgn);
+    EXPECT_EQ(expected.shortSrc, p.shortSrc);
+    EXPECT_EQ(expected.longSrc, p.longSrc);
+    int n = expected.data.size();
+    EXPECT_EQ(n, p.data.size());
+
+    int dataStart = i == 0? 2 : 1;
+    for (int j = dataStart; j < n; j++) {
+      EXPECT_EQ(p.data[j], expected.data[j]);
+    }
+  }
+
+}
+
