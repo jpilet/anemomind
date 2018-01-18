@@ -1,4 +1,4 @@
-/** Generated on Thu Jan 18 2018 17:09:21 GMT+0100 (CET) using 
+/** Generated on Thu Jan 18 2018 17:21:59 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -34,6 +34,7 @@ namespace PgnClasses {
     IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
@@ -53,6 +54,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
@@ -78,6 +80,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
@@ -101,6 +104,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
@@ -124,6 +128,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
@@ -147,6 +152,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
@@ -176,6 +182,7 @@ namespace PgnClasses {
     SystemTime(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
@@ -202,6 +209,7 @@ namespace PgnClasses {
     Rudder(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &instance() const {return _instance;}
@@ -229,6 +237,7 @@ namespace PgnClasses {
     VesselHeading(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
@@ -254,6 +263,7 @@ namespace PgnClasses {
     RateOfTurn(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
@@ -273,6 +283,7 @@ namespace PgnClasses {
     Attitude(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
@@ -303,6 +314,7 @@ namespace PgnClasses {
     Speed(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
@@ -328,6 +340,7 @@ namespace PgnClasses {
     PositionRapidUpdate(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<sail::Angle<double> > &latitude() const {return _latitude;}
@@ -351,6 +364,7 @@ namespace PgnClasses {
     CogSogRapidUpdate(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
@@ -412,6 +426,7 @@ namespace PgnClasses {
     GnssPositionData(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
@@ -462,6 +477,7 @@ namespace PgnClasses {
     TimeDate(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<sail::Duration<double> > &date() const {return _date;}
@@ -493,6 +509,7 @@ namespace PgnClasses {
     WindData(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
@@ -527,6 +544,7 @@ namespace PgnClasses {
     DirectionData(const uint8_t *data, int lengthBytes);
     bool valid() const {return _valid;}
     void reset();
+    std::vector<uint8_t> encode() const;
 
     // Field access
     const Optional<DataMode > &dataMode() const {return _dataMode;}

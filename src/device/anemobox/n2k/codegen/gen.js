@@ -256,10 +256,12 @@ function makeAccessors(pgn, depth) {
 
 var validMethod = "bool valid() const {return _valid;}";
 var resetDecl = "void reset();";
+var encodeDecl = "std::vector<uint8_t> encode() const;";
 
 var commonMethods = [
   validMethod,
-  resetDecl
+  resetDecl,
+  encodeDecl
 ];
 
 
