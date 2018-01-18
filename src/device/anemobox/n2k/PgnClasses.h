@@ -1,6 +1,6 @@
-/** Generated on Wed Jun 21 2017 23:51:39 GMT+0200 (CEST) using 
+/** Generated on Thu Jan 18 2018 17:09:21 GMT+0100 (CET) using 
  *
- *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
+ *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -257,9 +257,11 @@ namespace PgnClasses {
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
+    const Optional<sail::AngularVelocity<double> > &rate() const {return _rate;}
   private:
     bool _valid;
     Optional<uint64_t > _sid; 
+    Optional<sail::AngularVelocity<double> > _rate; 
   };
 
   // Attitude
@@ -307,12 +309,14 @@ namespace PgnClasses {
     const Optional<sail::Velocity<double> > &speedWaterReferenced() const {return _speedWaterReferenced;}
     const Optional<sail::Velocity<double> > &speedGroundReferenced() const {return _speedGroundReferenced;}
     const Optional<SpeedWaterReferencedType > &speedWaterReferencedType() const {return _speedWaterReferencedType;}
+    const Optional<uint64_t > &speedDirection() const {return _speedDirection;}
   private:
     bool _valid;
     Optional<uint64_t > _sid; 
     Optional<sail::Velocity<double> > _speedWaterReferenced; 
     Optional<sail::Velocity<double> > _speedGroundReferenced; 
     Optional<SpeedWaterReferencedType > _speedWaterReferencedType; 
+    Optional<uint64_t > _speedDirection; 
   };
 
   // Position, Rapid Update
@@ -436,7 +440,7 @@ namespace PgnClasses {
     Optional<sail::Duration<double> > _time; // Seconds since midnight
     Optional<sail::Angle<double> > _latitude; 
     Optional<sail::Angle<double> > _longitude; 
-    Optional<sail::Length<double> > _altitude; 
+    Optional<sail::Length<double> > _altitude; // Altitude referenced to WGS-84
     Optional<GnssType > _gnssType; 
     Optional<Method > _method; 
     Optional<Integrity > _integrity; 

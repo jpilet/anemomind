@@ -1,6 +1,6 @@
-/** Generated on Wed Jun 21 2017 23:51:39 GMT+0200 (CEST) using 
+/** Generated on Thu Jan 18 2018 17:09:21 GMT+0100 (CET) using 
  *
- *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
+ *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -218,8 +218,7 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (40 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      // Skipping rate
-      src.advanceBits(32);
+      _rate = src.getPhysicalQuantity(true, 3.125e-08, (sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0)), 32, 0);
       _valid = true;
     } else {
       reset();
@@ -257,11 +256,12 @@ namespace PgnClasses {
 
   Speed::Speed(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (44 <= src.remainingBits()) {
+    if (52 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _speedWaterReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
       _speedGroundReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      _speedWaterReferencedType = src.getUnsignedInSet(4, {0, 1, 2, 3, 4}).cast<SpeedWaterReferencedType>();
+      _speedWaterReferencedType = src.getUnsignedInSet(8, {0, 1, 2, 3, 4}).cast<SpeedWaterReferencedType>();
+      _speedDirection = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
       _valid = _speedWaterReferencedType.defined();
     } else {
       reset();

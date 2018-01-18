@@ -188,6 +188,10 @@ unitMap = {
   "minutes": {
     type: "sail::Duration<double>",
     unit: "sail::Duration<double>::minutes(1.0)"
+  },
+  "rad/s": {
+    type: "sail::AngularVelocity<double>",
+    unit: "(sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0))"
   }
 };
 
