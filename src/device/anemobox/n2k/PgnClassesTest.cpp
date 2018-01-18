@@ -9,9 +9,17 @@
 
 using namespace PgnClasses;
 
+template <typename T>
+T recode(const T& x) {
+  auto data = x.encode();
+  return T(data.data(), data.size());
+}
+
+
 TEST(PgnClassesTest, DefaultWindData) {
   PgnClasses::WindData x;
   EXPECT_FALSE(x.valid());
+  EXPECT_FALSE(recode(x).valid());
 }
 
 TEST(PgnClassesTest, InvalidWindData) {
@@ -21,15 +29,19 @@ TEST(PgnClassesTest, InvalidWindData) {
   EXPECT_FALSE(x.valid());
 }
 
+void testWindData(const WindData& windData) {
+  EXPECT_TRUE(windData.valid());
+  EXPECT_NEAR(windData.windSpeed().get().metersPerSecond(), 0.25, 0.01);
+  EXPECT_NEAR(windData.windAngle().get().radians(), 3.0892, 0.0001);
+  EXPECT_EQ(windData.reference().get(),  PgnClasses::WindData::Reference::Apparent);
+}
+
 TEST(PgnClassesTest, WindData) {
   uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
 
   PgnClasses::WindData windData(data, 8);
-  EXPECT_TRUE(windData.valid());
-
-  EXPECT_NEAR(windData.windSpeed().get().metersPerSecond(), 0.25, 0.01);
-  EXPECT_NEAR(windData.windAngle().get().radians(), 3.0892, 0.0001);
-  EXPECT_EQ(windData.reference().get(),  PgnClasses::WindData::Reference::Apparent);
+  testWindData(windData);
+  testWindData(recode(windData));
 }
 
 TEST(PgnClassesTest, WindDataNotAvailable) {
