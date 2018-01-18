@@ -5,12 +5,12 @@
 
 #include <gtest/gtest.h>
 #include <device/anemobox/n2k/N2kField.h>
+#include <iostream>
 
 using namespace N2kField;
 
-TEST(N2kFieldTest, Unsigned_2_and_3) {
-  uint8_t data[] = { 0xC2 };
-  N2kFieldStream stream(data, sizeof(data));
+void testUnsigned_2_and_3(const uint8_t* data, int size) {
+  N2kFieldStream stream(data, size);
 
   /*
    * Read unsigned number 2 stored in 6 bits
@@ -34,9 +34,13 @@ TEST(N2kFieldTest, Unsigned_2_and_3) {
   }
 }
 
-TEST(N2kFieldTest, Unsigned_7_and_9) {
-  uint8_t data[] = { 0x47, 0xF2};
-  N2kFieldStream stream(data, sizeof(data));
+TEST(N2kFieldTest, Unsigned_2_and_3) {
+  uint8_t data[] = { 0xC2 };
+  testUnsigned_2_and_3(data, sizeof(data));
+}
+
+void testUnsigned_7_and_9(const uint8_t* data, int size) {
+  N2kFieldStream stream(data, size);
   /*
    * Read unsigned number 7 stored in 6 bits
    */
@@ -59,9 +63,14 @@ TEST(N2kFieldTest, Unsigned_7_and_9) {
   }
 }
 
-TEST(N2kFieldTest, Signed_positive_2_and_1) {
-  uint8_t data[] = { 0x42 };
-  N2kFieldStream stream(data, sizeof(data));
+
+TEST(N2kFieldTest, Unsigned_7_and_9) {
+  uint8_t data[] = { 0x47, 0xF2};
+  testUnsigned_7_and_9(data, sizeof(data));
+}
+
+void testSigned_positive_2_and_1(const uint8_t* data, int size) {
+  N2kFieldStream stream(data, size);
 
   /*
    * Read signed number 2 stored in 6 bits
@@ -86,9 +95,13 @@ TEST(N2kFieldTest, Signed_positive_2_and_1) {
   }
 }
 
-TEST(N2kFieldTest, Signed_negative_2_and_1) {
-  uint8_t data[] = { 0xFE };
-  N2kFieldStream stream(data, sizeof(data));
+TEST(N2kFieldTest, Signed_positive_2_and_1) {
+  uint8_t data[] = { 0x42 };
+  testSigned_positive_2_and_1(data, sizeof(data));
+}
+
+void testSigned_negative_2_and_1(const uint8_t* data, int size) {
+  N2kFieldStream stream(data, size);
 
   /*
    * Read signed number -2 stored in 6 bits
@@ -113,10 +126,13 @@ TEST(N2kFieldTest, Signed_negative_2_and_1) {
   }
 }
 
+TEST(N2kFieldTest, Signed_negative_2_and_1) {
+  uint8_t data[] = { 0xFE };
+  testSigned_negative_2_and_1(data, sizeof(data));
+}
 
-TEST(N2kFieldTest, Signed_7_and_9) {
-  uint8_t data[] = { 0x47, 0xF2};
-  N2kFieldStream stream(data, sizeof(data));
+void testSigned_7_and_9(const uint8_t* data, int size) {
+  N2kFieldStream stream(data, size);
   /*
    * Read signed number 7 stored in 6 bits
    */
@@ -140,14 +156,16 @@ TEST(N2kFieldTest, Signed_7_and_9) {
   }
 }
 
+TEST(N2kFieldTest, Signed_7_and_9) {
+  uint8_t data[] = { 0x47, 0xF2};
+  testSigned_7_and_9(data, sizeof(data));
+}
 
 
 
 
-
-TEST(N2kFieldTest, Signed_negative_7_and_9) {
-  uint8_t data[] = { 0xF9, 0xFD};
-  N2kFieldStream stream(data, sizeof(data));
+void testSigned_negative_7_and_9(const uint8_t* data, int size) {
+  N2kFieldStream stream(data, size);
   /*
    * Read signed number -7 stored in 6 bits
    */
@@ -172,11 +190,14 @@ TEST(N2kFieldTest, Signed_negative_7_and_9) {
   }
 }
 
-TEST(N2kFieldTest, Signed_negative_7_with_offset) {
-  uint8_t data[] = { 0x01};
+TEST(N2kFieldTest, Signed_negative_7_and_9) {
+  uint8_t data[] = { 0xF9, 0xFD};
+  testSigned_negative_7_and_9(data, sizeof(data));
+}
 
+void testSigned_negative_7_with_offset(const uint8_t* data, int size) {
   int64_t offset = -8;
-  N2kFieldStream stream(data, sizeof(data));
+  N2kFieldStream stream(data, size);
   /*
    * Read signed number -7 = 1 + offset, with offset = -8
    */
@@ -188,6 +209,12 @@ TEST(N2kFieldTest, Signed_negative_7_with_offset) {
     EXPECT_EQ(63 + offset, getMaxSignedValue(6, offset));
     EXPECT_EQ(-7, streamValue());
   }
+
+}
+
+TEST(N2kFieldTest, Signed_negative_7_with_offset) {
+  uint8_t data[] = { 0x01};
+  testSigned_negative_7_with_offset(data, sizeof(data));
 }
 
 TEST(N2kFieldTest, Max_value_at_the_limit) {
@@ -199,11 +226,8 @@ TEST(N2kFieldTest, Max_value_at_the_limit) {
   EXPECT_EQ(expectedUnsignedMax - 3, getMaxSignedValue(limit, -3));
 }
 
-// Based on the Windows NK2 application connected to
-// the Alinghi device.
-TEST(N2kFieldTest, ParseDemo) {
-  uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
-  N2kFieldStream stream(data, sizeof(data));
+void testParseDemo(const uint8_t* data, int size) {
+  N2kFieldStream stream(data, size);
 
   // PGN: 130306, Wind data
 
@@ -228,8 +252,13 @@ TEST(N2kFieldTest, ParseDemo) {
   EXPECT_NEAR(windSpeed().metersPerSecond(), 0.25, 0.01);
   EXPECT_NEAR(windAngle().radians(), 3.0892, 0.0001);
   EXPECT_EQ(reference(), 2);
+}
 
-
+// Based on the Windows NK2 application connected to
+// the Alinghi device.
+TEST(N2kFieldTest, ParseDemo) {
+  uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
+  testParseDemo(data, sizeof(data));
 }
 
 TEST(N2kFieldTest, IntSet0) {
@@ -253,4 +282,85 @@ TEST(N2kFieldTest, InvalidValues) {
   EXPECT_FALSE(stream.getUnsigned(8, Definedness::MaybeUndefined).defined());
   EXPECT_FALSE(stream.getUnsigned(8, Definedness::MaybeUndefined).defined());
   EXPECT_TRUE(stream.getUnsigned(8, Definedness::MaybeUndefined).defined());
+}
+
+
+
+/*****************************
+ * Unit tests related to N2kFieldOutputStream
+ */
+
+TEST(N2kFieldTest, Write_Unsigned_2_and_3) {
+  N2kFieldOutputStream output;
+  output.pushUnsigned(6, 2);
+  output.pushUnsigned(2, 3);
+  const auto& d = output.data();
+  testUnsigned_2_and_3(d.data(), d.size());
+}
+
+TEST(N2kFieldTest, Write_Unsigned_7_and_9) {
+  N2kFieldOutputStream output;
+  output.pushUnsigned(6, 7);
+  output.pushUnsigned(6, 9);
+  const auto& d = output.data();
+  testUnsigned_7_and_9(d.data(), d.size());
+}
+
+TEST(N2kFieldTest, Write_Signed_positive_2_and_1) {
+  N2kFieldOutputStream output;
+  output.pushSigned(6, 0, 2);
+  output.pushSigned(2, 0, 1);
+  const auto& d = output.data();
+  testSigned_positive_2_and_1(d.data(), d.size());
+}
+
+TEST(N2kFieldTest, Write_Signed_negative_2_and_1) {
+  N2kFieldOutputStream output;
+  output.pushSigned(6, 0, -2);
+  output.pushSigned(2, 0, -1);
+  const auto& d = output.data();
+  testSigned_negative_2_and_1(d.data(), d.size());
+}
+
+TEST(N2kFieldTest, Write_Signed_7_and_9) {
+  N2kFieldOutputStream output;
+  output.pushSigned(6, 0, 7);
+  output.pushSigned(6, 0, 9);
+  const auto& d = output.data();
+  testSigned_7_and_9(d.data(), d.size());
+}
+
+TEST(N2kFieldTest, Write_Signed_negative_7_and_9) {
+  N2kFieldOutputStream output;
+  output.pushSigned(6, 0, -7);
+  output.pushSigned(6, 0, -9);
+  const auto& d = output.data();
+  testSigned_negative_7_and_9(d.data(), d.size());
+}
+
+TEST(N2kFieldTest, Write_Signed_negative_7_with_offset) {
+  N2kFieldOutputStream output;
+  output.pushSigned(6, -8, -7);
+  const auto& d = output.data();
+  testSigned_negative_7_with_offset(d.data(), d.size());
+}
+
+TEST(N2kFieldTest, Write_parseDemo) {
+  N2kFieldOutputStream output;
+
+  using namespace sail;
+
+  output.pushUnsigned(8, 0); // What should sid be? 0 I think.
+  output.pushPhysicalQuantity<Velocity<double>>(false, 0.01,
+      Velocity<double>::metersPerSecond(1.0),
+      16, 0, 0.25_mps);
+
+  output.pushPhysicalQuantity<Angle<double>>(
+      false, 0.0001, sail::Angle<double>::radians(1.0),
+      16, 0, 3.0892_rad);
+
+  output.pushUnsigned(3, 2);
+
+  const auto& d = output.data();
+  testParseDemo(d.data(), d.size());
 }

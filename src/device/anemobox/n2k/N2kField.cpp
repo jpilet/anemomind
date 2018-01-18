@@ -103,6 +103,11 @@ sail::Array<uint8_t> N2kFieldStream::readBytes(int numBits) {
   } else {
     // Only read whole bytes.
     advanceBits(numBits);
+
+    // Hm... so we advance the bits but don't return anything?
+    // Looking at 'gen.js', there is an assertion already at code generation
+    // to check that we only read whole bytes. So we should never end up
+    // in this branch.
     return sail::Array<uint8_t>();
   }
 }
@@ -159,5 +164,41 @@ int64_t N2kFieldStream::getSigned(int numBits, int64_t offset) {
     return x + offset;
   }
 }
+
+void N2kFieldOutputStream::pushUnsigned(int bits, Optional<uint64_t> value) {
+  auto invalid = getMaxUnsignedValue(bits);
+  if (value.defined()) {
+    if (value.get() < invalid) {
+      _dst.pushUnsigned(bits, value.get());
+      return;
+    }
+  }
+  _dst.pushUnsigned(bits, invalid);
+}
+
+void N2kFieldOutputStream::pushSigned(
+    int bits, int64_t offset, Optional<int64_t> value) {
+
+  // Is it really this easy? Or did we miss anything regarding endianness?
+  _dst.pushUnsigned(bits, static_cast<uint64_t>(
+      value.defined()?
+          (value.get() - offset)
+          : getMaxSignedValue(bits, offset)));
+}
+
+void N2kFieldOutputStream::pushDouble(
+    bool isSigned, int bits,
+    int64_t offset, Optional<double> value) {
+  if (isSigned) {
+    pushSigned(bits, offset, value.defined()?
+        Optional<int64_t>(value.get())
+        : Optional<int64_t>());
+  } else {
+    pushUnsigned(bits, value.defined()?
+        Optional<uint64_t>(value.get())
+        : Optional<uint64_t>());
+  }
+}
+
 
 }
