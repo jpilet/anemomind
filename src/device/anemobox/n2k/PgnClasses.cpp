@@ -1,4 +1,4 @@
-/** Generated on Thu Jan 18 2018 17:59:48 GMT+0100 (CET) using 
+/** Generated on Thu Jan 18 2018 18:02:17 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -16,7 +16,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolDataTransfer::IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60160 has 1 repeating fields that are not handled.
+    // Warning: PGN 60160 (ISO Transport Protocol, Data Transfer) has 1 repeating fields that are not handled.
     if (8 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _valid = true;
@@ -42,7 +42,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Request To Send) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
@@ -74,7 +74,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Clear To Send) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _maxPackets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
@@ -107,7 +107,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - End Of Message) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _totalMessageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
@@ -140,7 +140,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Broadcast Announce) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
@@ -173,7 +173,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Abort) has 1 repeating fields that are not handled.
     if (32 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _reason = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
@@ -452,7 +452,7 @@ namespace PgnClasses {
 
   GnssPositionData::GnssPositionData(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 129029 has 3 repeating fields that are not handled.
+    // Warning: PGN 129029 (GNSS Position Data) has 3 repeating fields that are not handled.
     if (328 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);

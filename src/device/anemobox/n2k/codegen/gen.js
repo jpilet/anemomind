@@ -980,7 +980,7 @@ function makeConstructorStatements(pgn, depth) {
   
   var comment = '';
   if (pgn.RepeatingFields > 0) {
-    var warn = 'Warning: PGN ' + pgn.PGN + ' has '
+    var warn = 'Warning: PGN ' + pgn.PGN + ' (' + pgn.Description + ') has '
       + pgn.RepeatingFields + ' repeating fields that are not handled.'
     console.warn(warn);
     fields = fields.slice(0, - pgn.RepeatingFields);
