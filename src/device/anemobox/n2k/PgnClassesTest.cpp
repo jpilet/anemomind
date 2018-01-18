@@ -45,13 +45,17 @@ TEST(PgnClassesTest, WindData) {
   testWindData(recode(windData));
 }
 
+void testWindDataNotAvailable(const WindData& windData) {
+  EXPECT_FALSE(windData.valid());
+  EXPECT_FALSE(windData.reference().defined());
+}
+
 TEST(PgnClassesTest, WindDataNotAvailable) {
   uint8_t data[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
   PgnClasses::WindData windData(data, 8);
-
-  EXPECT_FALSE(windData.valid());
-  EXPECT_FALSE(windData.reference().defined());
+  testWindDataNotAvailable(windData);
+  testWindDataNotAvailable(recode(windData));
 }
 
 class TestWindVisitor : public PgnClasses::PgnVisitor {
