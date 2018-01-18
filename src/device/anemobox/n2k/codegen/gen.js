@@ -977,6 +977,23 @@ function makeConstructor(pgn, depth) {
     + beginLine(depth) + "}";
 }
 
+function makeEncodeMethodStatements(pgn) {
+  var dst = ["N2kField::N2kFieldOutputStream dst;"];
+
+  
+
+  dst.push("return dst.data();");
+  return dst;
+}
+
+function makeEncodeMethod(pgn, depth) {
+  return indentLineArray(depth, [
+    "std::vector<uint8_t> " + getClassName(pgn) + "::encode() const {",
+    makeEncodeMethodStatements(pgn),
+    "}"
+  ]);
+}
+
 
 function makeDefaultConstructor(pgn, depth) {
   var innerDepth = depth + 1;
@@ -1027,7 +1044,8 @@ function makeExtraMethodsInClass(pgn, depth) {
 function makeMethodsForPgn(pgn, depth) {
   return makeDefaultConstructor(pgn, depth) 
     + makeConstructor(pgn, depth)
-    + makeResetMethod(pgn, depth);
+    + makeResetMethod(pgn, depth)
+    + makeEncodeMethod(pgn, depth);
 }
 
 var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n\n';

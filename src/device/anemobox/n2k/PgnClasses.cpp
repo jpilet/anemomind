@@ -1,4 +1,4 @@
-/** Generated on Thu Jan 18 2018 17:21:59 GMT+0100 (CET) using 
+/** Generated on Thu Jan 18 2018 17:28:15 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -28,6 +28,10 @@ namespace PgnClasses {
   void IsoTransportProtocolDataTransfer::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> IsoTransportProtocolDataTransfer::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
+  }
 
   IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend() {
     reset();
@@ -49,6 +53,10 @@ namespace PgnClasses {
 
   void IsoTransportProtocolConnectionManagementRequestToSend::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementRequestToSend::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
   IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend() {
@@ -73,6 +81,10 @@ namespace PgnClasses {
   void IsoTransportProtocolConnectionManagementClearToSend::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementClearToSend::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
+  }
 
   IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage() {
     reset();
@@ -95,6 +107,10 @@ namespace PgnClasses {
 
   void IsoTransportProtocolConnectionManagementEndOfMessage::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementEndOfMessage::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
   IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce() {
@@ -119,6 +135,10 @@ namespace PgnClasses {
   void IsoTransportProtocolConnectionManagementBroadcastAnnounce::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementBroadcastAnnounce::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
+  }
 
   IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort() {
     reset();
@@ -140,6 +160,10 @@ namespace PgnClasses {
 
   void IsoTransportProtocolConnectionManagementAbort::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementAbort::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
   SystemTime::SystemTime() {
@@ -164,6 +188,10 @@ namespace PgnClasses {
   void SystemTime::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> SystemTime::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
+  }
 
   Rudder::Rudder() {
     reset();
@@ -187,6 +215,10 @@ namespace PgnClasses {
   void Rudder::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> Rudder::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
+  }
 
   VesselHeading::VesselHeading() {
     reset();
@@ -209,6 +241,10 @@ namespace PgnClasses {
   void VesselHeading::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> VesselHeading::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
+  }
 
   RateOfTurn::RateOfTurn() {
     reset();
@@ -227,6 +263,10 @@ namespace PgnClasses {
 
   void RateOfTurn::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> RateOfTurn::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
   Attitude::Attitude() {
@@ -248,6 +288,10 @@ namespace PgnClasses {
 
   void Attitude::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> Attitude::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
   Speed::Speed() {
@@ -271,6 +315,10 @@ namespace PgnClasses {
   void Speed::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> Speed::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
+  }
 
   PositionRapidUpdate::PositionRapidUpdate() {
     reset();
@@ -289,6 +337,10 @@ namespace PgnClasses {
 
   void PositionRapidUpdate::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> PositionRapidUpdate::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
   CogSogRapidUpdate::CogSogRapidUpdate() {
@@ -314,6 +366,10 @@ namespace PgnClasses {
 
   void CogSogRapidUpdate::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> CogSogRapidUpdate::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
   GnssPositionData::GnssPositionData() {
@@ -349,6 +405,10 @@ namespace PgnClasses {
   void GnssPositionData::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> GnssPositionData::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
+  }
 
   TimeDate::TimeDate() {
     reset();
@@ -368,6 +428,10 @@ namespace PgnClasses {
 
   void TimeDate::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> TimeDate::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
   WindData::WindData() {
@@ -389,6 +453,10 @@ namespace PgnClasses {
 
   void WindData::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> WindData::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
   DirectionData::DirectionData() {
@@ -417,6 +485,10 @@ namespace PgnClasses {
 
   void DirectionData::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> DirectionData::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    return dst.data();
   }
 
 int pgnSize(int pgn) {
