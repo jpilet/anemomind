@@ -924,6 +924,10 @@ function makeFieldAssignment(field, depth) {
   }
 }
 
+function makeEncodeFieldStatement(field) {
+  return "// TODO: Encode field";
+}
+
 function getTotalBitLength(fields) {
   var n = 0;
   for (var i = 0; i < fields.length; i++) {
@@ -978,8 +982,14 @@ function makeConstructor(pgn, depth) {
 }
 
 function makeEncodeMethodStatements(pgn) {
-  var dst = ["N2kField::N2kFieldOutputStream dst;"];
-
+  var dst = [
+    "if (!_valid) {return std::vector<uint8_t>();}", 
+    "N2kField::N2kFieldOutputStream dst;"
+  ];
+  
+  var fields = getFieldArray(pgn);
+  
+  dst.push(fields.map(makeEncodeFieldStatement));
   
 
   dst.push("return dst.data();");

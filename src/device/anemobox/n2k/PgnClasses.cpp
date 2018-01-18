@@ -1,4 +1,4 @@
-/** Generated on Thu Jan 18 2018 17:28:15 GMT+0100 (CET) using 
+/** Generated on Thu Jan 18 2018 17:40:26 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -29,7 +29,10 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> IsoTransportProtocolDataTransfer::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -55,7 +58,13 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementRequestToSend::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -82,7 +91,13 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementClearToSend::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -109,7 +124,13 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementEndOfMessage::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -136,7 +157,13 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementBroadcastAnnounce::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -162,7 +189,12 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementAbort::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -189,7 +221,13 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> SystemTime::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -216,7 +254,13 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> Rudder::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -242,7 +286,13 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> VesselHeading::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -265,7 +315,10 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> RateOfTurn::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -290,7 +343,12 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> Attitude::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -316,7 +374,13 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> Speed::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -339,7 +403,10 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> PositionRapidUpdate::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -368,7 +435,14 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> CogSogRapidUpdate::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -406,7 +480,26 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> GnssPositionData::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -430,7 +523,11 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> TimeDate::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -455,7 +552,12 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> WindData::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
@@ -487,7 +589,18 @@ namespace PgnClasses {
     _valid = false;
   }
   std::vector<uint8_t> DirectionData::encode() const {
+    if (!_valid) {return std::vector<uint8_t>();}
     N2kField::N2kFieldOutputStream dst;
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
+      // TODO: Encode field
     return dst.data();
   }
 
