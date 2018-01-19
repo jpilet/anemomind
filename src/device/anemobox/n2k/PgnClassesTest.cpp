@@ -9,9 +9,17 @@
 
 using namespace PgnClasses;
 
+template <typename T>
+T recode(const T& x) {
+  auto data = x.encode();
+  return T(data.data(), data.size());
+}
+
+
 TEST(PgnClassesTest, DefaultWindData) {
   PgnClasses::WindData x;
   EXPECT_FALSE(x.valid());
+  EXPECT_FALSE(recode(x).valid());
 }
 
 TEST(PgnClassesTest, InvalidWindData) {
@@ -19,26 +27,38 @@ TEST(PgnClassesTest, InvalidWindData) {
 
   PgnClasses::WindData x(data, 1);
   EXPECT_FALSE(x.valid());
+  EXPECT_FALSE(recode(x).valid());
 }
 
-TEST(PgnClassesTest, WindData) {
-  uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
-
-  PgnClasses::WindData windData(data, 8);
+void testWindData(const WindData& windData) {
   EXPECT_TRUE(windData.valid());
-
   EXPECT_NEAR(windData.windSpeed().get().metersPerSecond(), 0.25, 0.01);
   EXPECT_NEAR(windData.windAngle().get().radians(), 3.0892, 0.0001);
   EXPECT_EQ(windData.reference().get(),  PgnClasses::WindData::Reference::Apparent);
 }
 
-TEST(PgnClassesTest, WindDataNotAvailable) {
-  uint8_t data[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+TEST(PgnClassesTest, WindData) {
+  // The length of WindData is 6 bytes.
+  std::vector<uint8_t> data{0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA/*, 0xFF, 0xFF*/};
 
-  PgnClasses::WindData windData(data, 8);
+  PgnClasses::WindData windData(data.data(), data.size());
+  testWindData(windData);
+  testWindData(recode(windData));
+  EXPECT_EQ(data, windData.encode());
+}
 
+void testWindDataNotAvailable(const WindData& windData) {
   EXPECT_FALSE(windData.valid());
   EXPECT_FALSE(windData.reference().defined());
+}
+
+TEST(PgnClassesTest, WindDataNotAvailable) {
+  std::vector<uint8_t> data{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF/*, 0xFF, 0xFF*/};
+
+  PgnClasses::WindData windData(data.data(), data.size());
+  testWindDataNotAvailable(windData);
+  testWindDataNotAvailable(recode(windData));
+  EXPECT_EQ(data, windData.encode());
 }
 
 class TestWindVisitor : public PgnClasses::PgnVisitor {
@@ -67,18 +87,33 @@ TEST(PgnClassesTest, WindVisitor) {
     "MyWindsensor", shortSrc, PgnClasses::WindData::ThisPgn, data}));
 }
 
-TEST(PgnClassesTest, PositionRapidUpdate) {
-  uint8_t data[] = { 0x41, 0x0b, 0xaa, 0x18, 0xcd, 0x84, 0x4d, 0x01 };
-
-  PositionRapidUpdate pru(data, sizeof(data));
+void testPositionRapidUpdate(const PositionRapidUpdate& pru) {
   EXPECT_TRUE(pru.latitude().defined());
   EXPECT_TRUE(pru.longitude().defined());
   EXPECT_NEAR(41.3797185, pru.latitude().get().degrees(), 1e-7);
   EXPECT_NEAR(2.1857485, pru.longitude().get().degrees(), 1e-7);
 }
 
+TEST(PgnClassesTest, PositionRapidUpdate) {
+  std::vector<uint8_t> data{ 0x41, 0x0b, 0xaa, 0x18, 0xcd, 0x84, 0x4d, 0x01 };
+
+  PositionRapidUpdate pru(data.data(), data.size());
+  testPositionRapidUpdate(pru);
+  testPositionRapidUpdate(recode(pru));
+  EXPECT_EQ(data, pru.encode());
+}
+
+void testGnssPositionData(const GnssPositionData& pos) {
+  EXPECT_TRUE(pos.valid());
+  EXPECT_TRUE(pos.latitude().defined());
+  EXPECT_TRUE(pos.longitude().defined());
+  EXPECT_NEAR(41.37972459, pos.latitude().get().degrees(), 1e-8);
+  EXPECT_NEAR(2.1857592038, pos.longitude().get().degrees(), 1e-8);
+  EXPECT_NEAR(52.861289, pos.altitude().get().meters(), 1e-6);
+}
+
 TEST(PgnClassesTest, GnssPositionData) {
-  uint8_t data[] = {
+  std::vector<uint8_t> data{
     // Commented out bytes are the header bytes used by the fastpacket
     // system.
     /* 0x20, 0x2F,*/ 0x3E, 0xA7, 0x42, 0x60, 0x39, 0xEA,
@@ -90,13 +125,19 @@ TEST(PgnClassesTest, GnssPositionData) {
     /* 0x26,*/ 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
   };
 
-  GnssPositionData pos(data, sizeof(data));
+  GnssPositionData pos(data.data(), data.size());
+  testGnssPositionData(pos);
+  testGnssPositionData(recode(pos));
+  auto data2 = pos.encode();
 
-  EXPECT_TRUE(pos.valid());
-  EXPECT_TRUE(pos.latitude().defined());
-  EXPECT_TRUE(pos.longitude().defined());
-  EXPECT_NEAR(41.37972459, pos.latitude().get().degrees(), 1e-8);
-  EXPECT_NEAR(2.1857592038, pos.longitude().get().degrees(), 1e-8);
-  EXPECT_NEAR(52.861289, pos.altitude().get().meters(), 1e-6);
+  // TODO: Repeating fields are not yet properly handled.
+  // so length may vary
+  int minLength = std::min(data.size(), data2.size());
+  for (int i = 0; i < minLength; i++) {
+    EXPECT_EQ(data[i], data2[i]);
+  }
+  //EXPECT_EQ(data2.size(), data.size());
+  //EXPECT_EQ(data, pos.encode());
+
 }
 

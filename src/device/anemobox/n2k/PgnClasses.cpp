@@ -1,6 +1,6 @@
-/** Generated on Wed Jun 21 2017 23:51:39 GMT+0200 (CEST) using 
+/** Generated on Fri Jan 19 2018 13:27:28 GMT+0100 (CET) using 
  *
- *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
+ *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -16,7 +16,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolDataTransfer::IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60160 has 1 repeating fields that are not handled.
+    // Warning: PGN 60160 (ISO Transport Protocol, Data Transfer) has 1 repeating fields that are not handled.
     if (8 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _valid = true;
@@ -28,6 +28,11 @@ namespace PgnClasses {
   void IsoTransportProtocolDataTransfer::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> IsoTransportProtocolDataTransfer::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _sid);
+    return dst.moveData();
+  }
 
   IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend() {
     reset();
@@ -35,7 +40,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Request To Send) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
@@ -50,6 +55,14 @@ namespace PgnClasses {
   void IsoTransportProtocolConnectionManagementRequestToSend::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementRequestToSend::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(16, _messageSize);
+      dst.pushUnsigned(8, _packets);
+      dst.pushUnsigned(8, _packetsReply);
+    return dst.moveData();
+  }
 
   IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend() {
     reset();
@@ -57,7 +70,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Clear To Send) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _maxPackets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
@@ -73,6 +86,14 @@ namespace PgnClasses {
   void IsoTransportProtocolConnectionManagementClearToSend::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementClearToSend::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(8, _maxPackets);
+      dst.pushUnsigned(8, _nextSid);
+      dst.fillBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    return dst.moveData();
+  }
 
   IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage() {
     reset();
@@ -80,7 +101,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - End Of Message) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _totalMessageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
@@ -96,6 +117,14 @@ namespace PgnClasses {
   void IsoTransportProtocolConnectionManagementEndOfMessage::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementEndOfMessage::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(16, _totalMessageSize);
+      dst.pushUnsigned(8, _totalNumberOfPacketsReceived);
+      dst.fillBits(8, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    return dst.moveData();
+  }
 
   IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce() {
     reset();
@@ -103,7 +132,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Broadcast Announce) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
@@ -119,6 +148,14 @@ namespace PgnClasses {
   void IsoTransportProtocolConnectionManagementBroadcastAnnounce::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementBroadcastAnnounce::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(16, _messageSize);
+      dst.pushUnsigned(8, _packets);
+      dst.fillBits(8, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    return dst.moveData();
+  }
 
   IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort() {
     reset();
@@ -126,7 +163,7 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Abort) has 1 repeating fields that are not handled.
     if (32 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _reason = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
@@ -140,6 +177,13 @@ namespace PgnClasses {
 
   void IsoTransportProtocolConnectionManagementAbort::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> IsoTransportProtocolConnectionManagementAbort::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _groupFunctionCode);
+      dst.pushUnsigned(8, _reason);
+      dst.fillBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    return dst.moveData();
   }
 
   SystemTime::SystemTime() {
@@ -164,6 +208,16 @@ namespace PgnClasses {
   void SystemTime::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> SystemTime::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _sid);
+      dst.pushUnsigned(4, _source.cast<uint64_t>());
+      dst.fillBits(4, true); // TODO: Can we safely do this? The field name is 'Reserved'
+      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
+    dst.fillUpToLength(64, true);
+    return dst.moveData();
+  }
 
   Rudder::Rudder() {
     reset();
@@ -187,6 +241,16 @@ namespace PgnClasses {
   void Rudder::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> Rudder::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _instance);
+      dst.pushUnsigned(2, _directionOrder);
+      dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _angleOrder);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _position);
+    dst.fillUpToLength(64, true);
+    return dst.moveData();
+  }
 
   VesselHeading::VesselHeading() {
     reset();
@@ -209,6 +273,16 @@ namespace PgnClasses {
   void VesselHeading::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> VesselHeading::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _heading);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _deviation);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _variation);
+      dst.pushUnsigned(2, _reference.cast<uint64_t>());
+    dst.fillUpToLength(64, true);
+    return dst.moveData();
+  }
 
   RateOfTurn::RateOfTurn() {
     reset();
@@ -218,8 +292,7 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (40 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      // Skipping rate
-      src.advanceBits(32);
+      _rate = src.getPhysicalQuantity(true, 3.125e-08, (sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0)), 32, 0);
       _valid = true;
     } else {
       reset();
@@ -228,6 +301,13 @@ namespace PgnClasses {
 
   void RateOfTurn::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> RateOfTurn::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(true, 3.125e-08, (sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0)), 32, 0, _rate);
+    dst.fillUpToLength(40, true);
+    return dst.moveData();
   }
 
   Attitude::Attitude() {
@@ -250,6 +330,15 @@ namespace PgnClasses {
   void Attitude::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> Attitude::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _yaw);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _pitch);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _roll);
+    dst.fillUpToLength(56, true);
+    return dst.moveData();
+  }
 
   Speed::Speed() {
     reset();
@@ -257,11 +346,12 @@ namespace PgnClasses {
 
   Speed::Speed(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (44 <= src.remainingBits()) {
+    if (52 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _speedWaterReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
       _speedGroundReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      _speedWaterReferencedType = src.getUnsignedInSet(4, {0, 1, 2, 3, 4}).cast<SpeedWaterReferencedType>();
+      _speedWaterReferencedType = src.getUnsignedInSet(8, {0, 1, 2, 3, 4}).cast<SpeedWaterReferencedType>();
+      _speedDirection = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
       _valid = _speedWaterReferencedType.defined();
     } else {
       reset();
@@ -270,6 +360,16 @@ namespace PgnClasses {
 
   void Speed::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> Speed::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _speedWaterReferenced);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _speedGroundReferenced);
+      dst.pushUnsigned(8, _speedWaterReferencedType.cast<uint64_t>());
+      dst.pushUnsigned(4, _speedDirection);
+    dst.fillUpToLength(48, true);
+    return dst.moveData();
   }
 
   PositionRapidUpdate::PositionRapidUpdate() {
@@ -289,6 +389,13 @@ namespace PgnClasses {
 
   void PositionRapidUpdate::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> PositionRapidUpdate::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, _latitude);
+      dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, _longitude);
+    dst.fillUpToLength(64, true);
+    return dst.moveData();
   }
 
   CogSogRapidUpdate::CogSogRapidUpdate() {
@@ -315,6 +422,17 @@ namespace PgnClasses {
   void CogSogRapidUpdate::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> CogSogRapidUpdate::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _sid);
+      dst.pushUnsigned(2, _cogReference.cast<uint64_t>());
+      dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _cog);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _sog);
+      dst.fillBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    dst.fillUpToLength(64, true);
+    return dst.moveData();
+  }
 
   GnssPositionData::GnssPositionData() {
     reset();
@@ -322,7 +440,7 @@ namespace PgnClasses {
 
   GnssPositionData::GnssPositionData(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 129029 has 3 repeating fields that are not handled.
+    // Warning: PGN 129029 (GNSS Position Data) has 3 repeating fields that are not handled.
     if (328 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);
@@ -349,6 +467,25 @@ namespace PgnClasses {
   void GnssPositionData::reset() {
     _valid = false;
   }
+  std::vector<uint8_t> GnssPositionData::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
+      dst.pushPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0, _latitude);
+      dst.pushPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0, _longitude);
+      dst.pushPhysicalQuantity(true, 1e-06, sail::Length<double>::meters(1.0), 64, 0, _altitude);
+      dst.pushUnsigned(4, _gnssType.cast<uint64_t>());
+      dst.pushUnsigned(4, _method.cast<uint64_t>());
+      dst.pushUnsigned(2, _integrity.cast<uint64_t>());
+      dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
+      dst.pushUnsigned(8, _numberOfSvs);
+      dst.pushSigned(16, 0, _hdop);
+      dst.pushSigned(16, 0, _pdop);
+      dst.pushPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0, _geoidalSeparation);
+      dst.pushUnsigned(8, _referenceStations);
+    return dst.moveData();
+  }
 
   TimeDate::TimeDate() {
     reset();
@@ -368,6 +505,14 @@ namespace PgnClasses {
 
   void TimeDate::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> TimeDate::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
+      dst.pushPhysicalQuantity(true, 1, sail::Duration<double>::minutes(1.0), 16, 0, _localOffset);
+    dst.fillUpToLength(64, true);
+    return dst.moveData();
   }
 
   WindData::WindData() {
@@ -389,6 +534,15 @@ namespace PgnClasses {
 
   void WindData::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> WindData::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _windSpeed);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _windAngle);
+      dst.pushUnsigned(3, _reference.cast<uint64_t>());
+    dst.fillUpToLength(48, true);
+    return dst.moveData();
   }
 
   DirectionData::DirectionData() {
@@ -417,6 +571,21 @@ namespace PgnClasses {
 
   void DirectionData::reset() {
     _valid = false;
+  }
+  std::vector<uint8_t> DirectionData::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(4, _dataMode.cast<uint64_t>());
+      dst.pushUnsigned(2, _cogReference.cast<uint64_t>());
+      dst.fillBits(2, true); // TODO: Can we safely do this? The field name is 'Reserved'
+      dst.pushUnsigned(8, _sid);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _cog);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _sog);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _heading);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _speedThroughWater);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _set);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _drift);
+    dst.fillUpToLength(112, true);
+    return dst.moveData();
   }
 
 int pgnSize(int pgn) {
