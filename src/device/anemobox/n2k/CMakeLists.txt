@@ -22,6 +22,9 @@ cxx_test(n2k_N2kFieldTest
         )
 
 add_library(n2k_FastPacket FastPacket.h FastPacket.cpp)
+
+target_link_libraries(n2k_FastPacket common_logging)
+
 cxx_test(n2k_FastPacketTest FastPacketTest.cpp n2k_FastPacket gtest_main)
 
 add_library(n2k_PgnClasses
