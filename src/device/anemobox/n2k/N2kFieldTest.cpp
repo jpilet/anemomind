@@ -294,7 +294,7 @@ TEST(N2kFieldTest, Write_Unsigned_2_and_3) {
   N2kFieldOutputStream output;
   output.pushUnsigned(6, 2);
   output.pushUnsigned(2, 3);
-  auto d = output.moveData();
+  const auto& d = output.data();
   testUnsigned_2_and_3(d.data(), d.size());
 }
 
@@ -302,7 +302,7 @@ TEST(N2kFieldTest, Write_Unsigned_7_and_9) {
   N2kFieldOutputStream output;
   output.pushUnsigned(6, 7);
   output.pushUnsigned(6, 9);
-  auto d = output.moveData();
+  const auto& d = output.data();
   testUnsigned_7_and_9(d.data(), d.size());
 }
 
@@ -310,7 +310,7 @@ TEST(N2kFieldTest, Write_Signed_positive_2_and_1) {
   N2kFieldOutputStream output;
   output.pushSigned(6, 0, 2);
   output.pushSigned(2, 0, 1);
-  auto d = output.moveData();
+  const auto& d = output.data();
   testSigned_positive_2_and_1(d.data(), d.size());
 }
 
@@ -318,7 +318,7 @@ TEST(N2kFieldTest, Write_Signed_negative_2_and_1) {
   N2kFieldOutputStream output;
   output.pushSigned(6, 0, -2);
   output.pushSigned(2, 0, -1);
-  auto d = output.moveData();
+  const auto& d = output.data();
   testSigned_negative_2_and_1(d.data(), d.size());
 }
 
@@ -326,7 +326,7 @@ TEST(N2kFieldTest, Write_Signed_7_and_9) {
   N2kFieldOutputStream output;
   output.pushSigned(6, 0, 7);
   output.pushSigned(6, 0, 9);
-  auto d = output.moveData();
+  const auto& d = output.data();
   testSigned_7_and_9(d.data(), d.size());
 }
 
@@ -334,14 +334,14 @@ TEST(N2kFieldTest, Write_Signed_negative_7_and_9) {
   N2kFieldOutputStream output;
   output.pushSigned(6, 0, -7);
   output.pushSigned(6, 0, -9);
-  auto d = output.moveData();
+  const auto& d = output.data();
   testSigned_negative_7_and_9(d.data(), d.size());
 }
 
 TEST(N2kFieldTest, Write_Signed_negative_7_with_offset) {
   N2kFieldOutputStream output;
   output.pushSigned(6, -8, -7);
-  auto d = output.moveData();
+  const auto& d = output.data();
   testSigned_negative_7_with_offset(d.data(), d.size());
 }
 
@@ -361,6 +361,6 @@ TEST(N2kFieldTest, Write_parseDemo) {
 
   output.pushUnsigned(3, 2);
 
-  auto d = output.moveData();
+  const auto& d = output.data();
   testParseDemo(d.data(), d.size());
 }

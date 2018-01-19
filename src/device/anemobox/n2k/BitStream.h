@@ -85,11 +85,14 @@ public:
   // Does the opposite of what BitStream::getUnsigned does
   void pushUnsigned(int bitCount, uint64_t value);
 
-  int advanceBits(int n) {return _counter.advanceBits(n);}
+  int fillBits(int n, bool fillValue) {
+    pushUnsigned(n, fillValue? 0xFFFFFFFFFFFFFFFF : 0);
+    return _counter.bitPos();
+  }
 
   int lengthBits() const {return _counter.bitPos();}
 
-  std::vector<uint8_t>&& moveData() {return std::move(_data);}
+  const std::vector<uint8_t>& data() const {return _data;}
 private:
   // Does the opposite of what BitStream::readBitsInByteDoes.
   uint8_t writeBitsInByte(

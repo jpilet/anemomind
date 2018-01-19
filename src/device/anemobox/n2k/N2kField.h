@@ -76,25 +76,10 @@ public:
       int64_t offset, Optional<double> value);
 
   template <typename T>
-  void push(
-      bool isSigned, int bits,
-      int64_t offset, Optional<T> value) {
-    if (isSigned) {
-      pushSigned(bits, offset, value.defined()?
-          Optional<int64_t>(value.get())
-          : Optional<int64_t>());
-    } else {
-      pushUnsigned(bits, value.defined()?
-          Optional<uint64_t>(value.get())
-          : Optional<uint64_t>());
-    }
-  }
-
-  template <typename T>
   void pushPhysicalQuantity(
       bool isSigned, double resolution,
       T unit, int bits, int64_t offset, Optional<T> value) {
-    push<double>(isSigned, bits, offset,
+    pushDouble(isSigned, bits, offset,
         value.defined()?
             Optional<double>((value.get()/unit)/resolution)
             : Optional<double>());
@@ -102,8 +87,10 @@ public:
 
   // No 'pushUnsignedInSet', just use 'pushUnsigned' for that.
 
-  void writeBytes(const sail::Array<uint8_t>& bytes);
-  std::vector<uint8_t>&& moveData() {return _dst.moveData();}
+  void pushBytes(int bits, const Optional<sail::Array<uint8_t>>& bytes);
+  const std::vector<uint8_t>& data() const {return _dst.data();}
+
+  void fillBits(int n, bool fillValue) {_dst.fillBits(n, fillValue);}
 private:
   BitOutputStream _dst;
 };
