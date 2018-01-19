@@ -1,5 +1,7 @@
 #include <device/anemobox/n2k/FastPacket.h>
 #include <algorithm>
+#include <server/common/math.h>
+#include <server/common/logging.h>
 
 namespace PgnClasses {
 
@@ -140,21 +142,20 @@ namespace {
       return bytesSent < src.data.size();
     }
   };
-
-  CanPacket* allocate(std::vector<CanPacket>* dst) {
-    dst->push_back(CanPacket());
-    return &(dst->back());
-  }
 }
 
 std::vector<CanPacket> FastPacketSplitter::split(const CanPacket& src) {
   FastPacketSplitState state(_pgn2seqCounter[src.pgn].next());
   std::vector<CanPacket> dst;
-  dst.reserve((src.data.size()+1)/7 + 1);
-  state.makeFirstPacket(src, allocate(&dst));
-  while (state.remainsDataToBeSent(src)) {
-    state.makeRemainingPacket(src, allocate(&dst));
+  int packetCount = sail::div1(src.data.size()+1, 7);
+  dst.resize(packetCount);
+  state.makeFirstPacket(src, &(dst[0]));
+  using namespace sail;
+  for (int i = 1; i < packetCount; i++) {
+    CHECK(state.remainsDataToBeSent(src));
+    state.makeRemainingPacket(src,&(dst[i]));
   }
+  CHECK(!state.remainsDataToBeSent(src));
   return dst;
 }
 
