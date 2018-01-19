@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 19 2018 13:27:28 GMT+0100 (CET) using 
+/** Generated on Fri Jan 26 2018 16:06:23 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -7,601 +7,792 @@
 #include "PgnClasses.h"
 
 #include <device/anemobox/n2k/N2kField.h>
+#include<server/common/logging.h>
 
 namespace PgnClasses {
 
   IsoTransportProtocolDataTransfer::IsoTransportProtocolDataTransfer() {
-    reset();
   }
 
   IsoTransportProtocolDataTransfer::IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60160 (ISO Transport Protocol, Data Transfer) has 1 repeating fields that are not handled.
     if (8 <= src.remainingBits()) {
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _valid = true;
-    } else {
-      reset();
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      while (56 <= src.remainingBits()) {
+        auto l_data = src.readBytes(56);
+        repeating.push_back({l_data});
+      }
     }
   }
-
-  void IsoTransportProtocolDataTransfer::reset() {
-    _valid = false;
+  bool IsoTransportProtocolDataTransfer::hasSomeData() const {
+    return 
+         sid.defined()
+    ;
+  }
+  bool IsoTransportProtocolDataTransfer::hasAllData() const {
+    return 
+         sid.defined()
+    ;
   }
   std::vector<uint8_t> IsoTransportProtocolDataTransfer::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _sid);
+      dst.pushUnsigned(8, sid);
+    for (const auto& x: repeating) {
+      dst.pushBytes(56, x.data);
+    }
     return dst.moveData();
   }
 
   IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend() {
-    reset();
   }
 
   IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Request To Send) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
-      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
-      _packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _packetsReply = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _valid = true;
-    } else {
-      reset();
+      groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      packetsReply = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      while (24 <= src.remainingBits()) {
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        repeating.push_back({l_pgn});
+      }
     }
   }
-
-  void IsoTransportProtocolConnectionManagementRequestToSend::reset() {
-    _valid = false;
+  bool IsoTransportProtocolConnectionManagementRequestToSend::hasSomeData() const {
+    return 
+         groupFunctionCode.defined()
+      || messageSize.defined()
+      || packets.defined()
+      || packetsReply.defined()
+    ;
+  }
+  bool IsoTransportProtocolConnectionManagementRequestToSend::hasAllData() const {
+    return 
+         groupFunctionCode.defined()
+      && messageSize.defined()
+      && packets.defined()
+      && packetsReply.defined()
+    ;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementRequestToSend::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _groupFunctionCode);
-      dst.pushUnsigned(16, _messageSize);
-      dst.pushUnsigned(8, _packets);
-      dst.pushUnsigned(8, _packetsReply);
+      dst.pushUnsigned(8, groupFunctionCode);
+      dst.pushUnsigned(16, messageSize);
+      dst.pushUnsigned(8, packets);
+      dst.pushUnsigned(8, packetsReply);
+    for (const auto& x: repeating) {
+      dst.pushUnsigned(24, x.pgn);
+    }
     return dst.moveData();
   }
 
   IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend() {
-    reset();
   }
 
   IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Clear To Send) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
-      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _maxPackets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _nextSid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      // Skipping reserved
-      src.advanceBits(16);
-      _valid = true;
-    } else {
-      reset();
+      groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      maxPackets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      nextSid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+        // Skipping reserved
+        src.advanceBits(16);
+      while (24 <= src.remainingBits()) {
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        repeating.push_back({l_pgn});
+      }
     }
   }
-
-  void IsoTransportProtocolConnectionManagementClearToSend::reset() {
-    _valid = false;
+  bool IsoTransportProtocolConnectionManagementClearToSend::hasSomeData() const {
+    return 
+         groupFunctionCode.defined()
+      || maxPackets.defined()
+      || nextSid.defined()
+    ;
+  }
+  bool IsoTransportProtocolConnectionManagementClearToSend::hasAllData() const {
+    return 
+         groupFunctionCode.defined()
+      && maxPackets.defined()
+      && nextSid.defined()
+    ;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementClearToSend::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _groupFunctionCode);
-      dst.pushUnsigned(8, _maxPackets);
-      dst.pushUnsigned(8, _nextSid);
+      dst.pushUnsigned(8, groupFunctionCode);
+      dst.pushUnsigned(8, maxPackets);
+      dst.pushUnsigned(8, nextSid);
       dst.fillBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    for (const auto& x: repeating) {
+      dst.pushUnsigned(24, x.pgn);
+    }
     return dst.moveData();
   }
 
   IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage() {
-    reset();
   }
 
   IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - End Of Message) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
-      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _totalMessageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
-      _totalNumberOfPacketsReceived = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      // Skipping reserved
-      src.advanceBits(8);
-      _valid = true;
-    } else {
-      reset();
+      groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      totalMessageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      totalNumberOfPacketsReceived = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+        // Skipping reserved
+        src.advanceBits(8);
+      while (24 <= src.remainingBits()) {
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        repeating.push_back({l_pgn});
+      }
     }
   }
-
-  void IsoTransportProtocolConnectionManagementEndOfMessage::reset() {
-    _valid = false;
+  bool IsoTransportProtocolConnectionManagementEndOfMessage::hasSomeData() const {
+    return 
+         groupFunctionCode.defined()
+      || totalMessageSize.defined()
+      || totalNumberOfPacketsReceived.defined()
+    ;
+  }
+  bool IsoTransportProtocolConnectionManagementEndOfMessage::hasAllData() const {
+    return 
+         groupFunctionCode.defined()
+      && totalMessageSize.defined()
+      && totalNumberOfPacketsReceived.defined()
+    ;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementEndOfMessage::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _groupFunctionCode);
-      dst.pushUnsigned(16, _totalMessageSize);
-      dst.pushUnsigned(8, _totalNumberOfPacketsReceived);
+      dst.pushUnsigned(8, groupFunctionCode);
+      dst.pushUnsigned(16, totalMessageSize);
+      dst.pushUnsigned(8, totalNumberOfPacketsReceived);
       dst.fillBits(8, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    for (const auto& x: repeating) {
+      dst.pushUnsigned(24, x.pgn);
+    }
     return dst.moveData();
   }
 
   IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce() {
-    reset();
   }
 
   IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Broadcast Announce) has 1 repeating fields that are not handled.
     if (40 <= src.remainingBits()) {
-      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
-      _packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      // Skipping reserved
-      src.advanceBits(8);
-      _valid = true;
-    } else {
-      reset();
+      groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+        // Skipping reserved
+        src.advanceBits(8);
+      while (24 <= src.remainingBits()) {
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        repeating.push_back({l_pgn});
+      }
     }
   }
-
-  void IsoTransportProtocolConnectionManagementBroadcastAnnounce::reset() {
-    _valid = false;
+  bool IsoTransportProtocolConnectionManagementBroadcastAnnounce::hasSomeData() const {
+    return 
+         groupFunctionCode.defined()
+      || messageSize.defined()
+      || packets.defined()
+    ;
+  }
+  bool IsoTransportProtocolConnectionManagementBroadcastAnnounce::hasAllData() const {
+    return 
+         groupFunctionCode.defined()
+      && messageSize.defined()
+      && packets.defined()
+    ;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementBroadcastAnnounce::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _groupFunctionCode);
-      dst.pushUnsigned(16, _messageSize);
-      dst.pushUnsigned(8, _packets);
+      dst.pushUnsigned(8, groupFunctionCode);
+      dst.pushUnsigned(16, messageSize);
+      dst.pushUnsigned(8, packets);
       dst.fillBits(8, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    for (const auto& x: repeating) {
+      dst.pushUnsigned(24, x.pgn);
+    }
     return dst.moveData();
   }
 
   IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort() {
-    reset();
   }
 
   IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 60416 (ISO Transport Protocol, Connection Management - Abort) has 1 repeating fields that are not handled.
     if (32 <= src.remainingBits()) {
-      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _reason = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      // Skipping reserved
-      src.advanceBits(16);
-      _valid = true;
-    } else {
-      reset();
+      groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      reason = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+        // Skipping reserved
+        src.advanceBits(16);
+      while (24 <= src.remainingBits()) {
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        repeating.push_back({l_pgn});
+      }
     }
   }
-
-  void IsoTransportProtocolConnectionManagementAbort::reset() {
-    _valid = false;
+  bool IsoTransportProtocolConnectionManagementAbort::hasSomeData() const {
+    return 
+         groupFunctionCode.defined()
+      || reason.defined()
+    ;
+  }
+  bool IsoTransportProtocolConnectionManagementAbort::hasAllData() const {
+    return 
+         groupFunctionCode.defined()
+      && reason.defined()
+    ;
   }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementAbort::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _groupFunctionCode);
-      dst.pushUnsigned(8, _reason);
+      dst.pushUnsigned(8, groupFunctionCode);
+      dst.pushUnsigned(8, reason);
       dst.fillBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    for (const auto& x: repeating) {
+      dst.pushUnsigned(24, x.pgn);
+    }
     return dst.moveData();
   }
 
   SystemTime::SystemTime() {
-    reset();
   }
 
   SystemTime::SystemTime(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (64 <= src.remainingBits()) {
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _source = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5}).cast<Source>();
-      // Skipping reserved
-      src.advanceBits(4);
-      _date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);
-      _time = src.getPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0);
-      _valid = _source.defined();
-    } else {
-      reset();
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      source = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5}).cast<Source>();
+        // Skipping reserved
+        src.advanceBits(4);
+      date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);
+      time = src.getPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0);
+    // No repeating fields.
     }
   }
-
-  void SystemTime::reset() {
-    _valid = false;
+  bool SystemTime::hasSomeData() const {
+    return 
+         sid.defined()
+      || source.defined()
+      || date.defined()
+      || time.defined()
+    ;
+  }
+  bool SystemTime::hasAllData() const {
+    return 
+         sid.defined()
+      && source.defined()
+      && date.defined()
+      && time.defined()
+    ;
   }
   std::vector<uint8_t> SystemTime::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _sid);
-      dst.pushUnsigned(4, _source.cast<uint64_t>());
+      dst.pushUnsigned(8, sid);
+      dst.pushUnsigned(4, source.cast<uint64_t>());
       dst.fillBits(4, true); // TODO: Can we safely do this? The field name is 'Reserved'
-      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
-      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
-    dst.fillUpToLength(64, true);
+      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, date);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, time);
     return dst.moveData();
   }
 
   Rudder::Rudder() {
-    reset();
   }
 
   Rudder::Rudder(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (48 <= src.remainingBits()) {
-      _instance = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _directionOrder = src.getUnsigned(2, N2kField::Definedness::AlwaysDefined);
-      // Skipping reserved
-      src.advanceBits(6);
-      _angleOrder = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _position = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _valid = true;
-    } else {
-      reset();
+      instance = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      directionOrder = src.getUnsigned(2, N2kField::Definedness::AlwaysDefined);
+        // Skipping reserved
+        src.advanceBits(6);
+      angleOrder = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      position = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+    // No repeating fields.
     }
   }
-
-  void Rudder::reset() {
-    _valid = false;
+  bool Rudder::hasSomeData() const {
+    return 
+         instance.defined()
+      || directionOrder.defined()
+      || angleOrder.defined()
+      || position.defined()
+    ;
+  }
+  bool Rudder::hasAllData() const {
+    return 
+         instance.defined()
+      && directionOrder.defined()
+      && angleOrder.defined()
+      && position.defined()
+    ;
   }
   std::vector<uint8_t> Rudder::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _instance);
-      dst.pushUnsigned(2, _directionOrder);
+      dst.pushUnsigned(8, instance);
+      dst.pushUnsigned(2, directionOrder);
       dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
-      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _angleOrder);
-      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _position);
-    dst.fillUpToLength(64, true);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, angleOrder);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, position);
     return dst.moveData();
   }
 
   VesselHeading::VesselHeading() {
-    reset();
   }
 
   VesselHeading::VesselHeading(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (58 <= src.remainingBits()) {
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _heading = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _deviation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _variation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _reference = src.getUnsignedInSet(2, {0, 1}).cast<Reference>();
-      _valid = _reference.defined();
-    } else {
-      reset();
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      heading = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      deviation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      variation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      reference = src.getUnsignedInSet(2, {0, 1}).cast<Reference>();
+    // No repeating fields.
     }
   }
-
-  void VesselHeading::reset() {
-    _valid = false;
+  bool VesselHeading::hasSomeData() const {
+    return 
+         sid.defined()
+      || heading.defined()
+      || deviation.defined()
+      || variation.defined()
+      || reference.defined()
+    ;
+  }
+  bool VesselHeading::hasAllData() const {
+    return 
+         sid.defined()
+      && heading.defined()
+      && deviation.defined()
+      && variation.defined()
+      && reference.defined()
+    ;
   }
   std::vector<uint8_t> VesselHeading::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _sid);
-      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _heading);
-      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _deviation);
-      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _variation);
-      dst.pushUnsigned(2, _reference.cast<uint64_t>());
-    dst.fillUpToLength(64, true);
+      dst.pushUnsigned(8, sid);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, heading);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, deviation);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, variation);
+      dst.pushUnsigned(2, reference.cast<uint64_t>());
     return dst.moveData();
   }
 
   RateOfTurn::RateOfTurn() {
-    reset();
   }
 
   RateOfTurn::RateOfTurn(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (40 <= src.remainingBits()) {
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _rate = src.getPhysicalQuantity(true, 3.125e-08, (sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0)), 32, 0);
-      _valid = true;
-    } else {
-      reset();
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      rate = src.getPhysicalQuantity(true, 3.125e-08, (sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0)), 32, 0);
+    // No repeating fields.
     }
   }
-
-  void RateOfTurn::reset() {
-    _valid = false;
+  bool RateOfTurn::hasSomeData() const {
+    return 
+         sid.defined()
+      || rate.defined()
+    ;
+  }
+  bool RateOfTurn::hasAllData() const {
+    return 
+         sid.defined()
+      && rate.defined()
+    ;
   }
   std::vector<uint8_t> RateOfTurn::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _sid);
-      dst.pushPhysicalQuantity(true, 3.125e-08, (sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0)), 32, 0, _rate);
-    dst.fillUpToLength(40, true);
+      dst.pushUnsigned(8, sid);
+      dst.pushPhysicalQuantity(true, 3.125e-08, (sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0)), 32, 0, rate);
     return dst.moveData();
   }
 
   Attitude::Attitude() {
-    reset();
   }
 
   Attitude::Attitude(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (56 <= src.remainingBits()) {
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _yaw = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _pitch = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _roll = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _valid = true;
-    } else {
-      reset();
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      yaw = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      pitch = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      roll = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+    // No repeating fields.
     }
   }
-
-  void Attitude::reset() {
-    _valid = false;
+  bool Attitude::hasSomeData() const {
+    return 
+         sid.defined()
+      || yaw.defined()
+      || pitch.defined()
+      || roll.defined()
+    ;
+  }
+  bool Attitude::hasAllData() const {
+    return 
+         sid.defined()
+      && yaw.defined()
+      && pitch.defined()
+      && roll.defined()
+    ;
   }
   std::vector<uint8_t> Attitude::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _sid);
-      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _yaw);
-      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _pitch);
-      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _roll);
-    dst.fillUpToLength(56, true);
+      dst.pushUnsigned(8, sid);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, yaw);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, pitch);
+      dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, roll);
     return dst.moveData();
   }
 
   Speed::Speed() {
-    reset();
   }
 
   Speed::Speed(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (52 <= src.remainingBits()) {
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _speedWaterReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      _speedGroundReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      _speedWaterReferencedType = src.getUnsignedInSet(8, {0, 1, 2, 3, 4}).cast<SpeedWaterReferencedType>();
-      _speedDirection = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
-      _valid = _speedWaterReferencedType.defined();
-    } else {
-      reset();
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      speedWaterReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+      speedGroundReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+      speedWaterReferencedType = src.getUnsignedInSet(8, {0, 1, 2, 3, 4}).cast<SpeedWaterReferencedType>();
+      speedDirection = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
+    // No repeating fields.
     }
   }
-
-  void Speed::reset() {
-    _valid = false;
+  bool Speed::hasSomeData() const {
+    return 
+         sid.defined()
+      || speedWaterReferenced.defined()
+      || speedGroundReferenced.defined()
+      || speedWaterReferencedType.defined()
+      || speedDirection.defined()
+    ;
+  }
+  bool Speed::hasAllData() const {
+    return 
+         sid.defined()
+      && speedWaterReferenced.defined()
+      && speedGroundReferenced.defined()
+      && speedWaterReferencedType.defined()
+      && speedDirection.defined()
+    ;
   }
   std::vector<uint8_t> Speed::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _sid);
-      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _speedWaterReferenced);
-      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _speedGroundReferenced);
-      dst.pushUnsigned(8, _speedWaterReferencedType.cast<uint64_t>());
-      dst.pushUnsigned(4, _speedDirection);
-    dst.fillUpToLength(48, true);
+      dst.pushUnsigned(8, sid);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, speedWaterReferenced);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, speedGroundReferenced);
+      dst.pushUnsigned(8, speedWaterReferencedType.cast<uint64_t>());
+      dst.pushUnsigned(4, speedDirection);
     return dst.moveData();
   }
 
   PositionRapidUpdate::PositionRapidUpdate() {
-    reset();
   }
 
   PositionRapidUpdate::PositionRapidUpdate(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (64 <= src.remainingBits()) {
-      _latitude = src.getPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0);
-      _longitude = src.getPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0);
-      _valid = true;
-    } else {
-      reset();
+      latitude = src.getPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0);
+      longitude = src.getPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0);
+    // No repeating fields.
     }
   }
-
-  void PositionRapidUpdate::reset() {
-    _valid = false;
+  bool PositionRapidUpdate::hasSomeData() const {
+    return 
+         latitude.defined()
+      || longitude.defined()
+    ;
+  }
+  bool PositionRapidUpdate::hasAllData() const {
+    return 
+         latitude.defined()
+      && longitude.defined()
+    ;
   }
   std::vector<uint8_t> PositionRapidUpdate::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, _latitude);
-      dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, _longitude);
-    dst.fillUpToLength(64, true);
+      dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, latitude);
+      dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, longitude);
     return dst.moveData();
   }
 
   CogSogRapidUpdate::CogSogRapidUpdate() {
-    reset();
   }
 
   CogSogRapidUpdate::CogSogRapidUpdate(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (64 <= src.remainingBits()) {
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _cogReference = src.getUnsignedInSet(2, {0, 1}).cast<CogReference>();
-      // Skipping reserved
-      src.advanceBits(6);
-      _cog = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _sog = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      // Skipping reserved
-      src.advanceBits(16);
-      _valid = _cogReference.defined();
-    } else {
-      reset();
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      cogReference = src.getUnsignedInSet(2, {0, 1}).cast<CogReference>();
+        // Skipping reserved
+        src.advanceBits(6);
+      cog = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      sog = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+        // Skipping reserved
+        src.advanceBits(16);
+    // No repeating fields.
     }
   }
-
-  void CogSogRapidUpdate::reset() {
-    _valid = false;
+  bool CogSogRapidUpdate::hasSomeData() const {
+    return 
+         sid.defined()
+      || cogReference.defined()
+      || cog.defined()
+      || sog.defined()
+    ;
+  }
+  bool CogSogRapidUpdate::hasAllData() const {
+    return 
+         sid.defined()
+      && cogReference.defined()
+      && cog.defined()
+      && sog.defined()
+    ;
   }
   std::vector<uint8_t> CogSogRapidUpdate::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _sid);
-      dst.pushUnsigned(2, _cogReference.cast<uint64_t>());
+      dst.pushUnsigned(8, sid);
+      dst.pushUnsigned(2, cogReference.cast<uint64_t>());
       dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
-      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _cog);
-      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _sog);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, cog);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, sog);
       dst.fillBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
-    dst.fillUpToLength(64, true);
     return dst.moveData();
   }
 
   GnssPositionData::GnssPositionData() {
-    reset();
   }
 
   GnssPositionData::GnssPositionData(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    // Warning: PGN 129029 (GNSS Position Data) has 3 repeating fields that are not handled.
     if (328 <= src.remainingBits()) {
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);
-      _time = src.getPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0);
-      _latitude = src.getPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0);
-      _longitude = src.getPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0);
-      _altitude = src.getPhysicalQuantity(true, 1e-06, sail::Length<double>::meters(1.0), 64, 0);
-      _gnssType = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5, 6, 7, 8}).cast<GnssType>();
-      _method = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5, 6, 7, 8}).cast<Method>();
-      _integrity = src.getUnsignedInSet(2, {0, 1, 2}).cast<Integrity>();
-      // Skipping reserved
-      src.advanceBits(6);
-      _numberOfSvs = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _hdop = src.getSigned(16, 0, N2kField::Definedness::AlwaysDefined);
-      _pdop = src.getSigned(16, 0, N2kField::Definedness::AlwaysDefined);
-      _geoidalSeparation = src.getPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0);
-      _referenceStations = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _valid = _gnssType.defined() && _method.defined() && _integrity.defined();
-    } else {
-      reset();
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);
+      time = src.getPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0);
+      latitude = src.getPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0);
+      longitude = src.getPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0);
+      altitude = src.getPhysicalQuantity(true, 1e-06, sail::Length<double>::meters(1.0), 64, 0);
+      gnssType = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5, 6, 7, 8}).cast<GnssType>();
+      method = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5, 6, 7, 8}).cast<Method>();
+      integrity = src.getUnsignedInSet(2, {0, 1, 2}).cast<Integrity>();
+        // Skipping reserved
+        src.advanceBits(6);
+      numberOfSvs = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      hdop = src.getSigned(16, 0, N2kField::Definedness::AlwaysDefined);
+      pdop = src.getSigned(16, 0, N2kField::Definedness::AlwaysDefined);
+      geoidalSeparation = src.getPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0);
+      referenceStations = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      while (32 <= src.remainingBits()) {
+        auto l_referenceStationType = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5, 6, 7, 8}).cast<ReferenceStationType>();
+        auto l_referenceStationId = src.getUnsigned(12, N2kField::Definedness::AlwaysDefined);
+        auto l_ageOfDgnssCorrections = src.getPhysicalQuantity(false, 0.01, sail::Duration<double>::seconds(1.0), 16, 0);
+        repeating.push_back({l_referenceStationType, l_referenceStationId, l_ageOfDgnssCorrections});
+      }
     }
   }
-
-  void GnssPositionData::reset() {
-    _valid = false;
+  bool GnssPositionData::hasSomeData() const {
+    return 
+         sid.defined()
+      || date.defined()
+      || time.defined()
+      || latitude.defined()
+      || longitude.defined()
+      || altitude.defined()
+      || gnssType.defined()
+      || method.defined()
+      || integrity.defined()
+      || numberOfSvs.defined()
+      || hdop.defined()
+      || pdop.defined()
+      || geoidalSeparation.defined()
+      || referenceStations.defined()
+    ;
+  }
+  bool GnssPositionData::hasAllData() const {
+    return 
+         sid.defined()
+      && date.defined()
+      && time.defined()
+      && latitude.defined()
+      && longitude.defined()
+      && altitude.defined()
+      && gnssType.defined()
+      && method.defined()
+      && integrity.defined()
+      && numberOfSvs.defined()
+      && hdop.defined()
+      && pdop.defined()
+      && geoidalSeparation.defined()
+      && referenceStations.defined()
+    ;
   }
   std::vector<uint8_t> GnssPositionData::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _sid);
-      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
-      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
-      dst.pushPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0, _latitude);
-      dst.pushPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0, _longitude);
-      dst.pushPhysicalQuantity(true, 1e-06, sail::Length<double>::meters(1.0), 64, 0, _altitude);
-      dst.pushUnsigned(4, _gnssType.cast<uint64_t>());
-      dst.pushUnsigned(4, _method.cast<uint64_t>());
-      dst.pushUnsigned(2, _integrity.cast<uint64_t>());
+      dst.pushUnsigned(8, sid);
+      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, date);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, time);
+      dst.pushPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0, latitude);
+      dst.pushPhysicalQuantity(true, 0.0000000000000001, sail::Angle<double>::degrees(1.0), 64, 0, longitude);
+      dst.pushPhysicalQuantity(true, 1e-06, sail::Length<double>::meters(1.0), 64, 0, altitude);
+      dst.pushUnsigned(4, gnssType.cast<uint64_t>());
+      dst.pushUnsigned(4, method.cast<uint64_t>());
+      dst.pushUnsigned(2, integrity.cast<uint64_t>());
       dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
-      dst.pushUnsigned(8, _numberOfSvs);
-      dst.pushSigned(16, 0, _hdop);
-      dst.pushSigned(16, 0, _pdop);
-      dst.pushPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0, _geoidalSeparation);
-      dst.pushUnsigned(8, _referenceStations);
+      dst.pushUnsigned(8, numberOfSvs);
+      dst.pushSigned(16, 0, hdop);
+      dst.pushSigned(16, 0, pdop);
+      dst.pushPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0, geoidalSeparation);
+      dst.pushUnsigned(8, referenceStations);
+    for (const auto& x: repeating) {
+      dst.pushUnsigned(4, x.referenceStationType.cast<uint64_t>());
+      dst.pushUnsigned(12, x.referenceStationId);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Duration<double>::seconds(1.0), 16, 0, x.ageOfDgnssCorrections);
+    }
     return dst.moveData();
   }
 
   TimeDate::TimeDate() {
-    reset();
   }
 
   TimeDate::TimeDate(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (64 <= src.remainingBits()) {
-      _date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);
-      _time = src.getPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0);
-      _localOffset = src.getPhysicalQuantity(true, 1, sail::Duration<double>::minutes(1.0), 16, 0);
-      _valid = true;
-    } else {
-      reset();
+      date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);
+      time = src.getPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0);
+      localOffset = src.getPhysicalQuantity(true, 1, sail::Duration<double>::minutes(1.0), 16, 0);
+    // No repeating fields.
     }
   }
-
-  void TimeDate::reset() {
-    _valid = false;
+  bool TimeDate::hasSomeData() const {
+    return 
+         date.defined()
+      || time.defined()
+      || localOffset.defined()
+    ;
+  }
+  bool TimeDate::hasAllData() const {
+    return 
+         date.defined()
+      && time.defined()
+      && localOffset.defined()
+    ;
   }
   std::vector<uint8_t> TimeDate::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, _date);
-      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, _time);
-      dst.pushPhysicalQuantity(true, 1, sail::Duration<double>::minutes(1.0), 16, 0, _localOffset);
-    dst.fillUpToLength(64, true);
+      dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, date);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, time);
+      dst.pushPhysicalQuantity(true, 1, sail::Duration<double>::minutes(1.0), 16, 0, localOffset);
     return dst.moveData();
   }
 
   WindData::WindData() {
-    reset();
   }
 
   WindData::WindData(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (43 <= src.remainingBits()) {
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _windSpeed = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      _windAngle = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _reference = src.getUnsignedInSet(3, {0, 1, 2, 3, 4}).cast<Reference>();
-      _valid = _reference.defined();
-    } else {
-      reset();
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      windSpeed = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+      windAngle = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      reference = src.getUnsignedInSet(3, {0, 1, 2, 3, 4}).cast<Reference>();
+    // No repeating fields.
     }
   }
-
-  void WindData::reset() {
-    _valid = false;
+  bool WindData::hasSomeData() const {
+    return 
+         sid.defined()
+      || windSpeed.defined()
+      || windAngle.defined()
+      || reference.defined()
+    ;
+  }
+  bool WindData::hasAllData() const {
+    return 
+         sid.defined()
+      && windSpeed.defined()
+      && windAngle.defined()
+      && reference.defined()
+    ;
   }
   std::vector<uint8_t> WindData::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(8, _sid);
-      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _windSpeed);
-      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _windAngle);
-      dst.pushUnsigned(3, _reference.cast<uint64_t>());
-    dst.fillUpToLength(48, true);
+      dst.pushUnsigned(8, sid);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, windSpeed);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, windAngle);
+      dst.pushUnsigned(3, reference.cast<uint64_t>());
     return dst.moveData();
   }
 
   DirectionData::DirectionData() {
-    reset();
   }
 
   DirectionData::DirectionData(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (112 <= src.remainingBits()) {
-      _dataMode = src.getUnsignedInSet(4, {0, 1, 2, 3, 4}).cast<DataMode>();
-      _cogReference = src.getUnsignedInSet(2, {0, 1}).cast<CogReference>();
-      // Skipping reserved
-      src.advanceBits(2);
-      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _cog = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _sog = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      _heading = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _speedThroughWater = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      _set = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _drift = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      _valid = _dataMode.defined() && _cogReference.defined();
-    } else {
-      reset();
+      dataMode = src.getUnsignedInSet(4, {0, 1, 2, 3, 4}).cast<DataMode>();
+      cogReference = src.getUnsignedInSet(2, {0, 1}).cast<CogReference>();
+        // Skipping reserved
+        src.advanceBits(2);
+      sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      cog = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      sog = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+      heading = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      speedThroughWater = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+      set = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      drift = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+    // No repeating fields.
     }
   }
-
-  void DirectionData::reset() {
-    _valid = false;
+  bool DirectionData::hasSomeData() const {
+    return 
+         dataMode.defined()
+      || cogReference.defined()
+      || sid.defined()
+      || cog.defined()
+      || sog.defined()
+      || heading.defined()
+      || speedThroughWater.defined()
+      || set.defined()
+      || drift.defined()
+    ;
+  }
+  bool DirectionData::hasAllData() const {
+    return 
+         dataMode.defined()
+      && cogReference.defined()
+      && sid.defined()
+      && cog.defined()
+      && sog.defined()
+      && heading.defined()
+      && speedThroughWater.defined()
+      && set.defined()
+      && drift.defined()
+    ;
   }
   std::vector<uint8_t> DirectionData::encode() const {
     N2kField::N2kFieldOutputStream dst;
-      dst.pushUnsigned(4, _dataMode.cast<uint64_t>());
-      dst.pushUnsigned(2, _cogReference.cast<uint64_t>());
+      dst.pushUnsigned(4, dataMode.cast<uint64_t>());
+      dst.pushUnsigned(2, cogReference.cast<uint64_t>());
       dst.fillBits(2, true); // TODO: Can we safely do this? The field name is 'Reserved'
-      dst.pushUnsigned(8, _sid);
-      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _cog);
-      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _sog);
-      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _heading);
-      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _speedThroughWater);
-      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, _set);
-      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, _drift);
-    dst.fillUpToLength(112, true);
+      dst.pushUnsigned(8, sid);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, cog);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, sog);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, heading);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, speedThroughWater);
+      dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, set);
+      dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, drift);
     return dst.moveData();
   }
 
-int pgnSize(int pgn) {
-  switch(pgn) {
-    case 127251: return 5;
-    case 127257: return 7;
-    case 128259: return 6;
-    case 129029: return 51;
-    case 130306: return 6;
-    case 130577: return 14;
-    default: return 8;
-  }
+bool isFastPacket(int pgn) {
+  return (pgn == 129029); // TODO: This is just temporary.
 }
 
 void PgnVisitor::pushAndLinkPacket(const CanPacket& packet) {
-  if (packet.data.size() == 8 && pgnSize(packet.pgn) > 8) {
+  if (isFastPacket(packet.pgn)) { // <-- Inspired by the "bool tNMEA2000::IsFastPacket(const tN2kMsg &N2kMsg);" function in NMEA2000.cpp of ttlappalainen
     add(packet);
   } else {
     visit(packet);

@@ -52,12 +52,9 @@ class FastPacketBuffer {
    big packet, a so called "Fast packet", split it up
    into smaller packets.
 
-   Note: Not all packets are "Fast packets".
-   This is handled by the PgnClasses file. In particular, see
-   the method PgnVisitor::pushAndLinkPacket. Given an incoming packet,
-   that method determines whether it should be linked into a fast packet
-   or if it is a single packet. TODO: We need to write the opposite of
-   that in the code generator.
+   Whether a packet is a FastPacket or an simple packet is mainly
+   determined by its PGN. See 'isFastPacket' function in PgnClasses.
+
    */
 class FastPacketSplitter {
 public:
