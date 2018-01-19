@@ -118,7 +118,7 @@ int getFrameCounter(uint8_t firstByte) {
   return (firstByte & 0x1F);
 }
 
-TEST(FastPacketSplitterTest, DecodeIt) {
+TEST(FastPacketSplitterTest, SplitAFastPacket) {
   FastPacketSplitter splitter;
   auto fullPacket = getInputPacket(0);
   fullPacket.data.resize(sizeof(testResult));
