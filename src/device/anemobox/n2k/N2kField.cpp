@@ -186,19 +186,5 @@ void N2kFieldOutputStream::pushSigned(
           : getMaxSignedValue(bits, offset)));
 }
 
-void N2kFieldOutputStream::pushDouble(
-    bool isSigned, int bits,
-    int64_t offset, Optional<double> value) {
-  if (isSigned) {
-    pushSigned(bits, offset, value.defined()?
-        Optional<int64_t>(value.get())
-        : Optional<int64_t>());
-  } else {
-    pushUnsigned(bits, value.defined()?
-        Optional<uint64_t>(value.get())
-        : Optional<uint64_t>());
-  }
-}
-
 
 }

@@ -89,7 +89,7 @@ public:
 
   int lengthBits() const {return _counter.bitPos();}
 
-  const std::vector<uint8_t>& data() const {return _data;}
+  std::vector<uint8_t>&& moveData() {return std::move(_data);}
 private:
   // Does the opposite of what BitStream::readBitsInByteDoes.
   uint8_t writeBitsInByte(

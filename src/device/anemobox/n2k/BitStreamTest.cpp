@@ -2,8 +2,8 @@
 #include <gtest/gtest.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
-const int N = 3;
-uint8_t data[N] = { 0x21, 0x43, 0x65 };
+uint8_t data[] = { 0x21, 0x43, 0x65 };
+const int N = sizeof(data);
 
 TEST(BitStreamTest, read4And8) {
   BitStream stream(data, N);
@@ -26,7 +26,7 @@ TEST(BitStreamTest, Write4And8) {
   stream.pushUnsigned(4, 0x5);
   stream.pushUnsigned(4, 0x6);
 
-  const auto& d = stream.data();
+  auto d = stream.moveData();
   EXPECT_EQ(d.size(), N);
   for (int i = 0; i < N; i++) {
     EXPECT_EQ(d[i], data[i]);
@@ -83,7 +83,7 @@ TEST(BitStreamTest, BackAndForth) {
   }
   EXPECT_EQ(dst.lengthBits(), total);
 
-  const auto& d = dst.data();
+  auto d = dst.moveData();
   BitStream src(d.data(), d.size());
   for (auto x: testData) {
     EXPECT_EQ(src.getUnsigned(x.size()), evaluate(x));
