@@ -38,11 +38,13 @@ void testWindData(const WindData& windData) {
 }
 
 TEST(PgnClassesTest, WindData) {
-  uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
+  // The length of WindData is 6 bytes.
+  std::vector<uint8_t> data{0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA/*, 0xFF, 0xFF*/};
 
-  PgnClasses::WindData windData(data, 8);
+  PgnClasses::WindData windData(data.data(), data.size());
   testWindData(windData);
   testWindData(recode(windData));
+  EXPECT_EQ(data, windData.encode());
 }
 
 void testWindDataNotAvailable(const WindData& windData) {
@@ -51,11 +53,12 @@ void testWindDataNotAvailable(const WindData& windData) {
 }
 
 TEST(PgnClassesTest, WindDataNotAvailable) {
-  uint8_t data[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+  std::vector<uint8_t> data{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF/*, 0xFF, 0xFF*/};
 
-  PgnClasses::WindData windData(data, 8);
+  PgnClasses::WindData windData(data.data(), data.size());
   testWindDataNotAvailable(windData);
   testWindDataNotAvailable(recode(windData));
+  EXPECT_EQ(data, windData.encode());
 }
 
 class TestWindVisitor : public PgnClasses::PgnVisitor {
@@ -92,11 +95,12 @@ void testPositionRapidUpdate(const PositionRapidUpdate& pru) {
 }
 
 TEST(PgnClassesTest, PositionRapidUpdate) {
-  uint8_t data[] = { 0x41, 0x0b, 0xaa, 0x18, 0xcd, 0x84, 0x4d, 0x01 };
+  std::vector<uint8_t> data{ 0x41, 0x0b, 0xaa, 0x18, 0xcd, 0x84, 0x4d, 0x01 };
 
-  PositionRapidUpdate pru(data, sizeof(data));
+  PositionRapidUpdate pru(data.data(), data.size());
   testPositionRapidUpdate(pru);
   testPositionRapidUpdate(recode(pru));
+  EXPECT_EQ(data, pru.encode());
 }
 
 void testGnssPositionData(const GnssPositionData& pos) {
@@ -109,7 +113,7 @@ void testGnssPositionData(const GnssPositionData& pos) {
 }
 
 TEST(PgnClassesTest, GnssPositionData) {
-  uint8_t data[] = {
+  std::vector<uint8_t> data{
     // Commented out bytes are the header bytes used by the fastpacket
     // system.
     /* 0x20, 0x2F,*/ 0x3E, 0xA7, 0x42, 0x60, 0x39, 0xEA,
@@ -121,8 +125,19 @@ TEST(PgnClassesTest, GnssPositionData) {
     /* 0x26,*/ 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
   };
 
-  GnssPositionData pos(data, sizeof(data));
+  GnssPositionData pos(data.data(), data.size());
   testGnssPositionData(pos);
   testGnssPositionData(recode(pos));
+  auto data2 = pos.encode();
+
+  // TODO: Repeating fields are not yet properly handled.
+  // so length may vary
+  int minLength = std::min(data.size(), data2.size());
+  for (int i = 0; i < minLength; i++) {
+    EXPECT_EQ(data[i], data2[i]);
+  }
+  //EXPECT_EQ(data2.size(), data.size());
+  //EXPECT_EQ(data, pos.encode());
+
 }
 

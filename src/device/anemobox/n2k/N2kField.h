@@ -93,13 +93,14 @@ public:
       T unit, int bits, int64_t offset, Optional<T> value) {
     push<double>(isSigned, bits, offset,
         value.defined()?
-            Optional<double>((value.get()/unit)/resolution)
+            Optional<double>(round((value.get()/unit)/resolution))
             : Optional<double>());
   }
 
   // No 'pushUnsignedInSet', just use 'pushUnsigned' for that.
 
   void fillBits(int n, bool value) {_dst.fillBits(n, value);}
+  void fillUpToLength(int n, bool value) {_dst.fillUpToLength(n, value);}
 
   void pushBytes(
       int bits, const Optional<sail::Array<uint8_t>>& bytes0);

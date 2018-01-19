@@ -3,6 +3,19 @@ var fs = require('fs');
 var assert = require('assert');
 var Path = require('path');
 
+/**
+   The pgn.Length value is probably not reliable in case 
+   "repeating fields" is greater than 0. In that case,
+   the length is effectiverly dependent on how many times the fields are
+   repeated.
+
+   Currently, the pgn.Length value is used to determine whether
+   a packet should be parsed as a "fast packet" or an ordinary 
+   packet. It seems like the pgn.Length is computed as the sum of bits
+   for all fields and converted to bytes. See for instance GnssPositionData
+
+*/
+
 function concat(a, b) {
   return a.concat(b);
 }
@@ -925,6 +938,10 @@ function makeFieldAssignment(field, depth) {
   }
 }
 
+function add(a, b) {
+  return a + b;
+}
+
 function makeEncodeFieldStatement(field) {
   var bits = getBitLength(field);
   if (skipField(field)) {
@@ -980,6 +997,8 @@ function makeConstructorStatements(pgn, depth) {
   var fields = getFieldArray(pgn);
   var innerDepth = depth + 1;
   
+
+  // TODO! Proper handling of repeating fields!!!
   var comment = '';
   if (pgn.RepeatingFields > 0) {
     var warn = 'Warning: PGN ' + pgn.PGN + ' (' + pgn.Description + ') has '
@@ -1010,15 +1029,34 @@ function makeConstructor(pgn, depth) {
 
 function makeEncodeMethodStatements(pgn) {
   var dst = [
-    "if (!_valid) {return std::vector<uint8_t>();}", 
     "N2kField::N2kFieldOutputStream dst;"
   ];
   
   var fields = getFieldArray(pgn);
-  
-  dst.push(fields.map(makeEncodeFieldStatement));
-  
 
+  // Currently, repeating fields are not dealt with.
+  if (0 < pgn.RepeatingFields) {
+    fields = fields.slice(0, - pgn.RepeatingFields);
+  }
+
+  // The _valid flag is probably only useful
+  // for signalling whether parsing went well.
+  // When it comes to encoding the a PGN class,
+  // I guess we will just assume that all data has
+  // been provided, although we could produce a warning
+  // if an optional field is undefined. Not sure what
+  // is best.
+
+  //dst.push("if (_valid) {");
+
+  dst.push(fields.map(makeEncodeFieldStatement));
+
+  //dst.push("}");
+  
+  // TODO! Proper handling of repeating fields!!!
+  if (pgn.RepeatingFields == 0) {
+    dst.push("dst.fillUpToLength(" + pgn.Length*8 + ", true);");
+  }
   dst.push("return dst.moveData();");
   return dst;
 }

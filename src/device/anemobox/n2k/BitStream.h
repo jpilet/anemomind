@@ -89,6 +89,13 @@ public:
     pushUnsigned(n, value? 0xFFFFFFFFFFFFFFFF : 0);
   }
 
+  void fillUpToLength(int n, bool value) {
+    int k = n - _counter.bitPos();
+    if (0 < k) {
+      fillBits(k, value);
+    }
+  }
+
   int lengthBits() const {return _counter.bitPos();}
 
   std::vector<uint8_t>&& moveData() {return std::move(_data);}
