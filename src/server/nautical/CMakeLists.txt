@@ -116,6 +116,7 @@ target_link_libraries(nautical_sailroot
     ${WHOLE_ARCHIVE} calib_Calibrator ${NOWHOLE_ARCHIVE}
     ${WHOLE_ARCHIVE} common_ArgMap ${NOWHOLE_ARCHIVE}
     ${WHOLE_ARCHIVE} common_DOMUtils ${NOWHOLE_ARCHIVE}
+    ${WHOLE_ARCHIVE} common_Env ${NOWHOLE_ARCHIVE}
     ${WHOLE_ARCHIVE} common_PathBuilder ${NOWHOLE_ARCHIVE}
     ${WHOLE_ARCHIVE} common_ScopedLog ${NOWHOLE_ARCHIVE}
     ${WHOLE_ARCHIVE} common_logging ${NOWHOLE_ARCHIVE}
