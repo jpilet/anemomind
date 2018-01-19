@@ -4,6 +4,7 @@
  */
 
 #include "N2kField.h"
+#include <server/common/logging.h>
 
 namespace N2kField {
 
@@ -184,6 +185,25 @@ void N2kFieldOutputStream::pushSigned(
       value.defined()?
           (value.get() - offset)
           : getMaxSignedValue(bits, offset)));
+}
+
+void N2kFieldOutputStream::pushBytes(
+    int bits, const Optional<sail::Array<uint8_t>>& bytes0) {
+  using namespace sail;
+  if (bytes0.defined()) {
+    auto bytes = bytes0.get();
+    if (bits == 8*bytes.size()) {
+      for (auto x: bytes) {
+        _dst.pushUnsigned(8, x);
+      }
+    } else {
+      LOG(WARNING) << "The bytes length does not correspond to bit count. Filling with 1s";
+      fillBits(bits, true);
+    }
+  } else {
+    LOG(WARNING) << "The bytes are undefined, filling with 1s";
+    fillBits(bits, true);
+  }
 }
 
 

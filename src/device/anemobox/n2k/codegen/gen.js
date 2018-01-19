@@ -188,6 +188,10 @@ unitMap = {
   "minutes": {
     type: "sail::Duration<double>",
     unit: "sail::Duration<double>::minutes(1.0)"
+  },
+  "rad/s": {
+    type: "sail::AngularVelocity<double>",
+    unit: "(sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0))"
   }
 };
 
@@ -252,10 +256,12 @@ function makeAccessors(pgn, depth) {
 
 var validMethod = "bool valid() const {return _valid;}";
 var resetDecl = "void reset();";
+var encodeDecl = "std::vector<uint8_t> encode() const;";
 
 var commonMethods = [
   validMethod,
-  resetDecl
+  resetDecl,
+  encodeDecl
 ];
 
 
@@ -445,6 +451,7 @@ function makeVisitorDeclaration(pgns) {
   var multiDefs = getMultiDefs(defMap);
   var s = [
     '\n\n',
+    'int pgnSize(int pgn); // If greater than 8, encode as FastPacket.',
     'class PgnVisitor : FastPacketBuffer {',
     ' public:',
     [
@@ -765,7 +772,7 @@ function makePgnSizeImplementation(pgns) {
   ];
 
   for (var i = 0; i < pgns.length; ++i) {
-    var len = pgns[i].Length;
+    var len = pgns[i].Length; // Not reliable
     if (len != 8) {
     code.push('    case ' + pgns[i].PGN + ': return ' + len + ';');
     }
@@ -918,6 +925,36 @@ function makeFieldAssignment(field, depth) {
   }
 }
 
+function makeEncodeFieldStatement(field) {
+  var bits = getBitLength(field);
+  if (skipField(field)) {
+    return "dst.fillBits(" + bits + ", true); // TODO: "
+      + "Can we safely do this? The field name is '" + field.Name + "'";
+  } else {
+    var valueExpr = getInstanceVariableName(field);
+    var signed = isSigned(field);
+    var signedExpr = boolToString(signed);
+    var offset = getOffset(field);
+    if (isPhysicalQuantity(field)) {
+      var info = getUnitInfo(field);
+      return "dst.pushPhysicalQuantity(" 
+        + signedExpr + ", " + getResolution(field) 
+        + ", " + info.unit + ", " + bits + ", " + offset + ", " + valueExpr + ");";
+    } else if (isLookupTable(field)) {
+      return "dst.pushUnsigned(" 
+        + bits + ", " + valueExpr + ".cast<uint64_t>());" 
+    } else if (isData(field)) {
+      assert(bits % 8 == 0, 
+             "Cannot write bytes, because the number of bits is not a multiple of 8.");
+      return "dst.pushBytes(" + bits + ", " + valueExpr + ");"
+    } else { // Something else.
+      return (signed? "dst.pushSigned(" : "dst.pushUnsigned(")
+        + bits + (signed? ", " + offset : "") 
+        + ", " + valueExpr + ");";
+    }
+  }
+}
+
 function getTotalBitLength(fields) {
   var n = 0;
   for (var i = 0; i < fields.length; i++) {
@@ -945,7 +982,7 @@ function makeConstructorStatements(pgn, depth) {
   
   var comment = '';
   if (pgn.RepeatingFields > 0) {
-    var warn = 'Warning: PGN ' + pgn.PGN + ' has '
+    var warn = 'Warning: PGN ' + pgn.PGN + ' (' + pgn.Description + ') has '
       + pgn.RepeatingFields + ' repeating fields that are not handled.'
     console.warn(warn);
     fields = fields.slice(0, - pgn.RepeatingFields);
@@ -969,6 +1006,29 @@ function makeConstructor(pgn, depth) {
     + beginLine(innerDepth) + "N2kField::N2kFieldStream src(data, lengthBytes);"
     + makeConstructorStatements(pgn, innerDepth)
     + beginLine(depth) + "}";
+}
+
+function makeEncodeMethodStatements(pgn) {
+  var dst = [
+    "if (!_valid) {return std::vector<uint8_t>();}", 
+    "N2kField::N2kFieldOutputStream dst;"
+  ];
+  
+  var fields = getFieldArray(pgn);
+  
+  dst.push(fields.map(makeEncodeFieldStatement));
+  
+
+  dst.push("return dst.moveData();");
+  return dst;
+}
+
+function makeEncodeMethod(pgn, depth) {
+  return indentLineArray(depth, [
+    "std::vector<uint8_t> " + getClassName(pgn) + "::encode() const {",
+    makeEncodeMethodStatements(pgn),
+    "}"
+  ]);
 }
 
 
@@ -1021,7 +1081,8 @@ function makeExtraMethodsInClass(pgn, depth) {
 function makeMethodsForPgn(pgn, depth) {
   return makeDefaultConstructor(pgn, depth) 
     + makeConstructor(pgn, depth)
-    + makeResetMethod(pgn, depth);
+    + makeResetMethod(pgn, depth)
+    + makeEncodeMethod(pgn, depth);
 }
 
 var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n\n';

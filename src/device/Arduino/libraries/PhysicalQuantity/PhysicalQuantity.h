@@ -718,6 +718,17 @@ bool isNaN(const PhysicalQuantity<T, s, t, l, a, m> &x) {
   inline QUANTITY<double> operator"" LIT (long double x) { \
     return QUANTITY<double>::WHAT(x); \
 }
+
+template <typename A, typename B>
+using Per = decltype((std::declval<A>())/(std::declval<B>()));
+
+template <typename T>
+using TimeDerivative = Per<T,
+    PhysicalQuantity<typename T::ValueType, typename T::SystemType, 1, 0, 0, 0>>;
+
+template <typename T>
+using AngularVelocity = TimeDerivative<Angle<double>>;
+
 DEFINE_LITERAL(Angle, degrees, _deg)
 DEFINE_LITERAL(Angle, radians, _rad)
 DEFINE_LITERAL(Length, meters, _m)
@@ -734,13 +745,6 @@ DEFINE_LITERAL(Velocity, knots, _kn)
 DEFINE_LITERAL(Velocity, knots, _kt)
 DEFINE_LITERAL(Acceleration, metersPerSecondSquared, _mps2)
 #undef DEFINE_LITERAL
-
-template <typename A, typename B>
-using Per = decltype((std::declval<A>())/(std::declval<B>()));
-
-template <typename T>
-using TimeDerivative = Per<T,
-    PhysicalQuantity<typename T::ValueType, typename T::SystemType, 1, 0, 0, 0>>;
 
 }  // namespace sail
 

@@ -85,7 +85,9 @@ public:
   // Does the opposite of what BitStream::getUnsigned does
   void pushUnsigned(int bitCount, uint64_t value);
 
-  int advanceBits(int n) {return _counter.advanceBits(n);}
+  void fillBits(int n, bool value) {
+    pushUnsigned(n, value? 0xFFFFFFFFFFFFFFFF : 0);
+  }
 
   int lengthBits() const {return _counter.bitPos();}
 

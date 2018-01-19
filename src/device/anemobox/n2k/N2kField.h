@@ -71,9 +71,6 @@ class N2kFieldOutputStream  {
 public:
   void pushUnsigned(int bits, Optional<uint64_t> value);
   void pushSigned(int bits, int64_t offset, Optional<int64_t> value);
-  void pushDouble(
-      bool isSigned, int bits,
-      int64_t offset, Optional<double> value);
 
   template <typename T>
   void push(
@@ -102,7 +99,11 @@ public:
 
   // No 'pushUnsignedInSet', just use 'pushUnsigned' for that.
 
-  void writeBytes(const sail::Array<uint8_t>& bytes);
+  void fillBits(int n, bool value) {_dst.fillBits(n, value);}
+
+  void pushBytes(
+      int bits, const Optional<sail::Array<uint8_t>>& bytes0);
+
   std::vector<uint8_t>&& moveData() {return _dst.moveData();}
 private:
   BitOutputStream _dst;
