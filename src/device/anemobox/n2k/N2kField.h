@@ -25,13 +25,16 @@ sail::TimeStamp getTimeStamp(const PgnClass &x) {
 bool contains(const std::initializer_list<int> &set, int x);
 
 enum class Definedness {
-  AlwaysDefined,
+  AlwaysDefined, // Seems like this is what we always use.
   MaybeUndefined
 };
 
 uint64_t getMaxUnsignedValue(int numBits);
 uint64_t getMaxSignedValue(int numBits, int64_t offset);
 
+/*
+ * This class is used by the generated classes in PgnClasses.{h,cpp}
+ */
 class N2kFieldStream : public BitStream {
  public:
   N2kFieldStream(const uint8_t *data, int lengthBytes) : BitStream(data, lengthBytes) {}
@@ -41,7 +44,9 @@ class N2kFieldStream : public BitStream {
   Optional<double> getDouble(bool isSigned, int bits, int64_t offset, Definedness definedness);
 
   template <typename T>
-  Optional<T> getPhysicalQuantity(bool isSigned, double resolution, T unit, int bits, int64_t offset) {
+  Optional<T> getPhysicalQuantity(
+      bool isSigned, double resolution,
+      T unit, int bits, int64_t offset) {
     auto x = getDouble(isSigned, bits, offset, Definedness::MaybeUndefined);
     if (x.defined()) {
       return Optional<T>(x()*resolution*unit);
@@ -59,6 +64,49 @@ class N2kFieldStream : public BitStream {
   int64_t getSigned(int numBits, int64_t offset);
 };
 
+/*
+ * This class does the opposite of what N2kFieldStream does
+ */
+class N2kFieldOutputStream  {
+public:
+  void pushUnsigned(int bits, Optional<uint64_t> value);
+  void pushSigned(int bits, int64_t offset, Optional<int64_t> value);
+  void pushDouble(
+      bool isSigned, int bits,
+      int64_t offset, Optional<double> value);
+
+  template <typename T>
+  void push(
+      bool isSigned, int bits,
+      int64_t offset, Optional<T> value) {
+    if (isSigned) {
+      pushSigned(bits, offset, value.defined()?
+          Optional<int64_t>(value.get())
+          : Optional<int64_t>());
+    } else {
+      pushUnsigned(bits, value.defined()?
+          Optional<uint64_t>(value.get())
+          : Optional<uint64_t>());
+    }
+  }
+
+  template <typename T>
+  void pushPhysicalQuantity(
+      bool isSigned, double resolution,
+      T unit, int bits, int64_t offset, Optional<T> value) {
+    push<double>(isSigned, bits, offset,
+        value.defined()?
+            Optional<double>((value.get()/unit)/resolution)
+            : Optional<double>());
+  }
+
+  // No 'pushUnsignedInSet', just use 'pushUnsigned' for that.
+
+  void writeBytes(const sail::Array<uint8_t>& bytes);
+  std::vector<uint8_t>&& moveData() {return _dst.moveData();}
+private:
+  BitOutputStream _dst;
+};
 
 }
 
