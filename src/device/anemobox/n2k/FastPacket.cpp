@@ -99,15 +99,13 @@ namespace {
     uint8_t frameCounter = 0;
     int bytesSent = 0;
 
-    CanPacket allocateNewPacket(const CanPacket& src) {
-      CanPacket dst;
-      dst.pgn = src.pgn;
-      dst.longSrc = src.longSrc;
-      dst.shortSrc = src.shortSrc;
-      dst.data.assign(8, 0xFF);
-      dst.data[0] = encodeFirstByte(seqCounter, frameCounter);
+    void initializeNewPacket(const CanPacket& src, CanPacket* dst) {
+      dst->pgn = src.pgn;
+      dst->longSrc = src.longSrc;
+      dst->shortSrc = src.shortSrc;
+      dst->data.assign(8, 0xFF);
+      dst->data[0] = encodeFirstByte(seqCounter, frameCounter);
       frameCounter++;
-      return dst;
     }
 
     int computePayloadSize(int maxPayload, const CanPacket& src) const {
@@ -125,32 +123,37 @@ namespace {
       bytesSent += count;
     }
 
-    CanPacket makeFirstPacket(const CanPacket& src) {
-      auto dst = allocateNewPacket(src);
+    void makeFirstPacket(const CanPacket& src, CanPacket* dst) {
+      initializeNewPacket(src, dst);
       int n = computePayloadSize(6, src);
-      dst.data[1] = src.data.size(); // Expected bytes (only first message)
-      sendBytes(n, 2, src, &dst);
-      return dst;
+      dst->data[1] = src.data.size(); // Expected bytes (only first message)
+      sendBytes(n, 2, src, dst);
     }
 
-    CanPacket makeRemainingPacket(const CanPacket& src) {
-      auto dst = allocateNewPacket(src);
+    void makeRemainingPacket(const CanPacket& src, CanPacket* dst) {
+      initializeNewPacket(src, dst);
       int n = computePayloadSize(7, src);
-      sendBytes(n, 1, src, &dst);
-      return dst;
+      sendBytes(n, 1, src, dst);
     }
 
     bool remainsDataToBeSent(const CanPacket& src) const {
       return bytesSent < src.data.size();
     }
   };
+
+  CanPacket* allocate(std::vector<CanPacket>* dst) {
+    dst->push_back(CanPacket());
+    return &(dst->back());
+  }
 }
 
 std::vector<CanPacket> FastPacketSplitter::split(const CanPacket& src) {
   FastPacketSplitState state(_pgn2seqCounter[src.pgn].next());
-  std::vector<CanPacket> dst{state.makeFirstPacket(src)};
+  std::vector<CanPacket> dst;
+  dst.reserve((src.data.size()+1)/7 + 1);
+  state.makeFirstPacket(src, allocate(&dst));
   while (state.remainsDataToBeSent(src)) {
-    dst.push_back(state.makeRemainingPacket(src));
+    state.makeRemainingPacket(src, allocate(&dst));
   }
   return dst;
 }
