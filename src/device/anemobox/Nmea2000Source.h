@@ -5,6 +5,7 @@
 
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/n2k/PgnClasses.h>
+#include <device/anemobox/n2k/CanPacket.h>
 
 namespace sail {
 
@@ -18,7 +19,12 @@ class Nmea2000Source : public PgnClasses::PgnVisitor {
                const unsigned char* buffer,
                int length,
                int srcAddr);
+
+	std::vector<std::vector<uint8_t>> exportPackets(int pgn) const;
  protected:
+  // TODO: Override the exportPacket methods here for the different
+  // packet types.
+
   bool apply(const PgnClasses::CanPacket &c, const PgnClasses::VesselHeading& packet) override;
   bool apply(const PgnClasses::CanPacket &c, const PgnClasses::Speed& packet) override;
   bool apply(const PgnClasses::CanPacket &c, const PgnClasses::GnssPositionData& packet) override;

@@ -17,7 +17,7 @@ class JsNmea2000Source : public Nan::ObjectWrap {
  protected:
   static NAN_METHOD(New);
   static NAN_METHOD(process);
-
+  static NAN_METHOD(exportPackets);
  private:
   sail::Nmea2000Source _nmea2000;
 };

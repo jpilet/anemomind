@@ -28,6 +28,7 @@ void JsNmea2000Source::Init(v8::Handle<v8::Object> target) {
   // Prototype
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
   Nan::SetMethod(proto, "process", JsNmea2000Source::process);
+  Nan::SetMethod(proto, "exportPackets", JsNmea2000Source::exportPackets);
 
   nmea2000_constructor.Reset(tpl);
 
@@ -74,7 +75,7 @@ NAN_METHOD(JsNmea2000Source::process) {
   
   JsNmea2000Source* obj = Nan::ObjectWrap::Unwrap<JsNmea2000Source>(info.This());
   if (!obj) {
-    Nan::ThrowTypeError("This is not a Nmea2000Source");
+    Nan::ThrowTypeError("This is not an Nmea2000Source");
     return;
   }
 
@@ -92,4 +93,55 @@ NAN_METHOD(JsNmea2000Source::process) {
   return;
 }
 
-}  // namespace sail
+// Args: PGN number
+// Returns: A node array of node buffers, with each such buffer being
+// an NMEA2000 data packet.
+NAN_METHOD(JsNmea2000Source::exportPackets) {
+  Nan::HandleScope scope;
+  // namespace sail
+
+  JsNmea2000Source* obj = Nan::ObjectWrap::Unwrap<JsNmea2000Source>(info.This());
+  if (!obj) {
+    Nan::ThrowTypeError("This is not an Nmea2000Source");
+    return;
+  }
+
+  if (info.Length() < 1) {
+    Nan::ThrowTypeError(
+        "Usage: exportPackets(pgn)");
+    return;
+  }
+
+  if(!info[0]->IsNumber()) {
+    Nan::ThrowTypeError("First argument must be a PGN number");
+    return;
+  }
+	
+  auto pgn = info[0]->ToNumber()->Value();
+  auto src = obj->_nmea2000.exportPackets(pgn);
+  auto packetCount = src.size();
+	auto dst = Nan::New<v8::Array>(packetCount);
+
+  if (dst.IsEmpty()) {
+    Nan::ThrowError("Failed to allocate destination array.");
+    return;
+  }
+
+  if (dst->Length() != packetCount) {
+    Nan::ThrowError("Failed to allocate NodeJS array of right size.");
+    return;
+  }
+
+  for (size_t i = 0; i < packetCount; i++) {
+    const auto& x = src[i];
+
+    // Would be cool if we could steal the data from x,
+    // and avoid an extra copy...
+    dst->Set(i, Nan::CopyBuffer(
+        reinterpret_cast<const char*>(x.data()), 
+        x.size()).ToLocalChecked());
+  }
+	info.GetReturnValue().Set(dst);
+}
+
+}
