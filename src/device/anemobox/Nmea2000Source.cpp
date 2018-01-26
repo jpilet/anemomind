@@ -27,6 +27,15 @@ void Nmea2000Source::process(const std::string& srcName,
   pushAndLinkPacket(packet);
 }
 
+std::vector<std::vector<uint8_t>> Nmea2000Source::exportPackets(int pgn) const {
+  // TODO: 
+  // 1. Call the exportPacket(pgn) method of the PgnVisitor class
+  //    (base of this classe).
+  // 2. Split it using the FastPacketSplitter (can be instance variable
+  //    of this class). Only split if isFastPacket(pgn).
+  return {};
+}
+
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::VesselHeading& packet) {
   if (!packet.valid()
       || !packet.heading().defined()) { return false; }
