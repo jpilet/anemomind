@@ -28,41 +28,42 @@ void Nmea2000Source::process(const std::string& srcName,
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::VesselHeading& packet) {
-  if (!packet.valid()
-      || !packet.heading().defined()) { return false; }
+  if (!packet.hasSomeData()
+      || !packet.heading.defined()) { return false; }
 
   _dispatcher->publishValue(
-      (packet.reference().get() == VesselHeading::Reference::Magnetic ?
+      (packet.reference.get() == VesselHeading::Reference::Magnetic ?
         MAG_HEADING : GPS_BEARING),
-      getSrc(c), packet.heading().get());
+      getSrc(c), packet.heading.get());
 
   return true;
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Speed& packet) {
-  if (!packet.valid()) { return false; }
+  if (!packet.hasSomeData()) { return false; }
 
 
-  if (packet.speedWaterReferenced().defined()) {
+  if (packet.speedWaterReferenced.defined()) {
     _dispatcher->publishValue(WAT_SPEED, getSrc(c),
-                              packet.speedWaterReferenced().get());
+                              packet.speedWaterReferenced.get());
   }
   return true;
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::GnssPositionData& packet) {
-  if (packet.valid()) {
+  if (packet.hasSomeData()) {
     auto t = packet.timeStamp();
     if (t.defined()) {
       _dispatcher->publishValue(DATE_TIME, getSrc(c), t);
     }
 
-    if (packet.longitude().defined() && packet.latitude().defined()
-        && packet.altitude().defined()) {
+    if (packet.longitude.defined() && packet.latitude.defined()
+        && packet.altitude.defined()) {
       _dispatcher->publishValue(GPS_POS,
         getSrc(c),
-        GeographicPosition<double>(packet.longitude().get(), packet.latitude().get(),
-          packet.altitude().get()));
+        GeographicPosition<double>(
+            packet.longitude.get(), packet.latitude.get(),
+          packet.altitude.get()));
     }
 
     return true;
@@ -71,11 +72,11 @@ bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Gns
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::WindData& packet) {
-  if (!packet.valid()) { return false; }
+  if (!packet.hasSomeData()) { return false; }
 
   DataCode angleChannel;
   DataCode speedChannel;
-  switch (packet.reference().get()) {
+  switch (packet.reference.get()) {
     case WindData::Reference::Apparent:
       angleChannel = AWA;
       speedChannel = AWS;
@@ -92,25 +93,25 @@ bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Win
       return false;
   }
 
-  if (packet.windAngle().defined()) {
+  if (packet.windAngle.defined()) {
     _dispatcher->publishValue(angleChannel, getSrc(c),
-                              packet.windAngle().get());
+                              packet.windAngle.get());
   }
-  if (packet.windSpeed().defined()) {
+  if (packet.windSpeed.defined()) {
     _dispatcher->publishValue(speedChannel, getSrc(c),
-                              packet.windSpeed().get());
+                              packet.windSpeed.get());
   }
   return true;
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::PositionRapidUpdate& packet) {
-  if (packet.valid()) {
-    if (packet.longitude().defined() && packet.latitude().defined()) {
+  if (packet.hasSomeData()) {
+    if (packet.longitude.defined() && packet.latitude.defined()) {
       _dispatcher->publishValue(
           GPS_POS, getSrc(c),
           GeographicPosition<double>(
-              packet.longitude().get(),
-              packet.latitude().get()));
+              packet.longitude.get(),
+              packet.latitude.get()));
       return true;
     }
   }
@@ -118,12 +119,12 @@ bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Pos
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::CogSogRapidUpdate& packet) {
-  if (packet.valid()) {
-    if (packet.sog().defined()) {
-      _dispatcher->publishValue(GPS_SPEED, getSrc(c), packet.sog().get());
+  if (packet.hasSomeData()) {
+    if (packet.sog.defined()) {
+      _dispatcher->publishValue(GPS_SPEED, getSrc(c), packet.sog.get());
     }
-    if (packet.cog().defined() && packet.cogReference().get() == CogSogRapidUpdate::CogReference::True) {
-      _dispatcher->publishValue(GPS_BEARING, getSrc(c), packet.cog().get());
+    if (packet.cog.defined() && packet.cogReference.get() == CogSogRapidUpdate::CogReference::True) {
+      _dispatcher->publishValue(GPS_BEARING, getSrc(c), packet.cog.get());
     }
     return true;
   }
@@ -131,7 +132,7 @@ bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Cog
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::TimeDate& packet) {
-  if (packet.valid()) {
+  if (packet.hasSomeData()) {
     auto t = packet.timeStamp();
     if (t.defined()) {
       _dispatcher->publishValue(DATE_TIME, getSrc(c), t);
@@ -142,7 +143,7 @@ bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Tim
 }
 
 bool Nmea2000Source::apply(const CanPacket& src, const SystemTime& packet) {
-  if (packet.valid()) {
+  if (packet.hasSomeData()) {
     auto t = packet.timeStamp();
     if (t.defined()) {
       _dispatcher->publishValue(DATE_TIME, getSrc(src), t);
@@ -153,24 +154,24 @@ bool Nmea2000Source::apply(const CanPacket& src, const SystemTime& packet) {
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::DirectionData& packet) {
-  if (packet.valid()) {
-    if (packet.cog().defined()) {
-      auto cog = packet.cog().get();
-      if (packet.cogReference().get() == PgnClasses::DirectionData::CogReference::True) {
+  if (packet.hasSomeData()) {
+    if (packet.cog.defined()) {
+      auto cog = packet.cog.get();
+      if (packet.cogReference.get() == PgnClasses::DirectionData::CogReference::True) {
         _dispatcher->publishValue(GPS_BEARING, getSrc(c), cog);
       }
     }
 
-    if (packet.speedThroughWater().defined()) {
-      _dispatcher->publishValue(WAT_SPEED, getSrc(c), packet.speedThroughWater().get());
+    if (packet.speedThroughWater.defined()) {
+      _dispatcher->publishValue(WAT_SPEED, getSrc(c), packet.speedThroughWater.get());
     }
 
-    if (packet.sog().defined()) {
-      _dispatcher->publishValue(GPS_SPEED, getSrc(c), packet.sog().get());
+    if (packet.sog.defined()) {
+      _dispatcher->publishValue(GPS_SPEED, getSrc(c), packet.sog.get());
     }
 
-    if (packet.heading().defined()) {
-      _dispatcher->publishValue(MAG_HEADING/*?*/, getSrc(c), packet.heading().get());
+    if (packet.heading.defined()) {
+      _dispatcher->publishValue(MAG_HEADING/*?*/, getSrc(c), packet.heading.get());
     }
 
     return true;
@@ -180,11 +181,11 @@ bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Dir
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c,
                            const PgnClasses::Rudder& packet) {
-  if (packet.valid() && packet.instance().defined()) {
-    if (packet.position().defined()) {
-      std::string source = getSrc(c) + " i" + std::to_string(packet.instance().get());
+  if (packet.hasSomeData() && packet.instance.defined()) {
+    if (packet.position.defined()) {
+      std::string source = getSrc(c) + " i" + std::to_string(packet.instance.get());
       _dispatcher->publishValue(
-          RUDDER_ANGLE, source, packet.position().get());
+          RUDDER_ANGLE, source, packet.position.get());
     }
     return true;
   }

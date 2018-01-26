@@ -18,23 +18,23 @@ T recode(const T& x) {
 
 TEST(PgnClassesTest, DefaultWindData) {
   PgnClasses::WindData x;
-  EXPECT_FALSE(x.valid());
-  EXPECT_FALSE(recode(x).valid());
+  EXPECT_FALSE(x.hasAllData());
+  EXPECT_FALSE(recode(x).hasAllData());
 }
 
 TEST(PgnClassesTest, InvalidWindData) {
   uint8_t data[] = {0xFF};
 
   PgnClasses::WindData x(data, 1);
-  EXPECT_FALSE(x.valid());
-  EXPECT_FALSE(recode(x).valid());
+  EXPECT_FALSE(x.hasAllData());
+  EXPECT_FALSE(recode(x).hasAllData());
 }
 
 void testWindData(const WindData& windData) {
-  EXPECT_TRUE(windData.valid());
-  EXPECT_NEAR(windData.windSpeed().get().metersPerSecond(), 0.25, 0.01);
-  EXPECT_NEAR(windData.windAngle().get().radians(), 3.0892, 0.0001);
-  EXPECT_EQ(windData.reference().get(),  PgnClasses::WindData::Reference::Apparent);
+  EXPECT_TRUE(windData.hasAllData());
+  EXPECT_NEAR(windData.windSpeed.get().metersPerSecond(), 0.25, 0.01);
+  EXPECT_NEAR(windData.windAngle.get().radians(), 3.0892, 0.0001);
+  EXPECT_EQ(windData.reference.get(),  PgnClasses::WindData::Reference::Apparent);
 }
 
 TEST(PgnClassesTest, WindData) {
@@ -48,8 +48,8 @@ TEST(PgnClassesTest, WindData) {
 }
 
 void testWindDataNotAvailable(const WindData& windData) {
-  EXPECT_FALSE(windData.valid());
-  EXPECT_FALSE(windData.reference().defined());
+  EXPECT_FALSE(windData.hasAllData());
+  EXPECT_FALSE(windData.reference.defined());
 }
 
 TEST(PgnClassesTest, WindDataNotAvailable) {
@@ -64,17 +64,17 @@ TEST(PgnClassesTest, WindDataNotAvailable) {
 class TestWindVisitor : public PgnClasses::PgnVisitor {
   protected:
     bool apply(const PgnClasses::CanPacket& c, const PgnClasses::WindData& packet) override {
-      if (!packet.valid()) {
+      if (!packet.hasAllData()) {
         return false;
       }
       if (c.longSrc != "MyWindsensor") {
         return false;
       }
 
-      EXPECT_TRUE(packet.windSpeed().defined());
-      EXPECT_NEAR(packet.windSpeed().get().metersPerSecond(), 0.25, 0.01);
-      EXPECT_TRUE(packet.windAngle().defined());
-      EXPECT_NEAR(packet.windAngle().get().radians(), 3.0892, 0.0001);
+      EXPECT_TRUE(packet.windSpeed.defined());
+      EXPECT_NEAR(packet.windSpeed.get().metersPerSecond(), 0.25, 0.01);
+      EXPECT_TRUE(packet.windAngle.defined());
+      EXPECT_NEAR(packet.windAngle.get().radians(), 3.0892, 0.0001);
       return true;
     }
 };
@@ -88,10 +88,10 @@ TEST(PgnClassesTest, WindVisitor) {
 }
 
 void testPositionRapidUpdate(const PositionRapidUpdate& pru) {
-  EXPECT_TRUE(pru.latitude().defined());
-  EXPECT_TRUE(pru.longitude().defined());
-  EXPECT_NEAR(41.3797185, pru.latitude().get().degrees(), 1e-7);
-  EXPECT_NEAR(2.1857485, pru.longitude().get().degrees(), 1e-7);
+  EXPECT_TRUE(pru.latitude.defined());
+  EXPECT_TRUE(pru.longitude.defined());
+  EXPECT_NEAR(41.3797185, pru.latitude.get().degrees(), 1e-7);
+  EXPECT_NEAR(2.1857485, pru.longitude.get().degrees(), 1e-7);
 }
 
 TEST(PgnClassesTest, PositionRapidUpdate) {
@@ -104,12 +104,12 @@ TEST(PgnClassesTest, PositionRapidUpdate) {
 }
 
 void testGnssPositionData(const GnssPositionData& pos) {
-  EXPECT_TRUE(pos.valid());
-  EXPECT_TRUE(pos.latitude().defined());
-  EXPECT_TRUE(pos.longitude().defined());
-  EXPECT_NEAR(41.37972459, pos.latitude().get().degrees(), 1e-8);
-  EXPECT_NEAR(2.1857592038, pos.longitude().get().degrees(), 1e-8);
-  EXPECT_NEAR(52.861289, pos.altitude().get().meters(), 1e-6);
+  EXPECT_TRUE(pos.hasAllData());
+  EXPECT_TRUE(pos.latitude.defined());
+  EXPECT_TRUE(pos.longitude.defined());
+  EXPECT_NEAR(41.37972459, pos.latitude.get().degrees(), 1e-8);
+  EXPECT_NEAR(2.1857592038, pos.longitude.get().degrees(), 1e-8);
+  EXPECT_NEAR(52.861289, pos.altitude.get().meters(), 1e-6);
 }
 
 TEST(PgnClassesTest, GnssPositionData) {
@@ -130,14 +130,12 @@ TEST(PgnClassesTest, GnssPositionData) {
   testGnssPositionData(recode(pos));
   auto data2 = pos.encode();
 
-  // TODO: Repeating fields are not yet properly handled.
-  // so length may vary
   int minLength = std::min(data.size(), data2.size());
   for (int i = 0; i < minLength; i++) {
+    if (data[i] != data2[i]) {
+      std::cout << "At " << i << ":" << std::endl;
+    }
     EXPECT_EQ(data[i], data2[i]);
   }
-  //EXPECT_EQ(data2.size(), data.size());
-  //EXPECT_EQ(data, pos.encode());
-
 }
 

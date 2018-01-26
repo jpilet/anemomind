@@ -16,8 +16,8 @@ namespace N2kField {
 
 template <typename PgnClass>
 sail::TimeStamp getTimeStamp(const PgnClass &x) {
-  if (x.date().defined() && x.time().defined()) {
-    return sail::TimeStamp::offset1970() + x.date().get() + x.time().get();
+  if (x.date.defined() && x.time.defined()) {
+    return sail::TimeStamp::offset1970() + x.date.get() + x.time.get();
   }
   return sail::TimeStamp();
 }
