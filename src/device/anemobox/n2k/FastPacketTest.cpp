@@ -128,7 +128,9 @@ TEST(FastPacketSplitterTest, SplitAFastPacket) {
   std::set<int> seqCounterValues;
 
   for (int k = 0; k < 12; k++) {
-    auto packets = splitter.split(fullPacket);
+    auto packets = splitter.split(
+        fullPacket.pgn,
+        fullPacket.data);
     EXPECT_EQ(7, packets.size());
 
 
@@ -140,25 +142,22 @@ TEST(FastPacketSplitterTest, SplitAFastPacket) {
     for (int i = 0; i < packets.size(); i++) {
       auto expected = getInputPacket(i);
       const auto& p = packets[i];
-      auto firstByte = p.data[0];
+      auto firstByte = p[0];
       EXPECT_EQ(i, getFrameCounter(firstByte));
       if (i == 0) {
-        EXPECT_EQ(p.data[1], sizeof(testResult));
+        EXPECT_EQ(p[1], sizeof(testResult));
         commonSeqCounter = getSeqCounter(firstByte);
         EXPECT_LE(0, commonSeqCounter);
         EXPECT_LT(commonSeqCounter, 8);
       } else {
         EXPECT_EQ(commonSeqCounter, getSeqCounter(firstByte));
       }
-      EXPECT_EQ(expected.pgn, p.pgn);
-      EXPECT_EQ(expected.shortSrc, p.shortSrc);
-      EXPECT_EQ(expected.longSrc, p.longSrc);
       int n = expected.data.size();
-      EXPECT_EQ(n, p.data.size());
+      EXPECT_EQ(n, p.size());
 
       int dataStart = i == 0? 2 : 1;
       for (int j = dataStart; j < n; j++) {
-        EXPECT_EQ(p.data[j], expected.data[j]);
+        EXPECT_EQ(p[j], expected.data[j]);
       }
     }
     seqCounterValues.insert(commonSeqCounter);

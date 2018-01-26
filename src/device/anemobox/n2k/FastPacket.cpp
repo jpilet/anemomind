@@ -101,53 +101,57 @@ namespace {
     uint8_t frameCounter = 0;
     int bytesSent = 0;
 
-    void initializeNewPacket(const CanPacket& src, CanPacket* dst) {
-      dst->pgn = src.pgn;
-      dst->longSrc = src.longSrc;
-      dst->shortSrc = src.shortSrc;
-      dst->data.assign(8, 0xFF);
-      dst->data[0] = encodeFirstByte(seqCounter, frameCounter);
+    void initializeNewPacket(
+        const std::vector<uint8_t>& src,
+        std::vector<uint8_t>* dst) {
+      dst->assign(8, 0xFF);
+      (*dst)[0] = encodeFirstByte(seqCounter, frameCounter);
       frameCounter++;
     }
 
-    int computePayloadSize(int maxPayload, const CanPacket& src) const {
-      return std::min(int(maxPayload), int(src.data.size() - bytesSent));
+    int computePayloadSize(int maxPayload, const std::vector<uint8_t>& src) const {
+      return std::min(int(maxPayload), int(src.size() - bytesSent));
     }
 
     void sendBytes(
         int count,
         int dstOffset,
-        const CanPacket& src, CanPacket* dst) {
-      auto srcBegin = src.data.begin() + bytesSent;
+        const std::vector<uint8_t>& src,
+        std::vector<uint8_t>* dst) {
+      auto srcBegin = src.begin() + bytesSent;
       auto srcEnd = srcBegin + count;
-      auto dstBegin = dst->data.begin() + dstOffset;
+      auto dstBegin = dst->begin() + dstOffset;
       std::copy(srcBegin, srcEnd, dstBegin);
       bytesSent += count;
     }
 
-    void makeFirstPacket(const CanPacket& src, CanPacket* dst) {
+    void makeFirstPacket(
+        const std::vector<uint8_t>& src,
+        std::vector<uint8_t>* dst) {
       initializeNewPacket(src, dst);
       int n = computePayloadSize(6, src);
-      dst->data[1] = src.data.size(); // Expected bytes (only first message)
+      (*dst)[1] = src.size(); // Expected bytes (only first message)
       sendBytes(n, 2, src, dst);
     }
 
-    void makeRemainingPacket(const CanPacket& src, CanPacket* dst) {
+    void makeRemainingPacket(
+        const std::vector<uint8_t>& src,
+        std::vector<uint8_t>* dst) {
       initializeNewPacket(src, dst);
       int n = computePayloadSize(7, src);
       sendBytes(n, 1, src, dst);
     }
 
-    bool remainsDataToBeSent(const CanPacket& src) const {
-      return bytesSent < src.data.size();
+    bool remainsDataToBeSent(const std::vector<uint8_t>& src) const {
+      return bytesSent < src.size();
     }
   };
 }
 
-std::vector<CanPacket> FastPacketSplitter::split(const CanPacket& src) {
-  FastPacketSplitState state(_pgn2seqCounter[src.pgn].next());
-  std::vector<CanPacket> dst;
-  int packetCount = sail::div1(src.data.size()+1, 7);
+std::vector<std::vector<uint8_t>> FastPacketSplitter::split(int pgn, const std::vector<uint8_t>& src) {
+  FastPacketSplitState state(_pgn2seqCounter[pgn].next());
+  std::vector<std::vector<uint8_t>> dst;
+  int packetCount = sail::div1(src.size()+1, 7);
   dst.resize(packetCount);
   state.makeFirstPacket(src, &(dst[0]));
   using namespace sail;

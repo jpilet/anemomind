@@ -61,7 +61,8 @@ class FastPacketBuffer {
    */
 class FastPacketSplitter {
 public:
-  std::vector<CanPacket> split(const CanPacket& src);
+  std::vector<std::vector<uint8_t>> split(
+      int pgn, const std::vector<uint8_t>& src);
 private:
   struct FastPacketSeqCounter {
     uint8_t value = 0;
