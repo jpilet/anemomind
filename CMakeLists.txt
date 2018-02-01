@@ -84,10 +84,3 @@ add_definitions("-DON_SERVER")
 
 add_subdirectory(src)
 
-add_custom_target(root COMMAND
-  root -l
-       -e ".I ${CMAKE_SOURCE_DIR}/src"
-       -e "'gSystem->Load(\"$<TARGET_LINKER_FILE:nautical_sailroot>\")'"
-       -e "'#include<server/nautical/NavDataset.h>'"
-       -e "using namespace sail\;"
-       )
