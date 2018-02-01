@@ -24,8 +24,8 @@ NavDataset load(std::string source) {
     source = std::string(Env::SOURCE_DIR) + "/datasets/psaros33_Banque_Sturdza/2014/20140614 Bol d'or/";
   }
   NavDataset ds = LogLoader::loadNavDataset(source);
-  std::set<DataCode> awaCode{AWA, TWS, TWA, GPS_SPEED};
-  return ds.createMergedChannels(awaCode);
+  std::set<DataCode> dataCodes{AWA, TWS, TWA, GPS_SPEED};
+  return ds.createMergedChannels(dataCodes);
 }
 
 void awaHisto(NavDataset& ds, TH1D* histo) {
