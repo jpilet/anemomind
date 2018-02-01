@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <device/anemobox/n2k/PgnClasses.h>
 #include <device/anemobox/n2k/BitStream.h>
+#include <device/anemobox/Nmea2000Utils.h>
 
 using namespace PgnClasses;
 
@@ -61,13 +62,15 @@ TEST(PgnClassesTest, WindDataNotAvailable) {
   EXPECT_EQ(data, windData.encode());
 }
 
+uint8_t shortSrc = 119;
+
 class TestWindVisitor : public PgnClasses::PgnVisitor {
   protected:
-    bool apply(const PgnClasses::CanPacket& c, const PgnClasses::WindData& packet) override {
+    bool apply(const tN2kMsg& c, const PgnClasses::WindData& packet) override {
       if (!packet.hasAllData()) {
         return false;
       }
-      if (c.longSrc != "MyWindsensor") {
+      if (c.Source != shortSrc) {
         return false;
       }
 
@@ -82,9 +85,12 @@ class TestWindVisitor : public PgnClasses::PgnVisitor {
 TEST(PgnClassesTest, WindVisitor) {
   std::vector<uint8_t> data{0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
   TestWindVisitor visitor;
-  uint8_t shortSrc = 119;
-  EXPECT_TRUE(visitor.visit(PgnClasses::CanPacket{
-    "MyWindsensor", shortSrc, PgnClasses::WindData::ThisPgn, data}));
+
+  sail::N2kMsgBuilder builder;
+  builder.PGN = PgnClasses::WindData::ThisPgn;
+  builder.source = shortSrc;
+  builder.destination = 83;
+  EXPECT_TRUE(visitor.visit(builder.make(data)));
 }
 
 void testPositionRapidUpdate(const PositionRapidUpdate& pru) {

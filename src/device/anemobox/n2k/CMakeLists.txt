@@ -21,12 +21,6 @@ cxx_test(n2k_N2kFieldTest
          gtest_main
         )
 
-add_library(n2k_FastPacket FastPacket.h FastPacket.cpp)
-
-target_link_libraries(n2k_FastPacket common_logging)
-
-cxx_test(n2k_FastPacketTest FastPacketTest.cpp n2k_FastPacket gtest_main)
-
 add_library(n2k_PgnClasses
             PgnClasses.h
             PgnClasses.cpp
@@ -34,13 +28,14 @@ add_library(n2k_PgnClasses
 
 target_link_libraries(n2k_PgnClasses
                       n2k_N2kField
-                      n2k_FastPacket
+                      nmea2000
                      )
 
 cxx_test(n2k_PgnClassesTest
          PgnClassesTest.cpp
          n2k_PgnClasses
          gtest_main
+         anemobox_Nmea2000Utils
         )
 
 cxx_test(n2k_CandumpTest
