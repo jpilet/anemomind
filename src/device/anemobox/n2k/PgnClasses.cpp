@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 26 2018 16:06:23 GMT+0100 (CET) using 
+/** Generated on Fri Jan 26 2018 16:58:20 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -791,46 +791,34 @@ bool isFastPacket(int pgn) {
   return (pgn == 129029); // TODO: This is just temporary.
 }
 
-void PgnVisitor::pushAndLinkPacket(const CanPacket& packet) {
-  if (isFastPacket(packet.pgn)) { // <-- Inspired by the "bool tNMEA2000::IsFastPacket(const tN2kMsg &N2kMsg);" function in NMEA2000.cpp of ttlappalainen
-    add(packet);
-  } else {
-    visit(packet);
-  }
-}
-
-void PgnVisitor::fullPacketReceived(const CanPacket& fullPacket) {
-  visit(fullPacket);
-}
-
-bool PgnVisitor::visit(const CanPacket &packet) {
-  switch(packet.pgn) {
-    case 60160: return apply(packet, IsoTransportProtocolDataTransfer(&(packet.data[0]), packet.data.size()));
+bool PgnVisitor::visit(const tN2kMsg &packet) {
+  switch(packet.PGN) {
+    case 60160: return apply(packet, IsoTransportProtocolDataTransfer(packet.Data, packet.DataLen));
     case 60416: {
-      BitStream dispatchStream(&(packet.data)[0], packet.data.size());
+      BitStream dispatchStream(packet.Data, packet.DataLen);
       auto dispatchCode0 = dispatchStream.getUnsigned(8);
       switch(dispatchCode0) {
-        case 16: return apply(packet, IsoTransportProtocolConnectionManagementRequestToSend(&(packet.data[0]), packet.data.size()));
-        case 17: return apply(packet, IsoTransportProtocolConnectionManagementClearToSend(&(packet.data[0]), packet.data.size()));
-        case 19: return apply(packet, IsoTransportProtocolConnectionManagementEndOfMessage(&(packet.data[0]), packet.data.size()));
-        case 32: return apply(packet, IsoTransportProtocolConnectionManagementBroadcastAnnounce(&(packet.data[0]), packet.data.size()));
-        case 255: return apply(packet, IsoTransportProtocolConnectionManagementAbort(&(packet.data[0]), packet.data.size()));
+        case 16: return apply(packet, IsoTransportProtocolConnectionManagementRequestToSend(packet.Data, packet.DataLen));
+        case 17: return apply(packet, IsoTransportProtocolConnectionManagementClearToSend(packet.Data, packet.DataLen));
+        case 19: return apply(packet, IsoTransportProtocolConnectionManagementEndOfMessage(packet.Data, packet.DataLen));
+        case 32: return apply(packet, IsoTransportProtocolConnectionManagementBroadcastAnnounce(packet.Data, packet.DataLen));
+        case 255: return apply(packet, IsoTransportProtocolConnectionManagementAbort(packet.Data, packet.DataLen));
         default: return false;
       };
       break;
     }
-    case 126992: return apply(packet, SystemTime(&(packet.data[0]), packet.data.size()));
-    case 127245: return apply(packet, Rudder(&(packet.data[0]), packet.data.size()));
-    case 127250: return apply(packet, VesselHeading(&(packet.data[0]), packet.data.size()));
-    case 127251: return apply(packet, RateOfTurn(&(packet.data[0]), packet.data.size()));
-    case 127257: return apply(packet, Attitude(&(packet.data[0]), packet.data.size()));
-    case 128259: return apply(packet, Speed(&(packet.data[0]), packet.data.size()));
-    case 129025: return apply(packet, PositionRapidUpdate(&(packet.data[0]), packet.data.size()));
-    case 129026: return apply(packet, CogSogRapidUpdate(&(packet.data[0]), packet.data.size()));
-    case 129029: return apply(packet, GnssPositionData(&(packet.data[0]), packet.data.size()));
-    case 129033: return apply(packet, TimeDate(&(packet.data[0]), packet.data.size()));
-    case 130306: return apply(packet, WindData(&(packet.data[0]), packet.data.size()));
-    case 130577: return apply(packet, DirectionData(&(packet.data[0]), packet.data.size()));
+    case 126992: return apply(packet, SystemTime(packet.Data, packet.DataLen));
+    case 127245: return apply(packet, Rudder(packet.Data, packet.DataLen));
+    case 127250: return apply(packet, VesselHeading(packet.Data, packet.DataLen));
+    case 127251: return apply(packet, RateOfTurn(packet.Data, packet.DataLen));
+    case 127257: return apply(packet, Attitude(packet.Data, packet.DataLen));
+    case 128259: return apply(packet, Speed(packet.Data, packet.DataLen));
+    case 129025: return apply(packet, PositionRapidUpdate(packet.Data, packet.DataLen));
+    case 129026: return apply(packet, CogSogRapidUpdate(packet.Data, packet.DataLen));
+    case 129029: return apply(packet, GnssPositionData(packet.Data, packet.DataLen));
+    case 129033: return apply(packet, TimeDate(packet.Data, packet.DataLen));
+    case 130306: return apply(packet, WindData(packet.Data, packet.DataLen));
+    case 130577: return apply(packet, DirectionData(packet.Data, packet.DataLen));
     default: return false;
   };
   return false;

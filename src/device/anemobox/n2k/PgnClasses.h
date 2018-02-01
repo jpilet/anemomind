@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 26 2018 16:06:23 GMT+0100 (CET) using 
+/** Generated on Fri Jan 26 2018 16:58:20 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -11,8 +11,7 @@
 #include <cassert>
 #include <device/anemobox/n2k/N2kField.h>
 #include <server/common/Optional.h>
-#include <device/anemobox/n2k/CanPacket.h>
-#include <device/anemobox/n2k/FastPacket.h>
+#include <N2kMsg.h>
 
 namespace PgnClasses {
   enum class PgnVariant60416 {
@@ -447,35 +446,31 @@ namespace PgnClasses {
   
 
 
-  bool isFastPacket(int pgn);
-  class PgnVisitor : FastPacketBuffer {
+  class PgnVisitor {
    public:
-    // Handle FastPacket protocol
-    void pushAndLinkPacket(const CanPacket& packet);
-    bool visit(const CanPacket &packet);
+    bool visit(const tN2kMsg& packet);
     
     // You may have to split the packet, based on the pgn.
     virtual ~PgnVisitor() {}
    protected:
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolDataTransfer& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementRequestToSend& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementClearToSend& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementEndOfMessage& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementBroadcastAnnounce& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementAbort& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const SystemTime& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const Rudder& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const VesselHeading& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const RateOfTurn& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const Attitude& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const Speed& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const PositionRapidUpdate& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const CogSogRapidUpdate& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const GnssPositionData& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const TimeDate& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const WindData& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const DirectionData& packet) { return false; }
-    virtual void fullPacketReceived(const CanPacket& fullPacket);
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolDataTransfer& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementRequestToSend& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementClearToSend& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementEndOfMessage& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementBroadcastAnnounce& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementAbort& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const SystemTime& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const Rudder& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const VesselHeading& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const RateOfTurn& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const Attitude& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const Speed& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const PositionRapidUpdate& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const CogSogRapidUpdate& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const GnssPositionData& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const TimeDate& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const WindData& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const DirectionData& packet) { return false; }
   };
 }
 

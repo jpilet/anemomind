@@ -530,7 +530,7 @@ function makePgnVariantDispatchers(multiDefs) {
     var tname = makePgnEnumTypeName(code);
     return other.map(function(name) {
       return ["virtual " + tname + " " + name
-              + "(const CanPacket &packet) {",
+              + "(const tN2kMsg &packet) {",
               ["return " + tname + "::Undefined; // TODO in derived class"],
               "}"];
     })
@@ -542,22 +542,18 @@ function makeVisitorDeclaration(pgns) {
   var multiDefs = getMultiDefs(defMap);
   var s = [
     '\n\n',
-    'bool isFastPacket(int pgn);',
-    'class PgnVisitor : FastPacketBuffer {',
+    'class PgnVisitor {',
     ' public:',
     [
-      '// Handle FastPacket protocol',
-      'void pushAndLinkPacket(const CanPacket& packet);',
-      'bool visit(const CanPacket &packet);',
+      'bool visit(const tN2kMsg& packet);',
       '',
       '// You may have to split the packet, based on the pgn.',
      'virtual ~PgnVisitor() {}'],
     ' protected:',
     pgns.map(function(pgn) {
       return 'virtual bool apply'
-        + '(const CanPacket& src, const ' + getClassName(pgn) + '& packet) { return false; }';
+        + '(const tN2kMsg& src, const ' + getClassName(pgn) + '& packet) { return false; }';
     }),
-    '  virtual void fullPacketReceived(const CanPacket& fullPacket);',
     makePgnVariantDispatchers(multiDefs),
     "};"
   ];
@@ -665,7 +661,7 @@ function makeDispatchVariableName(index) {
 }
 
 function makeDispatchCodeAssignments(pgnDefs, sortedFields) {
-  var s = ["BitStream dispatchStream(&(packet.data)[0], packet.data.size());"];
+  var s = ["BitStream dispatchStream(packet.Data, packet.DataLen);"];
   var at = 0;
   for (var i = 0; i < sortedFields.length; i++) {
     var f = sortedFields[i];
@@ -805,7 +801,7 @@ function listOtherDispatchFunctions(pgnCode, tree, branches) {
 
 function callApplyMethod(pgnDefs) {
   if (pgnDefs.length == 1) {
-    return 'return apply(packet, ' + getClassName(pgnDefs[0]) + '(&(packet.data[0]), packet.data.size()));';
+    return 'return apply(packet, ' + getClassName(pgnDefs[0]) + '(packet.Data, packet.DataLen));';
   } else {
     var code = getCommonPgnCode(pgnDefs);
     var dispatchFields = getDispatchFields(pgnDefs);
@@ -836,21 +832,9 @@ function makePgnEnum(pgnDefs) {
 
 function makeVisitorImplementation(pgns) {
   return indentLineArray(0, [
-    'void PgnVisitor::pushAndLinkPacket(const CanPacket& packet) {',
-    '  if (isFastPacket(packet.pgn)) { // <-- Inspired by the "bool tNMEA2000::IsFastPacket(const tN2kMsg &N2kMsg);" function in NMEA2000.cpp of ttlappalainen',
-    '    add(packet);',
-    '  } else {',
-    '    visit(packet);',
-    '  }',
-    '}',
-    '',
-    'void PgnVisitor::fullPacketReceived(const CanPacket& fullPacket) {',
-    '  visit(fullPacket);',
-    '}',
-    '',
-    'bool PgnVisitor::visit(const CanPacket &packet) {',
+    'bool PgnVisitor::visit(const tN2kMsg &packet) {',
     makeSwitchStatement(
-      makeDefsPerPgn(pgns), "packet.pgn", "return false;", 
+      makeDefsPerPgn(pgns), "packet.PGN", "return false;", 
       function(key, pgnDefs) {
         return callApplyMethod(pgnDefs);
       }),
@@ -1235,8 +1219,7 @@ var publicInclusions = '#include <device/Arduino/libraries/PhysicalQuantity/Phys
     +'#include <cassert>\n'
     +'#include <device/anemobox/n2k/N2kField.h>\n'
     +'#include <server/common/Optional.h>\n'
-    +'#include <device/anemobox/n2k/CanPacket.h>\n'
-    +'#include <device/anemobox/n2k/FastPacket.h>\n\n'
+  +'#include <N2kMsg.h>\n\n';
 
 
 function makePgnEnums(pgns) {
