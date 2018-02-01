@@ -104,17 +104,15 @@ public:
 
 class TestHandler : public tNMEA2000::tMsgHandler {
 public:
-  NMEA2000ForTesting* instance = nullptr;
-  Nmea2000Source* dst = nullptr;
-
   std::vector<PgnClasses::GnssPositionData> data;
 
+  TestHandler(tNMEA2000* s) : tNMEA2000::tMsgHandler(129029, s) {}
+
   void HandleMsg(const tN2kMsg &msg) {
-    if (msg.PGN == 129029) {
-      data.push_back(
-          PgnClasses::GnssPositionData(msg.Data, msg.DataLen));
-    }
-    dst->process(msg);
+    CHECK(msg.PGN == 129029);
+    data.push_back(
+        PgnClasses::GnssPositionData(
+            msg.Data, msg.DataLen));
   }
 };
 
@@ -176,10 +174,7 @@ TEST(Nmea2000SourceTest, GnssPositionData) {
   Nmea2000Source source(
       &testInstance,
       &dispatcher);
-  TestHandler handler;
-
-  handler.instance = &testInstance;
-  handler.dst = &source;
+  TestHandler handler(&testInstance);
 
   testInstance.AttachMsgHandler(&handler);
   while (!testInstance.framesToGet.empty()) {
@@ -237,7 +232,7 @@ TEST(Nmea2000SourceTest, SystemTime) {
   builder.source = 82;
   builder.destination = 83;
 
-  source.process(builder.make(data));
+  source.HandleMsg(builder.make(data));
 
   EXPECT_TRUE(dispatcher.get<DATE_TIME>()->dispatcher()->hasValue());
   TimeStamp val = dispatcher.val<DATE_TIME>();
@@ -259,7 +254,7 @@ TEST(Nmea2000SourceTest, WindData) {
   builder.PGN = 130306;
   auto msg = builder.make(data);
 
-  source.process(msg);
+  source.HandleMsg(msg);
 
   EXPECT_TRUE(dispatcher.get<TWA>()->dispatcher()->hasValue());
   EXPECT_NEAR(dispatcher.val<TWA>().degrees(), 75.3, .1);
@@ -280,7 +275,7 @@ TEST(Nmea2000SourceTest, RudderAngle) {
   builder.destination = 83;
   auto msg = builder.make(data);
 
-  source.process(msg);
+  source.HandleMsg(msg);
 
   EXPECT_TRUE(dispatcher.get<RUDDER_ANGLE>()->dispatcher()->hasValue());
   EXPECT_NEAR(dispatcher.val<RUDDER_ANGLE>().degrees(), -4.4, .1);

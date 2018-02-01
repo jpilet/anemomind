@@ -11,13 +11,15 @@ namespace sail {
 
 std::string deviceNameToString(const Optional<uint64_t>& dn);
 
-class Nmea2000Source : public PgnClasses::PgnVisitor {
+class Nmea2000Source :
+    public PgnClasses::PgnVisitor,
+    public tNMEA2000::tMsgHandler {
  public:
   Nmea2000Source(
       tNMEA2000* source,
       Dispatcher *dispatcher);
-  void process(
-      const tN2kMsg& msg);
+
+  void HandleMsg(const tN2kMsg &N2kMsg) override;
 
   Optional<uint64_t> getSourceName(uint8_t shortName);
  protected:
