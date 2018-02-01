@@ -16,17 +16,16 @@ namespace {
 Nmea2000Source::Nmea2000Source(
     tNMEA2000* source,
     Dispatcher *dispatcher)
-  : _deviceList(
-      source == nullptr?
-          nullptr
-          : new tN2kDeviceList(source)),
-    _dispatcher(dispatcher) {
+  : _deviceList(source? new tN2kDeviceList(source) : nullptr),
+    _dispatcher(dispatcher),
+    tNMEA2000::tMsgHandler(
+        0, source/*tMsgHandler accepts nullptr as arg here*/) {
   if (source == nullptr) {
-    LOG(WARNING) << "The tNMEA2000 instance is null. "
-        "Probably you only want that in a unit test.";
+    LOG(WARNING)
+        << "You may have forgotten to "
+            "provide a tNMEA2000 instance";
   }
 }
-
 
 Optional<uint64_t> Nmea2000Source::getSourceName(uint8_t shortName) {
   auto device = (_deviceList?
@@ -44,7 +43,7 @@ std::string deviceNameToString(const Optional<uint64_t>& dn) {
 }
 
 
-void Nmea2000Source::process(
+void Nmea2000Source::HandleMsg(
     const tN2kMsg& msg) {
   _lastSourceName = deviceNameToString(getSourceName(msg.Source));
   visit(msg);
