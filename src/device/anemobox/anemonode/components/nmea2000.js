@@ -21,7 +21,7 @@ function configOrDefault(obj, key1, key2, def) {
   return obj[key1][key2];
 }
 
-function instanciateNmea2000() {
+function instantiateNmea2000() {
   boxId.getAnemoId(function(boxid) {
     fs.readFile(n2kConfigFile, function(err, data) {
       var cfg = { };
@@ -30,12 +30,12 @@ function instanciateNmea2000() {
       } else {
         cfg = JSON.parse(data);
       }
-      instanciateNmea2000Real(boxid, cfg);
+      instantiateNmea2000Real(boxid, cfg);
     });
   });
 }
 
-function instanciateNmea2000Real(boxid, cfg) {
+function instantiateNmea2000Real(boxid, cfg) {
   var virtDevBits = 2;
   var maxNumVirtualDevices = 1 << virtDevBits;
   var baseSerialNumber =
@@ -147,7 +147,7 @@ function startNmea2000() {
       channel = can.createRawChannel("can0", true /* ask for timestamps */);
       channel.start();
       channel.addListener("onMessage", canPacketReceived);
-      instanciateNmea2000();
+      instantiateNmea2000();
     } catch (e) {
       console.log("Failed to start NMEA2000");
       console.log(e);
