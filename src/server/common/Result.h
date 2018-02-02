@@ -16,9 +16,9 @@ struct Result {
   bool success = true;
   std::string explanation;
 
-  static Result success() {return Result();}
+  static Result Success() {return Result();}
 
-  static Result failure(const std::string& s) {
+  static Result Failure(const std::string& s) {
     Result r;
     r.success = false;
     r.explanation = s;

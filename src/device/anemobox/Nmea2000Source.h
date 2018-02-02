@@ -6,6 +6,7 @@
 #include <device/anemobox/n2k/PgnClasses.h>
 #include <NMEA2000.h>
 #include <N2kDeviceList.h>
+#include <server/common/Result.h>
 
 namespace sail {
 

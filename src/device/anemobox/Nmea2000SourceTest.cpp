@@ -289,18 +289,7 @@ TEST(Nmea2000SourceTest, RudderAngle) {
   EXPECT_NEAR(dispatcher.val<RUDDER_ANGLE>().degrees(), -4.4, .1);
 }
 
-TEST(Nmea2000SourceTest, SendTest) {
-  NMEA2000ForTesting n2k;
-  Dispatcher dispatcher;
-
-  Nmea2000Source source(&n2k, &dispatcher);
-  PgnClasses::PositionRapidUpdate msg;
-  msg.latitude = 13.4_deg;
-  msg.longitude = 51.9_deg;
-
-  // No devices, so it should be impossible to send it.
-  EXPECT_FALSE(source.send(0, msg));
-
+void prepareN2k(tNMEA2000* n2k) {
   // Code copy/pasted from
   // https://github.com/ttlappalainen/NMEA2000/blob/master/Examples/BatteryMonitor/BatteryMonitor.ino
   const tNMEA2000::tProductInformation BatteryMonitorProductInformation ={
@@ -321,11 +310,11 @@ TEST(Nmea2000SourceTest, SendTest) {
   const char BatteryMonitorInstallationDescription2 [] = "No real information send to bus";
 
   // Set Product information
-  n2k.SetProductInformation(&BatteryMonitorProductInformation );
+  n2k->SetProductInformation(&BatteryMonitorProductInformation );
   // Set Configuration information
-  n2k.SetProgmemConfigurationInformation(BatteryMonitorManufacturerInformation,BatteryMonitorInstallationDescription1,BatteryMonitorInstallationDescription2);
+  n2k->SetProgmemConfigurationInformation(BatteryMonitorManufacturerInformation,BatteryMonitorInstallationDescription1,BatteryMonitorInstallationDescription2);
   // Set device information
-  n2k.SetDeviceInformation(1,      // Unique number. Use e.g. Serial number.
+  n2k->SetDeviceInformation(1,      // Unique number. Use e.g. Serial number.
                                   170,    // Device function=Battery. See codes on http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
                                   35,     // Device class=Electrical Generation. See codes on  http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
                                   2046    // Just choosen free from code list on http://www.nmea.org/Assets/20121020%20nmea%202000%20registration%20list.pdf
@@ -337,12 +326,27 @@ TEST(Nmea2000SourceTest, SendTest) {
   //NMEA2000.SetForwardStream(&Serial);
   // NMEA2000.SetForwardType(tNMEA2000::fwdt_Text);     // Show in clear text. Leave uncommented for default Actisense format.
   // If you also want to see all traffic on the bus use N2km_ListenAndNode instead of N2km_NodeOnly below
-  n2k.SetMode(tNMEA2000::N2km_NodeOnly,22);
+  n2k->SetMode(tNMEA2000::N2km_NodeOnly,22);
   // NMEA2000.SetDebugMode(tNMEA2000::dm_ClearText);     // Uncomment this, so you can test code without CAN bus chips on Arduino Mega
   // NMEA2000.EnableForward(false);                      // Disable all msg forwarding to USB (=Serial)
 
   //  NMEA2000.SetN2kCANMsgBufSize(2);                    // For this simple example, limit buffer size to 2, since we are only sending data
-  n2k.Open();
+  n2k->Open();
+}
+
+TEST(Nmea2000SourceTest, SendTest) {
+  NMEA2000ForTesting n2k;
+  Dispatcher dispatcher;
+
+  Nmea2000Source source(&n2k, &dispatcher);
+  PgnClasses::PositionRapidUpdate msg;
+  msg.latitude = 13.4_deg;
+  msg.longitude = 51.9_deg;
+
+  // No devices, so it should be impossible to send it.
+  EXPECT_FALSE(source.send(0, msg));
+
+  prepareN2k(&n2k);
 
   // Now the tNMEA2000 instance is both open and has
   // a device from which we can send.
@@ -364,4 +368,22 @@ TEST(Nmea2000SourceTest, SendTest) {
   auto pos = handler.data.back();
   EXPECT_NEAR(pos.latitude.get().degrees(), 13.4, 0.01);
   EXPECT_NEAR(pos.longitude.get().degrees(), 51.9, 0.01);
+}
+
+TEST(Nmea2000SourceTest, SendTaggedValues) {
+  NMEA2000ForTesting n2k;
+  Dispatcher dispatcher;
+
+  Nmea2000Source source(&n2k, &dispatcher);
+  auto r = source.send({
+    {"longitude", 9.3},
+    {"latitude", 4.5}
+  });
+  EXPECT_FALSE(r.success);
+
+  prepareN2k(&n2k);
+  EXPECT_TRUE(source.send({
+    {"longitude", 9.3},
+    {"latitude", 4.5}
+  }).success);
 }

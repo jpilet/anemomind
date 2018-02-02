@@ -242,17 +242,16 @@ bool Nmea2000Source::apply(const tN2kMsg &c,
 
 // A function that tries to send a message
 // of tagged value to an Nmea2000Source and
-// returns a result. If the result is not
-// a success, then the function must not have
-// modified the Nmea2000Source.
-typedef Nmea2000Source::Result
+// returns a result.
+typedef Result
     (*TaggedValueSender)(
-        std::map<std::string, TaggedValue>,
+        int, // <-- device index
+        const std::map<std::string, TaggedValue>&,
         Nmea2000Source*);
 
-Nmea2000Source::Result orError(
-    const Nmea2000Source::Result& a,
-    const Nmea2000Source::Result& b) {
+Result orError(
+    const Result& a,
+    const Result& b) {
   if (!a.success) {
     return a;
   }
@@ -261,75 +260,84 @@ Nmea2000Source::Result orError(
 
 
 
-Nmea2000Source::Result extractTYped
+Result extractTypedValue(
+    const TaggedValue& src, Angle<double>* dst) {
+  if (src.tag == "deg" || src.tag == "" || src.tag == "degrees") {
+    *dst = Angle<double>::degrees(src.value);
+    return Result::Success();
+  } else if (src.tag == "rad" || src.tag == "radians") {
+    *dst = Angle<double>::radians(src.value);
+    return Result::Success();
+  }
+  return Result::Failure(
+      "Angle unit tag '"
+      + src.tag + "' not recognized");
+}
 
 template <typename T>
-Nmea2000Source::Result extract(
+Result extract(
     const std::map<std::string, TaggedValue>& src,
     const char* key,
     T* dst) {
-  Nmea2000Source::Result r;
-
   auto f = src.find(key);
   if (f == src.end()) {
-    r.success = false;
-    r.explanation += "Missing key '" + key + "'";
-    return r;
+    return Result::Failure(std::string("Missing key '") + key + "'");
   }
-
   return extractTypedValue(f->second, dst);
 }
 
-Nmea2000Source::Result sendPositionRapidUpdate(
+Result sendPositionRapidUpdate(
+    int deviceIndex,
     const std::map<std::string, TaggedValue>& src,
     Nmea2000Source* dst) {
   Angle<double> lon = 0.0_rad;
   Angle<double> lat = 0.0_rad;
   auto r = orError(
-      extract(src, "lon", &lon),
-      extract(src, "lat", &lat));
+      extract(src, "longitude", &lon),
+      extract(src, "latitude", &lat));
   if (!r.success) {
     return r;
   }
-
-
-
-  return r;
+  PositionRapidUpdate x;
+  x.longitude = lon;
+  x.latitude = lat;
+  if (dst->send(deviceIndex, x)) {
+    return Result::Success();
+  } else {
+    return Result::Failure(
+        "Nmea2000Source::send returned false "
+        "when trying to send a PositionRapidUpdate");
+  }
 }
 
-Nmea2000Source::Result 
+Result
 Nmea2000Source::send(
     const std::map<std::string, TaggedValue>& src) {
+
+  int deviceIndex = 0; // What should it be?
+
+  /* We try different types of senders in order until
+   * we find a match. There can be ambiguity, for instance
+   * both GnssPositionData and PositionRapidUpdate might
+   * contain longitude and latitude */
   static std::vector<TaggedValueSender> senders{
     &sendPositionRapidUpdate
   };
+
+  // Not sure this linear search will be a performance problem.
+  // Whenever there is a failure, a Result object containing
+  // an explanation is returned. A lot of string copies...
+  Result r;
   for (const auto& sender: senders) {
-    auto r = sender(src, this);
+    r = sender(deviceIndex, src, this);
     if (r.success) {
       return r;
     }
   }
-
-  // Reaching here most likely means
-  // a bug in our program. An ill-formed
-  // message from the nodejs side is a bug.
-  // Now record a compound message to explain
-  // what went wrong.
-  Result r;
-  r.success = false;
-  r.explanation =
-      "Failed to parse message for"
-      " any of these reasons:\n";
-  for (const auto& sender: senders) {
-    auto r0 = sender(src, this);
-    CHECK(!r0.success);
-    r.explanation += " * " + r0.explanation + "\n";
-  }
   return r;
 }
 
-Nmea2000Source::Result
-  Nmea2000Source::send(const std::vector<std::map<std::string,
+Result Nmea2000Source::send(const std::vector<std::map<std::string,
                        TaggedValue>>& src) {
   for (size_t i = 0; i < src.size(); i++) {
     Result result = send(src[i]);
