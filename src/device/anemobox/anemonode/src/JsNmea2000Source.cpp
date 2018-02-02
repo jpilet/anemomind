@@ -80,6 +80,16 @@ NAN_METHOD(JsNmea2000Source::New) {
   info.GetReturnValue().Set(info.This());
 }
 
+std::map<std::string, TaggedValue> toTaggedValueMap(
+    const v8::Local<v8::Value>& val) {
+  if (!val->IsObject()) {
+    return {};
+  }
+  v8::Local<v8::Object> obj =  val->ToObject();
+  auto props = obj->GetPropertyNames();
+  
+}
+
 /*
 Usage:
   First argument: Array of pieces of data to send
@@ -105,7 +115,7 @@ NAN_METHOD(JsNmea2000Source::send) {
   std::vector<std::map<std::string, sail::TaggedValue>> dst;
   dst.reserve(n);
   for (size_t i = 0; i < n; i++) {
-    // dst.push_back();
+    dst.push_back(toTaggedValueMap(msgArray->Get(i)));
   }
 }
 
