@@ -128,6 +128,7 @@ NAN_METHOD(JsNmea2000Source::send) {
   for (size_t i = 0; i < n; i++) {
     dst.push_back(toTaggedValueMap(msgArray->Get(i)));
   }
+  
 }
 
 }  // namespace sail
