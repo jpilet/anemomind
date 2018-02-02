@@ -370,6 +370,19 @@ TEST(Nmea2000SourceTest, SendTest) {
   EXPECT_NEAR(pos.longitude.get().degrees(), 51.9, 0.01);
 }
 
+void testSuccessfullySentRapidPos(
+    const std::map<std::string, TaggedValue>& input,
+    Angle<double> expectedLon,
+    Angle<double> expectedLat) {
+  NMEA2000ForTesting n2k;
+  Dispatcher dispatcher;
+  Nmea2000Source source(&n2k, &dispatcher);
+  prepareN2k(&n2k);
+  source.send({input});
+  EXPECT_FALSE(n2k.framesToTransmit.empty());
+
+}
+
 TEST(Nmea2000SourceTest, SendTaggedValues) {
   NMEA2000ForTesting n2k;
   Dispatcher dispatcher;
@@ -386,4 +399,9 @@ TEST(Nmea2000SourceTest, SendTaggedValues) {
     {"longitude", 9.3},
     {"latitude", 4.5}
   }).success);
+
+  testSuccessfullySentRapidPos({
+     {"longitude", 9.3},
+     {"latitude", 4.5}
+  }, 9.3_deg, 4.5_deg);
 }
