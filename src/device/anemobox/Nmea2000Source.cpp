@@ -16,10 +16,10 @@ namespace {
 Nmea2000Source::Nmea2000Source(
     tNMEA2000* source,
     Dispatcher *dispatcher)
-  : _deviceList(source? new tN2kDeviceList(source) : nullptr),
-    _dispatcher(dispatcher),
-    tNMEA2000::tMsgHandler(
-        0, source/*tMsgHandler accepts nullptr as arg here*/) {
+  : 
+    tNMEA2000::tMsgHandler(0, source),
+    _deviceList(source? new tN2kDeviceList(source) : nullptr),
+    _dispatcher(dispatcher) {
   if (source == nullptr) {
     LOG(WARNING)
         << "You may have forgotten to "
