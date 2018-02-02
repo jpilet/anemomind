@@ -3,7 +3,33 @@
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/anemonode/src/NodeNmea2000.h>
 #include <device/anemobox/anemonode/src/anemonode.h>
+#include <device/anemobox/anemonode/src/NodeUtils.h>
 #include <iostream>
+
+bool tryExtract(const v8::Local<v8::Value>& val,
+                sail::TaggedValue* dst) {
+  if (val->IsNumber()) { // No tag, just a number.
+    *dst = sail::TaggedValue(val->NumberValue());
+    return true;
+
+    
+  } else if (val->IsArray()) { // On this format: 
+                               // [value: number, tag: string]?
+    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(val);
+    if (arr->Length() == 2) {
+      double x = 0.0;
+      std::string tag;
+      bool success = tryExtract(arr->Get(0), &x)
+        && tryExtract(arr->Get(1), &tag);
+      if (success) {
+        *dst = sail::TaggedValue(x, tag);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 
 using namespace std;
 
@@ -54,16 +80,6 @@ NAN_METHOD(JsNmea2000Source::New) {
   info.GetReturnValue().Set(info.This());
 }
 
-bool tryExtract(const v8::Local<v8::Value>& val,
-                TaggedValue* dst) {
-  if (val->IsNumber()) {
-    *dst = TaggedValue(val->NumberValue());
-    return true;
-  } else if (val->IsArray()) {
-    
-  }
-  return false;
-}
 /*
 Usage:
   First argument: Array of pieces of data to send
