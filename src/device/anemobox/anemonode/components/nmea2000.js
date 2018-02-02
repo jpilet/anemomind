@@ -19,7 +19,7 @@ boxId.getAnemoId(function(boxid) {
   nmea2000 = new anemonode.NMEA2000([
       {
         // product:
-          serialCode: boxid,
+          serialCode: boxid + '-0',
           productCode: 140,
           model:"Anemobox logger",
           softwareVersion: '' + version.string,
@@ -38,9 +38,16 @@ boxId.getAnemoId(function(boxid) {
   nmea2000Source = new anemonode.Nmea2000Source(nmea2000);
 
   nmea2000.setSendCanFrame(function(id, data) {
-    var msg = { id: id, data: data, ext: true };
-    var r = channel.send(msg);
-    return r > 0;
+    if (channel) {
+      var msg = { id: id, data: data, ext: true };
+      var r = channel.send(msg);
+      return r > 0;
+    } else {
+      // NMEA2000 is disabled, we have no bus anyway.
+      // Let's pretend it succeeded, so that tNMEA2000 class does not
+      // retry to send.
+      return true;
+    }
   });
 });
 
