@@ -91,8 +91,11 @@ std::map<std::string, TaggedValue> toTaggedValueMap(
   std::map<std::string, TaggedValue> dst;
   for (size_t i = 0; i < n; i++) {
     auto prop = props->Get(i);
-    if (prop->IsString()) {
-
+    std::string key;
+    TaggedValue value;
+    if (tryExtract(prop, &key) 
+        && tryExtract(obj->Get(prop), &value)) {
+      dst[key] = value;
     }
   }
   return dst;
