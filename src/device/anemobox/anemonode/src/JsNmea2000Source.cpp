@@ -74,7 +74,9 @@ NAN_METHOD(JsNmea2000Source::send) {
       "'send' expects the first argument to be an array of messages to send");
   }
   v8::Local<v8::Array> msgArray = v8::Local<v8::Array>::Cast(info[0]);
-  
+  for (size_t i = 0; i < msgArray->Length(); i++) {
+    
+  }
 }
 
 }  // namespace sail

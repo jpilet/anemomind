@@ -1,4 +1,5 @@
 #include <device/anemobox/anemonode/src/NodeNmea2000.h>
+#include <device/anemobox/anemonode/src/NodeUtils.h>
 
 bool NodeNmea2000::CANSendFrame(unsigned long id, unsigned char len,
                             const unsigned char *buf, bool wait_sent) {
@@ -45,27 +46,6 @@ void NodeNmea2000::Init(v8::Local<v8::Object> exports) {
   exports->Set(Nan::New("NMEA2000").ToLocalChecked(), tpl->GetFunction());
 }
 
-int32_t intOrDefault(v8::Local<v8::Object> obj, const char* key, int def) {
-  v8::Local<v8::Value> val = Nan::Get(obj, Nan::New(key).ToLocalChecked())
-    .ToLocalChecked();
-  if (val->IsNumber()) {
-    return val->Int32Value();
-  }
-  return def;
-}
-
-std::string strOrDefault(v8::Local<v8::Object> obj, const char* key,
-                         const char* def) {
-  v8::Local<v8::Value> val =
-    Nan::Get(obj, Nan::New<v8::String>(key).ToLocalChecked()).ToLocalChecked();
-  if (!val->IsString()) {
-    return def;
-  }
-
-  v8::String::Utf8Value utf8(val->ToString());
-  return std::string(*utf8);
-}
-
 NAN_METHOD(NodeNmea2000::New) {
   CHECK_CONDITION(info.IsConstructCall(), "Must be called with new");
   CHECK_CONDITION(info.Length() >= 1, "Invalid arguments");
@@ -85,31 +65,31 @@ NAN_METHOD(NodeNmea2000::New) {
       CHECK_CONDITION(entry->IsObject(), "array entries must be objects");
       v8::Local<v8::Object> obj(entry->ToObject());
 
-      std::string serialCode(strOrDefault(obj, "serialCode", ""));
-      std::string model(strOrDefault(obj, "model", ""));
-      std::string softwareVersion(strOrDefault(obj, "softwareVersion", ""));
-      std::string modelVersion(strOrDefault(obj, "modelVersion", ""));
+      std::string serialCode(lookUpOrDefault<std::string>(obj, "serialCode", ""));
+      std::string model(lookUpOrDefault<std::string>(obj, "model", ""));
+      std::string softwareVersion(lookUpOrDefault<std::string>(obj, "softwareVersion", ""));
+      std::string modelVersion(lookUpOrDefault<std::string>(obj, "modelVersion", ""));
 
       zis->SetProductInformation(
           serialCode.c_str(),
-          intOrDefault(obj, "productCode", 0),
+          lookUpOrDefault<int32_t>(obj, "productCode", 0),
           model.c_str(),
           softwareVersion.c_str(),
           modelVersion.c_str(),
-          intOrDefault(obj, "loadEquivalency", 0xff),
-          intOrDefault(obj, "nmea2000Version", 0xffff),
-          intOrDefault(obj, "certificationLevel", 0xff),
+          lookUpOrDefault<int32_t>(obj, "loadEquivalency", 0xff),
+          lookUpOrDefault<int32_t>(obj, "nmea2000Version", 0xffff),
+          lookUpOrDefault<int32_t>(obj, "certificationLevel", 0xff),
           i
         );
       zis->SetDeviceInformation(
-          intOrDefault(obj, "uniqueNumber",  0),
-          intOrDefault(obj, "deviceFunction", 0xff),
-          intOrDefault(obj, "deviceClass", 0xff),
-          intOrDefault(obj, "manufacturerCode", 0xffff),
-          intOrDefault(obj, "industryGroup", 4),
+          lookUpOrDefault<int32_t>(obj, "uniqueNumber",  0),
+          lookUpOrDefault<int32_t>(obj, "deviceFunction", 0xff),
+          lookUpOrDefault<int32_t>(obj, "deviceClass", 0xff),
+          lookUpOrDefault<int32_t>(obj, "manufacturerCode", 0xffff),
+          lookUpOrDefault<int32_t>(obj, "industryGroup", 4),
           i);
 
-      source = intOrDefault(obj, "source", source);
+      source = lookUpOrDefault<int32_t>(obj, "source", source);
     }
   }
   // For now NMEA2000 lib only support specifying the source
