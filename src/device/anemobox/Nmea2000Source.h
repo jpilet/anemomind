@@ -13,7 +13,7 @@ std::string deviceNameToString(const Optional<uint64_t>& dn);
 
 struct TaggedValue {
   TaggedValue() {}
-  TaggedValue(double v, const std::string& t) 
+  TaggedValue(double v, const std::string& t = "") 
     : value(v), tag(t) {}
 
   double value = NAN;
