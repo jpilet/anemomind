@@ -11,6 +11,15 @@ namespace sail {
 
 std::string deviceNameToString(const Optional<uint64_t>& dn);
 
+struct TaggedValue {
+  TaggedValue() {}
+  TaggedValue(double v, const std::string& t) 
+    : value(v), tag(t) {}
+
+  double value = NAN;
+  std::string tag = "";
+};
+
 class Nmea2000Source :
     public PgnClasses::PgnVisitor,
     public tNMEA2000::tMsgHandler {
@@ -35,6 +44,20 @@ class Nmea2000Source :
       int sourceDeviceIndex,
       const PgnClasses::PgnBaseClass& msg,
       const SendOptions& opts = SendOptions());
+
+
+  struct Result {
+    bool success = true;
+    std::string explanation;
+  };
+
+  // Send a bunch of information (maybe with common seq number, TODO).
+  // If successful, the 'success' field in the return value is true,
+  // otherwise there the 'explanation' field will contain an
+  // explanation. There is a schema that each message has to 
+  // conform with.
+  Result send(const std::vector<std::map<std::string, 
+              TaggedValue>>& src);
  protected:
   bool apply(const tN2kMsg &c, const PgnClasses::VesselHeading& packet) override;
   bool apply(const tN2kMsg &c, const PgnClasses::Speed& packet) override;
