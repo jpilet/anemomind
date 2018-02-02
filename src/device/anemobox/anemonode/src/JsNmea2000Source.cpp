@@ -87,7 +87,15 @@ std::map<std::string, TaggedValue> toTaggedValueMap(
   }
   v8::Local<v8::Object> obj =  val->ToObject();
   auto props = obj->GetPropertyNames();
-  
+  size_t n = props->Length();
+  std::map<std::string, TaggedValue> dst;
+  for (size_t i = 0; i < n; i++) {
+    auto prop = props->Get(i);
+    if (prop->IsString()) {
+
+    }
+  }
+  return dst;
 }
 
 /*
