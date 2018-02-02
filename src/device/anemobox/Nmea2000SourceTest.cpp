@@ -299,7 +299,7 @@ TEST(Nmea2000SourceTest, SendTest) {
   msg.longitude = 51.9_deg;
 
   // No devices, so it should be impossible to send it.
-  EXPECT_FALSE(source.send(msg));
+  EXPECT_FALSE(source.send(0, msg));
 
   // Code copy/pasted from
   // https://github.com/ttlappalainen/NMEA2000/blob/master/Examples/BatteryMonitor/BatteryMonitor.ino
@@ -348,7 +348,7 @@ TEST(Nmea2000SourceTest, SendTest) {
   // a device from which we can send.
   EXPECT_TRUE(n2k.framesToTransmit.empty());
 
-  EXPECT_TRUE(source.send(msg));
+  EXPECT_TRUE(source.send(0, msg));
 
   // n2k.ParseMessages(); // Doesn't seem to be necessary to call this
 

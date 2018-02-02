@@ -27,18 +27,12 @@ class Nmea2000Source :
   struct SendOptions {
     SendOptions();
     int priority;
-
-    // Same as 'iDev' in the tNMEA2000 class.
-    // If == -1, then *could* guess it based on
-    // what device is most suitable for this PGN.
-    int sourceDeviceIndex;
-
-    uint8_t source;
     uint8_t destination;
   };
 
   // Returns true iff the tNMEA2000 class accepts to send it.
   bool send(
+      int sourceDeviceIndex,
       const PgnClasses::PgnBaseClass& msg,
       const SendOptions& opts = SendOptions());
  protected:
@@ -53,7 +47,6 @@ class Nmea2000Source :
   bool apply(const tN2kMsg &c, const PgnClasses::DirectionData& packet) override;
   bool apply(const tN2kMsg &c, const PgnClasses::Rudder& packet) override;
  private:
-  int findSuitableDeviceIndex(int pgn);
   std::unique_ptr<tN2kDeviceList> _deviceList;
   std::string _lastSourceName;
   Dispatcher *_dispatcher;
