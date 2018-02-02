@@ -54,10 +54,27 @@ NAN_METHOD(JsNmea2000Source::New) {
   info.GetReturnValue().Set(info.This());
 }
 
+/*
+Usage:
+  First argument: Array of pieces of data to send
+
+  See NodeNmea2000::New for another example of how to parse an
+  array of Node objects.
+*/
 NAN_METHOD(JsNmea2000Source::send) {
   Nan::HandleScope scope;
   info.GetReturnValue().Set(true);
-}
+  if (info.Length() != 1) {
+    return Nan::ThrowTypeError(
+      "'send' accepts one argument: An array of messages to send");
+  }
+  auto arg = info[0];
+  if (!arg->IsArray()) {
+    return Nan::ThrowTypeError(
+      "'send' expects the first argument to be an array of messages to send");
+  }
+  v8::Local<v8::Array> msgArray = v8::Local<v8::Array>::Cast(info[0]);
   
+}
 
 }  // namespace sail
