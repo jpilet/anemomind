@@ -104,7 +104,7 @@ private:
   uint8_t writeBitsInByte(
       int wantedNumBits, /** <[in] How many bits we would like to write*/
       uint8_t inputByte /** <[in] The byte that we will try to write*/) {
-    while (!(_counter.bytePos() < _data.size())) {
+    while (!(unsigned(_counter.bytePos()) < _data.size())) {
       _data.push_back(0xFF); // Should unused bits be 1 by default?
     }
     int remainingBitsInThisByte = _counter.remainingBitsInThisByte();
