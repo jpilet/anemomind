@@ -110,6 +110,9 @@ Usage:
 */
 NAN_METHOD(JsNmea2000Source::send) {
   Nan::HandleScope scope;
+  JsNmea2000Source* zis = 
+    ObjectWrap::Unwrap<JsNmea2000Source>(
+      info.Holder());
   info.GetReturnValue().Set(true);
   if (info.Length() != 1) {
     return Nan::ThrowTypeError(
@@ -128,7 +131,10 @@ NAN_METHOD(JsNmea2000Source::send) {
   for (size_t i = 0; i < n; i++) {
     dst.push_back(toTaggedValueMap(msgArray->Get(i)));
   }
-  
+  auto result = zis->_nmea2000.send(dst);
+  if (!result.success) {
+    return Nan::ThrowTypeError(result.explanation.c_str());
+  }
 }
 
 }  // namespace sail
