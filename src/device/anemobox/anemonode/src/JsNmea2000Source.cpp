@@ -35,6 +35,8 @@ void JsNmea2000Source::Init(v8::Handle<v8::Object> target) {
   nmea2000_constructor.Reset(tpl);
 
   target->Set(Nan::New<String>("Nmea2000Source").ToLocalChecked(), tpl->GetFunction());
+
+  Nan::SetPrototypeMethod(tpl, "send", send);
 }
 
 NAN_METHOD(JsNmea2000Source::New) {
@@ -51,5 +53,11 @@ NAN_METHOD(JsNmea2000Source::New) {
   obj->Wrap(info.This());
   info.GetReturnValue().Set(info.This());
 }
+
+NAN_METHOD(JsNmea2000Source::send) {
+  Nan::HandleScope scope;
+  info.GetReturnValue().Set(true);
+}
+  
 
 }  // namespace sail
