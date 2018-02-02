@@ -238,5 +238,15 @@ bool Nmea2000Source::apply(const tN2kMsg &c,
   return false;
 }
 
+Nmea2000Source::Result 
+  Nmea2000Source::send(const std::vector<std::map<std::string, 
+                       TaggedValue>>& src) {
+  Result r;
+  r.success = false;
+  r.explanation = "Not yet implemented";
+  return r;
+}
+
+
 }  // namespace sail
 

@@ -58,11 +58,10 @@ void JsNmea2000Source::Init(v8::Handle<v8::Object> target) {
   // Prototype
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
 
-  nmea2000_constructor.Reset(tpl);
-
-  target->Set(Nan::New<String>("Nmea2000Source").ToLocalChecked(), tpl->GetFunction());
-
   Nan::SetPrototypeMethod(tpl, "send", send);
+
+  nmea2000_constructor.Reset(tpl);
+  target->Set(Nan::New<String>("Nmea2000Source").ToLocalChecked(), tpl->GetFunction());
 }
 
 NAN_METHOD(JsNmea2000Source::New) {
