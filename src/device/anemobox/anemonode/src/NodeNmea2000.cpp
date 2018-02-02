@@ -213,4 +213,3 @@ uint32_t millis(void) {
   return ((uint32_t) ((ticker.tv_sec * 1000) + (ticker.tv_nsec / 1000000)));
 };
 
-NODE_MODULE(node_nmea2000, InitAll)
