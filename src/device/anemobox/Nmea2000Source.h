@@ -45,12 +45,6 @@ class Nmea2000Source :
       const PgnClasses::PgnBaseClass& msg,
       const SendOptions& opts = SendOptions());
 
-
-  struct Result {
-    bool success = true;
-    std::string explanation;
-  };
-
   // Send a bunch of information (maybe with common seq number, TODO).
   // If successful, the 'success' field in the return value is true,
   // otherwise there the 'explanation' field will contain an
@@ -58,6 +52,8 @@ class Nmea2000Source :
   // conform with.
   Result send(const std::vector<std::map<std::string, 
               TaggedValue>>& src);
+
+  Result send(const std::map<std::string, TaggedValue>& src);
  protected:
   bool apply(const tN2kMsg &c, const PgnClasses::VesselHeading& packet) override;
   bool apply(const tN2kMsg &c, const PgnClasses::Speed& packet) override;
