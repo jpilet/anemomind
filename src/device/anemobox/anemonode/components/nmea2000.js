@@ -10,46 +10,52 @@ var nmea2000;
 var nmea2000Source;
 var rawPacketLoggingEnabled = false;
 
-boxId.getAnemoId(function(boxid) {
-  var virtDevBits = 2;
-  var maxNumVirtualDevices = 1 << virtDevBits;
-  var baseSerialNumber =
-    (parseInt(boxid, 16) & ((1 << 21 + 1 - virtDevBits) - 1)) << virtDevBits;
+function instanciateNmea2000() {
+  boxId.getAnemoId(function(boxid) {
+    var virtDevBits = 2;
+    var maxNumVirtualDevices = 1 << virtDevBits;
+    var baseSerialNumber =
+      (parseInt(boxid, 16) & ((1 << 21 + 1 - virtDevBits) - 1)) << virtDevBits;
 
-  nmea2000 = new anemonode.NMEA2000([
-      {
-        // product:
-          serialCode: boxid + '-0',
-          productCode: 140,
-          model:"Anemobox logger",
-          softwareVersion: '' + version.string,
-          modelVersion: 'Anemobox v1',
-          loadEquivalency : 3,
-          nmea2000Version: 2101,
-          certificationLevel: 0xff,
-        // device:
-          uniqueNumber: baseSerialNumber + 0,
-          manufacturerCode: 2040,
-          deviceFunction: 140, // traffic logger
-          deviceClass: 10,
-          source: 42
-      }]);
+    nmea2000 = new anemonode.NMEA2000([
+        {
+          // product:
+            serialCode: boxid + '-0',
+            productCode: 140,
+            model:"Anemobox logger",
+            softwareVersion: '' + version.string,
+            modelVersion: 'Anemobox v1',
+            loadEquivalency : 3,
+            nmea2000Version: 2101,
+            certificationLevel: 0xff,
+          // device:
+            uniqueNumber: baseSerialNumber + 0,
+            manufacturerCode: 2040,
+            deviceFunction: 140, // traffic logger
+            deviceClass: 10,
+            source: 42
+        }]);
 
-  nmea2000Source = new anemonode.Nmea2000Source(nmea2000);
+    nmea2000Source = new anemonode.Nmea2000Source(nmea2000);
 
-  nmea2000.setSendCanFrame(function(id, data) {
-    if (channel) {
-      var msg = { id: id, data: data, ext: true };
-      var r = channel.send(msg);
-      return r > 0;
-    } else {
-      // NMEA2000 is disabled, we have no bus anyway.
-      // Let's pretend it succeeded, so that tNMEA2000 class does not
-      // retry to send.
-      return true;
-    }
+    nmea2000.setSendCanFrame(function(id, data) {
+      if (channel) {
+        var msg = { id: id, data: data, ext: true };
+        var r = channel.send(msg);
+        return r > 0;
+      } else {
+        // NMEA2000 is disabled, we have no bus anyway.
+        // Let's pretend it succeeded, so that tNMEA2000 class does not
+        // retry to send.
+        return true;
+      }
+    });
+    
+    nmea2000.open();
+    setInterval(function() { nmea2000.parseMessages(); }, 200);
   });
-});
+}
+
 
 function canPacketReceived(msg) {
   logRawPacket(msg);
@@ -88,6 +94,7 @@ function startNmea2000() {
       channel = can.createRawChannel("can0", true /* ask for timestamps */);
       channel.start();
       channel.addListener("onMessage", canPacketReceived);
+      instanciateNmea2000();
     } catch (e) {
       console.log("Failed to start NMEA2000");
       console.log(e);
