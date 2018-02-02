@@ -1,5 +1,5 @@
 #include <device/anemobox/Nmea2000Source.h>
-
+#include <device/anemobox/Nmea2000Utils.h>
 
 namespace sail {
 
@@ -34,6 +34,30 @@ Optional<uint64_t> Nmea2000Source::getSourceName(uint8_t shortName) {
   return device == nullptr?
       Optional<uint64_t>()
       : Optional<uint64_t>(device->GetName());
+}
+
+Nmea2000Source::SendOptions::SendOptions()
+  : priority(N2kMsgBuilder::defaultPriority),
+    destination(0xFF) {} // <-- What to put here?
+
+bool Nmea2000Source::send(
+    int sourceDeviceIndex,
+    const PgnClasses::PgnBaseClass& msg,
+    const SendOptions& opts) {
+  N2kMsgBuilder b;
+  b.PGN = msg.code();
+  b.priority = opts.priority;
+  b.destination = opts.destination;
+
+  // Overwritten by SendMsg iff 0 <= sourceDeviceIndex
+  b.source = 0xFF;
+
+  auto n2k = this->GetNMEA2000(); // From the tMsgHandler base
+  CHECK(n2k != nullptr);
+
+  return n2k->SendMsg(
+      b.make(msg.encode()),
+      sourceDeviceIndex);
 }
 
 std::string deviceNameToString(const Optional<uint64_t>& dn) {

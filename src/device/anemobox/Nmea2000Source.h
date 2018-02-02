@@ -22,6 +22,19 @@ class Nmea2000Source :
   void HandleMsg(const tN2kMsg &N2kMsg) override;
 
   Optional<uint64_t> getSourceName(uint8_t shortName);
+
+
+  struct SendOptions {
+    SendOptions();
+    int priority;
+    uint8_t destination;
+  };
+
+  // Returns true iff the tNMEA2000 class accepts to send it.
+  bool send(
+      int sourceDeviceIndex,
+      const PgnClasses::PgnBaseClass& msg,
+      const SendOptions& opts = SendOptions());
  protected:
   bool apply(const tN2kMsg &c, const PgnClasses::VesselHeading& packet) override;
   bool apply(const tN2kMsg &c, const PgnClasses::Speed& packet) override;

@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 26 2018 16:58:20 GMT+0100 (CET) using 
+/** Generated on Fri Feb 02 2018 11:32:36 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -14,6 +14,13 @@
 #include <N2kMsg.h>
 
 namespace PgnClasses {
+  class PgnBaseClass {
+  public:
+    virtual int code() const = 0;
+    virtual std::vector<uint8_t> encode() const = 0;
+    virtual ~PgnBaseClass() {}
+  };
+  
   enum class PgnVariant60416 {
     TypeIsoTransportProtocolConnectionManagementRequestToSend,
     TypeIsoTransportProtocolConnectionManagementClearToSend,
@@ -24,9 +31,10 @@ namespace PgnClasses {
   };
 
   
-  struct IsoTransportProtocolDataTransfer { // ISO Transport Protocol, Data Transfer
+  struct IsoTransportProtocolDataTransfer: public PgnBaseClass { // ISO Transport Protocol, Data Transfer
     // Minimum size: 8 bits = 1 bytes. Repeating struct size: 56 bits = 7 bytes
     static const int ThisPgn = 60160;
+    int code() const override {return 60160;}
     struct Repeating {
       Optional<sail::Array<uint8_t> > data; //  at 8 bits = 1 bytes
     };
@@ -35,15 +43,16 @@ namespace PgnClasses {
     IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
     std::vector<Repeating> repeating;
   };
   
-  struct IsoTransportProtocolConnectionManagementRequestToSend { // ISO Transport Protocol, Connection Management - Request To Send
+  struct IsoTransportProtocolConnectionManagementRequestToSend: public PgnBaseClass { // ISO Transport Protocol, Connection Management - Request To Send
     // Minimum size: 40 bits = 5 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
     struct Repeating {
       Optional<uint64_t > pgn; // PGN at 40 bits = 5 bytes
     };
@@ -52,7 +61,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > groupFunctionCode; // RTS at 0 bits = 0 bytes
     Optional<uint64_t > messageSize; // bytes at 8 bits = 1 bytes
@@ -61,9 +70,10 @@ namespace PgnClasses {
     std::vector<Repeating> repeating;
   };
   
-  struct IsoTransportProtocolConnectionManagementClearToSend { // ISO Transport Protocol, Connection Management - Clear To Send
+  struct IsoTransportProtocolConnectionManagementClearToSend: public PgnBaseClass { // ISO Transport Protocol, Connection Management - Clear To Send
     // Minimum size: 40 bits = 5 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
     struct Repeating {
       Optional<uint64_t > pgn; // PGN at 40 bits = 5 bytes
     };
@@ -72,7 +82,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > groupFunctionCode; // CTS at 0 bits = 0 bytes
     Optional<uint64_t > maxPackets; // packets before waiting for next CTS at 8 bits = 1 bytes
@@ -81,9 +91,10 @@ namespace PgnClasses {
     std::vector<Repeating> repeating;
   };
   
-  struct IsoTransportProtocolConnectionManagementEndOfMessage { // ISO Transport Protocol, Connection Management - End Of Message
+  struct IsoTransportProtocolConnectionManagementEndOfMessage: public PgnBaseClass { // ISO Transport Protocol, Connection Management - End Of Message
     // Minimum size: 40 bits = 5 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
     struct Repeating {
       Optional<uint64_t > pgn; // PGN at 40 bits = 5 bytes
     };
@@ -92,7 +103,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > groupFunctionCode; // EOM at 0 bits = 0 bytes
     Optional<uint64_t > totalMessageSize; // bytes at 8 bits = 1 bytes
@@ -101,9 +112,10 @@ namespace PgnClasses {
     std::vector<Repeating> repeating;
   };
   
-  struct IsoTransportProtocolConnectionManagementBroadcastAnnounce { // ISO Transport Protocol, Connection Management - Broadcast Announce
+  struct IsoTransportProtocolConnectionManagementBroadcastAnnounce: public PgnBaseClass { // ISO Transport Protocol, Connection Management - Broadcast Announce
     // Minimum size: 40 bits = 5 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
     struct Repeating {
       Optional<uint64_t > pgn; // PGN at 40 bits = 5 bytes
     };
@@ -112,7 +124,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > groupFunctionCode; // BAM at 0 bits = 0 bytes
     Optional<uint64_t > messageSize; // bytes at 8 bits = 1 bytes
@@ -121,9 +133,10 @@ namespace PgnClasses {
     std::vector<Repeating> repeating;
   };
   
-  struct IsoTransportProtocolConnectionManagementAbort { // ISO Transport Protocol, Connection Management - Abort
+  struct IsoTransportProtocolConnectionManagementAbort: public PgnBaseClass { // ISO Transport Protocol, Connection Management - Abort
     // Minimum size: 32 bits = 4 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
     struct Repeating {
       Optional<uint64_t > pgn; // PGN at 32 bits = 4 bytes
     };
@@ -132,7 +145,7 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > groupFunctionCode; // Abort at 0 bits = 0 bytes
     Optional<uint64_t > reason; //  at 8 bits = 1 bytes
@@ -140,9 +153,10 @@ namespace PgnClasses {
     std::vector<Repeating> repeating;
   };
   
-  struct SystemTime { // System Time
+  struct SystemTime: public PgnBaseClass { // System Time
     // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 126992;
+    int code() const override {return 126992;}
     enum class Source {
       GPS = 0, 
       GLONASS = 1, 
@@ -156,7 +170,7 @@ namespace PgnClasses {
     SystemTime(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     sail::TimeStamp timeStamp() const {
       return N2kField::getTimeStamp(*this);
     }
@@ -168,15 +182,16 @@ namespace PgnClasses {
     Optional<sail::Duration<double> > time; // Seconds since midnight at 32 bits = 4 bytes
   };
   
-  struct Rudder { // Rudder
+  struct Rudder: public PgnBaseClass { // Rudder
     // Minimum size: 48 bits = 6 bytes. 
     static const int ThisPgn = 127245;
+    int code() const override {return 127245;}
 
     Rudder();
     Rudder(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > instance; //  at 0 bits = 0 bytes
     Optional<uint64_t > directionOrder; //  at 8 bits = 1 bytes
@@ -185,9 +200,10 @@ namespace PgnClasses {
     Optional<sail::Angle<double> > position; //  at 32 bits = 4 bytes
   };
   
-  struct VesselHeading { // Vessel Heading
+  struct VesselHeading: public PgnBaseClass { // Vessel Heading
     // Minimum size: 58 bits = 7 bytes + 2 bits. 
     static const int ThisPgn = 127250;
+    int code() const override {return 127250;}
     enum class Reference {
       True = 0, 
       Magnetic = 1
@@ -197,7 +213,7 @@ namespace PgnClasses {
     VesselHeading(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
     Optional<sail::Angle<double> > heading; //  at 8 bits = 1 bytes
@@ -206,29 +222,31 @@ namespace PgnClasses {
     Optional<Reference > reference; //  at 56 bits = 7 bytes
   };
   
-  struct RateOfTurn { // Rate of Turn
+  struct RateOfTurn: public PgnBaseClass { // Rate of Turn
     // Minimum size: 40 bits = 5 bytes. 
     static const int ThisPgn = 127251;
+    int code() const override {return 127251;}
 
     RateOfTurn();
     RateOfTurn(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
     Optional<sail::AngularVelocity<double> > rate; //  at 8 bits = 1 bytes
   };
   
-  struct Attitude { // Attitude
+  struct Attitude: public PgnBaseClass { // Attitude
     // Minimum size: 56 bits = 7 bytes. 
     static const int ThisPgn = 127257;
+    int code() const override {return 127257;}
 
     Attitude();
     Attitude(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
     Optional<sail::Angle<double> > yaw; //  at 8 bits = 1 bytes
@@ -236,9 +254,10 @@ namespace PgnClasses {
     Optional<sail::Angle<double> > roll; //  at 40 bits = 5 bytes
   };
   
-  struct Speed { // Speed
+  struct Speed: public PgnBaseClass { // Speed
     // Minimum size: 52 bits = 6 bytes + 4 bits. 
     static const int ThisPgn = 128259;
+    int code() const override {return 128259;}
     enum class SpeedWaterReferencedType {
       Paddle_wheel = 0, 
       Pitot_tube = 1, 
@@ -251,7 +270,7 @@ namespace PgnClasses {
     Speed(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
     Optional<sail::Velocity<double> > speedWaterReferenced; //  at 8 bits = 1 bytes
@@ -260,23 +279,25 @@ namespace PgnClasses {
     Optional<uint64_t > speedDirection; //  at 48 bits = 6 bytes
   };
   
-  struct PositionRapidUpdate { // Position, Rapid Update
+  struct PositionRapidUpdate: public PgnBaseClass { // Position, Rapid Update
     // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 129025;
+    int code() const override {return 129025;}
 
     PositionRapidUpdate();
     PositionRapidUpdate(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<sail::Angle<double> > latitude; //  at 0 bits = 0 bytes
     Optional<sail::Angle<double> > longitude; //  at 32 bits = 4 bytes
   };
   
-  struct CogSogRapidUpdate { // COG & SOG, Rapid Update
+  struct CogSogRapidUpdate: public PgnBaseClass { // COG & SOG, Rapid Update
     // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 129026;
+    int code() const override {return 129026;}
     enum class CogReference {
       True = 0, 
       Magnetic = 1
@@ -286,7 +307,7 @@ namespace PgnClasses {
     CogSogRapidUpdate(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
     Optional<CogReference > cogReference; //  at 8 bits = 1 bytes
@@ -296,9 +317,10 @@ namespace PgnClasses {
     // Skip field 'Reserved' of length 16 at 48 bits = 6 bytes: Reserved field
   };
   
-  struct GnssPositionData { // GNSS Position Data
+  struct GnssPositionData: public PgnBaseClass { // GNSS Position Data
     // Minimum size: 328 bits = 41 bytes. Repeating struct size: 32 bits = 4 bytes
     static const int ThisPgn = 129029;
+    int code() const override {return 129029;}
     enum class GnssType {
       GPS = 0, 
       GLONASS = 1, 
@@ -347,7 +369,7 @@ namespace PgnClasses {
     GnssPositionData(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     sail::TimeStamp timeStamp() const {
       return N2kField::getTimeStamp(*this);
     }
@@ -370,15 +392,16 @@ namespace PgnClasses {
     std::vector<Repeating> repeating;
   };
   
-  struct TimeDate { // Time & Date
+  struct TimeDate: public PgnBaseClass { // Time & Date
     // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 129033;
+    int code() const override {return 129033;}
 
     TimeDate();
     TimeDate(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     sail::TimeStamp timeStamp() const {
       return N2kField::getTimeStamp(*this);
     }
@@ -388,9 +411,10 @@ namespace PgnClasses {
     Optional<sail::Duration<double> > localOffset; // Minutes at 48 bits = 6 bytes
   };
   
-  struct WindData { // Wind Data
+  struct WindData: public PgnBaseClass { // Wind Data
     // Minimum size: 43 bits = 5 bytes + 3 bits. 
     static const int ThisPgn = 130306;
+    int code() const override {return 130306;}
     enum class Reference {
       True_ground_referenced_to_North = 0, 
       Magnetic_ground_referenced_to_Magnetic_North = 1, 
@@ -403,7 +427,7 @@ namespace PgnClasses {
     WindData(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
     Optional<sail::Velocity<double> > windSpeed; //  at 8 bits = 1 bytes
@@ -411,9 +435,10 @@ namespace PgnClasses {
     Optional<Reference > reference; //  at 40 bits = 5 bytes
   };
   
-  struct DirectionData { // Direction Data
+  struct DirectionData: public PgnBaseClass { // Direction Data
     // Minimum size: 112 bits = 14 bytes. 
     static const int ThisPgn = 130577;
+    int code() const override {return 130577;}
     enum class DataMode {
       Autonomous = 0, 
       Differential_enhanced = 1, 
@@ -430,7 +455,7 @@ namespace PgnClasses {
     DirectionData(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
-    std::vector<uint8_t> encode() const;
+    std::vector<uint8_t> encode() const override;
     
     Optional<DataMode > dataMode; //  at 0 bits = 0 bytes
     Optional<CogReference > cogReference; //  at 4 bits = 0 bytes + 4 bits

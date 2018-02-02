@@ -54,27 +54,32 @@ public:
 
   bool CANSendFrame(
       unsigned long id, unsigned char len, const unsigned char *buf, bool wait_sent=true) {
-    std::cout << "Trying to send frame" << std::endl;
-    return false;
+    CanFrame f;
+    f.id = id;
+    f.len = len;
+    std::copy(buf, buf + len, f.buf);
+    framesToTransmit.push(f);
+    return true;
   }
 
   virtual bool CANOpen() {
     return true;
   }
 
-  std::queue<CanFrame> framesToGet;
+  std::queue<CanFrame> framesToReceive;
+  std::queue<CanFrame> framesToTransmit;
 
   virtual bool CANGetFrame(
       unsigned long &id, unsigned char &len, unsigned char *buf) {
-    if (framesToGet.empty()) {
+    if (framesToReceive.empty()) {
       std::cout << "No more frames to get" << std::endl;
       return false;
     }
-    const auto& x = framesToGet.front();
+    const auto& x = framesToReceive.front();
     id = x.id;
     len = x.len;
     std::copy(x.buf, x.buf + x.len, buf);
-    framesToGet.pop();
+    framesToReceive.pop();
     return true;
   }
 
@@ -91,7 +96,7 @@ public:
           LOG(INFO) << "End of frame data";
           break;
         } else {
-          framesToGet.push(frame);
+          framesToReceive.push(frame);
           count++;
         }
       }
@@ -102,16 +107,19 @@ public:
   virtual ~NMEA2000ForTesting() {}
 };
 
+
+template <typename PgnClass>
 class TestHandler : public tNMEA2000::tMsgHandler {
 public:
-  std::vector<PgnClasses::GnssPositionData> data;
+  std::vector<PgnClass> data;
 
-  TestHandler(tNMEA2000* s) : tNMEA2000::tMsgHandler(129029, s) {}
+  TestHandler(tNMEA2000* s) : tNMEA2000::tMsgHandler(
+      PgnClass::ThisPgn, s) {}
 
   void HandleMsg(const tN2kMsg &msg) {
-    CHECK(msg.PGN == 129029);
+    CHECK(msg.PGN == PgnClass::ThisPgn);
     data.push_back(
-        PgnClasses::GnssPositionData(
+        PgnClass(
             msg.Data, msg.DataLen));
   }
 };
@@ -123,7 +131,7 @@ TEST(Nmea2000SourceTest, DeviceNameTest) {
 
   std::string srcName = "8078AC73008C28C0";
 
-  testInstance.framesToGet.push(
+  testInstance.framesToReceive.push(
       canFrameFromDumpString(
           "18EEFF80#" + srcName));
 
@@ -174,10 +182,10 @@ TEST(Nmea2000SourceTest, GnssPositionData) {
   Nmea2000Source source(
       &testInstance,
       &dispatcher);
-  TestHandler handler(&testInstance);
+  TestHandler<PgnClasses::GnssPositionData> handler(&testInstance);
 
   testInstance.AttachMsgHandler(&handler);
-  while (!testInstance.framesToGet.empty()) {
+  while (!testInstance.framesToReceive.empty()) {
     testInstance.ParseMessages();
   }
 
@@ -281,3 +289,79 @@ TEST(Nmea2000SourceTest, RudderAngle) {
   EXPECT_NEAR(dispatcher.val<RUDDER_ANGLE>().degrees(), -4.4, .1);
 }
 
+TEST(Nmea2000SourceTest, SendTest) {
+  NMEA2000ForTesting n2k;
+  Dispatcher dispatcher;
+
+  Nmea2000Source source(&n2k, &dispatcher);
+  PgnClasses::PositionRapidUpdate msg;
+  msg.latitude = 13.4_deg;
+  msg.longitude = 51.9_deg;
+
+  // No devices, so it should be impossible to send it.
+  EXPECT_FALSE(source.send(0, msg));
+
+  // Code copy/pasted from
+  // https://github.com/ttlappalainen/NMEA2000/blob/master/Examples/BatteryMonitor/BatteryMonitor.ino
+  const tNMEA2000::tProductInformation BatteryMonitorProductInformation ={
+                                         1300,                        // N2kVersion
+                                         100,                         // Manufacturer's product code
+                                         "Simple battery monitor",    // Manufacturer's Model ID
+                                         "1.1.0.14 (2017-06-11)",     // Manufacturer's Software version code
+                                         "1.1.0.0 (2017-06-11)",      // Manufacturer's Model version
+                                         "00000001",                  // Manufacturer's Model serial code
+                                         0,                           // SertificationLevel
+                                         1                            // LoadEquivalency
+                                        };
+
+  // ---  Example of using PROGMEM to hold Configuration information.  However, doing this will prevent any updating of
+  //      these details outside of recompiling the program.
+  const char BatteryMonitorManufacturerInformation [] = "John Doe, john.doe@unknown.com";
+  const char BatteryMonitorInstallationDescription1 [] = "Just for sample";
+  const char BatteryMonitorInstallationDescription2 [] = "No real information send to bus";
+
+  // Set Product information
+  n2k.SetProductInformation(&BatteryMonitorProductInformation );
+  // Set Configuration information
+  n2k.SetProgmemConfigurationInformation(BatteryMonitorManufacturerInformation,BatteryMonitorInstallationDescription1,BatteryMonitorInstallationDescription2);
+  // Set device information
+  n2k.SetDeviceInformation(1,      // Unique number. Use e.g. Serial number.
+                                  170,    // Device function=Battery. See codes on http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
+                                  35,     // Device class=Electrical Generation. See codes on  http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
+                                  2046    // Just choosen free from code list on http://www.nmea.org/Assets/20121020%20nmea%202000%20registration%20list.pdf
+                                 );
+
+
+  // Uncomment 3 rows below to see, what device will send to bus
+  //Serial.begin(115200);
+  //NMEA2000.SetForwardStream(&Serial);
+  // NMEA2000.SetForwardType(tNMEA2000::fwdt_Text);     // Show in clear text. Leave uncommented for default Actisense format.
+  // If you also want to see all traffic on the bus use N2km_ListenAndNode instead of N2km_NodeOnly below
+  n2k.SetMode(tNMEA2000::N2km_NodeOnly,22);
+  // NMEA2000.SetDebugMode(tNMEA2000::dm_ClearText);     // Uncomment this, so you can test code without CAN bus chips on Arduino Mega
+  // NMEA2000.EnableForward(false);                      // Disable all msg forwarding to USB (=Serial)
+
+  //  NMEA2000.SetN2kCANMsgBufSize(2);                    // For this simple example, limit buffer size to 2, since we are only sending data
+  n2k.Open();
+
+  // Now the tNMEA2000 instance is both open and has
+  // a device from which we can send.
+  EXPECT_TRUE(n2k.framesToTransmit.empty());
+
+  EXPECT_TRUE(source.send(0, msg));
+
+  // n2k.ParseMessages(); // Doesn't seem to be necessary to call this
+
+  EXPECT_FALSE(n2k.framesToTransmit.empty());
+
+  // Parse the message that we just sent.
+  TestHandler<PgnClasses::PositionRapidUpdate> handler(&n2k);
+  n2k.framesToReceive.push(n2k.framesToTransmit.back());
+  n2k.ParseMessages();
+
+  EXPECT_FALSE(handler.data.empty());
+  EXPECT_EQ(1, handler.data.size());
+  auto pos = handler.data.back();
+  EXPECT_NEAR(pos.latitude.get().degrees(), 13.4, 0.01);
+  EXPECT_NEAR(pos.longitude.get().degrees(), 51.9, 0.01);
+}

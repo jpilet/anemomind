@@ -32,7 +32,8 @@ void setN2kMsgData(Iter begin, Iter end, tN2kMsg* dst) {
 // (I had that bug). Or that we mixup the order of the
 // integer arguments that msg.Init takes.
 struct N2kMsgBuilder {
-  unsigned char priority = 6; // Seems to be a common value.
+  static const int defaultPriority = 6;
+  unsigned char priority = defaultPriority; // Seems to be a common value.
 
   // Probably none of these have good default values
   Optional<unsigned long> PGN;
@@ -62,9 +63,7 @@ private:
         source.get(), destination.get());
     return msg;
   }
-
 };
-
 
 } /* namespace sail */
 

@@ -313,7 +313,7 @@ function makeFieldAccessor(field) {
     + getInstanceVariableName(field) + ";}";
 }
 
-var encodeDecl = "std::vector<uint8_t> encode() const;";
+var encodeDecl = "std::vector<uint8_t> encode() const override;";
 
 var commonMethods = [
   "bool hasSomeData() const;",
@@ -391,8 +391,12 @@ function makeConstructorDecl(pgn, depth) {
   return beginLine(depth) + makeConstructorSignature(pgn) + ";";
 }
 
-function makePgnStaticConst(pgn, depth) {
-  return beginLine(depth) + "static const int ThisPgn = " + getPgnCode(pgn) + ";";
+function makePgnInfo(pgn, depth) {
+  var code = getPgnCode(pgn);
+  return indentLineArray(depth, [
+    "static const int ThisPgn = " + code + ";",
+    "int code() const override {return " + code + ";}"
+  ]);
 }
 
 function getType(field) {
@@ -479,9 +483,9 @@ function makeClassDeclarationFromPgn(pgn, depth) {
   var innerDepth = depth + 1;
   return makeClassBlock(
     pgn.Description + '',
-    getClassName(pgn), 
+    getClassName(pgn) + ': public PgnBaseClass', 
     makePgnClassInfo(pgn)
-      + makePgnStaticConst(pgn, innerDepth) 
+      + makePgnInfo(pgn, innerDepth) 
       + makeEnums(pgn, innerDepth)
       + makeRepeatingFieldsStruct(pgn, innerDepth)
       + makeMethodsInClass(pgn, innerDepth)
@@ -877,7 +881,8 @@ function makeIsFastPacketImplementation(pgns) {
 function makeInterface(label, pgns) {
   return wrapNamespace(
     label,
-    makePgnEnums(pgns)
+    pgnBaseClass
+    + makePgnEnums(pgns)
     + makeClassDeclarationsSub(pgns)
     + makeVisitorDeclaration(pgns));
 }
@@ -1227,10 +1232,21 @@ function makePgnEnums(pgns) {
   return getMultiDefs(defMap).map(makePgnEnum).join("\n");
 }
 
+var pgnBaseClass = indentLineArray(1, [
+  'class PgnBaseClass {',
+  'public:', [
+    'virtual int code() const = 0;',
+    'virtual std::vector<uint8_t> encode() const = 0;',
+    'virtual ~PgnBaseClass() {}'
+  ],
+  '};',
+  ''
+]);
+
 function makeInterfaceFileContents(moduleName, pgns) {
   return wrapInclusionGuard(
     moduleName.toUpperCase(), 
-    publicInclusions + 
+    publicInclusions +
     makeInterface(moduleName, pgns));
 }
 
