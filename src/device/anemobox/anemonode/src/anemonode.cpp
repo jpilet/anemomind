@@ -12,6 +12,7 @@
 #include <device/anemobox/anemonode/src/JsNmea2000Source.h>
 #include <device/anemobox/anemonode/src/JsEstimator.h>
 #include <device/anemobox/anemonode/src/JsLogger.h>
+#include <device/anemobox/anemonode/src/NodeNmea2000.h>
 #include <device/anemobox/anemonode/src/anemonode.h>
 #include <server/common/TimeStamp.h>
 
@@ -80,6 +81,7 @@ void RegisterModule(Handle<Object> target) {
   JsNmea2000Source::Init(target);
   JsLogger::Init(target);
   JsEstimator::Init(target);
+  NodeNmea2000::Init(target);
 
   Nan::SetMethod(target, "adjTime", adjTime);
   Nan::SetMethod(target, "currentTime", currentTime);
