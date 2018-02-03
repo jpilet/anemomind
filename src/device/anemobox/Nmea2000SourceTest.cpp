@@ -290,7 +290,7 @@ TEST(Nmea2000SourceTest, RudderAngle) {
 }
 
 void prepareN2k(tNMEA2000* n2k) {
-  n2k->Open();
+  n2k->Open(); // Seems like Open needs to be called early?
 
   // Code copy/pasted from
   // https://github.com/ttlappalainen/NMEA2000/blob/master/Examples/BatteryMonitor/BatteryMonitor.ino
@@ -415,22 +415,6 @@ void testSuccessfullySentRapidPos(
 }
 
 TEST(Nmea2000SourceTest, SendTaggedValues) {
-  /*NMEA2000ForTesting n2k;
-  Dispatcher dispatcher;
-
-  Nmea2000Source source(&n2k, &dispatcher);
-  auto r = source.send({
-    {"longitude", 9.3},
-    {"latitude", 4.5}
-  });
-  EXPECT_FALSE(r.success);
-
-  prepareN2k(&n2k);
-  EXPECT_TRUE(source.send({
-    {"longitude", 9.3},
-    {"latitude", 4.5}
-  }).success);
-*/
   testSuccessfullySentRapidPos({
      {"longitude", 9.3},
      {"latitude", 4.5}
