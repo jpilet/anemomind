@@ -10,7 +10,7 @@ var nmea2000;
 var nmea2000Source;
 var rawPacketLoggingEnabled = false;
 
-function instanciateNmea2000() {
+function instantiateNmea2000() {
   boxId.getAnemoId(function(boxid) {
     var virtDevBits = 2;
     var maxNumVirtualDevices = 1 << virtDevBits;
@@ -94,7 +94,7 @@ function startNmea2000() {
       channel = can.createRawChannel("can0", true /* ask for timestamps */);
       channel.start();
       channel.addListener("onMessage", canPacketReceived);
-      instanciateNmea2000();
+      instantiateNmea2000();
     } catch (e) {
       console.log("Failed to start NMEA2000");
       console.log(e);

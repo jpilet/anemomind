@@ -66,6 +66,16 @@ std::string deviceNameToString(const Optional<uint64_t>& dn) {
       : "UndefinedNMEA2000Source";
 }
 
+const char* n2kSendResultToString(N2kSendResult r) {
+  switch (r) {
+  case N2kSendResult::Success: return "Success";
+  case N2kSendResult::N2kError: return "NMEA2000-related error";
+  case N2kSendResult::BadUnit: return "Bad unit";
+  case N2kSendResult::BadMessageFormat: return "Bad message format";
+  };
+  CHECK(false);
+  return nullptr;
+}
 
 void Nmea2000Source::HandleMsg(
     const tN2kMsg& msg) {
@@ -237,6 +247,133 @@ bool Nmea2000Source::apply(const tN2kMsg &c,
   }
   return false;
 }
+
+
+// A function that tries to send a message
+// of tagged value to an Nmea2000Source and
+// returns a result.
+typedef N2kSendResult
+    (*TaggedValueSender)(
+        int, // <-- device index
+        const std::map<std::string, TaggedValue>&,
+        Nmea2000Source*);
+
+N2kSendResult orError(
+    const N2kSendResult& a,
+        const N2kSendResult& b) {
+  return std::max(a, b);
+}
+
+N2kSendResult closestToBeingSent(
+    const N2kSendResult& a,
+    const N2kSendResult& b) {
+  return std::min(a, b);
+}
+
+
+
+N2kSendResult extractTypedValue(
+    const TaggedValue& src, Angle<double>* dst) {
+  if (src.tag == "deg" || src.tag == "" || src.tag == "degrees") {
+    *dst = Angle<double>::degrees(src.value);
+    return N2kSendResult::Success;
+  } else if (src.tag == "rad" || src.tag == "radians") {
+    *dst = Angle<double>::radians(src.value);
+    return N2kSendResult::Success;
+  }
+  return N2kSendResult::BadUnit;
+}
+
+template <typename T>
+N2kSendResult extract(
+    const std::map<std::string, TaggedValue>& src,
+    const char* key,
+    T* dst) {
+  auto f = src.find(key);
+  return f == src.end()?
+    N2kSendResult::BadMessageFormat
+    : extractTypedValue(f->second, dst);
+}
+
+N2kSendResult sendPositionRapidUpdate(
+    int deviceIndex,
+    const std::map<std::string, TaggedValue>& src,
+    Nmea2000Source* dst) {
+  Angle<double> lon = 0.0_rad;
+  Angle<double> lat = 0.0_rad;
+  auto r = orError(
+      extract(src, "longitude", &lon),
+      extract(src, "latitude", &lat));
+  if (r != N2kSendResult::Success) {
+    return r;
+  }
+  PositionRapidUpdate x;
+  x.longitude = lon;
+  x.latitude = lat;
+  if (dst->send(deviceIndex, x)) {
+    return N2kSendResult::Success;
+  } else {
+    return N2kSendResult::N2kError;
+  }
+}
+
+
+N2kSendResult Nmea2000Source::send(
+    const std::map<std::string, TaggedValue>& src) {
+
+  int deviceIndex = 0; // What should it be?
+
+  /*
+   * We do a linear search through all the possible senders.
+   * Will it be a performance problem? Only if we have sufficiently
+   * many message formats. In that case, we can always dispatch
+   * based on some kind of tag.
+   *
+   * It could be that some sender uses a subset of the keys used
+   * by another sender. In that case, we should take care to
+   * test the more specific case first.
+   */
+  static std::vector<TaggedValueSender> senders{
+    &sendPositionRapidUpdate
+  };
+
+  N2kSendResult r = N2kSendResult::BadMessageFormat;
+  for (const auto& sender: senders) {
+
+    // We track the most promising outcome...
+    r = closestToBeingSent(r, sender(deviceIndex, src, this));
+
+    // ...and if it happens to be a success, we stop.
+    if (r == N2kSendResult::Success) {
+      return r;
+    }
+  }
+
+  // ...Otherwise, we return the error of the most promising
+  // outcome.
+  return r;
+}
+
+N2kSendResult Nmea2000Source::send(
+    const std::vector<std::map<std::string,
+    TaggedValue>>& src) {
+  for (size_t i = 0; i < src.size(); i++) {
+    auto result = send(src[i]);
+    // Whenever we encounter an error, we stop and report that error.
+    // Or would it be better to try to send all messages, and
+    // report the most severe error at the end?
+    //
+    // Note that, if there is no bug in the code, the only
+    // error we would expect at runtime is N2kSendResult::N2kError
+    // The other errors are just there to help debugging from
+    // the JavaScript side.
+    if (result != N2kSendResult::Success) {
+      return result;
+    }
+  }
+  return N2kSendResult::Success;
+}
+
 
 }  // namespace sail
 

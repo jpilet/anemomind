@@ -3,7 +3,33 @@
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/anemonode/src/NodeNmea2000.h>
 #include <device/anemobox/anemonode/src/anemonode.h>
+#include <device/anemobox/anemonode/src/NodeUtils.h>
 #include <iostream>
+
+bool tryExtract(const v8::Local<v8::Value>& val,
+                sail::TaggedValue* dst) {
+  if (val->IsNumber()) { // No tag, just a number.
+    *dst = sail::TaggedValue(val->NumberValue());
+    return true;
+
+    
+  } else if (val->IsArray()) { // On this format: 
+                               // [value: number, tag: string]?
+    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(val);
+    if (arr->Length() == 2) {
+      double x = 0.0;
+      std::string tag;
+      bool success = tryExtract(arr->Get(0), &x)
+        && tryExtract(arr->Get(1), &tag);
+      if (success) {
+        *dst = sail::TaggedValue(x, tag);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 
 using namespace std;
 
@@ -32,8 +58,9 @@ void JsNmea2000Source::Init(v8::Handle<v8::Object> target) {
   // Prototype
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
 
-  nmea2000_constructor.Reset(tpl);
+  Nan::SetPrototypeMethod(tpl, "send", send);
 
+  nmea2000_constructor.Reset(tpl);
   target->Set(Nan::New<String>("Nmea2000Source").ToLocalChecked(), tpl->GetFunction());
 }
 
@@ -50,6 +77,65 @@ NAN_METHOD(JsNmea2000Source::New) {
 
   obj->Wrap(info.This());
   info.GetReturnValue().Set(info.This());
+}
+
+std::map<std::string, TaggedValue> toTaggedValueMap(
+    const v8::Local<v8::Value>& val) {
+  if (!val->IsObject()) {
+    return {};
+  }
+  v8::Local<v8::Object> obj =  val->ToObject();
+  auto props = obj->GetPropertyNames();
+  size_t n = props->Length();
+  std::map<std::string, TaggedValue> dst;
+  for (size_t i = 0; i < n; i++) {
+    auto prop = props->Get(i);
+    std::string key;
+    TaggedValue value;
+    if (tryExtract(prop, &key) 
+        && tryExtract(obj->Get(prop), &value)) {
+      dst[key] = value;
+    }
+  }
+  return dst;
+}
+
+/*
+Usage:
+  First argument: Array of pieces of data to send
+
+  See NodeNmea2000::New for another example of how to parse an
+  array of Node objects.
+*/
+NAN_METHOD(JsNmea2000Source::send) {
+  Nan::HandleScope scope;
+  JsNmea2000Source* zis = 
+    ObjectWrap::Unwrap<JsNmea2000Source>(
+      info.Holder());
+  info.GetReturnValue().Set(true);
+  if (info.Length() != 1) {
+    return Nan::ThrowTypeError(
+      "'send' accepts one argument: An array of messages to send");
+  }
+  auto arg = info[0];
+  if (!arg->IsArray()) {
+    return Nan::ThrowTypeError(
+      "'send' expects the first argument to be an array of messages to send");
+  }
+  v8::Local<v8::Array> msgArray = v8::Local<v8::Array>::Cast(info[0]);
+
+  size_t n = msgArray->Length();
+  std::vector<std::map<std::string, sail::TaggedValue>> dst;
+  dst.reserve(n);
+  for (size_t i = 0; i < n; i++) {
+    dst.push_back(toTaggedValueMap(msgArray->Get(i)));
+  }
+  auto result = zis->_nmea2000.send(dst);
+  if (result != N2kSendResult::Success) {
+    std::string emsg = std::string("Failed to send message: ")
+      + n2kSendResultToString(result);
+    return Nan::ThrowTypeError(emsg.c_str());
+  }
 }
 
 }  // namespace sail
