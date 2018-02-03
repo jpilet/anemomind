@@ -375,18 +375,13 @@ TEST(Nmea2000SourceTest, SendTest) {
 
 void testSuccessfullySentRapidPos(
     const std::map<std::string, TaggedValue>& input,
+    bool expectedOutcome,
     Angle<double> expectedLon,
     Angle<double> expectedLat) {
   NMEA2000ForTesting n2k;
   Dispatcher dispatcher;
 
   Nmea2000Source source(&n2k, &dispatcher);
-
-  PgnClasses::PositionRapidUpdate msg;
-  msg.latitude = 13.4_deg;
-  msg.longitude = 51.9_deg;
-  // No devices, so it should be impossible to send it.
-  //EXPECT_FALSE(DBG(source.send(0, msg)));
 
   n2k.Open();
   prepareN2k(&n2k);
@@ -395,28 +390,32 @@ void testSuccessfullySentRapidPos(
   // a device from which we can send.
   EXPECT_TRUE(n2k.framesToTransmit.empty());
 
-  EXPECT_TRUE(DBG(source.send(0, msg)));
+  auto outcome = source.send({input});
+  EXPECT_EQ(outcome.success, expectedOutcome);
+  if (outcome.success) {
+    n2k.ParseMessages(); // Doesn't seem to be necessary to call this
 
-  n2k.ParseMessages(); // Doesn't seem to be necessary to call this
+    EXPECT_FALSE(n2k.framesToTransmit.empty());
 
-  EXPECT_FALSE(n2k.framesToTransmit.empty());
+    // Parse the message that we just sent.
+    TestHandler<PgnClasses::PositionRapidUpdate> handler(&n2k);
+    n2k.framesToReceive.push(n2k.framesToTransmit.back());
 
-  // Parse the message that we just sent.
-  TestHandler<PgnClasses::PositionRapidUpdate> handler(&n2k);
-  n2k.framesToReceive.push(n2k.framesToTransmit.back());
+    n2k.ParseMessages();
 
-  n2k.ParseMessages();
-
-  EXPECT_FALSE(handler.data.empty());
-  EXPECT_EQ(1, handler.data.size());
-  auto pos = handler.data.back();
-  EXPECT_NEAR(pos.latitude.get().degrees(), 13.4, 0.01);
-  EXPECT_NEAR(pos.longitude.get().degrees(), 51.9, 0.01);
+    EXPECT_FALSE(handler.data.empty());
+    EXPECT_EQ(1, handler.data.size());
+    auto pos = handler.data.back();
+    EXPECT_NEAR(pos.latitude.get().degrees(),
+        expectedLat.degrees(), 0.01);
+    EXPECT_NEAR(pos.longitude.get().degrees(),
+        expectedLon.degrees(), 0.01);
+  }
 }
 
 TEST(Nmea2000SourceTest, SendTaggedValues) {
   testSuccessfullySentRapidPos({
      {"longitude", 9.3},
      {"latitude", 4.5}
-  }, 9.3_deg, 4.5_deg);
+  }, true, 9.3_deg, 4.5_deg);
 }
