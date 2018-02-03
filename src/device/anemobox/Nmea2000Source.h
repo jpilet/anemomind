@@ -30,6 +30,8 @@ enum class N2kSendResult {
   BadMessageFormat
 };
 
+const char* n2kSendResultToString(N2kSendResult r);
+
 class Nmea2000Source :
     public PgnClasses::PgnVisitor,
     public tNMEA2000::tMsgHandler {

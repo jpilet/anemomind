@@ -373,11 +373,11 @@ TEST(Nmea2000SourceTest, SendTest) {
 
 #define DBG(X) (([&]{auto x = X; std::cout << "///////////7Value of " #X " = " << x << std::endl; return x;})())
 
-void testSuccessfullySentRapidPos(
+void testSendRapidPos(
     const std::map<std::string, TaggedValue>& input,
     N2kSendResult expectedOutcome,
-    Angle<double> expectedLon,
-    Angle<double> expectedLat) {
+    Angle<double> expectedLon = 0.0_deg,
+    Angle<double> expectedLat = 0.0_deg) {
   NMEA2000ForTesting n2k;
   Dispatcher dispatcher;
 
@@ -414,8 +414,28 @@ void testSuccessfullySentRapidPos(
 }
 
 TEST(Nmea2000SourceTest, SendTaggedValues) {
-  testSuccessfullySentRapidPos({
+  testSendRapidPos({
      {"longitude", 9.3},
      {"latitude", 4.5}
   }, N2kSendResult::Success, 9.3_deg, 4.5_deg);
+
+  testSendRapidPos({
+     {"longitude", 9.3},
+     {"latitud", 4.5}
+  }, N2kSendResult::BadMessageFormat);
+
+  testSendRapidPos({
+     {"longitude", 9.3},
+  }, N2kSendResult::BadMessageFormat);
+
+  testSendRapidPos({
+     {"longitude", {9.3, "deg"}},
+     {"latitude", {4.5, "degrees"}}
+  }, N2kSendResult::Success, 9.3_deg, 4.5_deg);
+
+  testSendRapidPos({
+     {"longitude", {9.3, "knots"}},
+     {"latitude", 4.5}
+  }, N2kSendResult::BadUnit, 9.3_deg, 4.5_deg);
+
 }

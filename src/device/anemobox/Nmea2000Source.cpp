@@ -66,6 +66,16 @@ std::string deviceNameToString(const Optional<uint64_t>& dn) {
       : "UndefinedNMEA2000Source";
 }
 
+const char* n2kSendResultToString(N2kSendResult r) {
+  switch (r) {
+  case N2kSendResult::Success: return "Success";
+  case N2kSendResult::N2kError: return "NMEA2000-related error";
+  case N2kSendResult::BadUnit: return "Bad unit";
+  case N2kSendResult::BadMessageFormat: return "Bad message format";
+  };
+  CHECK(false);
+  return nullptr;
+}
 
 void Nmea2000Source::HandleMsg(
     const tN2kMsg& msg) {
@@ -280,10 +290,9 @@ N2kSendResult extract(
     const char* key,
     T* dst) {
   auto f = src.find(key);
-  if (f == src.end()) {
-    return N2kSendResult::BadMessageFormat;
-  }
-  return extractTypedValue(f->second, dst);
+  return f == src.end()?
+    N2kSendResult::BadMessageFormat
+    : extractTypedValue(f->second, dst);
 }
 
 N2kSendResult sendPositionRapidUpdate(
@@ -314,24 +323,34 @@ N2kSendResult Nmea2000Source::send(
 
   int deviceIndex = 0; // What should it be?
 
-  /* We try different types of senders in order until
-   * we find a match. There can be ambiguity, for instance
-   * both GnssPositionData and PositionRapidUpdate might
-   * contain longitude and latitude */
+  /*
+   * We do a linear search through all the possible senders.
+   * Will it be a performance problem? Only if we have sufficiently
+   * many message formats. In that case, we can always dispatch
+   * based on some kind of tag.
+   *
+   * It could be that some sender uses a subset of the keys used
+   * by another sender. In that case, we should take care to
+   * test the more specific case first.
+   */
   static std::vector<TaggedValueSender> senders{
     &sendPositionRapidUpdate
   };
 
-  // Not sure this linear search will be a performance problem.
-  // Whenever there is a failure, a Result object containing
-  // an explanation is returned. A lot of string copies...
   N2kSendResult r = N2kSendResult::BadMessageFormat;
   for (const auto& sender: senders) {
-    r = std::min(r, sender(deviceIndex, src, this));
+
+    // We track the most promising outcome...
+    r = closestToBeingSent(r, sender(deviceIndex, src, this));
+
+    // ...and if it happens to be a success, we stop.
     if (r == N2kSendResult::Success) {
       return r;
     }
   }
+
+  // ...Otherwise, we return the error of the most promising
+  // outcome.
   return r;
 }
 
@@ -340,6 +359,14 @@ N2kSendResult Nmea2000Source::send(
     TaggedValue>>& src) {
   for (size_t i = 0; i < src.size(); i++) {
     auto result = send(src[i]);
+    // Whenever we encounter an error, we stop and report that error.
+    // Or would it be better to try to send all messages, and
+    // report the most severe error at the end?
+    //
+    // Note that, if there is no bug in the code, the only
+    // error we would expect at runtime is N2kSendResult::N2kError
+    // The other errors are just there to help debugging from
+    // the JavaScript side.
     if (result != N2kSendResult::Success) {
       return result;
     }
