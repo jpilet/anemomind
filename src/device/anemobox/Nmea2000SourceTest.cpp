@@ -290,6 +290,8 @@ TEST(Nmea2000SourceTest, RudderAngle) {
 }
 
 void prepareN2k(tNMEA2000* n2k) {
+  n2k->Open();
+
   // Code copy/pasted from
   // https://github.com/ttlappalainen/NMEA2000/blob/master/Examples/BatteryMonitor/BatteryMonitor.ino
   const tNMEA2000::tProductInformation BatteryMonitorProductInformation ={
@@ -331,7 +333,6 @@ void prepareN2k(tNMEA2000* n2k) {
   // NMEA2000.EnableForward(false);                      // Disable all msg forwarding to USB (=Serial)
 
   //  NMEA2000.SetN2kCANMsgBufSize(2);                    // For this simple example, limit buffer size to 2, since we are only sending data
-  n2k->Open();
 }
 
 TEST(Nmea2000SourceTest, SendTest) {
