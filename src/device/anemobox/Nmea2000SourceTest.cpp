@@ -370,6 +370,8 @@ TEST(Nmea2000SourceTest, SendTest) {
   EXPECT_NEAR(pos.longitude.get().degrees(), 51.9, 0.01);
 }
 
+#define DBG(X) (([&]{auto x = X; std::cout << "///////////7Value of " #X " = " << x << std::endl; return x;})())
+
 void testSuccessfullySentRapidPos(
     const std::map<std::string, TaggedValue>& input,
     Angle<double> expectedLon,
@@ -383,15 +385,16 @@ void testSuccessfullySentRapidPos(
   msg.latitude = 13.4_deg;
   msg.longitude = 51.9_deg;
   // No devices, so it should be impossible to send it.
-  EXPECT_FALSE(source.send(0, msg));
+  //EXPECT_FALSE(DBG(source.send(0, msg)));
 
+  n2k.Open();
   prepareN2k(&n2k);
 
   // Now the tNMEA2000 instance is both open and has
   // a device from which we can send.
   EXPECT_TRUE(n2k.framesToTransmit.empty());
 
-  EXPECT_TRUE(source.send(0, msg));
+  EXPECT_TRUE(DBG(source.send(0, msg)));
 
   n2k.ParseMessages(); // Doesn't seem to be necessary to call this
 
@@ -411,7 +414,7 @@ void testSuccessfullySentRapidPos(
 }
 
 TEST(Nmea2000SourceTest, SendTaggedValues) {
-  NMEA2000ForTesting n2k;
+  /*NMEA2000ForTesting n2k;
   Dispatcher dispatcher;
 
   Nmea2000Source source(&n2k, &dispatcher);
@@ -426,7 +429,7 @@ TEST(Nmea2000SourceTest, SendTaggedValues) {
     {"longitude", 9.3},
     {"latitude", 4.5}
   }).success);
-
+*/
   testSuccessfullySentRapidPos({
      {"longitude", 9.3},
      {"latitude", 4.5}
