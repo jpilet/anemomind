@@ -383,7 +383,7 @@ void testSuccessfullySentRapidPos(
   msg.latitude = 13.4_deg;
   msg.longitude = 51.9_deg;
   // No devices, so it should be impossible to send it.
-  //EXPECT_FALSE(source.send(0, msg));
+  EXPECT_FALSE(source.send(0, msg));
 
   prepareN2k(&n2k);
 
@@ -401,7 +401,7 @@ void testSuccessfullySentRapidPos(
   TestHandler<PgnClasses::PositionRapidUpdate> handler(&n2k);
   n2k.framesToReceive.push(n2k.framesToTransmit.back());
 
-  //n2k.ParseMessages();
+  n2k.ParseMessages();
 
   EXPECT_FALSE(handler.data.empty());
   EXPECT_EQ(1, handler.data.size());
