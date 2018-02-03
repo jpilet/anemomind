@@ -1,6 +1,5 @@
 #include <device/anemobox/Nmea2000Source.h>
 #include <device/anemobox/Nmea2000Utils.h>
-#include <server/common/Result.h>
 
 namespace sail {
 
@@ -243,50 +242,51 @@ bool Nmea2000Source::apply(const tN2kMsg &c,
 // A function that tries to send a message
 // of tagged value to an Nmea2000Source and
 // returns a result.
-typedef Result
+typedef N2kSendResult
     (*TaggedValueSender)(
         int, // <-- device index
         const std::map<std::string, TaggedValue>&,
         Nmea2000Source*);
 
-Result orError(
-    const Result& a,
-    const Result& b) {
-  if (!a.success) {
-    return a;
-  }
-  return b;
+N2kSendResult orError(
+    const N2kSendResult& a,
+        const N2kSendResult& b) {
+  return std::max(a, b);
+}
+
+N2kSendResult closestToBeingSent(
+    const N2kSendResult& a,
+    const N2kSendResult& b) {
+  return std::min(a, b);
 }
 
 
 
-Result extractTypedValue(
+N2kSendResult extractTypedValue(
     const TaggedValue& src, Angle<double>* dst) {
   if (src.tag == "deg" || src.tag == "" || src.tag == "degrees") {
     *dst = Angle<double>::degrees(src.value);
-    return Result::Success();
+    return N2kSendResult::Success;
   } else if (src.tag == "rad" || src.tag == "radians") {
     *dst = Angle<double>::radians(src.value);
-    return Result::Success();
+    return N2kSendResult::Success;
   }
-  return Result::Failure(
-      "Angle unit tag '"
-      + src.tag + "' not recognized");
+  return N2kSendResult::BadUnit;
 }
 
 template <typename T>
-Result extract(
+N2kSendResult extract(
     const std::map<std::string, TaggedValue>& src,
     const char* key,
     T* dst) {
   auto f = src.find(key);
   if (f == src.end()) {
-    return Result::Failure(std::string("Missing key '") + key + "'");
+    return N2kSendResult::BadMessageFormat;
   }
   return extractTypedValue(f->second, dst);
 }
 
-Result sendPositionRapidUpdate(
+N2kSendResult sendPositionRapidUpdate(
     int deviceIndex,
     const std::map<std::string, TaggedValue>& src,
     Nmea2000Source* dst) {
@@ -295,23 +295,21 @@ Result sendPositionRapidUpdate(
   auto r = orError(
       extract(src, "longitude", &lon),
       extract(src, "latitude", &lat));
-  if (!r.success) {
+  if (r != N2kSendResult::Success) {
     return r;
   }
   PositionRapidUpdate x;
   x.longitude = lon;
   x.latitude = lat;
   if (dst->send(deviceIndex, x)) {
-    return Result::Success();
+    return N2kSendResult::Success;
   } else {
-    return Result::Failure(
-        "Nmea2000Source::send returned false "
-        "when trying to send a PositionRapidUpdate");
+    return N2kSendResult::N2kError;
   }
 }
 
-Result
-Nmea2000Source::send(
+
+N2kSendResult Nmea2000Source::send(
     const std::map<std::string, TaggedValue>& src) {
 
   int deviceIndex = 0; // What should it be?
@@ -327,31 +325,26 @@ Nmea2000Source::send(
   // Not sure this linear search will be a performance problem.
   // Whenever there is a failure, a Result object containing
   // an explanation is returned. A lot of string copies...
-  Result r;
+  N2kSendResult r = N2kSendResult::BadMessageFormat;
   for (const auto& sender: senders) {
-    r = sender(deviceIndex, src, this);
-    if (r.success) {
+    r = std::min(r, sender(deviceIndex, src, this));
+    if (r == N2kSendResult::Success) {
       return r;
     }
   }
   return r;
 }
 
-Result Nmea2000Source::send(const std::vector<std::map<std::string,
-                       TaggedValue>>& src) {
+N2kSendResult Nmea2000Source::send(
+    const std::vector<std::map<std::string,
+    TaggedValue>>& src) {
   for (size_t i = 0; i < src.size(); i++) {
-    Result result = send(src[i]);
-    if (!result.success) {
-      std::stringstream ss;
-      ss << " (at msg " << i+1 << "/" << src.size() << ")";
-      result.explanation += ss.str();
+    auto result = send(src[i]);
+    if (result != N2kSendResult::Success) {
       return result;
     }
   }
-
-  Result r;
-  r.success = true;
-  return r;
+  return N2kSendResult::Success;
 }
 
 

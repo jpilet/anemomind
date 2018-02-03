@@ -375,7 +375,7 @@ TEST(Nmea2000SourceTest, SendTest) {
 
 void testSuccessfullySentRapidPos(
     const std::map<std::string, TaggedValue>& input,
-    bool expectedOutcome,
+    N2kSendResult expectedOutcome,
     Angle<double> expectedLon,
     Angle<double> expectedLat) {
   NMEA2000ForTesting n2k;
@@ -391,8 +391,8 @@ void testSuccessfullySentRapidPos(
   EXPECT_TRUE(n2k.framesToTransmit.empty());
 
   auto outcome = source.send({input});
-  EXPECT_EQ(outcome.success, expectedOutcome);
-  if (outcome.success) {
+  EXPECT_EQ(outcome, expectedOutcome);
+  if (outcome == N2kSendResult::Success) {
     n2k.ParseMessages(); // Doesn't seem to be necessary to call this
 
     EXPECT_FALSE(n2k.framesToTransmit.empty());
@@ -417,5 +417,5 @@ TEST(Nmea2000SourceTest, SendTaggedValues) {
   testSuccessfullySentRapidPos({
      {"longitude", 9.3},
      {"latitude", 4.5}
-  }, true, 9.3_deg, 4.5_deg);
+  }, N2kSendResult::Success, 9.3_deg, 4.5_deg);
 }

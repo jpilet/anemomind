@@ -6,7 +6,6 @@
 #include <device/anemobox/n2k/PgnClasses.h>
 #include <NMEA2000.h>
 #include <N2kDeviceList.h>
-#include <server/common/Result.h>
 
 namespace sail {
 
@@ -19,6 +18,16 @@ struct TaggedValue {
 
   double value = NAN;
   std::string tag = "";
+};
+
+// These codes are ordered, so that the
+// closer we get towards sending a message,
+// the lower the code.
+enum class N2kSendResult {
+  Success,
+  N2kError,
+  BadUnit,
+  BadMessageFormat
 };
 
 class Nmea2000Source :
@@ -51,10 +60,10 @@ class Nmea2000Source :
   // otherwise there the 'explanation' field will contain an
   // explanation. There is a schema that each message has to 
   // conform with.
-  Result send(const std::vector<std::map<std::string, 
+  N2kSendResult send(const std::vector<std::map<std::string,
               TaggedValue>>& src);
 
-  Result send(const std::map<std::string, TaggedValue>& src);
+  N2kSendResult send(const std::map<std::string, TaggedValue>& src);
  protected:
   bool apply(const tN2kMsg &c, const PgnClasses::VesselHeading& packet) override;
   bool apply(const tN2kMsg &c, const PgnClasses::Speed& packet) override;
