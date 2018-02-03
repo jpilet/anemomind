@@ -376,11 +376,37 @@ void testSuccessfullySentRapidPos(
     Angle<double> expectedLat) {
   NMEA2000ForTesting n2k;
   Dispatcher dispatcher;
+
   Nmea2000Source source(&n2k, &dispatcher);
+  PgnClasses::PositionRapidUpdate msg;
+  msg.latitude = 13.4_deg;
+  msg.longitude = 51.9_deg;
+
+  // No devices, so it should be impossible to send it.
+  EXPECT_FALSE(source.send(0, msg));
+
   prepareN2k(&n2k);
-  source.send({input});
+
+  // Now the tNMEA2000 instance is both open and has
+  // a device from which we can send.
+  EXPECT_TRUE(n2k.framesToTransmit.empty());
+
+  EXPECT_TRUE(source.send(0, msg));
+
+  // n2k.ParseMessages(); // Doesn't seem to be necessary to call this
+
   EXPECT_FALSE(n2k.framesToTransmit.empty());
 
+  // Parse the message that we just sent.
+  TestHandler<PgnClasses::PositionRapidUpdate> handler(&n2k);
+  n2k.framesToReceive.push(n2k.framesToTransmit.back());
+  n2k.ParseMessages();
+
+  EXPECT_FALSE(handler.data.empty());
+  EXPECT_EQ(1, handler.data.size());
+  auto pos = handler.data.back();
+  EXPECT_NEAR(pos.latitude.get().degrees(), 13.4, 0.01);
+  EXPECT_NEAR(pos.longitude.get().degrees(), 51.9, 0.01);
 }
 
 TEST(Nmea2000SourceTest, SendTaggedValues) {
