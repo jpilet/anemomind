@@ -27,6 +27,8 @@
         "src/JsNmea0183Source.cpp",
         "src/JsNmea2000Source.h",
         "src/JsNmea2000Source.cpp",
+        "src/NodeUtils.h",
+        "src/NodeUtils.cpp",
         "src/NodeNmea2000.cpp",
         "src/NodeNmea2000.h",
         "src/JsDispatchData.h",
