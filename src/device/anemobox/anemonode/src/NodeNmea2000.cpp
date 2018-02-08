@@ -1,4 +1,5 @@
 #include <device/anemobox/anemonode/src/NodeNmea2000.h>
+#include <device/anemobox/anemonode/src/NodeUtils.h>
 
 bool NodeNmea2000::CANSendFrame(unsigned long id, unsigned char len,
                             const unsigned char *buf, bool wait_sent) {
@@ -23,7 +24,6 @@ bool NodeNmea2000::CANGetFrame(unsigned long &id,
 
 Nan::Persistent<v8::Function> NodeNmea2000::constructor;
 
-#define CHECK_CONDITION(expr, str) if(!(expr)) return Nan::ThrowError(str);
 #define SYMBOL(aString) Nan::New((aString)).ToLocalChecked()
 
 void NodeNmea2000::Init(v8::Local<v8::Object> exports) {

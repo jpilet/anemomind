@@ -4,6 +4,8 @@
 #include <node.h>
 #include <nan.h>
 
+#define CHECK_CONDITION(expr, str) if(!(expr)) return Nan::ThrowError(str);
+
 bool tryExtract(const v8::Local<v8::Value>& val, 
                 std::string* dst);
 

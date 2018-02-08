@@ -40,7 +40,6 @@ bool tryExtract(const v8::Local<v8::Value>& val,
       }
     }
   }
-  std::cerr << "Failed to extract tagged value" << std::endl;
   return false;
 }
 
@@ -88,29 +87,6 @@ NAN_METHOD(JsNmea2000Source::New) {
   info.GetReturnValue().Set(info.This());
 }
 
-// These codes are ordered, so that the
-// closer we get towards sending a message,
-// the lower the code.
-enum class N2kSendResult {
-  Success,
-  N2kError,
-  MissingPgn,
-  PgnNotSupported,
-  BadMessageFormat
-};
-
-const char* n2kSendResultToString(N2kSendResult r) {
-  switch (r) {
-  case N2kSendResult::Success: return "Success";
-  case N2kSendResult::N2kError: return "NMEA2000-related error";
-  case N2kSendResult::MissingPgn: return "Missing PGN";
-  case N2kSendResult::PgnNotSupported: return "PGN not supported";
-  case N2kSendResult::BadMessageFormat: return "Bad message format";
-  };
-  CHECK(false);
-  return nullptr;
-}
-
 bool extractTypedValue(
     const TaggedValue& src, Angle<double>* dst) {
   if (src.tag == "deg" || src.tag == "" || src.tag == "degrees") {
@@ -120,7 +96,6 @@ bool extractTypedValue(
     *dst = Angle<double>::radians(src.value);
     return true;
   }
-  std::cerr << "Bad angle unit: " << src.tag << std::endl;
   return false;
 }
 
@@ -138,26 +113,21 @@ bool extractTypedValue(
     return false;
   }
 
-N2kSendResult sendPositionRapidUpdate(
+void sendPositionRapidUpdate(
     int32_t deviceIndex,
     const v8::Local<v8::Object>& val,
     Nmea2000Source* dst) {
   
   PgnClasses::PositionRapidUpdate x;
-  if (!tryLookUp(val, "longitude", &x.longitude)) {
-    return N2kSendResult::BadMessageFormat;
-  }
-  if (!tryLookUp(val, "latitude", &x.latitude)) {
-    return N2kSendResult::BadMessageFormat;
-  }
-
-  return dst->send(deviceIndex, x)? 
-    N2kSendResult::Success 
-    : N2kSendResult::N2kError;
+  CHECK_CONDITION(tryLookUp(val, "longitude", &x.longitude), 
+                  "Missing or malformed longitude");
+  CHECK_CONDITION(tryLookUp(val, "latitude", &x.latitude), 
+                  "Missing or malformed latitude");
+  CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send message");
 }
 
 
-N2kSendResult dispatchPgn(
+void dispatchPgn(
    int64_t pgn,
    const v8::Local<v8::Object>& obj,
    Nmea2000Source* dst) {
@@ -166,34 +136,34 @@ N2kSendResult dispatchPgn(
   // the tNMEA2000 class. Would it be useful to specify the device
   // in some other way?
   int32_t deviceIndex = 0;
-  if (!tryLookUp(obj, "deviceIndex", &deviceIndex)) {
-    std::cerr << "Missing deviceIndex in message" << std::endl;
-    return N2kSendResult::BadMessageFormat;
-  }
+  CHECK_CONDITION(tryLookUp(obj, "deviceIndex", &deviceIndex), 
+                  "Missing deviceIndex field");
 
   switch (pgn) {
   case PgnClasses::PositionRapidUpdate::ThisPgn:
     return sendPositionRapidUpdate(deviceIndex, obj, dst);
-  default: return N2kSendResult::PgnNotSupported;
+  default: break;
   };
+  {
+    std::stringstream ss;
+    ss << "PGN not supported: " << pgn;
+    Nan::ThrowError(ss.str().c_str());
+  }
 }
 
 // These codes are ordered, so that the
 // closer we get towards sending a message,
 // the lower the code.
-N2kSendResult parseAndSendMessage(
+void parseAndSendMessage(
     const v8::Local<v8::Value>& val,
     Nmea2000Source* dst) {
-  if (!val->IsObject()) {
-    std::cerr << "Message is not an object";
-    return N2kSendResult::BadMessageFormat;
-  }
+  CHECK_CONDITION(val->IsObject(), "Message not an object");
   v8::Local<v8::Object> obj =  val->ToObject();
 
   int32_t pgn = 0;
-  return tryLookUp(obj, "pgn", &pgn)?
-    dispatchPgn(pgn, obj, dst)
-    : N2kSendResult::MissingPgn;
+  CHECK_CONDITION(tryLookUp(obj, "pgn", &pgn), 
+                  "PGN missing or not an integer");
+  dispatchPgn(pgn, obj, dst);
 }
 
 
@@ -220,15 +190,9 @@ NAN_METHOD(JsNmea2000Source::send) {
       "'send' expects the first argument to be an array of messages to send");
   }
   v8::Local<v8::Array> msgArray = v8::Local<v8::Array>::Cast(info[0]);
-
   size_t n = msgArray->Length();
   for (size_t i = 0; i < n; i++) {
-    auto result = parseAndSendMessage(msgArray->Get(i), &(zis->_nmea2000));
-    if (result != N2kSendResult::Success) {
-      std::string emsg = std::string("Failed to send message: ")
-        + n2kSendResultToString(result);
-      return Nan::ThrowTypeError(emsg.c_str());
-    }
+    parseAndSendMessage(msgArray->Get(i), &(zis->_nmea2000));
   }
 }
 
