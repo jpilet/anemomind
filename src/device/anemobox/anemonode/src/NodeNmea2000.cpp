@@ -37,8 +37,11 @@ void NodeNmea2000::Init(v8::Local<v8::Object> exports) {
   // Prototype
   Nan::SetPrototypeMethod(tpl, "pushCanFrame",    pushCanFrame);
   Nan::SetPrototypeMethod(tpl, "setSendCanFrame", setSendCanFrame);
-  Nan::SetPrototypeMethod(tpl, "open",           open);
+  Nan::SetPrototypeMethod(tpl, "open",            open);
   Nan::SetPrototypeMethod(tpl, "parseMessages",   parseMessages);
+  Nan::SetPrototypeMethod(tpl, "getDeviceConfig", getDeviceConfig);
+  Nan::SetPrototypeMethod(tpl, "setDeviceConfig", setDeviceConfig);
+  Nan::SetPrototypeMethod(tpl, "onDeviceConfigChange", onDeviceConfigChange);
 
   // constructor
   constructor.Reset(tpl->GetFunction());
@@ -74,7 +77,7 @@ NAN_METHOD(NodeNmea2000::New) {
   NodeNmea2000* zis = new NodeNmea2000();
   zis->Wrap(info.This());
 
-  int source = 77;  // the default address
+  int address = 77;  // the default address
 
   v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(info[0]); 
   if (array->Length() > 0) {
@@ -109,12 +112,12 @@ NAN_METHOD(NodeNmea2000::New) {
           intOrDefault(obj, "industryGroup", 4),
           i);
 
-      source = intOrDefault(obj, "source", source);
+      address = intOrDefault(obj, "address", address);
     }
   }
-  // For now NMEA2000 lib only support specifying the source
+  // For now NMEA2000 lib only support specifying the address
   // for the 1set device... TODO: set it for all devices.
-  zis->SetMode(tNMEA2000::N2km_ListenAndNode, source);
+  zis->SetMode(tNMEA2000::N2km_ListenAndNode, address);
 
   info.GetReturnValue().Set(info.This());
 }
@@ -170,15 +173,16 @@ bool NodeNmea2000::sendFrame(unsigned long id, unsigned char len,
       Nan::CopyBuffer(reinterpret_cast<const char *>(buf), len).ToLocalChecked()
     };
 
-    Nan::Callback callback(Nan::New(sendPacketCb_));
     v8::Local<v8::Value> ret;
-    
-    if (sendPacketHandle_.IsEmpty()) {
-      ret = callback.Call(2, argv);
-    } else {
-      ret = callback.Call(Nan::New(sendPacketHandle_), 2, argv);
+    if (!sendPacketCb_.IsEmpty()) {
+      Nan::Callback callback(Nan::New(sendPacketCb_));
+      
+      if (sendPacketHandle_.IsEmpty()) {
+        ret = callback.Call(2, argv);
+      } else {
+        ret = callback.Call(Nan::New(sendPacketHandle_), 2, argv);
+      }
     }
-
     return ret->IsTrue();
   }
 }
@@ -193,6 +197,94 @@ NAN_METHOD(NodeNmea2000::parseMessages) {
   NodeNmea2000* zis = ObjectWrap::Unwrap<NodeNmea2000>(info.Holder());
   CHECK_CONDITION(zis != nullptr, "this must be a native NMEA2000 object");
   zis->ParseMessages();
+
+  if ((zis->ReadResetDeviceInformationChanged()
+       || zis->ReadResetAddressChanged())
+      && !zis->deviceConfigCb_.IsEmpty()) {
+    Nan::Callback callback(Nan::New(zis->deviceConfigCb_));
+    if (zis->deviceConfigHandle_.IsEmpty()) {
+      callback.Call(0, 0);
+    } else {
+      callback.Call(Nan::New(zis->deviceConfigHandle_), 0, 0);
+    }
+  }
+}
+
+namespace {
+
+void setField(v8::Local<v8::Object>& obj, const char* key, int value) {
+  obj->Set(SYMBOL(key), Nan::New(value));
+}
+
+}  // namespace
+
+NAN_METHOD(NodeNmea2000::getDeviceConfig) {
+  NodeNmea2000* zis = ObjectWrap::Unwrap<NodeNmea2000>(info.Holder());
+  CHECK_CONDITION(zis != nullptr, "this must be a native NMEA2000 object");
+
+  v8::Local<v8::Object> result = Nan::New<v8::Object>();
+
+  for (int dev = 0; dev < zis->DeviceCount; ++dev) {
+    const tDeviceInformation devInfo = zis->GetDeviceInformation(dev);
+
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    setField(obj, "deviceInstance", devInfo.GetDeviceInstance());
+    setField(obj, "systemInstance", devInfo.GetSystemInstance());
+    setField(obj, "address", zis->GetN2kSource(dev));
+
+    bool useless = true;
+    result->Set(
+      SYMBOL(zis->GetProductInformation(dev, useless)->N2kModelSerialCode),
+      obj);
+  }
+
+  info.GetReturnValue().Set(result);
+}
+
+NAN_METHOD(NodeNmea2000::setDeviceConfig) {
+  NodeNmea2000* zis = ObjectWrap::Unwrap<NodeNmea2000>(info.Holder());
+  CHECK_CONDITION(zis != nullptr, "this must be a native NMEA2000 object");
+
+  CHECK_CONDITION(info.Length() >= 1 && info[0]->IsObject(),
+                  "First argument must be an object");
+
+  v8::Local<v8::Object> arg = info[0]->ToObject();
+  for (int dev = 0; dev < zis->DeviceCount; ++dev) {
+    bool useless = false;
+    v8::Local<v8::Value> entry = arg->Get(
+        SYMBOL(zis->GetProductInformation(dev, useless)->N2kModelSerialCode));
+    if (!entry->IsObject()) {
+      continue;
+    }
+
+    v8::Local<v8::Object> obj = entry->ToObject();
+
+    int devInstToSet = intOrDefault(obj, "deviceInstance", 0xff);
+    int sysInstToSet = intOrDefault(obj, "systemInstance", 0xff);
+
+    zis->SetDeviceInformationInstances(
+        devInstToSet & 0x7,
+        (devInstToSet >> 3) & 0x1f,
+        sysInstToSet,
+        dev);
+
+    int currentAddress = zis->GetN2kSource(dev);
+    if (intOrDefault(obj, "address", currentAddress) != currentAddress) {
+      std::cerr << "Changing address from config is not implemented yet.\n";
+    }
+  }
+}
+
+NAN_METHOD(NodeNmea2000::onDeviceConfigChange) {
+  NodeNmea2000* zis = ObjectWrap::Unwrap<NodeNmea2000>(info.Holder());
+
+  CHECK_CONDITION(zis != nullptr, "this must be a native NMEA2000 object");
+  CHECK_CONDITION(info.Length() >= 1, "Invalid arguments");
+  CHECK_CONDITION(info[0]->IsFunction(), "First argument must be a function");
+
+  zis->deviceConfigCb_.Reset(info[0].As<v8::Function>());
+  if (info.Length() >= 2 && info[1]->IsObject())
+      zis->deviceConfigHandle_.Reset(info[1]->ToObject());
 }
 
 void InitAll(v8::Local<v8::Object> exports)
