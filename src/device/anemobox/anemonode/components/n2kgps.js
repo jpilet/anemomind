@@ -45,16 +45,6 @@ function dateFromRMC(rmc) {
     parseInt(time.substr(4, 6))));
 }
 
-function getSatType(s) {
-  // From ublox doc
-  switch(s) {
-    case 'GP': return 0; // GPS, SBAS, QZSS
-    case 'GL': return 1; // GLONASS
-    case 'GA': return 8; // Galileo
-  }
-  return 0;
-}
-
 function satsUsedForFix(nmea) {
   var gsas = nmea.match(/\$GNGSA.*\*[0-9A-F]{2}/g);
   var r = [];
@@ -63,7 +53,7 @@ function satsUsedForFix(nmea) {
     for (var i = 3; i < gsa.length - 3; i++) {
       if (!gsa[i] || gsa[i] == '') break;
       r.push({
-             referenceStationType: 0,
+             referenceStationType: 0, // GPS
              referenceStationId: parseInt(gsa[i]),
              ageOfDgnssCorrections: undefined
       });
