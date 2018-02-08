@@ -56,10 +56,32 @@ function testSend(src, data, expectedError) {
 
 describe('Try the send method', function() {
   it('Test zis send method', function() {
-    testSend(src, [{}], "format");
-    testSend(src, [{longitude: 9, latitude: 11}], "NMEA2000");
-    testSend(src, [{longitude: [9, "deg"], latitude: 11}], "NMEA2000");
-    testSend(src, [{longitude: [9, "knots"], latitude: 11}], "unit");
-    testSend(src, [{longitude: [9, "knots"]}], "format");
+    testSend(src, [{}], "Missing PGN");
+    testSend(src, [{longitude: 9, latitude: 11}], "Missing PGN");
+    testSend(src, [{pgn: 119, deviceIndex: 0, latitude: 11}], "not supported");
+    testSend(src, [{
+      pgn: 129025, 
+      latitude: 11, longitude: 13.0
+    }], "format");
+    testSend(src, [{
+      pgn: 129025, 
+      deviceIndex: 0,
+      latitude: 11, longitude: 13.0
+    }], "NMEA2000");
+    testSend(src, [{
+      pgn: 129025, 
+      deviceIndex: 0,
+      latitude: [11, "deg"], longitude: [13.0, "rad"]
+    }], "NMEA2000");
+    testSend(src, [{
+      pgn: 129025, 
+      deviceIndex: 0,
+      latitude: [11, "deg"], longitude: [13.0, "kattskit"]
+    }], "format");
+    testSend(src, [{
+      pgn: 129025, 
+      deviceIndex: 0,
+      latitude: [11, "deg"]
+    }], "format");
   });
 });

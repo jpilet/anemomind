@@ -1,15 +1,28 @@
 #include <device/anemobox/anemonode/src/JsNmea2000Source.h>
-
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/anemonode/src/NodeNmea2000.h>
 #include <device/anemobox/anemonode/src/anemonode.h>
 #include <device/anemobox/anemonode/src/NodeUtils.h>
 #include <iostream>
 
+using namespace std;
+
+using namespace v8;
+
+// Helper type when parsing physical quantities
+struct TaggedValue {
+  double value = 0.0;
+  std::string tag;
+
+  TaggedValue() {}
+  TaggedValue(double x, const std::string& s = "") 
+    : value(x), tag(s) {}
+};
+
 bool tryExtract(const v8::Local<v8::Value>& val,
-                sail::TaggedValue* dst) {
+                TaggedValue* dst) {
   if (val->IsNumber()) { // No tag, just a number.
-    *dst = sail::TaggedValue(val->NumberValue());
+    *dst = TaggedValue(val->NumberValue());
     return true;
 
     
@@ -22,18 +35,14 @@ bool tryExtract(const v8::Local<v8::Value>& val,
       bool success = tryExtract(arr->Get(0), &x)
         && tryExtract(arr->Get(1), &tag);
       if (success) {
-        *dst = sail::TaggedValue(x, tag);
+        *dst = TaggedValue(x, tag);
         return true;
       }
     }
   }
+  std::cerr << "Failed to extract tagged value" << std::endl;
   return false;
 }
-
-
-using namespace std;
-
-using namespace v8;
 
 namespace sail {
 
@@ -79,26 +88,114 @@ NAN_METHOD(JsNmea2000Source::New) {
   info.GetReturnValue().Set(info.This());
 }
 
-std::map<std::string, TaggedValue> toTaggedValueMap(
-    const v8::Local<v8::Value>& val) {
+// These codes are ordered, so that the
+// closer we get towards sending a message,
+// the lower the code.
+enum class N2kSendResult {
+  Success,
+  N2kError,
+  MissingPgn,
+  PgnNotSupported,
+  BadMessageFormat
+};
+
+const char* n2kSendResultToString(N2kSendResult r) {
+  switch (r) {
+  case N2kSendResult::Success: return "Success";
+  case N2kSendResult::N2kError: return "NMEA2000-related error";
+  case N2kSendResult::MissingPgn: return "Missing PGN";
+  case N2kSendResult::PgnNotSupported: return "PGN not supported";
+  case N2kSendResult::BadMessageFormat: return "Bad message format";
+  };
+  CHECK(false);
+  return nullptr;
+}
+
+bool extractTypedValue(
+    const TaggedValue& src, Angle<double>* dst) {
+  if (src.tag == "deg" || src.tag == "" || src.tag == "degrees") {
+    *dst = Angle<double>::degrees(src.value);
+    return true;
+  } else if (src.tag == "rad" || src.tag == "radians") {
+    *dst = Angle<double>::radians(src.value);
+    return true;
+  }
+  std::cerr << "Bad angle unit: " << src.tag << std::endl;
+  return false;
+}
+
+  bool tryExtract(const v8::Local<v8::Value>& val,
+
+                  // Most fields in the PgnClasses
+                  // are optional.
+                  Optional<Angle<double>>* dst) {
+    TaggedValue tmp;
+    Angle<double> angle;
+    if (tryExtract(val, &tmp) && extractTypedValue(tmp, &angle)) {
+      *dst = angle;
+      return true;
+    }
+    return false;
+  }
+
+N2kSendResult sendPositionRapidUpdate(
+    int32_t deviceIndex,
+    const v8::Local<v8::Object>& val,
+    Nmea2000Source* dst) {
+  
+  PgnClasses::PositionRapidUpdate x;
+  if (!tryLookUp(val, "longitude", &x.longitude)) {
+    return N2kSendResult::BadMessageFormat;
+  }
+  if (!tryLookUp(val, "latitude", &x.latitude)) {
+    return N2kSendResult::BadMessageFormat;
+  }
+
+  return dst->send(deviceIndex, x)? 
+    N2kSendResult::Success 
+    : N2kSendResult::N2kError;
+}
+
+
+N2kSendResult dispatchPgn(
+   int64_t pgn,
+   const v8::Local<v8::Object>& obj,
+   Nmea2000Source* dst) {
+
+  // NOTE: deviceIndex is an implementation detail of 
+  // the tNMEA2000 class. Would it be useful to specify the device
+  // in some other way?
+  int32_t deviceIndex = 0;
+  if (!tryLookUp(obj, "deviceIndex", &deviceIndex)) {
+    std::cerr << "Missing deviceIndex in message" << std::endl;
+    return N2kSendResult::BadMessageFormat;
+  }
+
+  switch (pgn) {
+  case PgnClasses::PositionRapidUpdate::ThisPgn:
+    return sendPositionRapidUpdate(deviceIndex, obj, dst);
+  default: return N2kSendResult::PgnNotSupported;
+  };
+}
+
+// These codes are ordered, so that the
+// closer we get towards sending a message,
+// the lower the code.
+N2kSendResult parseAndSendMessage(
+    const v8::Local<v8::Value>& val,
+    Nmea2000Source* dst) {
   if (!val->IsObject()) {
-    return {};
+    std::cerr << "Message is not an object";
+    return N2kSendResult::BadMessageFormat;
   }
   v8::Local<v8::Object> obj =  val->ToObject();
-  auto props = obj->GetPropertyNames();
-  size_t n = props->Length();
-  std::map<std::string, TaggedValue> dst;
-  for (size_t i = 0; i < n; i++) {
-    auto prop = props->Get(i);
-    std::string key;
-    TaggedValue value;
-    if (tryExtract(prop, &key) 
-        && tryExtract(obj->Get(prop), &value)) {
-      dst[key] = value;
-    }
-  }
-  return dst;
+
+  int32_t pgn = 0;
+  return tryLookUp(obj, "pgn", &pgn)?
+    dispatchPgn(pgn, obj, dst)
+    : N2kSendResult::MissingPgn;
 }
+
 
 /*
 Usage:
@@ -125,16 +222,13 @@ NAN_METHOD(JsNmea2000Source::send) {
   v8::Local<v8::Array> msgArray = v8::Local<v8::Array>::Cast(info[0]);
 
   size_t n = msgArray->Length();
-  std::vector<std::map<std::string, sail::TaggedValue>> dst;
-  dst.reserve(n);
   for (size_t i = 0; i < n; i++) {
-    dst.push_back(toTaggedValueMap(msgArray->Get(i)));
-  }
-  auto result = zis->_nmea2000.send(dst);
-  if (result != N2kSendResult::Success) {
-    std::string emsg = std::string("Failed to send message: ")
-      + n2kSendResultToString(result);
-    return Nan::ThrowTypeError(emsg.c_str());
+    auto result = parseAndSendMessage(msgArray->Get(i), &(zis->_nmea2000));
+    if (result != N2kSendResult::Success) {
+      std::string emsg = std::string("Failed to send message: ")
+        + n2kSendResultToString(result);
+      return Nan::ThrowTypeError(emsg.c_str());
+    }
   }
 }
 
