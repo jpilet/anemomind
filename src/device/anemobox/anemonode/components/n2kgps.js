@@ -20,12 +20,12 @@ function parseLatitude(arg1, arg2) { return parseAngle(arg1, 2, arg2); }
 function parseLongitude(arg1, arg2) { return parseAngle(arg1, 3, arg2); }
 
 function getAndSplitSentence(nmea, sentence) {
-  var re = new RegExp('\\$..' + sentence + '(,.*)+\\*([0-9A-F]{2})');
+  var re = new RegExp('\\$(..)' + sentence + '(,.*)+\\*([0-9A-F]{2})');
   var r = nmea.match(re);
   if (!r) {
     return;
   }
-  return r[1].split(',');
+  return (r[1] + r[2]).split(',');
 }
 
 function dateFromRMC(rmc) {
@@ -45,6 +45,16 @@ function dateFromRMC(rmc) {
     parseInt(time.substr(4, 6))));
 }
 
+function getSatType(s) {
+  // From ublox doc
+  switch(s) {
+    case 'GP': return 0; // GPS, SBAS, QZSS
+    case 'GL': return 1; // GLONASS
+    case 'GA': return 8; // Galileo
+  }
+  return 0;
+}
+
 function satsUsedForFix(nmea) {
   var gsas = nmea.match(/\$GNGSA.*\*[0-9A-F]{2}/g);
   var r = [];
@@ -53,13 +63,17 @@ function satsUsedForFix(nmea) {
     for (var i = 3; i < gsa.length - 3; i++) {
       if (!gsa[i] || gsa[i] == '') break;
       r.push({
-             referenceStationType: 0, // GPS
+             referenceStationType: 0,
              referenceStationId: parseInt(gsa[i]),
-             ageOfDgnssCorrections: -1
+             ageOfDgnssCorrections: undefined
       });
     }
   }
   return r;
+}
+
+function floatOrUndefined(f) {
+  return f ? parseFloat(f) : undefined;
 }
 
 function makeGnssPositionData(nmea) {
@@ -85,14 +99,14 @@ function makeGnssPositionData(nmea) {
     time: seconds,
     latitude: parseLatitude(gga[2], gga[3]),
     longitude: parseLongitude(gga[4], gga[5]),
-    altitude: parseFloat(gga[9]),
+    altitude: floatOrUndefined(gga[9]),
     gnssType: 0,
     method: parseInt(gga[6]),
     integrity: rmc[2] == 'A' ? 1 : 2,
     numberOfSvs: parseInt(gsv[3]),
-    hdop: parseFloat(gga[8]),
-    pdop: parseFloat(gsa[15]),
-    geoidalSeparation: parseFloat(gga[11]),
+    hdop: floatOrUndefined(gga[8]),
+    pdop: floatOrUndefined(gsa[15]),
+    geoidalSeparation: floatOrUndefined(gga[11]),
     referenceStations: sats
   };
 }
