@@ -22,6 +22,9 @@ class NodeNmea2000 : public Nan::ObjectWrap, public tNMEA2000 {
   static NAN_METHOD(setSendCanFrame);
   static NAN_METHOD(open);
   static NAN_METHOD(parseMessages);
+  static NAN_METHOD(getDeviceConfig);
+  static NAN_METHOD(setDeviceConfig);
+  static NAN_METHOD(onDeviceConfigChange);
 
   bool sendFrame(unsigned long id, unsigned char len,
                  const unsigned char *buf, bool wait_sent);
@@ -47,6 +50,9 @@ class NodeNmea2000 : public Nan::ObjectWrap, public tNMEA2000 {
 
   Nan::Persistent<v8::Function> sendPacketCb_;
   Nan::Persistent<v8::Object> sendPacketHandle_;
+
+  Nan::Persistent<v8::Function> deviceConfigCb_;
+  Nan::Persistent<v8::Object> deviceConfigHandle_;
 
   std::deque<Packet> packets_;
 };
