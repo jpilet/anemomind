@@ -125,9 +125,6 @@ bool extractTypedValue(
 }
 
   bool tryExtract(const v8::Local<v8::Value>& val,
-
-                  // Most fields in the PgnClasses
-                  // are optional.
                   Angle<double>* dst) {
     TaggedValue tmp;
     Angle<double> angle;
@@ -139,9 +136,6 @@ bool extractTypedValue(
   }
 
   bool tryExtract(const v8::Local<v8::Value>& val,
-
-                  // Most fields in the PgnClasses
-                  // are optional.
                   Duration<double>* dst) {
     TaggedValue tmp;
     Duration<double> d;
@@ -169,11 +163,13 @@ void sendPositionRapidUpdate(
 
     QuantityAsNumber(Q u) : unit(u) {}
 
-    typedef double in_type;
+    typedef Optional<double> in_type;
     typedef Optional<Q> out_type;
 
-    Optional<Q> apply(double x) const {
-      return x*unit;
+    Optional<Q> apply(in_type x) const {
+      return x.defined()? 
+        Optional<Q>(x.get()*unit) 
+        : Optional<Q>();
     }
   };
 
