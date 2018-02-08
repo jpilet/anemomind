@@ -14,6 +14,18 @@ var nmea0183 =
   + "$GLGSV,3,3,09,86,28,270,32*5C\n"
   + "$GNGLL,4629.60710,N,00640.91834,E,163433.00,A,A*7B\n";
 
-var n2kgps = require('./components/n2kgps.js');
+var n2kgps = require('../components/n2kgps.js');
 
 console.warn(n2kgps.makeGnssPositionData(nmea0183));
+
+console.warn(n2kgps.makeGnssPositionData(
+    "$GNRMC,073759.00,V,,,,,,,030615,,,N*6D\n"
+  + "$GNVTG,,,,,,,,,N*2E\n"
+  + "$GNGGA,073759.00,,,,,0,04,13.44,,,,,,*71\n"
+  + "$GNGSA,A,1,15,21,24,,,,,,,,,,15.49,13.44,7.71*15\n"
+  + "$GNGSA,A,1,79,,,,,,,,,,,,15.49,13.44,7.71*1A\n"
+  + "$GPGSV,2,1,06,05,,,39,13,,,31,15,46,295,37,20,,,37*49\n"
+  + "$GPGSV,2,2,06,21,14,299,32,24,10,242,36*7C\n"
+  + "$GLGSV,1,1,02,79,33,222,36,,,,35*58\n"
+  + "$GNGLL,,,,,073759.00,V,N*5B\n"));
+
