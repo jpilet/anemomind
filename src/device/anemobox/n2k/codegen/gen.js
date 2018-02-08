@@ -1259,25 +1259,22 @@ function makeInfoComment(argv, inputPath) {
 
 }
 
-function outputData(outputPath, moduleName, interfaceData, implementationData, 
-                    summary, cb) {
-  interfaceFilename = Path.join(outputPath, moduleName + ".h");
-  implementationFilename = Path.join(outputPath, moduleName + ".cpp");
-  summaryFilename = Path.join(outputPath, "summary.html");
-  fs.writeFile(interfaceFilename, interfaceData, function(err) {
-    if (err) {
-      cb(err);
-    } else {
-      fs.writeFile(implementationFilename, implementationData, function(err) {
-        if (err) {
-          cb(err);
-        } else {
-          fs.writeFile(summaryFilename, summary, cb);
-        }
-      });
-    }
-  });
+function writeFiles(filenameTextPairs, cb) {
+  if (filenameTextPairs.length == 0) {
+    cb();
+  } else {
+    var first = filenameTextPairs[0];
+    fs.writeFile(first[0], first[1], 'utf8', function(err) {
+      if (err) {
+        cb(err);
+      } else {
+        var rest = filenameTextPairs.slice(1);
+        writeFiles(rest, cb);
+      }
+    });
+  }
 }
+
 
 function getFieldSummary(field) {
   return getFieldId(field) + "(" + field.Name + ")";
@@ -1330,27 +1327,18 @@ function checkPgns(pgns) {
   assert(dup == undefined, "PGN Ids are not unique: '" + dup + '"');
 }
 
-function compileAllFiles(argv, value, inputPath, outputPath, cb) {
+function compileAllCppFiles(argv, pgns, inputPath, outputPath) {
   var moduleName = "PgnClasses";
-  try {
-    var allPgns = getPgnArrayFromParsedXml(value);
-    var pgns = filterPgnsOfInterest(allPgns);
-    
-    checkPgns(pgns);
-    var cmt = makeInfoComment(argv, inputPath);
-    var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
-    var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
-    var summary = makeSourceLink(inputPath) + renderInPage(
-      "PGN Summary", makeHtmlTable(
-        [tableHeader].concat(getPgnSummaries(allPgns))));
-    outputData(
-      outputPath, moduleName, 
-      interfaceData, implementationData, summary, cb);
-  } catch (e) {
-    console.log('Caught exception while compiling C++');
-    console.log(e);
-    cb(e);
-  }
+  checkPgns(pgns);
+  var cmt = makeInfoComment(argv, inputPath);
+  var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
+  var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
+  var interfaceName = Path.join(outputPath, moduleName + ".h");
+  var implementationName = Path.join(outputPath, moduleName + ".cpp");
+  return [
+    [interfaceName, interfaceData], 
+    [implementationName, implementationData]
+  ];
 }
 
 
@@ -1365,12 +1353,47 @@ function loadXml(inputPath, cb) {
   });
 }
 
+function generatePgnTableJs(pgns) {
+  return indentLineArray(0, [
+    "module.exports = {",
+    pgns.map(function(pgn) {
+      return pgn.Id + ": " + getPgnCode(pgn) + ",";
+    }),
+    "};"
+  ]);
+}
+
 function generate(argv, inputPath, outputPath, cb) {
   loadXml(inputPath, function(err, value) {
     if (err) {
       cb(err);
     } else {
-      compileAllFiles(argv, value, inputPath, outputPath, cb);
+      try {
+        var allPgns = getPgnArrayFromParsedXml(value);
+        var pgns = filterPgnsOfInterest(allPgns);
+
+        // A html table
+        var summaryFilename = outputPath + "/summary.html";
+        var summary = makeSourceLink(inputPath) + renderInPage(
+          "PGN Summary", makeHtmlTable(
+            [tableHeader].concat(getPgnSummaries(allPgns))));
+
+        // A node module, convenient for getting the right code.
+        var jsTableFilename = outputPath + "/pgntable.js";
+        var jsTable = generatePgnTableJs(pgns);
+
+        // An array of (filename,data) pairs
+        var allData = 
+            compileAllCppFiles(argv, pgns, inputPath, outputPath)
+            .concat([
+              [summaryFilename, summary],
+              [jsTableFilename, jsTable]
+            ]);
+
+        writeFiles(allData, cb);
+      } catch (e) {
+        cb(e);
+      }
     }
   });
 }
