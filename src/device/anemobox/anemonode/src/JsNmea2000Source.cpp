@@ -8,6 +8,7 @@
 using namespace std;
 
 using namespace v8;
+using namespace PgnClasses;
 
 // Helper type when parsing physical quantities
 struct TaggedValue {
@@ -99,15 +100,53 @@ bool extractTypedValue(
   return false;
 }
 
+bool extractTypedValue(
+    const TaggedValue& src, Duration<double>* dst) {
+  if (src.tag == "days" || src.tag == "day") {
+    *dst = Duration<double>::seconds(src.value);
+    return true;
+  } else if (src.tag == "hours" 
+             || src.tag == "hour" 
+             || src.tag == "h") {
+    *dst = Duration<double>::hours(src.value);
+    return true;
+  } else if (src.tag == "minutes" 
+             || src.tag == "min" 
+             || src.tag == "minutes") {
+    *dst = Duration<double>::minutes(src.value);
+    return true;
+  } else if (src.tag == "seconds" 
+             || src.tag == "second" 
+             || src.tag == "s") {
+    *dst = Duration<double>::seconds(src.value);
+    return true;
+  }
+  return false;
+}
+
   bool tryExtract(const v8::Local<v8::Value>& val,
 
                   // Most fields in the PgnClasses
                   // are optional.
-                  Optional<Angle<double>>* dst) {
+                  Angle<double>* dst) {
     TaggedValue tmp;
     Angle<double> angle;
     if (tryExtract(val, &tmp) && extractTypedValue(tmp, &angle)) {
       *dst = angle;
+      return true;
+    }
+    return false;
+  }
+
+  bool tryExtract(const v8::Local<v8::Value>& val,
+
+                  // Most fields in the PgnClasses
+                  // are optional.
+                  Duration<double>* dst) {
+    TaggedValue tmp;
+    Duration<double> d;
+    if (tryExtract(val, &tmp) && extractTypedValue(tmp, &d)) {
+      *dst = d;
       return true;
     }
     return false;
@@ -119,13 +158,157 @@ void sendPositionRapidUpdate(
     Nmea2000Source* dst) {
   
   PgnClasses::PositionRapidUpdate x;
-  CHECK_CONDITION(tryLookUp(val, "longitude", &x.longitude), 
-                  "Missing or malformed longitude");
-  CHECK_CONDITION(tryLookUp(val, "latitude", &x.latitude), 
-                  "Missing or malformed latitude");
+  TRY_LOOK_UP(val, "longitude", &x.longitude);
+  TRY_LOOK_UP(val, "latitude", &x.latitude);
   CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send message");
 }
 
+  template <typename Q>
+  struct QuantityAsNumber {
+    Q unit;
+
+    QuantityAsNumber(Q u) : unit(u) {}
+
+    typedef double in_type;
+    typedef Optional<Q> out_type;
+
+    Optional<Q> apply(double x) const {
+      return x*unit;
+    }
+  };
+
+  template <typename Q>
+  QuantityAsNumber<Q> quantityAsNumber(Q unit) {
+    return {unit};
+  }
+
+  template <typename E>
+  struct EnumAsInt {
+    typedef uint64_t in_type;
+    typedef Optional<E> out_type;
+
+    Optional<E> apply(in_type x) const {
+      return static_cast<E>(x);
+    }
+  };
+
+  template <typename T>
+  bool tryLookUpTyped(
+    const T& conv,                 
+    v8::Local<v8::Object> obj,
+    const char* key, 
+    typename T::out_type* dst) {
+    typename T::in_type x;
+    if (tryLookUp(obj, key, &x)) {
+      *dst = conv.apply(x);
+      return true;
+    }
+    return false;
+  }
+
+#define TRY_LOOK_UP_TYPED(conv, obj, key, dst) \
+  CHECK_CONDITION(tryLookUpTyped(conv, obj, key, dst), "Missing or malformed '" key "'")
+
+  bool readRepeatingField(const v8::Local<v8::Value>& src,
+                          GnssPositionData::Repeating* dst) {
+      CHECK_CONDITION_BOOL(
+         src->IsObject(), 
+         "GnssPositionData repeating field not an object");
+
+      v8::Local<v8::Object> obj = src->ToObject();
+      
+      CHECK_CONDITION_BOOL(
+         tryLookUpTyped(
+            EnumAsInt<GnssPositionData::ReferenceStationType>(),
+            obj, "referenceStationType", &(dst->referenceStationType)),
+         "Malformed referenceStationType");
+      
+      CHECK_CONDITION_BOOL(
+         tryLookUp(
+            obj, "referenceStationId", &(dst->referenceStationId)),
+         "Malformed referenceStationId");
+      
+      CHECK_CONDITION_BOOL(
+         tryLookUp(
+            obj, "ageOfDgnssCorrections", 
+            &(dst->ageOfDgnssCorrections)),
+         "Malformed age");
+      return true;
+  }
+
+  template <typename T>
+  bool readRepeating(const v8::Local<v8::Object>& obj,
+                     const char* key,
+                     std::vector<T>* dst) {
+    v8::Local<v8::Value> val = Nan::Get(
+      obj, Nan::New<v8::String>(key)
+      .ToLocalChecked()).ToLocalChecked();
+    
+    CHECK_CONDITION_BOOL(val->IsArray(), 
+                         "Repeating field not an array");
+
+    v8::Local<v8::Array> arr= Local<v8::Array>::Cast(val);
+    
+    for (size_t i = 0; i < arr->Length(); i++) {
+      T field;
+      if (!readRepeatingField(arr->Get(i), &field)) {
+        return false;
+      }
+      dst->push_back(field);
+    }
+    return true;
+  }
+
+void sendGnssPositionData(
+   int32_t deviceIndex,
+   const v8::Local<v8::Object>& obj,
+   Nmea2000Source* dst) {
+  using namespace PgnClasses;
+
+  GnssPositionData x;
+
+  x.sid = lookUpOrDefault<uint64_t>(obj, "sid", 0);
+
+  // I am not sure about these ones. Should we require
+  // the unit to be provided from the JS side, that
+  // is [3.4, "days"] and prohibit just 3.4?
+  TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_days), 
+                    obj, "date", &x.date);
+  TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_seconds), 
+                    obj, "time", &x.time);
+
+  // Should we assume the altitude is in meters,
+  // or require the user to provide the unit explicitly
+  // from the JS side, that is [1.0, "meters"]?
+  TRY_LOOK_UP_TYPED(quantityAsNumber(Length<double>::meters(1.0)),
+                    obj, "altitude", &x.altitude);
+
+  TRY_LOOK_UP(obj, "latitude", &x.latitude);
+
+  TRY_LOOK_UP(obj, "longitude", &x.longitude);
+
+  TRY_LOOK_UP_TYPED(EnumAsInt<GnssPositionData::GnssType>(),
+                    obj, "gnssType", &x.gnssType);
+
+  TRY_LOOK_UP_TYPED(EnumAsInt<GnssPositionData::Method>(),
+                    obj, "method", &x.method);
+
+  TRY_LOOK_UP_TYPED(EnumAsInt<GnssPositionData::Integrity>(),
+                    obj, "integrity", &x.integrity);
+
+  TRY_LOOK_UP(obj, "numberOfSvs", &x.numberOfSvs);
+  
+  TRY_LOOK_UP(obj, "hdop", &x.hdop);
+
+  TRY_LOOK_UP(obj, "pdop", &x.pdop);
+
+  if (readRepeating(obj, "referenceStations", &x.repeating)) {
+    x.referenceStations = x.repeating.size();
+    CHECK_CONDITION(dst->send(deviceIndex, x), 
+                    "Failed to send GnssPositionData");
+  } else {
+  }
+}
 
 void dispatchPgn(
    int64_t pgn,
@@ -142,6 +325,8 @@ void dispatchPgn(
   switch (pgn) {
   case PgnClasses::PositionRapidUpdate::ThisPgn:
     return sendPositionRapidUpdate(deviceIndex, obj, dst);
+  case PgnClasses::GnssPositionData::ThisPgn:
+    return sendGnssPositionData(deviceIndex, obj, dst);
   default: break;
   };
   {

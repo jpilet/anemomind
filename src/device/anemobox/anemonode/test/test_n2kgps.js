@@ -16,7 +16,8 @@ var nmea0183 =
 
 var n2kgps = require('../components/n2kgps.js');
 
-console.warn(n2kgps.makeGnssPositionData(nmea0183));
+var testData0 = n2kgps.makeGnssPositionData(nmea0183);
+console.warn(testData0);
 
 console.warn(n2kgps.makeGnssPositionData(
     "$GNRMC,073759.00,V,,,,,,,030615,,,N*6D\n"
@@ -29,3 +30,4 @@ console.warn(n2kgps.makeGnssPositionData(
   + "$GLGSV,1,1,02,79,33,222,36,,,,35*58\n"
   + "$GNGLL,,,,,073759.00,V,N*5B\n"));
 
+module.exports.testData0 = testData0;

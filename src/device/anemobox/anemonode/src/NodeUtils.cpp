@@ -27,3 +27,24 @@ bool tryExtract(const v8::Local<v8::Value>& val,
   }
   return false;
 }
+
+template <typename T>
+bool tryExtractFromDouble(const v8::Local<v8::Value>& val,
+                          T* dst) {
+  double x = 0.0;
+  if (tryExtract(val, &x)) {
+    *dst = static_cast<T>(x);
+    return true;
+  }
+  return false;
+}
+
+bool tryExtract(const v8::Local<v8::Value>& val,
+                uint64_t* dst) {
+  return tryExtractFromDouble(val, dst);
+}
+
+bool tryExtract(const v8::Local<v8::Value>& val,
+                int64_t* dst) {
+  return tryExtractFromDouble(val, dst);
+}
