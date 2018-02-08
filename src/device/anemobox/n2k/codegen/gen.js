@@ -1379,7 +1379,8 @@ function generate(argv, inputPath, outputPath, cb) {
             [tableHeader].concat(getPgnSummaries(allPgns))));
 
         // A node module, convenient for getting the right code.
-        var jsTableFilename = outputPath + "/pgntable.js";
+        var jsTableFilename = outputPath 
+            + "/../anemonode/components/pgntable.js";
         var jsTable = generatePgnTableJs(pgns);
 
         // An array of (filename,data) pairs
