@@ -364,3 +364,22 @@ TEST(N2kFieldTest, Write_parseDemo) {
   auto d = output.moveData();
   testParseDemo(d.data(), d.size());
 }
+
+TEST(N2kFieldTest, ReadAndWriteWithResolution) {
+  N2kFieldOutputStream output;
+  double value = 119.23;
+  double resolution = 0.01;
+  bool isSigned = true;
+  int bits = 15;
+  int64_t offset = 0;
+  output.pushDoubleWithResolution(
+      resolution, isSigned, bits, offset, value);
+  auto data = output.moveData();
+  N2kFieldStream input(data.data(), data.size());
+
+  auto x = input.getDoubleWithResolution(resolution, isSigned, bits, offset,
+      Definedness::AlwaysDefined);
+  EXPECT_TRUE(x.defined());
+  EXPECT_NEAR(x.get(), value, resolution*1.2);
+
+}

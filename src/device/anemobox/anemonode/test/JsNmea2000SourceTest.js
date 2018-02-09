@@ -1,5 +1,8 @@
 var assert = require('assert');
 var anemonode = require('../build/Release/anemonode');
+try {
+var can = require('socketcan');
+} catch(e) { }
 
 var gnssData = require('./n2kgps_data.js')[0].msg;
 
@@ -10,6 +13,21 @@ var baseSerialNumber =
       (parseInt(boxid, 16) & ((1 << 21 + 1 - virtDevBits) - 1)) << virtDevBits;
 
 
+function canPacketReceived(msg) {
+  if (nmea2000) {
+    nmea2000.pushCanFrame(msg);
+  }
+}
+
+var channel = null;
+try {
+  channel = can.createRawChannel("can0", true /* ask for timestamps */);
+  channel.start();
+  channel.addListener("onMessage", canPacketReceived);
+} catch (e) {
+  console.log("Failed to start NMEA2000");
+  channel = null;
+}
 
 var nmea2000 = new anemonode.NMEA2000([
   {
@@ -34,7 +52,14 @@ var src = new anemonode.Nmea2000Source(nmea2000);
 
 nmea2000.setSendCanFrame(function(id, data) {
   console.log('id=%s data=%s', id.toString(16), data.toString("hex"));
-  return true;
+
+  if (channel) {
+    var msg = { id: id, data: data, ext: true };
+    var r = channel.send(msg);
+    return r > 0;
+  } else {
+    return true;
+  }
 });
 nmea2000.open();
 
@@ -74,30 +99,51 @@ function testSend(src, data, expectedError) {
   }
 }
 
+if (typeof describe != 'function') {
+  // direct invocation without mocha
+  describe = function(name, f) { f(function() { }); };
+  it = function(name, f) { f(function() { }); }
+}
 
 describe('Try the send method', function() {
   it('Send GNSS', function(done) {
     var intrvl = setInterval(callParseMessages, 100);
     setTimeout(function() {
       clearInterval(intrvl);
+
       gnssData.deviceIndex = 0;
       testSend(src, [
         gnssData
       ], null);
       callParseMessages();
 
+      // Missing longitude should also be OK
       gnssData.longitude = null;
       testSend(src, [
         gnssData
       ], null);
       callParseMessages();
 
+      // Deliberate corruption:
       gnssData.longitude = "kattskit";
+
       testSend(src, [
         gnssData
       ], "longitude");
       callParseMessages();
+      
+      // Put back a valid value
+      gnssData.longitude = [3.44, "deg"];
+      // ...and corrupt the geoidal separation
+      gnssData.geoidalSeparation = "mmm";
+      testSend(src, [
+        gnssData
+      ], "geoidal");
+      callParseMessages();
 
+
+
+      // Tests with PositionRapidUpdate
       testSend(src, [{}], "PGN missing");
       testSend(src, [{longitude: 9, latitude: 11}], "PGN missing");
       testSend(src, [{pgn: 119, deviceIndex: 0, latitude: 11}], "not supported");
@@ -134,6 +180,9 @@ describe('Try the send method', function() {
         // Missing longitude is not a problem? Or should we require it?
       }], null);
 
+
+
+      // Tests with WindData
       testSend(src, [{
         pgn: 130306,
         deviceIndex: 0,
@@ -159,6 +208,8 @@ describe('Try the send method', function() {
         reference: 0
       }], "windSpeed");
 
+
+      //// Tests with TimeDate
       testSend(src, [{
         pgn: 129033,
         deviceIndex: 0,
@@ -179,3 +230,4 @@ describe('Try the send method', function() {
     }, 1500);
   });
 });
+

@@ -150,6 +150,20 @@ bool extractTypedValue(
   return false;
 }
 
+bool extractTypedValue(
+    const TaggedValue& src, Length<double>* dst) {
+  if (src.tag == "m" 
+      || src.tag == "meters" 
+      || src.tag == "meter"
+      || src.tag == "metre"
+      || src.tag == "metres") {
+    *dst = Length<double>::meters(src.value);
+    return true;
+  }
+  return false;
+}
+
+  
   template <typename T>
   bool tryExtractTypedFromTagged(
      const v8::Local<v8::Value>& val,
@@ -175,6 +189,11 @@ bool extractTypedValue(
 
   bool tryExtract(const v8::Local<v8::Value>& val,
                   Velocity<double>* dst) {
+    return tryExtractTypedFromTagged(val, dst);
+  }
+  
+  bool tryExtract(const v8::Local<v8::Value>& val,
+                  Length<double>* dst) {
     return tryExtractTypedFromTagged(val, dst);
   }
 
@@ -329,6 +348,8 @@ void sendGnssPositionData(
   TRY_LOOK_UP(obj, "hdop", &x.hdop);
 
   TRY_LOOK_UP(obj, "pdop", &x.pdop);
+
+  TRY_LOOK_UP(obj, "geoidalSeparation", &x.geoidalSeparation);
 
   if (readRepeating(obj, "referenceStations", &x.repeating)) {
     x.referenceStations = x.repeating.size();

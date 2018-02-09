@@ -214,7 +214,7 @@ function getBitOffset(field) {
   return parseInt(field.BitOffset + '');
 }
 
-
+// NOT USED:
 function makeIntegerReadExpr(field, srcName) {
   var signed = isSigned(field);
   var extractor = signed? "getSigned" : "getUnsigned";
@@ -223,6 +223,12 @@ function makeIntegerReadExpr(field, srcName) {
 
 function isData(field) {
   return getFieldId(field) == "data" || (getBitLength(field) > 64);
+}
+
+function isRational(field) {
+  return hasResolution(field) 
+    && !isPhysicalQuantity(field)
+    && field.Type != "Integer";
 }
 
 unitMap = {
@@ -271,6 +277,8 @@ function getFieldType(field) {
     return getEnumClassName(field);
   } else if (isPhysicalQuantity(field)) {
     return getUnitInfo(field).type;
+  } else if (isRational(field)) {
+    return "double";
   } else if (isSigned(field)) {
     return "int64_t";
   } else if (isData(field)) {
@@ -978,6 +986,8 @@ function makeFieldAssignment(dstName, field) {
     var signed = isSigned(field);
     var signedExpr = boolToString(signed);
     var offset = getOffset(field);
+    var definedness = "N2kField::Definedness::" 
+        + (8 < bits? "MaybeUndefined" : "AlwaysDefined");
     if (isPhysicalQuantity(field)) {
       var info = getUnitInfo(field);
       return lhs + "src.getPhysicalQuantity(" 
@@ -987,6 +997,11 @@ function makeFieldAssignment(dstName, field) {
       return lhs + "src.getUnsignedInSet(" 
         + bits + ", " + getEnumValueSet(field) + ").cast<" 
         + getFieldType(field) + ">();";
+    } else if (isRational(field)){
+      return lhs + "src.getDoubleWithResolution(" 
+        + getResolution(field) + ", "
+        + signedExpr + ", " + bits + ", " 
+        + offset + ", " + definedness + ");";
     } else if (isData(field)) {
       assert(bits % 8 == 0, 
              "Cannot read bytes, because the number of bits is not a multiple of 8.");
@@ -995,7 +1010,7 @@ function makeFieldAssignment(dstName, field) {
       return lhs
         + (signed? "src.getSigned(" : "src.getUnsigned(")
         + bits + (signed? ", " + offset : "") 
-        + ", N2kField::Definedness::AlwaysDefined);";
+        + ", " + definedness + ");";
     }
   }
 }
@@ -1021,6 +1036,11 @@ function makeEncodeFieldStatement(valueExpr, field) {
     } else if (isLookupTable(field)) {
       return "dst.pushUnsigned(" 
         + bits + ", " + valueExpr + ".cast<uint64_t>());" 
+    } else if (isRational(field)) {
+      return "dst.pushDoubleWithResolution("
+        + getResolution(field) + ", "
+        + signedExpr + ", " + bits + ", " 
+        + offset + ", " + valueExpr + ");";
     } else if (isData(field)) {
       assert(bits % 8 == 0, 
              "Cannot write bytes, because the number of bits is not a multiple of 8.");
