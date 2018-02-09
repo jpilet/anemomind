@@ -69,7 +69,7 @@ cxx_test(nautical_WGS84Test
             common_LineKM
             gtest_main)
 
-add_library(nautical_BoatLogProcessor SHARED
+add_library(nautical_BoatLogProcessor
             BoatLogProcessor.cpp
             BoatLogProcessor.h
            )
