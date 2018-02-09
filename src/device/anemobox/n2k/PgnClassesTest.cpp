@@ -180,7 +180,7 @@ TEST(PgnClassesTest, ANotherGnssPositionDataTest) {
 
   auto coded = pos.encode();
   int minSize = std::min(coded.size(), data.size());
-  for (int i = 0; i < coded.size(); i++) {
+  for (int i = 0; i < minSize; i++) {
     EXPECT_EQ(coded[i], data[i]);
   }
 
