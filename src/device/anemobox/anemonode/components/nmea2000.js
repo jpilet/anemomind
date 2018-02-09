@@ -201,11 +201,16 @@ var sid = { };
 
 function nextSid(key) {
   var sid = sid[key] || 0;
-  sid[key] = sid + 1;
+  sid[key] = (sid + 1) % 250; // <-- Good value?
   return sid;
 }
 
 function trySendWind() {
+  if (!nmea2000Source) {
+    return; // In case we activate this code *before* having
+            // started the nmea.
+  }
+
   var now = anemonode.currentTime();
   var minResendTime = 100; // ms
   var packetsToSend = [];
@@ -248,6 +253,15 @@ function trySendWind() {
       lastSent.twa = now;
     }
   }
+  if (0 <= packetsToSend.length) {
+    try {
+      nmea2000Source.send(packetsToSend);
+    } catch(e) {
+      console.warn("Failed to send wind packets: %j", packetsToSend);
+      console.warn("because");
+      console.warn(e);
+    }
+  }
 }
 
 function startSendingWindPackets() {
@@ -260,6 +274,7 @@ function startSendingWindPackets() {
 }
 
 module.exports.startNmea2000 = startNmea2000;
+module.exports.startSendingWindPackets = startSendingWindPackets;
 module.exports.startRawLogging = function() { rawPacketLoggingEnabled = true; };
 module.exports.stopRawLogging = function() { rawPacketLoggingEnabled = false; };
 module.exports.setRawLogging = function(val) { rawPacketLoggingEnabled = !!val; }; 
