@@ -1,6 +1,6 @@
-/** Generated on Fri Feb 09 2018 17:04:29 GMT+0100 (CET) using 
+/** Generated on Fri Feb 09 2018 18:39:33 GMT+0100 (CET) using 
  *
- *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
+ *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -568,7 +568,7 @@ namespace PgnClasses {
 
   GnssPositionData::GnssPositionData(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (328 <= src.remainingBits()) {
+    if (344 <= src.remainingBits()) {
       sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);
       time = src.getPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0);
@@ -583,7 +583,7 @@ namespace PgnClasses {
       numberOfSvs = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       hdop = src.getDoubleWithResolution(0.01, true, 16, 0, N2kField::Definedness::MaybeUndefined);
       pdop = src.getDoubleWithResolution(0.01, true, 16, 0, N2kField::Definedness::MaybeUndefined);
-      geoidalSeparation = src.getPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0);
+      geoidalSeparation = src.getPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 32, 0);
       referenceStations = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       while (32 <= src.remainingBits()) {
         auto l_referenceStationType = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5, 6, 7, 8}).cast<ReferenceStationType>();
@@ -644,7 +644,7 @@ namespace PgnClasses {
       dst.pushUnsigned(8, numberOfSvs);
       dst.pushDoubleWithResolution(0.01, true, 16, 0, hdop);
       dst.pushDoubleWithResolution(0.01, true, 16, 0, pdop);
-      dst.pushPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0, geoidalSeparation);
+      dst.pushPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 32, 0, geoidalSeparation);
       dst.pushUnsigned(8, referenceStations);
     for (const auto& x: repeating) {
       dst.pushUnsigned(4, x.referenceStationType.cast<uint64_t>());

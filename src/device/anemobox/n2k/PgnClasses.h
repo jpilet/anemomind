@@ -1,6 +1,6 @@
-/** Generated on Fri Feb 09 2018 17:04:29 GMT+0100 (CET) using 
+/** Generated on Fri Feb 09 2018 18:39:33 GMT+0100 (CET) using 
  *
- *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
+ *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -318,7 +318,7 @@ namespace PgnClasses {
   };
   
   struct GnssPositionData: public PgnBaseClass { // GNSS Position Data
-    // Minimum size: 328 bits = 41 bytes. Repeating struct size: 32 bits = 4 bytes
+    // Minimum size: 344 bits = 43 bytes. Repeating struct size: 32 bits = 4 bytes
     static const int ThisPgn = 129029;
     int code() const override {return 129029;}
     enum class GnssType {
@@ -360,9 +360,9 @@ namespace PgnClasses {
       Galileo = 8
     };
     struct Repeating {
-      Optional<ReferenceStationType > referenceStationType; //  at 328 bits = 41 bytes
-      Optional<uint64_t > referenceStationId; //  at 332 bits = 41 bytes + 4 bits
-      Optional<sail::Duration<double> > ageOfDgnssCorrections; //  at 344 bits = 43 bytes
+      Optional<ReferenceStationType > referenceStationType; //  at 344 bits = 43 bytes
+      Optional<uint64_t > referenceStationId; //  at 348 bits = 43 bytes + 4 bits
+      Optional<sail::Duration<double> > ageOfDgnssCorrections; //  at 360 bits = 45 bytes
     };
 
     GnssPositionData();
@@ -388,7 +388,7 @@ namespace PgnClasses {
     Optional<double > hdop; // Horizontal dilution of precision at 272 bits = 34 bytes
     Optional<double > pdop; // Probable dilution of precision at 288 bits = 36 bytes
     Optional<sail::Length<double> > geoidalSeparation; // Geoidal Separation at 304 bits = 38 bytes
-    Optional<uint64_t > referenceStations; // Number of reference stations at 320 bits = 40 bytes
+    Optional<uint64_t > referenceStations; // Number of reference stations at 336 bits = 42 bytes
     std::vector<Repeating> repeating;
   };
   
