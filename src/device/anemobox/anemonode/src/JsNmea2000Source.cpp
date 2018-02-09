@@ -302,7 +302,6 @@ void sendGnssPositionData(
     x.referenceStations = x.repeating.size();
     CHECK_CONDITION(dst->send(deviceIndex, x), 
                     "Failed to send GnssPositionData");
-  } else {
   }
 }
 

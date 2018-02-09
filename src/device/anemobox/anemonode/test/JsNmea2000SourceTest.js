@@ -32,10 +32,29 @@ var nmea2000 = new anemonode.NMEA2000([
 
 var src = new anemonode.Nmea2000Source(nmea2000);
 
+nmea2000.setSendCanFrame(function(id, data) {
+  console.log('id=%s data=%s', id.toString(16), data.toString("hex"));
+  return true;
+});
+nmea2000.open();
+
+function callParseMessages() {
+  for (var i = 0; i < 5; i++) {
+    nmea2000.parseMessages();
+  }
+}
+
+callParseMessages();
+
+
+
 assert(src);
 
 function implies(a, b) {return !a || b;}
 function isSubstringOf(a, b) {
+  if (a == null || b == null) {
+    return false;
+  }
   return b.indexOf(a) != -1;
 }
 
@@ -57,52 +76,65 @@ function testSend(src, data, expectedError) {
 
 
 describe('Try the send method', function() {
-  it('Send GNSS', function() {
-    gnssData.deviceIndex = 0;
-    testSend(src, [
-      gnssData
-    ], "send");
+  it('Send GNSS', function(done) {
+    var intrvl = setInterval(callParseMessages, 100);
+    setTimeout(function() {
+      clearInterval(intrvl);
+      gnssData.deviceIndex = 0;
+      testSend(src, [
+        gnssData
+      ], null);
+      callParseMessages();
 
-    gnssData.longitude = null;
-    testSend(src, [
-      gnssData
-    ], "send");
+      gnssData.longitude = null;
+      testSend(src, [
+        gnssData
+      ], null);
+      callParseMessages();
 
-    gnssData.longitude = "kattskit";
-    testSend(src, [
-      gnssData
-    ], "longitude");
-  });
+      gnssData.longitude = "kattskit";
+      testSend(src, [
+        gnssData
+      ], "longitude");
+      callParseMessages();
 
-  it('Test zis send method', function() {
-    testSend(src, [{}], "PGN missing");
-    testSend(src, [{longitude: 9, latitude: 11}], "PGN missing");
-    testSend(src, [{pgn: 119, deviceIndex: 0, latitude: 11}], "not supported");
-    testSend(src, [{
-      pgn: 129025, 
-      latitude: 11, longitude: 13.0
-    }], "deviceIndex");
-    testSend(src, [{
-      pgn: 129025, 
-      deviceIndex: 0,
-      latitude: 11, longitude: 13.0
-    }], "send");
-    testSend(src, [{
-      pgn: 129025, 
-      deviceIndex: 0,
-      latitude: [11, "deg"], longitude: [13.0, "rad"]
-    }], "send");
-    testSend(src, [{
-      pgn: 129025, 
-      deviceIndex: 0,
-      latitude: [11, "deg"], longitude: [13.0, "kattskit"]
-      // Longitude provided, but on wrong format.
-    }], "longitude");
-    testSend(src, [{
-      pgn: 129025, 
-      deviceIndex: 0,
-      latitude: [11, "deg"],
-      // Missing longitude is not a problem? Or should we require it?
-    }], "send");
+      testSend(src, [{}], "PGN missing");
+      testSend(src, [{longitude: 9, latitude: 11}], "PGN missing");
+      testSend(src, [{pgn: 119, deviceIndex: 0, latitude: 11}], "not supported");
+
+      testSend(src, [{
+        pgn: 129025, 
+        latitude: 11, longitude: 13.0
+      }], "deviceIndex");
+
+      testSend(src, [{
+        pgn: 129025, 
+        deviceIndex: 0,
+        latitude: 11, longitude: 13.0
+      }], null);
+
+
+      testSend(src, [{
+        pgn: 129025, 
+        deviceIndex: 0,
+        latitude: [11, "deg"], longitude: [13.0, "rad"]
+      }], null);
+
+      testSend(src, [{
+        pgn: 129025, 
+        deviceIndex: 0,
+        latitude: [11, "deg"], longitude: [13.0, "kattskit"]
+        // Longitude provided, but on wrong format.
+      }], "longitude");
+
+      testSend(src, [{
+        pgn: 129025, 
+        deviceIndex: 0,
+        latitude: [11, "deg"],
+        // Missing longitude is not a problem? Or should we require it?
+      }], null);
+
+      done();
+    }, 1500);
   });
 });

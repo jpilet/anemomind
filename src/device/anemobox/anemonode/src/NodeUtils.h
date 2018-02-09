@@ -6,7 +6,7 @@
 #include <server/common/Optional.h>
 
 #define CHECK_CONDITION(expr, str) if(!(expr)) return Nan::ThrowError(str);
-#define CHECK_CONDITION_BOOL(expr, str) if(!(expr)) {std::cout << "THROW ERROR!!!!" << std::endl; Nan::ThrowError(str); return false;}
+#define CHECK_CONDITION_BOOL(expr, str) if(!(expr)) {Nan::ThrowError(str); return false;}
 
 #define TRY_LOOK_UP(src, key, dst) CHECK_CONDITION(tryLookUp(src, key, dst), "Missing or malformed '" key "'")
 
