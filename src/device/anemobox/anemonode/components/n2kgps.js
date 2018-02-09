@@ -97,7 +97,7 @@ function makeGnssPositionData(nmea) {
     numberOfSvs: parseInt(gsv[3]),
     hdop: floatOrUndefined(gga[8]),
     pdop: floatOrUndefined(gsa[15]),
-    geoidalSeparation: floatOrUndefined(gga[11]),
+    geoidalSeparation: [floatOrUndefined(gga[11]), "m"],
     referenceStations: sats
   };
 }

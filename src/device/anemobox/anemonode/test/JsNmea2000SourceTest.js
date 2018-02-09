@@ -80,24 +80,40 @@ describe('Try the send method', function() {
     var intrvl = setInterval(callParseMessages, 100);
     setTimeout(function() {
       clearInterval(intrvl);
+
       gnssData.deviceIndex = 0;
       testSend(src, [
         gnssData
       ], null);
       callParseMessages();
 
+      // Missing longitude should also be OK
       gnssData.longitude = null;
       testSend(src, [
         gnssData
       ], null);
       callParseMessages();
 
+      // Deliberate corruption:
       gnssData.longitude = "kattskit";
+
       testSend(src, [
         gnssData
       ], "longitude");
       callParseMessages();
+      
+      // Put back a valid value
+      gnssData.longitude = [3.44, "deg"];
+      // ...and corrupt the geoidal separation
+      gnssData.geoidalSeparation = "mmm";
+      testSend(src, [
+        gnssData
+      ], "geoidal");
+      callParseMessages();
 
+
+
+      // Tests with PositionRapidUpdate
       testSend(src, [{}], "PGN missing");
       testSend(src, [{longitude: 9, latitude: 11}], "PGN missing");
       testSend(src, [{pgn: 119, deviceIndex: 0, latitude: 11}], "not supported");
@@ -134,6 +150,9 @@ describe('Try the send method', function() {
         // Missing longitude is not a problem? Or should we require it?
       }], null);
 
+
+
+      // Tests with WindData
       testSend(src, [{
         pgn: 130306,
         deviceIndex: 0,
@@ -159,6 +178,8 @@ describe('Try the send method', function() {
         reference: 0
       }], "windSpeed");
 
+
+      //// Tests with TimeDate
       testSend(src, [{
         pgn: 129033,
         deviceIndex: 0,
