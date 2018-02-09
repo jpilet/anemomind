@@ -197,7 +197,8 @@ function getUnits(field) {
 }
 
 function isPhysicalQuantity(field) {
-  return field.Units != null && field.Units != '';
+  return (field.Units != null && field.Units != ''
+          && field.Units != 'hPa'); // hPa ignored for now
 }
 
 function isSigned(field) {
@@ -263,6 +264,10 @@ unitMap = {
   "rad/s": {
     type: "sail::AngularVelocity<double>",
     unit: "(sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0))"
+  },
+  "rpm": {
+    type: "sail::AngularVelocity<double>",
+    unit: "(sail::Angle<double>::degrees(360)/sail::Duration<double>::minutes(1.0))"
   }
 };
 
@@ -1448,6 +1453,7 @@ function main(argv) {
         console.log(err);
         console.log(err.stack);
       } else {
+        console.log('Output path: ' + outputPath);
         console.log("Success!");
       }
     });

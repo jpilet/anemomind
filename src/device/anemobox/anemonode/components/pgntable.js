@@ -11,6 +11,7 @@ module.exports = {
   vesselHeading: 127250,
   rateOfTurn: 127251,
   attitude: 127257,
+  engineParametersRapidUpdate: 127488,
   speed: 128259,
   positionRapidUpdate: 129025,
   cogSogRapidUpdate: 129026,

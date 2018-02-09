@@ -321,13 +321,28 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
     makeTilesFromDispatcher(length);
   }
   virtual void run(DispatchGeoPosData *pos) {
-    auto s = splitGeoPositions(pos);
+    LonAndLatValues s = splitGeoPositions(pos);
     makeTiles<Angle<double>>(s.lon.metadata, s.lon.values);
     makeTiles<Angle<double>>(s.lat.metadata, s.lat.values);
   }
   virtual void run(DispatchTimeStampData *timestamp) { /* nothing */ }
-  virtual void run(DispatchAbsoluteOrientationData *orient) { /* TODO */ }
+  virtual void run(DispatchAbsoluteOrientationData *orient) {
+    ValuesWithMetaData<Angle<double>> yaw, pitch, roll;
+    for (auto x : orient->dispatcher()->values()) {
+      yaw.values.append(x.time, x.value.heading);
+      roll.values.append(x.time, x.value.roll);
+      pitch.values.append(x.time, x.value.pitch);
+    }
+
+    makeTiles<Angle<double>>(TileMetaData("yaw", orient->source()), yaw.values);
+    makeTiles<Angle<double>>(TileMetaData("pitch", orient->source()), pitch.values);
+    makeTiles<Angle<double>>(TileMetaData("roll", orient->source()), roll.values);
+  }
+
   virtual void run(DispatchBinaryEdge *binary) { /* nothing */ }
+  virtual void run(DispatchAngularVelocityData *av) {
+    makeTilesFromDispatcher(av);
+  }
 
   bool result() const { return _result; }
 

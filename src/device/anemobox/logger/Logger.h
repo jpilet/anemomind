@@ -34,7 +34,8 @@ class LoggerValueListener:
   public Listener<GeographicPosition<double>>,
   public Listener<TimeStamp>,
   public Listener<AbsoluteOrientation>,
-  public Listener<BinaryEdge> {
+  public Listener<BinaryEdge>,
+  public Listener<AngularVelocity<double>> {
 public:
   LoggerValueListener(const std::string& shortName,
                       const std::string& sourceName)
@@ -135,6 +136,18 @@ public:
     _valueSet.mutable_binary()->add_edges(v.lastValue() == BinaryEdge::ToOn);
   }
 
+  virtual void onNewValue(const ValueDispatcher<AngularVelocity<double>> &v) {
+    addTimestamp(v.lastTimeStamp());
+
+    int value = int(v.lastValue().radiansPerSecond() * 1000.0);
+    int delta = value;
+    if (_valueSet.angularvelocity().delta_size() > 0) {
+      delta -= intBase;
+    }
+    _valueSet.mutable_angularvelocity()->add_delta(delta);
+    intBase = value;
+  }
+
   void addText(TimeStamp t, const std::string& text) {
     addTimestamp(t);
     _valueSet.add_text(text);
@@ -212,6 +225,9 @@ class Logger {
   static void unpack(const BinaryEdgeValueSet& values,
                      std::vector<BinaryEdge>* result);
 
+  static void unpack(const AngularVelocityValueSet& values,
+                     std::vector<AngularVelocity<double>>* result);
+
   static void unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
                       std::vector<TimeStamp>* result);
 
@@ -287,6 +303,14 @@ struct ValueSetToTypedVector<BinaryEdge> {
     Logger::unpack(x.binary(), dst);
   }
 };
+
+template <>
+struct ValueSetToTypedVector<AngularVelocity<double> > {
+  static void extract(const ValueSet &x, std::vector<AngularVelocity<double> > *dst) {
+    Logger::unpack(x.angularvelocity(), dst);
+  }
+};
+
 }  // namespace sail
 
 #endif   // ANEMOBOX_LOGGER_H

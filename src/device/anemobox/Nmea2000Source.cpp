@@ -238,5 +238,43 @@ bool Nmea2000Source::apply(const tN2kMsg &c,
   return false;
 }
 
+bool Nmea2000Source::apply(const tN2kMsg &c,
+                           const PgnClasses::Attitude& packet) {
+  if (packet.yaw.defined()
+      && packet.pitch.defined()
+      && packet.roll.defined()) {
+    _dispatcher->publishValue(ORIENT, _lastSourceName,
+                              AbsoluteOrientation{
+                              packet.yaw.get(),
+                              packet.roll.get(),
+                              packet.pitch.get()});
+    return true;
+  }
+  return false;
+}
+
+bool Nmea2000Source::apply(const tN2kMsg &c,
+                           const PgnClasses::RateOfTurn& packet) {
+  if (packet.rate.defined()) {
+    _dispatcher->publishValue(RATE_OF_TURN, _lastSourceName, packet.rate.get());
+    return true;
+  }
+  return false;
+}
+
+bool Nmea2000Source::apply(
+    const tN2kMsg &c, const PgnClasses::EngineParametersRapidUpdate& packet) {
+  if (packet.engineSpeed.defined()) {
+    std::string source = _lastSourceName;
+    if (packet.engineInstance.get() ==
+        EngineParametersRapidUpdate::EngineInstance::Dual_Engine_Starboard) {
+      source += " starboard";
+    }
+    _dispatcher->publishValue(ENGINE_RPM, source, packet.engineSpeed.get());
+    return true;
+  }
+  return false;
+}
+
 }  // namespace sail
 
