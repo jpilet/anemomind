@@ -1,4 +1,4 @@
-/** Generated on Thu Feb 08 2018 14:30:43 GMT+0100 (CET) using 
+/** Generated on Fri Feb 09 2018 16:29:27 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -385,8 +385,8 @@ namespace PgnClasses {
     Optional<Integrity > integrity; //  at 256 bits = 32 bytes
     // Skip field 'Reserved' of length 6 at 258 bits = 32 bytes + 2 bits: Reserved field
     Optional<uint64_t > numberOfSvs; // Number of satellites used in solution at 264 bits = 33 bytes
-    Optional<int64_t > hdop; // Horizontal dilution of precision at 272 bits = 34 bytes
-    Optional<int64_t > pdop; // Probable dilution of precision at 288 bits = 36 bytes
+    Optional<double > hdop; // Horizontal dilution of precision at 272 bits = 34 bytes
+    Optional<double > pdop; // Probable dilution of precision at 288 bits = 36 bytes
     Optional<sail::Length<double> > geoidalSeparation; // Geoidal Separation at 304 bits = 38 bytes
     Optional<uint64_t > referenceStations; // Number of reference stations at 320 bits = 40 bytes
     std::vector<Repeating> repeating;
