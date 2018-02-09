@@ -145,3 +145,38 @@ TEST(PgnClassesTest, GnssPositionData) {
   }
 }
 
+TEST(PgnClassesTest, ANotherGnssPositionDataTest) {
+  std::stringstream ss;
+  std::vector<uint8_t> data{
+  /*0xa0, 0x2f, */ 0x66, 0xa7, 0x42, 0xa0, 0x38, 0x19
+  /*, 0xa1*/, 0x13, 0x00, 0xf0, 0x78, 0x62, 0x77, 0x1a
+/*, 0xa2*/, 0xbe, 0x05, 0x30, 0xd5, 0xf5, 0x51, 0x56
+/*, 0xa3*/, 0xa7, 0x4d, 0x00, 0xcb, 0xa4, 0x15, 0x03
+/*, 0xa4*/, 0x00, 0x00, 0x00, 0x00, 0x13, 0xfc, 0x09
+/*, 0xa5*/, 0x63, 0x00, 0xb6, 0x00, 0x08, 0x14, 0x00
+/*, 0xa6*/, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff
+  };
+  // EXPECTED:
+  //2018-02-09-16:16:41.696 3   1 255 129029 GNSS Position Data:
+  // SID = 102; Date = 2016.09.19; Time = 08:54:02;
+  // Latitude = 41.3797315; Longitude =  2.1857562;
+  // Altitude = Unhandled value 51750091 (0);
+  // GNSS type = GPS+SBAS/WAAS; Method = GNSS fix;
+  // Integrity = No integrity checking; Number of SVs = 9;
+  // HDOP = 0.99; PDOP = 1.82; Geoidal Separation = 51.28 m;
+  // Reference Stations = 0
+
+  GnssPositionData pos(data.data(), data.size());
+  EXPECT_TRUE(pos.geoidalSeparation.defined());
+  EXPECT_NEAR(pos.hdop.get(), 0.99, 0.1);
+  EXPECT_NEAR(pos.pdop.get(), 1.82, 0.1);
+
+  EXPECT_NEAR(pos.geoidalSeparation.get().meters(), 51.28, 0.1);
+
+  auto pos2 = recode(pos);
+  EXPECT_NEAR(pos2.geoidalSeparation.get().meters(), 51.28, 0.1);
+
+}
+
+
+
