@@ -1,4 +1,4 @@
-pgntable = require('./pgntable.js');
+var pgntable = require('./pgntable.js');
 
 var splitRegEx = /\$.*\*[0-9A-F]{2}\n/g;
 
