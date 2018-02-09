@@ -1,4 +1,4 @@
-/** Generated on Thu Feb 08 2018 14:30:43 GMT+0100 (CET) using 
+/** Generated on Fri Feb 09 2018 16:29:27 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -581,8 +581,8 @@ namespace PgnClasses {
         // Skipping reserved
         src.advanceBits(6);
       numberOfSvs = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      hdop = src.getSigned(16, 0, N2kField::Definedness::AlwaysDefined);
-      pdop = src.getSigned(16, 0, N2kField::Definedness::AlwaysDefined);
+      hdop = src.getDoubleWithResolution(0.01, true, 16, 0, N2kField::Definedness::AlwaysDefined);
+      pdop = src.getDoubleWithResolution(0.01, true, 16, 0, N2kField::Definedness::AlwaysDefined);
       geoidalSeparation = src.getPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0);
       referenceStations = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       while (32 <= src.remainingBits()) {
@@ -642,8 +642,8 @@ namespace PgnClasses {
       dst.pushUnsigned(2, integrity.cast<uint64_t>());
       dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushUnsigned(8, numberOfSvs);
-      dst.pushSigned(16, 0, hdop);
-      dst.pushSigned(16, 0, pdop);
+      dst.pushDoubleWithResolution(0.01, true, 16, 0, hdop);
+      dst.pushDoubleWithResolution(0.01, true, 16, 0, pdop);
       dst.pushPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0, geoidalSeparation);
       dst.pushUnsigned(8, referenceStations);
     for (const auto& x: repeating) {

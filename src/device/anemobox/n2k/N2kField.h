@@ -41,7 +41,10 @@ class N2kFieldStream : public BitStream {
 
   Optional<uint64_t> getUnsigned(int bits, Definedness definedness);
   Optional<int64_t> getSigned(int bits, int64_t offset, Definedness definedness);
-  Optional<double> getDouble(bool isSigned, int bits, int64_t offset, Definedness definedness);
+  Optional<double> getDouble(
+      bool isSigned, int bits, int64_t offset, Definedness definedness);
+  Optional<double> getDoubleWithResolution(double resolution,
+      bool isSigned, int bits, int64_t offset, Definedness definedness);
 
   template <typename T>
   Optional<T> getPhysicalQuantity(
@@ -86,6 +89,11 @@ public:
           : Optional<uint64_t>());
     }
   }
+
+  void pushDoubleWithResolution(
+      double resolution,
+      bool isSigned, int bits,
+      int64_t offset, Optional<double> value);
 
   template <typename T>
   void pushPhysicalQuantity(
