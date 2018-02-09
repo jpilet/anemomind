@@ -348,7 +348,20 @@ void sendWindData(
   TRY_LOOK_UP(obj, "windSpeed", &(x.windSpeed));
   TRY_LOOK_UP(obj, "windAngle", &(x.windAngle));
   TRY_LOOK_UP_TYPED(EnumAsInt<WindData::Reference>(), obj, "reference", &(x.reference));
-  CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send wind data");
+  CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send WindData");
+}
+
+void sendTimeDate(
+   int32_t deviceIndex,
+   const v8::Local<v8::Object>& obj,
+   Nmea2000Source* dst) {
+  using namespace PgnClasses;
+
+  TimeDate x;
+  TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_days), obj, "date", &(x.date));
+  TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_seconds), obj, "time", &(x.time));
+  TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_minutes), obj, "localOffset", &(x.localOffset));
+  CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send TimeDate");
 }
 
 void dispatchPgn(
@@ -370,6 +383,8 @@ void dispatchPgn(
     return sendGnssPositionData(deviceIndex, obj, dst);
   case PgnClasses::WindData::ThisPgn:
     return sendWindData(deviceIndex, obj, dst);
+  case PgnClasses::TimeDate::ThisPgn:
+    return sendTimeDate(deviceIndex, obj, dst);
   default: break;
   };
   {

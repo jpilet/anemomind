@@ -159,6 +159,22 @@ describe('Try the send method', function() {
         reference: 0
       }], "windSpeed");
 
+      testSend(src, [{
+        pgn: 129033,
+        deviceIndex: 0,
+        time: 7000,
+        date: 7900,
+        localOffset: 180
+      }], null);
+      
+      testSend(src, [{
+        pgn: 129033,
+        deviceIndex: 0,
+        time: "asdf",
+        date: 7900,
+        localOffset: 180
+      }], "time");
+
       done();
     }, 1500);
   });
