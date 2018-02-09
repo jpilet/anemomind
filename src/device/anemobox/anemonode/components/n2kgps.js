@@ -1,4 +1,4 @@
-
+pgntable = require('./pgntable.js');
 
 var splitRegEx = /\$.*\*[0-9A-F]{2}\n/g;
 
@@ -84,7 +84,8 @@ function makeGnssPositionData(nmea) {
   var sats = satsUsedForFix(nmea);
 
   return {
-    pgn: 129029, // GNSS Position Data
+    pgn: pgntable.gnssPositionData,
+    deviceIndex: 1, // GPS virtual device
     date: days,
     time: seconds,
     latitude: parseLatitude(gga[2], gga[3]),

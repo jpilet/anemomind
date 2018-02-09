@@ -178,3 +178,9 @@ module.exports.startNmea2000 = startNmea2000;
 module.exports.startRawLogging = function() { rawPacketLoggingEnabled = true; };
 module.exports.stopRawLogging = function() { rawPacketLoggingEnabled = false; };
 module.exports.setRawLogging = function(val) { rawPacketLoggingEnabled = !!val; }; 
+module.exports.sendPackets = function(packets) {
+  if (nmea2000Source) {
+    nmea2000Source.send(packets);
+  }
+};
+
