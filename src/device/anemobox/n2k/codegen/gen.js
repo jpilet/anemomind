@@ -3,6 +3,29 @@ var fs = require('fs');
 var assert = require('assert');
 var Path = require('path');
 
+function findValidPath(paths) {
+  for (var i = 0; i < paths.length; i++) {
+    var p = paths[i];
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+  return null;
+}
+
+/**
+   The pgn.Length value is probably not reliable in case 
+   "repeating fields" is greater than 0. In that case,
+   the length is effectiverly dependent on how many times the fields are
+   repeated.
+
+   Currently, the pgn.Length value is used to determine whether
+   a packet should be parsed as a "fast packet" or an ordinary 
+   packet. It seems like the pgn.Length is computed as the sum of bits
+   for all fields and converted to bytes. See for instance GnssPositionData
+
+*/
+
 function concat(a, b) {
   return a.concat(b);
 }
@@ -93,7 +116,7 @@ function getClassName(pgn) {
   return capitalizeFirstLetter(pgn.Id + '');
 }
 
-function getFieldArray(pgn) {
+function getFullFieldArray(pgn) {
   if (pgn.Fields) {
     assert(pgn.Fields.length == 1);
     var fields = pgn.Fields[0];
@@ -104,15 +127,53 @@ function getFieldArray(pgn) {
   return [];
 }
 
+function getStaticFieldArray(pgn) {
+  var r = pgn.RepeatingFields;
+  var fields = getFullFieldArray(pgn);
+  return r == 0? fields : fields.slice(0, -r);
+}
+
+function getRepeatingFieldArray(pgn) {
+  var r = pgn.RepeatingFields;
+  var fields = getFullFieldArray(pgn);
+  var sliced = r == 0? [] : fields.slice(fields.length-r);
+  assert(sliced.length == r);
+  return sliced;
+}
+
+function complement(f) {
+  return function(x) {return !f(x);}
+}
+
+function skipField(field) {
+  if (getFieldId(field) == 'reserved') {
+    return "Reserved field";
+  } else if (getBitLength(field) == 0) {
+    throw new Error("We don't know how to deal with this yet. Usually it means that the field is variable length.");
+    return "Warning: Bit length 0 for field " + field.Name;
+  }
+  return false;
+}
+
+function getInstanceVariableFieldArray(pgn) {
+  return getStaticFieldArray(pgn).filter(complement(skipField));
+}
+
 function makeClassBlock(classComment, name, publicDecls, privateDecls, depth) {
-  var indent = beginLine(depth);
-  return '\n' + indent + "// " + classComment
-    +indent + "class " + name + " {" 
-    +indent + "public:"
-    +publicDecls
-    +indent + "private:"
-    +privateDecls
-    +indent + "};";
+  return indentLineArray(depth, privateDecls? [
+    "",
+    "class " + name + " { // " + classCOmment,
+    "public:",
+    [publicDecls],
+    "private:",
+    [privateDecls],
+    "};"
+  ] : [
+    "",
+    "struct " + name + " { // " + classComment,
+    [publicDecls],
+    "};"
+  ]);
 }
 
 function getFieldId(field) {
@@ -120,11 +181,15 @@ function getFieldId(field) {
 }
 
 function makeInstanceVariableName(x) {
-  return "_" + x;
+  return x;
 }
 
 function getInstanceVariableName(field) {
   return makeInstanceVariableName(getFieldId(field));
+}
+
+function getLocalVariableName(field) {
+  return 'l_' + field.Id;
 }
 
 function getUnits(field) {
@@ -132,7 +197,7 @@ function getUnits(field) {
 }
 
 function isPhysicalQuantity(field) {
-  return field.Units != null;
+  return field.Units != null && field.Units != '';
 }
 
 function isSigned(field) {
@@ -157,7 +222,7 @@ function makeIntegerReadExpr(field, srcName) {
 }
 
 function isData(field) {
-  return getFieldId(field) == "data";
+  return getFieldId(field) == "data" || (getBitLength(field) > 64);
 }
 
 unitMap = {
@@ -188,6 +253,10 @@ unitMap = {
   "minutes": {
     type: "sail::Duration<double>",
     unit: "sail::Duration<double>::minutes(1.0)"
+  },
+  "rad/s": {
+    type: "sail::AngularVelocity<double>",
+    unit: "(sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0))"
   }
 };
 
@@ -211,14 +280,20 @@ function getFieldType(field) {
   }
 }
 
-function isTypeKnown(field) {
-  if (!isPhysicalQuantity(field)) { return true; }
+function isTypeUnknown(field) {
+  if (!isPhysicalQuantity(field)) { return false; }
   if (!(getUnits(field) in unitMap)) {
-    console.log('Warning, unknown type: ' + getUnits(field));
-    return false;
+    var msg = 'Warning, unknown type: "' + getUnits(field) + '" of field named "' + field.Name + '"';
+    console.log(msg);
+    return msg;
   }
-  return true;
+  return false;
 }
+
+function isTypeKnown(field) {
+  return !isTypeUnknown(field);
+}
+
 
 function wrapOptionalType(x) {
   return "Optional<" + x + " >";
@@ -238,24 +313,12 @@ function makeFieldAccessor(field) {
     + getInstanceVariableName(field) + ";}";
 }
 
-function makeAccessors(pgn, depth) {
-  var fields = getFieldArray(pgn);
-  var s = beginLine(depth, 1) + "// Field access";
-  for (var i = 0; i < fields.length; i++) {
-    var field = fields[i];
-    if (!skipField(field)) {
-      s += beginLine(depth) + makeFieldAccessor(field);
-    }
-  }
-  return s;
-}
-
-var validMethod = "bool valid() const {return _valid;}";
-var resetDecl = "void reset();";
+var encodeDecl = "std::vector<uint8_t> encode() const override;";
 
 var commonMethods = [
-  validMethod,
-  resetDecl
+  "bool hasSomeData() const;",
+  "bool hasAllData() const;",
+  encodeDecl
 ];
 
 
@@ -271,18 +334,10 @@ function makeDefaultConstructorDecl(pgn, depth) {
   return beginLine(depth) + getClassName(pgn) + "();";
 }
 
-function makeResetMethod(pgn, depth) {
-  var innerDepth = depth + 1;
-  return beginLine(depth, 1) + "void " + getClassName(pgn) + "::reset() {"
-    + beginLine(innerDepth) + "_valid = false;"
-    + beginLine(depth) + "}";
-}
-
 function makeMethodsInClass(pgn, depth) {
   return "\n" + makeDefaultConstructorDecl(pgn, depth)
     + makeConstructorDecl(pgn, depth) 
     + makeCommonMethods(depth) 
-    + makeAccessors(pgn, depth)
     + makeExtraMethodsInClass(pgn, depth);
 }
 
@@ -290,24 +345,44 @@ function makeConstructorSignature(pgn) {
   return getClassName(pgn) + "(const uint8_t *data, int lengthBytes)";
 }
 
+function explainBits(bits0) {
+  var bits = parseInt(bits0);
+  var bytes = Math.floor(bits/8);
+  var rem = (bits - 8*bytes);
+  return bits + " bits = " + bytes + " bytes" 
+    + (rem == 0? "" : (" + " + rem + " bits"));
+}
+
 function getFieldComment(field) {
   var d = field.Description;
-  return (d? "// " + d : "");
+  return "// " + (d? d : "") + " at " + explainBits(field.BitOffset);
+}
+
+function makeInstanceVariableDecl(field) {
+  var skip = skipField(field);
+  if (skip) {
+    return "// Skip field '" + field.Name + "' of length " 
+      + getBitLength(field) + " at " 
+      + explainBits(field.BitOffset) + ": " + skip; 
+  }
+  return getOptionalFieldType(field) + " "
+    + getInstanceVariableName(field) + "; "
+    + getFieldComment(field);
 }
 
 
 function makeInstanceVariableDecls(pgn, depth) {
-  var fields = getFieldArray(pgn);
-  var commonDecls = beginLine(depth) + "bool _valid;";
+  var fields = getStaticFieldArray(pgn);
+  var commonDecls = beginLine(depth);
   var s = commonDecls;
+  var bline = beginLine(depth);
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
-    if (!skipField(field)) {
-      s += beginLine(depth) 
-        + getOptionalFieldType(field) + " "
-        + getInstanceVariableName(field) + "; "
-        + getFieldComment(field);
-    }
+    s += bline + makeInstanceVariableDecl(field);
+  }
+  var rep = getRepeatingFieldArray(pgn);
+  if (0 < rep.length) {
+    s += bline + "std::vector<Repeating> repeating;";
   }
   return s;
 }
@@ -316,8 +391,12 @@ function makeConstructorDecl(pgn, depth) {
   return beginLine(depth) + makeConstructorSignature(pgn) + ";";
 }
 
-function makePgnStaticConst(pgn, depth) {
-  return beginLine(depth) + "static const int ThisPgn = " + getPgnCode(pgn) + ";";
+function makePgnInfo(pgn, depth) {
+  var code = getPgnCode(pgn);
+  return indentLineArray(depth, [
+    "static const int ThisPgn = " + code + ";",
+    "int code() const override {return " + code + ";}"
+  ]);
 }
 
 function getType(field) {
@@ -370,7 +449,7 @@ function makeEnum(field, depth) {
 
 function makeEnums(pgn, depth) {
   var enums = '';
-  var fields = getFieldArray(pgn);
+  var fields = getFullFieldArray(pgn);
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
     if (isLookupTable(field)) {
@@ -380,16 +459,38 @@ function makeEnums(pgn, depth) {
   return enums;
 }
 
+function makeRepeatingFieldsStruct(pgn, depth) {
+  var fields = getRepeatingFieldArray(pgn);
+  if (getTotalBitLength(fields) == 0) {
+    return '';
+  }
+  
+  return indentLineArray(depth, [
+    "struct Repeating {",
+    fields.map(makeInstanceVariableDecl),
+    "};"
+  ]);
+};
+
+function makePgnClassInfo(pgn) {
+  var rep = getRepeatingFieldArray(pgn);
+  return "// Minimum size: " + explainBits(getTotalBitLength(getStaticFieldArray(pgn))) 
+    + ". " + (rep.length == 0? "" : "Repeating struct size: " 
+              + explainBits(getTotalBitLength(getRepeatingFieldArray(pgn))));
+}
+
 function makeClassDeclarationFromPgn(pgn, depth) {
   var innerDepth = depth + 1;
   return makeClassBlock(
     pgn.Description + '',
-    getClassName(pgn), 
-    makePgnStaticConst(pgn, innerDepth) 
+    getClassName(pgn) + ': public PgnBaseClass', 
+    makePgnClassInfo(pgn)
+      + makePgnInfo(pgn, innerDepth) 
       + makeEnums(pgn, innerDepth)
-      + makeMethodsInClass(pgn, innerDepth),
-    makeInstanceVariableDecls(pgn, innerDepth), 
-    depth);
+      + makeRepeatingFieldsStruct(pgn, innerDepth)
+      + makeMethodsInClass(pgn, innerDepth)
+      + makeInstanceVariableDecls(pgn, innerDepth), 
+    null, depth);
 }
 
 
@@ -433,7 +534,7 @@ function makePgnVariantDispatchers(multiDefs) {
     var tname = makePgnEnumTypeName(code);
     return other.map(function(name) {
       return ["virtual " + tname + " " + name
-              + "(const CanPacket &packet) {",
+              + "(const tN2kMsg &packet) {",
               ["return " + tname + "::Undefined; // TODO in derived class"],
               "}"];
     })
@@ -445,19 +546,18 @@ function makeVisitorDeclaration(pgns) {
   var multiDefs = getMultiDefs(defMap);
   var s = [
     '\n\n',
-    'class PgnVisitor : FastPacketBuffer {',
+    'class PgnVisitor {',
     ' public:',
     [
-      '// Handle FastPacket protocol',
-      'void pushAndLinkPacket(const CanPacket& packet);',
-      'bool visit(const CanPacket &packet);',
+      'bool visit(const tN2kMsg& packet);',
+      '',
+      '// You may have to split the packet, based on the pgn.',
      'virtual ~PgnVisitor() {}'],
     ' protected:',
     pgns.map(function(pgn) {
       return 'virtual bool apply'
-        + '(const CanPacket& src, const ' + getClassName(pgn) + '& packet) { return false; }';
+        + '(const tN2kMsg& src, const ' + getClassName(pgn) + '& packet) { return false; }';
     }),
-    '  virtual void fullPacketReceived(const CanPacket& fullPacket);',
     makePgnVariantDispatchers(multiDefs),
     "};"
   ];
@@ -554,7 +654,7 @@ function getDispatchFields(pgnDefs) {
   var occupied = [];
   for (var i = 0; i < pgnDefs.length; i++) {
     var pgnDef = pgnDefs[i];
-    var mf = getFieldsMarkedMatch(getFieldArray(pgnDef));
+    var mf = getFieldsMarkedMatch(getStaticFieldArray(pgnDef));
     addDispatchFieldEntries(i, mf, occupied, dst);
   }
   return getSortedDispatchFields(dst);
@@ -565,7 +665,7 @@ function makeDispatchVariableName(index) {
 }
 
 function makeDispatchCodeAssignments(pgnDefs, sortedFields) {
-  var s = ["BitStream dispatchStream(&(packet.data)[0], packet.data.size());"];
+  var s = ["BitStream dispatchStream(packet.Data, packet.DataLen);"];
   var at = 0;
   for (var i = 0; i < sortedFields.length; i++) {
     var f = sortedFields[i];
@@ -705,7 +805,7 @@ function listOtherDispatchFunctions(pgnCode, tree, branches) {
 
 function callApplyMethod(pgnDefs) {
   if (pgnDefs.length == 1) {
-    return 'return apply(packet, ' + getClassName(pgnDefs[0]) + '(&(packet.data[0]), packet.data.size()));';
+    return 'return apply(packet, ' + getClassName(pgnDefs[0]) + '(packet.Data, packet.DataLen));';
   } else {
     var code = getCommonPgnCode(pgnDefs);
     var dispatchFields = getDispatchFields(pgnDefs);
@@ -736,52 +836,53 @@ function makePgnEnum(pgnDefs) {
 
 function makeVisitorImplementation(pgns) {
   return indentLineArray(0, [
-    'void PgnVisitor::pushAndLinkPacket(const CanPacket& packet) {',
-    '  if (packet.data.size() == 8 && pgnSize(packet.pgn) > 8) {',
-    '    add(packet);',
-    '  } else {',
-    '    visit(packet);',
-    '  }',
-    '}',
-    '',
-    'void PgnVisitor::fullPacketReceived(const CanPacket& fullPacket) {',
-    '  visit(fullPacket);',
-    '}',
-    '',
-    'bool PgnVisitor::visit(const CanPacket &packet) {',
+    'bool PgnVisitor::visit(const tN2kMsg &packet) {',
     makeSwitchStatement(
-      makeDefsPerPgn(pgns), "packet.pgn", "return false;", 
+      makeDefsPerPgn(pgns), "packet.PGN", "return false;", 
       function(key, pgnDefs) {
         return callApplyMethod(pgnDefs);
       }),
     ['return false;'],
-    "}"]);
+    "}",
+  ]);
 }
 
-function makePgnSizeImplementation(pgns) {
-  var code = [
-    'int pgnSize(int pgn) {',
-    '  switch(pgn) {'
-  ];
+/**
 
-  for (var i = 0; i < pgns.length; ++i) {
-    var len = pgns[i].Length;
-    if (len != 8) {
-    code.push('    case ' + pgns[i].PGN + ': return ' + len + ';');
-    }
-  }
-  code.push('    default: return 8;');
-  code.push('  }');
-  code.push('}');
+Actually, in the ttlappalainen NMEA2000 library, there is this function:
 
-  return indentLineArray(0, code);
-};
+//*****************************************************************************
+bool tNMEA2000::IsFastPacket(const tN2kMsg &N2kMsg) {
+  if (N2kMsg.Priority>=0x80) return false; // Special handling for force to send message as single frame.
+  
+  return IsFastPacketPGN(N2kMsg.PGN);
+}
+
+It takes into account the special case of the "Priority" of a message being
+greater than 0x80, which is something we currently ignore.
+
+Apart from that, whether a packet is a fast packet or not is simply a function
+of its PGN.
+
+*/
+
+function makeIsFastPacketImplementation(pgns) {
+  var fastPacketPgns = pgns.filter(function(pgn) {
+    return pgn.isFastPacket;
+  });
+  return indentLineArray(0, [
+    "bool isFastPacket(int pgn) {",
+    ["return (pgn == 129029); // TODO: This is just temporary."],
+    "}"
+  ]);
+}
 
 
 function makeInterface(label, pgns) {
   return wrapNamespace(
     label,
-    makePgnEnums(pgns)
+    pgnBaseClass
+    + makePgnEnums(pgns)
     + makeClassDeclarationsSub(pgns)
     + makeVisitorDeclaration(pgns));
 }
@@ -825,14 +926,6 @@ function makeFieldFromIntExpr(field, intExpr) {
   return intExpr;
 }
 
-function skipField(field) {
-  if ((getFieldId(field) == 'reserved')
-      || !isTypeKnown(field)) {
-      return true;
-  }
-  return false;
-}
-
 function boolToString(x) {
   return x? "true" : "false";
 }
@@ -873,25 +966,14 @@ function getEnumedFields(fields) {
   return fields.filter(function(field) {return isLookupTable(field)});
 }
 
-function allEnumedFieldsDefined(fields) {
-  var enumed = getEnumedFields(fields);
-  if (enumed.length == 0) {
-    return "true";
-  } else {
-    return enumed.map(function(x) {
-      return getInstanceVariableName(x) + ".defined()";
-    }).join(" && ");
-  }
-}
-
-function makeFieldAssignment(field, depth) {
+function makeFieldAssignment(dstName, field) {
   if (skipField(field)) {
-    return indentLineArray(depth, [
+    return [
       '// Skipping ' + getFieldId(field),
       'src.advanceBits(' + getBitLength(field) + ');'
-    ]);
+    ];
   } else {
-    var lhs = beginLine(depth) + getInstanceVariableName(field) + " = ";
+    var lhs = dstName + " = ";
     var bits = getBitLength(field) + '';
     var signed = isSigned(field);
     var signedExpr = boolToString(signed);
@@ -918,6 +1000,39 @@ function makeFieldAssignment(field, depth) {
   }
 }
 
+function add(a, b) {
+  return a + b;
+}
+
+function makeEncodeFieldStatement(valueExpr, field) {
+  var bits = getBitLength(field);
+  if (skipField(field)) {
+    return "dst.fillBits(" + bits + ", true); // TODO: "
+      + "Can we safely do this? The field name is '" + field.Name + "'";
+  } else {
+    var signed = isSigned(field);
+    var signedExpr = boolToString(signed);
+    var offset = getOffset(field);
+    if (isPhysicalQuantity(field)) {
+      var info = getUnitInfo(field);
+      return "dst.pushPhysicalQuantity(" 
+        + signedExpr + ", " + getResolution(field) 
+        + ", " + info.unit + ", " + bits + ", " + offset + ", " + valueExpr + ");";
+    } else if (isLookupTable(field)) {
+      return "dst.pushUnsigned(" 
+        + bits + ", " + valueExpr + ".cast<uint64_t>());" 
+    } else if (isData(field)) {
+      assert(bits % 8 == 0, 
+             "Cannot write bytes, because the number of bits is not a multiple of 8.");
+      return "dst.pushBytes(" + bits + ", " + valueExpr + ");"
+    } else { // Something else.
+      return (signed? "dst.pushSigned(" : "dst.pushUnsigned(")
+        + bits + (signed? ", " + offset : "") 
+        + ", " + valueExpr + ");";
+    }
+  }
+}
+
 function getTotalBitLength(fields) {
   var n = 0;
   for (var i = 0; i < fields.length; i++) {
@@ -931,36 +1046,54 @@ function logIgnoringField(field, err) {
   console.log('Ignoring field ' + getFieldId(field) + ': ' + err);
 }
 
-function makeFieldAssignments(fields, depth) {
-  var s = '';
-  for (var i = 0; i < fields.length; i++) {
-    s += makeFieldAssignment(fields[i], depth);
+function makeFieldAssignments(fields) {
+  return fields.map(function(f) {
+    return makeFieldAssignment(getInstanceVariableName(f), f);
+  });
+}
+
+function bindRepeatingFieldToLocalVar(field) {
+  return makeFieldAssignment("auto " + getLocalVariableName(field), field);
+}
+ 
+function bindRepeatingFieldsToLocalVars(fields) {
+  return fields.map(bindRepeatingFieldToLocalVar);
+}
+
+function pushRepeatingFieldStruct(fields) {
+  return [
+    'repeating.push_back({' 
+      + fields.filter(complement(skipField)).map(getLocalVariableName).join(", ") 
+      + '});'];
+}
+
+function readRepeatingFields(fields) {
+  var totalBits = getTotalBitLength(fields);
+  if (totalBits == 0) {
+    return '// No repeating fields.';
   }
-  return s;
+  return [
+    'while (' + totalBits + ' <= src.remainingBits()) {',
+    bindRepeatingFieldsToLocalVars(fields),
+    pushRepeatingFieldStruct(fields),
+    '}'
+  ]
 }
 
 function makeConstructorStatements(pgn, depth) {
-  var fields = getFieldArray(pgn);
+  var fields = getStaticFieldArray(pgn);
   var innerDepth = depth + 1;
-  
-  var comment = '';
-  if (pgn.RepeatingFields > 0) {
-    var warn = 'Warning: PGN ' + pgn.PGN + ' has '
-      + pgn.RepeatingFields + ' repeating fields that are not handled.'
-    console.warn(warn);
-    fields = fields.slice(0, - pgn.RepeatingFields);
-    comment = beginLine(depth) + '// ' + warn;
-  }
-  return comment
-    + beginLine(depth)
-    + 'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {'
-    + makeFieldAssignments(fields, innerDepth, false)
-    + beginLine(innerDepth) + "_valid = " + allEnumedFieldsDefined(fields) + ";"
-    + beginLine(depth) + "} else {"
-    + beginLine(innerDepth) + "reset();"
-    + beginLine(depth) + "}";
 
+  // TODO! Proper handling of repeating fields!!!
+  return indentLineArray(depth, [
+    'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {',
+    makeFieldAssignments(fields),
+    readRepeatingFields(getRepeatingFieldArray(pgn)),
+    '}'
+  ]);
 }
+
+
 
 function makeConstructor(pgn, depth) {
   var innerDepth = depth + 1;
@@ -971,13 +1104,61 @@ function makeConstructor(pgn, depth) {
     + beginLine(depth) + "}";
 }
 
+function hasData(pgn, op) {
+  var fieldsDefined = getInstanceVariableFieldArray(pgn).map(function(f, i) {
+    var s = getInstanceVariableName(f) + ".defined()";
+    return (i == 0? "  " : op) + " " + s;
+  });
+
+  return ["return ", fieldsDefined, ";"];
+}
+
+function makeHasDataMethod(pgn, what, op, depth) {
+  return indentLineArray(depth, [
+    "bool " + getClassName(pgn) + "::has" + what + "Data() const {",
+    hasData(pgn, op),
+    "}"
+  ]);
+}
+
+function makeEncodeMethodStatements(pgn) {
+  var dst = [
+    "N2kField::N2kFieldOutputStream dst;"
+  ];
+  
+  var fields = getStaticFieldArray(pgn);
+
+  // Currently, repeating fields are not dealt with.
+
+  dst.push(fields.map(function(field) {
+    var valueExpr = getInstanceVariableName(field);
+    return makeEncodeFieldStatement(valueExpr, field);
+  }));
+  var repeating = getRepeatingFieldArray(pgn);
+  if (0 < repeating.length) {
+    dst.push('for (const auto& x: repeating) {');
+    dst.push(repeating.filter(complement(skipField)).map(function(f) {
+      return makeEncodeFieldStatement('x.' + getInstanceVariableName(f), f);
+    }));
+    dst.push('}');
+  }
+  dst.push("return dst.moveData();");
+  return dst;
+}
+
+function makeEncodeMethod(pgn, depth) {
+  return indentLineArray(depth, [
+    "std::vector<uint8_t> " + getClassName(pgn) + "::encode() const {",
+    makeEncodeMethodStatements(pgn),
+    "}"
+  ]);
+}
+
 
 function makeDefaultConstructor(pgn, depth) {
   var innerDepth = depth + 1;
-  var fields = getFieldArray(pgn);
   var className = getClassName(pgn);
   return beginLine(depth, 1) + className + "::" + className + "() {"
-    +beginLine(depth+1) + "reset();"
     +beginLine(depth) + "}";
 }
 
@@ -1013,7 +1194,7 @@ function tryMakeTimeStampAccessor(fieldMap, depth) {
 }
 
 function makeExtraMethodsInClass(pgn, depth) {
-  var fields = getFieldArray(pgn);
+  var fields = getStaticFieldArray(pgn);
   var fieldMap = makeFieldMap(fields);
   return tryMakeTimeStampAccessor(fieldMap, depth);
 }
@@ -1021,10 +1202,12 @@ function makeExtraMethodsInClass(pgn, depth) {
 function makeMethodsForPgn(pgn, depth) {
   return makeDefaultConstructor(pgn, depth) 
     + makeConstructor(pgn, depth)
-    + makeResetMethod(pgn, depth);
+    + makeHasDataMethod(pgn, "Some", "||", depth)
+    + makeHasDataMethod(pgn, "All", "&&", depth)
+    + makeEncodeMethod(pgn, depth);
 }
 
-var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n\n';
+var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n#include<server/common/logging.h>\n\n';
 
 function makeImplementationFileContents(moduleName, pgns) {
   var depth = 1;
@@ -1032,7 +1215,7 @@ function makeImplementationFileContents(moduleName, pgns) {
   for (var i = 0; i < pgns.length; i++) {
     contents += makeMethodsForPgn(pgns[i], depth);
   }
-  contents += '\n' + makePgnSizeImplementation(pgns);
+  contents += '\n' + makeIsFastPacketImplementation(pgns);
   contents += '\n' + makeVisitorImplementation(pgns);
   return makeHeaderInclusion(moduleName) + privateInclusions + wrapNamespace(moduleName, contents);
 }
@@ -1041,8 +1224,7 @@ var publicInclusions = '#include <device/Arduino/libraries/PhysicalQuantity/Phys
     +'#include <cassert>\n'
     +'#include <device/anemobox/n2k/N2kField.h>\n'
     +'#include <server/common/Optional.h>\n'
-    +'#include <device/anemobox/n2k/CanPacket.h>\n'
-    +'#include <device/anemobox/n2k/FastPacket.h>\n\n'
+  +'#include <N2kMsg.h>\n\n';
 
 
 function makePgnEnums(pgns) {
@@ -1050,10 +1232,21 @@ function makePgnEnums(pgns) {
   return getMultiDefs(defMap).map(makePgnEnum).join("\n");
 }
 
+var pgnBaseClass = indentLineArray(1, [
+  'class PgnBaseClass {',
+  'public:', [
+    'virtual int code() const = 0;',
+    'virtual std::vector<uint8_t> encode() const = 0;',
+    'virtual ~PgnBaseClass() {}'
+  ],
+  '};',
+  ''
+]);
+
 function makeInterfaceFileContents(moduleName, pgns) {
   return wrapInclusionGuard(
     moduleName.toUpperCase(), 
-    publicInclusions + 
+    publicInclusions +
     makeInterface(moduleName, pgns));
 }
 
@@ -1066,25 +1259,22 @@ function makeInfoComment(argv, inputPath) {
 
 }
 
-function outputData(outputPath, moduleName, interfaceData, implementationData, 
-                    summary, cb) {
-  interfaceFilename = Path.join(outputPath, moduleName + ".h");
-  implementationFilename = Path.join(outputPath, moduleName + ".cpp");
-  summaryFilename = Path.join(outputPath, "summary.html");
-  fs.writeFile(interfaceFilename, interfaceData, function(err) {
-    if (err) {
-      cb(err);
-    } else {
-      fs.writeFile(implementationFilename, implementationData, function(err) {
-        if (err) {
-          cb(err);
-        } else {
-          fs.writeFile(summaryFilename, summary, cb);
-        }
-      });
-    }
-  });
+function writeFiles(filenameTextPairs, cb) {
+  if (filenameTextPairs.length == 0) {
+    cb();
+  } else {
+    var first = filenameTextPairs[0];
+    fs.writeFile(first[0], first[1], 'utf8', function(err) {
+      if (err) {
+        cb(err);
+      } else {
+        var rest = filenameTextPairs.slice(1);
+        writeFiles(rest, cb);
+      }
+    });
+  }
 }
+
 
 function getFieldSummary(field) {
   return getFieldId(field) + "(" + field.Name + ")";
@@ -1095,7 +1285,7 @@ function getFieldSummaries(fields) {
 }
 
 function getPgnTableRow(pgn) {
-  var summaries = getFieldSummaries(getFieldArray(pgn));
+  var summaries = getFieldSummaries(getFullFieldArray(pgn));
   return [pgn.PGN + '', pgn.Description + '', summaries];
 }
 
@@ -1137,28 +1327,18 @@ function checkPgns(pgns) {
   assert(dup == undefined, "PGN Ids are not unique: '" + dup + '"');
 }
 
-
-function compileAllFiles(argv, value, inputPath, outputPath, cb) {
+function compileAllCppFiles(argv, pgns, inputPath, outputPath) {
   var moduleName = "PgnClasses";
-  try {
-    var allPgns = getPgnArrayFromParsedXml(value);
-    var pgns = filterPgnsOfInterest(allPgns);
-    
-    checkPgns(pgns);
-    var cmt = makeInfoComment(argv, inputPath);
-    var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
-    var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
-    var summary = makeSourceLink(inputPath) + renderInPage(
-      "PGN Summary", makeHtmlTable(
-        [tableHeader].concat(getPgnSummaries(allPgns))));
-    outputData(
-      outputPath, moduleName, 
-      interfaceData, implementationData, summary, cb);
-  } catch (e) {
-    console.log('Caught exception while compiling C++');
-    console.log(e);
-    cb(e);
-  }
+  checkPgns(pgns);
+  var cmt = makeInfoComment(argv, inputPath);
+  var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
+  var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
+  var interfaceName = Path.join(outputPath, moduleName + ".h");
+  var implementationName = Path.join(outputPath, moduleName + ".cpp");
+  return [
+    [interfaceName, interfaceData], 
+    [implementationName, implementationData]
+  ];
 }
 
 
@@ -1173,17 +1353,56 @@ function loadXml(inputPath, cb) {
   });
 }
 
+function generatePgnTableJs(pgns) {
+  return indentLineArray(0, [
+    "module.exports = {",
+    pgns.map(function(pgn) {
+      return pgn.Id + ": " + getPgnCode(pgn) + ",";
+    }),
+    "};"
+  ]);
+}
+
 function generate(argv, inputPath, outputPath, cb) {
   loadXml(inputPath, function(err, value) {
     if (err) {
       cb(err);
     } else {
-      compileAllFiles(argv, value, inputPath, outputPath, cb);
+      try {
+        var allPgns = getPgnArrayFromParsedXml(value);
+        var pgns = filterPgnsOfInterest(allPgns);
+
+        // A html table
+        var summaryFilename = outputPath + "/summary.html";
+        var summary = makeSourceLink(inputPath) + renderInPage(
+          "PGN Summary", makeHtmlTable(
+            [tableHeader].concat(getPgnSummaries(allPgns))));
+
+        // A node module, convenient for getting the right code.
+        var jsTableFilename = outputPath 
+            + "/../anemonode/components/pgntable.js";
+        var jsTable = generatePgnTableJs(pgns);
+
+        // An array of (filename,data) pairs
+        var allData = 
+            compileAllCppFiles(argv, pgns, inputPath, outputPath)
+            .concat([
+              [summaryFilename, summary],
+              [jsTableFilename, jsTable]
+            ]);
+
+        writeFiles(allData, cb);
+      } catch (e) {
+        cb(e);
+      }
     }
   });
 }
 
-defaultInputPath = '/home/jonas/programmering/cpp/canboat/analyzer/pgns.xml';
+var inputPathsToTry = [
+  '/Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml',
+  '/Users/jonas/prog/canboat/analyzer/pgns.xml'
+];
 
 function getOutputPath(javascriptFilename) {
   dstLoc = "anemobox/n2k/"
@@ -1195,14 +1414,14 @@ function getOutputPath(javascriptFilename) {
 }
 
 function main(argv) {
-  inputPath = argv[2] || defaultInputPath;
+  var paths = [argv[2]].concat(inputPathsToTry);
+  var inputPath = findValidPath(paths);
   console.log("Input XML filename: " + inputPath);
   javascriptFilename = argv[1];
   outputPath = getOutputPath(javascriptFilename);
   if (outputPath == null) {
     console.log("Unable to determine output path from " + javascriptFilename);
   } else {
-    console.log("Output generated files to " + outputPath);
     generate(argv, inputPath, outputPath, function(err, value) {
       if (err) {
         console.log("Failed to generate because ");

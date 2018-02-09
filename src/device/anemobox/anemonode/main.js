@@ -25,7 +25,7 @@ var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
 var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
-var nmea2000raw = require('./components/nmea2000raw.js');
+var nmea2000 = require('./components/nmea2000.js');
 
 // To free up space if possible.
 function cleanOld() {
@@ -51,7 +51,7 @@ function setLogRawNmea2000FromConfig(err, cfg) {
   if (err) {
     console.log("Error reading config setting to set log raw NMEA 2000 state");
   } else {
-    nmea2000raw.setState(cfg.logRawNmea2000);
+    nmea2000.setRawLogging(cfg.logRawNmea2000);
   }
 }
 
@@ -194,7 +194,7 @@ if (withCUPS) {
 }
 
 if (withNMEA2000) {
-  require('./components/nmea2000.js').detectSPIBug(function() {
+  nmea2000.detectSPIBug(function() {
     var message = 'SPI bug detected, rebooting!';
     console.log(message);
     spiBugDetected = true;
@@ -203,6 +203,7 @@ if (withNMEA2000) {
       logger.flush();
     }
   });
+  nmea2000.startNmea2000();
 }
 
 if (withWatchdog) {

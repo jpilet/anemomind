@@ -1,6 +1,6 @@
-/** Generated on Wed Jun 21 2017 23:51:39 GMT+0200 (CEST) using 
+/** Generated on Thu Feb 08 2018 14:30:43 GMT+0100 (CET) using 
  *
- *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
+ *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -11,10 +11,16 @@
 #include <cassert>
 #include <device/anemobox/n2k/N2kField.h>
 #include <server/common/Optional.h>
-#include <device/anemobox/n2k/CanPacket.h>
-#include <device/anemobox/n2k/FastPacket.h>
+#include <N2kMsg.h>
 
 namespace PgnClasses {
+  class PgnBaseClass {
+  public:
+    virtual int code() const = 0;
+    virtual std::vector<uint8_t> encode() const = 0;
+    virtual ~PgnBaseClass() {}
+  };
+  
   enum class PgnVariant60416 {
     TypeIsoTransportProtocolConnectionManagementRequestToSend,
     TypeIsoTransportProtocolConnectionManagementClearToSend,
@@ -24,145 +30,133 @@ namespace PgnClasses {
     Undefined
   };
 
-
-  // ISO Transport Protocol, Data Transfer
-  class IsoTransportProtocolDataTransfer {
-  public:
+  
+  struct IsoTransportProtocolDataTransfer: public PgnBaseClass { // ISO Transport Protocol, Data Transfer
+    // Minimum size: 8 bits = 1 bytes. Repeating struct size: 56 bits = 7 bytes
     static const int ThisPgn = 60160;
+    int code() const override {return 60160;}
+    struct Repeating {
+      Optional<sail::Array<uint8_t> > data; //  at 8 bits = 1 bytes
+    };
 
     IsoTransportProtocolDataTransfer();
     IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<sail::Array<uint8_t> > &data() const {return _data;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _sid; 
-    Optional<sail::Array<uint8_t> > _data; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > sid; //  at 0 bits = 0 bytes
+    std::vector<Repeating> repeating;
   };
-
-  // ISO Transport Protocol, Connection Management - Request To Send
-  class IsoTransportProtocolConnectionManagementRequestToSend {
-  public:
+  
+  struct IsoTransportProtocolConnectionManagementRequestToSend: public PgnBaseClass { // ISO Transport Protocol, Connection Management - Request To Send
+    // Minimum size: 40 bits = 5 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
+    struct Repeating {
+      Optional<uint64_t > pgn; // PGN at 40 bits = 5 bytes
+    };
 
     IsoTransportProtocolConnectionManagementRequestToSend();
     IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
-    const Optional<uint64_t > &messageSize() const {return _messageSize;}
-    const Optional<uint64_t > &packets() const {return _packets;}
-    const Optional<uint64_t > &packetsReply() const {return _packetsReply;}
-    const Optional<uint64_t > &pgn() const {return _pgn;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _groupFunctionCode; // RTS
-    Optional<uint64_t > _messageSize; // bytes
-    Optional<uint64_t > _packets; // packets
-    Optional<uint64_t > _packetsReply; // packets sent in response to CTS
-    Optional<uint64_t > _pgn; // PGN
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > groupFunctionCode; // RTS at 0 bits = 0 bytes
+    Optional<uint64_t > messageSize; // bytes at 8 bits = 1 bytes
+    Optional<uint64_t > packets; // packets at 24 bits = 3 bytes
+    Optional<uint64_t > packetsReply; // packets sent in response to CTS at 32 bits = 4 bytes
+    std::vector<Repeating> repeating;
   };
-
-  // ISO Transport Protocol, Connection Management - Clear To Send
-  class IsoTransportProtocolConnectionManagementClearToSend {
-  public:
+  
+  struct IsoTransportProtocolConnectionManagementClearToSend: public PgnBaseClass { // ISO Transport Protocol, Connection Management - Clear To Send
+    // Minimum size: 40 bits = 5 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
+    struct Repeating {
+      Optional<uint64_t > pgn; // PGN at 40 bits = 5 bytes
+    };
 
     IsoTransportProtocolConnectionManagementClearToSend();
     IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
-    const Optional<uint64_t > &maxPackets() const {return _maxPackets;}
-    const Optional<uint64_t > &nextSid() const {return _nextSid;}
-    const Optional<uint64_t > &pgn() const {return _pgn;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _groupFunctionCode; // CTS
-    Optional<uint64_t > _maxPackets; // packets before waiting for next CTS
-    Optional<uint64_t > _nextSid; // packet
-    Optional<uint64_t > _pgn; // PGN
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > groupFunctionCode; // CTS at 0 bits = 0 bytes
+    Optional<uint64_t > maxPackets; // packets before waiting for next CTS at 8 bits = 1 bytes
+    Optional<uint64_t > nextSid; // packet at 16 bits = 2 bytes
+    // Skip field 'Reserved' of length 16 at 24 bits = 3 bytes: Reserved field
+    std::vector<Repeating> repeating;
   };
-
-  // ISO Transport Protocol, Connection Management - End Of Message
-  class IsoTransportProtocolConnectionManagementEndOfMessage {
-  public:
+  
+  struct IsoTransportProtocolConnectionManagementEndOfMessage: public PgnBaseClass { // ISO Transport Protocol, Connection Management - End Of Message
+    // Minimum size: 40 bits = 5 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
+    struct Repeating {
+      Optional<uint64_t > pgn; // PGN at 40 bits = 5 bytes
+    };
 
     IsoTransportProtocolConnectionManagementEndOfMessage();
     IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
-    const Optional<uint64_t > &totalMessageSize() const {return _totalMessageSize;}
-    const Optional<uint64_t > &totalNumberOfPacketsReceived() const {return _totalNumberOfPacketsReceived;}
-    const Optional<uint64_t > &pgn() const {return _pgn;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _groupFunctionCode; // EOM
-    Optional<uint64_t > _totalMessageSize; // bytes
-    Optional<uint64_t > _totalNumberOfPacketsReceived; // packets
-    Optional<uint64_t > _pgn; // PGN
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > groupFunctionCode; // EOM at 0 bits = 0 bytes
+    Optional<uint64_t > totalMessageSize; // bytes at 8 bits = 1 bytes
+    Optional<uint64_t > totalNumberOfPacketsReceived; // packets at 24 bits = 3 bytes
+    // Skip field 'Reserved' of length 8 at 32 bits = 4 bytes: Reserved field
+    std::vector<Repeating> repeating;
   };
-
-  // ISO Transport Protocol, Connection Management - Broadcast Announce
-  class IsoTransportProtocolConnectionManagementBroadcastAnnounce {
-  public:
+  
+  struct IsoTransportProtocolConnectionManagementBroadcastAnnounce: public PgnBaseClass { // ISO Transport Protocol, Connection Management - Broadcast Announce
+    // Minimum size: 40 bits = 5 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
+    struct Repeating {
+      Optional<uint64_t > pgn; // PGN at 40 bits = 5 bytes
+    };
 
     IsoTransportProtocolConnectionManagementBroadcastAnnounce();
     IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
-    const Optional<uint64_t > &messageSize() const {return _messageSize;}
-    const Optional<uint64_t > &packets() const {return _packets;}
-    const Optional<uint64_t > &pgn() const {return _pgn;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _groupFunctionCode; // BAM
-    Optional<uint64_t > _messageSize; // bytes
-    Optional<uint64_t > _packets; // frames
-    Optional<uint64_t > _pgn; // PGN
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > groupFunctionCode; // BAM at 0 bits = 0 bytes
+    Optional<uint64_t > messageSize; // bytes at 8 bits = 1 bytes
+    Optional<uint64_t > packets; // frames at 24 bits = 3 bytes
+    // Skip field 'Reserved' of length 8 at 32 bits = 4 bytes: Reserved field
+    std::vector<Repeating> repeating;
   };
-
-  // ISO Transport Protocol, Connection Management - Abort
-  class IsoTransportProtocolConnectionManagementAbort {
-  public:
+  
+  struct IsoTransportProtocolConnectionManagementAbort: public PgnBaseClass { // ISO Transport Protocol, Connection Management - Abort
+    // Minimum size: 32 bits = 4 bytes. Repeating struct size: 24 bits = 3 bytes
     static const int ThisPgn = 60416;
+    int code() const override {return 60416;}
+    struct Repeating {
+      Optional<uint64_t > pgn; // PGN at 32 bits = 4 bytes
+    };
 
     IsoTransportProtocolConnectionManagementAbort();
     IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
-    const Optional<uint64_t > &reason() const {return _reason;}
-    const Optional<uint64_t > &pgn() const {return _pgn;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _groupFunctionCode; // Abort
-    Optional<uint64_t > _reason; 
-    Optional<uint64_t > _pgn; // PGN
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > groupFunctionCode; // Abort at 0 bits = 0 bytes
+    Optional<uint64_t > reason; //  at 8 bits = 1 bytes
+    // Skip field 'Reserved' of length 16 at 16 bits = 2 bytes: Reserved field
+    std::vector<Repeating> repeating;
   };
-
-  // System Time
-  class SystemTime {
-  public:
+  
+  struct SystemTime: public PgnBaseClass { // System Time
+    // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 126992;
+    int code() const override {return 126992;}
     enum class Source {
       GPS = 0, 
       GLONASS = 1, 
@@ -174,52 +168,42 @@ namespace PgnClasses {
 
     SystemTime();
     SystemTime(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<Source > &source() const {return _source;}
-    const Optional<sail::Duration<double> > &date() const {return _date;}
-    const Optional<sail::Duration<double> > &time() const {return _time;}
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
     sail::TimeStamp timeStamp() const {
       return N2kField::getTimeStamp(*this);
     }
-  private:
-    bool _valid;
-    Optional<uint64_t > _sid; 
-    Optional<Source > _source; 
-    Optional<sail::Duration<double> > _date; // Days since January 1, 1970
-    Optional<sail::Duration<double> > _time; // Seconds since midnight
+    
+    Optional<uint64_t > sid; //  at 0 bits = 0 bytes
+    Optional<Source > source; //  at 8 bits = 1 bytes
+    // Skip field 'Reserved' of length 4 at 12 bits = 1 bytes + 4 bits: Reserved field
+    Optional<sail::Duration<double> > date; // Days since January 1, 1970 at 16 bits = 2 bytes
+    Optional<sail::Duration<double> > time; // Seconds since midnight at 32 bits = 4 bytes
   };
-
-  // Rudder
-  class Rudder {
-  public:
+  
+  struct Rudder: public PgnBaseClass { // Rudder
+    // Minimum size: 48 bits = 6 bytes. 
     static const int ThisPgn = 127245;
+    int code() const override {return 127245;}
 
     Rudder();
     Rudder(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &instance() const {return _instance;}
-    const Optional<uint64_t > &directionOrder() const {return _directionOrder;}
-    const Optional<sail::Angle<double> > &angleOrder() const {return _angleOrder;}
-    const Optional<sail::Angle<double> > &position() const {return _position;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _instance; 
-    Optional<uint64_t > _directionOrder; 
-    Optional<sail::Angle<double> > _angleOrder; 
-    Optional<sail::Angle<double> > _position; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > instance; //  at 0 bits = 0 bytes
+    Optional<uint64_t > directionOrder; //  at 8 bits = 1 bytes
+    // Skip field 'Reserved' of length 6 at 10 bits = 1 bytes + 2 bits: Reserved field
+    Optional<sail::Angle<double> > angleOrder; //  at 16 bits = 2 bytes
+    Optional<sail::Angle<double> > position; //  at 32 bits = 4 bytes
   };
-
-  // Vessel Heading
-  class VesselHeading {
-  public:
+  
+  struct VesselHeading: public PgnBaseClass { // Vessel Heading
+    // Minimum size: 58 bits = 7 bytes + 2 bits. 
     static const int ThisPgn = 127250;
+    int code() const override {return 127250;}
     enum class Reference {
       True = 0, 
       Magnetic = 1
@@ -227,68 +211,53 @@ namespace PgnClasses {
 
     VesselHeading();
     VesselHeading(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<sail::Angle<double> > &heading() const {return _heading;}
-    const Optional<sail::Angle<double> > &deviation() const {return _deviation;}
-    const Optional<sail::Angle<double> > &variation() const {return _variation;}
-    const Optional<Reference > &reference() const {return _reference;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _sid; 
-    Optional<sail::Angle<double> > _heading; 
-    Optional<sail::Angle<double> > _deviation; 
-    Optional<sail::Angle<double> > _variation; 
-    Optional<Reference > _reference; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > sid; //  at 0 bits = 0 bytes
+    Optional<sail::Angle<double> > heading; //  at 8 bits = 1 bytes
+    Optional<sail::Angle<double> > deviation; //  at 24 bits = 3 bytes
+    Optional<sail::Angle<double> > variation; //  at 40 bits = 5 bytes
+    Optional<Reference > reference; //  at 56 bits = 7 bytes
   };
-
-  // Rate of Turn
-  class RateOfTurn {
-  public:
+  
+  struct RateOfTurn: public PgnBaseClass { // Rate of Turn
+    // Minimum size: 40 bits = 5 bytes. 
     static const int ThisPgn = 127251;
+    int code() const override {return 127251;}
 
     RateOfTurn();
     RateOfTurn(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &sid() const {return _sid;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _sid; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > sid; //  at 0 bits = 0 bytes
+    Optional<sail::AngularVelocity<double> > rate; //  at 8 bits = 1 bytes
   };
-
-  // Attitude
-  class Attitude {
-  public:
+  
+  struct Attitude: public PgnBaseClass { // Attitude
+    // Minimum size: 56 bits = 7 bytes. 
     static const int ThisPgn = 127257;
+    int code() const override {return 127257;}
 
     Attitude();
     Attitude(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<sail::Angle<double> > &yaw() const {return _yaw;}
-    const Optional<sail::Angle<double> > &pitch() const {return _pitch;}
-    const Optional<sail::Angle<double> > &roll() const {return _roll;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _sid; 
-    Optional<sail::Angle<double> > _yaw; 
-    Optional<sail::Angle<double> > _pitch; 
-    Optional<sail::Angle<double> > _roll; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > sid; //  at 0 bits = 0 bytes
+    Optional<sail::Angle<double> > yaw; //  at 8 bits = 1 bytes
+    Optional<sail::Angle<double> > pitch; //  at 24 bits = 3 bytes
+    Optional<sail::Angle<double> > roll; //  at 40 bits = 5 bytes
   };
-
-  // Speed
-  class Speed {
-  public:
+  
+  struct Speed: public PgnBaseClass { // Speed
+    // Minimum size: 52 bits = 6 bytes + 4 bits. 
     static const int ThisPgn = 128259;
+    int code() const override {return 128259;}
     enum class SpeedWaterReferencedType {
       Paddle_wheel = 0, 
       Pitot_tube = 1, 
@@ -299,45 +268,36 @@ namespace PgnClasses {
 
     Speed();
     Speed(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<sail::Velocity<double> > &speedWaterReferenced() const {return _speedWaterReferenced;}
-    const Optional<sail::Velocity<double> > &speedGroundReferenced() const {return _speedGroundReferenced;}
-    const Optional<SpeedWaterReferencedType > &speedWaterReferencedType() const {return _speedWaterReferencedType;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _sid; 
-    Optional<sail::Velocity<double> > _speedWaterReferenced; 
-    Optional<sail::Velocity<double> > _speedGroundReferenced; 
-    Optional<SpeedWaterReferencedType > _speedWaterReferencedType; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > sid; //  at 0 bits = 0 bytes
+    Optional<sail::Velocity<double> > speedWaterReferenced; //  at 8 bits = 1 bytes
+    Optional<sail::Velocity<double> > speedGroundReferenced; //  at 24 bits = 3 bytes
+    Optional<SpeedWaterReferencedType > speedWaterReferencedType; //  at 40 bits = 5 bytes
+    Optional<uint64_t > speedDirection; //  at 48 bits = 6 bytes
   };
-
-  // Position, Rapid Update
-  class PositionRapidUpdate {
-  public:
+  
+  struct PositionRapidUpdate: public PgnBaseClass { // Position, Rapid Update
+    // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 129025;
+    int code() const override {return 129025;}
 
     PositionRapidUpdate();
     PositionRapidUpdate(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<sail::Angle<double> > &latitude() const {return _latitude;}
-    const Optional<sail::Angle<double> > &longitude() const {return _longitude;}
-  private:
-    bool _valid;
-    Optional<sail::Angle<double> > _latitude; 
-    Optional<sail::Angle<double> > _longitude; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<sail::Angle<double> > latitude; //  at 0 bits = 0 bytes
+    Optional<sail::Angle<double> > longitude; //  at 32 bits = 4 bytes
   };
-
-  // COG & SOG, Rapid Update
-  class CogSogRapidUpdate {
-  public:
+  
+  struct CogSogRapidUpdate: public PgnBaseClass { // COG & SOG, Rapid Update
+    // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 129026;
+    int code() const override {return 129026;}
     enum class CogReference {
       True = 0, 
       Magnetic = 1
@@ -345,26 +305,22 @@ namespace PgnClasses {
 
     CogSogRapidUpdate();
     CogSogRapidUpdate(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<CogReference > &cogReference() const {return _cogReference;}
-    const Optional<sail::Angle<double> > &cog() const {return _cog;}
-    const Optional<sail::Velocity<double> > &sog() const {return _sog;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _sid; 
-    Optional<CogReference > _cogReference; 
-    Optional<sail::Angle<double> > _cog; 
-    Optional<sail::Velocity<double> > _sog; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > sid; //  at 0 bits = 0 bytes
+    Optional<CogReference > cogReference; //  at 8 bits = 1 bytes
+    // Skip field 'Reserved' of length 6 at 10 bits = 1 bytes + 2 bits: Reserved field
+    Optional<sail::Angle<double> > cog; //  at 16 bits = 2 bytes
+    Optional<sail::Velocity<double> > sog; //  at 32 bits = 4 bytes
+    // Skip field 'Reserved' of length 16 at 48 bits = 6 bytes: Reserved field
   };
-
-  // GNSS Position Data
-  class GnssPositionData {
-  public:
+  
+  struct GnssPositionData: public PgnBaseClass { // GNSS Position Data
+    // Minimum size: 328 bits = 41 bytes. Repeating struct size: 32 bits = 4 bytes
     static const int ThisPgn = 129029;
+    int code() const override {return 129029;}
     enum class GnssType {
       GPS = 0, 
       GLONASS = 1, 
@@ -403,80 +359,62 @@ namespace PgnClasses {
       surveyed = 7, 
       Galileo = 8
     };
+    struct Repeating {
+      Optional<ReferenceStationType > referenceStationType; //  at 328 bits = 41 bytes
+      Optional<uint64_t > referenceStationId; //  at 332 bits = 41 bytes + 4 bits
+      Optional<sail::Duration<double> > ageOfDgnssCorrections; //  at 344 bits = 43 bytes
+    };
 
     GnssPositionData();
     GnssPositionData(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<sail::Duration<double> > &date() const {return _date;}
-    const Optional<sail::Duration<double> > &time() const {return _time;}
-    const Optional<sail::Angle<double> > &latitude() const {return _latitude;}
-    const Optional<sail::Angle<double> > &longitude() const {return _longitude;}
-    const Optional<sail::Length<double> > &altitude() const {return _altitude;}
-    const Optional<GnssType > &gnssType() const {return _gnssType;}
-    const Optional<Method > &method() const {return _method;}
-    const Optional<Integrity > &integrity() const {return _integrity;}
-    const Optional<uint64_t > &numberOfSvs() const {return _numberOfSvs;}
-    const Optional<int64_t > &hdop() const {return _hdop;}
-    const Optional<int64_t > &pdop() const {return _pdop;}
-    const Optional<sail::Length<double> > &geoidalSeparation() const {return _geoidalSeparation;}
-    const Optional<uint64_t > &referenceStations() const {return _referenceStations;}
-    const Optional<ReferenceStationType > &referenceStationType() const {return _referenceStationType;}
-    const Optional<sail::Duration<double> > &ageOfDgnssCorrections() const {return _ageOfDgnssCorrections;}
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
     sail::TimeStamp timeStamp() const {
       return N2kField::getTimeStamp(*this);
     }
-  private:
-    bool _valid;
-    Optional<uint64_t > _sid; 
-    Optional<sail::Duration<double> > _date; // Days since January 1, 1970
-    Optional<sail::Duration<double> > _time; // Seconds since midnight
-    Optional<sail::Angle<double> > _latitude; 
-    Optional<sail::Angle<double> > _longitude; 
-    Optional<sail::Length<double> > _altitude; 
-    Optional<GnssType > _gnssType; 
-    Optional<Method > _method; 
-    Optional<Integrity > _integrity; 
-    Optional<uint64_t > _numberOfSvs; // Number of satellites used in solution
-    Optional<int64_t > _hdop; // Horizontal dilution of precision
-    Optional<int64_t > _pdop; // Probable dilution of precision
-    Optional<sail::Length<double> > _geoidalSeparation; // Geoidal Separation
-    Optional<uint64_t > _referenceStations; // Number of reference stations
-    Optional<ReferenceStationType > _referenceStationType; 
-    Optional<sail::Duration<double> > _ageOfDgnssCorrections; 
+    
+    Optional<uint64_t > sid; //  at 0 bits = 0 bytes
+    Optional<sail::Duration<double> > date; // Days since January 1, 1970 at 8 bits = 1 bytes
+    Optional<sail::Duration<double> > time; // Seconds since midnight at 24 bits = 3 bytes
+    Optional<sail::Angle<double> > latitude; //  at 56 bits = 7 bytes
+    Optional<sail::Angle<double> > longitude; //  at 120 bits = 15 bytes
+    Optional<sail::Length<double> > altitude; // Altitude referenced to WGS-84 at 184 bits = 23 bytes
+    Optional<GnssType > gnssType; //  at 248 bits = 31 bytes
+    Optional<Method > method; //  at 252 bits = 31 bytes + 4 bits
+    Optional<Integrity > integrity; //  at 256 bits = 32 bytes
+    // Skip field 'Reserved' of length 6 at 258 bits = 32 bytes + 2 bits: Reserved field
+    Optional<uint64_t > numberOfSvs; // Number of satellites used in solution at 264 bits = 33 bytes
+    Optional<int64_t > hdop; // Horizontal dilution of precision at 272 bits = 34 bytes
+    Optional<int64_t > pdop; // Probable dilution of precision at 288 bits = 36 bytes
+    Optional<sail::Length<double> > geoidalSeparation; // Geoidal Separation at 304 bits = 38 bytes
+    Optional<uint64_t > referenceStations; // Number of reference stations at 320 bits = 40 bytes
+    std::vector<Repeating> repeating;
   };
-
-  // Time & Date
-  class TimeDate {
-  public:
+  
+  struct TimeDate: public PgnBaseClass { // Time & Date
+    // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 129033;
+    int code() const override {return 129033;}
 
     TimeDate();
     TimeDate(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<sail::Duration<double> > &date() const {return _date;}
-    const Optional<sail::Duration<double> > &time() const {return _time;}
-    const Optional<sail::Duration<double> > &localOffset() const {return _localOffset;}
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
     sail::TimeStamp timeStamp() const {
       return N2kField::getTimeStamp(*this);
     }
-  private:
-    bool _valid;
-    Optional<sail::Duration<double> > _date; // Days since January 1, 1970
-    Optional<sail::Duration<double> > _time; // Seconds since midnight
-    Optional<sail::Duration<double> > _localOffset; // Minutes
+    
+    Optional<sail::Duration<double> > date; // Days since January 1, 1970 at 0 bits = 0 bytes
+    Optional<sail::Duration<double> > time; // Seconds since midnight at 16 bits = 2 bytes
+    Optional<sail::Duration<double> > localOffset; // Minutes at 48 bits = 6 bytes
   };
-
-  // Wind Data
-  class WindData {
-  public:
+  
+  struct WindData: public PgnBaseClass { // Wind Data
+    // Minimum size: 43 bits = 5 bytes + 3 bits. 
     static const int ThisPgn = 130306;
+    int code() const override {return 130306;}
     enum class Reference {
       True_ground_referenced_to_North = 0, 
       Magnetic_ground_referenced_to_Magnetic_North = 1, 
@@ -487,26 +425,20 @@ namespace PgnClasses {
 
     WindData();
     WindData(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<sail::Velocity<double> > &windSpeed() const {return _windSpeed;}
-    const Optional<sail::Angle<double> > &windAngle() const {return _windAngle;}
-    const Optional<Reference > &reference() const {return _reference;}
-  private:
-    bool _valid;
-    Optional<uint64_t > _sid; 
-    Optional<sail::Velocity<double> > _windSpeed; 
-    Optional<sail::Angle<double> > _windAngle; 
-    Optional<Reference > _reference; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > sid; //  at 0 bits = 0 bytes
+    Optional<sail::Velocity<double> > windSpeed; //  at 8 bits = 1 bytes
+    Optional<sail::Angle<double> > windAngle; //  at 24 bits = 3 bytes
+    Optional<Reference > reference; //  at 40 bits = 5 bytes
   };
-
-  // Direction Data
-  class DirectionData {
-  public:
+  
+  struct DirectionData: public PgnBaseClass { // Direction Data
+    // Minimum size: 112 bits = 14 bytes. 
     static const int ThisPgn = 130577;
+    int code() const override {return 130577;}
     enum class DataMode {
       Autonomous = 0, 
       Differential_enhanced = 1, 
@@ -521,60 +453,49 @@ namespace PgnClasses {
 
     DirectionData();
     DirectionData(const uint8_t *data, int lengthBytes);
-    bool valid() const {return _valid;}
-    void reset();
-
-    // Field access
-    const Optional<DataMode > &dataMode() const {return _dataMode;}
-    const Optional<CogReference > &cogReference() const {return _cogReference;}
-    const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<sail::Angle<double> > &cog() const {return _cog;}
-    const Optional<sail::Velocity<double> > &sog() const {return _sog;}
-    const Optional<sail::Angle<double> > &heading() const {return _heading;}
-    const Optional<sail::Velocity<double> > &speedThroughWater() const {return _speedThroughWater;}
-    const Optional<sail::Angle<double> > &set() const {return _set;}
-    const Optional<sail::Velocity<double> > &drift() const {return _drift;}
-  private:
-    bool _valid;
-    Optional<DataMode > _dataMode; 
-    Optional<CogReference > _cogReference; 
-    Optional<uint64_t > _sid; 
-    Optional<sail::Angle<double> > _cog; 
-    Optional<sail::Velocity<double> > _sog; 
-    Optional<sail::Angle<double> > _heading; 
-    Optional<sail::Velocity<double> > _speedThroughWater; 
-    Optional<sail::Angle<double> > _set; 
-    Optional<sail::Velocity<double> > _drift; 
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<DataMode > dataMode; //  at 0 bits = 0 bytes
+    Optional<CogReference > cogReference; //  at 4 bits = 0 bytes + 4 bits
+    // Skip field 'Reserved' of length 2 at 6 bits = 0 bytes + 6 bits: Reserved field
+    Optional<uint64_t > sid; //  at 8 bits = 1 bytes
+    Optional<sail::Angle<double> > cog; //  at 16 bits = 2 bytes
+    Optional<sail::Velocity<double> > sog; //  at 32 bits = 4 bytes
+    Optional<sail::Angle<double> > heading; //  at 48 bits = 6 bytes
+    Optional<sail::Velocity<double> > speedThroughWater; //  at 64 bits = 8 bytes
+    Optional<sail::Angle<double> > set; //  at 80 bits = 10 bytes
+    Optional<sail::Velocity<double> > drift; //  at 96 bits = 12 bytes
   };
   
 
 
-  class PgnVisitor : FastPacketBuffer {
+  class PgnVisitor {
    public:
-    // Handle FastPacket protocol
-    void pushAndLinkPacket(const CanPacket& packet);
-    bool visit(const CanPacket &packet);
+    bool visit(const tN2kMsg& packet);
+    
+    // You may have to split the packet, based on the pgn.
     virtual ~PgnVisitor() {}
    protected:
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolDataTransfer& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementRequestToSend& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementClearToSend& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementEndOfMessage& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementBroadcastAnnounce& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementAbort& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const SystemTime& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const Rudder& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const VesselHeading& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const RateOfTurn& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const Attitude& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const Speed& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const PositionRapidUpdate& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const CogSogRapidUpdate& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const GnssPositionData& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const TimeDate& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const WindData& packet) { return false; }
-    virtual bool apply(const CanPacket& src, const DirectionData& packet) { return false; }
-    virtual void fullPacketReceived(const CanPacket& fullPacket);
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolDataTransfer& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementRequestToSend& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementClearToSend& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementEndOfMessage& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementBroadcastAnnounce& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const IsoTransportProtocolConnectionManagementAbort& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const SystemTime& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const Rudder& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const VesselHeading& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const RateOfTurn& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const Attitude& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const Speed& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const PositionRapidUpdate& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const CogSogRapidUpdate& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const GnssPositionData& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const TimeDate& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const WindData& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const DirectionData& packet) { return false; }
   };
 }
 
