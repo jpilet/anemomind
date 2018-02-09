@@ -6,6 +6,7 @@ var logger = require('./logger.js');
 var boxId = require('./boxId.js');
 var version = require('../version.js');
 var fs = require('fs');
+var pgntable = require('./pgntable.js');
 
 var n2kConfigFile = '/home/anemobox/n2k.config';
 
@@ -74,6 +75,7 @@ function instantiateNmea2000Real(boxid, cfg) {
         manufacturerCode: 2040,
         deviceFunction: 145, // GNSS
         deviceClass: 60,  // Navigation
+        transmitPgn: [ pgntable.gnssPositionData ],
         address: configOrDefault(cfg, serials[1], 'address', 43)
     }]);
 

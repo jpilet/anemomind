@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <deque>
+#include <list>
 
 #include <NMEA2000.h> 
 #include <N2kMsg.h>
@@ -55,6 +56,7 @@ class NodeNmea2000 : public Nan::ObjectWrap, public tNMEA2000 {
   Nan::Persistent<v8::Object> deviceConfigHandle_;
 
   std::deque<Packet> packets_;
+  std::list<std::vector<unsigned long>> pgnLists_;
 };
 
 #endif  // __MAIN_H_
