@@ -174,6 +174,91 @@ module.exports.detectSPIBug = function(callback) {
   , 10 * 1000);
 };
 
+
+var subscriptions = {};
+var lastSent = {
+  twa: 0,
+  twdir: 0,
+  aw: 0
+};
+
+function isFresh(time, field) {
+  var threshold = 80;
+ 
+  var values = anemonode.dispatcher.values[field];
+  return (values.length > 0
+          && Math.abs(values.time(0) - time) < threshold);
+}
+
+function getIfFresh(value, now) {
+  var threshold = 80;
+  if (value && ((now - value.time()) < threshold)) {
+    return value.value();
+  }
+}
+
+var sid = { };
+
+function nextSid(key) {
+  var sid = sid[key] || 0;
+  sid[key] = sid + 1;
+  return sid;
+}
+
+function trySendWind() {
+  var now = anemonode.currentTime();
+  var minResendTime = 100; // ms
+  var packetsToSend = [];
+  var sources = anemonode.dispatcher.allSources();
+  var source = 'Anemomind estimator';
+  if (!(source in sources)) {
+    return;
+  }
+
+  if ((now - lastSent.twa) > minResendTime) {
+    var twa = getIfFresh(sources.twa[source], now);
+    var tws = getIfFresh(sources.tws[source], now);
+
+    if (twa != undefined && tws != undefined) {
+      packetsToSend.push({
+        deviceIndex: 0,
+        pgn: pgntable.windData,
+        sid: nextSid('twa'),
+        windSpeed: [ tws, anemonode.dispatcher.values.tws.unit ],
+        windAngle: [ twa, anemonode.dispatcher.values.twa.unit ],
+        reference: 3 // True (boat referenced)
+      });
+      lastSent.twa = now;
+    }
+  }
+
+  if ((now - lastSent.twdir) > minResendTime) {
+    var twdir = getIfFresh(sources.twdir[source], now);
+    var tws = getIfFresh(sources.tws[source], now);
+
+    if (twdir != undefined && tws != undefined) {
+      packetsToSend.push({
+        deviceIndex: 0,
+        sid: nextSid('twdir'),
+        pgn: pgntable.windData,
+        windSpeed: [ tws, anemonode.dispatcher.values.tws.unit ],
+        windAngle: [ twa, anemonode.dispatcher.values.twa.unit ],
+        reference: 0 // True (ground referenced to North)
+      });
+      lastSent.twa = now;
+    }
+  }
+}
+
+function startSendingWindPackets() {
+  var fields = [ 'twa', 'tws', 'twdir' ];
+
+  for (var i in fields) {
+    var field = fields[i];
+    subscriptions[field] = anemonode.dispatcher.values[field].subscribe(trySendWind);
+  }
+}
+
 module.exports.startNmea2000 = startNmea2000;
 module.exports.startRawLogging = function() { rawPacketLoggingEnabled = true; };
 module.exports.stopRawLogging = function() { rawPacketLoggingEnabled = false; };
