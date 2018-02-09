@@ -134,6 +134,31 @@ describe('Try the send method', function() {
         // Missing longitude is not a problem? Or should we require it?
       }], null);
 
+      testSend(src, [{
+        pgn: 130306,
+        deviceIndex: 0,
+        windSpeed: [8.0, "m/s"],
+        windAngle: [120.4, "degrees"],
+        reference: 0
+      }], null);
+
+      testSend(src, [{
+        pgn: 130306,
+        deviceIndex: 0,
+        windSpeed: 1.4,
+        windAngle: 120.4,
+        reference: 0
+      }], null);
+
+
+      testSend(src, [{
+        pgn: 130306,
+        deviceIndex: 0,
+        windSpeed: [8.0, "degrees"],
+        windAngle: [120.4, "degrees"],
+        reference: 0
+      }], "windSpeed");
+
       done();
     }, 1500);
   });
