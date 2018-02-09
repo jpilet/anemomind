@@ -112,6 +112,27 @@ NAN_METHOD(NodeNmea2000::New) {
           intOrDefault(obj, "industryGroup", 4),
           i);
 
+      v8::Local<v8::Value> transmit = obj->Get(SYMBOL("transmitPgn"));
+      if (transmit->IsArray()) {
+        v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(transmit); 
+        std::vector<unsigned long> pgns;
+        for (unsigned j = 0; j < array->Length(); ++j) {
+          v8::Local<v8::Value> val = array->Get(i);
+          if (val->IsNumber()) {
+            pgns.push_back(val->Uint32Value());
+          }
+        }
+        pgns.push_back(0);
+        if (pgns.size() > 1) {
+          // ExtendMessage will take the pointer and never free it.
+          // We put the vector in pgnLists_, so that when NodeNmea2000 object 
+          // is destroyed, memory is freed. Of course, using the tNMEA2000 object
+          // after that will potentially result in a crash.
+          zis->pgnLists_.emplace_back(pgns);
+          zis->ExtendTransmitMessages(zis->pgnLists_.back().data(), i);
+        }
+      }
+
       address = intOrDefault(obj, "address", address);
     }
   }
