@@ -986,6 +986,8 @@ function makeFieldAssignment(dstName, field) {
     var signed = isSigned(field);
     var signedExpr = boolToString(signed);
     var offset = getOffset(field);
+    var definedness = "N2kField::Definedness::" 
+        + (8 < bits? "MaybeUndefined" : "AlwaysDefined");
     if (isPhysicalQuantity(field)) {
       var info = getUnitInfo(field);
       return lhs + "src.getPhysicalQuantity(" 
@@ -999,7 +1001,7 @@ function makeFieldAssignment(dstName, field) {
       return lhs + "src.getDoubleWithResolution(" 
         + getResolution(field) + ", "
         + signedExpr + ", " + bits + ", " 
-        + offset + ", N2kField::Definedness::AlwaysDefined);";
+        + offset + ", " + definedness + ");";
     } else if (isData(field)) {
       assert(bits % 8 == 0, 
              "Cannot read bytes, because the number of bits is not a multiple of 8.");
@@ -1008,7 +1010,7 @@ function makeFieldAssignment(dstName, field) {
       return lhs
         + (signed? "src.getSigned(" : "src.getUnsigned(")
         + bits + (signed? ", " + offset : "") 
-        + ", N2kField::Definedness::AlwaysDefined);";
+        + ", " + definedness + ");";
     }
   }
 }

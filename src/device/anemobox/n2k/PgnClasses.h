@@ -1,4 +1,4 @@
-/** Generated on Fri Feb 09 2018 16:29:27 GMT+0100 (CET) using 
+/** Generated on Fri Feb 09 2018 17:04:29 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *

@@ -1,4 +1,4 @@
-/** Generated on Fri Feb 09 2018 16:29:27 GMT+0100 (CET) using 
+/** Generated on Fri Feb 09 2018 17:04:29 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -50,11 +50,11 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (40 <= src.remainingBits()) {
       groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      messageSize = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
       packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       packetsReply = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       while (24 <= src.remainingBits()) {
-        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::MaybeUndefined);
         repeating.push_back({l_pgn});
       }
     }
@@ -99,7 +99,7 @@ namespace PgnClasses {
         // Skipping reserved
         src.advanceBits(16);
       while (24 <= src.remainingBits()) {
-        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::MaybeUndefined);
         repeating.push_back({l_pgn});
       }
     }
@@ -137,12 +137,12 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (40 <= src.remainingBits()) {
       groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      totalMessageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      totalMessageSize = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
       totalNumberOfPacketsReceived = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
         // Skipping reserved
         src.advanceBits(8);
       while (24 <= src.remainingBits()) {
-        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::MaybeUndefined);
         repeating.push_back({l_pgn});
       }
     }
@@ -180,12 +180,12 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (40 <= src.remainingBits()) {
       groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      messageSize = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
       packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
         // Skipping reserved
         src.advanceBits(8);
       while (24 <= src.remainingBits()) {
-        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::MaybeUndefined);
         repeating.push_back({l_pgn});
       }
     }
@@ -227,7 +227,7 @@ namespace PgnClasses {
         // Skipping reserved
         src.advanceBits(16);
       while (24 <= src.remainingBits()) {
-        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+        auto l_pgn = src.getUnsigned(24, N2kField::Definedness::MaybeUndefined);
         repeating.push_back({l_pgn});
       }
     }
@@ -581,13 +581,13 @@ namespace PgnClasses {
         // Skipping reserved
         src.advanceBits(6);
       numberOfSvs = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      hdop = src.getDoubleWithResolution(0.01, true, 16, 0, N2kField::Definedness::AlwaysDefined);
-      pdop = src.getDoubleWithResolution(0.01, true, 16, 0, N2kField::Definedness::AlwaysDefined);
+      hdop = src.getDoubleWithResolution(0.01, true, 16, 0, N2kField::Definedness::MaybeUndefined);
+      pdop = src.getDoubleWithResolution(0.01, true, 16, 0, N2kField::Definedness::MaybeUndefined);
       geoidalSeparation = src.getPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0);
       referenceStations = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       while (32 <= src.remainingBits()) {
         auto l_referenceStationType = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5, 6, 7, 8}).cast<ReferenceStationType>();
-        auto l_referenceStationId = src.getUnsigned(12, N2kField::Definedness::AlwaysDefined);
+        auto l_referenceStationId = src.getUnsigned(12, N2kField::Definedness::MaybeUndefined);
         auto l_ageOfDgnssCorrections = src.getPhysicalQuantity(false, 0.01, sail::Duration<double>::seconds(1.0), 16, 0);
         repeating.push_back({l_referenceStationType, l_referenceStationId, l_ageOfDgnssCorrections});
       }
