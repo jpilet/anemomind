@@ -90,15 +90,41 @@ NAN_METHOD(JsNmea2000Source::New) {
 
 bool extractTypedValue(
     const TaggedValue& src, Angle<double>* dst) {
-  if (src.tag == "deg" || src.tag == "" || src.tag == "degrees") {
+  if (src.tag == "deg" 
+      || src.tag == "degrees" 
+      || src.tag == "degree" 
+      || src.tag == "" /*<-- For backward compability and conventions, 
+                         we will assume it is degrees if there is
+                         no tag*/) {
     *dst = Angle<double>::degrees(src.value);
     return true;
-  } else if (src.tag == "rad" || src.tag == "radians") {
+  } else if (src.tag == "rad" 
+             || src.tag == "radians"
+             || src.tag == "radian") {
     *dst = Angle<double>::radians(src.value);
     return true;
   }
   return false;
 }
+
+bool extractTypedValue(
+    const TaggedValue& src, Velocity<double>* dst) {
+  if (src.tag == "kt" 
+      || src.tag == "kn" 
+      || src.tag == "knots"
+      || src.tag == "knot"
+      || src.tag == "" /*<-- For backward compability and conventions, 
+                         we will assume it is knots if there is
+                         no tag*/) {
+    *dst = Velocity<double>::knots(src.value);
+    return true;
+  } else if (src.tag == "m/s" || src.tag == "mps") {
+    *dst = Velocity<double>::metersPerSecond(src.value);
+    return true;
+  }
+  return false;
+}
+
 
 bool extractTypedValue(
     const TaggedValue& src, Duration<double>* dst) {
@@ -124,26 +150,32 @@ bool extractTypedValue(
   return false;
 }
 
-  bool tryExtract(const v8::Local<v8::Value>& val,
-                  Angle<double>* dst) {
+  template <typename T>
+  bool tryExtractTypedFromTagged(
+     const v8::Local<v8::Value>& val,
+     T* dst) {
     TaggedValue tmp;
-    Angle<double> angle;
-    if (tryExtract(val, &tmp) && extractTypedValue(tmp, &angle)) {
-      *dst = angle;
+    T x;
+    if (tryExtract(val, &tmp) && extractTypedValue(tmp, &x)) {
+      *dst = x;
       return true;
     }
     return false;
   }
 
   bool tryExtract(const v8::Local<v8::Value>& val,
+                  Angle<double>* dst) {
+    return tryExtractTypedFromTagged(val, dst);
+  }
+
+  bool tryExtract(const v8::Local<v8::Value>& val,
                   Duration<double>* dst) {
-    TaggedValue tmp;
-    Duration<double> d;
-    if (tryExtract(val, &tmp) && extractTypedValue(tmp, &d)) {
-      *dst = d;
-      return true;
-    }
-    return false;
+    return tryExtractTypedFromTagged(val, dst);
+  }
+
+  bool tryExtract(const v8::Local<v8::Value>& val,
+                  Velocity<double>* dst) {
+    return tryExtractTypedFromTagged(val, dst);
   }
 
 void sendPositionRapidUpdate(
@@ -305,6 +337,33 @@ void sendGnssPositionData(
   }
 }
 
+void sendWindData(
+   int32_t deviceIndex,
+   const v8::Local<v8::Object>& obj,
+   Nmea2000Source* dst) {
+  using namespace PgnClasses;
+
+  WindData x;
+  x.sid = lookUpOrDefault<uint64_t>(obj, "sid", 0);
+  TRY_LOOK_UP(obj, "windSpeed", &(x.windSpeed));
+  TRY_LOOK_UP(obj, "windAngle", &(x.windAngle));
+  TRY_LOOK_UP_TYPED(EnumAsInt<WindData::Reference>(), obj, "reference", &(x.reference));
+  CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send WindData");
+}
+
+void sendTimeDate(
+   int32_t deviceIndex,
+   const v8::Local<v8::Object>& obj,
+   Nmea2000Source* dst) {
+  using namespace PgnClasses;
+
+  TimeDate x;
+  TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_days), obj, "date", &(x.date));
+  TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_seconds), obj, "time", &(x.time));
+  TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_minutes), obj, "localOffset", &(x.localOffset));
+  CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send TimeDate");
+}
+
 void dispatchPgn(
    int64_t pgn,
    const v8::Local<v8::Object>& obj,
@@ -322,6 +381,10 @@ void dispatchPgn(
     return sendPositionRapidUpdate(deviceIndex, obj, dst);
   case PgnClasses::GnssPositionData::ThisPgn:
     return sendGnssPositionData(deviceIndex, obj, dst);
+  case PgnClasses::WindData::ThisPgn:
+    return sendWindData(deviceIndex, obj, dst);
+  case PgnClasses::TimeDate::ThisPgn:
+    return sendTimeDate(deviceIndex, obj, dst);
   default: break;
   };
   {
@@ -376,4 +439,4 @@ NAN_METHOD(JsNmea2000Source::send) {
   }
 }
 
-}  // namespace sail
+} // namespace sail
