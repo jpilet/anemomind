@@ -1,7 +1,7 @@
 var assert = require('assert');
 var anemonode = require('../build/Release/anemonode');
 
-var gnssData = require('./test_n2kgps.js').testData0;
+var gnssData = require('./n2kgps_data.js')[0].msg;
 
 var boxid = "kattskit";
 var virtDevBits = 2;
