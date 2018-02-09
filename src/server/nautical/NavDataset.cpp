@@ -359,8 +359,15 @@ namespace {
          * that's what we would do. And by doing that, we would
          * start dropping old values due to size limitations of
          * the DispatchData where we put the values.
+         *
+         * We can't directly return ds because ds might have multiple sources,
+         * but the other sources were occluded by a higher priority main
+         * source. See #1201. Instead, we make sure the only source we have
+         * is the one selected in the result.
          */
-        return ds;
+        NavDataset result = ds.clone();
+        result.selectSource(_code, *sources.begin());
+        return result;
       } else {
         source = "mix (";
         source += join(sources, ", ") + ")";
