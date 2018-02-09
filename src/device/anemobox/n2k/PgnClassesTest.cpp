@@ -176,6 +176,14 @@ TEST(PgnClassesTest, ANotherGnssPositionDataTest) {
   auto pos2 = recode(pos);
   EXPECT_NEAR(pos2.geoidalSeparation.get().meters(), 51.28, 0.1);
 
+  EXPECT_EQ(pos.referenceStations.get(), 0);
+
+  auto coded = pos.encode();
+  int minSize = std::min(coded.size(), data.size());
+  for (int i = 0; i < coded.size(); i++) {
+    EXPECT_EQ(coded[i], data[i]);
+  }
+
 }
 
 
