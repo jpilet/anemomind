@@ -429,7 +429,7 @@ void ChartSourceIndexBuilder::add(const TileMetaData& metadata,
 bool ChartSourceIndexBuilder::upload(
     const std::shared_ptr<mongoc_database_t>& db,
     const ChartTileSettings& settings) {
-  _channels.appendToParent();
+  _channels.finalize();
   auto oid = makeOid(_boatId);
   BSON_APPEND_OID(&_index, "_id", &oid);
 
