@@ -137,6 +137,24 @@ struct TileMetaData {
       source(x->source()) {}
 };
 
+class ChartSourceIndexBuilder {
+ public:
+  ChartSourceIndexBuilder(const std::string& boatid,
+                          std::shared_ptr<Dispatcher> dispatcher);
+
+  void add(const TileMetaData& metadata, TimeStamp first, TimeStamp last,
+           int64_t tilecount);
+
+  bool upload(const std::shared_ptr<mongoc_database_t>& db,
+              const ChartTileSettings& settings);
+
+ private:
+  std::shared_ptr<Dispatcher> _dispatcher;
+  WrapBson _index;
+  BsonSubDocument _channels;
+  std::string _boatId;
+};
+
 template<class T>
 std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
                      const std::string& boatId,
@@ -227,8 +245,10 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
  public:
   UploadChartTilesVisitor(const std::string& boatId,
                           const ChartTileSettings& settings,
-                          BulkInserter *inserter)
-    : _boatId(boatId), _settings(settings), _inserter(inserter), _result(true) { }
+                          BulkInserter *inserter,
+                          ChartSourceIndexBuilder* index)
+    : _boatId(boatId), _settings(settings),
+    _inserter(inserter), _result(true), _index(index) { }
 
   template<class T>
   void makeTiles(
@@ -248,7 +268,10 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
 
     map<int64_t, ChartTile<T>> prevZoomTiles;
 
-    for (int zoom = _settings.lowestZoomLevel; zoom <= _settings.highestZoomLevel; zoom++) {
+    uint64_t tileCount = 0;
+
+    for (int zoom = _settings.lowestZoomLevel;
+         zoom <= _settings.highestZoomLevel; zoom++) {
       int64_t firstTile = tileAt(firstTime, zoom);
       int64_t lastTile = tileAt(lastTime, zoom);
 
@@ -261,6 +284,7 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
                            nullptr : &prevZoomTiles),
                        &tile);
         if (!tile.empty()) {
+          ++tileCount;
           tiles[tileno] = tile;
           if (!uploadChartTile(
               tiles[tileno], tileMetaData, _boatId,
@@ -275,6 +299,8 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
       // to produce the next zoom level.
       prevZoomTiles.swap(tiles);
     }
+
+    _index->add(tileMetaData, firstTime, lastTime, tileCount);
   }
 
   template<class T>
@@ -310,38 +336,15 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
   const ChartTileSettings& _settings;
   BulkInserter *_inserter;
   bool _result;
-};
-
-class GetMinMaxTime : public DispatchDataVisitor {
- public:
-  GetMinMaxTime() : valid(false) { }
-
-  template<typename T>
-  void getFirstLast(TypedDispatchData<T> *tdd) {
-    const TimedSampleCollection<T> values = tdd->dispatcher()->values();
-    if (values.size() > 0) {
-      first = values[0].time;
-      last = values.lastTimeStamp();
-      valid = true;
-    }
-  }
-  TimeStamp first, last;
-  bool valid;
-
-  virtual void run(DispatchAngleData *angle) { getFirstLast(angle); }
-  virtual void run(DispatchVelocityData *velocity) { getFirstLast(velocity); }
-  virtual void run(DispatchLengthData *length) { getFirstLast(length); }
-  virtual void run(DispatchGeoPosData *pos) { /* nothing for pos */ }
-  virtual void run(DispatchTimeStampData *timestamp) { /* nothing */ }
-  virtual void run(DispatchAbsoluteOrientationData *orient) { }
-  virtual void run(DispatchBinaryEdge *orient) { }
+  ChartSourceIndexBuilder* _index;
 };
 
 bool uploadChartTiles(DispatchData* data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
-                      BulkInserter *db) {
-  UploadChartTilesVisitor visitor(boatId, settings, db);
+                      BulkInserter *db,
+                      ChartSourceIndexBuilder* index) {
+  UploadChartTilesVisitor visitor(boatId, settings, db, index);
   data->visit(&visitor);
   return visitor.result();
 }
@@ -392,67 +395,43 @@ bool uploadChartTiles(const NavDataset& data,
     return false;
   }
   BulkInserter inserter(coll, 1000);
+  ChartSourceIndexBuilder index(boatId, data.dispatcher());
 
   for (auto channel : allSources) {
     for (auto source : channel.second) {
-      if (!uploadChartTiles(source.second.get(), boatId, settings, &inserter)) {
+      if (!uploadChartTiles(source.second.get(), boatId,
+                            settings, &inserter, &index)) {
         return false;
       }
     }
   }
-  return true;
+  return index.upload(db, settings);
 }
 
-std::vector<std::pair<std::string, GetMinMaxTime>>
-  getMinMaxTimes(
-      const std::map<std::string, std::shared_ptr<DispatchData>>& sources) {
-  std::vector<std::pair<std::string, GetMinMaxTime>> dst;
-  dst.reserve(sources.size());
-  for (const auto& source: sources) {
-    GetMinMaxTime minMaxTime;
-    source.second->visit(&minMaxTime);
-    if (minMaxTime.valid) {
-      dst.push_back({source.first, minMaxTime});
-    }
-  }
-  return dst;
+ChartSourceIndexBuilder::ChartSourceIndexBuilder(
+    const std::string& boatId, std::shared_ptr<Dispatcher> dispatcher)
+  : _channels(&_index, "channels"), _dispatcher(dispatcher),
+    _boatId(boatId) { }
+
+void ChartSourceIndexBuilder::add(const TileMetaData& metadata,
+                                  TimeStamp first, TimeStamp last,
+                                  int64_t tileCount) {
+  BsonSubDocument chanObj(&_channels, metadata.what.c_str());
+  BsonSubDocument sourceObj(&chanObj, metadata.source.c_str());
+
+  bsonAppend(&sourceObj, "first", first);
+  bsonAppend(&sourceObj, "last", last);
+  bsonAppend(&sourceObj, "priority",
+             _dispatcher->sourcePriority(metadata.source));
+  bsonAppend(&sourceObj, "tileCount", tileCount);
 }
 
-bool uploadChartSourceIndex(const NavDataset& data,
-                            const std::string& boatId,
-                            const ChartTileSettings& settings,
-                            const std::shared_ptr<mongoc_database_t>& db) {
-  const map<DataCode, map<string, shared_ptr<DispatchData>>> &allSources =
-    data.dispatcher()->allSources();
-
-  auto oid = makeOid(boatId);
-  WrapBson index;
-  BSON_APPEND_OID(&index, "_id", &oid);
-  {
-    BsonSubDocument channels(&index, "channels");
-    for (auto channel : allSources) {
-      auto minMaxTimes = getMinMaxTimes(channel.second);
-      if (0 < minMaxTimes.size()) {
-        BsonSubDocument chanObj(
-            &channels,
-            wordIdentifierForCode(channel.first));
-
-        for (const auto& mmt : minMaxTimes) {
-          std::string sourceName(mmt.first);
-
-          if (sourceName.size() == 0) {
-            sourceName = "(unknown source)";
-          }
-
-          BsonSubDocument sourceObj(&chanObj, sourceName.c_str());
-          bsonAppend(&sourceObj, "first", mmt.second.first);
-          bsonAppend(&sourceObj, "last", mmt.second.last);
-          bsonAppend(&sourceObj, "priority",
-              data.dispatcher()->sourcePriority(mmt.first));
-        }
-      }
-    }
-  }
+bool ChartSourceIndexBuilder::upload(
+    const std::shared_ptr<mongoc_database_t>& db,
+    const ChartTileSettings& settings) {
+  _channels.finalize();
+  auto oid = makeOid(_boatId);
+  BSON_APPEND_OID(&_index, "_id", &oid);
 
   auto collection = UNIQUE_MONGO_PTR(
         mongoc_collection,
@@ -471,12 +450,12 @@ bool uploadChartSourceIndex(const NavDataset& data,
         collection.get(),
         MONGOC_UPDATE_UPSERT,
         &selector,
-        &index,
+        &_index,
         concern,
         &error);
      if (!success) {
-       char* json = bson_as_canonical_extended_json(&index, NULL);
-       LOG(ERROR) << "for boat ID " << boatId << ": "
+       char* json = bson_as_canonical_extended_json(&_index, NULL);
+       LOG(ERROR) << "for boat ID " << _boatId << ": "
          << bsonErrorToString(error) << "\nReplacement:\n" << json;
        bson_free(json);
      }
