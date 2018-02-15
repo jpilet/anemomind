@@ -19,7 +19,7 @@ class GetValueVisitor : public DispatchDataVisitor {
  public:
   GetValueVisitor(unsigned index) : index_(index), valid_(false) { }
   virtual void run(DispatchAngleData *angle) {
-    auto values = angle->dispatcher()->values();
+    const auto& values = angle->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -28,7 +28,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     }
   }
   virtual void run(DispatchVelocityData *velocity) {
-    auto values = velocity->dispatcher()->values();
+    const auto& values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -38,7 +38,7 @@ class GetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchAngularVelocityData *velocity) {
-    auto values = velocity->dispatcher()->values();
+    const auto& values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -47,7 +47,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     }
   }
   virtual void run(DispatchLengthData *velocity) {
-    auto values = velocity->dispatcher()->values();
+    const auto& values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -57,7 +57,7 @@ class GetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchBinaryEdge *edge) {
-    auto values = edge->dispatcher()->values();
+    const auto& values = edge->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -67,7 +67,7 @@ class GetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchGeoPosData *pos) {
-    auto values = pos->dispatcher()->values();
+    const auto& values = pos->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -80,7 +80,7 @@ class GetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchTimeStampData *dateTime) {
-    auto values = dateTime->dispatcher()->values();
+    const auto& values = dateTime->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -90,7 +90,7 @@ class GetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchAbsoluteOrientationData *orient) {
-    auto values = orient->dispatcher()->values();
+    const auto& values = orient->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
