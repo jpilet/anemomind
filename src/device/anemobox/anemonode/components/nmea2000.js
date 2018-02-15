@@ -108,7 +108,9 @@ function instantiateNmea2000Real(boxid, cfg) {
   });
   
   nmea2000.open();
-  setInterval(function() { nmea2000.parseMessages(); }, 200);
+  setInterval(function() { 
+    nmea2000.parseMessages(); 
+  }, 200);
 }
 
 
@@ -174,10 +176,130 @@ module.exports.detectSPIBug = function(callback) {
   , 10 * 1000);
 };
 
+
+var subscriptions = {};
+var lastSent = {
+  twa: 0,
+  twdir: 0,
+  aw: 0
+};
+
+
+var sidMap = { };
+
+function nextSid(key) {
+  var sid = sidMap[key] || 0;
+  sidMap[key] = (sid + 1) % 250; // <-- Good value?
+  return sid;
+}
+
+var anemomindEstimatorSource = 'Anemomind estimator';
+var trueWindFields = [ 'twa', 'tws', 'twdir' ];
+
+function tryGetIfFresh(fields, sourceName, timestamp) {
+  var channels = anemonode.dispatcher.allSources();
+  
+  // No value must be older than zis:
+  var strictThreshold = 2000;
+  
+  // At least one value must at most this old:
+  var relaxedThreshold = 80;
+  
+  // Here we accumulate the return value
+  var dst = {};
+  
+  // Here we accumulate the youngest value in order to 
+  // know if the data is fresh enough.
+  
+  var youngest = strictThreshold + 1; // Initialize large enough, not so important.
+  
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i];
+    var sourcesAndData = channels[f];
+    if (!sourcesAndData) {
+      return null;
+    }
+    var dispatchData = sourcesAndData[sourceName];
+    if (!dispatchData) {
+      return null;
+    }
+    
+    var t = dispatchData.time();
+    var age = timestamp - t;
+    if (strictThreshold <= age) {
+      return null;
+    }
+
+    var youngest = Math.min(youngest, age);
+    
+    // So far, so good. Put it in the result map.
+    dst[f] = [dispatchData.value(), dispatchData.unit];
+  }
+  return youngest <= relaxedThreshold? dst : null;
+}
+
+function trySendWind() {
+  if (!nmea2000Source) {
+    return; // In case we activate this code *before* having
+            // started the nmea.
+  }
+
+  var now = anemonode.currentTime();
+  var minResendTime = 100; // ms
+  var packetsToSend = [];
+  var source = anemomindEstimatorSource;
+  var sources = anemonode.dispatcher.allSources();
+  
+  // The wind reference codes for the NMEA2000 WindData sentence
+  var windAngleRefs = {
+    "twa": 3,
+    "twdir": 0
+  };
+  
+  // Collect the packets for the different kinds of 
+  // wind angle references.
+  for (var wa in windAngleRefs) {
+    if ((now - lastSent[wa]) > minResendTime) {
+      var data2send = tryGetIfFresh([wa, "tws"], source, now);
+      if (data2send) {
+        packetsToSend.push({
+          deviceIndex: 0,
+          pgn: pgntable.windData,
+          sid: nextSid(wa),
+          windSpeed: data2send.tws,
+          windAngle: data2send[wa],
+          reference: windAngleRefs[wa]
+        });
+        lastSent[wa] = now;
+      }
+    }
+  }
+  
+  // Send the packets, if any.
+  if (0 < packetsToSend.length) {
+    try {
+      nmea2000Source.send(packetsToSend);
+    } catch(e) {
+      console.warn("Failed to send wind packets: %j", packetsToSend);
+      console.warn("because");
+      console.warn(e);
+    }
+  }
+}
+
+function startSendingWindPackets() {
+  for (var i in trueWindFields) {
+    var field = trueWindFields[i];
+    subscriptions[field] = anemonode.dispatcher.values[field].subscribe(trySendWind);
+  }
+}
+
 module.exports.startNmea2000 = startNmea2000;
+module.exports.startSendingWindPackets = startSendingWindPackets;
 module.exports.startRawLogging = function() { rawPacketLoggingEnabled = true; };
 module.exports.stopRawLogging = function() { rawPacketLoggingEnabled = false; };
 module.exports.setRawLogging = function(val) { rawPacketLoggingEnabled = !!val; }; 
+module.exports.anemomindEstimatorSource = anemomindEstimatorSource;
 module.exports.sendPackets = function(packets) {
   if (nmea2000Source) {
     nmea2000Source.send(packets);
