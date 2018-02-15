@@ -51,7 +51,7 @@ typedef std::array<char, bsonIndexStringLength> IndexString;
 class BsonSubDocument : public bson_t, public boost::noncopyable {
 public:
   BsonSubDocument(bson_t* parent, const char* key);
-  void appendToParent();
+  void finalize();
   ~BsonSubDocument();
 private:
   bson_t* _parent;
