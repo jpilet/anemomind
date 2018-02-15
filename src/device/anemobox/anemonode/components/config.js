@@ -20,7 +20,8 @@ function defaultConfig() {
     boatName: "",
     boatId: "",
     nmea0183Speed: 4800,
-    logRawNmea2000: false
+    logRawNmea2000: false,
+    sendNmea2000: true
   };
 }
 
