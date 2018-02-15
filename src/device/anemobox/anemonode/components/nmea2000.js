@@ -200,18 +200,10 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
   var channels = anemonode.dispatcher.allSources();
   
   // No value must be older than zis:
-  var strictThreshold = 2000;
-  
-  // At least one value must at most this old:
-  var relaxedThreshold = 80;
+  var threshold = 30;
   
   // Here we accumulate the return value
   var dst = {};
-  
-  // Here we accumulate the youngest value in order to 
-  // know if the data is fresh enough.
-  
-  var youngest = strictThreshold + 1; // Initialize large enough, not so important.
   
   for (var i = 0; i < fields.length; i++) {
     var f = fields[i];
@@ -226,16 +218,14 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
     
     var t = dispatchData.time();
     var age = timestamp - t;
-    if (strictThreshold <= age) {
+    if (threshold <= age) {
       return null;
     }
 
-    var youngest = Math.min(youngest, age);
-    
     // So far, so good. Put it in the result map.
     dst[f] = [dispatchData.value(), dispatchData.unit];
   }
-  return youngest <= relaxedThreshold? dst : null;
+  return dst;
 }
 
 function trySendWind() {
@@ -252,8 +242,8 @@ function trySendWind() {
   
   // The wind reference codes for the NMEA2000 WindData sentence
   var windAngleRefs = {
-    "twa": 3,
-    "twdir": 0
+    "twa": 3,  // True boat referenced
+    "twdir": 0 // True ground referenced to north
   };
   
   // Collect the packets for the different kinds of 

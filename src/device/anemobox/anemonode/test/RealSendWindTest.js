@@ -10,20 +10,24 @@ n2k.startSendingWindPackets();
 
 var counter = 0;
 
-var channels = ["twa", "tws", "twdir"];
+var channels = ["tws", "twdir", "twa"];
 
 /// Post things to the dispatcher that we expect will be sent to the CAN bus
 var ivl = setInterval(function() {
-	var what = channels[counter % channels.length];
-	var value = counter*0.1;
-	anemonode.dispatcher.values[what].setValue(n2k.anemomindEstimatorSource, value);
-	console.log("setValue for %s to %j", what, value);
-	counter++;
+  var value = counter*0.1;
+  for (var i = 0; i < channels.length; i++) {
+    var what = channels[i];
+    anemonode.dispatcher.values[what].setValue(n2k.anemomindEstimatorSource, value);
+    // No logging here, because it is important that the values come
+    // close together in time, and logging would delay that.
+  }
+  console.log("setValue for %j to %j", channels, value);
+  counter++;
 }, 100);
 
 
 /// Wait for some time
 setTimeout(function() {
-	console.log("We are done");
-	clearInterval(ivl);
+  console.log("We are done");
+  clearInterval(ivl);
 }, 30000);
