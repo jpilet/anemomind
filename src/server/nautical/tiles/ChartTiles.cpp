@@ -339,31 +339,6 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
   ChartSourceIndexBuilder* _index;
 };
 
-class GetMinMaxTime : public DispatchDataVisitor {
- public:
-  GetMinMaxTime() : valid(false) { }
-
-  template<typename T>
-  void getFirstLast(TypedDispatchData<T> *tdd) {
-    const TimedSampleCollection<T> values = tdd->dispatcher()->values();
-    if (values.size() > 0) {
-      first = values[0].time;
-      last = values.lastTimeStamp();
-      valid = true;
-    }
-  }
-  TimeStamp first, last;
-  bool valid;
-
-  virtual void run(DispatchAngleData *angle) { getFirstLast(angle); }
-  virtual void run(DispatchVelocityData *velocity) { getFirstLast(velocity); }
-  virtual void run(DispatchLengthData *length) { getFirstLast(length); }
-  virtual void run(DispatchGeoPosData *pos) { /* nothing for pos */ }
-  virtual void run(DispatchTimeStampData *timestamp) { /* nothing */ }
-  virtual void run(DispatchAbsoluteOrientationData *orient) { }
-  virtual void run(DispatchBinaryEdge *orient) { }
-};
-
 bool uploadChartTiles(DispatchData* data,
                       const std::string& boatId,
                       const ChartTileSettings& settings,
