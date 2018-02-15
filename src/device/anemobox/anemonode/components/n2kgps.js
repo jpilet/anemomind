@@ -1,4 +1,5 @@
 var pgntable = require('./pgntable.js');
+var utils = require('./utils.js');
 
 var splitRegEx = /\$.*\*[0-9A-F]{2}\n/g;
 
@@ -97,7 +98,7 @@ function makeGnssPositionData(nmea) {
     numberOfSvs: parseInt(gsv[3]),
     hdop: floatOrUndefined(gga[8]),
     pdop: floatOrUndefined(gsa[15]),
-    geoidalSeparation: [floatOrUndefined(gga[11]), "m"],
+    geoidalSeparation: utils.tag(floatOrUndefined(gga[11]), "m"),
     referenceStations: sats
   };
 }

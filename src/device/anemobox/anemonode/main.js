@@ -211,6 +211,7 @@ if (withNMEA2000) {
     }
   });
   nmea2000.startNmea2000();
+  nmea2000.startSendingWindPackets();
 }
 
 if (withWatchdog) {
