@@ -114,9 +114,9 @@ BsonSubDocument::BsonSubDocument(bson_t* parent, const char* key0)
       this);
 }
 
-BsonSubDocument::~BsonSubDocument() { appendToParent(); }
+BsonSubDocument::~BsonSubDocument() { finalize(); }
 
-void BsonSubDocument::appendToParent() {
+void BsonSubDocument::finalize() {
   if (_parent) {
     bson_append_document_end(_parent, this);
     _parent = nullptr;
