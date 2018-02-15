@@ -243,11 +243,12 @@ bool Nmea2000Source::apply(const tN2kMsg &c,
   if (packet.yaw.defined()
       && packet.pitch.defined()
       && packet.roll.defined()) {
-    _dispatcher->publishValue(ORIENT, _lastSourceName,
-                              AbsoluteOrientation{
-                              packet.yaw.get(),
-                              packet.roll.get(),
-                              packet.pitch.get()});
+    AbsoluteOrientation orient;
+    orient.heading = packet.yaw.get();
+    orient.roll = packet.roll.get();
+    orient.pitch = packet.pitch.get();
+
+    _dispatcher->publishValue(ORIENT, _lastSourceName, orient);
     return true;
   }
   return false;
