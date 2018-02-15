@@ -1,4 +1,4 @@
-/** Generated on Fri Feb 09 2018 18:39:33 GMT+0100 (CET) using 
+/** Generated on Sun Feb 11 2018 00:05:03 GMT+0100 (CET) using 
  *
  *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
  *
@@ -447,6 +447,44 @@ namespace PgnClasses {
     return dst.moveData();
   }
 
+  EngineParametersRapidUpdate::EngineParametersRapidUpdate() {
+  }
+
+  EngineParametersRapidUpdate::EngineParametersRapidUpdate(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (48 <= src.remainingBits()) {
+      engineInstance = src.getUnsignedInSet(8, {0, 1}).cast<EngineInstance>();
+      engineSpeed = src.getPhysicalQuantity(false, 0.25, (sail::Angle<double>::degrees(360)/sail::Duration<double>::minutes(1.0)), 16, 0);
+      engineBoostPressure = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
+      engineTiltTrim = src.getSigned(8, 0, N2kField::Definedness::AlwaysDefined);
+    // No repeating fields.
+    }
+  }
+  bool EngineParametersRapidUpdate::hasSomeData() const {
+    return 
+         engineInstance.defined()
+      || engineSpeed.defined()
+      || engineBoostPressure.defined()
+      || engineTiltTrim.defined()
+    ;
+  }
+  bool EngineParametersRapidUpdate::hasAllData() const {
+    return 
+         engineInstance.defined()
+      && engineSpeed.defined()
+      && engineBoostPressure.defined()
+      && engineTiltTrim.defined()
+    ;
+  }
+  std::vector<uint8_t> EngineParametersRapidUpdate::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+      dst.pushUnsigned(8, engineInstance.cast<uint64_t>());
+      dst.pushPhysicalQuantity(false, 0.25, (sail::Angle<double>::degrees(360)/sail::Duration<double>::minutes(1.0)), 16, 0, engineSpeed);
+      dst.pushUnsigned(16, engineBoostPressure);
+      dst.pushSigned(8, 0, engineTiltTrim);
+    return dst.moveData();
+  }
+
   Speed::Speed() {
   }
 
@@ -812,6 +850,7 @@ bool PgnVisitor::visit(const tN2kMsg &packet) {
     case 127250: return apply(packet, VesselHeading(packet.Data, packet.DataLen));
     case 127251: return apply(packet, RateOfTurn(packet.Data, packet.DataLen));
     case 127257: return apply(packet, Attitude(packet.Data, packet.DataLen));
+    case 127488: return apply(packet, EngineParametersRapidUpdate(packet.Data, packet.DataLen));
     case 128259: return apply(packet, Speed(packet.Data, packet.DataLen));
     case 129025: return apply(packet, PositionRapidUpdate(packet.Data, packet.DataLen));
     case 129026: return apply(packet, CogSogRapidUpdate(packet.Data, packet.DataLen));

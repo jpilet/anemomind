@@ -1,4 +1,4 @@
-/** Generated on Fri Feb 09 2018 18:39:33 GMT+0100 (CET) using 
+/** Generated on Sun Feb 11 2018 00:05:03 GMT+0100 (CET) using 
  *
  *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
  *
@@ -254,6 +254,27 @@ namespace PgnClasses {
     Optional<sail::Angle<double> > roll; //  at 40 bits = 5 bytes
   };
   
+  struct EngineParametersRapidUpdate: public PgnBaseClass { // Engine Parameters, Rapid Update
+    // Minimum size: 48 bits = 6 bytes. 
+    static const int ThisPgn = 127488;
+    int code() const override {return 127488;}
+    enum class EngineInstance {
+      Single_Engine_or_Dual_Engine_Port = 0, 
+      Dual_Engine_Starboard = 1
+    };
+
+    EngineParametersRapidUpdate();
+    EngineParametersRapidUpdate(const uint8_t *data, int lengthBytes);
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<EngineInstance > engineInstance; //  at 0 bits = 0 bytes
+    Optional<sail::AngularVelocity<double> > engineSpeed; //  at 8 bits = 1 bytes
+    Optional<uint64_t > engineBoostPressure; //  at 24 bits = 3 bytes
+    Optional<int64_t > engineTiltTrim; //  at 40 bits = 5 bytes
+  };
+  
   struct Speed: public PgnBaseClass { // Speed
     // Minimum size: 52 bits = 6 bytes + 4 bits. 
     static const int ThisPgn = 128259;
@@ -489,6 +510,7 @@ namespace PgnClasses {
     virtual bool apply(const tN2kMsg& src, const VesselHeading& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const RateOfTurn& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const Attitude& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const EngineParametersRapidUpdate& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const Speed& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const PositionRapidUpdate& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const CogSogRapidUpdate& packet) { return false; }

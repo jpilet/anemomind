@@ -109,6 +109,9 @@ class PrintUpdates : public DispatchDataVisitor {
     _binPrinters.push_back(valuePrinter);
   }
 
+  virtual void run(DispatchAngularVelocityData *value) {
+  }
+
  private:
   std::vector<std::shared_ptr<PrintListener<Angle<double>>>> _anglePrinters;
   std::vector<std::shared_ptr<PrintListener<Velocity<double>>>> _velocityPrinters;
