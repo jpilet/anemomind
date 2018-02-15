@@ -7,6 +7,9 @@ using namespace PgnClasses;
 
 namespace {
   std::string makeDispatcherSourceName(uint64_t x) {
+    // Here, we could do something much more user friendly than
+    // printing an hex "name". The current implementation is compatible with
+    // the existing solution.
     std::stringstream ss;
     ss << "NMEA2000/" << std::hex << x;
     return ss.str();
@@ -61,9 +64,8 @@ bool Nmea2000Source::send(
 }
 
 std::string deviceNameToString(const Optional<uint64_t>& dn) {
-  return dn.defined()?
-      makeDispatcherSourceName(dn.get())
-      : "UndefinedNMEA2000Source";
+  return makeDispatcherSourceName(
+      dn.get(0 /* we dont know the nmea2000 name yet */));
 }
 
 
