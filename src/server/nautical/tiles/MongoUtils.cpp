@@ -114,8 +114,13 @@ BsonSubDocument::BsonSubDocument(bson_t* parent, const char* key0)
       this);
 }
 
-BsonSubDocument::~BsonSubDocument() {
-  bson_append_document_end(_parent, this);
+BsonSubDocument::~BsonSubDocument() { appendToParent(); }
+
+void BsonSubDocument::appendToParent() {
+  if (_parent) {
+    bson_append_document_end(_parent, this);
+    _parent = nullptr;
+  }
 }
 
 BsonSubArray::BsonSubArray(bson_t* parent, const char* key_)

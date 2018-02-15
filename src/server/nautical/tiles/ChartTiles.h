@@ -36,11 +36,6 @@ bool uploadChartTiles(const NavDataset& data,
                       const ChartTileSettings& settings,
                       const std::shared_ptr<mongoc_database_t>& db);
 
-bool uploadChartSourceIndex(const NavDataset& data,
-                            const std::string& boatId,
-                            const ChartTileSettings& settings,
-                            const std::shared_ptr<mongoc_database_t>& db);
-
 struct StatArrays {
   std::vector<double> min, max, mean;
   std::vector<int64_t> count;
