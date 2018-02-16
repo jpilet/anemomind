@@ -121,6 +121,10 @@ function canPacketReceived(msg) {
   }
 }
 
+// Debugging variables
+var verbose = false;
+var counter = 0;
+
 function logRawPacket(msg) {
   if (rawPacketLoggingEnabled) {
     var systemTime0 = 1000*msg.ts_sec + 0.001*msg.ts_usec;
@@ -177,7 +181,6 @@ module.exports.detectSPIBug = function(callback) {
 };
 
 
-var subscriptions = {};
 var lastSent = {
   twa: 0,
   twdir: 0,
@@ -277,15 +280,37 @@ function trySendWind() {
   }
 }
 
-function startSendingWindPackets() {
-  for (var i in trueWindFields) {
-    var field = trueWindFields[i];
-    subscriptions[field] = anemonode.dispatcher.values[field].subscribe(trySendWind);
+
+// Either it is null, meaning we are not sending
+// anything, or it is a map, meaning we are sending.
+var subscriptions = null;
+
+function setSendWindState(shouldSend) {
+  if ((subscriptions == null) == shouldSend) {  // <-- Only do something when state changed.
+    if (shouldSend) {
+      console.log("Start sending wind");
+      subscriptions = {};
+      trueWindFields.forEach(function(field) {
+        var dispatchData = anemonode.dispatcher.values[field];
+	      var code = dispatchData.subscribe(trySendWind);
+	      subscriptions[field] = code;
+      });
+    } else {
+      console.log("Stop sending wind");
+      trueWindFields.forEach(function(field) {
+        var subscription = subscriptions[field];
+        if (subscription) {
+          var dispatchData = anemonode.dispatcher.values[field];
+          dispatchData.unsubscribe(subscription);
+        }
+      });
+      subscriptions = null;
+    }
   }
 }
 
 module.exports.startNmea2000 = startNmea2000;
-module.exports.startSendingWindPackets = startSendingWindPackets;
+module.exports.setSendWindState = setSendWindState;
 module.exports.startRawLogging = function() { rawPacketLoggingEnabled = true; };
 module.exports.stopRawLogging = function() { rawPacketLoggingEnabled = false; };
 module.exports.setRawLogging = function(val) { rawPacketLoggingEnabled = !!val; }; 

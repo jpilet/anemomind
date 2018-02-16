@@ -10,6 +10,7 @@ using namespace node;
 namespace sail {
 
 std::map<int, JsListener *> JsDispatchData::registeredCallbacks;
+int64_t JsDispatchData::subscriptionIndex = 0;
 
 // We declare a couple of visitors used to handle the different types
 // stored in the Dispatcher.
@@ -520,7 +521,7 @@ NAN_METHOD(JsDispatchData::subscribe) {
   }
   JsListener *listener = new JsListener(
       dispatchData, cb, minInterval);
-  int index = registeredCallbacks.size() + 1;
+  int index = subscriptionIndex++;
   registeredCallbacks[index] = listener;
 
   SubscribeVisitor<JsListener> subscriber(listener);

@@ -1,3 +1,4 @@
+
 var dispatcher = require('./build/Release/anemonode').dispatcher;
 var version = require('./version');
 var logRoot = '/media/sdcard/logs/';
@@ -211,7 +212,13 @@ if (withNMEA2000) {
     }
   });
   nmea2000.startNmea2000();
-  nmea2000.startSendingWindPackets();
+  config.getAndListen(function(err, cfg) {
+    if (err) {
+      console.warn("Got an error when refreshing the NMEA2000 send wind state");
+    } else if (cfg) {
+      nmea2000.setSendWindState(cfg.sendNmea2000);
+    }
+  });
 }
 
 if (withWatchdog) {

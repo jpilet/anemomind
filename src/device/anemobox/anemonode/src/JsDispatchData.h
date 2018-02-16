@@ -43,6 +43,7 @@ class JsDispatchData : public Nan::ObjectWrap {
   std::shared_ptr<DispatchData> _dispatchData;
   Dispatcher* _dispatcher;
 
+  static int64_t subscriptionIndex;
   static std::map<int, JsListener *> registeredCallbacks;
 };
 
