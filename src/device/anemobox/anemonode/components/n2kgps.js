@@ -82,8 +82,6 @@ function makeGnssPositionData(nmea) {
   var days = Math.floor(date.getTime() / (1000 * secondsInDay));
   var seconds = Math.floor(date.getTime() / 1000) - days * secondsInDay;
 
-  var sats = satsUsedForFix(nmea);
-
   return {
     pgn: pgntable.gnssPositionData,
     deviceIndex: 1, // GPS virtual device
@@ -99,7 +97,7 @@ function makeGnssPositionData(nmea) {
     hdop: floatOrUndefined(gga[8]),
     pdop: floatOrUndefined(gsa[15]),
     geoidalSeparation: utils.tag(floatOrUndefined(gga[11]), "m"),
-    referenceStations: sats
+    referenceStations: [] // I am not sure what we should send here.
   };
 }
 
