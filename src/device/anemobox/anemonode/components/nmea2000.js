@@ -329,7 +329,7 @@ module.exports.sendPackets = function(packets) {
         // object wasn't entirely initialized yet. So showing a 
         // warning due to an IO related error might be good enough.
         console.warn("nmea2000Source.send(packets) failed with this error");
-        //console.warn(e);
+        console.warn(e);
       });
     }
   }
