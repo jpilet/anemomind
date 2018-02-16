@@ -32,12 +32,6 @@
           name="logRawNmea2000"/></dd>
       </dl>
       <dl class="dl-horizontal">
-        <dt><label for="sendNmea2000">Send NMEA 2000 data</label></dt>
-	<dd><input type="checkbox" 
-	  id="sendNmea2000" 
-          name="sendNmea2000"/></dd>
-      </dl>
-      <dl class="dl-horizontal">
         <dt><label for="outputNmea2000">Output NMEA 2000</label></dt>
 	<dd><input type="checkbox" 
 	  id="outputNmea2000" 
@@ -84,12 +78,6 @@
       return box;
     }
     
-    function makeGuiConsistent() {
-      var sendBox = document.getElementById("sendNmea2000");
-      var outputBox = document.getElementById("outputNmea2000");
-      sendBox.disabled = !outputBox.checked;
-    }
-
     function readConfig(data) {
           loadedConfig = data;
           $('#nmea0183Speed option[value=' 
@@ -97,9 +85,7 @@
             .prop('selected', true);
 	  
 	  initializeCheckbox("logRawNmea2000", data.boxConfig.logRawNmea2000);
-	  initializeCheckbox("sendNmea2000", data.boxConfig.sendNmea2000);
 	  initializeCheckbox("outputNmea2000", data.boxConfig.outputNmea2000);
-	  makeGuiConsistent();
 	  	
 	  
           var table = $('#dataTable');
@@ -158,12 +144,8 @@
       $("#logRawNmea2000").change(function(e) {
         changeBoxConfig("logRawNmea2000", this.checked);
       });
-      $("#sendNmea2000").change(function(e) {
-        changeBoxConfig("sendNmea2000", this.checked);
-      });
       $("#outputNmea2000").change(function(e) {
         changeBoxConfig("outputNmea2000", this.checked);
-	makeGuiConsistent();
       });
     });
   </script>

@@ -42,7 +42,7 @@ var sendEnabled = true;
 function updateFromConfig(cfg) {
   sendEnabled = utils.getOrDefault(
     cfg, "outputNmea2000", true);
-  setSendWindState(cfg.sendNmea2000);
+  setSendWindState(sendEnabled);
 }
 
 function instantiateNmea2000Real(boxid, fullCfg) {
