@@ -1,7 +1,7 @@
 // Data source: NMEA0183
 
 var anemonode = require('../build/Release/anemonode');
-var SerialPort = require("serialport").SerialPort
+var SerialPort = require("serialport");
 var fs = require('fs');
 var config = require('./config');
 
@@ -27,7 +27,7 @@ function init(nmea0183PortPath, dataCb) {
     initializedSpeed = config.nmea0183Speed;
 
     var port = new SerialPort(nmea0183PortPath, {
-      baudrate: config.nmea0183Speed,
+      baudrate: parseInt(config.nmea0183Speed),
       /* man 3 termios says:
          TIME  specifies  the limit for a timer in tenths of a second.  Once
          an initial byte of input becomes available, the timer is restarted
@@ -39,8 +39,8 @@ function init(nmea0183PortPath, dataCb) {
             *  The number of bytes requested by read(2) has been received.
       */
       vtime: 1, // introduce at most 0.1 sec of delay
-      vmin: 16, // try to read 16 bytes in a row
-      bufferSize: 16, // this is the number of bytes requested by read(2)
+      vmin: 80, // try to read 80 bytes in a row
+      bufferSize: 80, // this is the number of bytes requested by read(3)
       autoOpen: false
     });
 
