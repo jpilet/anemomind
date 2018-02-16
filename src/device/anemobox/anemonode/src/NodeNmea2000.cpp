@@ -77,8 +77,6 @@ NAN_METHOD(NodeNmea2000::New) {
   NodeNmea2000* zis = new NodeNmea2000();
   zis->Wrap(info.This());
 
-  int address = 77;  // the default address
-
   v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(info[0]); 
   if (array->Length() > 0) {
     zis->SetDeviceCount(array->Length());
@@ -112,6 +110,17 @@ NAN_METHOD(NodeNmea2000::New) {
           intOrDefault(obj, "industryGroup", 4),
           i);
 
+      std::string manufacturer(strOrDefault(obj, "manufacturer", ""));
+      std::string installationDescription1(
+          strOrDefault(obj, "installationDescription1", ""));
+      std::string installationDescription2(
+          strOrDefault(obj, "installationDescription2", ""));
+      if (manufacturer.size() > 0) {
+        zis->SetConfigurationInformation(manufacturer.c_str(),
+                                         installationDescription1.c_str(),
+                                         installationDescription2.c_str());
+      }
+
       v8::Local<v8::Value> transmit = obj->Get(SYMBOL("transmitPgn"));
       if (transmit->IsArray()) {
         v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(transmit); 
@@ -132,13 +141,22 @@ NAN_METHOD(NodeNmea2000::New) {
           zis->ExtendTransmitMessages(zis->pgnLists_.back().data(), i);
         }
       }
+    }
+    // Call SetMode once devices have been created.
+    zis->SetMode(tNMEA2000::N2km_ListenAndNode, 256);
 
-      address = intOrDefault(obj, "address", address);
+    // Call SetN2kSource after SetMode
+    for (unsigned i = 0; i < array->Length(); ++i) {
+      auto entry = array->Get(i);
+      v8::Local<v8::Object> obj(entry->ToObject());
+
+      int address = intOrDefault(obj, "address", 30 + i);
+      if (address) {
+        std::cout << "Setting source address " << address << " for device " << i << "\n";
+        zis->SetN2kSource(address, i);
+      }
     }
   }
-  // For now NMEA2000 lib only support specifying the address
-  // for the 1set device... TODO: set it for all devices.
-  zis->SetMode(tNMEA2000::N2km_ListenAndNode, address);
 
   info.GetReturnValue().Set(info.This());
 }
@@ -220,7 +238,8 @@ NAN_METHOD(NodeNmea2000::parseMessages) {
   zis->ParseMessages();
 
   if ((zis->ReadResetDeviceInformationChanged()
-       || zis->ReadResetAddressChanged())
+       || zis->ReadResetAddressChanged()
+       || zis->ReadResetInstallationDescriptionChanged())
       && !zis->deviceConfigCb_.IsEmpty()) {
     Nan::Callback callback(Nan::New(zis->deviceConfigCb_));
     if (zis->deviceConfigHandle_.IsEmpty()) {
@@ -235,6 +254,10 @@ namespace {
 
 void setField(v8::Local<v8::Object>& obj, const char* key, int value) {
   obj->Set(SYMBOL(key), Nan::New(value));
+}
+
+void setField(v8::Local<v8::Object>& obj, const char* key, const char* value) {
+  obj->Set(SYMBOL(key), SYMBOL(value));
 }
 
 }  // namespace
@@ -252,6 +275,13 @@ NAN_METHOD(NodeNmea2000::getDeviceConfig) {
     setField(obj, "deviceInstance", devInfo.GetDeviceInstance());
     setField(obj, "systemInstance", devInfo.GetSystemInstance());
     setField(obj, "address", zis->GetN2kSource(dev));
+
+    char buffer[1024];
+    zis->GetInstallationDescription1(buffer, sizeof(buffer));
+    setField(obj, "installationDescription1", buffer);
+
+    zis->GetInstallationDescription2(buffer, sizeof(buffer));
+    setField(obj, "installationDescription2", buffer);
 
     bool useless = true;
     result->Set(
@@ -293,6 +323,12 @@ NAN_METHOD(NodeNmea2000::setDeviceConfig) {
     if (intOrDefault(obj, "address", currentAddress) != currentAddress) {
       std::cerr << "Changing address from config is not implemented yet.\n";
     }
+
+    std::string install = strOrDefault(obj, "installationDescription1", "");
+    zis->SetInstallationDescription1(install.c_str());
+
+    install = strOrDefault(obj, "installationDescription2", "");
+    zis->SetInstallationDescription2(install.c_str());
   }
 }
 
