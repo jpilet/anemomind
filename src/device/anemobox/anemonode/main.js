@@ -124,7 +124,7 @@ function gpsData(data) {
     logger.logText("Internal GPS NMEA", data.toString('ascii'));
   }
   if (withSendN2kGps) {
-    nmea2000.sendPackets([n2kgps.makeGnssPositionData(data.toString())]);
+    nmea2000.sendPackets(n2kgps.makePackets(data.toString()));
   }
 }
 

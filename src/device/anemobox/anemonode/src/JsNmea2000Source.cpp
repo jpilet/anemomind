@@ -385,6 +385,21 @@ void sendTimeDate(
   CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send TimeDate");
 }
 
+void sendCogSogRapidUpdate(
+  int32_t deviceIndex,
+  const v8::Local<v8::Object>& obj,
+  Nmea2000Source* dst) {
+  using namespace PgnClasses;
+  CogSogRapidUpdate x;
+  x.sid = lookUpOrDefault<uint64_t>(obj, "sid", 0);
+  TRY_LOOK_UP_TYPED(EnumAsInt<CogSogRapidUpdate::CogReference>(),
+                    obj, "cogReference", &x.cogReference);
+  TRY_LOOK_UP(obj, "cog", &x.cog);
+  TRY_LOOK_UP(obj, "sog", &x.sog);
+  auto result = dst->send(deviceIndex, x);
+  CHECK_CONDITION(result, "Failed to send CogSogRapidUpdate");
+}
+
 void dispatchPgn(
    int64_t pgn,
    const v8::Local<v8::Object>& obj,
@@ -406,6 +421,8 @@ void dispatchPgn(
     return sendWindData(deviceIndex, obj, dst);
   case PgnClasses::TimeDate::ThisPgn:
     return sendTimeDate(deviceIndex, obj, dst);
+  case PgnClasses::CogSogRapidUpdate::ThisPgn:
+    return sendCogSogRapidUpdate(deviceIndex, obj, dst);
   default: break;
   };
   {

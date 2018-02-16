@@ -39,6 +39,11 @@ function getOrDefault(obj, key, defaultValue) {
   return obj[key];
 }
 
+function nextSid(sid) {
+  return (0 <= sid && sid < 255)? sid+1 : 0;
+}
+
 module.exports.tag = tag;
 module.exports.makeTemporalLimiter = makeTemporalLimiter;
 module.exports.getOrDefault = getOrDefault;
+module.exports.nextSid = nextSid;
