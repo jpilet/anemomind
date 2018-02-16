@@ -311,8 +311,6 @@ function setSendWindState(shouldSend) {
 }
 
 
-var n2kSendWarningLimiter = utils.makeTemporalLimiter(4000);
-
 module.exports.startNmea2000 = startNmea2000;
 module.exports.setSendWindState = setSendWindState;
 module.exports.startRawLogging = function() { rawPacketLoggingEnabled = true; };
@@ -324,13 +322,7 @@ module.exports.sendPackets = function(packets) {
     try {
       nmea2000Source.send(packets);
     } catch (e) {
-      n2kSendWarningLimiter(function() {
-        // This is not necessarily a big problem. Maybe the NMEA2000
-        // object wasn't entirely initialized yet. So showing a 
-        // warning due to an IO related error might be good enough.
-        console.warn("nmea2000Source.send(packets) failed with this error");
-        console.warn(e);
-      });
+      // Don't spam
     }
   }
 };
