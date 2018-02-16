@@ -32,10 +32,16 @@
           name="logRawNmea2000"/></dd>
       </dl>
       <dl class="dl-horizontal">
-        <dt><label for="sendNmea2000">Send NMEA 2000</label></dt>
+        <dt><label for="sendNmea2000">Send NMEA 2000 data</label></dt>
 	<dd><input type="checkbox" 
 	  id="sendNmea2000" 
           name="sendNmea2000"/></dd>
+      </dl>
+      <dl class="dl-horizontal">
+        <dt><label for="outputNmea2000">Output NMEA 2000</label></dt>
+	<dd><input type="checkbox" 
+	  id="outputNmea2000" 
+          name="outputNmea2000"/></dd>
       </dl>
     </div>
     <p class="body-link"><a href="/">Input data</a></p>
@@ -75,6 +81,13 @@
     function initializeCheckbox(dstId, srcValue) {
       var box = document.getElementById(dstId);
       box.checked = srcValue;
+      return box;
+    }
+    
+    function makeGuiConsistent() {
+      var sendBox = document.getElementById("sendNmea2000");
+      var outputBox = document.getElementById("outputNmea2000");
+      sendBox.disabled = !outputBox.checked;
     }
 
     function readConfig(data) {
@@ -85,6 +98,9 @@
 	  
 	  initializeCheckbox("logRawNmea2000", data.boxConfig.logRawNmea2000);
 	  initializeCheckbox("sendNmea2000", data.boxConfig.sendNmea2000);
+	  initializeCheckbox("outputNmea2000", data.boxConfig.outputNmea2000);
+	  makeGuiConsistent();
+	  	
 	  
           var table = $('#dataTable');
           table.html('');
@@ -144,6 +160,10 @@
       });
       $("#sendNmea2000").change(function(e) {
         changeBoxConfig("sendNmea2000", this.checked);
+      });
+      $("#outputNmea2000").change(function(e) {
+        changeBoxConfig("outputNmea2000", this.checked);
+	makeGuiConsistent();
       });
     });
   </script>

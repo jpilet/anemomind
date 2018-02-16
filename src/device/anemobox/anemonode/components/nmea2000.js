@@ -23,21 +23,33 @@ function configOrDefault(obj, key1, key2, def) {
   return obj[key1][key2];
 }
 
-function instantiateNmea2000() {
+function instantiateNmea2000(cfg) {
   boxId.getAnemoId(function(boxid) {
     fs.readFile(n2kConfigFile, function(err, data) {
-      var cfg = { };
       if (err) {
         console.warn("Can't read " + n2kConfigFile);
+        cfg.n2k = {};
       } else {
-        cfg = JSON.parse(data);
+        cfg.n2k = JSON.parse(data);
       }
       instantiateNmea2000Real(boxid, cfg);
     });
   });
 }
 
-function instantiateNmea2000Real(boxid, cfg) {
+var sendEnabled = true;
+
+function updateFromConfig(cfg) {
+  sendEnabled = utils.getOrDefault(
+    cfg, "outputNmea2000", true);
+  setSendWindState(cfg.sendNmea2000);
+}
+
+function instantiateNmea2000Real(boxid, fullCfg) {
+  var cfg = fullCfg.n2k;
+
+  updateFromConfig(fullCfg);
+
   var virtDevBits = 2;
   var maxNumVirtualDevices = 1 << virtDevBits;
   var baseSerialNumber =
@@ -96,7 +108,7 @@ function instantiateNmea2000Real(boxid, cfg) {
   nmea2000Source = new anemonode.Nmea2000Source(nmea2000);
 
   nmea2000.setSendCanFrame(function(id, data) {
-    if (channel) {
+    if (channel && sendEnabled) {
       var msg = { id: id, data: data, ext: true };
       var r = channel.send(msg);
       return r > 0;
@@ -150,13 +162,13 @@ function logRawPacket(msg) {
 
 var channel = null;
 
-function startNmea2000() {
+function startNmea2000(cfg) {
   if (!channel) {
     try {
       channel = can.createRawChannel("can0", true /* ask for timestamps */);
       channel.start();
       channel.addListener("onMessage", canPacketReceived);
-      instantiateNmea2000();
+      instantiateNmea2000(cfg);
     } catch (e) {
       console.log("Failed to start NMEA2000");
       console.log(e);
@@ -310,9 +322,8 @@ function setSendWindState(shouldSend) {
   }
 }
 
-
+module.exports.updateFromConfig = updateFromConfig;
 module.exports.startNmea2000 = startNmea2000;
-module.exports.setSendWindState = setSendWindState;
 module.exports.startRawLogging = function() { rawPacketLoggingEnabled = true; };
 module.exports.stopRawLogging = function() { rawPacketLoggingEnabled = false; };
 module.exports.setRawLogging = function(val) { rawPacketLoggingEnabled = !!val; }; 
