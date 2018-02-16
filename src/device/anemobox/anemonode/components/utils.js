@@ -32,5 +32,13 @@ function makeTemporalLimiter(minPeriod) {
   };
 }
 
+function getOrDefault(obj, key, defaultValue) {
+  if (!obj || !(key in obj)) {
+    return defaultValue;
+  }
+  return obj[key];
+}
+
 module.exports.tag = tag;
 module.exports.makeTemporalLimiter = makeTemporalLimiter;
+module.exports.getOrDefault = getOrDefault;
