@@ -72,7 +72,7 @@ function instantiateNmea2000Real(boxid, fullCfg) {
         manufacturerCode: 2040,
         deviceFunction: 190, // Navigation management
         deviceClass: 60,  // Navigation
-        address: configOrDefault(cfg, serials[0], 'address', 42)
+        address: configOrDefault(cfg, serials[0], 'address', 10)
     }, {
       // product:
         serialCode: serials[1],
@@ -89,7 +89,7 @@ function instantiateNmea2000Real(boxid, fullCfg) {
         deviceFunction: 145, // GNSS
         deviceClass: 60,  // Navigation
         transmitPgn: [ pgntable.gnssPositionData ],
-        address: configOrDefault(cfg, serials[1], 'address', 43)
+        address: configOrDefault(cfg, serials[1], 'address', 11)
     }]);
 
   nmea2000.onDeviceConfigChange(function() {
