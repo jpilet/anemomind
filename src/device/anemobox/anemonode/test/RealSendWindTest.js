@@ -2,11 +2,7 @@ var n2k = require('../components/nmea2000');
 var anemonode = require('../build/Release/anemonode');
 
 console.log("Start the nmea 2000 service");
-n2k.startNmea2000();
-
-console.log("Start the wind sending mechanism");
-n2k.startSendingWindPackets();
-
+n2k.startNmea2000({outputNmea2000: true});
 
 var counter = 0;
 
