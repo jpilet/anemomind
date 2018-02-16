@@ -58,7 +58,10 @@ namespace sail {
   X(VALID_GPS, 17, "validGps", BinaryEdge, "Valid GPS periods") \
   X(RATE_OF_TURN, 18, "rot", AngularVelocity<>, "Rate of turn") \
   X(TOT_WAT_DIST, 19, "totDist", Length<>, "total distance over water") \
-  X(ENGINE_RPM, 20, "rpm", AngularVelocity<>, "Engine RPM")
+  X(ENGINE_RPM, 20, "rpm", AngularVelocity<>, "Engine RPM") \
+  X(YAW, 21, "yaw", Angle<>, "Yaw (heading)") \
+  X(PITCH, 22, "pitch", Angle<>, "Pitch") \
+  X(ROLL, 23, "roll", Angle<>, "Roll")
 
 enum DataCode {
 #define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
