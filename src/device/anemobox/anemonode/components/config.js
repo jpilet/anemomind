@@ -21,8 +21,7 @@ function defaultConfig() {
     boatId: "",
     nmea0183Speed: 4800,
     logRawNmea2000: false,
-    sendNmea2000: true, // <- Should we send data sentences?
-    outputNmea2000: true // <- Should we send anything at all?
+    outputNmea2000: true
   };
 }
 
