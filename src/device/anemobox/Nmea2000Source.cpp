@@ -251,9 +251,18 @@ bool Nmea2000Source::apply(const tN2kMsg &c,
     orient.pitch = packet.pitch.get();
 
     _dispatcher->publishValue(ORIENT, _lastSourceName, orient);
-    return true;
+  } else {
+    if (packet.yaw.defined()) {
+      _dispatcher->publishValue(YAW, _lastSourceName, packet.yaw.get());
+    }
+    if (packet.pitch.defined()) {
+      _dispatcher->publishValue(PITCH, _lastSourceName, packet.pitch.get());
+    }
+    if (packet.roll.defined()) {
+      _dispatcher->publishValue(ROLL, _lastSourceName, packet.roll.get());
+    }
   }
-  return false;
+  return true;
 }
 
 bool Nmea2000Source::apply(const tN2kMsg &c,
