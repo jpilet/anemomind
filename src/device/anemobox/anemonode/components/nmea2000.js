@@ -317,7 +317,15 @@ module.exports.setRawLogging = function(val) { rawPacketLoggingEnabled = !!val; 
 module.exports.anemomindEstimatorSource = anemomindEstimatorSource;
 module.exports.sendPackets = function(packets) {
   if (nmea2000Source) {
-    nmea2000Source.send(packets);
+    try {
+      nmea2000Source.send(packets);
+    } catch (e) {
+      // This is not necessarily a big problem. Maybe the NMEA2000
+      // object wasn't entirely initialized yet. So showing a 
+      // warning due to an IO related error might be good enough.
+      console.warn("nmea2000Source.send(packets) failed with this error");
+      console.warn(e);
+    }
   }
 };
 
