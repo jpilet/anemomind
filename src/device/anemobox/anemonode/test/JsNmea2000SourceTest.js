@@ -4,8 +4,15 @@ try {
 var can = require('socketcan');
 } catch(e) { }
 
-var gnssData = require('./n2kgps_data.js')[0].packets.filter(
-  function(p) {return p.longitude;})[0];
+var testData = require('./n2kgps_data.js');
+var packets = testData[0].packets;
+
+
+function hasField(f) {return function(p) {return f in p;};}
+var gnssData = packets.filter(hasField("longitude"))[0];
+var cogSog = packets.filter(hasField("cog"))[0];
+
+console.log("cogSog %j", cogSog);
 
 var boxid = "kattskit";
 var virtDevBits = 2;
@@ -106,7 +113,17 @@ if (typeof describe != 'function') {
   it = function(name, f) { f(function() { }); }
 }
 
+
 describe('Try the send method', function() {
+  it('Good cog and sog', function() {
+    //"cog":[237.7,"deg"],"sog":[7.105,"knots"]
+
+    var c = cogSog.cog;
+    var s = cogSog.sog;
+    assert(230 < c[0] && c[0] < 240);
+    assert(6 < s[0] && s[0] < 8);
+  });
+
   it('Send GNSS', function(done) {
     var intrvl = setInterval(callParseMessages, 100);
     setTimeout(function() {
