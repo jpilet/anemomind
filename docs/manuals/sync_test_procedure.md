@@ -1,5 +1,11 @@
 # Semi-automatic synchronization test procedure
 
+## CONFIGURATION
+
+There is this line in in ```www/synctest/get_devbox_boatid.sh```. It needs to be edited for the box that we are using:
+```
+mongo --quiet anemomind-dev --eval 'db.boats.findOne({anemobox: "784b87a0b162"})["_id"].valueOf()'
+```
 ## Prerequisites
  - A cable to connect the iPad to a computer
  - A Macbook with XCode, ```anemomind-ios``` repository and ```anemomind``` repository
