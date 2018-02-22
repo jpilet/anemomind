@@ -4,7 +4,8 @@ try {
 var can = require('socketcan');
 } catch(e) { }
 
-var gnssData = require('./n2kgps_data.js')[0].msg;
+var gnssData = require('./n2kgps_data.js')[0].packets.filter(
+  function(p) {return p.longitude;})[0];
 
 var boxid = "kattskit";
 var virtDevBits = 2;

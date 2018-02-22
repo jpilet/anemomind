@@ -8,7 +8,7 @@
 #define CHECK_CONDITION(expr, str) if(!(expr)) return Nan::ThrowError(str);
 #define CHECK_CONDITION_BOOL(expr, str) if(!(expr)) {Nan::ThrowError(str); return false;}
 
-#define TRY_LOOK_UP(src, key, dst) CHECK_CONDITION(tryLookUp(src, key, dst), "Missing or malformed '" key "'")
+#define TRY_LOOK_UP(src, key, dst) CHECK_CONDITION_BOOL(tryLookUp(src, key, dst), "Missing or malformed '" key "'")
 
 bool tryExtract(const v8::Local<v8::Value>& val, 
                 std::string* dst);

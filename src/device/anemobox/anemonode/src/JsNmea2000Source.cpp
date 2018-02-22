@@ -48,8 +48,6 @@ namespace sail {
 
 namespace {
 
-#define CHECK_CONDITION(expr, str) if(!(expr)) return Nan::ThrowError(str);
-
 Nan::Persistent<v8::FunctionTemplate> nmea2000_constructor;
 }  // namespace
 
@@ -197,7 +195,7 @@ bool extractTypedValue(
     return tryExtractTypedFromTagged(val, dst);
   }
 
-void sendPositionRapidUpdate(
+bool sendPositionRapidUpdate(
     int32_t deviceIndex,
     const v8::Local<v8::Object>& val,
     Nmea2000Source* dst) {
@@ -205,7 +203,8 @@ void sendPositionRapidUpdate(
   PgnClasses::PositionRapidUpdate x;
   TRY_LOOK_UP(val, "longitude", &x.longitude);
   TRY_LOOK_UP(val, "latitude", &x.latitude);
-  CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send message");
+  CHECK_CONDITION_BOOL(dst->send(deviceIndex, x), "Failed to send message");
+  return true;
 }
 
   template <typename Q>
@@ -254,7 +253,7 @@ void sendPositionRapidUpdate(
   }
 
 #define TRY_LOOK_UP_TYPED(conv, obj, key, dst) \
-  CHECK_CONDITION(tryLookUpTyped(conv, obj, key, dst), "Missing or malformed '" key "'")
+  CHECK_CONDITION_BOOL(tryLookUpTyped(conv, obj, key, dst), "Missing or malformed '" key "'")
 
   bool readRepeatingField(const v8::Local<v8::Value>& src,
                           GnssPositionData::Repeating* dst) {
@@ -306,7 +305,7 @@ void sendPositionRapidUpdate(
     return true;
   }
 
-void sendGnssPositionData(
+bool sendGnssPositionData(
    int32_t deviceIndex,
    const v8::Local<v8::Object>& obj,
    Nmea2000Source* dst) {
@@ -353,12 +352,15 @@ void sendGnssPositionData(
 
   if (readRepeating(obj, "referenceStations", &x.repeating)) {
     x.referenceStations = x.repeating.size();
-    CHECK_CONDITION(dst->send(deviceIndex, x), 
-                    "Failed to send GnssPositionData");
+    CHECK_CONDITION_BOOL(dst->send(deviceIndex, x), 
+                         "Failed to send GnssPositionData");
+    return true;
+  } else {
+    return false;
   }
 }
 
-void sendWindData(
+bool sendWindData(
    int32_t deviceIndex,
    const v8::Local<v8::Object>& obj,
    Nmea2000Source* dst) {
@@ -369,10 +371,11 @@ void sendWindData(
   TRY_LOOK_UP(obj, "windSpeed", &(x.windSpeed));
   TRY_LOOK_UP(obj, "windAngle", &(x.windAngle));
   TRY_LOOK_UP_TYPED(EnumAsInt<WindData::Reference>(), obj, "reference", &(x.reference));
-  CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send WindData");
+  CHECK_CONDITION_BOOL(dst->send(deviceIndex, x), "Failed to send WindData");
+  return true;
 }
 
-void sendTimeDate(
+bool sendTimeDate(
    int32_t deviceIndex,
    const v8::Local<v8::Object>& obj,
    Nmea2000Source* dst) {
@@ -382,10 +385,11 @@ void sendTimeDate(
   TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_days), obj, "date", &(x.date));
   TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_seconds), obj, "time", &(x.time));
   TRY_LOOK_UP_TYPED(quantityAsNumber(1.0_minutes), obj, "localOffset", &(x.localOffset));
-  CHECK_CONDITION(dst->send(deviceIndex, x), "Failed to send TimeDate");
+  CHECK_CONDITION_BOOL(dst->send(deviceIndex, x), "Failed to send TimeDate");
+  return true;
 }
 
-void sendCogSogRapidUpdate(
+bool sendCogSogRapidUpdate(
   int32_t deviceIndex,
   const v8::Local<v8::Object>& obj,
   Nmea2000Source* dst) {
@@ -397,10 +401,11 @@ void sendCogSogRapidUpdate(
   TRY_LOOK_UP(obj, "cog", &x.cog);
   TRY_LOOK_UP(obj, "sog", &x.sog);
   auto result = dst->send(deviceIndex, x);
-  CHECK_CONDITION(result, "Failed to send CogSogRapidUpdate");
+  CHECK_CONDITION_BOOL(result, "Failed to send CogSogRapidUpdate");
+  return true;
 }
 
-void dispatchPgn(
+bool dispatchPgn(
    int64_t pgn,
    const v8::Local<v8::Object>& obj,
    Nmea2000Source* dst) {
@@ -409,42 +414,44 @@ void dispatchPgn(
   // the tNMEA2000 class. Would it be useful to specify the device
   // in some other way?
   int32_t deviceIndex = 0;
-  CHECK_CONDITION(tryLookUp(obj, "deviceIndex", &deviceIndex), 
-                  "Missing deviceIndex field");
+  CHECK_CONDITION_BOOL(tryLookUp(obj, "deviceIndex", &deviceIndex), 
+                       "Missing deviceIndex field");
 
   switch (pgn) {
   case PgnClasses::PositionRapidUpdate::ThisPgn:
     return sendPositionRapidUpdate(deviceIndex, obj, dst);
   case PgnClasses::GnssPositionData::ThisPgn:
-    return sendGnssPositionData(deviceIndex, obj, dst);
+      return sendGnssPositionData(deviceIndex, obj, dst);
   case PgnClasses::WindData::ThisPgn:
     return sendWindData(deviceIndex, obj, dst);
   case PgnClasses::TimeDate::ThisPgn:
     return sendTimeDate(deviceIndex, obj, dst);
   case PgnClasses::CogSogRapidUpdate::ThisPgn:
     return sendCogSogRapidUpdate(deviceIndex, obj, dst);
-  default: break;
+  default: 
+    break;
   };
   {
     std::stringstream ss;
     ss << "PGN not supported: " << pgn;
     Nan::ThrowError(ss.str().c_str());
+    return false;
   }
 }
 
 // These codes are ordered, so that the
 // closer we get towards sending a message,
 // the lower the code.
-void parseAndSendMessage(
+bool parseAndSendMessage(
     const v8::Local<v8::Value>& val,
     Nmea2000Source* dst) {
-  CHECK_CONDITION(val->IsObject(), "Message not an object");
+  CHECK_CONDITION_BOOL(val->IsObject(), "Message not an object");
   v8::Local<v8::Object> obj =  val->ToObject();
 
   int32_t pgn = 0;
-  CHECK_CONDITION(tryLookUp(obj, "pgn", &pgn), 
+  CHECK_CONDITION_BOOL(tryLookUp(obj, "pgn", &pgn), 
                   "PGN missing or not an integer");
-  dispatchPgn(pgn, obj, dst);
+  return dispatchPgn(pgn, obj, dst);
 }
 
 
@@ -473,7 +480,9 @@ NAN_METHOD(JsNmea2000Source::send) {
   v8::Local<v8::Array> msgArray = v8::Local<v8::Array>::Cast(info[0]);
   size_t n = msgArray->Length();
   for (size_t i = 0; i < n; i++) {
-    parseAndSendMessage(msgArray->Get(i), &(zis->_nmea2000));
+    if (!parseAndSendMessage(msgArray->Get(i), &(zis->_nmea2000))) {
+      return;
+    }
   }
 }
 

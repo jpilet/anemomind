@@ -331,17 +331,7 @@ module.exports.anemomindEstimatorSource = anemomindEstimatorSource;
 module.exports.sendPackets = function(packets) {
   if (nmea2000Source) {
     try {
-      // BUG: For some reason, the 'send' method
-      // will ignore the error produced by Nan::ThrowError
-      // if there are two packets being sent, and the error 
-      // occurred for the first one. And when the send method
-      // exits, no exception will be thrown. By sending the 
-      // packets one by one, we avoid that. Maybe we should
-      // change the API?
-      
-      for (var i = 0; i < packets.length; i++) {
-        nmea2000Source.send([packets[i]]);
-      }
+      nmea2000Source.send(packets);
     } catch (e) {
       // Don't spam
     }
