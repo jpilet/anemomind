@@ -1,2 +1,4 @@
 #!/bin/bash
-mongo --quiet anemomind-dev --eval 'db.boats.findOne({anemobox: "784b87a0b162"})["_id"].valueOf()'
+boxid=$(cat boxid.txt)
+echo "Looking up boat for box '${boxid}'"
+mongo --quiet anemomind-dev --eval 'db.boats.findOne({anemobox: "${boxid}"})["_id"].valueOf()'
