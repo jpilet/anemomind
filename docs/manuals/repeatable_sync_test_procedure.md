@@ -1,5 +1,11 @@
 # Repeatable sync test procedure
+
+*Description*: A fully repeatable test procedure that starts from a well defined state.
+*References*: ```sync_test_procedure.md```
+
 This is a complementary, more rigorous, procedure for testing the synchronization. We want a test procedure that is *truly repeatable* and does not assume the system to be in a particular state.
+
+
 
 ## Steps
 1. Launch the web server.
