@@ -24,9 +24,10 @@ var nmea0183 = [
 
 var n2kgps = require('../components/n2kgps.js');
 
+
 module.exports = nmea0183.map(function(raw) {
   return {
     raw: raw,
-    msg: n2kgps.makeGnssPositionData(raw)
+    packets: n2kgps.makePackets(raw)
   };
 });

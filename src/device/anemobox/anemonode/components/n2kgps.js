@@ -67,7 +67,9 @@ function floatOrUndefined(f) {
   return f ? parseFloat(f) : undefined;
 }
 
-function makeGnssPositionData(nmea) {
+var sid = 0;
+
+function makePackets(nmea) {
   var gga = getAndSplitSentence(nmea, 'GGA');
   var rmc = getAndSplitSentence(nmea, 'RMC');
   var gsv = getAndSplitSentence(nmea, 'GSV');
@@ -82,9 +84,20 @@ function makeGnssPositionData(nmea) {
   var days = Math.floor(date.getTime() / (1000 * secondsInDay));
   var seconds = Math.floor(date.getTime() / 1000) - days * secondsInDay;
 
-  return {
+  sid = utils.nextSid(sid);
+  var deviceIndex = 1;// GPS virtual device
+
+  return [{
+    pgn: pgntable.cogSogRapidUpdate,
+    sid: sid,
+    deviceIndex: deviceIndex,
+    cogReference: 0,
+    cog: utils.tag(floatOrUndefined(rmc[6]), "deg"),
+    sog: utils.tag(floatOrUndefined(rmc[5]), "knots")
+  }, {
     pgn: pgntable.gnssPositionData,
-    deviceIndex: 1, // GPS virtual device
+    sid: sid,
+    deviceIndex: deviceIndex,
     date: days,
     time: seconds,
     latitude: parseLatitude(gga[2], gga[3]),
@@ -98,8 +111,8 @@ function makeGnssPositionData(nmea) {
     pdop: floatOrUndefined(gsa[15]),
     geoidalSeparation: utils.tag(floatOrUndefined(gga[11]), "m"),
     referenceStations: [] // I am not sure what we should send here.
-  };
+  }];
 }
 
-module.exports.makeGnssPositionData = makeGnssPositionData;
+module.exports.makePackets = makePackets;
 
