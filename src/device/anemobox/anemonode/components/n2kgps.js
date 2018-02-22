@@ -92,8 +92,8 @@ function makePackets(nmea) {
     sid: sid,
     deviceIndex: deviceIndex,
     cogReference: 0,
-    cog: utils.tag(floatOrUndefined(rmc[6]), "deg"),
-    sog: utils.tag(floatOrUndefined(rmc[5]), "knots")
+    cog: utils.tag(floatOrUndefined(rmc[8]), "deg"),
+    sog: utils.tag(floatOrUndefined(rmc[7]), "knots")
   }, {
     pgn: pgntable.gnssPositionData,
     sid: sid,
