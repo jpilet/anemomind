@@ -331,6 +331,12 @@ var fullAnalysis = utils.fwdcomp(
   summary (currently not a very fancy one). The idea is that it should
   be able to point out anomalies that could cause synchronization problems.
 
+  NOTE:
+  The data for the iOS device can be obtained by creating
+  a backup using the iMazing tool. That backup, in turn, can
+  be unzipped and inside it, deep in the directory structure,
+  is a file with the ending .sqlite containing the CoreData database.
+
 */
 var args = process.argv.slice(2);
 var statePath = args.length == 0? "/Users/jonas/benoit/dbstates" : args[0];
