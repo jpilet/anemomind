@@ -239,11 +239,12 @@ Array<Eigen::Vector2d> levelsToCoords(
 }
 
 TEST(PerfSurfTest, TestIt2) {
-  int dataSize = 10;
+  int dataSize = 1000;
   auto data = makeData(dataSize);
   int vertexCount = getRequiredVertexCount(data);
 
   PerfSurfSettings settings;
+  settings.regWeight = 0.1;
   settings.refSpeed = &referenceSpeed;
 
   auto page = DOM::makeBasicHtmlPage("Perf test", "", "results");

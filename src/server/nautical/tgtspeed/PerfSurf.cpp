@@ -257,7 +257,7 @@ namespace {
     std::array<double*, 2> dst;
     int n = weights.size();
     CHECK(n == 2);
-    CHECK(n <= 3);
+    //CHECK(n <= 3);
     for (int i = 0; i < n; i++) {
       dst[i] = &(arr[weights[i].index]);
     }
@@ -296,9 +296,10 @@ PerfSurfResults optimizePerfSurf(
 
   // The normalized height of every vertex. The vertices
   // are considered unknown and unconstrained.
-  Array<double> vertices = Array<double>::fill(vertexCount, 0.0);
+  Array<double> vertices = Array<double>::fill(vertexCount, 1.0);
 
-  Array<double> performances = Array<double>::fill(pts.size(), 0.0);
+
+  Array<double> performances = Array<double>::fill(pts.size(), 1.0);
 
   ceres::Problem problem;
   for (auto& v: vertices) {
