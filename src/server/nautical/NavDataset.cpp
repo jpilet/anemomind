@@ -342,7 +342,32 @@ namespace {
     NavDataset addChannel(const NavDataset& ds) {
       std::string source;
       if (sources.size() == 1) {
-        source = *sources.begin();
+        /* Before, it used to be "source = *sources.begin();"
+         *
+         * PublishListener is used for createMergedChannels.
+         * Every DataCode that should be merged has its own
+         * PublishListener. The purpose of the PublishListener
+         * is to merge the data from other channels, into _values,
+         * see the onNewValue method. The addChannel method is
+         * called at the end of the merging process to build the
+         * new dataset. The new dataset is built starting from
+         * the old dataset. If sources.size() is 1, it means that
+         * there is only one source being merged, and that is
+         * pointless. That source is already present in ds, that
+         * we pass to this method, so there is no point in
+         * putting back the values. But before this change,
+         * that's what we would do. And by doing that, we would
+         * start dropping old values due to size limitations of
+         * the DispatchData where we put the values.
+         *
+         * We can't directly return ds because ds might have multiple sources,
+         * but the other sources were occluded by a higher priority main
+         * source. See #1201. Instead, we make sure the only source we have
+         * is the one selected in the result.
+         */
+        NavDataset result = ds.clone();
+        result.selectSource(_code, *sources.begin());
+        return result;
       } else {
         source = "mix (";
         source += join(sources, ", ") + ")";

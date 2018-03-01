@@ -56,6 +56,7 @@ struct Settings {
   int iterations = 30;
   double initialWeight = 0.1;
   double finalWeight = 10000.0;
+  double motionWeight = 10.0;
 
   // Parameters related to the objective function
   Length<double> inlierThreshold = 10.0_m;

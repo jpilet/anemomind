@@ -14,6 +14,8 @@
 #include <Eigen/Core>
 #include <server/common/logging.h>
 
+namespace sail {
+
 template <typename T, int dims>
 class PointQuad {
 public:
@@ -72,5 +74,7 @@ private:
   Vec _pt;
   T _sqSum;
 };
+
+}  // namespace sail
 
 #endif /* SERVER_MATH_POINTQUAD_H_ */

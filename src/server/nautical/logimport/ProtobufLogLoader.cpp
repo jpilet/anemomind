@@ -61,7 +61,9 @@ void loadTextData(const ValueSet &stream, LogAccumulator *dst,
     for (int i = 0; i < n; i++) {
       byteCount += stream.text(i).size();
     }
-    Duration<> interval = (times[n - 1] - times[0]).scaled(1.0 / double(byteCount));
+    Duration<> interval = byteCount > 0 ? 
+      (times[n - 1] - times[0]).scaled(1.0 / double(byteCount))
+      : Duration<>::seconds(1/4800.0);
 
     for (int i = 0; i < n; i++) {
       auto t = times[i] + offset;

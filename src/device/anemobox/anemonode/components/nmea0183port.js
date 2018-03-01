@@ -1,35 +1,59 @@
 // Data source: NMEA0183
 
 var anemonode = require('../build/Release/anemonode');
-var SerialPort = require("serialport").SerialPort
+var SerialPort = require("serialport");
 var fs = require('fs');
 var config = require('./config');
 
 var nmea0183Port;
+var initializedSpeed;
 var source = '';
 
 function sourceName() { return source; }
 
-config.events.on('change', function() { module.exports.reset(); });
+config.events.on('change', function() {
+  config.get(function(err, cfg) {
+    if (!nmea0183Port || initializedSpeed != cfg.nmea0183Speed) {
+      module.exports.reset();
+    }
+  });
+});
 
 function init(nmea0183PortPath, dataCb) {
 
   require('./pinconfig').activateNmea0183();
 
   config.get(function(err, config) {
-    var port;
+    initializedSpeed = config.nmea0183Speed;
 
-    var openPort = function() {
-      port = new SerialPort(nmea0183PortPath, {
-        baudrate: config.nmea0183Speed
-      }, false); // this is the openImmediately flag [default is true]
-    };
+    var port = new SerialPort(nmea0183PortPath, {
+      baudrate: parseInt(config.nmea0183Speed),
+      /* man 3 termios says:
+         TIME  specifies  the limit for a timer in tenths of a second.  Once
+         an initial byte of input becomes available, the timer is restarted
+         after each further byte is received.  read(2) returns when any of
+         the following conditions is met:
 
-    openPort();
+            *  MIN bytes have been received.
+            *  The interbyte timer expires.
+            *  The number of bytes requested by read(2) has been received.
+      */
+      vtime: 1, // introduce at most 0.1 sec of delay
+      vmin: 80, // try to read 80 bytes in a row
+      bufferSize: 80, // this is the number of bytes requested by read(3)
+      autoOpen: false
+    });
+
     source = "NMEA0183: " + nmea0183PortPath;
     var nmeaPortSource = new anemonode.Nmea0183Source(source);
 
     module.exports.reset = function() {
+      // prevent emitNmea0183Sentence to send anything, we're closing.
+      nmea0183Port = undefined;
+
+      // ignore resets while we are resetting.
+      module.exports.reset = function() { };
+
       port.close(function() { init(nmea0183PortPath, dataCb); });
     };
 

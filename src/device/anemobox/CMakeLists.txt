@@ -54,7 +54,11 @@ target_link_libraries(anemobox_Nmea2000Source
 cxx_test(anemobox_Nmea2000SourceTest
          Nmea2000SourceTest
          anemobox_Nmea2000Source
-         gtest_main)
+         gtest_main
+         nmea2000all
+         anemobox_Nmea2000Utils
+         common_Env
+         )
 
 
 add_executable(anemobox main.cpp)
@@ -160,5 +164,14 @@ cxx_test(anemobox_LazyReplayDispatchDataTest
   gtest_main
   anemobox_LazyReplayDispatchData
   common_TimeStamp
+  )
+
+add_library(anemobox_Nmea2000Utils
+  Nmea2000Utils.h
+  Nmea2000Utils.cpp
+  )
+
+target_link_libraries(anemobox_Nmea2000Utils
+  nmea2000
   )
   

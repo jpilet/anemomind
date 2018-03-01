@@ -15,6 +15,8 @@ Tests for logging.c/cpp
 #define snprintf _snprintf
 #endif
 
+using namespace sail;
+
 //custom log handler that prints logging message with header in the console
 void CustomLogHandler(LogLevel level, const char* filename, int line,
                       const std::string& message) {

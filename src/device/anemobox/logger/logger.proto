@@ -20,6 +20,12 @@ message VelocityValueSet {
   repeated int32 deltaVelocity = 1 [packed = true];
 }
 
+message AngularVelocityValueSet {
+  // Unit: 1/1000 rad / sec
+  // 1 rpm = 104.719755 * 1e-3 rad / sec
+  repeated int32 delta = 1 [packed = true];
+}
+
 message LengthValueSet {
   // Unit: meters
   repeated int32 deltaLength = 1 [packed = true];
@@ -87,6 +93,7 @@ message ValueSet {
   optional GeoPosValueSet pos = 6;
   optional AbsOrientValueSet orient = 10;
   optional BinaryEdgeValueSet binary = 13;
+  optional AngularVelocityValueSet angularvelocity = 14;
 
   // Time given by an external source, as milliseconds since 1970.1.1
   repeated int64 exttimes = 11 [packed = true];

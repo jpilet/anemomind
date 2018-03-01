@@ -19,7 +19,6 @@ const char kRealTeamD35[] = "5992fcc6035eb352cf36d594";
 
 bool forceDateForGLL = false;
 int bootCount = 0;
-double motionWeight = 1.0;
 
 
 void ConfigureForBoat(const std::string& boatId) {
@@ -36,7 +35,6 @@ void ConfigureForBoat(const std::string& boatId) {
     // leads to a slight staircase effect in the positions,
     // which in turn leads to a very noisy filtered GPS speed.
     // Giving more weight to the motion fixes that.
-    motionWeight = 10.0;
   }
 }
 

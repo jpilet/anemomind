@@ -36,11 +36,6 @@ bool uploadChartTiles(const NavDataset& data,
                       const ChartTileSettings& settings,
                       const std::shared_ptr<mongoc_database_t>& db);
 
-bool uploadChartSourceIndex(const NavDataset& data,
-                            const std::string& boatId,
-                            const ChartTileSettings& settings,
-                            const std::shared_ptr<mongoc_database_t>& db);
-
 struct StatArrays {
   std::vector<double> min, max, mean;
   std::vector<int64_t> count;
@@ -57,6 +52,7 @@ template <typename T> struct Statistics {
 
   static double unit(Velocity<> x) { return x.knots(); }
   static double unit(Length<> x) { return x.meters(); }
+  static double unit(AngularVelocity<> x) { return x.degreesPerSecond(); }
 
   void appendToArrays(StatArrays* arrays) const {
     if (stats.count() > 0) {

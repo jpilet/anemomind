@@ -130,7 +130,7 @@ Array<std::shared_ptr<DataCost>> makeMotionCosts(
               m.value[1].metersPerSecond()),
           weights,
           settings.inlierThreshold.meters(),
-          hack::motionWeight));
+          settings.motionWeight));
     }
   }
   return costs.get();

@@ -433,9 +433,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   HTML_DISPLAY(_generateChartTiles, &_htmlReport);
   if (_generateChartTiles) {
     if (!uploadChartTiles(
-        current, _boatid, _chartTileSettings, db.db)
-        || !uploadChartSourceIndex(
-            current, _boatid, _chartTileSettings, db.db)) {
+        current, _boatid, _chartTileSettings, db.db)) {
       LOG(ERROR) << "Failed to upload chart tiles!";
       return false;
     }

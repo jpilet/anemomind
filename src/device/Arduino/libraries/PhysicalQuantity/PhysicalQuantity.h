@@ -76,18 +76,25 @@ namespace sail {
   OP(Mass, skeppund, 170.0) \
   OP(Mass, lispund, 170.0/20)
 
+#define FOREACH_ANGULAR_VELOCITY_UNIT(OP) \
+  OP(AngularVelocity, radiansPerSecond, 1.0) \
+  OP(AngularVelocity, degreesPerSecond, M_PI/180.0) \
+  OP(AngularVelocity, rpm, M_PI / 30.0) // 1 rpm = M_PI rad in 30 sec.
+
 #define FOREACH_UNIT(OP) \
   FOREACH_TIME_UNIT(OP) \
   FOREACH_LENGTH_UNIT(OP) \
   FOREACH_ANGLE_UNIT(OP) \
   FOREACH_VELOCITY_UNIT(OP) \
   FOREACH_ACCELERATION_UNIT(OP) \
-  FOREACH_MASS_UNIT(OP)
+  FOREACH_MASS_UNIT(OP) \
+  FOREACH_ANGULAR_VELOCITY_UNIT(OP)
 
 #define FOREACH_QUANTITY(OP) \
   OP(Time, seconds, 1, 0, 0, 0) \
   OP(Length, meters, 0, 1, 0, 0) \
   OP(Angle, radians, 0, 0, 1, 0) \
+  OP(AngularVelocity, radiansPerSecond, -1, 0, 1, 0) \
   OP(Mass, kilograms, 0, 0, 0, 1) \
   OP(Velocity, metersPerSecond, -1, 1, 0, 0) \
   OP(Acceleration, metersPerSecondSquared, -2, 1, 0, 0)
@@ -495,16 +502,21 @@ using Angle = PhysicalQuantity<T, System, 0, 0, 1, 0>;
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
 using Mass = PhysicalQuantity<T, System, 0, 0, 0, 1>;
 
+template <typename A, typename B>
+using Per = decltype((std::declval<A>())/(std::declval<B>()));
+
+template <typename T>
+using TimeDerivative = Per<T,
+    PhysicalQuantity<typename T::ValueType, typename T::SystemType, 1, 0, 0, 0>>;
+
+template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
+using AngularVelocity = TimeDerivative<Angle<T, System>>;
+
 template <typename T, typename System, int t, int l, int a, int m>
 PhysicalQuantity<T, System, t, l, a, m> operator*(T s,
     const PhysicalQuantity<T, System, t, l, a, m> &x) {
   return x*s;
 }
-
-
-
-
-
 
 #if ON_SERVER
 template <typename T, typename System>
@@ -718,6 +730,7 @@ bool isNaN(const PhysicalQuantity<T, s, t, l, a, m> &x) {
   inline QUANTITY<double> operator"" LIT (long double x) { \
     return QUANTITY<double>::WHAT(x); \
 }
+
 DEFINE_LITERAL(Angle, degrees, _deg)
 DEFINE_LITERAL(Angle, radians, _rad)
 DEFINE_LITERAL(Length, meters, _m)
@@ -734,13 +747,6 @@ DEFINE_LITERAL(Velocity, knots, _kn)
 DEFINE_LITERAL(Velocity, knots, _kt)
 DEFINE_LITERAL(Acceleration, metersPerSecondSquared, _mps2)
 #undef DEFINE_LITERAL
-
-template <typename A, typename B>
-using Per = decltype((std::declval<A>())/(std::declval<B>()));
-
-template <typename T>
-using TimeDerivative = Per<T,
-    PhysicalQuantity<typename T::ValueType, typename T::SystemType, 1, 0, 0, 0>>;
 
 }  // namespace sail
 

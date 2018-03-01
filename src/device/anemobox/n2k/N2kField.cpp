@@ -4,6 +4,7 @@
  */
 
 #include "N2kField.h"
+#include <server/common/logging.h>
 
 namespace N2kField {
 
@@ -79,8 +80,16 @@ Optional<double> N2kFieldStream::getDouble(bool isSigned, int bits, int64_t offs
   return isSigned?
       toDouble(getSigned(bits, offset, d))
       : toDouble(getUnsigned(bits, d));
-
 }
+
+Optional<double> N2kFieldStream::getDoubleWithResolution(double resolution,
+    bool isSigned, int bits, int64_t offset, Definedness definedness) {
+  auto x = getDouble(isSigned, bits, offset, definedness);
+  return x.defined()?
+      Optional<double>(x.get()*resolution)
+      : Optional<double>();
+}
+
 
 Optional<uint64_t> N2kFieldStream::getUnsignedInSet(int numBits, const std::initializer_list<int> &set) {
   auto x = getUnsigned(numBits, Definedness::AlwaysDefined);
@@ -103,6 +112,11 @@ sail::Array<uint8_t> N2kFieldStream::readBytes(int numBits) {
   } else {
     // Only read whole bytes.
     advanceBits(numBits);
+
+    // Hm... so we advance the bits but don't return anything?
+    // Looking at 'gen.js', there is an assertion already at code generation
+    // to check that we only read whole bytes. So we should never end up
+    // in this branch.
     return sail::Array<uint8_t>();
   }
 }
@@ -159,5 +173,56 @@ int64_t N2kFieldStream::getSigned(int numBits, int64_t offset) {
     return x + offset;
   }
 }
+
+void N2kFieldOutputStream::pushUnsigned(int bits, Optional<uint64_t> value) {
+  auto invalid = getMaxUnsignedValue(bits);
+  if (value.defined()) {
+    if (value.get() < invalid) {
+      _dst.pushUnsigned(bits, value.get());
+      return;
+    }
+  }
+  _dst.pushUnsigned(bits, invalid);
+}
+
+void N2kFieldOutputStream::pushSigned(
+    int bits, int64_t offset, Optional<int64_t> value) {
+
+  // Is it really this easy? Or did we miss anything regarding endianness?
+  _dst.pushUnsigned(bits, static_cast<uint64_t>(
+      value.defined()?
+          (value.get() - offset)
+          : getMaxSignedValue(bits, offset)));
+}
+
+void N2kFieldOutputStream::pushDoubleWithResolution(
+    double resolution,
+    bool isSigned, int bits,
+    int64_t offset, Optional<double> value0) {
+  Optional<double> value = value0.defined()?
+      Optional<double>(value0.get()/resolution)
+      : Optional<double>();
+  push<double>(isSigned, bits, offset, value);
+}
+
+void N2kFieldOutputStream::pushBytes(
+    int bits, const Optional<sail::Array<uint8_t>>& bytes0) {
+  using namespace sail;
+  if (bytes0.defined()) {
+    auto bytes = bytes0.get();
+    if (bits == 8*bytes.size()) {
+      for (auto x: bytes) {
+        _dst.pushUnsigned(8, x);
+      }
+    } else {
+      LOG(WARNING) << "The bytes length does not correspond to bit count. Filling with 1s";
+      fillBits(bits, true);
+    }
+  } else {
+    LOG(WARNING) << "The bytes are undefined, filling with 1s";
+    fillBits(bits, true);
+  }
+}
+
 
 }
