@@ -196,7 +196,7 @@ TEST(PgnClassesTest, BAndGPerf) {
   EXPECT_EQ(data[0], 0x7d); // Manufacturer id part 1
   EXPECT_EQ(data[1], 0x99); // Manufacturer id part 2
   EXPECT_EQ(data[2], 0x1d); // Data id part 1
-  EXPECT_EQ(data[3] & 0xFF >> 4, 0x01); // Data id part 2
+  EXPECT_EQ(data[3] & 0x0F, 0x01); // Data id part 2
 
   // The two unused bytes should be 0xFF
   EXPECT_EQ(data[6], 0xFF);
