@@ -29,6 +29,7 @@ Velocity<double> trueMaxSpeed(const Velocity<double>& src) {
 
 std::default_random_engine rng(0);
 
+// Used to produce a gradually varying signal, like a random walk.
 struct SmoothGen {
   SmoothGen(double maxVal, double maxChange)
     : _distrib(-maxChange, maxChange),
@@ -119,6 +120,8 @@ Array<PerfSurfPt> makeData(int n) {
   return pts;
 }
 
+// Convert the performance surface points
+// to something convenient that we can plot.
 Array<Eigen::Vector2d> dataToPlotPoints(
     const Array<PerfSurfPt>& pts) {
   int n = pts.size();
@@ -235,7 +238,27 @@ Array<Eigen::Vector2d> levelsToCoords(
   return dst;
 }
 
-TEST(PerfSurfTest, TestIt1) {
+TEST(PerfSurfTest, TestIt2) {
+  int dataSize = 6000;
+  auto data = makeData(dataSize);
+  int vc = getRequiredVertexCount(data);
+  auto vertices = initializeVertices(vc);
+
+  PerfSurfSettings settings;
+  settings.refSpeed = &referenceSpeed;
+
+  auto page = DOM::makeBasicHtmlPage("Perf test", "", "results");
+  DOM::addSubTextNode(&page, "h1", "Perf surf");
+
+  PlotUtils::Settings2d ps;
+  ps.orthonormal = false;
+
+  //auto results = optimizeSurfaceAndPerformances(
+  //    );
+}
+
+
+/*TEST(PerfSurfTest, TestIt1) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
   int vc = getRequiredVertexCount(data);
@@ -327,3 +350,4 @@ TEST(PerfSurfTest, TestIt1) {
       }, "Wind speed", "Boat speed", p.cr.get());
     }
 }
+*/

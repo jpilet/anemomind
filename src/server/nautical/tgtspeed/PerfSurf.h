@@ -60,57 +60,40 @@ struct PerfSurfSettings {
   std::function<Velocity<double>(PerfSurfPt)> refSpeed;
   double maxFactor = 4.0;
   int iterations = 10;
-  double goodFraction = 0.2;
-  double regPerCorr = 0.0;
-  double constantReg = 10.0;
-  SystemConstraintType type = SystemConstraintType::Sum1;
+
+  double temporalReg = 1.0;
+  double surfaceReg = 1.0;
 };
 
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
 
 Eigen::MatrixXd makeOneDimensionalReg(int n, int order);
 
+// Preprocessed data point. Easier to chew.
 struct PerfFitPoint {
+
+  // Its time index
   int index = 0;
+
+  // The speed divided by reference speed
   double normedSpeed = 0.0;
+
+  // Where it is on the surface
   Array<WeightedIndex> weights;
+
+  // If it is good.
   bool good = false;
 
   PerfFitPoint evaluateLevel(double* levelData) const;
 };
 
-struct PerfFitPair {
-  PerfFitPoint a, b;
-  bool good() const {return a.good && b.good;};
-  Array<WeightedIndex> weights;
-  double diff = 0.0;
-  bool operator<(const PerfFitPair& other) const {
-    return diff < other.diff;
-  }
-};
+struct PerfSurfResults {};
 
-struct LevelResults {
-  Array<Eigen::VectorXd> levels;
-  Array<PerfFitPoint> processed;
-  Array<PerfFitPair> finalPairs;
-
-  Eigen::VectorXd final() const {
-    return levels.last();
-  }
-
-  LevelResults normalize(double quantile) const;
-};
-
-/// Returns an unnormalized level function for every wind vertex
-LevelResults optimizeLevels(
-    const Array<PerfSurfPt>& data,
-    const Array<std::pair<int, int>>& data_pairs,
-    const Eigen::MatrixXd& reg,
+PerfSurfResults optimizePerfSurf(
+    const Array<PerfSurfPt>& pts,
+    const Array<std::pair<int, int>>& surfaceNeighbors,
     const PerfSurfSettings& settings);
 
-double computePerfAtQuantile(
-    const LevelResults& r,
-    double q);
 
 
 } /* namespace sail */

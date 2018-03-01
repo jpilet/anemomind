@@ -14,6 +14,7 @@
 #include <Eigen/EigenValues>
 #include <server/math/Majorize.h>
 #include <ceres/jet.h>
+#include <ceres/ceres.h>
 
 namespace sail {
 
@@ -120,63 +121,6 @@ Array<WeightedIndex> scaleWeights(double s, const Array<WeightedIndex>& src) {
   return dst;
 }
 
-
-Array<PerfFitPair> updatePairs(
-    const Array<PerfFitPair>& pairs,
-    const Eigen::VectorXd& X,
-    const PerfSurfSettings& s) {
-  int n = pairs.size();
-  Array<PerfFitPair> dst(n);
-  for (int i = 0; i < n; i++) {
-    PerfFitPair p = pairs[i];
-    p.diff = evaluateLevel(p.weights, X);
-    dst[i] = p;
-  }
-  std::sort(dst.begin(), dst.end());
-  return dst.sliceTo(int(round(dst.size()*s.goodFraction)));
-}
-
-void outputWeights(
-    int row, double s,
-    const Array<WeightedIndex>& weights,
-    std::vector<Eigen::Triplet<double>>* dst) {
-  for (auto w: weights) {
-    dst->push_back(Eigen::Triplet<double>(row, w.index, w.weight*s));
-  }
-}
-
-void generateTriplets(
-    const PerfFitPair& p,
-    int row,
-    std::vector<Eigen::Triplet<double>>* dst) {
-  outputWeights(row, 1, p.weights, dst);
-}
-
-Eigen::SparseMatrix<double> makeDataMatrix(
-    int n,
-    const Array<PerfFitPair>& pairs) {
-  std::vector<Eigen::Triplet<double>> triplets;
-  for (int i = 0; i < pairs.size(); i++) {
-    const auto& p = pairs[i];
-    generateTriplets(p, i, &triplets);
-  }
-  Eigen::SparseMatrix<double> A(pairs.size(), n);
-  A.setFromTriplets(triplets.begin(), triplets.end());
-  return A;
-}
-
-Eigen::VectorXd iterateLevels(
-    Eigen::MatrixXd* AtA,
-    const Array<PerfFitPair>& pairs,
-    const Eigen::MatrixXd& R,
-    const PerfSurfSettings& s) {
-  int n = AtA->rows();
-  auto dataMat = makeDataMatrix(n, pairs);
-  Eigen::MatrixXd DtD = (dataMat.transpose()*dataMat).toDense();
-  (*AtA) += ((s.regPerCorr*pairs.size() + s.constantReg)*R + DtD);
-  return solveConstrained(*AtA, s.type);
-}
-
 PerfFitPoint makePerfFitPoint(
     const Array<PerfSurfPt>& data,
     int index, const PerfSurfSettings& s) {
@@ -231,91 +175,21 @@ Array<WeightedIndex> add(
   return toWeightedInds(m);
 }
 
-Array<PerfFitPair> makePerfPairs(
-    const Array<std::pair<int, int>>& pairs,
-    const Array<PerfFitPoint>& processed) {
-  int n = pairs.size();
-  ArrayBuilder<PerfFitPair> dst(n);
-  for (auto p: pairs) {
-    PerfFitPair c;
-    c.a = processed[p.first];
-    c.b = processed[p.second];
-    c.weights = add(c.a.weights, scaleWeights(-1, c.b.weights));
-    if (c.good()) {
-      dst.add(c);
-    }
+
+int getVertexCount(
+    const Array<std::pair<int, int>>& surfaceNeighbors) {
+  int maxVertex = 0;
+  for (const auto& x: surfaceNeighbors) {
+    maxVertex = std::max(maxVertex, std::max(x.first, x.second));
   }
-  return dst.get();
+  return maxVertex;
 }
 
-LevelResults optimizeLevels(
-    const Array<PerfSurfPt>& data,
-    const Array<std::pair<int, int>>& pairs,
-    const Eigen::MatrixXd& reg,
+PerfSurfResults optimizePerfSurf(
+    const Array<PerfSurfPt>& pts,
+    const Array<std::pair<int, int>>& surfaceNeighbors,
     const PerfSurfSettings& settings) {
-
-  auto processed = preprocessData(data, settings);
-  auto processedPairs = makePerfPairs(pairs, processed);
-
-  int vertex_count = reg.cols();
-  Eigen::MatrixXd R = reg.transpose()*reg;
-  Eigen::MatrixXd AtA = Eigen::MatrixXd::Zero(vertex_count, vertex_count);
-  Eigen::VectorXd X = Eigen::VectorXd::Ones(vertex_count);
-
-  ArrayBuilder<Eigen::VectorXd> levels;
-  Array<PerfFitPair> goodPairs;
-  for (int i = 0; i < settings.iterations; i++) {
-    goodPairs = updatePairs(processedPairs, X, settings);
-    LOG(INFO) << "Iteration " << i << " median diff: "
-        << goodPairs[goodPairs.size()/2].diff;
-    LOG(INFO) << "Max diff: " << goodPairs.last().diff;
-    X = iterateLevels(&AtA, goodPairs, R, settings);
-    levels.add(X);
-    LOG(INFO) << "X = " << X.transpose();
-  }
-  LevelResults r;
-  r.levels = levels.get();
-  r.finalPairs = goodPairs;
-  r.processed = processed;
-  return r;
-}
-
-double computePerfAtQuantile(
-    const LevelResults& r,
-    double q) {
-  int n = r.processed.size();
-  CHECK(0 < n);
-  CHECK(0 <= q && q <= 1.0);
-  ArrayBuilder<double> perfs(n);
-  auto X = r.final();
-  for (int i = 0; i < n; i++) {
-    const auto& x = r.processed[i];
-    if (x.good) {
-      perfs.add(evaluateLevel(x.weights, X));
-    }
-  }
-  auto p = perfs.get();
-  auto nth = p.begin() + clamp(int(round(q*p.size())), 0, n-1);
-  std::nth_element(p.begin(), nth, p.end());
-  return *nth;
-}
-
-LevelResults LevelResults::normalize(double quantile) const {
-  double k = computePerfAtQuantile(*this, quantile);
-  if (std::abs(k) <= 1.0e-6) {
-    LOG(ERROR) << "Cannot normalize";
-    return *this;
-  }
-  double f = 1.0/k;
-
-  LevelResults dst = *this;
-  dst.levels = levels.dup();
-
-  int n = levels.size();
-  for (int i = 0; i < n; i++) {
-    dst.levels[i] = f*levels[i];
-  }
-  return dst;
+  int vertexCount = getVertexCount(surfaceNeighbors);
 }
 
 } /* namespace sail */
