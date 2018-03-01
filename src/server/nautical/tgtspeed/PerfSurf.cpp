@@ -223,6 +223,30 @@ namespace {
       }
       *residual = perf*interpolatedTargetSpeed /*estimated boat speed*/
           - pt.normedSpeed/*observed boat speed*/;
+
+      std::cout << "Residual is " << *residual << std::endl;
+
+      return true;
+    }
+  };
+
+  struct RegCost {
+    double weight = 1.0;
+
+    static ceres::CostFunction* make(
+        double w) {
+      auto cost = new RegCost();
+      cost->weight = w;
+      return new ceres::AutoDiffCostFunction<RegCost, 1, 1, 1>(
+          cost);
+    }
+
+    template <typename T>
+    bool operator()(
+        const T* a,
+        const T* b,
+        T* residual) const {
+      *residual = weight*(*a - *b);
       return true;
     }
   };
@@ -245,6 +269,20 @@ namespace {
     }*/
     return dst;
   }
+}
+
+/*
+ *
+ *    solve
+ *
+ *    srcCount*(srcWeight*x)^2 = dstCount*(dstWeight*x)^2
+ *
+ *    w.r.t. dstWeight
+ *
+ */
+double transferWeight(int srcCount, double srcWeight, int dstCount) {
+  CHECK(0 < dstCount);
+  return sqrt((srcWeight*srcCount)/dstCount);
 }
 
 PerfSurfResults optimizePerfSurf(
@@ -271,17 +309,43 @@ PerfSurfResults optimizePerfSurf(
   }
 
   // Add the data terms
+  int goodCount = 0;
   for (int i = 0; i < pointCount; i++) {
     auto fit = makePerfFitPoint(pts, i, settings);
     if (fit.good) {
       auto vp = getVertexPointers(fit.weights, vertices);
       auto cost = DataFitCost::make(fit);
+      goodCount++;
       problem.AddResidualBlock(
           cost,
           nullptr, // Squared residuals
           vp[0], vp[1], //vp[2], // Vertex pointers
           &(performances[i])); // Estimated performance
     }
+  }
+
+  LOG(INFO) << "Number of good points: " << goodCount << std::endl;
+
+  // Add regularization for the performance pairs
+  // in time
+  int perfPairCount = performances.size()-1;
+  LOG(INFO) << "Using reg weight " << settings.regWeight << std::endl;
+  for (int i = 0; i < perfPairCount; i++) {
+    problem.AddResidualBlock(
+        RegCost::make(settings.regWeight),
+        nullptr,
+        &(performances[i]), &(performances[i+1]));
+  }
+
+  // Regularize the fitted surface
+  auto surfaceWeight = transferWeight(
+      perfPairCount, settings.regWeight, vertexCount);
+  LOG(INFO) << "Using surface weight " << surfaceWeight << std::endl;
+  for (const auto& pair: surfaceNeighbors) {
+    problem.AddResidualBlock(
+        RegCost::make(surfaceWeight),
+        nullptr,
+        &(vertices[pair.first]), &(vertices[pair.second]));
   }
 
   ceres::Solver::Options options;

@@ -239,7 +239,7 @@ Array<Eigen::Vector2d> levelsToCoords(
 }
 
 TEST(PerfSurfTest, TestIt2) {
-  int dataSize = 6000;
+  int dataSize = 10;
   auto data = makeData(dataSize);
   int vertexCount = getRequiredVertexCount(data);
 
@@ -256,6 +256,14 @@ TEST(PerfSurfTest, TestIt2) {
       data,
       generateSurfaceNeighbors1d(vertexCount),
       settings);
+
+  std::cout << "Number of vertices: " <<
+      results.rawNormalizedVertices.size() << std::endl;
+
+  for (auto v: results.rawNormalizedVertices) {
+    std::cout << " " << v;
+  }
+  std::cout << std::endl;
 
 }
 

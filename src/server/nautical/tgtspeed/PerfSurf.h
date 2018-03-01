@@ -59,10 +59,7 @@ Eigen::VectorXd solveConstrained(
 struct PerfSurfSettings {
   std::function<Velocity<double>(PerfSurfPt)> refSpeed;
   double maxFactor = 4.0;
-  int iterations = 10;
-
-  double temporalReg = 1.0;
-  double surfaceReg = 1.0;
+  double regWeight = 1.0;
 };
 
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
