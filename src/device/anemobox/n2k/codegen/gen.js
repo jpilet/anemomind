@@ -389,7 +389,7 @@ function getMatchExpr(field) {
     assert(e);
     return getEnumClassName(field) + "::" + e.symbol;
   } else {
-    return m; //" = " + m;
+    return m;
   }
 }
 
