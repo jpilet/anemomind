@@ -84,7 +84,7 @@ var all = [{
     "BitStart": 0,
     "Type": "Integer",
     "Signed": false,
-    "Description": "Not sure if the length is in bytes or bits.",
+    "Description": "The length is in bytes, see the red text in the NDA for this field.",
     "Match": 2
   }, {
     // This field depends on the dataId value.
