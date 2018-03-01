@@ -6,6 +6,7 @@ var can = require('socketcan');
 
 var testData = require('./n2kgps_data.js');
 var packets = testData[0].packets;
+var pgnTable = require('../components/pgntable.js');
 
 
 function hasField(f) {return function(p) {return f in p;};}
@@ -243,6 +244,12 @@ describe('Try the send method', function() {
         date: 7900,
         localOffset: 180
       }], "time");
+
+      testSend(src, [{
+        pgn: pgnTable.BandGVmgPerformance,
+        deviceIndex: 0,
+        vmgPerformance: 0.7 // 70%
+      }], null);
 
       done();
     }, 1500);
