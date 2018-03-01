@@ -185,8 +185,6 @@ TEST(PgnClassesTest, ANotherGnssPositionDataTest) {
 
 }
 
-#define DOUT(x) std::cout << #x << " = " << x << std::endl
-
 TEST(PgnClassesTest, BAndGPerf) {
   PgnClasses::BandGVmgPerformancePercentage perf;
   EXPECT_TRUE(perf.valid());
