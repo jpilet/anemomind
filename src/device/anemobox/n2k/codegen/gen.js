@@ -861,30 +861,9 @@ function callApplyMethod(pgnDefs) {
   }
 }
 
-function findFieldById(id, fieldArray) {
-  return fieldArray.filter(function(f) {
-    return f.Id == id;
-  })[0];
-}
-
-function getDispatchBaseDef(pgnDefs) {
-  var f = pgnDefs[0];
-  if ("DispatchOn" in f) {
-    var fieldId = f.DispatchOn;
-    return pgnDefs.filter(function(pgnDef) {
-      var fields = getStaticFieldArray(pgnDef);
-      var dispatchField = findFieldById(fieldId, fields);
-      return !("Match" in dispatchField);
-    })[0];
-  }
-  return null;
-}
-
 function makePgnEnum(pgnDefs) {
   if (pgnDefs.length == 1) {
     return null;
-  } else if (getDispatchBaseDef(pgnDefs)) {
-    return null; // No need to make an enum if this is handled differently
   } else {
     var code = getCommonPgnCode(pgnDefs);
     var symbols = pgnDefs.map(function(pgn) {
