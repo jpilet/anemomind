@@ -2,6 +2,7 @@ var parseString = require('xml2js').parseString;
 var fs = require('fs');
 var assert = require('assert');
 var Path = require('path');
+var extra = require('./extrapgns.js');
 
 function findValidPath(paths) {
   for (var i = 0; i < paths.length; i++) {
@@ -109,7 +110,11 @@ function filterPgnsOfInterest(pgns) {
 }
 
 function getPgnArrayFromParsedXml(xml) {
-  return xml.PGNDefinitions.PGNs[0].PGNInfo;
+  var arr = xml.PGNDefinitions.PGNs[0].PGNInfo;
+  for (var i = 0; i < extra.length; i++) {
+    arr.push(extra[i]);
+  }
+  return arr;
 }
 
 function getClassName(pgn) {
@@ -331,6 +336,7 @@ var encodeDecl = "std::vector<uint8_t> encode() const override;";
 var commonMethods = [
   "bool hasSomeData() const;",
   "bool hasAllData() const;",
+  "bool valid() const;",
   encodeDecl
 ];
 
@@ -371,6 +377,27 @@ function getFieldComment(field) {
   return "// " + (d? d : "") + " at " + explainBits(field.BitOffset);
 }
 
+function getMatchExpr(field) {
+  var m = field.Match;
+  if (m == undefined) {
+    return null;
+  }
+
+  var pairs = getEnumPairs(field);
+  if (pairs) {
+    var e = pairs.filter(function(p) {return p.value == m;})[0];
+    assert(e);
+    return getEnumClassName(field) + "::" + e.symbol;
+  } else {
+    return m; //" = " + m;
+  }
+}
+
+function getFieldInitialization(field) {
+  var e = getMatchExpr(field);
+  return e == null? "" : (" = " + e);
+}
+
 function makeInstanceVariableDecl(field) {
   var skip = skipField(field);
   if (skip) {
@@ -379,7 +406,8 @@ function makeInstanceVariableDecl(field) {
       + explainBits(field.BitOffset) + ": " + skip; 
   }
   return getOptionalFieldType(field) + " "
-    + getInstanceVariableName(field) + "; "
+    + getInstanceVariableName(field)  
+    + getFieldInitialization(field) + "; "
     + getFieldComment(field);
 }
 
@@ -435,7 +463,11 @@ function makeSymbolFromDescription(desc) {
 }
 
 function getEnumPairs(field) {
-  return field.EnumValues[0].EnumPair.map(function(x) {
+  var vals = field.EnumValues;
+  if (!vals) {
+    return null;
+  }
+  return vals[0].EnumPair.map(function(x) {
     for (var i in x) {
       var y = x[i];
       var value = parseInt(y.Value);
@@ -829,12 +861,30 @@ function callApplyMethod(pgnDefs) {
   }
 }
 
+function findFieldById(id, fieldArray) {
+  return fieldArray.filter(function(f) {
+    return f.Id == id;
+  })[0];
+}
 
-
+function getDispatchBaseDef(pgnDefs) {
+  var f = pgnDefs[0];
+  if ("DispatchOn" in f) {
+    var fieldId = f.DispatchOn;
+    return pgnDefs.filter(function(pgnDef) {
+      var fields = getStaticFieldArray(pgnDef);
+      var dispatchField = findFieldById(fieldId, fields);
+      return !("Match" in dispatchField);
+    })[0];
+  }
+  return null;
+}
 
 function makePgnEnum(pgnDefs) {
   if (pgnDefs.length == 1) {
     return null;
+  } else if (getDispatchBaseDef(pgnDefs)) {
+    return null; // No need to make an enum if this is handled differently
   } else {
     var code = getCommonPgnCode(pgnDefs);
     var symbols = pgnDefs.map(function(pgn) {
@@ -1148,7 +1198,12 @@ function makeHasDataMethod(pgn, what, op, depth) {
 
 function makeEncodeMethodStatements(pgn) {
   var dst = [
-    "N2kField::N2kFieldOutputStream dst;"
+    "N2kField::N2kFieldOutputStream dst;",
+    "if (!valid()) {", [
+      'std::cerr << "Cannot encode ' + getClassName(pgn) + '";',
+      "return {};"
+    ],
+    "}"
   ];
   
   var fields = getStaticFieldArray(pgn);
@@ -1167,6 +1222,7 @@ function makeEncodeMethodStatements(pgn) {
     }));
     dst.push('}');
   }
+  dst.push("dst.fillUpToLength(8*8, true);");
   dst.push("return dst.moveData();");
   return dst;
 }
@@ -1224,15 +1280,35 @@ function makeExtraMethodsInClass(pgn, depth) {
   return tryMakeTimeStampAccessor(fieldMap, depth);
 }
 
+function matchesItsValue(f) {
+  var fname = getInstanceVariableName(f);
+  return " && " 
+    + fname + ".defined() && " 
+    + fname + ".get() == " + getMatchExpr(f);
+}
+
+function makeValidMethod(pgn) {
+  var m = getStaticFieldArray(pgn).filter(function(f) {return "Match" in f;});
+  return indentLineArray(1, [
+    "bool " + getClassName(pgn) + "::valid() const {", [
+      "return true",
+      m.map(matchesItsValue),
+      ";"
+    ],
+    "}"
+  ]);
+}
+
 function makeMethodsForPgn(pgn, depth) {
   return makeDefaultConstructor(pgn, depth) 
     + makeConstructor(pgn, depth)
     + makeHasDataMethod(pgn, "Some", "||", depth)
     + makeHasDataMethod(pgn, "All", "&&", depth)
+    + makeValidMethod(pgn)
     + makeEncodeMethod(pgn, depth);
 }
 
-var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n#include<server/common/logging.h>\n\n';
+var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n#include<server/common/logging.h>\n#include <iostream>\n\n';
 
 function makeImplementationFileContents(moduleName, pgns) {
   var depth = 1;

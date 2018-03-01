@@ -40,7 +40,7 @@ void testWindData(const WindData& windData) {
 
 TEST(PgnClassesTest, WindData) {
   // The length of WindData is 6 bytes.
-  std::vector<uint8_t> data{0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA/*, 0xFF, 0xFF*/};
+  std::vector<uint8_t> data{0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
 
   PgnClasses::WindData windData(data.data(), data.size());
   testWindData(windData);
@@ -54,7 +54,7 @@ void testWindDataNotAvailable(const WindData& windData) {
 }
 
 TEST(PgnClassesTest, WindDataNotAvailable) {
-  std::vector<uint8_t> data{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF/*, 0xFF, 0xFF*/};
+  std::vector<uint8_t> data{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
   PgnClasses::WindData windData(data.data(), data.size());
   testWindDataNotAvailable(windData);
@@ -185,5 +185,28 @@ TEST(PgnClassesTest, ANotherGnssPositionDataTest) {
 
 }
 
+TEST(PgnClassesTest, BAndGPerf) {
+  PgnClasses::BandGVmgPerformancePercentage perf;
+  EXPECT_TRUE(perf.valid());
+
+  // This is the only value you would want to touch for this class.
+  perf.value = 0.75;
+  auto data = perf.encode();
+  EXPECT_EQ(data.size(), 8);
+  EXPECT_EQ(data[0], 0x7d); // Manufacturer id part 1
+  EXPECT_EQ(data[1], 0x99); // Manufacturer id part 2
+  EXPECT_EQ(data[2], 0x1d); // Data id part 1
+  EXPECT_EQ(data[3] & 0xFF >> 4, 0x01); // Data id part 2
+
+  // The two unused bytes should be 0xFF
+  EXPECT_EQ(data[6], 0xFF);
+  EXPECT_EQ(data[7], 0xFF);
+
+  PgnClasses::BandGVmgPerformancePercentage perf2(data.data(), data.size());
+  EXPECT_EQ(perf2.value.get(), perf.value.get());
+  EXPECT_TRUE(perf2.valid());
+
+  EXPECT_EQ(data, perf2.encode());
+}
 
 

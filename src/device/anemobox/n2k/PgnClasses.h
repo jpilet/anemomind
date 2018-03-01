@@ -1,6 +1,6 @@
-/** Generated on Sun Feb 11 2018 00:05:03 GMT+0100 (CET) using 
+/** Generated on Thu Mar 01 2018 13:21:41 GMT+0100 (CET) using 
  *
- *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
+ *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -43,6 +43,7 @@ namespace PgnClasses {
     IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
@@ -61,9 +62,10 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
-    Optional<uint64_t > groupFunctionCode; // RTS at 0 bits = 0 bytes
+    Optional<uint64_t > groupFunctionCode = 16; // RTS at 0 bits = 0 bytes
     Optional<uint64_t > messageSize; // bytes at 8 bits = 1 bytes
     Optional<uint64_t > packets; // packets at 24 bits = 3 bytes
     Optional<uint64_t > packetsReply; // packets sent in response to CTS at 32 bits = 4 bytes
@@ -82,9 +84,10 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
-    Optional<uint64_t > groupFunctionCode; // CTS at 0 bits = 0 bytes
+    Optional<uint64_t > groupFunctionCode = 17; // CTS at 0 bits = 0 bytes
     Optional<uint64_t > maxPackets; // packets before waiting for next CTS at 8 bits = 1 bytes
     Optional<uint64_t > nextSid; // packet at 16 bits = 2 bytes
     // Skip field 'Reserved' of length 16 at 24 bits = 3 bytes: Reserved field
@@ -103,9 +106,10 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
-    Optional<uint64_t > groupFunctionCode; // EOM at 0 bits = 0 bytes
+    Optional<uint64_t > groupFunctionCode = 19; // EOM at 0 bits = 0 bytes
     Optional<uint64_t > totalMessageSize; // bytes at 8 bits = 1 bytes
     Optional<uint64_t > totalNumberOfPacketsReceived; // packets at 24 bits = 3 bytes
     // Skip field 'Reserved' of length 8 at 32 bits = 4 bytes: Reserved field
@@ -124,9 +128,10 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
-    Optional<uint64_t > groupFunctionCode; // BAM at 0 bits = 0 bytes
+    Optional<uint64_t > groupFunctionCode = 32; // BAM at 0 bits = 0 bytes
     Optional<uint64_t > messageSize; // bytes at 8 bits = 1 bytes
     Optional<uint64_t > packets; // frames at 24 bits = 3 bytes
     // Skip field 'Reserved' of length 8 at 32 bits = 4 bytes: Reserved field
@@ -145,9 +150,10 @@ namespace PgnClasses {
     IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
-    Optional<uint64_t > groupFunctionCode; // Abort at 0 bits = 0 bytes
+    Optional<uint64_t > groupFunctionCode = 255; // Abort at 0 bits = 0 bytes
     Optional<uint64_t > reason; //  at 8 bits = 1 bytes
     // Skip field 'Reserved' of length 16 at 16 bits = 2 bytes: Reserved field
     std::vector<Repeating> repeating;
@@ -170,6 +176,7 @@ namespace PgnClasses {
     SystemTime(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     sail::TimeStamp timeStamp() const {
       return N2kField::getTimeStamp(*this);
@@ -191,6 +198,7 @@ namespace PgnClasses {
     Rudder(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > instance; //  at 0 bits = 0 bytes
@@ -213,6 +221,7 @@ namespace PgnClasses {
     VesselHeading(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
@@ -231,6 +240,7 @@ namespace PgnClasses {
     RateOfTurn(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
@@ -246,6 +256,7 @@ namespace PgnClasses {
     Attitude(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
@@ -267,6 +278,7 @@ namespace PgnClasses {
     EngineParametersRapidUpdate(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<EngineInstance > engineInstance; //  at 0 bits = 0 bytes
@@ -291,6 +303,7 @@ namespace PgnClasses {
     Speed(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
@@ -309,6 +322,7 @@ namespace PgnClasses {
     PositionRapidUpdate(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<sail::Angle<double> > latitude; //  at 0 bits = 0 bytes
@@ -328,6 +342,7 @@ namespace PgnClasses {
     CogSogRapidUpdate(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
@@ -339,7 +354,7 @@ namespace PgnClasses {
   };
   
   struct GnssPositionData: public PgnBaseClass { // GNSS Position Data
-    // Minimum size: 344 bits = 43 bytes. Repeating struct size: 32 bits = 4 bytes
+    // Minimum size: 328 bits = 41 bytes. Repeating struct size: 32 bits = 4 bytes
     static const int ThisPgn = 129029;
     int code() const override {return 129029;}
     enum class GnssType {
@@ -381,15 +396,16 @@ namespace PgnClasses {
       Galileo = 8
     };
     struct Repeating {
-      Optional<ReferenceStationType > referenceStationType; //  at 344 bits = 43 bytes
-      Optional<uint64_t > referenceStationId; //  at 348 bits = 43 bytes + 4 bits
-      Optional<sail::Duration<double> > ageOfDgnssCorrections; //  at 360 bits = 45 bytes
+      Optional<ReferenceStationType > referenceStationType; //  at 328 bits = 41 bytes
+      Optional<uint64_t > referenceStationId; //  at 332 bits = 41 bytes + 4 bits
+      Optional<sail::Duration<double> > ageOfDgnssCorrections; //  at 344 bits = 43 bytes
     };
 
     GnssPositionData();
     GnssPositionData(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     sail::TimeStamp timeStamp() const {
       return N2kField::getTimeStamp(*this);
@@ -409,7 +425,7 @@ namespace PgnClasses {
     Optional<double > hdop; // Horizontal dilution of precision at 272 bits = 34 bytes
     Optional<double > pdop; // Probable dilution of precision at 288 bits = 36 bytes
     Optional<sail::Length<double> > geoidalSeparation; // Geoidal Separation at 304 bits = 38 bytes
-    Optional<uint64_t > referenceStations; // Number of reference stations at 336 bits = 42 bytes
+    Optional<uint64_t > referenceStations; // Number of reference stations at 320 bits = 40 bytes
     std::vector<Repeating> repeating;
   };
   
@@ -422,6 +438,7 @@ namespace PgnClasses {
     TimeDate(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     sail::TimeStamp timeStamp() const {
       return N2kField::getTimeStamp(*this);
@@ -448,6 +465,7 @@ namespace PgnClasses {
     WindData(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > sid; //  at 0 bits = 0 bytes
@@ -476,6 +494,7 @@ namespace PgnClasses {
     DirectionData(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
+    bool valid() const;
     std::vector<uint8_t> encode() const override;
     
     Optional<DataMode > dataMode; //  at 0 bits = 0 bytes
@@ -488,6 +507,27 @@ namespace PgnClasses {
     Optional<sail::Velocity<double> > speedThroughWater; //  at 64 bits = 8 bytes
     Optional<sail::Angle<double> > set; //  at 80 bits = 10 bytes
     Optional<sail::Velocity<double> > drift; //  at 96 bits = 12 bytes
+  };
+  
+  struct BandGVmgPerformancePercentage: public PgnBaseClass { // B&G Properietary PGN -- VMG Performance %
+    // Minimum size: 48 bits = 6 bytes. 
+    static const int ThisPgn = 65330;
+    int code() const override {return 65330;}
+    enum class DataId {
+      VMG_target_percentage = 285
+    };
+
+    BandGVmgPerformancePercentage();
+    BandGVmgPerformancePercentage(const uint8_t *data, int lengthBytes);
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    bool valid() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > manufacturerId = 39293; // B&G at 0 bits = 0 bytes
+    Optional<DataId > dataId = DataId::VMG_target_percentage; //  at 16 bits = 2 bytes
+    Optional<uint64_t > length = 16; // Not sure if the length is in bytes or bits. at 28 bits = 3 bytes + 4 bits
+    Optional<double > value; // 'Each bit is 0.1%' according to NDA. at 32 bits = 4 bytes
   };
   
 
@@ -518,6 +558,7 @@ namespace PgnClasses {
     virtual bool apply(const tN2kMsg& src, const TimeDate& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const WindData& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const DirectionData& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const BandGVmgPerformancePercentage& packet) { return false; }
   };
 }
 

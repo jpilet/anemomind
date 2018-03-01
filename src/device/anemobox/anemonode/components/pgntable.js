@@ -19,4 +19,5 @@ module.exports = {
   timeDate: 129033,
   windData: 130306,
   directionData: 130577,
+  BandGVmgPerformancePercentage: 65330,
 };
