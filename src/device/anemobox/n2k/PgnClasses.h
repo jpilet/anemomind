@@ -1,4 +1,4 @@
-/** Generated on Thu Mar 01 2018 14:43:10 GMT+0100 (CET) using 
+/** Generated on Thu Mar 01 2018 14:52:49 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -526,8 +526,8 @@ namespace PgnClasses {
     
     Optional<uint64_t > manufacturerId = 39293; // B&G at 0 bits = 0 bytes
     Optional<DataId > dataId = DataId::VMG_target_percentage; //  at 16 bits = 2 bytes
-    Optional<uint64_t > length = 2; // Not sure if the length is in bytes or bits. at 28 bits = 3 bytes + 4 bits
-    Optional<double > vmgPerformance; // 'Each bit is 0.1%' according to NDA. at 32 bits = 4 bytes
+    Optional<uint64_t > length = 2; // The length is in bytes, see the red text in the NDA for this field. at 28 bits = 3 bytes + 4 bits
+    Optional<double > vmgPerformance; // 'Each bit is 0.1%' according to NDA. Regarding the decoded value, 1.0 means 100% at 32 bits = 4 bytes
   };
   
 
