@@ -224,8 +224,6 @@ namespace {
       *residual = perf*interpolatedTargetSpeed /*estimated boat speed*/
           - pt.normedSpeed/*observed boat speed*/;
 
-      std::cout << "Residual is " << *residual << std::endl;
-
       return true;
     }
   };

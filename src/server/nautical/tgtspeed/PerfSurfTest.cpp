@@ -239,7 +239,7 @@ Array<Eigen::Vector2d> levelsToCoords(
 }
 
 TEST(PerfSurfTest, TestIt2) {
-  int dataSize = 1000;
+  int dataSize = 6000;
   auto data = makeData(dataSize);
   int vertexCount = getRequiredVertexCount(data);
 
