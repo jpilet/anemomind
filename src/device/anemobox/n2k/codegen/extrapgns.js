@@ -2,10 +2,7 @@
 
 Clarifications to request from B&G:
 
- (i) Is the data length (bottom 4 bits of byte 4) given in 
- bytes or bits?
-
- (ii) To decode the data part, do we parse the 
+ To decode the data part, do we parse the 
  two bytes as a signed integer and multiply that 
  integer by 0.001 to obtain the performance ratio?
 
@@ -148,7 +145,10 @@ var all = [
       "Match": 285 // target VMG
     },
     "length": {
-      "Match": 16, // Bytes or bits?
+      "Match": 2, // Bytes or bits? It has to be bytes, because it is stored in 
+                  // 4 bits meaning a max value of 15. And we want to store more
+                  // than 15 bits, because the length is 2 bytes which is 16 bits.
+                  // So the unit cannot be bits.
     },
     "value": {
       "BitLength": 16,
@@ -159,7 +159,6 @@ var all = [
       // 1.0 means 100 %.
       "Description": "'Each bit is 0.1%' according to NDA.", 
 
-      "BitLength": 16,
       "Resolution": 0.001
     }
   })

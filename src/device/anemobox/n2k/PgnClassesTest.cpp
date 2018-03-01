@@ -185,6 +185,8 @@ TEST(PgnClassesTest, ANotherGnssPositionDataTest) {
 
 }
 
+#define DOUT(x) std::cout << #x << " = " << x << std::endl
+
 TEST(PgnClassesTest, BAndGPerf) {
   PgnClasses::BandGVmgPerformancePercentage perf;
   EXPECT_TRUE(perf.valid());
@@ -203,10 +205,14 @@ TEST(PgnClassesTest, BAndGPerf) {
   EXPECT_EQ(data[7], 0xFF);
 
   PgnClasses::BandGVmgPerformancePercentage perf2(data.data(), data.size());
+
   EXPECT_EQ(perf2.value.get(), perf.value.get());
   EXPECT_TRUE(perf2.valid());
 
   EXPECT_EQ(data, perf2.encode());
+
+  perf2.manufacturerId = Optional<uint64_t>();
+  EXPECT_TRUE(perf2.encode().empty());
 }
 
 

@@ -1,4 +1,4 @@
-/** Generated on Thu Mar 01 2018 13:29:11 GMT+0100 (CET) using 
+/** Generated on Thu Mar 01 2018 13:41:03 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -1035,7 +1035,7 @@ namespace PgnClasses {
     return true
        && manufacturerId.defined() && manufacturerId.get() == 39293
        && dataId.defined() && dataId.get() == DataId::VMG_target_percentage
-       && length.defined() && length.get() == 16
+       && length.defined() && length.get() == 2
     ;
   }
   std::vector<uint8_t> BandGVmgPerformancePercentage::encode() const {
