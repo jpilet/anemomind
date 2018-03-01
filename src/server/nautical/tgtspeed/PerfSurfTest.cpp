@@ -244,7 +244,7 @@ TEST(PerfSurfTest, TestIt2) {
   int vertexCount = getRequiredVertexCount(data);
 
   PerfSurfSettings settings;
-  settings.regWeight = 0.1;
+  settings.regWeight = 0.001;
   settings.refSpeed = &referenceSpeed;
 
   auto page = DOM::makeBasicHtmlPage("Perf test", "", "results");
