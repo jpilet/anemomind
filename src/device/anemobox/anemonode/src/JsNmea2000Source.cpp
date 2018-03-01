@@ -405,6 +405,22 @@ bool sendCogSogRapidUpdate(
   return true;
 }
 
+bool sendBandGVmgPerformance(
+  int32_t deviceIndex,
+  const v8::Local<v8::Object>& obj, 
+  Nmea2000Source* dst) {
+
+  using namespace PgnClasses;
+
+  BandGVmgPerformance perf;
+
+  TRY_LOOK_UP(obj, "vmgPerformance", &(perf.vmgPerformance));
+
+  auto result = dst->send(deviceIndex, perf);
+  CHECK_CONDITION_BOOL(result, "Failed to send BandGVmgPerformance");
+  return true;
+} 
+
 bool dispatchPgn(
    int64_t pgn,
    const v8::Local<v8::Object>& obj,
@@ -428,6 +444,8 @@ bool dispatchPgn(
     return sendTimeDate(deviceIndex, obj, dst);
   case PgnClasses::CogSogRapidUpdate::ThisPgn:
     return sendCogSogRapidUpdate(deviceIndex, obj, dst);
+  case PgnClasses::BandGVmgPerformance::ThisPgn:
+    return sendBandGVmgPerformance(deviceIndex, obj, dst);
   default: 
     break;
   };
