@@ -1,4 +1,4 @@
-/** Generated on Thu Mar 01 2018 13:41:03 GMT+0100 (CET) using 
+/** Generated on Thu Mar 01 2018 14:43:10 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -1002,52 +1002,52 @@ namespace PgnClasses {
     return dst.moveData();
   }
 
-  BandGVmgPerformancePercentage::BandGVmgPerformancePercentage() {
+  BandGVmgPerformance::BandGVmgPerformance() {
   }
 
-  BandGVmgPerformancePercentage::BandGVmgPerformancePercentage(const uint8_t *data, int lengthBytes) {
+  BandGVmgPerformance::BandGVmgPerformance(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (48 <= src.remainingBits()) {
       manufacturerId = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
       dataId = src.getUnsignedInSet(12, {285}).cast<DataId>();
       length = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
-      value = src.getDoubleWithResolution(0.001, true, 16, 0, N2kField::Definedness::MaybeUndefined);
+      vmgPerformance = src.getDoubleWithResolution(0.001, true, 16, 0, N2kField::Definedness::MaybeUndefined);
     // No repeating fields.
     }
   }
-  bool BandGVmgPerformancePercentage::hasSomeData() const {
+  bool BandGVmgPerformance::hasSomeData() const {
     return 
          manufacturerId.defined()
       || dataId.defined()
       || length.defined()
-      || value.defined()
+      || vmgPerformance.defined()
     ;
   }
-  bool BandGVmgPerformancePercentage::hasAllData() const {
+  bool BandGVmgPerformance::hasAllData() const {
     return 
          manufacturerId.defined()
       && dataId.defined()
       && length.defined()
-      && value.defined()
+      && vmgPerformance.defined()
     ;
   }
-  bool BandGVmgPerformancePercentage::valid() const {
+  bool BandGVmgPerformance::valid() const {
     return true
        && manufacturerId.defined() && manufacturerId.get() == 39293
        && dataId.defined() && dataId.get() == DataId::VMG_target_percentage
        && length.defined() && length.get() == 2
     ;
   }
-  std::vector<uint8_t> BandGVmgPerformancePercentage::encode() const {
+  std::vector<uint8_t> BandGVmgPerformance::encode() const {
     N2kField::N2kFieldOutputStream dst;
     if (!valid()) {
-      std::cerr << "Cannot encode BandGVmgPerformancePercentage";
+      std::cerr << "Cannot encode BandGVmgPerformance";
       return {};
     }
       dst.pushUnsigned(16, manufacturerId);
       dst.pushUnsigned(12, dataId.cast<uint64_t>());
       dst.pushUnsigned(4, length);
-      dst.pushDoubleWithResolution(0.001, true, 16, 0, value);
+      dst.pushDoubleWithResolution(0.001, true, 16, 0, vmgPerformance);
     dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
@@ -1072,7 +1072,7 @@ bool PgnVisitor::visit(const tN2kMsg &packet) {
       };
       break;
     }
-    case 65330: return apply(packet, BandGVmgPerformancePercentage(packet.Data, packet.DataLen));
+    case 65330: return apply(packet, BandGVmgPerformance(packet.Data, packet.DataLen));
     case 126992: return apply(packet, SystemTime(packet.Data, packet.DataLen));
     case 127245: return apply(packet, Rudder(packet.Data, packet.DataLen));
     case 127250: return apply(packet, VesselHeading(packet.Data, packet.DataLen));

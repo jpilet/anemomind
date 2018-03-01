@@ -1,4 +1,4 @@
-/** Generated on Thu Mar 01 2018 13:41:03 GMT+0100 (CET) using 
+/** Generated on Thu Mar 01 2018 14:43:10 GMT+0100 (CET) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -509,7 +509,7 @@ namespace PgnClasses {
     Optional<sail::Velocity<double> > drift; //  at 96 bits = 12 bytes
   };
   
-  struct BandGVmgPerformancePercentage: public PgnBaseClass { // B&G Properietary PGN -- VMG Performance %
+  struct BandGVmgPerformance: public PgnBaseClass { // B&G Proprietary PGN – VMG Performance
     // Minimum size: 48 bits = 6 bytes. 
     static const int ThisPgn = 65330;
     int code() const override {return 65330;}
@@ -517,8 +517,8 @@ namespace PgnClasses {
       VMG_target_percentage = 285
     };
 
-    BandGVmgPerformancePercentage();
-    BandGVmgPerformancePercentage(const uint8_t *data, int lengthBytes);
+    BandGVmgPerformance();
+    BandGVmgPerformance(const uint8_t *data, int lengthBytes);
     bool hasSomeData() const;
     bool hasAllData() const;
     bool valid() const;
@@ -527,7 +527,7 @@ namespace PgnClasses {
     Optional<uint64_t > manufacturerId = 39293; // B&G at 0 bits = 0 bytes
     Optional<DataId > dataId = DataId::VMG_target_percentage; //  at 16 bits = 2 bytes
     Optional<uint64_t > length = 2; // Not sure if the length is in bytes or bits. at 28 bits = 3 bytes + 4 bits
-    Optional<double > value; // 'Each bit is 0.1%' according to NDA. at 32 bits = 4 bytes
+    Optional<double > vmgPerformance; // 'Each bit is 0.1%' according to NDA. at 32 bits = 4 bytes
   };
   
 
@@ -558,7 +558,7 @@ namespace PgnClasses {
     virtual bool apply(const tN2kMsg& src, const TimeDate& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const WindData& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const DirectionData& packet) { return false; }
-    virtual bool apply(const tN2kMsg& src, const BandGVmgPerformancePercentage& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const BandGVmgPerformance& packet) { return false; }
   };
 }
 
