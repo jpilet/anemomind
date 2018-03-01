@@ -67,6 +67,8 @@ struct PerfSurfSettings {
 
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
 
+Array<std::pair<int, int>> generateSurfaceNeighbors1d(int vertexCount);
+
 Eigen::MatrixXd makeOneDimensionalReg(int n, int order);
 
 // Preprocessed data point. Easier to chew.
@@ -87,7 +89,10 @@ struct PerfFitPoint {
   PerfFitPoint evaluateLevel(double* levelData) const;
 };
 
-struct PerfSurfResults {};
+struct PerfSurfResults {
+  Array<double> rawNormalizedVertices;
+  Array<double> rawPerformances;
+};
 
 PerfSurfResults optimizePerfSurf(
     const Array<PerfSurfPt>& pts,

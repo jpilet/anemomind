@@ -14,6 +14,7 @@
 #include <Eigen/EigenValues>
 #include <server/math/Majorize.h>
 #include <ceres/jet.h>
+#include <array>
 #include <ceres/ceres.h>
 
 namespace sail {
@@ -62,6 +63,15 @@ Eigen::MatrixXd makeOneDimensionalReg(int n, int order) {
     int m = A.rows();
     return A.block(0, 0, m-1, n) - A.block(1, 0, m-1, n);
   }
+}
+
+Array<std::pair<int, int>> generateSurfaceNeighbors1d(int vertexCount) {
+  int pairCount = vertexCount-1;
+  Array<std::pair<int, int>> dst(pairCount);
+  for (int i = 0; i < pairCount; i++) {
+    dst[i] = {i, i+1};
+  }
+  return dst;
 }
 
 Eigen::MatrixXd makeC(int n) {
@@ -185,11 +195,104 @@ int getVertexCount(
   return maxVertex;
 }
 
+namespace {
+  struct DataFitCost {
+
+    PerfFitPoint pt;
+
+    static ceres::CostFunction* make(
+        const PerfFitPoint& p) {
+      return new ceres::AutoDiffCostFunction<DataFitCost, 1, 1, 1, 1>(
+          new DataFitCost{p});
+    }
+
+    template <typename T>
+    bool operator()(
+        const T* v0, // Vertices
+        const T* v1,
+        //const T* v2,
+        const T* perfPtr,
+        T* residual) const {
+      typedef const T* Ptr;
+      Ptr v[2] = {v0, v1/*, v2*/};
+      CHECK(pt.weights.size() <= 3);
+      T perf = *perfPtr;
+      T interpolatedTargetSpeed = T(0.0);
+      for (int i = 0; i < pt.weights.size(); i++) {
+        interpolatedTargetSpeed += *(v[i])*pt.weights[i].weight;
+      }
+      *residual = perf*interpolatedTargetSpeed /*estimated boat speed*/
+          - pt.normedSpeed/*observed boat speed*/;
+      return true;
+    }
+  };
+
+  std::array<double*, 2> getVertexPointers(
+      const Array<WeightedIndex>& weights,
+      Array<double>& arr) {
+    std::array<double*, 2> dst;
+    int n = weights.size();
+    CHECK(n == 2);
+    CHECK(n <= 3);
+    for (int i = 0; i < n; i++) {
+      dst[i] = &(arr[weights[i].index]);
+    }
+    //auto last = dst[n-1];
+
+    // Fill the remaining entries with a valid, but unused, value.
+    /*for (int i = n; i < dst.size(); i++) {
+      dst[i] = nullptr; //last;
+    }*/
+    return dst;
+  }
+}
+
 PerfSurfResults optimizePerfSurf(
     const Array<PerfSurfPt>& pts,
     const Array<std::pair<int, int>>& surfaceNeighbors,
     const PerfSurfSettings& settings) {
+
   int vertexCount = getVertexCount(surfaceNeighbors);
+
+  int pointCount = pts.size();
+
+  // The normalized height of every vertex. The vertices
+  // are considered unknown and unconstrained.
+  Array<double> vertices = Array<double>::fill(vertexCount, 0.0);
+
+  Array<double> performances = Array<double>::fill(pts.size(), 0.0);
+
+  ceres::Problem problem;
+  for (auto& v: vertices) {
+    problem.AddParameterBlock(&v, 1);
+  }
+  for (auto& p: performances) {
+    problem.AddParameterBlock(&p, 1);
+  }
+
+  // Add the data terms
+  for (int i = 0; i < pointCount; i++) {
+    auto fit = makePerfFitPoint(pts, i, settings);
+    if (fit.good) {
+      auto vp = getVertexPointers(fit.weights, vertices);
+      auto cost = DataFitCost::make(fit);
+      problem.AddResidualBlock(
+          cost,
+          nullptr, // Squared residuals
+          vp[0], vp[1], //vp[2], // Vertex pointers
+          &(performances[i])); // Estimated performance
+    }
+  }
+
+  ceres::Solver::Options options;
+  options.minimizer_progress_to_stdout = true;
+  ceres::Solver::Summary summary;
+  ceres::Solve(options, &problem, &summary);
+  std::cout << summary.FullReport() << "\n";
+
+  return PerfSurfResults{
+    vertices, performances
+  };
 }
 
 } /* namespace sail */

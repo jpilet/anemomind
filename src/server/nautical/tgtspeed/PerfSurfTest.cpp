@@ -241,8 +241,7 @@ Array<Eigen::Vector2d> levelsToCoords(
 TEST(PerfSurfTest, TestIt2) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
-  int vc = getRequiredVertexCount(data);
-  auto vertices = initializeVertices(vc);
+  int vertexCount = getRequiredVertexCount(data);
 
   PerfSurfSettings settings;
   settings.refSpeed = &referenceSpeed;
@@ -253,8 +252,11 @@ TEST(PerfSurfTest, TestIt2) {
   PlotUtils::Settings2d ps;
   ps.orthonormal = false;
 
-  //auto results = optimizeSurfaceAndPerformances(
-  //    );
+  auto results = optimizePerfSurf(
+      data,
+      generateSurfaceNeighbors1d(vertexCount),
+      settings);
+
 }
 
 

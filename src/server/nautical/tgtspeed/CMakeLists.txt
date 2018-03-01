@@ -36,6 +36,8 @@ target_link_libraries(tgtspeed_PerfSurf
   common_logging
   )
 
+target_depends_on_ceres(tgtspeed_PerfSurf)
+
 cxx_test(tgtspeed_PerfSurfTest
   PerfSurfTest.cpp
   tgtspeed_PerfSurf
