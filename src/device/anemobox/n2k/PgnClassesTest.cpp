@@ -186,11 +186,11 @@ TEST(PgnClassesTest, ANotherGnssPositionDataTest) {
 }
 
 TEST(PgnClassesTest, BAndGPerf) {
-  PgnClasses::BandGVmgPerformancePercentage perf;
+  PgnClasses::BandGVmgPerformance perf;
   EXPECT_TRUE(perf.valid());
 
   // This is the only value you would want to touch for this class.
-  perf.value = 0.75;
+  perf.vmgPerformance = 0.75;
   auto data = perf.encode();
   EXPECT_EQ(data.size(), 8);
   EXPECT_EQ(data[0], 0x7d); // Manufacturer id part 1
@@ -202,9 +202,9 @@ TEST(PgnClassesTest, BAndGPerf) {
   EXPECT_EQ(data[6], 0xFF);
   EXPECT_EQ(data[7], 0xFF);
 
-  PgnClasses::BandGVmgPerformancePercentage perf2(data.data(), data.size());
+  PgnClasses::BandGVmgPerformance perf2(data.data(), data.size());
 
-  EXPECT_EQ(perf2.value.get(), perf.value.get());
+  EXPECT_EQ(perf2.vmgPerformance.get(), perf.vmgPerformance.get());
   EXPECT_TRUE(perf2.valid());
 
   EXPECT_EQ(data, perf2.encode());
