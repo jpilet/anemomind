@@ -1,6 +1,6 @@
-/** Generated on Sun Feb 11 2018 00:05:03 GMT+0100 (CET) using 
+/** Generated on Thu Mar 01 2018 14:52:49 GMT+0100 (CET) using 
  *
- *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
+ *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -8,6 +8,7 @@
 
 #include <device/anemobox/n2k/N2kField.h>
 #include<server/common/logging.h>
+#include <iostream>
 
 namespace PgnClasses {
 
@@ -34,12 +35,21 @@ namespace PgnClasses {
          sid.defined()
     ;
   }
+  bool IsoTransportProtocolDataTransfer::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> IsoTransportProtocolDataTransfer::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode IsoTransportProtocolDataTransfer";
+      return {};
+    }
       dst.pushUnsigned(8, sid);
     for (const auto& x: repeating) {
       dst.pushBytes(56, x.data);
     }
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -75,8 +85,17 @@ namespace PgnClasses {
       && packetsReply.defined()
     ;
   }
+  bool IsoTransportProtocolConnectionManagementRequestToSend::valid() const {
+    return true
+       && groupFunctionCode.defined() && groupFunctionCode.get() == 16
+    ;
+  }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementRequestToSend::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode IsoTransportProtocolConnectionManagementRequestToSend";
+      return {};
+    }
       dst.pushUnsigned(8, groupFunctionCode);
       dst.pushUnsigned(16, messageSize);
       dst.pushUnsigned(8, packets);
@@ -84,6 +103,7 @@ namespace PgnClasses {
     for (const auto& x: repeating) {
       dst.pushUnsigned(24, x.pgn);
     }
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -118,8 +138,17 @@ namespace PgnClasses {
       && nextSid.defined()
     ;
   }
+  bool IsoTransportProtocolConnectionManagementClearToSend::valid() const {
+    return true
+       && groupFunctionCode.defined() && groupFunctionCode.get() == 17
+    ;
+  }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementClearToSend::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode IsoTransportProtocolConnectionManagementClearToSend";
+      return {};
+    }
       dst.pushUnsigned(8, groupFunctionCode);
       dst.pushUnsigned(8, maxPackets);
       dst.pushUnsigned(8, nextSid);
@@ -127,6 +156,7 @@ namespace PgnClasses {
     for (const auto& x: repeating) {
       dst.pushUnsigned(24, x.pgn);
     }
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -161,8 +191,17 @@ namespace PgnClasses {
       && totalNumberOfPacketsReceived.defined()
     ;
   }
+  bool IsoTransportProtocolConnectionManagementEndOfMessage::valid() const {
+    return true
+       && groupFunctionCode.defined() && groupFunctionCode.get() == 19
+    ;
+  }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementEndOfMessage::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode IsoTransportProtocolConnectionManagementEndOfMessage";
+      return {};
+    }
       dst.pushUnsigned(8, groupFunctionCode);
       dst.pushUnsigned(16, totalMessageSize);
       dst.pushUnsigned(8, totalNumberOfPacketsReceived);
@@ -170,6 +209,7 @@ namespace PgnClasses {
     for (const auto& x: repeating) {
       dst.pushUnsigned(24, x.pgn);
     }
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -204,8 +244,17 @@ namespace PgnClasses {
       && packets.defined()
     ;
   }
+  bool IsoTransportProtocolConnectionManagementBroadcastAnnounce::valid() const {
+    return true
+       && groupFunctionCode.defined() && groupFunctionCode.get() == 32
+    ;
+  }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementBroadcastAnnounce::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode IsoTransportProtocolConnectionManagementBroadcastAnnounce";
+      return {};
+    }
       dst.pushUnsigned(8, groupFunctionCode);
       dst.pushUnsigned(16, messageSize);
       dst.pushUnsigned(8, packets);
@@ -213,6 +262,7 @@ namespace PgnClasses {
     for (const auto& x: repeating) {
       dst.pushUnsigned(24, x.pgn);
     }
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -244,14 +294,24 @@ namespace PgnClasses {
       && reason.defined()
     ;
   }
+  bool IsoTransportProtocolConnectionManagementAbort::valid() const {
+    return true
+       && groupFunctionCode.defined() && groupFunctionCode.get() == 255
+    ;
+  }
   std::vector<uint8_t> IsoTransportProtocolConnectionManagementAbort::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode IsoTransportProtocolConnectionManagementAbort";
+      return {};
+    }
       dst.pushUnsigned(8, groupFunctionCode);
       dst.pushUnsigned(8, reason);
       dst.fillBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
     for (const auto& x: repeating) {
       dst.pushUnsigned(24, x.pgn);
     }
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -286,13 +346,22 @@ namespace PgnClasses {
       && time.defined()
     ;
   }
+  bool SystemTime::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> SystemTime::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode SystemTime";
+      return {};
+    }
       dst.pushUnsigned(8, sid);
       dst.pushUnsigned(4, source.cast<uint64_t>());
       dst.fillBits(4, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, date);
       dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, time);
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -327,13 +396,22 @@ namespace PgnClasses {
       && position.defined()
     ;
   }
+  bool Rudder::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> Rudder::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode Rudder";
+      return {};
+    }
       dst.pushUnsigned(8, instance);
       dst.pushUnsigned(2, directionOrder);
       dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, angleOrder);
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, position);
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -369,13 +447,22 @@ namespace PgnClasses {
       && reference.defined()
     ;
   }
+  bool VesselHeading::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> VesselHeading::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode VesselHeading";
+      return {};
+    }
       dst.pushUnsigned(8, sid);
       dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, heading);
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, deviation);
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, variation);
       dst.pushUnsigned(2, reference.cast<uint64_t>());
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -402,10 +489,19 @@ namespace PgnClasses {
       && rate.defined()
     ;
   }
+  bool RateOfTurn::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> RateOfTurn::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode RateOfTurn";
+      return {};
+    }
       dst.pushUnsigned(8, sid);
       dst.pushPhysicalQuantity(true, 3.125e-08, (sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0)), 32, 0, rate);
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -438,12 +534,21 @@ namespace PgnClasses {
       && roll.defined()
     ;
   }
+  bool Attitude::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> Attitude::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode Attitude";
+      return {};
+    }
       dst.pushUnsigned(8, sid);
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, yaw);
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, pitch);
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, roll);
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -476,12 +581,21 @@ namespace PgnClasses {
       && engineTiltTrim.defined()
     ;
   }
+  bool EngineParametersRapidUpdate::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> EngineParametersRapidUpdate::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode EngineParametersRapidUpdate";
+      return {};
+    }
       dst.pushUnsigned(8, engineInstance.cast<uint64_t>());
       dst.pushPhysicalQuantity(false, 0.25, (sail::Angle<double>::degrees(360)/sail::Duration<double>::minutes(1.0)), 16, 0, engineSpeed);
       dst.pushUnsigned(16, engineBoostPressure);
       dst.pushSigned(8, 0, engineTiltTrim);
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -517,13 +631,22 @@ namespace PgnClasses {
       && speedDirection.defined()
     ;
   }
+  bool Speed::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> Speed::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode Speed";
+      return {};
+    }
       dst.pushUnsigned(8, sid);
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, speedWaterReferenced);
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, speedGroundReferenced);
       dst.pushUnsigned(8, speedWaterReferencedType.cast<uint64_t>());
       dst.pushUnsigned(4, speedDirection);
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -550,10 +673,19 @@ namespace PgnClasses {
       && longitude.defined()
     ;
   }
+  bool PositionRapidUpdate::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> PositionRapidUpdate::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode PositionRapidUpdate";
+      return {};
+    }
       dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, latitude);
       dst.pushPhysicalQuantity(true, 0.0000001, sail::Angle<double>::degrees(1.0), 32, 0, longitude);
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -590,14 +722,23 @@ namespace PgnClasses {
       && sog.defined()
     ;
   }
+  bool CogSogRapidUpdate::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> CogSogRapidUpdate::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode CogSogRapidUpdate";
+      return {};
+    }
       dst.pushUnsigned(8, sid);
       dst.pushUnsigned(2, cogReference.cast<uint64_t>());
       dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
       dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, cog);
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, sog);
       dst.fillBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -667,8 +808,16 @@ namespace PgnClasses {
       && referenceStations.defined()
     ;
   }
+  bool GnssPositionData::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> GnssPositionData::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode GnssPositionData";
+      return {};
+    }
       dst.pushUnsigned(8, sid);
       dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, date);
       dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, time);
@@ -689,6 +838,7 @@ namespace PgnClasses {
       dst.pushUnsigned(12, x.referenceStationId);
       dst.pushPhysicalQuantity(false, 0.01, sail::Duration<double>::seconds(1.0), 16, 0, x.ageOfDgnssCorrections);
     }
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -718,11 +868,20 @@ namespace PgnClasses {
       && localOffset.defined()
     ;
   }
+  bool TimeDate::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> TimeDate::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode TimeDate";
+      return {};
+    }
       dst.pushPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0, date);
       dst.pushPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0, time);
       dst.pushPhysicalQuantity(true, 1, sail::Duration<double>::minutes(1.0), 16, 0, localOffset);
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -755,12 +914,21 @@ namespace PgnClasses {
       && reference.defined()
     ;
   }
+  bool WindData::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> WindData::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode WindData";
+      return {};
+    }
       dst.pushUnsigned(8, sid);
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, windSpeed);
       dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, windAngle);
       dst.pushUnsigned(3, reference.cast<uint64_t>());
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -810,8 +978,16 @@ namespace PgnClasses {
       && drift.defined()
     ;
   }
+  bool DirectionData::valid() const {
+    return true
+    ;
+  }
   std::vector<uint8_t> DirectionData::encode() const {
     N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode DirectionData";
+      return {};
+    }
       dst.pushUnsigned(4, dataMode.cast<uint64_t>());
       dst.pushUnsigned(2, cogReference.cast<uint64_t>());
       dst.fillBits(2, true); // TODO: Can we safely do this? The field name is 'Reserved'
@@ -822,6 +998,57 @@ namespace PgnClasses {
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, speedThroughWater);
       dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, set);
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, drift);
+    dst.fillUpToLength(8*8, true);
+    return dst.moveData();
+  }
+
+  BandGVmgPerformance::BandGVmgPerformance() {
+  }
+
+  BandGVmgPerformance::BandGVmgPerformance(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (48 <= src.remainingBits()) {
+      manufacturerId = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
+      dataId = src.getUnsignedInSet(12, {285}).cast<DataId>();
+      length = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
+      vmgPerformance = src.getDoubleWithResolution(0.001, true, 16, 0, N2kField::Definedness::MaybeUndefined);
+    // No repeating fields.
+    }
+  }
+  bool BandGVmgPerformance::hasSomeData() const {
+    return 
+         manufacturerId.defined()
+      || dataId.defined()
+      || length.defined()
+      || vmgPerformance.defined()
+    ;
+  }
+  bool BandGVmgPerformance::hasAllData() const {
+    return 
+         manufacturerId.defined()
+      && dataId.defined()
+      && length.defined()
+      && vmgPerformance.defined()
+    ;
+  }
+  bool BandGVmgPerformance::valid() const {
+    return true
+       && manufacturerId.defined() && manufacturerId.get() == 39293
+       && dataId.defined() && dataId.get() == DataId::VMG_target_percentage
+       && length.defined() && length.get() == 2
+    ;
+  }
+  std::vector<uint8_t> BandGVmgPerformance::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode BandGVmgPerformance";
+      return {};
+    }
+      dst.pushUnsigned(16, manufacturerId);
+      dst.pushUnsigned(12, dataId.cast<uint64_t>());
+      dst.pushUnsigned(4, length);
+      dst.pushDoubleWithResolution(0.001, true, 16, 0, vmgPerformance);
+    dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
 
@@ -845,6 +1072,7 @@ bool PgnVisitor::visit(const tN2kMsg &packet) {
       };
       break;
     }
+    case 65330: return apply(packet, BandGVmgPerformance(packet.Data, packet.DataLen));
     case 126992: return apply(packet, SystemTime(packet.Data, packet.DataLen));
     case 127245: return apply(packet, Rudder(packet.Data, packet.DataLen));
     case 127250: return apply(packet, VesselHeading(packet.Data, packet.DataLen));
