@@ -32,6 +32,15 @@ TEST(RealPerfSurfTest, TimedValuePairs) {
       IntoArray<std::pair<TimedValue<int>, TimedValue<int>>>());
 
   EXPECT_EQ(dst.size(), 2);
+  auto a = dst[0];
+  auto b = dst[1];
+
+  EXPECT_EQ(a.first.value, 1);
+  EXPECT_EQ(a.second.value, 119);
+
+  EXPECT_EQ(b.first.value, 3);
+  EXPECT_EQ(b.second.value, 119);
+
 }
 
 
