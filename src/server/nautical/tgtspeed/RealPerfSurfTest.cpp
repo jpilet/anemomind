@@ -88,5 +88,27 @@ TEST(RealPerfSurfTest, TimedValuePairs3) {
   EXPECT_EQ(b.second.value, 445);
 }
 
+TEST(RealPerfSurfTest, TimedValuePairs4) {
+  std::vector<TimedValue<int>> A{
+    tv(0.0, 1),
+    tv(2.0, 3),
+    tv(3.0, 9),
+  };
+
+  std::vector<TimedValue<int>> B{
+    tv(1.0, 119),
+    tv(2.5, 445),
+  };
+
+  auto dst = transduce(
+      B,
+      trTimedValuePairs(A.begin(), A.end()),
+      IntoArray<std::pair<TimedValue<int>, TimedValue<int>>>());
+
+  EXPECT_EQ(dst.size(), 4);
+  auto a = dst[0];
+  auto b = dst[1];
+}
+
 
 
