@@ -138,6 +138,8 @@ TEST(RealPerfSurfTest, CompositeProcessing) {
   EXPECT_EQ(dst.size(), 1);
   auto x = dst[0];
   EXPECT_NEAR((x.time - tv(0.5, 0).time).seconds(), 0.0, 0.02);
+  EXPECT_EQ(x.value.first, 1);
+  EXPECT_EQ(x.value.second, 119);
 
 }
 
