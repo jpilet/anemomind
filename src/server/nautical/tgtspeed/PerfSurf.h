@@ -132,7 +132,8 @@ struct PerfSurfSettings {
   std::function<Velocity<double>(Array<WeightedIndex>)> refSpeed;
   double maxFactor = 4.0;
   double regWeight = 1.0;
-  double surfaceQuantile = 0.9;
+  double vertexRegWeight = 1.0;
+  double surfaceQuantile = 0.97;
 };
 
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
