@@ -108,6 +108,12 @@ TEST(RealPerfSurfTest, TimedValuePairs4) {
   EXPECT_EQ(dst.size(), 4);
   auto a = dst[0];
   auto b = dst[1];
+  auto c = dst[2];
+  auto d = dst[3];
+  EXPECT_EQ(a.first.value, 1);
+  EXPECT_EQ(b.first.value, 3);
+  EXPECT_EQ(c.first.value, 3);
+  EXPECT_EQ(d.first.value, 9);
 }
 
 

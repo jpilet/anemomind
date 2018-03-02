@@ -14,6 +14,7 @@
 
 #include <server/common/Transducer.h>
 #include <server/common/TimedValue.h>
+#include <iostream>
 
 namespace sail {
 
@@ -34,9 +35,9 @@ public:
 
     // Advance
     while (_begin < _butEnd && (_begin+1)->time <= x.time) {
+      _begin++;
       addPending(r);
       _counter = 0;
-      _begin++;
     }
     if (_begin == _butEnd) {
       return;
@@ -52,14 +53,17 @@ public:
 
   template <typename Result>
   void flush(Result* r) {
-    addPending(r);
+    if (_begin < _butEnd) {
+      _begin++;
+      addPending(r);
+    }
     r->flush();
   }
 private:
   template <typename R>
   void addPending(R* r) {
     if (0 < _counter) {
-      r->add({*_butEnd, _pending});
+      r->add({*_begin, _pending});
     }
   }
   typename Iterator::value_type _pending;
