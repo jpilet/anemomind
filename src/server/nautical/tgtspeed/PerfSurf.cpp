@@ -138,7 +138,7 @@ PerfFitPoint makePerfFitPoint(
   PerfFitPoint pt;
   pt.index = index;
   pt.normedSpeed = x.boatSpeed/s.refSpeed(x);
-  pt.weights = scaleWeights(pt.normedSpeed, x.windVertexWeights);
+  pt.weights = x.windVertexWeights; //scaleWeights(pt.normedSpeed, x.windVertexWeights);
   pt.good = std::isfinite(pt.normedSpeed) && pt.normedSpeed < s.maxFactor;
   return pt;
 }
@@ -223,6 +223,15 @@ namespace {
       }
       *residual = perf*interpolatedTargetSpeed /*estimated boat speed*/
           - pt.normedSpeed/*observed boat speed*/;
+
+      std::cout << "RESIDUAL: " << *residual << std::endl;
+      std::cout << "  nm " << pt.normedSpeed << std::endl;
+      std::cout << "  pf " << perf << std::endl;
+      std::cout << "  it " << interpolatedTargetSpeed << std::endl;
+
+      for (int i = 0; i < pt.weights.size(); i++) {
+        std::cout << "     - v: " << *(v[i]) << "*" << pt.weights[i].weight << std::endl;
+      }
 
       return true;
     }

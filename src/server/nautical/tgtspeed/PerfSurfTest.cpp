@@ -238,13 +238,40 @@ Array<Eigen::Vector2d> levelsToCoords(
   return dst;
 }
 
-TEST(PerfSurfTest, TestIt2) {
+std::ostream& operator<<(std::ostream& s, const WeightedIndex& wi) {
+  s << "(i=" << wi.index << ", w=" << wi.weight << ")";
+  return s;
+}
+
+TEST(PerfSurfTest, SumConstraintTest) {
+  int n = 4;
+  double expectedSum = 7.0;
+
+  SumConstraint cst(n, expectedSum);
+
+  std::vector<double> coeffs{9.34, 199.3444, 78.345};
+  EXPECT_EQ(coeffs.size(), cst.coeffCount());
+
+  double sum = 0.0;
+
+  for (int i = 0; i < n; i++) {
+    auto x = cst.get(i);
+    std::cout << " i = " << i << "   x.i = " << x.i << " x.j = " << x.j << std::endl;
+    auto ptrs = x.pointers(coeffs.data());
+    auto value = x.eval(*ptrs.first, *ptrs.second);
+    sum += value;
+  }
+
+  EXPECT_NEAR(sum, expectedSum, 1.0e-4);
+}
+
+/*TEST(PerfSurfTest, TestIt2) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
   int vertexCount = getRequiredVertexCount(data);
 
   PerfSurfSettings settings;
-  settings.regWeight = 0.001;
+  settings.regWeight = 10;
   settings.refSpeed = &referenceSpeed;
 
   auto page = DOM::makeBasicHtmlPage("Perf test", "", "results");
@@ -265,8 +292,8 @@ TEST(PerfSurfTest, TestIt2) {
     std::cout << " " << v;
   }
   std::cout << std::endl;
-
-}
+  std::cout << "DONE" << std::endl;
+}*/
 
 
 /*TEST(PerfSurfTest, TestIt1) {

@@ -12,6 +12,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/Span.h>
 #include <server/common/TimedValue.h>
+#include <server/common/logging.h>
 #include <ceres/jet.h>
 #include <Eigen/Dense>
 
@@ -28,6 +29,52 @@ struct WeightedIndex {
 
   WeightedIndex() {}
   WeightedIndex(int i, double w) : index(i), weight(w) {}
+};
+
+class SumConstraint {
+public:
+  SumConstraint(int n, double sum) : _n(n), _avg(sum/n) {}
+
+  static SumConstraint averageConstraint(int n, double avg) {
+    return SumConstraint(n, avg/n);
+  }
+
+  int coeffCount() const {return _n - 1;}
+
+  struct Comb {
+    WeightedIndex i, j;
+    double offset = 0;
+
+    std::pair<double*, double*> pointers(double* src) const {
+      return {src + i.index, src + j.index};
+    }
+
+    template <typename T>
+    T eval(T a, T b) const {
+      return i.weight*a + j.weight*b + offset;
+    }
+  };
+
+  Comb get(int index) const {
+    CHECK(0 <= index);
+    CHECK(index < _n);
+    Comb dst;
+    dst.offset = _avg;
+    if (index == 0) {
+      dst.i = WeightedIndex(0, 1.0);
+      dst.j = WeightedIndex(1, 0.0);
+    } else if (index == _n-1) {
+      dst.i = WeightedIndex(_n-3, 0.0);
+      dst.j = WeightedIndex(_n-2, -1.0);
+    } else {
+      dst.i = WeightedIndex(index-1, -1.0);
+      dst.j = WeightedIndex(index, 1.0);
+    }
+    return dst;
+  }
+private:
+  int _n = 0;
+  double _avg = 0;
 };
 
 /*
