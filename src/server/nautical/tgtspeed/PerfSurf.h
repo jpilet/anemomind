@@ -132,6 +132,7 @@ struct PerfSurfSettings {
   std::function<Velocity<double>(PerfSurfPt)> refSpeed;
   double maxFactor = 4.0;
   double regWeight = 1.0;
+  double surfaceQuantile = 0.9;
 };
 
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
@@ -165,9 +166,18 @@ struct RawPerfSurfResults {
 
 RawPerfSurfResults optimizePerfSurfSub(
     const Array<PerfSurfPt>& pts,
+        const Array<std::pair<int, int>>& surfaceNeighbors,
+        const PerfSurfSettings& settings);
+
+struct PerfSurfResults {
+  Array<double> normalizedVertices;
+  Array<double> vertices;
+};
+
+PerfSurfResults optimizePerfSurf(
+    const Array<PerfSurfPt>& pts,
     const Array<std::pair<int, int>>& surfaceNeighbors,
     const PerfSurfSettings& settings);
-
 
 
 } /* namespace sail */

@@ -462,7 +462,7 @@ RawPerfSurfResults optimizePerfSurfSub(
   }
 
   ceres::Solver::Options options;
-  options.minimizer_progress_to_stdout = true;
+  //options.minimizer_progress_to_stdout = true;
   ceres::Solver::Summary summary;
 
   ceres::Solve(options, &problem, &summary);
@@ -471,6 +471,34 @@ RawPerfSurfResults optimizePerfSurfSub(
   return RawPerfSurfResults{
     vertices, perfSumCst.apply(perfCoeffs)
   };
+}
+
+PerfSurfResults postprocessResults(
+    const RawPerfSurfResults& src,
+    const PerfSurfSettings& settings) {
+  auto perfs = src.rawPerformances.dup();
+  if (perfs.empty()) {
+    return PerfSurfResults();
+  }
+  std::sort(perfs.begin(), perfs.end());
+  auto factor = perfs[int(round(settings.surfaceQuantile*perfs.size()))];
+  auto normalizedVertices = src.rawNormalizedVertices.dup();
+  int n = normalizedVertices.size();
+  auto vertices = Array<double>(n);
+  for (int i = 0; i < n; i++) {
+    normalizedVertices[i] *= factor;
+    // TODO: vertices[i] = normalizedVertices[i]*settings.refSpeed();
+  }
+  return PerfSurfResults{normalizedVertices, vertices};
+}
+
+PerfSurfResults optimizePerfSurfResults(
+    const Array<PerfSurfPt>& pts,
+    const Array<std::pair<int, int>>& surfaceNeighbors,
+    const PerfSurfSettings& settings) {
+  auto subResults = optimizePerfSurfSub(
+      pts, surfaceNeighbors, settings);
+  return postprocessResults(subResults, settings);
 }
 
 } /* namespace sail */
