@@ -29,7 +29,6 @@ public:
 
   template <typename Result>
   void apply(Result* r, TimedValue<Right> x) {
-    std::cout << "Incoming value at time " << x.time << std::endl;
     if (_begin >= _butEnd || x.time < _begin->time) {
       return;
     }

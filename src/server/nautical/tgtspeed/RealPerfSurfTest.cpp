@@ -181,14 +181,12 @@ TEST(RealPerfSurfTest, BuildSamples) {
   EXPECT_EQ(twa.size(), 5);
   EXPECT_EQ(boat.size(), 5);
 
-  auto thresh = 0.5_seconds;
+  auto thresh = 0.1_seconds;
 
   auto samples = buildWindAndBoatSpeedSamples(
       tws, twa, boat, thresh);
 
-  std::cout << "Count: " << samples.size() << std::endl;
-
-  //EXPECT_EQ(samples.size(), 5);
+  EXPECT_EQ(samples.size(), 4);
 }
 
 
