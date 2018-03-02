@@ -129,7 +129,7 @@ Eigen::VectorXd solveConstrained(
     SystemConstraintType type);
 
 struct PerfSurfSettings {
-  std::function<Velocity<double>(PerfSurfPt)> refSpeed;
+  std::function<Velocity<double>(Array<WeightedIndex>)> refSpeed;
   double maxFactor = 4.0;
   double regWeight = 1.0;
   double surfaceQuantile = 0.9;

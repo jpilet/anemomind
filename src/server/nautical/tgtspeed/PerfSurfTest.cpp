@@ -189,12 +189,8 @@ void displaySolution(
   }, "Wind speed", "Boat speed", p.cr.get());
 }
 
-Velocity<double> referenceSpeed(const PerfSurfPt& pt) {
-  return decodeWindSpeed(pt.windVertexWeights);
-}
-
 Optional<Eigen::Vector2d> toNormed(const PerfSurfPt& x, const PerfSurfSettings& s) {
-  double normed = double(x.boatSpeed/s.refSpeed(x));
+  double normed = double(x.boatSpeed/s.refSpeed(x.windVertexWeights));
   if (std::isfinite(normed) && 0 <= normed && normed < s.maxFactor) {
     return Eigen::Vector2d(
         decodeWindSpeed(x.windVertexWeights).knots(),
@@ -271,7 +267,7 @@ TEST(PerfSurfTest, TestIt2) {
 
   PerfSurfSettings settings;
   settings.regWeight = 10;
-  settings.refSpeed = &referenceSpeed;
+  settings.refSpeed = &decodeWindSpeed;
 
   auto page = DOM::makeBasicHtmlPage("Perf test", "", "results");
   DOM::addSubTextNode(&page, "h1", "Perf surf");

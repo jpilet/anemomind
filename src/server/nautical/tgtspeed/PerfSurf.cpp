@@ -137,7 +137,7 @@ PerfFitPoint makePerfFitPoint(
   const auto& x = data[index];
   PerfFitPoint pt;
   pt.index = index;
-  pt.normedSpeed = x.boatSpeed/s.refSpeed(x);
+  pt.normedSpeed = x.boatSpeed/s.refSpeed(x.windVertexWeights);
   pt.weights = x.windVertexWeights; //scaleWeights(pt.normedSpeed, x.windVertexWeights);
   pt.good = std::isfinite(pt.normedSpeed) && pt.normedSpeed < s.maxFactor;
   return pt;
