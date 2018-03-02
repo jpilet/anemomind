@@ -174,10 +174,14 @@ TEST(RealPerfSurfTest, BuildSamples) {
   populate(sampleTwa, &twa);
   populate(sampleBoatSpeeds, &boat);
 
-  auto thresh = 0.1_seconds;
+  auto thresh = 0.5_seconds;
 
   auto samples = buildWindAndBoatSpeedSamples(
       tws, twa, boat, thresh);
+
+  std::cout << "Count: " << samples << std::endl;
+
+  //EXPECT_EQ(samples.size(), 5);
 }
 
 

@@ -73,6 +73,17 @@ struct IntoNowhere {
   bool result() const {return true;}
 };
 
+struct IntoCounter {
+  int counter = 0;
+
+  template <typename T>
+  void add(T ) {counter++;}
+
+  void flush() {}
+
+  int result() const {return counter;}
+};
+
 template <typename A, typename B>
 struct CompositeTransducer {
   A a;

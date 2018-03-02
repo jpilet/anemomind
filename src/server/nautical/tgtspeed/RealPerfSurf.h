@@ -110,7 +110,7 @@ struct WindAndBoatSpeedSample {
 
 
 template <typename TwsColl, typename TwaColl, typename SpeedColl>
-Array<TimedValue<WindAndBoatSpeedSample>> buildWindAndBoatSpeedSamples(
+/*Array<TimedValue<WindAndBoatSpeedSample>>*/int buildWindAndBoatSpeedSamples(
     const TwsColl& twsColl,
     const TwaColl& twaColl,
     const SpeedColl& speedColl,
@@ -139,33 +139,9 @@ Array<TimedValue<WindAndBoatSpeedSample>> buildWindAndBoatSpeedSamples(
         dst.tws = x.value.second.second;
         return TimedValue<WindAndBoatSpeedSample>(x.time, dst);
       }),
-      IntoNowhere());
-
-  /*return transduce(
-      twsColl,
-      trTimedValuePairs(twaColl.begin(), twaColl.end())
-      | // <-- (twa, tws)
-      trFilter(IsTightTimePair(pairThreshold))
-      |
-      trMap(CollapseTimePair())
-      |
-      trTimedValuePairs(speedColl.begin(), speedColl.end())
-      | // <-- (boat-speed, (twa, tws))
-      trFilter(IsTightTimePair(pairThreshold))
-      |
-      trMap(CollapseTimePair())
-      |
-      trMap([](const TimedValue<
-          std::pair<Velocity<double>,
-            std::pair<Angle<double>, Velocity<double>>>>& x) {
-        WindAndBoatSpeedSample dst;
-        dst.boatSpeed = x.value.first;
-        dst.twa = x.value.second.first;
-        dst.tws = x.value.second.second;
-        return TimedValue<WindAndBoatSpeedSample>(x.time, dst);
-      }),
-      IntoArray<TimedValue<WindAndBoatSpeedSample>>());*/
-
+      //IntoArray<TimedValue<WindAndBoatSpeedSample>>()
+      IntoCounter()
+      );
 }
 
 
