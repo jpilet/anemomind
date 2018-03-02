@@ -44,6 +44,16 @@ const bool useTransducer = false;
 
 template <bool ut> struct SumOddDiv3;
 
+template <typename T>
+class IntoSum {
+public:
+  T result() {return _sum;}
+  void add(T x) {_sum += x;}
+  void flush() {}
+private:
+  T _sum = 0;
+};
+
 template <>
 struct SumOddDiv3<true> {
   static int apply(const std::vector<int>& data) {
@@ -52,9 +62,7 @@ struct SumOddDiv3<true> {
         sail::trFilter([](int i) {return i % 2 == 1;})
         | sail::trMap([](int i) {return i/3;});
 
-    return reduce(
-        T.apply(AddStep<int>()),
-        0, data);
+    return transduce(data, T, IntoSum<int>());
   }
 };
 
