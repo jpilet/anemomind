@@ -111,7 +111,7 @@ struct WindAndBoatSpeedSample {
 
 
 template <typename TwsColl, typename TwaColl, typename SpeedColl>
-/*Array<TimedValue<WindAndBoatSpeedSample>>*/int buildWindAndBoatSpeedSamples(
+Array<TimedValue<WindAndBoatSpeedSample>> buildWindAndBoatSpeedSamples(
     const TwsColl& twsColl,
     const TwaColl& twaColl,
     const SpeedColl& speedColl,
@@ -119,7 +119,7 @@ template <typename TwsColl, typename TwaColl, typename SpeedColl>
   return transduce(
       twsColl,
       trTimedValuePairs<Velocity<double>>(twaColl.begin(), twaColl.end())
-      /*|
+      |
       trFilter(IsTightTimePair(pairThreshold))
       |
       trMap(CollapseTimePair())
@@ -139,9 +139,9 @@ template <typename TwsColl, typename TwaColl, typename SpeedColl>
         dst.twa = x.value.second.first;
         dst.tws = x.value.second.second;
         return TimedValue<WindAndBoatSpeedSample>(x.time, dst);
-      })*/,
-      //IntoArray<TimedValue<WindAndBoatSpeedSample>>()
-      IntoCounter()
+      }),
+      IntoArray<TimedValue<WindAndBoatSpeedSample>>()
+      //IntoCounter()
       );
 }
 

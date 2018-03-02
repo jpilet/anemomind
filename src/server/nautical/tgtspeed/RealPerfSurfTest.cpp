@@ -186,7 +186,7 @@ TEST(RealPerfSurfTest, BuildSamples) {
   auto samples = buildWindAndBoatSpeedSamples(
       tws, twa, boat, thresh);
 
-  std::cout << "Count: " << samples << std::endl;
+  std::cout << "Count: " << samples.size() << std::endl;
 
   //EXPECT_EQ(samples.size(), 5);
 }
