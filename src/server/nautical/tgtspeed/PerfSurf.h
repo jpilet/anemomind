@@ -38,7 +38,10 @@ inline std::ostream& operator<<(std::ostream& s, const WeightedIndex& wi) {
   return s;
 }
 
-
+// Used to implement parameterization of
+// a vector that is linearly constrained
+// so that its coefficients sum up to a cerain
+// value.
 class SumConstraint {
 public:
   SumConstraint(int n, double sum) : _n(n), _avg(sum/n) {}
@@ -130,17 +133,6 @@ struct PerfSurfPt {
   int groupIndex = 0;
 };
 
-enum SystemConstraintType {
-  Norm1,
-  Sum1
-};
-
-// Minimize |AX|^2 subject to either sum(X)=1 or |X|=1
-// Input argument is the matrix A'*A
-Eigen::VectorXd solveConstrained(
-    const Eigen::MatrixXd& AtA,
-    SystemConstraintType type);
-
 struct PerfSurfSettings {
 
   // All speeds are divided by this function
@@ -171,8 +163,6 @@ struct PerfSurfSettings {
   // Squared loss by default.
   ceres::LossFunction* dataLoss = nullptr;
 };
-
-Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
 
 Array<std::pair<int, int>> generateSurfaceNeighbors1d(int vertexCount);
 

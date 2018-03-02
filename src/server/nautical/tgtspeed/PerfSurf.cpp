@@ -29,42 +29,6 @@ Velocity<double> evaluateSurfaceSpeed(
   return v;
 }
 
-
-
-Eigen::VectorXd solveLsq(
-    const Eigen::SparseMatrix<double>& mat,
-    std::vector<double>& rhs) {
-  CHECK(mat.rows() == rhs.size());
-  Eigen::SparseMatrix<double> AtA = mat.transpose()*mat;
-  Eigen::VectorXd AtB = mat.transpose()*Eigen::Map<Eigen::VectorXd>(
-      rhs.data(), rhs.size());
-
-  Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> decomp(AtA);
-  Eigen::VectorXd nextVertices = decomp.solve(AtB);
-  CHECK(nextVertices.size() == AtB.size());
-  return nextVertices;
-}
-
-Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step) {
-  ArrayBuilder<std::pair<int, int>> dst;
-  for (auto span: spans) {
-    for (auto i = span.minv(); i + step < span.maxv(); i++) {
-      dst.add(std::pair<int, int>(i, i + step));
-    }
-  }
-  return dst.get();
-}
-
-Eigen::MatrixXd makeOneDimensionalReg(int n, int order) {
-  if (order <= 0) {
-    return Eigen::MatrixXd::Identity(n, n);
-  } else {
-    auto A = makeOneDimensionalReg(n, order-1);
-    int m = A.rows();
-    return A.block(0, 0, m-1, n) - A.block(1, 0, m-1, n);
-  }
-}
-
 Array<std::pair<int, int>> generateSurfaceNeighbors1d(int vertexCount) {
   int pairCount = vertexCount-1;
   Array<std::pair<int, int>> dst(pairCount);
@@ -72,53 +36,6 @@ Array<std::pair<int, int>> generateSurfaceNeighbors1d(int vertexCount) {
     dst[i] = {i, i+1};
   }
   return dst;
-}
-
-Eigen::MatrixXd makeC(int n) {
-  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(n, n-1);
-  for (int i = 0; i < n-1; i++) {
-    C(i, i) = 1.0;
-    C(i+1, i) = -1.0;
-  }
-  return C;
-}
-
-Eigen::VectorXd solveConstrained(
-    const Eigen::MatrixXd& AtA,
-    SystemConstraintType type) {
-  if (type == SystemConstraintType::Norm1) {
-    // Select the minimum eigen vector
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> decomp(AtA);
-    return decomp.eigenvectors().col(0);
-  } else {
-
-    // Solve AY = 0 with
-    // Y = CX + D
-    // C and D are chose so that the sum of Y is 1 for any real vector X.
-
-    CHECK(AtA.rows() == AtA.cols());
-    int n = AtA.rows();
-    Eigen::MatrixXd C = makeC(n);
-    Eigen::VectorXd D = (1.0/n)*Eigen::VectorXd::Ones(n);
-    Eigen::MatrixXd CtAtA = C.transpose()*AtA;
-    Eigen::MatrixXd CtAtAC = CtAtA*C;
-    Eigen::MatrixXd minusCtAtAD = -CtAtA*D;
-    CHECK(CtAtAC.rows() == n-1);
-    CHECK(CtAtAC.cols() == n-1);
-    CHECK(minusCtAtAD.rows() == n-1);
-    CHECK(minusCtAtAD.cols() == 1);
-    return C*CtAtAC.ldlt().solve(minusCtAtAD) + D;
-  }
-}
-
-double evaluateLevel(
-    const Array<WeightedIndex>& weights,
-    const Eigen::VectorXd& X) {
-  double s = 0.0;
-  for (auto w: weights) {
-    s += X(w.index)*w.weight;
-  }
-  return s;
 }
 
 Array<WeightedIndex> scaleWeights(double s, const Array<WeightedIndex>& src) {
@@ -138,7 +55,7 @@ PerfFitPoint makePerfFitPoint(
   PerfFitPoint pt;
   pt.index = index;
   pt.normedSpeed = x.boatSpeed/s.refSpeed(x.windVertexWeights);
-  pt.weights = x.windVertexWeights; //scaleWeights(pt.normedSpeed, x.windVertexWeights);
+  pt.weights = x.windVertexWeights;
   pt.good = std::isfinite(pt.normedSpeed) && pt.normedSpeed < s.maxFactor;
   pt.groupIndex = x.groupIndex;
   return pt;

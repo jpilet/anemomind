@@ -74,24 +74,6 @@ std::ostream& operator<<(std::ostream& s, const PerfSurfPt& pt) {
   return s;
 }
 
-TEST(PerfSurfTest, ConstraintedSolve) {
-  Eigen::MatrixXd A(1, 2);
-  A << 1, 0;
-  Eigen::MatrixXd AtA = A.transpose()*A;
-
-  Eigen::VectorXd X = solveConstrained(AtA, SystemConstraintType::Norm1);
-  if (X(1) < 0) {
-    X = -X;
-  }
-  EXPECT_NEAR(X(0), 0.0, 1.0e-6);
-  EXPECT_NEAR(X(1), 1.0, 1.0e-6);
-
-  Eigen::VectorXd Y = solveConstrained(AtA, SystemConstraintType::Sum1);
-  std::cout << "Y = \n" << Y << std::endl;
-  EXPECT_NEAR(Y(0), 0.0, 1.0e-6);
-  EXPECT_NEAR(Y(1), 1.0, 1.0e-6);
-}
-
 Array<PerfSurfPt> makeData(int n) {
   double perf = 0;
   Velocity<double> maxWind = 15.0_mps;
@@ -212,15 +194,6 @@ Array<Eigen::Vector2d> normalizedDataToPlotPoints(
   }
   return dst.get();
 }
-
-TEST(PerfSurfTest, SpanTest) {
-  auto spans = generatePairs({{1, 6}}, 4);
-  EXPECT_EQ(spans.size(), 1);
-  auto sp = spans[0];
-  EXPECT_EQ(sp.first, 1);
-  EXPECT_EQ(sp.second, 5);
-}
-
 
 Array<Eigen::Vector2d> levelsToCoords(
     const Eigen::VectorXd& X) {
