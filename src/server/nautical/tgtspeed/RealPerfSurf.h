@@ -44,7 +44,7 @@ public:
     }
 
     if (_counter == 0) {
-      r->add({*_begin, x});
+      r->add(std::make_pair(*_begin, x));
     }
     _pending = x;
 
@@ -63,7 +63,7 @@ private:
   template <typename R>
   void addPending(R* r) {
     if (0 < _counter) {
-      r->add({*_begin, _pending});
+      r->add(std::make_pair(*_begin, _pending));
     }
   }
   typename Iterator::value_type _pending;
@@ -78,6 +78,29 @@ GenericTransducer<TimedValuePairsStep<Iterator>> trTimedValuePairs(
   butEnd--;
   return genericTransducer(TimedValuePairsStep<Iterator>(b, butEnd));
 }
+
+class IsTightTimePair {
+public:
+  IsTightTimePair(Duration<double> d) : _maxDur(d) {}
+
+  template <typename A, typename B>
+  bool operator()(const std::pair<TimedValue<A>, TimedValue<B>>& p) const {
+    return fabs(p.first.time - p.second.time) < _maxDur;
+  }
+private:
+  Duration<double> _maxDur;
+};
+
+class CollapseTimePair {
+public:
+  template <typename A, typename B>
+  TimedValue<std::pair<A, B>> operator()(
+      const std::pair<TimedValue<A>, TimedValue<B>>& pair) const {
+    auto t = pair.first.time + 0.5*(pair.second.time - pair.first.time);
+    return TimedValue<std::pair<A, B>>(
+        t, {pair.first.value, pair.second.value});
+  }
+};
 
 
 } /* namespace sail */

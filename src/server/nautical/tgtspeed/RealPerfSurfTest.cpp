@@ -116,5 +116,29 @@ TEST(RealPerfSurfTest, TimedValuePairs4) {
   EXPECT_EQ(d.first.value, 9);
 }
 
+TEST(RealPerfSurfTest, CompositeProcessing) {
+  std::vector<TimedValue<int>> A{
+    tv(0.0, 1),
+    tv(10.0, 3),
+  };
+
+  std::vector<TimedValue<int>> B{
+    tv(1.0, 119),
+  };
+
+  auto dst = transduce(
+       B,
+       trTimedValuePairs(A.begin(), A.end())
+       |
+       trFilter(IsTightTimePair(2.0_seconds))
+       |
+       trMap(CollapseTimePair()),
+       IntoArray<TimedValue<std::pair<int, int>>>());
+
+  EXPECT_EQ(dst.size(), 1);
+  auto x = dst[0];
+  EXPECT_NEAR((x.time - tv(0.5, 0).time).seconds(), 0.0, 0.02);
+
+}
 
 
