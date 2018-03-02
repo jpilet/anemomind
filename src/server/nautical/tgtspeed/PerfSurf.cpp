@@ -396,9 +396,8 @@ RawPerfSurfResults optimizePerfSurfSub(
     }
   }
 
-  // Regularize the fitted surface
-  auto surfaceWeight = settings.vertexRegWeight; //transferWeight(
-      // perfPairCount, settings.regWeight, vertexCount);
+  // Regularize the target speed surface so that it is smooth.
+  auto surfaceWeight = settings.vertexRegWeight;
   LOG(INFO) << "Using surface weight " << surfaceWeight << std::endl;
   for (const auto& pair: surfaceNeighbors) {
     problem.AddResidualBlock(
