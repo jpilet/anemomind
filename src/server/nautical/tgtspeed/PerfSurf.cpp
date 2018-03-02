@@ -473,6 +473,44 @@ RawPerfSurfResults optimizePerfSurfSub(
   };
 }
 
+double binarySearchPerfThresholdSub(
+    int left, double factor,
+    const Array<double>& part) {
+  LOG(INFO) << "At " << left << " with perf="
+      << part[0] << " and expected-perf=" << factor*left;
+  int n = part.size();
+  if (n == 1) {
+    return part[0];
+  } else {
+    int middle = n/2;
+    int right = left + middle;
+    return part[middle] < factor*right?
+        binarySearchPerfThresholdSub(right, factor, part.sliceFrom(middle))
+      : binarySearchPerfThresholdSub(left, factor, part.sliceTo(middle));
+  }
+}
+
+double binarySearchPerfThreshold(
+    const Array<double>& sortedRawPerfs,
+    double startQuantile,
+    double marg) {
+  CHECK(std::is_sorted(sortedRawPerfs.begin(), sortedRawPerfs.end()));
+  int n = sortedRawPerfs.size();
+  if (n == 1) {
+    return sortedRawPerfs.first();
+  }
+
+  CHECK(0 < n);
+  int index = int(round(n*startQuantile));
+
+  auto part = sortedRawPerfs.sliceFrom(index);
+
+  double factor = (1.0 + marg)*(sortedRawPerfs[index]/index);
+
+  return binarySearchPerfThresholdSub(
+      index, factor, part);
+}
+
 PerfSurfResults postprocessResults(
     const RawPerfSurfResults& src,
     const PerfSurfSettings& settings) {
@@ -481,7 +519,11 @@ PerfSurfResults postprocessResults(
     return PerfSurfResults();
   }
   std::sort(perfs.begin(), perfs.end());
-  auto factor = perfs[int(round(settings.surfaceQuantile*perfs.size()))];
+  //auto factor = perfs[int(round(settings.surfaceQuantile*perfs.size()))];
+  auto factor = binarySearchPerfThreshold(
+      perfs,
+      settings.surfaceQuantile,
+      settings.quantileMarg);
   auto normalizedVertices = src.rawNormalizedVertices.dup();
   int n = normalizedVertices.size();
   auto vertices = Array<Velocity<double>>(n);

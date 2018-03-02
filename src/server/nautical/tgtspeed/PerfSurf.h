@@ -133,7 +133,8 @@ struct PerfSurfSettings {
   double maxFactor = 4.0;
   double regWeight = 1.0;
   double vertexRegWeight = 1.0;
-  double surfaceQuantile = 0.97;
+  double surfaceQuantile = 0.9;
+  double quantileMarg = 0.1;
 };
 
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
@@ -169,6 +170,11 @@ RawPerfSurfResults optimizePerfSurfSub(
     const Array<PerfSurfPt>& pts,
         const Array<std::pair<int, int>>& surfaceNeighbors,
         const PerfSurfSettings& settings);
+
+
+double binarySearchPerfThreshold(
+    const Array<double>& sortedRawPerfs,
+    double startQuantile);
 
 struct PerfSurfResults {
   Array<double> rawPerformances;
