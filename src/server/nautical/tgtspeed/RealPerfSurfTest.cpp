@@ -33,7 +33,7 @@ TEST(RealPerfSurfTest, TimedValuePairs) {
 
   auto dst = transduce(
       B,
-      trTimedValuePairs(A.begin(), A.end()),
+      trTimedValuePairs<int>(A.begin(), A.end()),
       IntoArray<std::pair<TimedValue<int>, TimedValue<int>>>());
 
   EXPECT_EQ(dst.size(), 2);
@@ -58,7 +58,7 @@ TEST(RealPerfSurfTest, TimedValuePairs2) {
 
   auto dst = transduce(
       B,
-      trTimedValuePairs(A.begin(), A.end()),
+      trTimedValuePairs<int>(A.begin(), A.end()),
       IntoArray<std::pair<TimedValue<int>, TimedValue<int>>>());
 
   EXPECT_TRUE(dst.empty());
@@ -79,7 +79,7 @@ TEST(RealPerfSurfTest, TimedValuePairs3) {
 
   auto dst = transduce(
       B,
-      trTimedValuePairs(A.begin(), A.end()),
+      trTimedValuePairs<int>(A.begin(), A.end()),
       IntoArray<std::pair<TimedValue<int>, TimedValue<int>>>());
 
   EXPECT_EQ(dst.size(), 2);
@@ -107,7 +107,7 @@ TEST(RealPerfSurfTest, TimedValuePairs4) {
 
   auto dst = transduce(
       B,
-      trTimedValuePairs(A.begin(), A.end()),
+      trTimedValuePairs<int>(A.begin(), A.end()),
       IntoArray<std::pair<TimedValue<int>, TimedValue<int>>>());
 
   EXPECT_EQ(dst.size(), 4);
@@ -133,7 +133,7 @@ TEST(RealPerfSurfTest, CompositeProcessing) {
 
   auto dst = transduce(
        B,
-       trTimedValuePairs(A.begin(), A.end())
+       trTimedValuePairs<int>(A.begin(), A.end())
        |
        trFilter(IsTightTimePair(2.0_seconds))
        |

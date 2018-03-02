@@ -18,7 +18,7 @@
 
 namespace sail {
 
-template <typename Iterator>
+template <typename Iterator, typename Right>
 class TimedValuePairsStep {
 public:
   // Obs: butEnd is a *valid iterator*. We can dereference it.
@@ -27,8 +27,8 @@ public:
     : _begin(begin), _butEnd(butEnd) {}
 
 
-  template <typename Result, typename X>
-  void apply(Result* r, X x) {
+  template <typename Result>
+  void apply(Result* r, TimedValue<Right> x) {
     if (_begin >= _butEnd || x.time < _begin->time) {
       return;
     }
@@ -66,17 +66,17 @@ private:
       r->add(std::make_pair(*_begin, _pending));
     }
   }
-  typename Iterator::value_type _pending;
+  TimedValue<Right> _pending;
   int _counter = 0;
   Iterator _begin, _butEnd;
 };
 
-template <typename Iterator>
-GenericTransducer<TimedValuePairsStep<Iterator>> trTimedValuePairs(
+template <typename Right, typename Iterator>
+GenericTransducer<TimedValuePairsStep<Iterator, Right>> trTimedValuePairs(
     Iterator b, Iterator e0) {
   auto butEnd = e0;
   butEnd--;
-  return genericTransducer(TimedValuePairsStep<Iterator>(b, butEnd));
+  return genericTransducer(TimedValuePairsStep<Iterator, Right>(b, butEnd));
 }
 
 class IsTightTimePair {
@@ -117,6 +117,32 @@ Array<TimedValue<WindAndBoatSpeedSample>> buildWindAndBoatSpeedSamples(
     Duration<double> pairThreshold) {
   return transduce(
       twsColl,
+      trTimedValuePairs<Velocity<double>>(twaColl.begin(), twaColl.end())
+      |
+      trFilter(IsTightTimePair(pairThreshold))
+      |
+      trMap(CollapseTimePair())
+      |
+      trTimedValuePairs<std::pair<Angle<double>, Velocity<double>>>(
+          speedColl.begin(), speedColl.end())
+      |
+      trFilter(IsTightTimePair(pairThreshold))
+      |
+      trMap(CollapseTimePair())
+      |
+      trMap([](const TimedValue<
+          std::pair<Velocity<double>,
+          std::pair<Angle<double>, Velocity<double>>>>& x) {
+        WindAndBoatSpeedSample dst;
+        dst.boatSpeed = x.value.first;
+        dst.twa = x.value.second.first;
+        dst.tws = x.value.second.second;
+        return TimedValue<WindAndBoatSpeedSample>(x.time, dst);
+      }),
+      IntoNowhere());
+
+  /*return transduce(
+      twsColl,
       trTimedValuePairs(twaColl.begin(), twaColl.end())
       | // <-- (twa, tws)
       trFilter(IsTightTimePair(pairThreshold))
@@ -138,7 +164,7 @@ Array<TimedValue<WindAndBoatSpeedSample>> buildWindAndBoatSpeedSamples(
         dst.tws = x.value.second.second;
         return TimedValue<WindAndBoatSpeedSample>(x.time, dst);
       }),
-      IntoArray<TimedValue<WindAndBoatSpeedSample>>());
+      IntoArray<TimedValue<WindAndBoatSpeedSample>>());*/
 
 }
 
