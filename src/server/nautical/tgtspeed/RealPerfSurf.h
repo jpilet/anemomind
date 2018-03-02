@@ -102,6 +102,46 @@ public:
   }
 };
 
+struct WindAndBoatSpeedSample {
+  Velocity<double> tws;
+  Angle<double> twa;
+  Velocity<double> boatSpeed;
+};
+
+
+template <typename TwsColl, typename TwaColl, typename SpeedColl>
+Array<WindAndBoatSpeedSample> buildWindAndBoatSpeedSamples(
+    const TwsColl& twsColl,
+    const TwaColl& twaColl,
+    const SpeedColl& speedColl,
+    Duration<double> pairThreshold) {
+  return transduce(
+      twsColl,
+      trTimedValuePairs(twaColl.begin(), twaColl.end())
+      | // <-- (twa, tws)
+      trFilter(IsTightTimePair(pairThreshold))
+      |
+      trMap(CollapseTimePair())
+      |
+      trTimedValuePairs(speedColl.begin(), speedColl.end())
+      | // <-- (boat-speed, (twa, tws))
+      trFilter(IsTightTimePair(pairThreshold))
+      |
+      trMap(CollapseTimePair())
+      |
+      trMap([](const TimedValue<
+          std::pair<Velocity<double>,
+            std::pair<Angle<double>, Velocity<double>>>>& x) {
+        WindAndBoatSpeedSample dst;
+        dst.boatSpeed = x.value.first;
+        dst.twa = x.value.second.first;
+        dst.tws = x.value.second.second;
+        return TimedValue<WindAndBoatSpeedSample>(x.time, dst);
+      }),
+      IntoArray<TimedValue<WindAndBoatSpeedSample>>());
+
+}
+
 
 } /* namespace sail */
 

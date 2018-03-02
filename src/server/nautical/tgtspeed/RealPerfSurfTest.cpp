@@ -140,7 +140,20 @@ TEST(RealPerfSurfTest, CompositeProcessing) {
   EXPECT_NEAR((x.time - tv(0.5, 0).time).seconds(), 0.0, 0.02);
   EXPECT_EQ(x.value.first, 1);
   EXPECT_EQ(x.value.second, 119);
+}
 
+TEST(RealPerfSurfTest, BuildSamples) {
+  std::set<Velocity<double>> sampleTws{
+    4.9_kn, 9.8_kn, 3.4_kn, 7.4_kn, 7.6_kn
+  };
+
+  std::set<Velocity<double>> sampleBoatSpeeds{
+    5.0_kn, 9.9_kn, 3.5_kn, 7.5_kn, 7.7_kn
+  };
+
+  std::set<Angle<double>> sampleTwa{
+    3.0_deg, 5.0_deg, 7.0_deg, 9.0_deg, 13.0_deg
+  };
 }
 
 
