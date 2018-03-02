@@ -281,12 +281,10 @@ TEST(PerfSurfTest, TestIt2) {
   ps.orthonormal = false;
 
 
-  auto results = optimizePerfSurf(
+  auto results = optimizePerfSurfSub(
       data,
       generateSurfaceNeighbors1d(vertexCount),
       settings);
-
-  /*
 
   EXPECT_EQ(results.rawPerformances.size(), data.size());
 
@@ -329,7 +327,6 @@ TEST(PerfSurfTest, TestIt2) {
       Cairo::plotDots(cr, dataToPlotPoints(data), 1);
     }, "Wind speed", "Boat speed", p.cr.get());
   }
-*/
 }
 
 

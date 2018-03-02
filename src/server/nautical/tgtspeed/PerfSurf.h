@@ -158,12 +158,12 @@ struct PerfFitPoint {
   PerfFitPoint evaluateLevel(double* levelData) const;
 };
 
-struct PerfSurfResults {
+struct RawPerfSurfResults {
   Array<double> rawNormalizedVertices;
   Array<double> rawPerformances;
 };
 
-PerfSurfResults optimizePerfSurf(
+RawPerfSurfResults optimizePerfSurfSub(
     const Array<PerfSurfPt>& pts,
     const Array<std::pair<int, int>>& surfaceNeighbors,
     const PerfSurfSettings& settings);

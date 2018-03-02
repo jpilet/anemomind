@@ -377,7 +377,7 @@ double transferWeight(int srcCount, double srcWeight, int dstCount) {
   return sqrt((srcWeight*srcCount)/dstCount);
 }
 
-PerfSurfResults optimizePerfSurf(
+RawPerfSurfResults optimizePerfSurfSub(
     const Array<PerfSurfPt>& pts,
     const Array<std::pair<int, int>>& surfaceNeighbors,
     const PerfSurfSettings& settings) {
@@ -429,7 +429,7 @@ PerfSurfResults optimizePerfSurf(
           perfPtrs.second); // Estimated performance
     }
   }
-  /*
+
   LOG(INFO) << "Number of good points: " << goodCount << std::endl;
 
   // Add regularization for the performance pairs
@@ -461,8 +461,6 @@ PerfSurfResults optimizePerfSurf(
         &(vertices[pair.first]), &(vertices[pair.second]));
   }
 
-  */
-
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
   ceres::Solver::Summary summary;
@@ -470,7 +468,7 @@ PerfSurfResults optimizePerfSurf(
   ceres::Solve(options, &problem, &summary);
   std::cout << summary.FullReport() << "\n";
 
-  return PerfSurfResults{
+  return RawPerfSurfResults{
     vertices, perfSumCst.apply(perfCoeffs)
   };
 }
