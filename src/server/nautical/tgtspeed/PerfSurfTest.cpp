@@ -256,7 +256,6 @@ TEST(PerfSurfTest, SumConstraintTest) {
 
   for (int i = 0; i < n; i++) {
     auto x = cst.get(i);
-    std::cout << " i = " << i << "   x.i = " << x.i << " x.j = " << x.j << std::endl;
     auto ptrs = x.pointers(coeffs.data());
     auto value = x.eval(*ptrs.first, *ptrs.second);
     sum += value;
@@ -265,7 +264,7 @@ TEST(PerfSurfTest, SumConstraintTest) {
   EXPECT_NEAR(sum, expectedSum, 1.0e-4);
 }
 
-/*TEST(PerfSurfTest, TestIt2) {
+TEST(PerfSurfTest, TestIt2) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
   int vertexCount = getRequiredVertexCount(data);
@@ -293,7 +292,7 @@ TEST(PerfSurfTest, SumConstraintTest) {
   }
   std::cout << std::endl;
   std::cout << "DONE" << std::endl;
-}*/
+}
 
 
 /*TEST(PerfSurfTest, TestIt1) {

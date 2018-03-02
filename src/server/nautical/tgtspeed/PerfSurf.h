@@ -45,6 +45,10 @@ public:
     WeightedIndex i, j;
     double offset = 0;
 
+    bool isContiguousPair() const {
+      return i.index + 1 == j.index;
+    }
+
     std::pair<double*, double*> pointers(double* src) const {
       return {src + i.index, src + j.index};
     }
@@ -52,6 +56,11 @@ public:
     template <typename T>
     T eval(T a, T b) const {
       return i.weight*a + j.weight*b + offset;
+    }
+
+    template <typename T>
+    T eval(const Array<T>& src) const {
+      return i.weight*src[i.index] + j.weight*src[j.index] + offset;
     }
   };
 
@@ -69,6 +78,15 @@ public:
     } else {
       dst.i = WeightedIndex(index-1, -1.0);
       dst.j = WeightedIndex(index, 1.0);
+    }
+    return dst;
+  }
+
+  Array<double> apply(const Array<double>& src) const {
+    CHECK(src.size() == coeffCount());
+    Array<double> dst(_n);
+    for (int i = 0; i < _n; i++) {
+      dst[i] = get(i).eval(src);
     }
     return dst;
   }

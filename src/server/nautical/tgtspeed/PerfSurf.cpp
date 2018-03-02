@@ -199,11 +199,13 @@ namespace {
   struct DataFitCost {
 
     PerfFitPoint pt;
+    SumConstraint::Comb cst;
 
     static ceres::CostFunction* make(
-        const PerfFitPoint& p) {
-      return new ceres::AutoDiffCostFunction<DataFitCost, 1, 1, 1, 1>(
-          new DataFitCost{p});
+        const PerfFitPoint& p,
+        const SumConstraint::Comb& cst) {
+      return new ceres::AutoDiffCostFunction<DataFitCost, 1, 1, 1, 1, 1>(
+          new DataFitCost{p, cst});
     }
 
     template <typename T>
@@ -211,12 +213,13 @@ namespace {
         const T* v0, // Vertices
         const T* v1,
         //const T* v2,
-        const T* perfPtr,
+        const T* p0,
+        const T* p1,
         T* residual) const {
       typedef const T* Ptr;
       Ptr v[2] = {v0, v1/*, v2*/};
       CHECK(pt.weights.size() <= 3);
-      T perf = *perfPtr;
+      T perf = cst.eval(*p0, *p1);
       T interpolatedTargetSpeed = T(0.0);
       for (int i = 0; i < pt.weights.size(); i++) {
         interpolatedTargetSpeed += *(v[i])*pt.weights[i].weight;
@@ -237,6 +240,33 @@ namespace {
     }
   };
 
+  struct ParamRegCost {
+    double weight = 1.0;
+    SumConstraint::Comb a, b;
+
+    static ceres::CostFunction* make(
+        double w,
+        const SumConstraint::Comb& ac,
+        const SumConstraint::Comb& bc) {
+      auto cost = new ParamRegCost();
+      cost->weight = w;
+      cost->a = ac;
+      cost->b = bc;
+      return new ceres::AutoDiffCostFunction<ParamRegCost, 1, 1, 1, 1, 1>(
+          cost);
+    }
+
+    template <typename T>
+    bool operator()(
+        const T* a0, const T* a1,
+        const T* b0, const T* b1,
+
+        T* residual) const {
+      *residual = weight*(a.eval(*a0, *a1) - b.eval(*b0, *b1));
+      return true;
+    }
+  };
+
   struct RegCost {
     double weight = 1.0;
 
@@ -250,10 +280,10 @@ namespace {
 
     template <typename T>
     bool operator()(
-        const T* a,
-        const T* b,
+        const T* a0,
+        const T* b0,
         T* residual) const {
-      *residual = weight*(*a - *b);
+      *residual = weight*(*a0 - *b0);
       return true;
     }
   };
@@ -276,6 +306,43 @@ namespace {
     }*/
     return dst;
   }
+
+  struct InitializedDouble {
+    double value = 0;
+  };
+
+  void accValue(
+      std::map<int, InitializedDouble>* dst,
+      int sign,
+      WeightedIndex i) {
+    (*dst)[i.index].value += sign*i.weight;
+  }
+
+  std::array<WeightedIndex, 3> combDiff(
+      const SumConstraint::Comb& a,
+      const SumConstraint::Comb& b) {
+    CHECK(a.isContiguousPair());
+    CHECK(b.isContiguousPair());
+
+    std::map<int, InitializedDouble> dst;
+    accValue(&dst, 1, a.i);
+    accValue(&dst, 1, a.j);
+    accValue(&dst, -1, b.i);
+    accValue(&dst, -1, b.j);
+
+    std::array<WeightedIndex, 3> result;
+    int i = 0;
+    for (auto x: dst) {
+      result[i++] = WeightedIndex(x.first, x.second.value);
+    }
+    CHECK(i == 2 || i == 3);
+    if (i == 3) {
+      int fi = result[0].index;
+      result[2] = WeightedIndex(fi == 0? 2 : fi-1, 0.0); // Filler
+    }
+    return result;
+  }
+
 }
 
 /*
@@ -306,13 +373,16 @@ PerfSurfResults optimizePerfSurf(
   Array<double> vertices = Array<double>::fill(vertexCount, 1.0);
 
 
-  Array<double> performances = Array<double>::fill(pts.size(), 1.0);
+  SumConstraint perfSumCst = SumConstraint::averageConstraint(pts.size(), 0.5);
+
+  Array<double> perfCoeffs = Array<double>::fill(
+      perfSumCst.coeffCount(), 1.0);
 
   ceres::Problem problem;
   for (auto& v: vertices) {
     problem.AddParameterBlock(&v, 1);
   }
-  for (auto& p: performances) {
+  for (auto& p: perfCoeffs) {
     problem.AddParameterBlock(&p, 1);
   }
 
@@ -322,13 +392,19 @@ PerfSurfResults optimizePerfSurf(
     auto fit = makePerfFitPoint(pts, i, settings);
     if (fit.good) {
       auto vp = getVertexPointers(fit.weights, vertices);
-      auto cost = DataFitCost::make(fit);
       goodCount++;
+
+      auto c = perfSumCst.get(i);
+      auto cost = DataFitCost::make(fit, c);
+
+      auto perfPtrs = c.pointers(perfCoeffs.getData());
+
       problem.AddResidualBlock(
           cost,
           nullptr, // Squared residuals
           vp[0], vp[1], //vp[2], // Vertex pointers
-          &(performances[i])); // Estimated performance
+          perfPtrs.first,
+          perfPtrs.second); // Estimated performance
     }
   }
 
@@ -336,13 +412,25 @@ PerfSurfResults optimizePerfSurf(
 
   // Add regularization for the performance pairs
   // in time
-  int perfPairCount = performances.size()-1;
+  int perfPairCount = pts.size()-1;
   LOG(INFO) << "Using reg weight " << settings.regWeight << std::endl;
   for (int i = 0; i < perfPairCount; i++) {
+    auto a = perfSumCst.get(i);
+    auto b = perfSumCst.get(i+1);
+
+    //CHECK(a.i.index != b.i.index);
+    //CHECK(a.i.index != b.i.index);
+
+    auto ap = a.pointers(perfCoeffs.getData());
+    auto bp = b.pointers(perfCoeffs.getData());
+
+    CHECK(ap.first != bp.first);
+
     problem.AddResidualBlock(
-        RegCost::make(settings.regWeight),
+        ParamRegCost::make(settings.regWeight, a, b),
         nullptr,
-        &(performances[i]), &(performances[i+1]));
+        ap.first, ap.second,
+        bp.first, bp.second);
   }
 
   // Regularize the fitted surface
@@ -363,7 +451,7 @@ PerfSurfResults optimizePerfSurf(
   std::cout << summary.FullReport() << "\n";
 
   return PerfSurfResults{
-    vertices, performances
+    vertices, perfSumCst.apply(perfCoeffs)
   };
 }
 
