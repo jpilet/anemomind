@@ -192,7 +192,7 @@ int getVertexCount(
   for (const auto& x: surfaceNeighbors) {
     maxVertex = std::max(maxVertex, std::max(x.first, x.second));
   }
-  return maxVertex;
+  return maxVertex+1;
 }
 
 namespace {
@@ -306,16 +306,12 @@ namespace {
     std::array<double*, 2> dst;
     int n = weights.size();
     CHECK(n == 2);
-    //CHECK(n <= 3);
     for (int i = 0; i < n; i++) {
-      dst[i] = &(arr[weights[i].index]);
+      int vi = weights[i].index;
+      CHECK(0 <= vi);
+      CHECK(vi < arr.size());
+      dst[i] = &(arr[vi]);
     }
-    //auto last = dst[n-1];
-
-    // Fill the remaining entries with a valid, but unused, value.
-    /*for (int i = n; i < dst.size(); i++) {
-      dst[i] = nullptr; //last;
-    }*/
     return dst;
   }
 
@@ -414,12 +410,16 @@ PerfSurfResults optimizePerfSurf(
     auto fit = makePerfFitPoint(pts, i, settings);
     if (fit.good) {
       auto vp = getVertexPointers(fit.weights, vertices);
+
+      //auto vp = std::array<double*, 2>({&(vertices[0]), &(vertices[1])});
+
       goodCount++;
 
       auto c = perfSumCst.get(i);
       auto cost = DataFitCost::make(fit, c);
 
       auto perfPtrs = c.pointers(perfCoeffs.getData());
+
 
       problem.AddResidualBlock(
           cost,
@@ -429,7 +429,7 @@ PerfSurfResults optimizePerfSurf(
           perfPtrs.second); // Estimated performance
     }
   }
-
+  /*
   LOG(INFO) << "Number of good points: " << goodCount << std::endl;
 
   // Add regularization for the performance pairs
@@ -451,8 +451,8 @@ PerfSurfResults optimizePerfSurf(
   }
 
   // Regularize the fitted surface
-  auto surfaceWeight = settings.regWeight;/*transferWeight(
-      perfPairCount, settings.regWeight, vertexCount);*/
+  auto surfaceWeight = settings.regWeight; //transferWeight(
+      // perfPairCount, settings.regWeight, vertexCount);
   LOG(INFO) << "Using surface weight " << surfaceWeight << std::endl;
   for (const auto& pair: surfaceNeighbors) {
     problem.AddResidualBlock(
@@ -461,9 +461,12 @@ PerfSurfResults optimizePerfSurf(
         &(vertices[pair.first]), &(vertices[pair.second]));
   }
 
+  */
+
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
   ceres::Solver::Summary summary;
+
   ceres::Solve(options, &problem, &summary);
   std::cout << summary.FullReport() << "\n";
 

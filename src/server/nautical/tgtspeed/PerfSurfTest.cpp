@@ -276,13 +276,17 @@ TEST(PerfSurfTest, TestIt2) {
   auto page = DOM::makeBasicHtmlPage("Perf test", "", "results");
   DOM::addSubTextNode(&page, "h1", "Perf surf");
 
+
   PlotUtils::Settings2d ps;
   ps.orthonormal = false;
+
 
   auto results = optimizePerfSurf(
       data,
       generateSurfaceNeighbors1d(vertexCount),
       settings);
+
+  /*
 
   EXPECT_EQ(results.rawPerformances.size(), data.size());
 
@@ -309,6 +313,23 @@ TEST(PerfSurfTest, TestIt2) {
   }
   std::cout << std::endl;
   std::cout << "DONE" << std::endl;
+
+
+
+
+  ///////// Visualize the results
+  if (true) {
+    DOM::addSubTextNode(&page, "h2", "Input data");
+    auto im = DOM::makeGeneratedImageNode(&page, ".svg");
+    auto p = Cairo::Setup::svg(
+        im.toString(),
+        ps.width,
+        ps.height);
+    Cairo::renderPlot(ps, [&](cairo_t* cr) {
+      Cairo::plotDots(cr, dataToPlotPoints(data), 1);
+    }, "Wind speed", "Boat speed", p.cr.get());
+  }
+*/
 }
 
 
