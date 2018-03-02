@@ -19,51 +19,45 @@ namespace sail {
 
 // This is a stateful transducer,
 // but there is no state to flush.
-template <typename Iterator, typename Step>
-class TimedValuePairs : public Step,
-  public Transducer<TimedValuePairs<Iterator, Step>> {
+template <typename Iterator>
+class TimedValuePairsStep {
 public:
   // Obs: butEnd is a *valid iterator*. We can dereference it.
   // It is the iterator pointing just before the end of the range.
-  TimedValuePairs(Iterator begin, Iterator butEnd,
-      const Step& s = Step()) : _begin(begin), _butEnd(butEnd), Step(s) {}
+  TimedValuePairsStep(Iterator begin, Iterator butEnd)
+    : _begin(begin), _butEnd(butEnd) {}
 
-  typedef typename Step::input_type input_type;
-  typedef typename Step::result_type result_type;
 
-  // Use it as a step function
-  result_type step(result_type y, input_type x) {
+  template <typename Result, typename X>
+  void apply(Result* r, X x) {
     if (_begin >= _butEnd || x.time < _begin->time) {
-      return y;
+      return;
     }
-
 
     // Advance
     while (_begin < _butEnd && (_begin+1)->time <= x.time) {
       _begin++;
     }
     if (_begin == _butEnd) {
-      return y;
+      return;
     }
 
-    return Step::step(Step::step(y, {*_begin, x}), {*_butEnd, x});
+    r->add({*_begin, x});
+    r->add({*_butEnd, x});
   }
 
-  // Use it as a transducer
-  template <typename S>
-  TimedValuePairs<Iterator, S> apply(S s) const {
-    return TimedValuePairs<Iterator, S>(_begin, _butEnd, s);
-  }
+  template <typename Result>
+  void flush(Result* r) {r->flush();}
 private:
   Iterator _begin, _butEnd;
 };
 
 template <typename Iterator>
-TimedValuePairs<Iterator, UndefinedStep> trTimedValuePairs(
+GenericTransducer<TimedValuePairsStep<Iterator>> trTimedValuePairs(
     Iterator b, Iterator e0) {
   auto butEnd = e0;
   butEnd--;
-  return TimedValuePairs<Iterator, UndefinedStep>(b, butEnd);
+  return genericTransducer(TimedValuePairsStep<Iterator>(b, butEnd));
 }
 
 

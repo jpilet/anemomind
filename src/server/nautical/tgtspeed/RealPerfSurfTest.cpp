@@ -26,8 +26,12 @@ TEST(RealPerfSurfTest, TimedValuePairs) {
     tv(4.0, 120)
   };
 
-  std::vector<std::pair<TimedValue<int>, TimedValue<int>>> dst;
-  transduceIntoColl(trTimedValuePairs(A.begin(), A.end()), &dst, B);
+  auto dst = transduce(
+      B,
+      trTimedValuePairs(A.begin(), A.end()),
+      IntoArray<std::pair<TimedValue<int>, TimedValue<int>>>());
+
+  EXPECT_EQ(dst.size(), 2);
 }
 
 
