@@ -407,11 +407,11 @@ RawPerfSurfResults optimizePerfSurfSub(
   }
 
   ceres::Solver::Options options;
-  //options.minimizer_progress_to_stdout = true;
   ceres::Solver::Summary summary;
 
   ceres::Solve(options, &problem, &summary);
-  std::cout << summary.FullReport() << "\n";
+  LOG(INFO) << "Information about the PerfSurf optimization, after finished:";
+  LOG(INFO) << summary.FullReport();
 
   return RawPerfSurfResults{
     vertices, perfSumCst.apply(perfCoeffs)
