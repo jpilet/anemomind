@@ -46,3 +46,18 @@ cxx_test(tgtspeed_PerfSurfTest
   plot_CairoUtils
   common_DOMUtils
   )
+
+add_library(tgtspeed_RealPerfSurf
+  RealPerfSurf.h
+  RealPerfSurf.cpp
+  )
+
+target_link_libraries(tgtspeed_RealPerfSurf
+  tgtspeed_PerfSurf
+  )
+
+cxx_test(tgtspeed_RealPerfSurfTest
+  RealPerfSurfTest.cpp
+  tgtspeed_RealPerfSurf
+  gtest_main
+  )
