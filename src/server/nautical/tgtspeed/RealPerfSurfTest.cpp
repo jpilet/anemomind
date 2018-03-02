@@ -10,9 +10,14 @@
 
 using namespace sail;
 
+
+TimeStamp testTime(double t) {
+  return TimeStamp::UTC(2018, 3, 2, 15, 11, 0) + t*1.0_s;
+}
+
 TimedValue<int> tv(double t, int value) {
   return TimedValue<int>(
-      TimeStamp::UTC(2018, 3, 2, 15, 11, 0) + t*1.0_s, value);
+      testTime(t), value);
 }
 
 TEST(RealPerfSurfTest, TimedValuePairs) {
@@ -142,6 +147,14 @@ TEST(RealPerfSurfTest, CompositeProcessing) {
   EXPECT_EQ(x.value.second, 119);
 }
 
+template <typename T>
+void populate(const std::set<T>& src, std::vector<TimedValue<T>>* dst) {
+  int i = 0;
+  for (auto x: src) {
+    dst->push_back(TimedValue<T>(testTime(i), x));
+  }
+}
+
 TEST(RealPerfSurfTest, BuildSamples) {
   std::set<Velocity<double>> sampleTws{
     4.9_kn, 9.8_kn, 3.4_kn, 7.4_kn, 7.6_kn
@@ -154,6 +167,17 @@ TEST(RealPerfSurfTest, BuildSamples) {
   std::set<Angle<double>> sampleTwa{
     3.0_deg, 5.0_deg, 7.0_deg, 9.0_deg, 13.0_deg
   };
+
+  std::vector<TimedValue<Velocity<double>>> tws, boat;
+  std::vector<TimedValue<Angle<double>>> twa;
+  populate(sampleTws, &tws);
+  populate(sampleTwa, &twa);
+  populate(sampleBoatSpeeds, &boat);
+
+  auto thresh = 0.1_seconds;
+
+  auto samples = buildWindAndBoatSpeedSamples(
+      tws, twa, boat, thresh);
 }
 
 

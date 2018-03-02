@@ -110,7 +110,7 @@ struct WindAndBoatSpeedSample {
 
 
 template <typename TwsColl, typename TwaColl, typename SpeedColl>
-Array<WindAndBoatSpeedSample> buildWindAndBoatSpeedSamples(
+Array<TimedValue<WindAndBoatSpeedSample>> buildWindAndBoatSpeedSamples(
     const TwsColl& twsColl,
     const TwaColl& twaColl,
     const SpeedColl& speedColl,

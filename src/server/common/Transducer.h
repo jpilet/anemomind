@@ -64,6 +64,15 @@ private:
   sail::ArrayBuilder<T> _dst;
 };
 
+struct IntoNowhere {
+  template <typename T>
+  void add(T ) {}
+
+  void flush() {}
+
+  bool result() const {return true;}
+};
+
 template <typename A, typename B>
 struct CompositeTransducer {
   A a;
