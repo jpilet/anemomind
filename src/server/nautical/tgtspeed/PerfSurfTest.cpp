@@ -260,6 +260,17 @@ TEST(PerfSurfTest, SumConstraintTest) {
   EXPECT_NEAR(sum2, expectedSum, 1.0e-4);
 }
 
+Array<Eigen::Vector2d> verticesToPlotData(
+    const Array<Velocity<double>>& vertices) {
+  int n = vertices.size();
+  Array<Eigen::Vector2d> dst(n);
+  for (int i = 0; i < n; i++) {
+    auto windSpeed = decodeWindSpeed({{i, 1.0}});
+    dst[i] = Eigen::Vector2d(windSpeed/unit, vertices[i]/unit);
+  }
+  return dst;
+}
+
 TEST(PerfSurfTest, TestIt2) {
   int dataSize = 6000;
   auto data = makeData(dataSize);
@@ -277,7 +288,7 @@ TEST(PerfSurfTest, TestIt2) {
   ps.orthonormal = false;
 
 
-  auto results = optimizePerfSurfSub(
+  auto results = optimizePerfSurf(
       data,
       generateSurfaceNeighbors1d(vertexCount),
       settings);
@@ -299,10 +310,8 @@ TEST(PerfSurfTest, TestIt2) {
   std::cout << "Max perf: " << maxPerf << std::endl;
   std::cout << "Min perf: " << minPerf << std::endl;
 
-  std::cout << "Number of vertices: " <<
-      results.rawNormalizedVertices.size() << std::endl;
-
-  for (auto v: results.rawNormalizedVertices) {
+  std::cout << "Normalized vertices " << std::endl;
+  for (auto v: results.normalizedVertices) {
     std::cout << " " << v;
   }
   std::cout << std::endl;
@@ -321,6 +330,11 @@ TEST(PerfSurfTest, TestIt2) {
         ps.height);
     Cairo::renderPlot(ps, [&](cairo_t* cr) {
       Cairo::plotDots(cr, dataToPlotPoints(data), 1);
+
+      cairo_set_line_width(cr, 0.5);
+      Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(254.0_deg));
+      Cairo::plotLineStrip(cr, verticesToPlotData(results.vertices));
+
     }, "Wind speed", "Boat speed", p.cr.get());
   }
 }

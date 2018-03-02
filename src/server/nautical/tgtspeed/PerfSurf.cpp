@@ -484,15 +484,21 @@ PerfSurfResults postprocessResults(
   auto factor = perfs[int(round(settings.surfaceQuantile*perfs.size()))];
   auto normalizedVertices = src.rawNormalizedVertices.dup();
   int n = normalizedVertices.size();
-  auto vertices = Array<double>(n);
+  auto vertices = Array<Velocity<double>>(n);
   for (int i = 0; i < n; i++) {
     normalizedVertices[i] *= factor;
-    // TODO: vertices[i] = normalizedVertices[i]*settings.refSpeed();
+    vertices[i] = normalizedVertices[i]*settings.refSpeed({
+      WeightedIndex(i, 1.0)
+    });
   }
-  return PerfSurfResults{normalizedVertices, vertices};
+  return PerfSurfResults{
+    src.rawPerformances,
+    normalizedVertices,
+    vertices
+  };
 }
 
-PerfSurfResults optimizePerfSurfResults(
+PerfSurfResults optimizePerfSurf(
     const Array<PerfSurfPt>& pts,
     const Array<std::pair<int, int>>& surfaceNeighbors,
     const PerfSurfSettings& settings) {

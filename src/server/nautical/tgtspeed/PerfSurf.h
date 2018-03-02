@@ -170,8 +170,9 @@ RawPerfSurfResults optimizePerfSurfSub(
         const PerfSurfSettings& settings);
 
 struct PerfSurfResults {
+  Array<double> rawPerformances;
   Array<double> normalizedVertices;
-  Array<double> vertices;
+  Array<Velocity<double>> vertices;
 };
 
 PerfSurfResults optimizePerfSurf(
