@@ -17,8 +17,6 @@
 
 namespace sail {
 
-// This is a stateful transducer,
-// but there is no state to flush.
 template <typename Iterator>
 class TimedValuePairsStep {
 public:
@@ -36,19 +34,35 @@ public:
 
     // Advance
     while (_begin < _butEnd && (_begin+1)->time <= x.time) {
+      addPending(r);
+      _counter = 0;
       _begin++;
     }
     if (_begin == _butEnd) {
       return;
     }
 
-    r->add({*_begin, x});
-    r->add({*_butEnd, x});
+    if (_counter == 0) {
+      r->add({*_begin, x});
+    }
+
+    _counter++;
   }
 
   template <typename Result>
-  void flush(Result* r) {r->flush();}
+  void flush(Result* r) {
+    addPending(r);
+    r->flush();
+  }
 private:
+  template <typename R>
+  void addPending(R* r) {
+    if (0 < _counter) {
+      r->add({*_butEnd, _pending});
+    }
+  }
+  typename Iterator::value_type _pending;
+  int _counter = 0;
   Iterator _begin, _butEnd;
 };
 
