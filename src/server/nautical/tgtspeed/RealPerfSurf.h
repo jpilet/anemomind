@@ -29,6 +29,7 @@ public:
 
   template <typename Result>
   void apply(Result* r, TimedValue<Right> x) {
+    std::cout << "Incoming value at time " << x.time << std::endl;
     if (_begin >= _butEnd || x.time < _begin->time) {
       return;
     }
@@ -118,9 +119,9 @@ template <typename TwsColl, typename TwaColl, typename SpeedColl>
   return transduce(
       twsColl,
       trTimedValuePairs<Velocity<double>>(twaColl.begin(), twaColl.end())
-      |
-      trFilter(IsTightTimePair(pairThreshold))
       /*|
+      trFilter(IsTightTimePair(pairThreshold))
+      |
       trMap(CollapseTimePair())
       |
       trTimedValuePairs<std::pair<Angle<double>, Velocity<double>>>(

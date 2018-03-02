@@ -151,10 +151,14 @@ template <typename T>
 void populate(const std::set<T>& src, std::vector<TimedValue<T>>* dst) {
   int i = 0;
   for (auto x: src) {
-    dst->push_back(TimedValue<T>(testTime(i), x));
+    dst->push_back(TimedValue<T>(testTime(i++), x));
   }
 }
 
+/*
+ *
+./tgtspeed_RealPerfSurfTest --gtest_filter="RealPerfSurfTest.BuildSamples"
+ */
 TEST(RealPerfSurfTest, BuildSamples) {
   std::set<Velocity<double>> sampleTws{
     4.9_kn, 9.8_kn, 3.4_kn, 7.4_kn, 7.6_kn
@@ -173,6 +177,9 @@ TEST(RealPerfSurfTest, BuildSamples) {
   populate(sampleTws, &tws);
   populate(sampleTwa, &twa);
   populate(sampleBoatSpeeds, &boat);
+  EXPECT_EQ(tws.size(), 5);
+  EXPECT_EQ(twa.size(), 5);
+  EXPECT_EQ(boat.size(), 5);
 
   auto thresh = 0.5_seconds;
 
