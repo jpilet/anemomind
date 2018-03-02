@@ -45,6 +45,7 @@ public:
     if (_counter == 0) {
       r->add({*_begin, x});
     }
+    _pending = x;
 
     _counter++;
   }

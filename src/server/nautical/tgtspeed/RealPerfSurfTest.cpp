@@ -67,6 +67,8 @@ TEST(RealPerfSurfTest, TimedValuePairs3) {
 
   std::vector<TimedValue<int>> B{
     tv(1.0, 119),
+    tv(1.1, 98),
+    tv(1.3, 445),
     tv(4.0, 120)
   };
 
@@ -83,7 +85,7 @@ TEST(RealPerfSurfTest, TimedValuePairs3) {
   EXPECT_EQ(a.second.value, 119);
 
   EXPECT_EQ(b.first.value, 3);
-  EXPECT_EQ(b.second.value, 119);
+  EXPECT_EQ(b.second.value, 445);
 }
 
 
