@@ -114,6 +114,10 @@ int getVertexCount(
 }
 
 namespace {
+
+  constexpr int SurfaceSegmentDim = 3;
+
+
   struct DataFitCost {
 
     PerfFitPoint pt;
@@ -122,7 +126,7 @@ namespace {
     static ceres::CostFunction* make(
         const PerfFitPoint& p,
         const SumConstraint::Comb& cst) {
-      return new ceres::AutoDiffCostFunction<DataFitCost, 1, 1, 1, 1, 1>(
+      return new ceres::AutoDiffCostFunction<DataFitCost, 1, 1, 1, 1, 1, 1>(
           new DataFitCost{p, cst});
     }
 
@@ -130,29 +134,23 @@ namespace {
     bool operator()(
         const T* v0, // Vertices
         const T* v1,
-        //const T* v2,
+        const T* v2,
         const T* p0,
         const T* p1,
         T* residual) const {
       typedef const T* Ptr;
-      Ptr v[2] = {v0, v1/*, v2*/};
-      CHECK(pt.weights.size() <= 3);
+      Ptr v[SurfaceSegmentDim] = {v0, v1, v2};
+      CHECK(pt.weights.size() <= SurfaceSegmentDim);
       T perf = cst.eval(*p0, *p1);
       T interpolatedTargetSpeed = T(0.0);
+
+      // Only loop over values that we use.
       for (int i = 0; i < pt.weights.size(); i++) {
         interpolatedTargetSpeed += *(v[i])*pt.weights[i].weight;
       }
-      *residual = perf*interpolatedTargetSpeed /*estimated boat speed*/
-          - pt.normedSpeed/*observed boat speed*/;
-
-      /*std::cout << "RESIDUAL: " << *residual << std::endl;
-      std::cout << "  nm " << pt.normedSpeed << std::endl;
-      std::cout << "  pf " << perf << std::endl;
-      std::cout << "  it " << interpolatedTargetSpeed << std::endl;
-
-      for (int i = 0; i < pt.weights.size(); i++) {
-        std::cout << "     - v: " << *(v[i]) << "*" << pt.weights[i].weight << std::endl;
-      }*/
+      *residual =
+          perf*interpolatedTargetSpeed // <-- estimated boat speed
+          - pt.normedSpeed;            // <-- observed boat speed
 
       return true;
     }
@@ -218,18 +216,55 @@ namespace {
     }
   };
 
-  std::array<double*, 2> getVertexPointers(
+  void insertIfValid(std::set<int>* dst, int n, int i) {
+    if (0 <= i && i < n) {
+      dst->insert(i);
+    }
+  }
+
+  std::array<double*, SurfaceSegmentDim> getVertexPointers(
       const Array<WeightedIndex>& weights,
       Array<double>& arr) {
-    std::array<double*, 2> dst;
+    std::array<double*, SurfaceSegmentDim> dst;
     int n = weights.size();
-    CHECK(n == 2);
+    CHECK(n <= SurfaceSegmentDim);
+
+
+    int vertexCount = arr.size();
+
+    int extra = SurfaceSegmentDim - n;
+    CHECK(0 <= extra && extra <= 1);
+    std::set<int> other;
     for (int i = 0; i < n; i++) {
       int vi = weights[i].index;
       CHECK(0 <= vi);
-      CHECK(vi < arr.size());
+      CHECK(vi < vertexCount);
       dst[i] = &(arr[vi]);
+      if (0 < extra) {
+        other.insert(vi);
+        insertIfValid(&other, vertexCount, vi-1);
+        insertIfValid(&other, vertexCount, vi+1);
+      }
     }
+
+    for (int i = 0; i < n; i++) {
+      other.erase(weights[i].index);
+    }
+
+    // Fill the remaining cells with valid, but unused,
+    // pointers.
+    for (int i = n; i < SurfaceSegmentDim; i++) {
+      auto f = other.begin();
+      dst[i] = &(arr[*f]);
+      other.erase(f);
+    }
+
+    // Check again that everything is good
+    for (int i = 0; i < SurfaceSegmentDim; i++) {
+      auto p = dst[i] - arr.getData();
+      CHECK(0 <= p && p < vertexCount);
+    }
+
     return dst;
   }
 
@@ -368,7 +403,7 @@ RawPerfSurfResults optimizePerfSurfSub(
       problem.AddResidualBlock(
           cost,
           settings.dataLoss, // Squared residuals
-          vp[0], vp[1], //vp[2], // Vertex pointers
+          vp[0], vp[1], vp[2], // Vertex pointers
           perfPtrs.first,
           perfPtrs.second); // Estimated performance
     }
