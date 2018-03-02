@@ -120,7 +120,7 @@ template <typename TwsColl, typename TwaColl, typename SpeedColl>
       trTimedValuePairs<Velocity<double>>(twaColl.begin(), twaColl.end())
       |
       trFilter(IsTightTimePair(pairThreshold))
-      |
+      /*|
       trMap(CollapseTimePair())
       |
       trTimedValuePairs<std::pair<Angle<double>, Velocity<double>>>(
@@ -138,7 +138,7 @@ template <typename TwsColl, typename TwaColl, typename SpeedColl>
         dst.twa = x.value.second.first;
         dst.tws = x.value.second.second;
         return TimedValue<WindAndBoatSpeedSample>(x.time, dst);
-      }),
+      })*/,
       //IntoArray<TimedValue<WindAndBoatSpeedSample>>()
       IntoCounter()
       );
