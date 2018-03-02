@@ -234,6 +234,9 @@ struct PerfSurfResults {
 
 // The top-level function for the target
 // speed optimization algorithm.
+//
+// It can be used for any kind of surface, such as a 1d line
+// or a full polar surface.
 PerfSurfResults optimizePerfSurf(
     const Array<PerfSurfPt>& pts,
     const Array<std::pair<int, int>>& surfaceNeighbors,
