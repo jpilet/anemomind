@@ -34,6 +34,7 @@ add_library(tgtspeed_PerfSurf
 
 target_link_libraries(tgtspeed_PerfSurf
   common_logging
+  common_TimeStamp
   )
 
 target_depends_on_ceres(tgtspeed_PerfSurf)
