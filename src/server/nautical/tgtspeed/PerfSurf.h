@@ -15,6 +15,7 @@
 #include <server/common/logging.h>
 #include <ceres/jet.h>
 #include <Eigen/Dense>
+#include <ceres/loss_function.h>
 
 namespace sail {
 
@@ -111,10 +112,22 @@ private:
  * value to anything inside the algorithm.
  */
 struct PerfSurfPt {
-  TimeStamp time; // Time, if applicable
-  Array<WeightedIndex> windVertexWeights; // Representation of the point on perf surface
-  Velocity<double> boatSpeed; // Measured speed at that point
-  double performance = 0.0; // Should be in the interval [0, 1]
+  // Time, if applicable
+  TimeStamp time;
+
+  // Representation of the wind at this point as a linear combination
+  // of the winds at the vertices.
+  Array<WeightedIndex> windVertexWeights;
+
+  // Measured speed at that point.
+  Velocity<double> boatSpeed;
+
+  // Should be in the interval [0, 1].
+  // Used only for testing, to store the ground truth.
+  double performance = 0.0;
+
+  // Used to group points together in time.
+  int groupIndex = 0;
 };
 
 enum SystemConstraintType {
@@ -129,12 +142,34 @@ Eigen::VectorXd solveConstrained(
     SystemConstraintType type);
 
 struct PerfSurfSettings {
+
+  // All speeds are divided by this function
+  // to bring them to a normalized domain. To
+  // go back from the normalized domain, we multiply
+  // by it.
   std::function<Velocity<double>(Array<WeightedIndex>)> refSpeed;
+
+  // The highest allowed value in the normalized domain.
   double maxFactor = 4.0;
-  double regWeight = 1.0;
+
+  // Control the temporal smoothness
+  // of the fitted performances.
+  double perfRegWeight = 1.0;
+
+  // Control the smoothness of the
+  // fitted target speed surface
   double vertexRegWeight = 1.0;
+
+  // Where we start looking for
+  // a reference quantile of the surface.
   double surfaceQuantile = 0.9;
+
+  // Parameter for the post-scaling of
+  // the solution. Not so important.
   double quantileMarg = 0.1;
+
+  // Squared loss by default.
+  ceres::LossFunction* dataLoss = nullptr;
 };
 
 Array<std::pair<int, int>> generatePairs(const Array<Spani>& spans, int step);
@@ -152,36 +187,63 @@ struct PerfFitPoint {
   // The speed divided by reference speed
   double normedSpeed = 0.0;
 
-  // Where it is on the surface
+  // The wind of this point, expressed as a linear combination
+  // of the wind at the vertices of the surface that we are fitting.
   Array<WeightedIndex> weights;
 
-  // If it is good.
+  // If it is good. An example of a bad point is a point
+  // with a very high or infinite normedSpeed. That can happen
+  // due to division by a small reference speed.
   bool good = false;
+
+  // Which group in time that this point belongs to.
+  // Used to apply regularization where we should.
+  int groupIndex = 0;
 
   PerfFitPoint evaluateLevel(double* levelData) const;
 };
 
 struct RawPerfSurfResults {
+  // Raw optimized vertices in normalized domain.
+  // They need to be scaled by a factor determined
+  // in the post processing step.
   Array<double> rawNormalizedVertices;
+
+  // Raw performance values associated with
+  // the input data points. They need to be
+  // scaled before they are useful.
   Array<double> rawPerformances;
 };
 
+// This function performs the actual target
+// speed surface optimization, but its output is
+// pretty much the raw output of the optimizer.
+//
+// Please see the 'optimizePerfSurf' function.
 RawPerfSurfResults optimizePerfSurfSub(
     const Array<PerfSurfPt>& pts,
         const Array<std::pair<int, int>>& surfaceNeighbors,
         const PerfSurfSettings& settings);
 
-
+// Implements heuristic used when
+// scaling the solution in the postprocessing step.
 double binarySearchPerfThreshold(
     const Array<double>& sortedRawPerfs,
     double startQuantile);
 
 struct PerfSurfResults {
-  Array<double> rawPerformances;
+  Array<double> performances;
+
+  // Correctly scaled, but normalized vertices.
   Array<double> normalizedVertices;
+
+  // This is the target speed at every vertex.
+  // What we are interested in.
   Array<Velocity<double>> vertices;
 };
 
+// The top-level function for the target
+// speed optimization algorithm.
 PerfSurfResults optimizePerfSurf(
     const Array<PerfSurfPt>& pts,
     const Array<std::pair<int, int>>& surfaceNeighbors,

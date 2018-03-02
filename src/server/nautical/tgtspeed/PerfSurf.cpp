@@ -140,6 +140,7 @@ PerfFitPoint makePerfFitPoint(
   pt.normedSpeed = x.boatSpeed/s.refSpeed(x.windVertexWeights);
   pt.weights = x.windVertexWeights; //scaleWeights(pt.normedSpeed, x.windVertexWeights);
   pt.good = std::isfinite(pt.normedSpeed) && pt.normedSpeed < s.maxFactor;
+  pt.groupIndex = x.groupIndex;
   return pt;
 }
 
@@ -387,43 +388,68 @@ RawPerfSurfResults optimizePerfSurfSub(
   int pointCount = pts.size();
 
   // The normalized height of every vertex. The vertices
-  // are considered unknown and unconstrained.
+  // are considered unknown and unconstrained. Start with
+  // flat surface in the normalized domain. Note that due to how
+  // the objective function is built, starting at 0 might be a local
+  // optimimum.
   Array<double> vertices = Array<double>::fill(vertexCount, 1.0);
 
-
+  // In order to make the problem well posed, we are going to introduce
+  // a linear constraint that the average value of the optimized
+  // performances should be something fixed, say 0.5. If the optimized
+  // performances are P, then we can express P(Q)=AQ + B with A and B being
+  // constant and Q being one dimension less than P. When P is evaluated
+  // for any real-valued vector Q, the constraint will be respected. So
+  // we are in fact going to optimize an unconstrained problem w.r.t. Q.
   SumConstraint perfSumCst = SumConstraint::averageConstraint(pts.size(), 0.5);
 
+  // This corresponds to the Q vector in the previous explanation.
   Array<double> perfCoeffs = Array<double>::fill(
       perfSumCst.coeffCount(), 1.0);
 
   ceres::Problem problem;
+
+  // There are two classes of unknowns:
+  // (i) The vertices of the surface that we are
+  // optimizing
   for (auto& v: vertices) {
     problem.AddParameterBlock(&v, 1);
   }
+  // and (ii) the performance at every point.
   for (auto& p: perfCoeffs) {
     problem.AddParameterBlock(&p, 1);
   }
+  // Not that the solution will have to be
+  // scaled in a post processing step.
 
-  // Add the data terms
+  // The data terms correspond to minimizing
+  // (S_i*p_i - B_i)^2 for every sample i, with
+  // S_i being the fitted target speed surface at sample i,
+  // p_i being our estimated performance at that point, and
+  // B_i being the observed point speed.
   int goodCount = 0;
   for (int i = 0; i < pointCount; i++) {
     auto fit = makePerfFitPoint(pts, i, settings);
     if (fit.good) {
       auto vp = getVertexPointers(fit.weights, vertices);
 
-      //auto vp = std::array<double*, 2>({&(vertices[0]), &(vertices[1])});
-
       goodCount++;
 
+      // Determine the linear combination
+      // of the performance coefficients that
+      // is used to compute the performance for this sample.
+      // Generally, it is a linear combination of two
+      // performance coefficients, and a constant offset.
       auto c = perfSumCst.get(i);
+
       auto cost = DataFitCost::make(fit, c);
 
+      // Get pointers to the performance coefficients.
       auto perfPtrs = c.pointers(perfCoeffs.getData());
-
 
       problem.AddResidualBlock(
           cost,
-          nullptr, // Squared residuals
+          settings.dataLoss, // Squared residuals
           vp[0], vp[1], //vp[2], // Vertex pointers
           perfPtrs.first,
           perfPtrs.second); // Estimated performance
@@ -432,22 +458,24 @@ RawPerfSurfResults optimizePerfSurfSub(
 
   LOG(INFO) << "Number of good points: " << goodCount << std::endl;
 
-  // Add regularization for the performance pairs
-  // in time
+  // Assume that the estimated performances vary smoothly in time,
+  // and penalize differences.
   int perfPairCount = pts.size()-1;
-  LOG(INFO) << "Using reg weight " << settings.regWeight << std::endl;
+  LOG(INFO) << "Using reg weight " << settings.perfRegWeight << std::endl;
   for (int i = 0; i < perfPairCount; i++) {
-    auto a = perfSumCst.get(i);
-    auto b = perfSumCst.get(i+1);
+    if (pts[i].groupIndex == pts[i+1].groupIndex) {
+      auto a = perfSumCst.get(i);
+      auto b = perfSumCst.get(i+1);
 
-    auto c = combDiff(a, b);
+      auto c = combDiff(a, b);
 
-    auto cp = getPointers(c, perfCoeffs);
+      auto cp = getPointers(c, perfCoeffs);
 
-    problem.AddResidualBlock(
-        ParamRegCost::make(settings.regWeight, c),
-        nullptr,
-        cp[0], cp[1], cp[2]);
+      problem.AddResidualBlock(
+          ParamRegCost::make(settings.perfRegWeight, c),
+          nullptr,
+          cp[0], cp[1], cp[2]);
+    }
   }
 
   // Regularize the fitted surface
@@ -473,6 +501,8 @@ RawPerfSurfResults optimizePerfSurfSub(
   };
 }
 
+// The actual implementation of the
+// heuristic to find a good scaling factor.
 double binarySearchPerfThresholdSub(
     int left, double factor,
     const Array<double>& part) {
@@ -490,6 +520,8 @@ double binarySearchPerfThresholdSub(
   }
 }
 
+// Heuristic, used when determining the
+// scaling of the final result.
 double binarySearchPerfThreshold(
     const Array<double>& sortedRawPerfs,
     double startQuantile,
@@ -499,42 +531,72 @@ double binarySearchPerfThreshold(
   if (n == 1) {
     return sortedRawPerfs.first();
   }
-
   CHECK(0 < n);
   int index = int(round(n*startQuantile));
-
   auto part = sortedRawPerfs.sliceFrom(index);
-
   double factor = (1.0 + marg)*(sortedRawPerfs[index]/index);
-
   return binarySearchPerfThresholdSub(
       index, factor, part);
+}
+
+double estimateSolutionScaling(
+    const RawPerfSurfResults& src,
+    const PerfSurfSettings& settings) {
+  // We are going to sort all the raw performances
+  // for the sake of picking one at a quantile
+  // in a way that ignores outliers.
+  auto perfs = src.rawPerformances.dup();
+  if (perfs.empty()) {
+    return -1;
+  }
+  std::sort(perfs.begin(), perfs.end());
+
+  // Small heuristic for finding a good quantile.
+  // Start at settings.surfaceQuantile, then try
+  // to push up that quantile until we are touching
+  // outliers.
+  return binarySearchPerfThreshold(
+      perfs,
+      settings.surfaceQuantile,
+      settings.quantileMarg);
 }
 
 PerfSurfResults postprocessResults(
     const RawPerfSurfResults& src,
     const PerfSurfSettings& settings) {
-  auto perfs = src.rawPerformances.dup();
-  if (perfs.empty()) {
+
+  auto factor = estimateSolutionScaling(src, settings);
+  if (factor < 0) {
     return PerfSurfResults();
   }
-  std::sort(perfs.begin(), perfs.end());
-  //auto factor = perfs[int(round(settings.surfaceQuantile*perfs.size()))];
-  auto factor = binarySearchPerfThreshold(
-      perfs,
-      settings.surfaceQuantile,
-      settings.quantileMarg);
+
   auto normalizedVertices = src.rawNormalizedVertices.dup();
+
   int n = normalizedVertices.size();
   auto vertices = Array<Velocity<double>>(n);
+
+  // For every normalized target speed surface vertex, scale it
+  // using the reference perf previously found. This is as if the reference
+  // perf would be 1.0, then that point would intersect the surface.
+  // That is how we scale the surface.
+  //
+  // Then we just reconstruct the true vertices by multiplying the
+  // normalized vertices with the reference speed functino.
   for (int i = 0; i < n; i++) {
     normalizedVertices[i] *= factor;
     vertices[i] = normalizedVertices[i]*settings.refSpeed({
       WeightedIndex(i, 1.0)
     });
   }
+
+  auto scaledPerformances = src.rawPerformances.dup();
+
+  for (auto& p: scaledPerformances) {
+    p *= factor;
+  }
+
   return PerfSurfResults{
-    src.rawPerformances,
+    scaledPerformances,
     normalizedVertices,
     vertices
   };

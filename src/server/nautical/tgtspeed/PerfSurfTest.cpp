@@ -277,7 +277,7 @@ TEST(PerfSurfTest, TestIt2) {
   int vertexCount = getRequiredVertexCount(data);
 
   PerfSurfSettings settings;
-  settings.regWeight = 10;
+  settings.perfRegWeight = 10;
   settings.refSpeed = &decodeWindSpeed;
 
   auto page = DOM::makeBasicHtmlPage("Perf test", "", "results");
@@ -293,19 +293,28 @@ TEST(PerfSurfTest, TestIt2) {
       generateSurfaceNeighbors1d(vertexCount),
       settings);
 
-  EXPECT_EQ(results.rawPerformances.size(), data.size());
+  EXPECT_EQ(results.performances.size(), data.size());
 
   double perfSum = 0.0;
-  double maxPerf = results.rawPerformances[0];
+  double maxPerf = results.performances[0];
   double minPerf = maxPerf;
-  for (auto x: results.rawPerformances) {
+  int goodCount = 0;
+  for (int i = 0; i < results.performances.size(); i++) {
+    auto x = results.performances[i];
+    if (std::abs(x - data[i].performance) < 0.2) {
+      goodCount++;
+    }
     perfSum += x;
     maxPerf = std::max(maxPerf, x);
     minPerf = std::min(minPerf, x);
   }
 
+  double goodFrac = double(goodCount)/results.performances.size();
+  EXPECT_LT(0.5, goodFrac);
+  std::cout << "Good frac: " << goodFrac << std::endl;
+
   std::cout << "Average perf: "
-      << perfSum/results.rawPerformances.size() << std::endl;
+      << perfSum/results.performances.size() << std::endl;
   std::cout << "Perf sum: " << perfSum << std::endl;
   std::cout << "Max perf: " << maxPerf << std::endl;
   std::cout << "Min perf: " << minPerf << std::endl;
@@ -318,10 +327,11 @@ TEST(PerfSurfTest, TestIt2) {
   std::cout << "DONE" << std::endl;
 
 
+  const bool VISUALIZE = true;
 
 
   ///////// Visualize the results
-  if (true) {
+  if (VISUALIZE) {
     DOM::addSubTextNode(&page, "h2", "Input data");
     auto im = DOM::makeGeneratedImageNode(&page, ".svg");
     auto p = Cairo::Setup::svg(
@@ -338,98 +348,3 @@ TEST(PerfSurfTest, TestIt2) {
     }, "Wind speed", "Boat speed", p.cr.get());
   }
 }
-
-
-/*TEST(PerfSurfTest, TestIt1) {
-  int dataSize = 6000;
-  auto data = makeData(dataSize);
-  int vc = getRequiredVertexCount(data);
-  auto vertices = initializeVertices(vc);
-
-  PerfSurfSettings settings;
-  settings.refSpeed = &referenceSpeed;
-
-  auto page = DOM::makeBasicHtmlPage("Perf test", "", "results");
-  DOM::addSubTextNode(&page, "h1", "Perf surf");
-
-  PlotUtils::Settings2d ps;
-  ps.orthonormal = false;
-
-  auto pairs = generatePairs({{0, data.size()}}, 5);
-
-  if (false) {
-    DOM::addSubTextNode(&page, "h2", "Input data");
-    auto im = DOM::makeGeneratedImageNode(&page, ".svg");
-    auto p = Cairo::Setup::svg(
-        im.toString(),
-        ps.width,
-        ps.height);
-    Cairo::renderPlot(ps, [&](cairo_t* cr) {
-      Cairo::plotDots(cr, dataToPlotPoints(data), 1);
-    }, "Wind speed", "Boat speed", p.cr.get());
-  }
-
-  auto reg = makeOneDimensionalReg(vc, 2);
-
-  auto results0 = optimizeLevels(
-      data,
-      pairs,
-      reg,
-      settings);
-
-  if (false) {
-    DOM::addSubTextNode(&page, "h2",
-        "Divide all the boatspeeds by the reference speed");
-    auto im = DOM::makeGeneratedImageNode(&page, ".svg");
-    auto p = Cairo::Setup::svg(
-        im.toString(),
-        ps.width,
-        ps.height);
-    Cairo::renderPlot(ps, [&](cairo_t* cr) {
-      auto pts = normalizedDataToPlotPoints(data, settings);
-      Cairo::plotDots(cr, pts, 1);
-
-      Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(240.0_deg));
-      cairo_set_line_width(cr, 0.2);
-      for (auto p: pairs) {
-        auto a = toNormed(data[p.first], settings);
-        auto b = toNormed(data[p.second], settings);
-        if (a.defined() && b.defined()) {
-          Cairo::plotLineStrip(cr, {a.get(), b.get()});
-        }
-      }
-    }, "Wind speed", "Boat speed", p.cr.get());
-  }
-  double quantile = 0.9;
-
-  auto results = results0.normalize(quantile);
-
-  double perf = computePerfAtQuantile(results, quantile);
-  DOM::addSubTextNode(&page, "p", stringFormat("Performance at %.3g is %.3g",
-      quantile, perf));
-
-  LOG(INFO) << "Perfs: " << results.final().transpose();
-  int ln = results.levels.size();
-  LineKM hueDeg(0, ln-1, 240.0, 360.0);
-  if (true) {
-      DOM::addSubTextNode(&page, "h2",
-          "Optimization results");
-      auto im = DOM::makeGeneratedImageNode(&page, ".svg");
-      auto p = Cairo::Setup::svg(
-          im.toString(),
-          ps.width,
-          ps.height);
-      Cairo::renderPlot(ps, [&](cairo_t* cr) {
-        auto pts = normalizedDataToPlotPoints(data, settings);
-        Cairo::plotDots(cr, pts, 1);
-
-        cairo_set_line_width(cr, 0.2);
-        for (int i = 0; i < ln; i++) {
-          auto lev = results.levels[i];
-          Cairo::setSourceColor(cr, PlotUtils::HSV::fromHue(hueDeg(i)*1.0_deg));
-          Cairo::plotLineStrip(cr, levelsToCoords(lev));
-        }
-      }, "Wind speed", "Boat speed", p.cr.get());
-    }
-}
-*/
