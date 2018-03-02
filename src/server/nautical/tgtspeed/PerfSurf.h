@@ -18,6 +18,7 @@
 
 namespace sail {
 
+
 /*
  * A weighted index is a struct used to encoding a sparse linear combination
  * of vertices in order to parameterize a point. Barycentric coordinates in
@@ -30,6 +31,12 @@ struct WeightedIndex {
   WeightedIndex() {}
   WeightedIndex(int i, double w) : index(i), weight(w) {}
 };
+
+inline std::ostream& operator<<(std::ostream& s, const WeightedIndex& wi) {
+  s << "(i=" << wi.index << ", w=" << wi.weight << ")";
+  return s;
+}
+
 
 class SumConstraint {
 public:

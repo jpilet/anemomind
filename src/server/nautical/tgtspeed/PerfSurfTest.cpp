@@ -238,11 +238,6 @@ Array<Eigen::Vector2d> levelsToCoords(
   return dst;
 }
 
-std::ostream& operator<<(std::ostream& s, const WeightedIndex& wi) {
-  s << "(i=" << wi.index << ", w=" << wi.weight << ")";
-  return s;
-}
-
 TEST(PerfSurfTest, SumConstraintTest) {
   int n = 4;
   double expectedSum = 7.0;
@@ -283,6 +278,13 @@ TEST(PerfSurfTest, TestIt2) {
       data,
       generateSurfaceNeighbors1d(vertexCount),
       settings);
+
+  double perfSum = 0.0;
+  for (auto x: results.rawPerformances) {
+    perfSum += x;
+  }
+  std::cout << "Average perf: "
+      << perfSum/results.rawPerformances.size() << std::endl;
 
   std::cout << "Number of vertices: " <<
       results.rawNormalizedVertices.size() << std::endl;

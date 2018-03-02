@@ -227,10 +227,10 @@ namespace {
       *residual = perf*interpolatedTargetSpeed /*estimated boat speed*/
           - pt.normedSpeed/*observed boat speed*/;
 
-      std::cout << "RESIDUAL: " << *residual << std::endl;
+      /*std::cout << "RESIDUAL: " << *residual << std::endl;
       std::cout << "  nm " << pt.normedSpeed << std::endl;
       std::cout << "  pf " << perf << std::endl;
-      std::cout << "  it " << interpolatedTargetSpeed << std::endl;
+      std::cout << "  it " << interpolatedTargetSpeed << std::endl;*/
 
       for (int i = 0; i < pt.weights.size(); i++) {
         std::cout << "     - v: " << *(v[i]) << "*" << pt.weights[i].weight << std::endl;
@@ -240,29 +240,41 @@ namespace {
     }
   };
 
+  std::array<double*, 3> getPointers(
+      const std::array<WeightedIndex, 3>& x,
+      Array<double>& src) {
+    std::array<double*, 3> dst;
+    for (int i = 0; i < 3; i++) {
+      dst[i] = &(src[x[i].index]);
+    }
+    return dst;
+  }
+
+  typedef std::array<WeightedIndex, 3> WeightedInds3;
+
   struct ParamRegCost {
     double weight = 1.0;
-    SumConstraint::Comb a, b;
+    WeightedInds3 wi;
 
     static ceres::CostFunction* make(
         double w,
-        const SumConstraint::Comb& ac,
-        const SumConstraint::Comb& bc) {
+        const WeightedInds3& src) {
       auto cost = new ParamRegCost();
       cost->weight = w;
-      cost->a = ac;
-      cost->b = bc;
-      return new ceres::AutoDiffCostFunction<ParamRegCost, 1, 1, 1, 1, 1>(
+      cost->wi = src;
+      return new ceres::AutoDiffCostFunction<ParamRegCost, 1, 1, 1, 1>(
           cost);
     }
 
     template <typename T>
     bool operator()(
-        const T* a0, const T* a1,
-        const T* b0, const T* b1,
+        const T* a0, const T* a1, const T* a2,
 
         T* residual) const {
-      *residual = weight*(a.eval(*a0, *a1) - b.eval(*b0, *b1));
+      *residual = weight*(
+          *a0*wi[0].weight
+          + *a1*wi[1].weight
+          + *a2*wi[2].weight);
       return true;
     }
   };
@@ -330,16 +342,26 @@ namespace {
     accValue(&dst, -1, b.i);
     accValue(&dst, -1, b.j);
 
+
     std::array<WeightedIndex, 3> result;
-    int i = 0;
-    for (auto x: dst) {
-      result[i++] = WeightedIndex(x.first, x.second.value);
+    {
+      int i = 0;
+      for (auto x: dst) {
+        result[i++] = WeightedIndex(x.first, x.second.value);
+      }
+      CHECK(i == 2 || i == 3);
+      if (i == 2) {
+        int fi = result[0].index;
+        result[2] = WeightedIndex(fi == 0? 2 : fi-1, 0.0); // Filler
+      }
     }
-    CHECK(i == 2 || i == 3);
-    if (i == 3) {
-      int fi = result[0].index;
-      result[2] = WeightedIndex(fi == 0? 2 : fi-1, 0.0); // Filler
+
+    std::set<int> inds;
+    for (int i = 0; i < 3; i++) {
+      inds.insert(result[i].index);
     }
+    CHECK(inds.size() == 3);
+
     return result;
   }
 
@@ -418,19 +440,14 @@ PerfSurfResults optimizePerfSurf(
     auto a = perfSumCst.get(i);
     auto b = perfSumCst.get(i+1);
 
-    //CHECK(a.i.index != b.i.index);
-    //CHECK(a.i.index != b.i.index);
+    auto c = combDiff(a, b);
 
-    auto ap = a.pointers(perfCoeffs.getData());
-    auto bp = b.pointers(perfCoeffs.getData());
-
-    CHECK(ap.first != bp.first);
+    auto cp = getPointers(c, perfCoeffs);
 
     problem.AddResidualBlock(
-        ParamRegCost::make(settings.regWeight, a, b),
+        ParamRegCost::make(settings.regWeight, c),
         nullptr,
-        ap.first, ap.second,
-        bp.first, bp.second);
+        cp[0], cp[1], cp[2]);
   }
 
   // Regularize the fitted surface
