@@ -244,19 +244,24 @@ TEST(PerfSurfTest, SumConstraintTest) {
 
   SumConstraint cst(n, expectedSum);
 
-  std::vector<double> coeffs{9.34, 199.3444, 78.345};
+  Array<double> coeffs{9.34, 199.3444, 78.345};
   EXPECT_EQ(coeffs.size(), cst.coeffCount());
 
   double sum = 0.0;
 
+  auto converted = cst.apply(coeffs);
+
+  double sum2 = 0.0;
   for (int i = 0; i < n; i++) {
     auto x = cst.get(i);
-    auto ptrs = x.pointers(coeffs.data());
+    auto ptrs = x.pointers(coeffs.getData());
     auto value = x.eval(*ptrs.first, *ptrs.second);
     sum += value;
+    sum2 += converted[i];
   }
 
   EXPECT_NEAR(sum, expectedSum, 1.0e-4);
+  EXPECT_NEAR(sum2, expectedSum, 1.0e-4);
 }
 
 TEST(PerfSurfTest, TestIt2) {
@@ -279,12 +284,22 @@ TEST(PerfSurfTest, TestIt2) {
       generateSurfaceNeighbors1d(vertexCount),
       settings);
 
+  EXPECT_EQ(results.rawPerformances.size(), data.size());
+
   double perfSum = 0.0;
+  double maxPerf = results.rawPerformances[0];
+  double minPerf = maxPerf;
   for (auto x: results.rawPerformances) {
     perfSum += x;
+    maxPerf = std::max(maxPerf, x);
+    minPerf = std::min(minPerf, x);
   }
+
   std::cout << "Average perf: "
       << perfSum/results.rawPerformances.size() << std::endl;
+  std::cout << "Perf sum: " << perfSum << std::endl;
+  std::cout << "Max perf: " << maxPerf << std::endl;
+  std::cout << "Min perf: " << minPerf << std::endl;
 
   std::cout << "Number of vertices: " <<
       results.rawNormalizedVertices.size() << std::endl;

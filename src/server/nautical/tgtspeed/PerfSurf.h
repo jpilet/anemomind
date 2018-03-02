@@ -43,7 +43,7 @@ public:
   SumConstraint(int n, double sum) : _n(n), _avg(sum/n) {}
 
   static SumConstraint averageConstraint(int n, double avg) {
-    return SumConstraint(n, avg/n);
+    return SumConstraint(n, avg*n);
   }
 
   int coeffCount() const {return _n - 1;}
