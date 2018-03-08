@@ -7,6 +7,7 @@
 
 #include "TimedTuples.h"
 #include <gtest/gtest.h>
+#include <tuple>
 
 using namespace sail;
 

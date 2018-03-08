@@ -36,6 +36,8 @@
 namespace sail {
 namespace TimedTuples {
 
+
+
 struct Settings {
   // Just a small positive value, so that we prefer tuples
   // spanning a short time span.
@@ -233,9 +235,6 @@ GenericTransducer<TimedTuples::Stepper<T, TupleSize>> trTimedTuples(
   return genericTransducer(TimedTuples::Stepper<T, TupleSize>(
       settings));
 }
-
-template <typename T>
-struct The_type_is;
 
 // Functor to be used together with trFilter to reject
 // tuples that span too much time:
