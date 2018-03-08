@@ -117,7 +117,7 @@ public:
             Cand(predIndex, last.pointers[predIndex].cost),
             Cand(i, last.pointers[i].cost));
         dst.best = best.index;
-        dst.cost = best.cost + timeCost;
+        dst.cost = best.cost + (predIndex == 0? 0 : timeCost);
       } else {
         dst.best = i;
         dst.cost = last.pointers[i].cost + timeCost;
@@ -148,6 +148,7 @@ public:
   }
 
   void dispStates() {
+    auto startTime = _states[1].value.time;
     for (int i = 0; i < _states.size(); i++) {
       const auto& s = _states[i];
       std::cout << "State: " << s.value.value.index;
@@ -158,6 +159,9 @@ public:
             << " p=" << s.pointers[j].best;
       }
       std::cout << "  opt=" << s.optimized;
+      if (s.value.time.defined()) {
+        std::cout << "  time=" << (s.value.time - startTime).seconds();
+      }
       std::cout << std::endl;
     }
   }
@@ -172,6 +176,7 @@ public:
   void flushTo(R* result, int n) {
     //std::cout << "Flush " << n << "/" << _states.size() << std::endl;
     traceAll();
+    dispStates();
     for (int i = 0; i < n; i++) {
       const auto& state = _states[i];
       if (state.value.value.defined()) {
