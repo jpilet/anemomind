@@ -200,6 +200,7 @@ struct FilterStepper : public StatelessStepper {
 
 // For merging two collections, one of them
 // having its iterators stored in this stepper.
+// See trMerge.
 template <typename Comparator, typename Iterator>
 struct MergeStepper {
   Comparator comp;
@@ -210,9 +211,8 @@ struct MergeStepper {
 
   template <typename R, typename T>
   void apply(R* dst, T x) {
-    while (begin != end && comp(*begin, x)) {
+    for (; begin != end && comp(*begin, x); begin++) {
       dst->add(*begin);
-      begin++;
     }
     dst->add(x);
   }
@@ -238,7 +238,8 @@ GenericTransducer<FilterStepper<F>> trFilter(F f) {
   return genericTransducer(FilterStepper<F>{f});
 }
 
-// Used to merge-in a range of elements with the incoming elements
+// Used to merge the incoming elements with another range of data,
+// of the same type.
 template <
   typename Iterator,
   typename Comp = std::less<typename Iterator::value_type>>
