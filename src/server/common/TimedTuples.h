@@ -3,6 +3,22 @@
  *
  *  Created on: 8 Mar 2018
  *      Author: jonas
+ *
+ *
+ *
+ *  Dynamic-programming based algorithm that forms tuples of timed
+ *  values from different channels. The objective is to form
+ *  as many tuples as possible, and every tuple being as compact
+ *  in time as possible. To limit memory consumption, a parameter
+ *  can be set that controls the trade-off between accuracy of the
+ *  solution and memory usage.
+ *
+ *  The algorithm itself is implemented as a transducer, that accepts
+ *  incoming timed values wrapping type Indexed<T> where T can probably
+ *  be a boost::variant holding the actual value. The 'index' in the Indexed<T>
+ *  type is used to identify the source channel, and is also the index
+ *  of that value in the output tuple.
+ *
  */
 
 #ifndef SERVER_COMMON_TIMEDTUPLES_H_
@@ -208,6 +224,17 @@ private:
 };
 }
 
+/**
+ *
+ * This is the function used to construct the TimedTuples transducer.
+ *
+ * That transducer takes TimedValue<Indexed<T>> as input, and outputs
+ * std::array<TimedValue<T>, TupleSize> elements of the formed tuples.
+ *
+ * We can let T be a boost::variant if we are dealing with many
+ * different types.
+ *
+ */
 template <typename T, int TupleSize>
 GenericTransducer<TimedTuples::Stepper<T, TupleSize>> trTimedTuples(
     const TimedTuples::Settings& settings = TimedTuples::Settings()) {
