@@ -122,4 +122,11 @@ TEST(TimedTuplesTest, TestWithThree) {
       trTimedTuples<int, 3>(),
       IntoArray<std::array<TimedValue<int>, 3>>());
   EXPECT_EQ(result.size(), 2);
+
+  {
+    auto x = result[1];
+    EXPECT_EQ(x[0].value, 6);
+    EXPECT_EQ(x[1].value, 8);
+    EXPECT_EQ(x[2].value, 7);
+  }
 }
