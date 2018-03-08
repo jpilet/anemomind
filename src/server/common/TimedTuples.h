@@ -19,8 +19,14 @@ namespace sail {
 namespace TimedTuples {
 
 struct Settings {
-  double tupleCostPerSecond = 0.001; // Just a small positive value
-  int halfHistoryLength = 100; // Flush when we reach *full* history length.
+  // Just a small positive value, so that we prefer tuples
+  // spanning a short time span.
+  double tupleCostPerSecond = 0.001;
+
+  // This parameter is used to limit the memory consumption,
+  // at the expense of an approximate solution. We have a lot of
+  // memory, so this parameter can be high.
+  int halfHistoryLength = 1000; // Flush when we reach *full* history length.
 };
 
 template <typename T>
@@ -126,10 +132,6 @@ public:
   template <typename R>
   void apply(R* result, Value x) {
     addValue(x);
-
-    std::cout << "State size=" << _states.size()
-        << " half-hlen=" << _settings.halfHistoryLength << std::endl;
-
     if (_states.size() > 2*_settings.halfHistoryLength) {
       flushTo<R>(result, _settings.halfHistoryLength);
     }
@@ -153,12 +155,11 @@ public:
   template <typename R>
   void flush(R* result) {
     flushTo<R>(result, _states.size());
-    dispStates();
   }
 
   template <typename R>
   void flushTo(R* result, int n) {
-    std::cout << "Perform flush to " << n << std::endl;
+    //std::cout << "Flush " << n << "/" << _states.size() << std::endl;
     traceAll();
     for (int i = 0; i < n; i++) {
       const auto& state = _states[i];
@@ -206,8 +207,9 @@ private:
   Settings _settings;
 };
 }
+
 template <typename T, int TupleSize>
-GenericTransducer<TimedTuples::Stepper<T, TupleSize>> timedTuples(
+GenericTransducer<TimedTuples::Stepper<T, TupleSize>> trTimedTuples(
     const TimedTuples::Settings& settings = TimedTuples::Settings()) {
   return genericTransducer(TimedTuples::Stepper<T, TupleSize>(
       settings));
