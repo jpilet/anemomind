@@ -188,7 +188,8 @@ TEST(TransducerTest, CatTest2) {
       numbers,
       trMap(&mySqrt)
       |
-      cat(),
+      cat(), // <-- Here we concatenate the optionals,
+             //     each optional being a collection with at most 1 element.
       IntoArray<double>());
   EXPECT_EQ(result, (Array<double>{3, 2, 5, 4}));
 }

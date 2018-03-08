@@ -184,7 +184,7 @@ struct StatelessStepper {
 
 //// Helper types
 template <typename F>
-struct MapStepper : StatelessStepper {
+struct MapStepper : public StatelessStepper {
   F f;
   MapStepper(F fn) : f(fn) {}
 
