@@ -28,10 +28,28 @@ struct VariantIteratorWrapper {
     return NextType();
   }
 
-  IndexedValue<TimedValue<Variant>> operator()(
-      TimedValue<TypeAtIndex> x) const {
-    return IndexedValue<TimedValue<Variant>>{
-      Index, {x.time, x.value}};
+  /*struct F {
+    TimedValue<IndexedValue<Variant>> operator()(
+        TimedValue<TypeAtIndex> x) const {
+      return TimedValue<IndexedValue<Variant>>{
+        x.time, {Index, x.value}
+      };
+    }
+  };*/
+
+  /*template <typename X>
+  TimedValue<IndexedValue<Variant>> operator()(
+      const X& x) const {
+    return TimedValue<IndexedValue<Variant>>{
+      x.time, {Index, x.value}
+    };
+  }*/
+
+  TimedValue<IndexedValue<Variant>> operator()(
+      const TimedValue<TypeAtIndex>& x) const {
+    return TimedValue<IndexedValue<Variant>>{
+      x.time, {Index, x.value}
+    };
   }
 
   // Returns a transform iterator that will
@@ -40,7 +58,8 @@ struct VariantIteratorWrapper {
   template <typename Iterator>
   boost::transform_iterator<ThisType, Iterator> wrap(
       Iterator iter) const {
-    return boost::transform_iterator<ThisType, Iterator>(*this, iter);
+    return boost::transform_iterator<ThisType, Iterator>(
+        iter, ThisType());
   }
 
 

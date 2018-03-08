@@ -45,6 +45,16 @@ namespace sail {
  *
  */
 
+struct IntoCount {
+  int64_t count = 0;
+
+  template <typename T>
+  void add(T) {count++;}
+  void flush() {}
+
+  int64_t result() const {return count;}
+
+};
 
 template <typename T>
 class IntoArray {
