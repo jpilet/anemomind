@@ -21,14 +21,19 @@ Indexed indexed(int type, int v) {
   return Indexed(type, v);
 }
 
+TimedValue<Indexed> testValue(double index, int type) {
+  return TimedValue<Indexed>(t(index),
+      indexed(type, int(round(index))));
+}
+
 TEST(TimedTuplesTest, TestWithTwo) {
   std::vector<TimedValue<Indexed>> values{
-    TimedValue<Indexed>(t(0), indexed(0, 0)),
-    TimedValue<Indexed>(t(1), indexed(0, 1)),  // P1
-    TimedValue<Indexed>(t(2), indexed(1, 2)),  // P1
-    TimedValue<Indexed>(t(3), indexed(1, 3)),
-    TimedValue<Indexed>(t(4), indexed(1, 4)),  // P2
-    TimedValue<Indexed>(t(5), indexed(0, 5))   // P2
+    testValue(0, 0),
+    testValue(1, 0),  // P1
+    testValue(2, 1),  // P1
+    testValue(3, 1),
+    testValue(4, 1),  // P2
+    testValue(5, 0)   // P2
   };
 
   auto result = transduce(
@@ -107,16 +112,16 @@ TEST(TimedTuplesTest, TestWithIntermediateFlush) {
 
 TEST(TimedTuplesTest, TestWithThree) {
   std::vector<TimedValue<Indexed>> values{
-    TimedValue<Indexed>(t(0), indexed(0, 0)),
-    TimedValue<Indexed>(t(0.99), indexed(0, 1)),  // 1
-    TimedValue<Indexed>(t(2), indexed(1, 2)), // 1
-    TimedValue<Indexed>(t(3), indexed(2, 3)), // 1
-    TimedValue<Indexed>(t(4), indexed(1, 4)),
-    TimedValue<Indexed>(t(5.1), indexed(0, 5)),
-    TimedValue<Indexed>(t(6), indexed(0, 6)), // 2
-    TimedValue<Indexed>(t(7), indexed(2, 7)), // 2
-    TimedValue<Indexed>(t(8), indexed(1, 8)), // 2
-    TimedValue<Indexed>(t(9.1), indexed(0, 9))
+    testValue(0, 0),
+    testValue(0.99, 0),  // 1
+    testValue(2, 1), // 1
+    testValue(3, 2), // 1
+    testValue(4, 1),
+    testValue(5.1, 0),
+    testValue(6, 0), // 2
+    testValue(7, 2), // 2
+    testValue(8, 1), // 2
+    testValue(9.1, 0)
   };
   auto result = transduce(
       values,
@@ -150,12 +155,12 @@ TEST(TimedTuplesTest, EmptyTest) {
 
 TEST(TimedTuplesTest, TestWithTwoAndFiltering) {
   std::vector<TimedValue<Indexed>> values{
-    TimedValue<Indexed>(t(0), indexed(0, 0)),
-    TimedValue<Indexed>(t(1), indexed(0, 1)),  // P1
-    TimedValue<Indexed>(t(1.9), indexed(1, 2)),  // P1
-    TimedValue<Indexed>(t(3), indexed(1, 3)),
-    TimedValue<Indexed>(t(4), indexed(1, 4)),  // P2: Rejected, too long.
-    TimedValue<Indexed>(t(5.2), indexed(0, 5))   // P2
+    testValue(0, 0),
+    testValue(1, 0),  // P1
+    testValue(1.9, 1),  // P1
+    testValue(3, 1),
+    testValue(4, 1),  // P2: Rejected, too long.
+    testValue(5.2, 0)   // P2
   };
 
   auto result = transduce(
