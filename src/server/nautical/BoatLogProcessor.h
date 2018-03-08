@@ -56,6 +56,7 @@ struct BoatLogProcessor {
   bool _gpsFilter = false;
   std::string _resumeAfterPrepare;
   std::string _savePreparedData;
+  std::string _outputPolars;
   bool _verboseCalibrator = false;
   bool _exploreGrammar = false;
   bool _logGrammar = false;

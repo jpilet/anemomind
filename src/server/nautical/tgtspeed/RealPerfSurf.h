@@ -25,11 +25,18 @@ struct RealPerfSurfSettings {
   std::function<bool(TimeStamp)> timeFilter = constantly(true);
 };
 
-struct RealPerfSurfResults {};
+struct RealPerfSurfResults {
+  int finalSampleCount = 0;
+};
 
 RealPerfSurfResults optimizeRealPerfSurf(
     const NavDataset& src,
-    const RealPerfSurfSettings& settings);
+    const RealPerfSurfSettings& settings
+      = RealPerfSurfSettings());
+
+void outputPolars(
+    const std::string& filename,
+    const NavDataset& src);
 
 } /* namespace sail */
 

@@ -94,6 +94,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       logimport_LogLoader
                       tiles_ChartTiles
                       common_DOMUtils
+                      tgtspeed_RealPerfSurf
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)

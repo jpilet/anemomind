@@ -8,6 +8,7 @@
 #include "RealPerfSurf.h"
 #include <server/common/VariantIterator.h>
 #include <server/common/TimedTuples.h>
+#include <fstream>
 
 namespace sail {
 
@@ -27,6 +28,21 @@ struct WindAndBoatSpeedSample {
   Velocity<double> boatSpeed;
 };
 
+template <typename T>
+struct Inc {
+  T* dst;
+
+  template <typename K>
+  void operator()(K ) {
+    (*dst)++;
+  }
+};
+
+template <typename T>
+Inc<T> incVisitor(T* dst) {
+  return Inc<T>{dst};
+}
+
 RealPerfSurfResults optimizeRealPerfSurf(
     const NavDataset& src,
     const RealPerfSurfSettings& settings) {
@@ -38,8 +54,9 @@ RealPerfSurfResults optimizeRealPerfSurf(
   auto twaWrap = TwaWrap();
   auto bsWrap = BoatSpeedWrap();
 
+  RealPerfSurfResults results;
 
-  transduce(
+  auto inputData = transduce(
       tws,
       trMap(twsWrap)
       |
@@ -51,7 +68,7 @@ RealPerfSurfResults optimizeRealPerfSurf(
           bsWrap.wrapIterator(boatSpeed.begin()),
           bsWrap.wrapIterator(boatSpeed.end()))
       |
-      trFilter([settings](
+      trFilter([&](
           const TimedValue<IndexedValue<BaseWrap::Variant>>& x) {
         return settings.timeFilter(x.time);
       })
@@ -73,8 +90,18 @@ RealPerfSurfResults optimizeRealPerfSurf(
             dst);
       }),
       IntoCount());
+  results.finalSampleCount = inputData;
+  return results;
+}
 
-  return RealPerfSurfResults();
+void outputPolars(
+    const std::string& prefix,
+    const NavDataset& src) {
+
+  auto results = optimizeRealPerfSurf(src);
+
+  std::ofstream info(prefix + "_info.txt");
+  info << "Number of samples: " << results.finalSampleCount << std::endl;
 }
 
 

@@ -29,6 +29,7 @@
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/plot/extra.h>
 #include <server/nautical/BoatSpecificHacks.h>
+#include <server/nautical/tgtspeed/RealPerfSurf.h>
 
 namespace sail {
 
@@ -411,6 +412,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   // write calibration and target speed to disk
   boatDatFile.close();
 
+  if (!_outputPolars.empty()) {
+    outputPolars(_outputPolars, current);
+  }
+
   // Second simulation path to apply target speed.
   // Todo: simply lookup the target speed instead of recomputing true wind.
   current = SimulateBox(boatDatPath, current);
@@ -589,6 +594,11 @@ int mainProcessBoatLogs(int argc, const char **argv) {
       "--save-prepared",
       "Save after downsampling and early filtering, see --continue-prepared")
     .store(&processor._savePreparedData);
+
+  amap.registerOption(
+      "--output-polars",
+      "Output polars")
+          .store(&processor._outputPolars);
 
   amap.registerOption("--continue-prepared",
                       "continue processing on a file saved with --save-prepared")

@@ -195,6 +195,18 @@ struct MapStepper : public StatelessStepper {
 };
 
 template <typename F>
+struct VisitStepper : public StatelessStepper {
+  F f;
+  VisitStepper(F fn) : f(fn) {}
+
+  template <typename R, typename T>
+  void apply(R* dst, T x) {
+    f(x);
+    dst->add(x);
+  }
+};
+
+template <typename F>
 struct FilterStepper : public StatelessStepper {
   F f;
 
@@ -289,6 +301,11 @@ GenericTransducer<MergeStepper<
 // Concatenate collections.
 inline GenericTransducer<CatStepper> cat() {
   return genericTransducer(CatStepper());
+}
+
+template <typename F>
+GenericTransducer<VisitStepper<F>> trVisit(F f) {
+  return genericTransducer(VisitStepper<F>(f));
 }
 
 /**
