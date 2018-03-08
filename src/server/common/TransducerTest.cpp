@@ -138,5 +138,21 @@ TEST(TransducerTest, MergeTest) {
       trMerge(C.begin(), C.end()),
       IntoArray<int>());
 
+  std::vector<int> expected;
+  for (auto a: A) {
+    expected.push_back(a);
+  }
+  for (auto b: B) {
+    expected.push_back(b);
+  }
+  for (auto c: C) {
+    expected.push_back(c);
+  }
+  std::sort(expected.begin(), expected.end());
+
   EXPECT_EQ(result.size(), A.size() + B.size() + C.size());
+
+  for (int i = 0; i < expected.size(); i++) {
+    EXPECT_EQ(expected[i], result[i]);
+  }
 }
