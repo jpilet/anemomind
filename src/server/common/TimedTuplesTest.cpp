@@ -207,13 +207,6 @@ TEST(TimedTuplesTest, RealisticTest) {
   };
   auto awsWrap = awaWrap.next();
 
-  /*auto vb = awsWrap.wrap(velocities.begin());
-  static_assert(
-      std::is_same<decltype(awsWrap)::TypeAtIndex,
-        Velocity<double>>::value, "");*/
-
-
-
   auto result = transduce(
       angles,
       trMap(awaWrap)
@@ -224,8 +217,8 @@ TEST(TimedTuplesTest, RealisticTest) {
       |
       trTimedTuples<AwaWrap::Variant, 2>()
       |
-      //trFilter(IsShortTimedTuple(1.0_s))
-      //|
+      trFilter(IsShortTimedTuple(1.0_s))
+      |
       trMap([&](const AwaWrap::VariantTuple& src) {
 
         AwaAwsPair dst;
@@ -238,12 +231,10 @@ TEST(TimedTuplesTest, RealisticTest) {
             << (dst.aws.time - t(0)).seconds()
             << ", aws=" << dst.aws.value.knots() << ")  "<< std::endl;
 
-
-
         return dst;
       }),
-      IntoCount());
+      IntoArray<AwaAwsPair>());
 
-  EXPECT_EQ(result, 5);
-  //EXPECT_EQ(result.size(), 5);
+  EXPECT_EQ(result.size(), 2);
+  auto x = result[0];
 }
