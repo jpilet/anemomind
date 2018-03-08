@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 #include <server/common/Transducer.h>
+#include <server/common/Optional.h>
+#include <math.h>
 
 using namespace sail;
 
@@ -174,4 +176,19 @@ TEST(TransducerTest, CatTest) {
       cat(),
       IntoArray<int>());
   EXPECT_EQ(result, (Array<int>{9, 4, 5, 6, 7, 7}));
+}
+
+Optional<double> mySqrt(double x) {
+  return x < 0? Optional<double>() : Optional<double>(sqrt(x));
+}
+
+TEST(TransducerTest, CatTest2) {
+  std::vector<double> numbers{9, -4, 4, 25, -3, -2, 16};
+  auto result = transduce(
+      numbers,
+      trMap(&mySqrt)
+      |
+      cat(),
+      IntoArray<double>());
+  EXPECT_EQ(result, (Array<double>{3, 2, 5, 4}));
 }

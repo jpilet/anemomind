@@ -87,6 +87,14 @@ class Optional {
     }
     return Optional<Other>();
   }
+
+  const T* begin() const {
+    return &_value;
+  }
+
+  const T* end() const {
+    return begin() + (_defined? 1 : 0);
+  }
  private:
   bool _defined;
   T _value;
