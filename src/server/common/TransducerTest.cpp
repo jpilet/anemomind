@@ -23,6 +23,16 @@ TEST(TransducerTest, Basics) {
   }
 }
 
+TEST(TransducerTest, SumTest) {
+  auto result = transduce(
+      src,
+      trIdentity(),
+      intoReduction<double>([](double sum, int x) {
+        return sum + x;
+      }, 1000));
+  EXPECT_NEAR(result, 1000 + 21, 1.0e-6);
+}
+
 TEST(TransducerTest, Composition) {
   auto dst = transduce(
       src,

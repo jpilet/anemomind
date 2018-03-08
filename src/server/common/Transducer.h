@@ -64,6 +64,31 @@ private:
   sail::ArrayBuilder<T> _dst;
 };
 
+template <typename F, typename T>
+class IntoReduction {
+public:
+  IntoReduction(F f, T init) : _f(f), _result(init) {}
+
+  template <typename X>
+  void add(const X& x) {
+    _result = _f(_result, x);
+  }
+
+  const T& result() const {
+    return _result;
+  }
+
+  void flush() {}
+private:
+  F _f;
+  T _result;
+};
+
+template <typename T, typename F>
+IntoReduction<F, T> intoReduction(F f, T init) {
+  return IntoReduction<F, T>(f, init);
+}
+
 template <typename A, typename B>
 struct CompositeTransducer {
   A a;
@@ -120,6 +145,18 @@ public:
   }
 private:
   F _f;
+};
+
+struct trIdentity {
+  template <typename Result>
+  Result apply(Result x) const {
+    return x;
+  }
+
+  template <typename T>
+  T operator| (T x) const {
+    return x;
+  }
 };
 
 // Just for convenience.
