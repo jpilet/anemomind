@@ -8,6 +8,7 @@
 #include "TimedTuples.h"
 #include <gtest/gtest.h>
 #include <tuple>
+#include <server/common/VariantIterator.h>
 
 using namespace sail;
 
@@ -176,4 +177,35 @@ TEST(TimedTuplesTest, TestWithTwoAndFiltering) {
 
     EXPECT_EQ(x[1].value, 2);
   }
+}
+
+TEST(TimedTuplesTest, RealisticTest) {
+  std::vector<TimedValue<Angle<double>>> angles{
+    {t(0), 4.5_deg},
+    {t(1), 4.7_deg},
+    {t(3), 9.0_deg},
+    {t(5), 8.8_deg},
+    {t(7), 9.8_deg}
+  };
+  typedef VariantIteratorWrapper<
+        0, Angle<double>, Velocity<double>> AwaWrap;
+  auto awaWrap = AwaWrap();
+
+  std::vector<TimedValue<Velocity<double>>> velocities{
+    {t(0.1), 4.5_kn},
+    {t(3.2), 4.8_kn},
+    {t(8.2), 4.3_kn}
+  };
+  auto awsWrap = awaWrap.next();
+
+  auto result = transduce(
+      angles,
+      trMap(awaWrap)
+      |
+      trMerge(
+          awsWrap.wrap(velocities.begin()),
+          awsWrap.wrap(velocities.end())),
+      IntoArray<IndexedValue<TimedValue<AwaWrap::Variant>>>());
+
+  EXPECT_EQ(result.size(), 5);
 }

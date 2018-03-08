@@ -235,6 +235,19 @@ template <typename T> struct The_value_is;
 template <typename T>
 using Disp = The_value_is<T>;
 
+template <int I, typename ... T>
+struct Nth {};
+
+template <typename X, typename ... Y>
+struct Nth<0, X, Y...> {
+  typedef X type;
+};
+
+template <int I, typename X, typename ... Y>
+struct Nth<I, X, Y...> {
+  typedef typename Nth<I-1, Y...>::type type;
+};
+
 //#define AUTO_BODY(arglist, body) -> decltype(([](arglist) body )()) body
 
 }
