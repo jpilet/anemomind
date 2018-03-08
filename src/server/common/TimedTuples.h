@@ -61,7 +61,7 @@ public:
     double cost = HighCost;
   };
 
-  typedef IndexedValue<TimedValue<T>> Value;
+  typedef TimedValue<IndexedValue<T>> Value;
 
   struct State {
     int optimized = -1;
@@ -94,24 +94,24 @@ public:
   };
 
   void addValue(Value x) {
-    CHECK(x.defined());
-    CHECK(0 <= x.index && x.index < TupleSize);
-    CHECK(x.value.time.defined());
+    CHECK(x.value.defined());
+    CHECK(0 <= x.value.index && x.value.index < TupleSize);
+    CHECK(x.time.defined());
     State state;
     state.value = x;
     CHECK(!_states.empty());
     auto last = _states.back();
-    double timeCost = last.value.value.time.defined()?
+    double timeCost = last.value.time.defined()?
         _settings.tupleCostPerSecond*(
-            (x.value.time - last.value.value.time).seconds())
+            (x.time - last.value.time).seconds())
         : 0.0;
 
     for (int i = 1; i < StateSize; i++) {
       std::bitset<TupleSize> bits(i);
       auto& dst = state.pointers[i];
-      if (bits.test(x.index)) {
+      if (bits.test(x.value.index)) {
         auto pred = bits;
-        pred.set(x.index, false);
+        pred.set(x.value.index, false);
         int predIndex = pred.to_ulong();
         auto best = std::min(
             Cand(predIndex, last.pointers[predIndex].cost),
@@ -125,7 +125,7 @@ public:
     }{ // Special treatment for state 0.
       std::bitset<TupleSize> bits;
       bits.set();
-      bits.set(x.index, false);
+      bits.set(x.value.index, false);
       int index = bits.to_ulong();
       constexpr double tupleCompletionReward = 1.0;
       auto best = std::min(
@@ -174,10 +174,10 @@ public:
     traceAll();
     for (int i = 0; i < n; i++) {
       const auto& state = _states[i];
-      if (state.value.defined()) {
-        _tupleInProgress[state.value.index] =
+      if (state.value.value.defined()) {
+        _tupleInProgress[state.value.value.index] =
             TimedValue<T>(
-                state.value.value.time,
+                state.value.time,
                 state.value.value.value);
       }
       if (state.optimized == 0 && i > 0 && _states[i-1].optimized != 0) {
