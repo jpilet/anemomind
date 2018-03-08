@@ -29,6 +29,7 @@
 #include <server/common/math.h>
 #include <server/common/logging.h>
 #include <array>
+#include <server/common/IndexedValue.h>
 #include <iostream>
 
 namespace sail {
@@ -45,17 +46,6 @@ struct Settings {
   int halfHistoryLength = 1000; // Flush when we reach *full* history length.
 };
 
-template <typename T>
-struct Indexed {
-  bool defined() const {return index != -1;}
-
-  int index = -1;
-  T value;
-
-  Indexed(int i, T v) : index(i), value(v) {}
-  Indexed() {}
-};
-
 template <typename T, int TupleSize>
 class Stepper {
 public:
@@ -68,7 +58,7 @@ public:
     double cost = HighCost;
   };
 
-  typedef TimedValue<Indexed<T>> Value;
+  typedef TimedValue<IndexedValue<T>> Value;
 
   struct State {
     int optimized = -1;
@@ -229,7 +219,7 @@ private:
  *
  * This is the function used to construct the TimedTuples transducer.
  *
- * That transducer takes TimedValue<Indexed<T>> as input, and outputs
+ * That transducer takes TimedValue<IndexedValue<T>> as input, and outputs
  * std::array<TimedValue<T>, TupleSize> elements of the formed tuples.
  *
  * We can let T be a boost::variant if we are dealing with many

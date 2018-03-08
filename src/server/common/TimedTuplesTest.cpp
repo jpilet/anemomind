@@ -14,7 +14,7 @@ TimeStamp t(double v) {
   return TimeStamp::UTC(2018, 3, 7, 11, 2, 0) + Duration<double>::seconds(v);
 }
 
-typedef TimedTuples::Indexed<int> Indexed;
+typedef IndexedValue<int> Indexed;
 
 Indexed indexed(int type, int v) {
   return Indexed(type, v);
