@@ -139,6 +139,13 @@ TEST(TransducerTest, MergeTest) {
         // merge(A, B, C)
       IntoArray<int>());
 
+  auto result2 = transduce(
+      A,
+      trMergeColl(B)
+      |
+      trMergeColl(C),
+      IntoArray<int>());
+
   std::vector<int> expected;
   for (auto a: A) {
     expected.push_back(a);
@@ -155,5 +162,6 @@ TEST(TransducerTest, MergeTest) {
 
   for (int i = 0; i < expected.size(); i++) {
     EXPECT_EQ(expected[i], result[i]);
+    EXPECT_EQ(expected[i], result2[i]);
   }
 }
