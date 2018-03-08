@@ -64,8 +64,10 @@ TEST(TimedTuplesTest, TestWithIntermediateFlush) {
   std::array<int, 6> classes{0, 0, 1, 1, 1, 0};
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 6; j++) {
+      auto c = classes[j];
       values.push_back(TimedValue<Indexed>(
-          t(counter), indexed(classes[j], counter)));
+          t(counter), indexed(c, counter)));
+      std::cout << "  t=" << counter << "  c=" << c << std::endl;
       counter++;
     }
   }
@@ -77,4 +79,20 @@ TEST(TimedTuplesTest, TestWithIntermediateFlush) {
       IntoArray<std::array<TimedValue<int>, 2>>());
 
   EXPECT_EQ(result.size(), 10);
+
+  {
+    auto x = result[7];
+    EXPECT_EQ(x[0].time, t(23));
+    EXPECT_EQ(x[0].value, 23);
+
+    EXPECT_EQ(x[1].time, t(22));
+    EXPECT_EQ(x[1].value, 22);
+  }{
+    auto x = result[8];
+    EXPECT_EQ(x[0].time, t(25));
+    EXPECT_EQ(x[0].value, 25);
+
+    EXPECT_EQ(x[1].time, t(26));
+    EXPECT_EQ(x[1].value, 26);
+  }
 }

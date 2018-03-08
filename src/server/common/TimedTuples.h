@@ -160,17 +160,16 @@ public:
   void flushTo(R* result, int n) {
     std::cout << "Perform flush to " << n << std::endl;
     traceAll();
-    std::array<TimedValue<T>, TupleSize> tupleInProgress;
     for (int i = 0; i < n; i++) {
       const auto& state = _states[i];
       if (state.value.value.defined()) {
-        tupleInProgress[state.value.value.index] =
+        _tupleInProgress[state.value.value.index] =
             TimedValue<T>(
                 state.value.time,
                 state.value.value.value);
       }
       if (state.optimized == 0 && i > 0 && _states[i-1].optimized != 0) {
-        result->add(tupleInProgress);
+        result->add(_tupleInProgress);
       }
     }
     if (n < _states.size()) {
@@ -202,6 +201,7 @@ public:
     }
   }
 private:
+  std::array<TimedValue<T>, TupleSize> _tupleInProgress;
   std::vector<State> _states;
   Settings _settings;
 };
