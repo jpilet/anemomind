@@ -88,6 +88,11 @@ class Optional {
     return Optional<Other>();
   }
 
+
+
+  // Let's us treat the Optional as a
+  // special type of collection that can
+  // hold at most one element.
   const T* begin() const {
     return &_value;
   }
