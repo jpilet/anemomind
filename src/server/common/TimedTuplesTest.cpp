@@ -136,3 +136,12 @@ TEST(TimedTuplesTest, TestWithThree) {
     EXPECT_EQ(x[2].value, 7);
   }
 }
+
+TEST(TimedTuplesTest, EmptyTest) {
+  std::vector<TimedValue<Indexed>> values;
+  auto result = transduce(
+      values,
+      trTimedTuples<int, 3>(),
+      IntoArray<std::array<TimedValue<int>, 3>>());
+  EXPECT_EQ(result.size(), 0);
+}
