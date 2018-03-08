@@ -165,3 +165,13 @@ TEST(TransducerTest, MergeTest) {
     EXPECT_EQ(expected[i], result2[i]);
   }
 }
+
+TEST(TransducerTest, CatTest) {
+  std::vector<std::vector<int>> src{{9}, {4, 5}, {6, 7, 7}};
+
+  auto result = transduce(
+      src,
+      cat(),
+      IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{9, 4, 5, 6, 7, 7}));
+}

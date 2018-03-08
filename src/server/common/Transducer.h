@@ -236,6 +236,20 @@ struct MergeStepper {
   }
 };
 
+struct CatStepper {
+  template <typename R, typename Coll>
+  void apply(R* dst, const Coll& c) const {
+    for (const auto& x: c) {
+      dst->add(x);
+    }
+  }
+
+  template <typename R>
+  void flush(R* dst) const {
+    dst->flush();
+  }
+};
+
 // Common transducer types
 
 template <typename F>
@@ -265,6 +279,10 @@ GenericTransducer<MergeStepper<
   Comp, typename Coll::const_iterator>> trMergeColl(
     const Coll& e, Comp c = Comp()) {
   return trMerge(e.begin(), e.end(), c);
+}
+
+inline GenericTransducer<CatStepper> cat() {
+  return genericTransducer(CatStepper());
 }
 
 /**
