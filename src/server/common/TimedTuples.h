@@ -214,23 +214,6 @@ private:
   std::vector<State> _states;
   Settings _settings;
 };
-
-// To be used together with trFilter to reject
-// tuples that span too much time.
-struct IsTightTimedTuple {
-  Duration<double> threshold;
-  IsTightTimedTuple(Duration<double> t) : threshold(t) {}
-
-  template <typename T, int N>
-  bool operator()(const std::array<TimedValue<T>, N>& x) const {
-    Span<TimeStamp> ts;
-    for (int i = 0; i < N; i++) {
-      ts.extend(x[i].time);
-    }
-    return ts.maxv() - ts.minv() <= threshold;
-  }
-};
-
 }
 
 /**
@@ -250,6 +233,26 @@ GenericTransducer<TimedTuples::Stepper<T, TupleSize>> trTimedTuples(
   return genericTransducer(TimedTuples::Stepper<T, TupleSize>(
       settings));
 }
+
+template <typename T>
+struct The_type_is;
+
+// Functor to be used together with trFilter to reject
+// tuples that span too much time:
+struct IsShortTimedTuple {
+  Duration<double> threshold;
+  IsShortTimedTuple(Duration<double> t) : threshold(t) {}
+
+  template <typename T, size_t N>
+  bool operator()(const std::array<TimedValue<T>, N>& x) const {
+    Span<TimeStamp> ts;
+    for (int i = 0; i < N; i++) {
+      ts.extend(x[i].time);
+    }
+    return ts.maxv() - ts.minv() <= threshold;
+  }
+};
+
 
 
 } /* namespace sail */

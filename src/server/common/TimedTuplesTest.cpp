@@ -159,7 +159,9 @@ TEST(TimedTuplesTest, TestWithTwoAndFiltering) {
 
   auto result = transduce(
       values,
-      trTimedTuples<int, 2>(),
+      trTimedTuples<int, 2>()
+      |
+      trFilter(IsShortTimedTuple(1.0_s)),
       IntoArray<std::array<TimedValue<int>, 2>>());
 
   EXPECT_EQ(result.size(), 1);
