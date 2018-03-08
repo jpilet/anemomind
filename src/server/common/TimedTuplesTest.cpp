@@ -21,13 +21,13 @@ Indexed indexed(int type, int v) {
   return Indexed(type, v);
 }
 
-TimedValue<Indexed> testValue(double index, int type) {
-  return TimedValue<Indexed>(t(index),
-      indexed(type, int(round(index))));
+IndexedValue<TimedValue<int>> testValue(double index, int type) {
+  return IndexedValue<TimedValue<int>>(
+      type, {t(index), int(round(index))});
 }
 
 TEST(TimedTuplesTest, TestWithTwo) {
-  std::vector<TimedValue<Indexed>> values{
+  std::vector<IndexedValue<TimedValue<int>>> values{
     testValue(0, 0),
     testValue(1, 0),  // P1
     testValue(2, 1),  // P1
@@ -60,7 +60,7 @@ TEST(TimedTuplesTest, TestWithTwo) {
 }
 
 void testBinaryTuplesForHistoryLength(
-    std::vector<TimedValue<Indexed>> values,
+    std::vector<IndexedValue<TimedValue<int>>> values,
     int len) {
   TimedTuples::Settings settings;
   settings.halfHistoryLength = len;
@@ -90,15 +90,14 @@ void testBinaryTuplesForHistoryLength(
 }
 
 TEST(TimedTuplesTest, TestWithIntermediateFlush) {
-  std::vector<TimedValue<Indexed>> values;
+  std::vector<IndexedValue<TimedValue<int>>> values;
 
   int counter = 0;
   std::array<int, 6> classes{0, 0, 1, 1, 1, 0};
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 6; j++) {
       auto c = classes[j];
-      values.push_back(TimedValue<Indexed>(
-          t(counter), indexed(c, counter)));
+      values.push_back(testValue(counter, c));
       std::cout << "  t=" << counter << "  c=" << c << std::endl;
       counter++;
     }
@@ -111,7 +110,7 @@ TEST(TimedTuplesTest, TestWithIntermediateFlush) {
 }
 
 TEST(TimedTuplesTest, TestWithThree) {
-  std::vector<TimedValue<Indexed>> values{
+  std::vector<IndexedValue<TimedValue<int>>> values{
     testValue(0, 0),
     testValue(0.99, 0),  // 1
     testValue(2, 1), // 1
@@ -144,7 +143,7 @@ TEST(TimedTuplesTest, TestWithThree) {
 }
 
 TEST(TimedTuplesTest, EmptyTest) {
-  std::vector<TimedValue<Indexed>> values;
+  std::vector<IndexedValue<TimedValue<int>>> values;
   auto result = transduce(
       values,
       trTimedTuples<int, 3>(),
@@ -154,7 +153,7 @@ TEST(TimedTuplesTest, EmptyTest) {
 
 
 TEST(TimedTuplesTest, TestWithTwoAndFiltering) {
-  std::vector<TimedValue<Indexed>> values{
+  std::vector<IndexedValue<TimedValue<int>>> values{
     testValue(0, 0),
     testValue(1, 0),  // P1
     testValue(1.9, 1),  // P1
