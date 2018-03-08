@@ -143,6 +143,8 @@ public:
   CompositeTransducer<GenericTransducer<F>, T> operator| (T x) const {
     return {*this, x};
   }
+private:
+  F _f;
 };
 
 struct trIdentity {
