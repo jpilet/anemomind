@@ -224,10 +224,22 @@ TEST(TimedTuplesTest, RealisticTest) {
       |
       trTimedTuples<AwaWrap::Variant, 2>()
       |
-      trMap([&](const AwaWrap::VariantTuple& t) {
+      //trFilter(IsShortTimedTuple(1.0_s))
+      //|
+      trMap([&](const AwaWrap::VariantTuple& src) {
+
         AwaAwsPair dst;
-        dst.awa = awaWrap.get(t);
-        dst.aws = awsWrap.get(t);
+        dst.awa = awaWrap.get(src);
+        dst.aws = awsWrap.get(src);
+
+        std::cout << "GOT TUPLE (t="
+            << (dst.awa.time - t(0)).seconds()
+            << ", awa=" << dst.awa.value.degrees() << ")  (t="
+            << (dst.aws.time - t(0)).seconds()
+            << ", aws=" << dst.aws.value.knots() << ")  "<< std::endl;
+
+
+
         return dst;
       }),
       IntoCount());
