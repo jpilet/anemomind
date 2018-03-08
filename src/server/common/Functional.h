@@ -210,6 +210,20 @@ auto concat(ArrayOfArrays arrayOfArrays) -> Array<decltype(copyOf(std::declval<A
   return dst.get();
 }
 
+template <typename T>
+struct Constantly {
+  T value;
+  template <typename ... X>
+  T operator()(X ...) const {
+    return value;
+  }
+};
+
+template <typename T>
+Constantly<T> constantly(T x) {
+  return Constantly<T>{x};
+}
+
 }
 
 #undef ADD_METHODS_FOR_MAPPED

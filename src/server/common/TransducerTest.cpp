@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 #include <server/common/Transducer.h>
+#include <server/common/Optional.h>
+#include <math.h>
 
 using namespace sail;
 
@@ -124,4 +126,70 @@ TEST(TransducerTest, TestFlush) {
   EXPECT_EQ(dst[0], (std::vector<int>{1, 1, 1, 1}));
   EXPECT_EQ(dst[1], (std::vector<int>{2, 2, 2}));
   EXPECT_EQ(dst[2], (std::vector<int>{3, 3, 3}));
+}
+
+TEST(TransducerTest, MergeTest) {
+  std::vector<int> A{0, 0, 1, 6, 6, 7, 9, 9, 20, 30};
+  std::vector<int> B{0, 0, 0, 2, 8, 77};
+  std::vector<int> C{5, 6, 7, 8, 9, 10, 11};
+
+  auto result = transduce(
+      A, // <-- Use A to drive the process
+      trMerge(B.begin(), B.end())
+      | // merge(A, B)
+      trMerge(C.begin(), C.end()),
+        // merge(A, B, C)
+      IntoArray<int>());
+
+  auto result2 = transduce(
+      A,
+      trMergeColl(B)
+      |
+      trMergeColl(C),
+      IntoArray<int>());
+
+  std::vector<int> expected;
+  for (auto a: A) {
+    expected.push_back(a);
+  }
+  for (auto b: B) {
+    expected.push_back(b);
+  }
+  for (auto c: C) {
+    expected.push_back(c);
+  }
+  std::sort(expected.begin(), expected.end());
+
+  EXPECT_EQ(result.size(), A.size() + B.size() + C.size());
+
+  for (int i = 0; i < expected.size(); i++) {
+    EXPECT_EQ(expected[i], result[i]);
+    EXPECT_EQ(expected[i], result2[i]);
+  }
+}
+
+TEST(TransducerTest, CatTest) {
+  std::vector<std::vector<int>> src{{9}, {4, 5}, {6, 7, 7}};
+
+  auto result = transduce(
+      src,
+      cat(),
+      IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{9, 4, 5, 6, 7, 7}));
+}
+
+Optional<double> mySqrt(double x) {
+  return x < 0? Optional<double>() : Optional<double>(sqrt(x));
+}
+
+TEST(TransducerTest, CatTest2) {
+  std::vector<double> numbers{9, -4, 4, 25, -3, -2, 16};
+  auto result = transduce(
+      numbers,
+      trMap(&mySqrt)
+      |
+      cat(), // <-- Here we concatenate the optionals,
+             //     each optional being a collection with at most 1 element.
+      IntoArray<double>());
+  EXPECT_EQ(result, (Array<double>{3, 2, 5, 4}));
 }

@@ -383,8 +383,10 @@ cxx_test(common_TransducerTest
   TransducerTest.cpp
   gtest_main
   )
-  
+
 cxx_test(common_TimedTuplesTest
   TimedTuplesTest.cpp
+  common_logging
+  common_TimeStamp
   gtest_main
   )

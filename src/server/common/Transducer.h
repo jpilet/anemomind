@@ -45,6 +45,16 @@ namespace sail {
  *
  */
 
+struct IntoCount {
+  int64_t count = 0;
+
+  template <typename T>
+  void add(T) {count++;}
+  void flush() {}
+
+  int64_t result() const {return count;}
+
+};
 
 template <typename T>
 class IntoArray {
@@ -174,7 +184,7 @@ struct StatelessStepper {
 
 //// Helper types
 template <typename F>
-struct MapStepper : StatelessStepper {
+struct MapStepper : public StatelessStepper {
   F f;
   MapStepper(F fn) : f(fn) {}
 
@@ -198,16 +208,87 @@ struct FilterStepper : public StatelessStepper {
   }
 };
 
+// For merging two collections, one of them
+// having its iterators stored in this stepper.
+// See trMerge.
+template <typename Comparator, typename Iterator>
+struct MergeStepper {
+  Comparator comp;
+  Iterator begin;
+  Iterator end;
+  MergeStepper(Comparator c, Iterator b, Iterator e)
+    : comp(c), begin(b), end(e) {}
+
+  template <typename R, typename T>
+  void apply(R* dst, T x) {
+    for (; begin != end && comp(*begin, x); begin++) {
+      dst->add(*begin);
+    }
+    dst->add(x);
+  }
+
+  template <typename R>
+  void flush(R* dst) {
+    for (; begin != end; begin++) {
+      dst->add(*begin);
+    }
+    dst->flush();
+  }
+};
+
+struct CatStepper {
+  template <typename R, typename Coll>
+  void apply(R* dst, const Coll& c) const {
+    for (const auto& x: c) {
+      dst->add(x);
+    }
+  }
+
+  template <typename R>
+  void flush(R* dst) const {
+    dst->flush();
+  }
+};
+
 // Common transducer types
 
+// Map elements
 template <typename F>
 GenericTransducer<MapStepper<F>> trMap(F f) {
   return genericTransducer(MapStepper<F>{f});
 }
 
+// Filter elements
 template <typename F>
 GenericTransducer<FilterStepper<F>> trFilter(F f) {
   return genericTransducer(FilterStepper<F>{f});
+}
+
+// Used to merge the incoming elements with another range of data,
+// of the same type.
+template <
+  typename Iterator,
+  typename Comp = std::less<typename Iterator::value_type>>
+GenericTransducer<MergeStepper<Comp, Iterator>> trMerge(
+    Iterator b, Iterator e, Comp c = Comp()) {
+  return genericTransducer(MergeStepper<Comp, Iterator>(c, b, e));
+}
+
+
+// Merge collections, like trMerge, but takes a collection
+// instead of an iterator pair as argument.
+template <
+  typename Coll,
+  typename Comp = std::less<typename Coll::value_type>>
+GenericTransducer<MergeStepper<
+  Comp, typename Coll::const_iterator>> trMergeColl(
+    const Coll& e, Comp c = Comp()) {
+  return trMerge(e.begin(), e.end(), c);
+}
+
+// Concatenate collections.
+inline GenericTransducer<CatStepper> cat() {
+  return genericTransducer(CatStepper());
 }
 
 /**
