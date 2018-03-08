@@ -103,7 +103,7 @@ public:
     auto last = _states.back();
     double timeCost = last.value.time.defined()?
         _settings.tupleCostPerSecond*(
-            (x.time - last.value.time).seconds())
+           (x.time - last.value.time).seconds())
         : 0.0;
 
     for (int i = 1; i < StateSize; i++) {
