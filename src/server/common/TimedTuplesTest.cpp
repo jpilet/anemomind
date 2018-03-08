@@ -145,3 +145,28 @@ TEST(TimedTuplesTest, EmptyTest) {
       IntoArray<std::array<TimedValue<int>, 3>>());
   EXPECT_EQ(result.size(), 0);
 }
+
+
+TEST(TimedTuplesTest, TestWithTwoAndFiltering) {
+  std::vector<TimedValue<Indexed>> values{
+    TimedValue<Indexed>(t(0), indexed(0, 0)),
+    TimedValue<Indexed>(t(1), indexed(0, 1)),  // P1
+    TimedValue<Indexed>(t(1.9), indexed(1, 2)),  // P1
+    TimedValue<Indexed>(t(3), indexed(1, 3)),
+    TimedValue<Indexed>(t(4), indexed(1, 4)),  // P2: Rejected, too long.
+    TimedValue<Indexed>(t(5.2), indexed(0, 5))   // P2
+  };
+
+  auto result = transduce(
+      values,
+      trTimedTuples<int, 2>(),
+      IntoArray<std::array<TimedValue<int>, 2>>());
+
+  EXPECT_EQ(result.size(), 1);
+  {
+    auto x = result[0];
+    EXPECT_EQ(x[0].value, 1);
+
+    EXPECT_EQ(x[1].value, 2);
+  }
+}

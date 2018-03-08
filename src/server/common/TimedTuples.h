@@ -31,6 +31,7 @@
 #include <array>
 #include <server/common/IndexedValue.h>
 #include <iostream>
+#include <server/common/Span.h>
 
 namespace sail {
 namespace TimedTuples {
@@ -213,6 +214,23 @@ private:
   std::vector<State> _states;
   Settings _settings;
 };
+
+// To be used together with trFilter to reject
+// tuples that span too much time.
+struct IsTightTimedTuple {
+  Duration<double> threshold;
+  IsTightTimedTuple(Duration<double> t) : threshold(t) {}
+
+  template <typename T, int N>
+  bool operator()(const std::array<TimedValue<T>, N>& x) const {
+    Span<TimeStamp> ts;
+    for (int i = 0; i < N; i++) {
+      ts.extend(x[i].time);
+    }
+    return ts.maxv() - ts.minv() <= threshold;
+  }
+};
+
 }
 
 /**
