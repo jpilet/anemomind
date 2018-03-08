@@ -14,29 +14,44 @@ TimeStamp t(double v) {
   return TimeStamp::UTC(2018, 3, 7, 11, 2, 0) + Duration<double>::seconds(v);
 }
 
-int counter = 0;
-
 typedef TimedTuples::Indexed<int> Indexed;
 
-Indexed indexed(int type) {
-  return Indexed(type, counter++);
+Indexed indexed(int type, int v) {
+  return Indexed(type, v);
 }
 
 TEST(TimedTuplesTest, TestWithTwo) {
   std::vector<TimedValue<Indexed>> values{
-    TimedValue<Indexed>(t(0), indexed(0)),
-    TimedValue<Indexed>(t(1), indexed(0)),  // P1
-    TimedValue<Indexed>(t(2), indexed(1)),  // P1
-    TimedValue<Indexed>(t(3), indexed(1)),
-    TimedValue<Indexed>(t(4), indexed(1)),  // P2
-    TimedValue<Indexed>(t(5), indexed(0))   // P2
+    TimedValue<Indexed>(t(0), indexed(0, 0)),
+    TimedValue<Indexed>(t(1), indexed(0, 1)),  // P1
+    TimedValue<Indexed>(t(2), indexed(1, 2)),  // P1
+    TimedValue<Indexed>(t(3), indexed(1, 3)),
+    TimedValue<Indexed>(t(4), indexed(1, 4)),  // P2
+    TimedValue<Indexed>(t(5), indexed(0, 5))   // P2
   };
 
 
 
-  transduce(
+  auto result = transduce(
       values,
       timedTuples<int, 2>(),
       IntoArray<std::array<TimedValue<int>, 2>>());
+
+  EXPECT_EQ(result.size(), 2);
+  {
+    auto x = result[0];
+    EXPECT_EQ(x[0].time, t(1));
+    EXPECT_EQ(x[0].value, 1);
+
+    EXPECT_EQ(x[1].time, t(2));
+    EXPECT_EQ(x[1].value, 2);
+  }{
+    auto x = result[1];
+    EXPECT_EQ(x[0].time, t(5));
+    EXPECT_EQ(x[0].value, 5);
+
+    EXPECT_EQ(x[1].time, t(4));
+    EXPECT_EQ(x[1].value, 4);
+  }
 
 }

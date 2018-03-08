@@ -13,6 +13,7 @@
 #include <server/common/math.h>
 #include <server/common/logging.h>
 #include <array>
+#include <iostream>
 
 namespace sail {
 namespace TimedTuples {
@@ -77,8 +78,7 @@ public:
     }
   };
 
-  template <typename R>
-  void apply(R* result, Value x) {
+  void addValue(Value x) {
     CHECK(x.value.defined());
     CHECK(x.time.defined());
     State state;
@@ -120,20 +120,81 @@ public:
       dst.cost = best.cost;
     }
     _states.push_back(state);
+  }
+
+  template <typename R>
+  void apply(R* result, Value x) {
+    addValue(x);
 
     if (_states.size() > 2*_settings.halfHistoryLength) {
       flushTo<R>(result, _settings.halfHistoryLength);
     }
   }
 
+  void dispStates() {
+    for (int i = 0; i < _states.size(); i++) {
+      const auto& s = _states[i];
+      std::cout << "State: " << s.value.value.index;
+      std::cout << "  Pointers: ";
+      for (int j = 0; j < StateSize; j++) {
+        std::cout << "   j=" << j
+            << " c=" << s.pointers[j].cost
+            << " p=" << s.pointers[j].best;
+      }
+      std::cout << "  opt=" << s.optimized;
+      std::cout << std::endl;
+    }
+  }
+
   template <typename R>
   void flush(R* result) {
     flushTo<R>(result, _states.size());
+    dispStates();
   }
 
   template <typename R>
   void flushTo(R* result, int n) {
+    traceAll();
+    std::array<TimedValue<T>, TupleSize> tupleInProgress;
+    for (int i = 0; i < n; i++) {
+      const auto& state = _states[i];
+      if (state.value.value.defined()) {
+        tupleInProgress[state.value.value.index] =
+            TimedValue<T>(
+                state.value.time,
+                state.value.value.value);
+      }
+      if (state.optimized == 0 && i > 0 && _states[i-1].optimized != 0) {
+        result->add(tupleInProgress);
+      }
+    }
+    if (n < _states.size()) {
+      std::vector<State> backup(_states.begin() + n, _states.end());
+      auto root = State::root(_states[n-1].optimized);
+      _states.resize(1);
+      _states[0] = root;
+      for (auto x: backup) {
+        addValue(x.value);
+      }
+    }
+  }
 
+  int bestTermination() const {
+    const auto& last = _states.back();
+    Cand cand(-1, HighCost);
+    for (int i = 0; i < StateSize; i++) {
+      cand = std::min(cand, Cand(i, last.pointers[i].cost));
+    }
+    return cand.index;
+  }
+
+  void traceAll() {
+    int n = _states.size();
+    auto at = bestTermination();
+    for (int i = n-1; i >= 0; i--) {
+      _states[i].optimized = at;
+      at = _states[i].pointers[at].best;
+    }
   }
 private:
   std::vector<State> _states;
