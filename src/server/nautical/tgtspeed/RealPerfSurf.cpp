@@ -21,6 +21,12 @@ namespace {
 
 }
 
+struct WindAndBoatSpeedSample {
+  Velocity<double> tws;
+  Angle<double> twa;
+  Velocity<double> boatSpeed;
+};
+
 RealPerfSurfResults optimizeRealPerfSurf(
     const NavDataset& src,
     const RealPerfSurfSettings& settings) {
@@ -32,7 +38,6 @@ RealPerfSurfResults optimizeRealPerfSurf(
   auto twaWrap = TwaWrap();
   auto bsWrap = BoatSpeedWrap();
 
-  TimedTuples::Settings tupleSettings;
 
   transduce(
       tws,
@@ -46,8 +51,30 @@ RealPerfSurfResults optimizeRealPerfSurf(
           bsWrap.wrapIterator(boatSpeed.begin()),
           bsWrap.wrapIterator(boatSpeed.end()))
       |
-      trTimedTuples<BaseWrap::Variant, 3>(tupleSettings),
+      trFilter([settings](
+          const TimedValue<IndexedValue<BaseWrap::Variant>>& x) {
+        return settings.timeFilter(x.time);
+      })
+      |
+      trTimedTuples<BaseWrap::Variant, 3>()
+      |
+      trFilter(IsShortTimedTuple(settings.timedTupleThreshold))
+      |
+      trMap([&](const BaseWrap::VariantTuple& vt) {
+        WindAndBoatSpeedSample dst;
+        auto twa = twaWrap.get(vt);
+        auto tws = twsWrap.get(vt);
+        auto boatSpeed = bsWrap.get(vt);
+        dst.twa = twa.value;
+        dst.tws = tws.value;
+        dst.boatSpeed = boatSpeed.value;
+        return TimedValue<WindAndBoatSpeedSample>(
+            average({twa.time, tws.time, boatSpeed.time}),
+            dst);
+      }),
       IntoCount());
+
+  return RealPerfSurfResults();
 }
 
 

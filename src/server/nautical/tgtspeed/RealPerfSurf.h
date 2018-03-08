@@ -19,12 +19,6 @@
 
 namespace sail {
 
-struct WindAndBoatSpeedSample {
-  Velocity<double> tws;
-  Angle<double> twa;
-  Velocity<double> boatSpeed;
-};
-
 struct RealPerfSurfSettings {
   Duration<double> timedTupleThreshold = 4.0_seconds;
   Duration<double> sessionGap = 1.0_minutes;

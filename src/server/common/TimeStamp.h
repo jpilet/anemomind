@@ -107,6 +107,8 @@ bool isFinite(const TimeStamp &x);
 TimeStamp minDefined(TimeStamp a, TimeStamp b);
 TimeStamp maxDefined(TimeStamp a, TimeStamp b);
 
+TimeStamp average(const std::initializer_list<TimeStamp>& ts);
+
 } /* namespace sail */
 
 #endif /* TIMESTAMP_H_ */

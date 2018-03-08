@@ -256,6 +256,21 @@ TimeStamp minDefined(TimeStamp a, TimeStamp b) {
   }
 }
 
+TimeStamp average(const std::initializer_list<TimeStamp>& ts) {
+  if (ts.begin() == ts.end()) {
+    return TimeStamp();
+  }
+  TimeStamp offset = *(ts.begin());
+  Duration<double> durSum = 0.0_s;
+  int n = 0;
+  for (auto x: ts) {
+    durSum += (x - offset);
+    n++;
+  }
+  return offset + (1.0/n)*durSum;
+}
+
+
 TimeStamp maxDefined(TimeStamp a, TimeStamp b) {
   if (a.defined()) {
     if (b.defined()) {
