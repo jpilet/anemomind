@@ -258,6 +258,15 @@ GenericTransducer<MergeStepper<Comp, Iterator>> trMerge(
   return genericTransducer(MergeStepper<Comp, Iterator>(c, b, e));
 }
 
+template <
+  typename Coll,
+  typename Comp = std::less<typename Coll::value_type>>
+GenericTransducer<MergeStepper<
+  Comp, typename Coll::const_iterator>> trMergeColl(
+    const Coll& e, Comp c = Comp()) {
+  return trMerge(e.begin(), e.end(), c);
+}
+
 /**
  * The main function, that takes an iterable source collection
  * and transduces it into a result using the transducer tr.

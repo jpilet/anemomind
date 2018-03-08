@@ -179,7 +179,18 @@ TEST(TimedTuplesTest, TestWithTwoAndFiltering) {
   }
 }
 
+
+struct AwaAwsPair {
+  TimedValue<Angle<double>> awa;
+  TimedValue<Velocity<double>> aws;
+};
+
 TEST(TimedTuplesTest, RealisticTest) {
+  typedef VariantIteratorWrapper<
+        0,
+        Angle<double>,
+        Velocity<double>> AwaWrap;
+
   std::vector<TimedValue<Angle<double>>> angles{
     {t(0), 4.5_deg},
     {t(1), 4.7_deg},
@@ -187,12 +198,6 @@ TEST(TimedTuplesTest, RealisticTest) {
     {t(5), 8.8_deg},
     {t(7), 9.8_deg}
   };
-
-  typedef VariantIteratorWrapper<
-        0,
-        Angle<double>,
-        Velocity<double>> AwaWrap;
-
   auto awaWrap = AwaWrap();
 
   std::vector<TimedValue<Velocity<double>>> velocities{
@@ -207,13 +212,24 @@ TEST(TimedTuplesTest, RealisticTest) {
       std::is_same<decltype(awsWrap)::TypeAtIndex,
         Velocity<double>>::value, "");*/
 
+
+
   auto result = transduce(
       angles,
       trMap(awaWrap)
       |
       trMerge(
-          awsWrap.wrap(velocities.begin()),
-          awsWrap.wrap(velocities.end())),
+          awsWrap.wrapIterator(velocities.begin()),
+          awsWrap.wrapIterator(velocities.end()))
+      |
+      trTimedTuples<AwaWrap::Variant, 2>()
+      |
+      trMap([&](const AwaWrap::VariantTuple& t) {
+        AwaAwsPair dst;
+        dst.awa = awaWrap.get(t);
+        dst.aws = awsWrap.get(t);
+        return dst;
+      }),
       IntoCount());
 
   EXPECT_EQ(result, 5);
