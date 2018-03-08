@@ -176,7 +176,7 @@ public:
   void flushTo(R* result, int n) {
     //std::cout << "Flush " << n << "/" << _states.size() << std::endl;
     traceAll();
-    dispStates();
+    //dispStates();
     for (int i = 0; i < n; i++) {
       const auto& state = _states[i];
       if (state.value.value.defined()) {

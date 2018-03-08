@@ -185,6 +185,14 @@ struct AwaAwsPair {
   TimedValue<Velocity<double>> aws;
 };
 
+void checkEq(AwaAwsPair p, AwaAwsPair q) {
+  EXPECT_EQ(p.aws.time, q.aws.time);
+  EXPECT_EQ(p.awa.time, q.awa.time);
+
+  EXPECT_NEAR(p.awa.value.degrees(), q.awa.value.degrees(), 1.0e-3);
+  EXPECT_NEAR(p.aws.value.knots(), q.aws.value.knots(), 1.0e-3);
+}
+
 TEST(TimedTuplesTest, RealisticTest) {
   typedef VariantIteratorWrapper<
         0,
@@ -209,17 +217,17 @@ TEST(TimedTuplesTest, RealisticTest) {
 
   auto result = transduce(
       angles,
-      trMap(awaWrap)
+      trMap(awaWrap) // Transform the angles to variants
       |
-      trMerge(
+      trMerge( // Merge the angles with the velocities (wrapped as variants)
           awsWrap.wrapIterator(velocities.begin()),
           awsWrap.wrapIterator(velocities.end()))
       |
-      trTimedTuples<AwaWrap::Variant, 2>()
+      trTimedTuples<AwaWrap::Variant, 2>() // Form tuples of angles and velocities.
       |
-      trFilter(IsShortTimedTuple(1.0_s))
+      trFilter(IsShortTimedTuple(1.0_s)) // Remove tuples that span too much time.
       |
-      trMap([&](const AwaWrap::VariantTuple& src) {
+      trMap([&](const AwaWrap::VariantTuple& src) { // Unwrap the variant tuples.
 
         AwaAwsPair dst;
         dst.awa = awaWrap.get(src);
@@ -236,5 +244,6 @@ TEST(TimedTuplesTest, RealisticTest) {
       IntoArray<AwaAwsPair>());
 
   EXPECT_EQ(result.size(), 2);
-  auto x = result[0];
+  checkEq(result[0], AwaAwsPair{angles[0], velocities[0]});
+  checkEq(result[1], AwaAwsPair{angles[2], velocities[1]});
 }
