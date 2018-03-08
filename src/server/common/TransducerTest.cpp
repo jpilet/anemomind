@@ -132,10 +132,11 @@ TEST(TransducerTest, MergeTest) {
   std::vector<int> C{5, 6, 7, 8, 9, 10, 11};
 
   auto result = transduce(
-      A,
+      A, // <-- Use A to drive the process
       trMerge(B.begin(), B.end())
-      |
+      | // merge(A, B)
       trMerge(C.begin(), C.end()),
+        // merge(A, B, C)
       IntoArray<int>());
 
   std::vector<int> expected;
