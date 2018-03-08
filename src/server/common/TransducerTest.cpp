@@ -125,3 +125,18 @@ TEST(TransducerTest, TestFlush) {
   EXPECT_EQ(dst[1], (std::vector<int>{2, 2, 2}));
   EXPECT_EQ(dst[2], (std::vector<int>{3, 3, 3}));
 }
+
+TEST(TransducerTest, MergeTest) {
+  std::vector<int> A{0, 0, 1, 6, 6, 7, 9, 9, 20, 30};
+  std::vector<int> B{0, 0, 0, 2, 8, 77};
+  std::vector<int> C{5, 6, 7, 8, 9, 10, 11};
+
+  auto result = transduce(
+      A,
+      trMerge(B.begin(), B.end())
+      |
+      trMerge(C.begin(), C.end()),
+      IntoArray<int>());
+
+  EXPECT_EQ(result.size(), A.size() + B.size() + C.size());
+}

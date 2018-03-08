@@ -171,6 +171,7 @@ public:
   template <typename R>
   void flush(R* result) {
     flushTo<R>(result, _states.size());
+    result->flush();
   }
 
   template <typename R>
