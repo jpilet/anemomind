@@ -80,6 +80,7 @@ public:
 
   void addValue(Value x) {
     CHECK(x.value.defined());
+    CHECK(0 <= x.value.index && x.value.index < TupleSize);
     CHECK(x.time.defined());
     State state;
     state.value = x;
@@ -126,6 +127,9 @@ public:
   void apply(R* result, Value x) {
     addValue(x);
 
+    std::cout << "State size=" << _states.size()
+        << " half-hlen=" << _settings.halfHistoryLength << std::endl;
+
     if (_states.size() > 2*_settings.halfHistoryLength) {
       flushTo<R>(result, _settings.halfHistoryLength);
     }
@@ -154,6 +158,7 @@ public:
 
   template <typename R>
   void flushTo(R* result, int n) {
+    std::cout << "Perform flush to " << n << std::endl;
     traceAll();
     std::array<TimedValue<T>, TupleSize> tupleInProgress;
     for (int i = 0; i < n; i++) {

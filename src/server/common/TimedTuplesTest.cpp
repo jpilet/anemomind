@@ -30,8 +30,6 @@ TEST(TimedTuplesTest, TestWithTwo) {
     TimedValue<Indexed>(t(5), indexed(0, 5))   // P2
   };
 
-
-
   auto result = transduce(
       values,
       timedTuples<int, 2>(),
@@ -53,5 +51,30 @@ TEST(TimedTuplesTest, TestWithTwo) {
     EXPECT_EQ(x[1].time, t(4));
     EXPECT_EQ(x[1].value, 4);
   }
+}
 
+TEST(TimedTuplesTest, TestWithIntermediateFlush) {
+
+  TimedTuples::Settings settings;
+  settings.halfHistoryLength = 6;
+
+  std::vector<TimedValue<Indexed>> values;
+
+  int counter = 0;
+  std::array<int, 6> classes{0, 0, 1, 1, 1, 0};
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 6; j++) {
+      values.push_back(TimedValue<Indexed>(
+          t(counter), indexed(classes[j], counter)));
+      counter++;
+    }
+  }
+  EXPECT_EQ(values.size(), 30);
+
+  auto result = transduce(
+      values,
+      timedTuples<int, 2>(settings),
+      IntoArray<std::array<TimedValue<int>, 2>>());
+
+  EXPECT_EQ(result.size(), 10);
 }
