@@ -16,6 +16,9 @@
 
 namespace sail {
 
+
+// See TEST(TimedTuplesTest, RealisticTest) for an example
+// of why this is useful.
 template <int Index, typename ... T>
 struct VariantIteratorWrapper {
   typedef boost::variant<T...> Variant;

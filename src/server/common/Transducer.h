@@ -252,11 +252,13 @@ struct CatStepper {
 
 // Common transducer types
 
+// Map elements
 template <typename F>
 GenericTransducer<MapStepper<F>> trMap(F f) {
   return genericTransducer(MapStepper<F>{f});
 }
 
+// Filter elements
 template <typename F>
 GenericTransducer<FilterStepper<F>> trFilter(F f) {
   return genericTransducer(FilterStepper<F>{f});
@@ -272,6 +274,9 @@ GenericTransducer<MergeStepper<Comp, Iterator>> trMerge(
   return genericTransducer(MergeStepper<Comp, Iterator>(c, b, e));
 }
 
+
+// Merge collections, like trMerge, but takes a collection
+// instead of an iterator pair as argument.
 template <
   typename Coll,
   typename Comp = std::less<typename Coll::value_type>>
@@ -281,6 +286,7 @@ GenericTransducer<MergeStepper<
   return trMerge(e.begin(), e.end(), c);
 }
 
+// Concatenate collections.
 inline GenericTransducer<CatStepper> cat() {
   return genericTransducer(CatStepper());
 }
