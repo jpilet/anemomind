@@ -12,6 +12,7 @@
 #include <server/common/TimedValue.h>
 #include <server/common/math.h>
 #include <server/common/logging.h>
+#include <array>
 
 namespace sail {
 namespace TimedTuples {
@@ -27,38 +28,41 @@ struct Indexed {
 
   int index = -1;
   T value;
+
+  Indexed(int i, T v) : index(i), value(v) {}
+  Indexed() {}
 };
 
 template <typename T, int TupleSize>
 class Stepper {
 public:
-  static constexpr int StateSize = staticPower(2, TupleSize);
+  static constexpr int StateSize = staticPower(2, TupleSize)-1;
   static constexpr double HighCost = std::numeric_limits<double>::infinity();
   static constexpr double LowCost = 0.0;
 
   struct BackPointer {
     int best = -1;
-    double totalCost = HighCost;
+    double cost = HighCost;
   };
 
   typedef TimedValue<Indexed<T>> Value;
 
   struct State {
+    int optimized = -1;
     Value value;
     std::array<BackPointer, StateSize> pointers;
 
-    static State root(Value x, int stateIndex) {
-      CHECK(x.value.defined());
+    static State root(int stateIndex, Value x = Value()) {
       State dst;
       dst.value = x;
-      dst.pointers[x.value.index].totalCost = LowCost;
+      dst.pointers[stateIndex].cost = LowCost;
       return dst;
     }
   };
 
   Stepper(const Settings& settings) :
     _settings(settings) {
-    _states.push_back(State::root(Value(), 0));
+    _states.push_back(State::root(0));
   }
 
   struct Cand {
@@ -74,15 +78,15 @@ public:
   };
 
   template <typename R>
-  void apply(R* dst, Value x) {
+  void apply(R* result, Value x) {
     CHECK(x.value.defined());
     CHECK(x.time.defined());
     State state;
     state.value = x;
     CHECK(!_states.empty());
     auto last = _states.back();
-    double timeCost = last.time.defined()?
-        _settings.tupleCostPerSecond*((x.time - last.time).seconds())
+    double timeCost = last.value.time.defined()?
+        _settings.tupleCostPerSecond*((x.time - last.value.time).seconds())
         : 0.0;
 
     for (int i = 1; i < StateSize; i++) {
@@ -99,14 +103,36 @@ public:
         dst.cost = best.cost + timeCost;
       } else {
         dst.best = i;
-        dst.cost = last.cost + timeCost;
+        dst.cost = last.pointers[i].cost + timeCost;
       }
+    }{ // Special treatment for state 0.
+      std::bitset<TupleSize> bits;
+      bits.set();
+      bits.set(x.value.index, false);
+      int index = bits.to_ulong();
+      constexpr double tupleCompletionReward = 1.0;
+      auto best = std::min(
+          Cand(index, last.pointers[index].cost
+              + timeCost - tupleCompletionReward),
+          Cand(0, last.pointers[0].cost));
+      auto& dst = state.pointers[0];
+      dst.best = best.index;
+      dst.cost = best.cost;
     }
+    _states.push_back(state);
 
+    if (_states.size() > 2*_settings.halfHistoryLength) {
+      flushTo<R>(result, _settings.halfHistoryLength);
+    }
   }
 
   template <typename R>
   void flush(R* result) {
+    flushTo<R>(result, _states.size());
+  }
+
+  template <typename R>
+  void flushTo(R* result, int n) {
 
   }
 private:
@@ -116,7 +142,7 @@ private:
 }
 template <typename T, int TupleSize>
 GenericTransducer<TimedTuples::Stepper<T, TupleSize>> timedTuples(
-    const TimedTuples::Settings& settings) {
+    const TimedTuples::Settings& settings = TimedTuples::Settings()) {
   return genericTransducer(TimedTuples::Stepper<T, TupleSize>(
       settings));
 }
