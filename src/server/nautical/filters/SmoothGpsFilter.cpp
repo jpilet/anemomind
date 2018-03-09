@@ -248,6 +248,12 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
   int n = gaps.size();
   ArrayBuilder<TimedValue<bool>> goodBuilder(2*n);
   std::vector<LargeGap> largeGaps;
+
+  CHECK(std::is_sorted(filtered.begin(), filtered.end()));
+  CHECK(std::is_sorted(gaps.begin(), gaps.end()));
+  CHECK(std::is_sorted(inlierPositions.begin(), inlierPositions.end()));
+  CHECK(inlierPositions.size() == n + 1);
+  CHECK(filtered.size() == n);
   for (int i = 0; i < n; i++) {
     const auto& y = filtered[i];
     auto pos = Vec2<Length<double>>{
@@ -256,6 +262,8 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
     };
     const auto& a = inlierPositions[i];
     const auto& b = inlierPositions[i+1];
+    CHECK(a.time <= y.time);
+    CHECK(y.time <= b.time);
     goodBuilder.add(TimedValue<bool>(a.time, true));
     auto maxl = std::max(
         (pos - a.value).norm(),
@@ -267,8 +275,12 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
       goodBuilder.add(TimedValue<bool>(b.time, false));
       largeGaps.push_back(LargeGap{maxl, threshold});
     }
+  }{
+    auto lastFilteredTime = filtered.last().time;
+    if (!goodBuilder.empty() && goodBuilder.last().time <= lastFilteredTime) {
+      goodBuilder.add(TimedValue<bool>(lastFilteredTime, true));
+    }
   }
-  goodBuilder.add(TimedValue<bool>(filtered.last().time, true));
   auto good = goodBuilder.get();
   CHECK(std::is_sorted(good.begin(), good.end()));
 
