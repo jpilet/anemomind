@@ -336,6 +336,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   if (_resumeAfterPrepare.size() > 0) {
     current = LogLoader::loadNavDataset(_resumeAfterPrepare);
+    current = current.fitBounds();
+    LOG(INFO) << "LOADED";
   } else {
     NavDataset loaded = loadNavs(*amap, _boatid);
     hack::SelectSources(&loaded);
@@ -357,19 +359,25 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   if (_savePreparedData.size() != 0) {
     saveDispatcher(_savePreparedData.c_str(), *(current.dispatcher()));
   }
-
+  LOG(INFO) << "Select source";
+  auto theSource = "mix (,  reparsed, Internal GPS) merged+filtered";
+  current.selectSource(GPS_POS, theSource);
+  current.selectSource(GPS_SPEED, theSource);
+  current.selectSource(GPS_BEARING, theSource);
   // Note: the grammar does not have access to proper true wind.
   // It has to do its own estimate.
   hack::SelectSources(&current);
   current = current.createMergedChannels(
       std::set<DataCode>{AWA, AWS}, Duration<>::seconds(.3));
+  LOG(INFO) << "Parse it";
   std::shared_ptr<HTree> fulltree = _grammar.parse(current);
-
+  LOG(INFO) << "Good so far";
   if (!fulltree) {
     LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
     return false;
   }
 
+  LOG(INFO) << "Open files";
   grammarDebug(fulltree, current);
 
   Calibrator calibrator(_grammar.grammar);
@@ -378,6 +386,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   std::ofstream boatDatFile(boatDatPath);
   CHECK(boatDatFile.is_open()) << "Error opening " << boatDatPath;
 
+  LOG(INFO) << "Calibrate";
   // Calibrate. TODO: use filtered data instead of resampled.
   if (calibrator.calibrate(current, fulltree, _boatid)) {
       calibrator.saveCalibration(&boatDatFile);
@@ -389,8 +398,12 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     }
   }
 
+  LOG(INFO) << "Simulate";
+
   // First simulation pass: adds true wind
   current = calibrator.simulate(current);
+
+  LOG(INFO) << "Prefer source";
 
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system
