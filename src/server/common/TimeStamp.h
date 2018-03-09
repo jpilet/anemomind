@@ -9,7 +9,7 @@
 #include <ctime>
 #include <cinttypes>
 #include <iosfwd>
-
+#include <server/common/Optional.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
@@ -106,6 +106,10 @@ bool isFinite(const TimeStamp &x);
 
 TimeStamp minDefined(TimeStamp a, TimeStamp b);
 TimeStamp maxDefined(TimeStamp a, TimeStamp b);
+
+Optional<struct tm> parseTimeToStruct(
+    const char* fmt, const std::string& src0);
+
 
 } /* namespace sail */
 

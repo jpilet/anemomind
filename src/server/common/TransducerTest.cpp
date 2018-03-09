@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 #include <server/common/Transducer.h>
+#include <server/common/Span.h>
+#include "ParseTransducers.h"
 
 using namespace sail;
 
@@ -74,7 +76,7 @@ TEST(TransducerTest, ComposeTest) {
 // non-trivial flush function.
 
 template <typename T>
-class MyBundleStepper {
+class MyBundleStepper : public NeverReduced {
 public:
   MyBundleStepper(
       std::function<bool(T, T)> f) : _separate(f){}
@@ -124,4 +126,56 @@ TEST(TransducerTest, TestFlush) {
   EXPECT_EQ(dst[0], (std::vector<int>{1, 1, 1, 1}));
   EXPECT_EQ(dst[1], (std::vector<int>{2, 2, 2}));
   EXPECT_EQ(dst[2], (std::vector<int>{3, 3, 3}));
+}
+
+TEST(TransducerTest, LineBreakerTest) {
+  auto s1 = std::make_shared<std::stringstream>();
+  auto s2 = std::make_shared<std::stringstream>();
+
+  *s1 << "Kattskit\nBra\nMu";
+  *s2 << "Katt\nCalibration";
+
+  auto result = transduce(
+      std::vector<std::shared_ptr<std::stringstream>>{s1, s2},
+      trStreamLines(),
+      IntoArray<std::string>());
+  EXPECT_EQ(result, (Array<std::string>{
+    "Kattskit", "Bra", "Mu", "Katt", "Calibration"}));
+}
+
+TEST(TransducerTest, CatTest) {
+  auto result = transduce(
+      std::vector<std::vector<int>>{{9, 4}, {4}, {}, {88}},
+      trCat(),
+      IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{9, 4, 4, 88}));
+}
+
+TEST(TransducerTest, EarlyStoppingTest) {
+  auto result = transduce(
+      Span<int>(0, 300),
+      trMap([](int i) {
+        EXPECT_LT(i, 4); // Check that we actually only take 4 elements.
+        return i;
+      })
+      |
+      trTake(4),
+      IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{0, 1, 2, 3}));
+}
+
+TEST(TransducerTest, SplitNumbers) {
+  auto results = transduce(
+      std::string("  , , , ,   999,34  ,,,  ,, , ,   "),
+      trMap([](char c) {
+        if (c == ',') {return '.';}
+        return c;
+      })
+      |
+      trSplitString([](char c) {
+        return c == ' ' || c == '.';
+      }),
+      IntoArray<std::string>());
+
+  EXPECT_EQ(results, (Array<std::string>{"999", "34"}));
 }

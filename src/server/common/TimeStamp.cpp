@@ -115,7 +115,6 @@ std::string removeFractionalParts(std::string s) {
   }
 }
 
-
 TimeStamp tryParseTime(const char *fmt, std::string s) {
   struct tm tm = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nullptr};
 
@@ -146,7 +145,6 @@ TimeStamp TimeStamp::parse(const std::string &x0) {
   LOG(WARNING) << "Failed to parse time: " << x0;
   return TimeStamp();
 }
-
 
 TimeStamp TimeStamp::makeUndefined() {
   return TimeStamp(UndefinedTime);
@@ -267,6 +265,17 @@ TimeStamp maxDefined(TimeStamp a, TimeStamp b) {
     return b;
   }
 }
+
+Optional<struct tm> parseTimeToStruct(
+    const char* fmt, const std::string& src0) {
+  auto src = removeFractionalParts(src0);
+  struct tm dst = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nullptr};
+
+  // http://man7.org/linux/man-pages/man3/strptime.3.html
+  auto ret = strptime(src.c_str(), fmt, &dst);
+  return ret == nullptr? Optional<struct tm>() : dst;
+}
+
 
 TimeStamp MonotonicClock::now() {
 #ifdef HAVE_CLOCK_GETTIME

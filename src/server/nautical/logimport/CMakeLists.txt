@@ -168,3 +168,20 @@ target_link_libraries(logimport_summary
                       logimport_LogLoader
                       nautical_NavDataset
                      )
+
+add_library(logimport_AstraLoader
+  AstraLoader.h
+  AstraLoader.cpp
+  )
+target_link_libraries(logimport_AstraLoader
+  common_string
+  common_TimeStamp
+  )
+
+cxx_test(logimport_AstraLoaderTest
+  AstraLoaderTest.cpp
+  gtest_main
+  common_PathBuilder
+  common_Env
+  logimport_AstraLoader
+  )
