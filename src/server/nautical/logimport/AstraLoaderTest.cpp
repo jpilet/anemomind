@@ -30,17 +30,24 @@ TEST(TestAstraLoader, RegexTest) {
 
 }
 
+namespace {
+  Optional<AstraColSpec> tryParseAstraColSpecStr(const std::string& s) {
+    auto tokens = tokenizeAstra(s);
+    return tryParseAstraColSpec(tokens);
+  }
+}
+
 TEST(TestAstraLoader, ColSpecTest) {
-  EXPECT_EQ(tryParseAstraColSpec("   AWA    AWS BS").get().size(), 3);
-  EXPECT_EQ(tryParseAstraColSpec("   AWA  TWA  AWS BS").get().size(), 4);
-  EXPECT_EQ(tryParseAstraColSpec("  AWA     ").get().size(), 1);
-  EXPECT_EQ(tryParseAstraColSpec("AWA     ").get().size(), 1);
-  EXPECT_FALSE(tryParseAstraColSpec("  kattskit     ").defined());
-  EXPECT_FALSE(tryParseAstraColSpec("kattskit").defined());
-  EXPECT_FALSE(tryParseAstraColSpec("kattskit     ").defined());
-  EXPECT_FALSE(tryParseAstraColSpec("   kattskit").defined());
-  EXPECT_FALSE(tryParseAstraColSpec("").defined());
-  EXPECT_FALSE(tryParseAstraColSpec("   ").defined());
+  EXPECT_EQ(tryParseAstraColSpecStr("   AWA    AWS BS").get().size(), 3);
+  EXPECT_EQ(tryParseAstraColSpecStr("   AWA  TWA  AWS BS").get().size(), 4);
+  EXPECT_EQ(tryParseAstraColSpecStr("  AWA     ").get().size(), 1);
+  EXPECT_EQ(tryParseAstraColSpecStr("AWA     ").get().size(), 1);
+  EXPECT_FALSE(tryParseAstraColSpecStr("  kattskit     ").defined());
+  EXPECT_FALSE(tryParseAstraColSpecStr("kattskit").defined());
+  EXPECT_FALSE(tryParseAstraColSpecStr("kattskit     ").defined());
+  EXPECT_FALSE(tryParseAstraColSpecStr("   kattskit").defined());
+  EXPECT_FALSE(tryParseAstraColSpecStr("").defined());
+  EXPECT_FALSE(tryParseAstraColSpecStr("   ").defined());
 }
 
 TEST(TestAstraLoader, TimeOfDayParseTest) {
@@ -57,7 +64,7 @@ TEST(TestAstraLoader, DateTest) {
       TimeStamp::UTC(2018, 3, 9, 0, 0, 0));
 }
 
-/*TEST(TestAstraLoader, TestLoadCoach) {
+TEST(TestAstraLoader, TestLoadCoach) {
   std::string filename = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("astradata")
@@ -88,4 +95,4 @@ TEST(TestAstraLoader, DateTest) {
   EXPECT_NEAR(x.lat.get().degrees(), 45.797494, 1.0e-9);
 
 
-}*/
+}

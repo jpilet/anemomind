@@ -182,6 +182,11 @@ Optional<Array<std::pair<std::string, AstraValueParser>>>
   tryParseAstraColSpec(const Array<std::string>& tokens) {
   typedef std::map<std::string, AstraValueParser,
       LongWordsFirst>::iterator Iterator;
+
+  if (tokens.empty()) {
+    return {};
+  }
+
   auto result = transduce(
       tokens,
       trMap([](const std::string& token) {
@@ -196,6 +201,7 @@ Optional<Array<std::pair<std::string, AstraValueParser>>>
         return *f;
       }),
       IntoArray<std::pair<std::string, AstraValueParser>>());
+  // Only return a valid result if *all* tokens where recognized.
   return result.size() == tokens.size()?
       Optional<Array<std::pair<std::string, AstraValueParser>>>(result)
       : Optional<Array<std::pair<std::string, AstraValueParser>>>();
