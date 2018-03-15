@@ -47,9 +47,9 @@ inline GenericTransducer<StreamLineBreaker> trStreamLines() {
 }
 
 template <typename IsSeparator>
-class StringSplitStepper : public NeverDone {
+class TokenizeStepper : public NeverDone {
 public:
-  StringSplitStepper(IsSeparator issep) : _isSeparator(issep) {}
+  TokenizeStepper(IsSeparator issep) : _isSeparator(issep) {}
 
   template <typename R>
   void apply(R* result, char c) {
@@ -73,9 +73,9 @@ private:
 };
 
 template <typename IsSeparator>
-inline GenericTransducer<StringSplitStepper<IsSeparator>>
-  trSplitString(IsSeparator issep) {
-  return genericTransducer(StringSplitStepper<IsSeparator>(issep));
+inline GenericTransducer<TokenizeStepper<IsSeparator>>
+  trTokenize(IsSeparator issep) {
+  return genericTransducer(TokenizeStepper<IsSeparator>(issep));
 }
 
 }

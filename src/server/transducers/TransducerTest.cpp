@@ -172,7 +172,7 @@ TEST(TransducerTest, SplitNumbers) {
         return c;
       })
       |
-      trSplitString([](char c) {
+      trTokenize([](char c) {
         return c == ' ' || c == '.';
       }),
       IntoArray<std::string>());
