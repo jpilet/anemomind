@@ -14,7 +14,7 @@
 #include <server/common/Functional.h>
 #include <server/common/string.h>
 #include <regex>
-#include "../../common/ParseTransducers.h"
+#include <server/transducers/ParseTransducers.h>
 
 using namespace sail;
 

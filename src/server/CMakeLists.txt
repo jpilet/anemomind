@@ -1,4 +1,5 @@
 add_subdirectory("common")
+add_subdirectory("transducers")
 
 if (${FULL_BUILD})
   add_subdirectory("math")

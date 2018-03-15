@@ -11,7 +11,7 @@
 #include <iostream>
 #include <server/common/string.h>
 #include <server/common/logging.h>
-#include <server/common/ParseTransducers.h>
+#include <server/transducers/ParseTransducers.h>
 
 namespace sail {
 

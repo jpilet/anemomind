@@ -12,7 +12,7 @@
 
 #include <string>
 #include <istream>
-#include <server/common/Transducer.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 

@@ -9,7 +9,7 @@
 #define SERVER_NAUTICAL_LOGIMPORT_ASTRALOADER_H_
 
 #include <string>
-#include <server/common/Transducer.h>
+#include <server/transducers/Transducer.h>
 #include <server/common/Optional.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/TimeStamp.h>

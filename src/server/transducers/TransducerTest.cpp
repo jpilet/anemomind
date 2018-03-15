@@ -6,7 +6,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <server/common/Transducer.h>
+#include <server/transducers/Transducer.h>
 #include <server/common/Span.h>
 #include "ParseTransducers.h"
 
