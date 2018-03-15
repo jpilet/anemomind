@@ -14,6 +14,31 @@ var n2kConfigFile = '/home/anemobox/n2k.config';
 var nmea2000;
 var nmea2000Source;
 var rawPacketLoggingEnabled = false;
+var sendEnabled = true;
+
+// Debugging variables
+var verbose = false;
+var counter = 0;
+
+var channel = null;
+var minResendTime = 100; // ms
+var sidMap = { };
+var anemomindEstimatorSource = 'Anemomind estimator';
+var trueWindFields = [ 'twa', 'tws', 'twdir' ];
+var performanceFields = ['vmg', 'targetVmg'];
+var windLimiters = {
+  twa: makeSendLimiter(),
+  twdir: makeSendLimiter()
+};
+var perfSendLimiter = makeSendLimiter();
+// Either it is null, meaning we are not sending
+// anything, or it is a map, meaning we are sending.
+var subscriptions = null;
+var fieldSubscriptions = [
+  {fields: trueWindFields, makePackets: makeWindPackets},
+  {fields: performanceFields, makePackets: makePerformancePackets}
+];
+
 
 function configOrDefault(obj, key1, key2, def) {
   if (!obj || !obj[key1] || obj[key1][key2] === undefined) {
@@ -37,12 +62,11 @@ function instantiateNmea2000(cfg) {
   });
 }
 
-var sendEnabled = true;
 
 function updateFromConfig(cfg) {
   sendEnabled = utils.getOrDefault(
     cfg, "outputNmea2000", true);
-  setSendWindState(sendEnabled);
+  setSendState(sendEnabled);
 }
 
 function instantiateNmea2000Real(boxid, fullCfg) {
@@ -134,10 +158,6 @@ function canPacketReceived(msg) {
   }
 }
 
-// Debugging variables
-var verbose = false;
-var counter = 0;
-
 function logRawPacket(msg) {
   if (rawPacketLoggingEnabled) {
     var systemTime0 = 1000*msg.ts_sec + 0.001*msg.ts_usec;
@@ -159,8 +179,6 @@ function logRawPacket(msg) {
     }
   }
 }
-
-var channel = null;
 
 function startNmea2000(cfg) {
   if (!channel) {
@@ -194,23 +212,16 @@ module.exports.detectSPIBug = function(callback) {
 };
 
 
-var lastSent = {
-  twa: 0,
-  twdir: 0,
-  aw: 0
-};
 
-
-var sidMap = { };
+function makeSendLimiter() {
+  return utils.makeTemporalLimiter(minResendTime);
+}
 
 function nextSid(key) {
   var sid = sidMap[key] || 0;
   sidMap[key] = (sid + 1) % 250; // <-- Good value?
   return sid;
 }
-
-var anemomindEstimatorSource = 'Anemomind estimator';
-var trueWindFields = [ 'twa', 'tws', 'twdir' ];
 
 function tryGetIfFresh(fields, sourceName, timestamp) {
   var channels = anemonode.dispatcher.allSources();
@@ -244,17 +255,10 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
   return dst;
 }
 
-function trySendWind() {
-  if (!nmea2000Source) {
-    return; // In case we activate this code *before* having
-            // started the nmea.
-  }
-
+function makeWindPackets() {
   var now = anemonode.currentTime();
-  var minResendTime = 100; // ms
   var packetsToSend = [];
   var source = anemomindEstimatorSource;
-  var sources = anemonode.dispatcher.allSources();
   
   // The wind reference codes for the NMEA2000 WindData sentence
   var windAngleRefs = {
@@ -265,7 +269,7 @@ function trySendWind() {
   // Collect the packets for the different kinds of 
   // wind angle references.
   for (var wa in windAngleRefs) {
-    if ((now - lastSent[wa]) > minResendTime) {
+    windLimiters[wa](function() {
       var data2send = tryGetIfFresh([wa, "tws"], source, now);
       if (data2send) {
         packetsToSend.push({
@@ -276,49 +280,87 @@ function trySendWind() {
           windAngle: data2send[wa],
           reference: windAngleRefs[wa]
         });
-        lastSent[wa] = now;
       }
-    }
+    }, now);
   }
-  
-  // Send the packets, if any.
-  if (0 < packetsToSend.length) {
-    try {
-      nmea2000Source.send(packetsToSend);
-    } catch(e) {
-      console.warn("Failed to send wind packets: %j", packetsToSend);
-      console.warn("because");
-      console.warn(e);
-    }
-  }
+  return packetsToSend;
 }
 
+function makePerformancePackets() {
+  var now = anemonode.currentTime();
+  var source = anemomindEstimatorSource;
+  var packets = [];
+  perfSendLimiter(function() {
+    var data2send = tryGetIfFresh(performanceFields, source, now);
+    if (data2send) {
+      var vmgSI = utils.taggedToSI(data2send.vmg);
+      var targetVmgSI = utils.taggedToSI(data2send.targetVmg);
+      var perf = vmgSI/targetVmgSI;
+      packets.push({
+        deviceIndex: 0, // Which device?
+        pgn: pgntable.BandGVmgPerformance,
+        vmgPerformance: perf,
+        sid: nextSid('performance')
+      });
+    }
+  }, now);
+  return packets;
+}
 
-// Either it is null, meaning we are not sending
-// anything, or it is a map, meaning we are sending.
-var subscriptions = null;
+function subscribeForFields(fields, callback) {
+  fields.forEach(function(field) {
+    var dispatchData = anemonode.dispatcher.values[field];
+	  var code = dispatchData.subscribe(callback);
+    if (field in subscriptions) {
+	    subscriptions[field].push(code);
+    } else {
+      subscriptions[field] = [code];
+    }
+  });
+}
 
-function setSendWindState(shouldSend) {
+function wrapSendCallback(makePackets) {
+  return function() {
+    if (!nmea2000Source) {
+      return; // In case we activate this code *before* having
+              // started the nmea.
+    }
+    var packetsToSend = makePackets();
+
+    // Send the packets, if any.
+    if (packetsToSend instanceof Array && 0 < packetsToSend.length) {
+      try {
+        nmea2000Source.send(packetsToSend);
+      } catch(e) {
+        console.warn("Failed to send packets: %j", packetsToSend);
+        console.warn("because");
+        console.warn(e);
+      }
+    }
+  };
+}
+
+function setSendState(shouldSend) {
   if ((subscriptions == null) == shouldSend) {  // <-- Only do something when state changed.
     if (shouldSend) {
-      console.log("Start sending wind");
+      console.log("Start sending N2k data");
       subscriptions = {};
-      trueWindFields.forEach(function(field) {
-        var dispatchData = anemonode.dispatcher.values[field];
-	      var code = dispatchData.subscribe(trySendWind);
-	      subscriptions[field] = code;
+      fieldSubscriptions.forEach(function(fieldSub) {
+        subscribeForFields(
+          fieldSub.fields, 
+          wrapSendCallback(fieldSub.makePackets));
       });
     } else {
-      console.log("Stop sending wind");
-      trueWindFields.forEach(function(field) {
-        var subscription = subscriptions[field];
-        if (subscription) {
-          var dispatchData = anemonode.dispatcher.values[field];
+      console.log("Stop sending N2k data");
+      for (var fieldKey in subscriptions) {
+        var dispatchData = anemonode.dispatcher.values[fieldKey];
+        subscriptions[fieldKey].forEach(function(subscription) {
           dispatchData.unsubscribe(subscription);
-        }
-      });
+        });
+      }
       subscriptions = null;
     }
+
   }
 }
 
@@ -337,4 +379,3 @@ module.exports.sendPackets = function(packets) {
     }
   }
 };
-
