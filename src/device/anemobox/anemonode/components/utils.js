@@ -7,18 +7,14 @@ function tag(value, unit) {
   return [value, unit];
 }
 
-var unitToSI = {
-  "knots": 0.514444,
-  "kn": "knots",
-  "kt": "knots",
-  "knot": "knots"
-};
+var knotsToSI = 0.514444;
 
-function lookUpUnitFactor(key) {
-  assert(key in unitToSI);
-  var value = unitToSI[key];
-  return typeof value == 'string' ? lookUpUnitFactor(value) : value;
-}
+var unitToSI = {
+  "knots": knotsToSI,
+  "kn": knotsToSI,
+  "kt": knotsToSI,
+  "knot": knotsToSI
+};
 
 function isTagged(x) {
   return x instanceof Array 
@@ -29,7 +25,9 @@ function isTagged(x) {
 function taggedToSI(tagged) {
   assert(isTagged(tagged));
   var quantity = tagged[0];
-  return quantity*lookUpUnitFactor(tagged[1]);
+  var unit = tagged[1];
+  assert(unit in unitToSI);
+  return quantity*unitToSI[unit];
 }
 
 /*

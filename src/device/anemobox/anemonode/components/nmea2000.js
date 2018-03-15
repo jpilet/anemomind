@@ -28,8 +28,7 @@ var trueWindFields = [ 'twa', 'tws', 'twdir' ];
 var performanceFields = ['vmg', 'targetVmg'];
 var windLimiters = {
   twa: makeSendLimiter(),
-  twdir: makeSendLimiter(),
-  aw: makeSendLimiter()
+  twdir: makeSendLimiter()
 };
 var perfSendLimiter = makeSendLimiter();
 // Either it is null, meaning we are not sending
