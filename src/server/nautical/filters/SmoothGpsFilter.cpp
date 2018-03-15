@@ -275,12 +275,17 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
       goodBuilder.add(TimedValue<bool>(b.time, false));
       largeGaps.push_back(LargeGap{maxl, threshold});
     }
-  }{
+  }
+
+
+
+  {
     auto lastFilteredTime = filtered.last().time;
     if (!goodBuilder.empty() && goodBuilder.last().time <= lastFilteredTime) {
       goodBuilder.add(TimedValue<bool>(lastFilteredTime, true));
     }
   }
+
   auto good = goodBuilder.get();
   CHECK(std::is_sorted(good.begin(), good.end()));
 
