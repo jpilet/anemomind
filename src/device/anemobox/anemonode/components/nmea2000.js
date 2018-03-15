@@ -341,7 +341,7 @@ function wrapSendCallback(makePackets) {
       try {
         nmea2000Source.send(packetsToSend);
       } catch(e) {
-        console.warn("Failed to send wind packets: %j", packetsToSend);
+        console.warn("Failed to send packets: %j", packetsToSend);
         console.warn("because");
         console.warn(e);
       }
