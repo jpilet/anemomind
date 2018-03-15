@@ -73,19 +73,11 @@ AstraValueParser asPrimitive(FieldAccess f) {
 }
 
 Optional<Duration<double>> tryParseAstraTimeOfDay(const std::string& src) {
-  for (auto p: parseTimeToStruct("%T", src)) {
-    return double(p.tm_hour)*1.0_h
-        + double(p.tm_min)*1.0_minutes
-        + double(p.tm_sec)*1.0_s;
-  }
-  return {};
+  return parseTimeOfDay("%T", src);
 }
 
 Optional<TimeStamp> tryParseAstraDate(const std::string& s) {
-  for (auto p: parseTimeToStruct("%Y/%m/%d", s)) {
-    return TimeStamp::fromTM(p);
-  }
-  return TimeStamp();
+  return TimeStamp::parse("%Y/%m/%d", s);
 }
 
 Optional<AstraData> tryMakeAstraData(

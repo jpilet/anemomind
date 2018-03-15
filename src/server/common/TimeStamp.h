@@ -35,6 +35,7 @@ class TimeStamp {
   static TimeStamp makeUndefined();
 
   static TimeStamp parse(const std::string &x);
+  static TimeStamp parse(const char* fmt, const std::string &x);
 
 
   bool operator<(const TimeStamp &x) const;
@@ -104,11 +105,11 @@ void sleep(Duration<double> duration);
 
 bool isFinite(const TimeStamp &x);
 
+Optional<Duration<double>> parseTimeOfDay(
+    const char* fmt, const std::string& src);
+
 TimeStamp minDefined(TimeStamp a, TimeStamp b);
 TimeStamp maxDefined(TimeStamp a, TimeStamp b);
-
-Optional<struct tm> parseTimeToStruct(
-    const char* fmt, const std::string& src0);
 
 
 } /* namespace sail */
