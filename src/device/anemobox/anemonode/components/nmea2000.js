@@ -14,6 +14,32 @@ var n2kConfigFile = '/home/anemobox/n2k.config';
 var nmea2000;
 var nmea2000Source;
 var rawPacketLoggingEnabled = false;
+var sendEnabled = true;
+
+// Debugging variables
+var verbose = false;
+var counter = 0;
+
+var channel = null;
+var minResendTime = 100; // ms
+var sidMap = { };
+var anemomindEstimatorSource = 'Anemomind estimator';
+var trueWindFields = [ 'twa', 'tws', 'twdir' ];
+var performanceFields = ['vmg', 'targetVmg'];
+var windLimiters = {
+  twa: makeSendLimiter(),
+  twdir: makeSendLimiter(),
+  aw: makeSendLimiter()
+};
+var perfSendLimiter = makeSendLimiter();
+// Either it is null, meaning we are not sending
+// anything, or it is a map, meaning we are sending.
+var subscriptions = null;
+var fieldSubscriptions = [
+  {fields: trueWindFields, makePackets: makeWindPackets},
+  {fields: performanceFields, makePackets: makePerformancePackets}
+];
+
 
 function configOrDefault(obj, key1, key2, def) {
   if (!obj || !obj[key1] || obj[key1][key2] === undefined) {
@@ -37,7 +63,6 @@ function instantiateNmea2000(cfg) {
   });
 }
 
-var sendEnabled = true;
 
 function updateFromConfig(cfg) {
   sendEnabled = utils.getOrDefault(
@@ -134,10 +159,6 @@ function canPacketReceived(msg) {
   }
 }
 
-// Debugging variables
-var verbose = false;
-var counter = 0;
-
 function logRawPacket(msg) {
   if (rawPacketLoggingEnabled) {
     var systemTime0 = 1000*msg.ts_sec + 0.001*msg.ts_usec;
@@ -159,8 +180,6 @@ function logRawPacket(msg) {
     }
   }
 }
-
-var channel = null;
 
 function startNmea2000(cfg) {
   if (!channel) {
@@ -195,23 +214,15 @@ module.exports.detectSPIBug = function(callback) {
 
 
 
-var minResendTime = 100; // ms
-
 function makeSendLimiter() {
   return utils.makeTemporalLimiter(minResendTime);
 }
-
-var sidMap = { };
 
 function nextSid(key) {
   var sid = sidMap[key] || 0;
   sidMap[key] = (sid + 1) % 250; // <-- Good value?
   return sid;
 }
-
-var anemomindEstimatorSource = 'Anemomind estimator';
-var trueWindFields = [ 'twa', 'tws', 'twdir' ];
-var performanceFields = ['vmg', 'targetVmg'];
 
 function tryGetIfFresh(fields, sourceName, timestamp) {
   var channels = anemonode.dispatcher.allSources();
@@ -245,13 +256,6 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
   return dst;
 }
 
-
-var windLimiters = {
-  twa: makeSendLimiter(),
-  twdir: makeSendLimiter(),
-  aw: makeSendLimiter()
-};
-
 function makeWindPackets() {
   var now = anemonode.currentTime();
   var packetsToSend = [];
@@ -283,8 +287,6 @@ function makeWindPackets() {
   return packetsToSend;
 }
 
-var perfSendLimiter = makeSendLimiter();
-
 function makePerformancePackets() {
   var now = anemonode.currentTime();
   var source = anemomindEstimatorSource;
@@ -306,11 +308,6 @@ function makePerformancePackets() {
   return packets;
 }
 
-
-// Either it is null, meaning we are not sending
-// anything, or it is a map, meaning we are sending.
-var subscriptions = null;
-
 function subscribeForFields(fields, callback) {
   fields.forEach(function(field) {
     var dispatchData = anemonode.dispatcher.values[field];
@@ -322,11 +319,6 @@ function subscribeForFields(fields, callback) {
     }
   });
 }
-
-var fieldSubscriptions = [
-  {fields: trueWindFields, makePackets: makeWindPackets},
-  {fields: performanceFields, makePackets: makePerformancePackets}
-];
 
 function wrapSendCallback(makePackets) {
   return function() {
@@ -348,8 +340,6 @@ function wrapSendCallback(makePackets) {
     }
   };
 }
-
-
 
 function setSendState(shouldSend) {
   if ((subscriptions == null) == shouldSend) {  // <-- Only do something when state changed.
