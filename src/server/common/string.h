@@ -4,7 +4,8 @@
 #include <string>
 #include <sstream>
 #include <server/common/Array.h>
-
+#include <server/common/Optional.h>
+#include <iostream>
 
 namespace sail {
 
@@ -19,6 +20,24 @@ std::string objectToString(const T &x) {
 
 bool tryParseInt(const std::string &s, int *out);
 bool tryParseDouble(const std::string &s, double *out);
+
+template <typename T>
+Optional<T> tryParse(const std::string& src) {
+  std::stringstream ss;
+  ss << src;
+  T dst;
+  if (ss >> dst) {
+    return dst;
+  }
+  return {};
+}
+
+template <typename T>
+struct PrimitiveParser {
+  Optional<T> operator()(const std::string& s) const {
+    return tryParse<T>(s);
+  }
+};
 
 bool isEscaped(char c);
 unsigned char decodeHexDigit(char c);
@@ -41,6 +60,9 @@ void indent(std::ostream *s, int count);
 
 std::string readFileToString(const std::string& filename);
 Array<std::string> split(std::string x, char delimiter);
+
+bool isBlank(char c);
+bool isBlankString(const std::string& s);
 
 template <class StringCollection>
 std::string join(const StringCollection& array, const std::string& delimiter) {

@@ -210,6 +210,23 @@ auto concat(ArrayOfArrays arrayOfArrays) -> Array<decltype(copyOf(std::declval<A
   return dst.get();
 }
 
+template <typename F>
+struct ComplementFunction {
+  F f;
+  template <typename ... T>
+  bool operator()(T ... x) {
+    return !f(x...);
+  }
+};
+
+// Constructs a functor that returns
+// a true value iff f returns a falsy value,
+// otherwise it returns false.
+template <typename F>
+ComplementFunction<F> complementFunction(F f) {
+  return ComplementFunction<F>{f};
+}
+
 }
 
 #undef ADD_METHODS_FOR_MAPPED

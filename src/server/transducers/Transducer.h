@@ -45,6 +45,22 @@ namespace sail {
  *
  */
 
+// Just for debugging
+class IntoCount {
+public:
+  template <typename T>
+  void add(const T&) {
+    counter++;
+  }
+
+  void flush() {}
+
+  int64_t result() const {return counter;}
+
+  bool done() const {return false;}
+private:
+  int64_t counter = 0;
+};
 
 template <typename T>
 class IntoArray {
@@ -60,9 +76,30 @@ public:
   }
 
   void flush() {}
+
+  bool done() const {return false;}
 private:
   sail::ArrayBuilder<T> _dst;
 };
+
+template <typename T>
+class IntoAssignment {
+public:
+  IntoAssignment(T* dst) : _dst(dst) {}
+
+  template <typename X>
+  void add(const X& x) {*_dst = x;}
+  bool done() const {return false;}
+  void flush() {}
+  const T& result() const {return *_dst;}
+private:
+  T* _dst;
+};
+
+template <typename T>
+IntoAssignment<T> intoAssignment(T* x) {
+  return IntoAssignment<T>(x);
+}
 
 template <typename F, typename T>
 class IntoReduction {
@@ -79,6 +116,8 @@ public:
   }
 
   void flush() {}
+
+  bool done() const {return false;}
 private:
   F _f;
   T _result;
@@ -115,7 +154,6 @@ public:
   private:
     Result _result;
   public:
-
     Step(F f, Result r) : _f(f), _result(r) {}
 
     template <typename T>
@@ -129,6 +167,10 @@ public:
 
     auto result() -> decltype(_result.result()) {
       return _result.result();
+    }
+
+    bool done() const {
+      return _result.done() || _f.done(_result);
     }
   private:
     F _f;
@@ -165,16 +207,23 @@ GenericTransducer<Stepper> genericTransducer(Stepper s) {
   return GenericTransducer<Stepper>(s);
 }
 
-
-struct StatelessStepper {
+struct NothingToFlush {
   template <typename Result> void flush(Result* r) {
     r->flush();
   }
 };
 
+struct NeverDone {
+  template <typename R>
+  bool done(const R& ) const {return false;}
+};
+
+
+struct StatelessStepper : public NothingToFlush, public NeverDone {};
+
 //// Helper types
 template <typename F>
-struct MapStepper : StatelessStepper {
+struct MapStepper : public StatelessStepper {
   F f;
   MapStepper(F fn) : f(fn) {}
 
@@ -198,6 +247,57 @@ struct FilterStepper : public StatelessStepper {
   }
 };
 
+struct TakeStepper : public NothingToFlush {
+  int counter = 0;
+  int limit = 0;
+
+  TakeStepper(int l) : limit(l) {}
+
+  template <typename R, typename T>
+  void apply(R* result, const T& x) {
+    if (counter < limit) {
+      result->add(x);
+      counter++;
+    }
+  }
+
+  template <typename R>
+  bool done(const R& result) const {
+    return limit <= counter;
+  }
+};
+
+template <typename F>
+struct TakeWhileStepper : public NothingToFlush {
+  F f;
+  bool good = true;
+
+  TakeWhileStepper(F f0) : f(f0) {}
+
+  template <typename R, typename T>
+  void apply(R* result, const T& x) {
+    good = good && f(x);
+    if (good) {
+      result->add(x);
+    }
+  }
+
+  template <typename R>
+  bool done(const R&) const {
+    return !good;
+  }
+};
+
+struct CatStepper : public StatelessStepper {
+  template <typename R, typename T>
+  void apply(R* result, const T& X) const {
+    for (const auto& x: X) {
+      result->add(x);
+    }
+  }
+};
+
+
 // Common transducer types
 
 template <typename F>
@@ -210,6 +310,19 @@ GenericTransducer<FilterStepper<F>> trFilter(F f) {
   return genericTransducer(FilterStepper<F>{f});
 }
 
+inline GenericTransducer<TakeStepper> trTake(int limit) {
+  return genericTransducer(TakeStepper(limit));
+}
+
+template <typename F>
+inline GenericTransducer<TakeWhileStepper<F>> trTakeWhile(F f) {
+  return genericTransducer(TakeWhileStepper<F>(f));
+}
+
+inline GenericTransducer<CatStepper> trCat() {
+  return genericTransducer(CatStepper());
+}
+
 /**
  * The main function, that takes an iterable source collection
  * and transduces it into a result using the transducer tr.
@@ -219,6 +332,9 @@ auto transduce(const Coll& coll, Transducer tr, Result r0)
   -> decltype(tr.apply(r0).result()) {
   auto r = tr.apply(r0);
   for (const auto& x: coll) {
+    if (r.done()) {
+      break;
+    }
      r.add(x);
   }
   r.flush();
