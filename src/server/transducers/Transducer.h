@@ -262,8 +262,29 @@ struct TakeStepper : public NothingToFlush {
   }
 
   template <typename R>
-  bool done(const R&) const {
+  bool done(const R& result) const {
     return limit <= counter;
+  }
+};
+
+template <typename F>
+struct TakeWhileStepper : public NothingToFlush {
+  F f;
+  bool good = true;
+
+  TakeWhileStepper(F f0) : f(f0) {}
+
+  template <typename R, typename T>
+  void apply(R* result, const T& x) {
+    good = good && f(x);
+    if (good) {
+      result->add(x);
+    }
+  }
+
+  template <typename R>
+  bool done(const R&) const {
+    return !good;
   }
 };
 
@@ -291,6 +312,11 @@ GenericTransducer<FilterStepper<F>> trFilter(F f) {
 
 inline GenericTransducer<TakeStepper> trTake(int limit) {
   return genericTransducer(TakeStepper(limit));
+}
+
+template <typename F>
+inline GenericTransducer<TakeWhileStepper<F>> trTakeWhile(F f) {
+  return genericTransducer(TakeWhileStepper<F>(f));
 }
 
 inline GenericTransducer<CatStepper> trCat() {

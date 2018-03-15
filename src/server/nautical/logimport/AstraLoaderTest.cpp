@@ -57,7 +57,7 @@ TEST(TestAstraLoader, DateTest) {
       TimeStamp::UTC(2018, 3, 9, 0, 0, 0));
 }
 
-TEST(TestAstraLoader, TestLoadCoach) {
+/*TEST(TestAstraLoader, TestLoadCoach) {
   std::string filename = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("astradata")
@@ -88,4 +88,4 @@ TEST(TestAstraLoader, TestLoadCoach) {
   EXPECT_NEAR(x.lat.get().degrees(), 45.797494, 1.0e-9);
 
 
-}
+}*/

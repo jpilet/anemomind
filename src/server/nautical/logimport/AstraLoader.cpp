@@ -179,40 +179,32 @@ std::map<std::string, AstraValueParser,
 };
 
 Optional<Array<std::pair<std::string, AstraValueParser>>>
-  tryParseAstraColSpec(const std::string& s) {
-  int at = 0;
-  ArrayBuilder<
-    std::pair<std::string, AstraValueParser>> result;
-  while (at < s.length()) {
-    if (isBlank(s[at])) {
-      at++;
-    } else {
-      bool found = false;
-      int remaining = s.length() - at;
-      for (auto kv: knownHeaders) {
-        if (kv.first.length() <= remaining
-            && (s.substr(at, kv.first.length())
-                == kv.first)) {
-          result.add(kv);
-          at += kv.first.length();
-          found = true;
-        }
-      }
-      if (!found) {
-        return {};
-      }
-    }
-  }
-  auto arr = result.get();
-  if (arr.empty()) {
-    return {};
-  } else {
-    return arr;
-  }
+  tryParseAstraColSpec(const Array<std::string>& tokens) {
+  typedef std::map<std::string, AstraValueParser,
+      LongWordsFirst>::iterator Iterator;
+  auto result = transduce(
+      tokens,
+      trMap([](const std::string& token) {
+        return knownHeaders.find(token);
+      })
+      |
+      trTakeWhile([](Iterator f){
+        return f != knownHeaders.end();
+      })
+      |
+      trMap([](Iterator f) {
+        return *f;
+      }),
+      IntoArray<std::pair<std::string, AstraValueParser>>());
+  return result.size() == tokens.size()?
+      Optional<Array<std::pair<std::string, AstraValueParser>>>(result)
+      : Optional<Array<std::pair<std::string, AstraValueParser>>>();
 }
 
-Array<std::string> parseAstraTableRow(const std::string& s) {
-  return transduce(s, trSplitString(&isBlank), IntoArray<std::string>());
+Array<std::string> tokenizeAstra(const std::string& s) {
+  return transduce(s, trTokenize(&isBlank), IntoArray<std::string>());
 }
+
+
 
 } /* namespace sail */

@@ -204,3 +204,11 @@ TEST(TransducerTest, IntoAssignmentTest) {
   EXPECT_TRUE(result.defined());
   EXPECT_EQ(238, result.get());
 }
+
+TEST(TransducerTest, TestTakeWhile) {
+  auto result = transduce(
+      std::vector<int>{6, 5, 4, 3, 2, 1, 0, -1, -2, -1, 0, 1, 2, 3, 4},
+      trTakeWhile([](int i) {return 0 < i;}),
+      IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{6, 5, 4, 3, 2, 1}));
+}

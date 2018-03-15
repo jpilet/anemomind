@@ -53,9 +53,9 @@ typedef Array<std::pair<
     std::string, AstraValueParser>> AstraColSpec;
 typedef Array<std::string> AstraTableRow;
 
-Optional<AstraColSpec> tryParseAstraColSpec(const std::string& s);
+Optional<AstraColSpec> tryParseAstraColSpec(const Array<std::string>& s);
 
-Array<std::string> parseAstraTableRow(const std::string& s);
+Array<std::string> tokenizeAstra(const std::string& s);
 
 Optional<Duration<double>> tryParseAstraTimeOfDay(const std::string& s);
 
@@ -68,11 +68,12 @@ struct AstraLinePreparseStep : public StatelessStepper {
       result->add(h);
       return;
     }
-    for (const auto& sp: tryParseAstraColSpec(s)) {
+    auto tokens = tokenizeAstra(s);
+    for (const auto& sp: tryParseAstraColSpec(tokens)) {
       result->add(sp);
       return;
     }
-    result->add(parseAstraTableRow(s));
+    result->add(tokens);
   }
 };
 
