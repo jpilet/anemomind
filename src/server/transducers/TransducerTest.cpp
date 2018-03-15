@@ -8,7 +8,8 @@
 #include <gtest/gtest.h>
 #include <server/transducers/Transducer.h>
 #include <server/common/Span.h>
-#include "ParseTransducers.h"
+#include <server/transducers/ParseTransducers.h>
+#include <server/common/Optional.h>
 
 using namespace sail;
 
@@ -191,4 +192,15 @@ TEST(TransducerTest, SplitNumbers) {
       IntoArray<std::string>());
 
   EXPECT_EQ(results, (Array<std::string>{"999", "34"}));
+}
+
+TEST(TransducerTest, IntoAssignmentTest) {
+  Optional<int> dst;
+  auto result = transduce(
+      std::vector<int>({119}),
+      trMap([](int i) {return 2*i;}),
+      intoAssignment(&dst));
+
+  EXPECT_TRUE(result.defined());
+  EXPECT_EQ(238, result.get());
 }
