@@ -378,8 +378,3 @@ cxx_test(common_DynamicUtilsTest
 add_executable(common_traitsTest # only static tests
   traitsTest.cpp
   )
-
-cxx_test(common_TransducerTest
-  TransducerTest.cpp
-  gtest_main
-  )
