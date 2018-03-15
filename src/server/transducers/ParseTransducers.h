@@ -24,7 +24,7 @@ namespace sail {
  *
  */
 
-struct StreamLineBreaker : public NeverDone {
+struct StreamLineBreaker : public StatelessStepper {
   template <typename R>
   void apply(R* result, const std::shared_ptr<std::istream>& src) {
     if (!src) {
@@ -34,11 +34,6 @@ struct StreamLineBreaker : public NeverDone {
     while (std::getline(*src, line)) {
       result->add(line);
     }
-  }
-
-  template <typename R>
-  void flush(R* result) {
-    result->flush();
   }
 };
 
