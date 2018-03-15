@@ -23,7 +23,6 @@ struct AstraHeader {
 Optional<AstraHeader> tryParseAstraHeader(const std::string& s);
 
 struct AstraData {
-  //TimeStamp date;
   TimeStamp partialTimestamp; // <-- Full timestamp, or only the day/date.
   Optional<Duration<double>> timeOfDay;
 
