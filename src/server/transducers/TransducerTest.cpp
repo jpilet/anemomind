@@ -76,7 +76,7 @@ TEST(TransducerTest, ComposeTest) {
 // non-trivial flush function.
 
 template <typename T>
-class MyBundleStepper : public NeverReduced {
+class MyBundleStepper : public NeverDone {
 public:
   MyBundleStepper(
       std::function<bool(T, T)> f) : _separate(f){}

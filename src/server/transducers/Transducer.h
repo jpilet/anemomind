@@ -57,7 +57,7 @@ public:
 
   int64_t result() const {return counter;}
 
-  bool reduced() const {return false;}
+  bool done() const {return false;}
 private:
   int64_t counter = 0;
 };
@@ -77,7 +77,7 @@ public:
 
   void flush() {}
 
-  bool reduced() const {return false;}
+  bool done() const {return false;}
 private:
   sail::ArrayBuilder<T> _dst;
 };
@@ -89,7 +89,7 @@ public:
 
   template <typename X>
   void add(const X& x) {*_dst = x;}
-  bool reduced() const {return false;}
+  bool done() const {return false;}
   void flush() {}
   const T& result() const {return *_dst;}
 private:
@@ -117,7 +117,7 @@ public:
 
   void flush() {}
 
-  bool reduced() const {return false;}
+  bool done() const {return false;}
 private:
   F _f;
   T _result;
@@ -169,8 +169,8 @@ public:
       return _result.result();
     }
 
-    bool reduced() const {
-      return _result.reduced() || _f.reduced(_result);
+    bool done() const {
+      return _result.done() || _f.done(_result);
     }
   private:
     F _f;
@@ -213,13 +213,13 @@ struct NothingToFlush {
   }
 };
 
-struct NeverReduced {
+struct NeverDone {
   template <typename R>
-  bool reduced(const R& ) const {return false;}
+  bool done(const R& ) const {return false;}
 };
 
 
-struct StatelessStepper : public NothingToFlush, public NeverReduced {};
+struct StatelessStepper : public NothingToFlush, public NeverDone {};
 
 //// Helper types
 template <typename F>
@@ -262,7 +262,7 @@ struct TakeStepper : public NothingToFlush {
   }
 
   template <typename R>
-  bool reduced(const R&) const {
+  bool done(const R&) const {
     return limit <= counter;
   }
 };
@@ -306,7 +306,7 @@ auto transduce(const Coll& coll, Transducer tr, Result r0)
   -> decltype(tr.apply(r0).result()) {
   auto r = tr.apply(r0);
   for (const auto& x: coll) {
-    if (r.reduced()) {
+    if (r.done()) {
       break;
     }
      r.add(x);

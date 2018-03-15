@@ -24,7 +24,7 @@ namespace sail {
  *
  */
 
-struct StreamLineBreaker : public NeverReduced {
+struct StreamLineBreaker : public NeverDone {
   template <typename R>
   void apply(R* result, const std::shared_ptr<std::istream>& src) {
     if (!src) {
@@ -47,7 +47,7 @@ inline GenericTransducer<StreamLineBreaker> trStreamLines() {
 }
 
 template <typename IsSeparator>
-class StringSplitStepper : public NeverReduced {
+class StringSplitStepper : public NeverDone {
 public:
   StringSplitStepper(IsSeparator issep) : _isSeparator(issep) {}
 
