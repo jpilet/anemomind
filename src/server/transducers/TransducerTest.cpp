@@ -164,6 +164,19 @@ TEST(TransducerTest, EarlyStoppingTest) {
   EXPECT_EQ(result, (Array<int>{0, 1, 2, 3}));
 }
 
+TEST(TransducerTest, EarlyStoppingTest2) { // Like the test before, but reversed order
+  auto result = transduce(
+      Span<int>(0, 300),
+      trTake(4)
+      |
+      trMap([](int i) {
+        EXPECT_LT(i, 4); // Check that we actually only take 4 elements.
+        return i;
+      }),
+      IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{0, 1, 2, 3}));
+}
+
 TEST(TransducerTest, SplitNumbers) {
   auto results = transduce(
       std::string("  , , , ,   999,34  ,,,  ,, , ,   "),
