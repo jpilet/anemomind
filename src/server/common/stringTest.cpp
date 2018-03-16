@@ -34,7 +34,15 @@ TEST(StringTest, FormatTest) {
   EXPECT_EQ(result, "Nine is 9");
 }
 
-TEST(StringTetst, joinTest) {
+TEST(StringTest, joinTest) {
   EXPECT_EQ("a+b+c", join(std::vector<std::string>{"a", "b", "c"}, "+"));
   EXPECT_EQ("a", join(std::vector<std::string>{"a"}, "\n"));
+}
+
+TEST(StringTest, TryParse) {
+  EXPECT_EQ(tryParse<int>("934").get(), 934);
+  EXPECT_EQ(tryParse<int>("15").get(), 15);
+  EXPECT_FALSE(tryParse<int>("").defined());
+  EXPECT_FALSE(tryParse<int>("    ").defined());
+  EXPECT_EQ(tryParse<double>("2.3e-3").get(), 0.0023);
 }

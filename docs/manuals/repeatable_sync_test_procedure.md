@@ -8,11 +8,12 @@ This is a complementary, more rigorous, procedure for testing the synchronizatio
 
 
 ## Steps
+0. Call ```www2/synctest/refresh_boxid.sh```
 1. Launch the web server.
-2. On the laptop, go to ```cd www2/synctest``` and call ```./reset_web_server.sh```. That will reset the web server and add a test user, ```test@anemomind.com``` with password ```anemoTest```.
+2. On the laptop, go to ```cd www2/synctest``` and call ```NODE_ENV=development ./reset_web_server.sh```. That will reset the web server and add a test user, ```test@anemomind.com``` with password ```anemoTest```.
 3. In the ```anemomind-ios``` subdirectory, call ```./prepare_full_reset.sh``` and ```./prepare_sync_test.sh```.
 4. On the box, call ```./factory_reset.sh``` from the ```/anemonode``` directory. 
-5. Launch the box service, by calling ```./synctest/sync_run1.sh``` or just ```./run.sh```. TODO: *In the current implementation, a sync won't be triggered when a boat id is assigned, but we have a task for that. Therefore, there is no point in trying to run the test from here. All we want is to make all devices being aware of each other.*.
+5. Launch the box service, by calling ```NO_WATCHDOG=1 ./synctest/sync_run1.sh``` or just ```NO_WATCHDOG=1 ./run.sh```. TODO: *In the current implementation, a sync won't be triggered when a boat id is assigned, but we have a task for that. Therefore, there is no point in trying to run the test from here. All we want is to make all devices being aware of each other.*.
 6. Connect the app to the local network, ```anemomind2```
 7. Compile and launch the app.
 8. Log in on the app using the username ```test@anemomind.com```.

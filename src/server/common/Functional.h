@@ -210,6 +210,7 @@ auto concat(ArrayOfArrays arrayOfArrays) -> Array<decltype(copyOf(std::declval<A
   return dst.get();
 }
 
+<<<<<<< HEAD
 template <typename T>
 struct Constantly {
   T value;
@@ -222,6 +223,23 @@ struct Constantly {
 template <typename T>
 Constantly<T> constantly(T x) {
   return Constantly<T>{x};
+=======
+template <typename F>
+struct ComplementFunction {
+  F f;
+  template <typename ... T>
+  bool operator()(T ... x) {
+    return !f(x...);
+  }
+};
+
+// Constructs a functor that returns
+// a true value iff f returns a falsy value,
+// otherwise it returns false.
+template <typename F>
+ComplementFunction<F> complementFunction(F f) {
+  return ComplementFunction<F>{f};
+>>>>>>> master
 }
 
 }

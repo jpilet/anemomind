@@ -6,7 +6,9 @@
  */
 
 #include <gtest/gtest.h>
-#include <server/common/Transducer.h>
+#include <server/transducers/Transducer.h>
+#include <server/common/Span.h>
+#include <server/transducers/ParseTransducers.h>
 #include <server/common/Optional.h>
 #include <math.h>
 
@@ -76,7 +78,7 @@ TEST(TransducerTest, ComposeTest) {
 // non-trivial flush function.
 
 template <typename T>
-class MyBundleStepper {
+class MyBundleStepper : public NeverDone {
 public:
   MyBundleStepper(
       std::function<bool(T, T)> f) : _separate(f){}
@@ -192,4 +194,80 @@ TEST(TransducerTest, CatTest2) {
              //     each optional being a collection with at most 1 element.
       IntoArray<double>());
   EXPECT_EQ(result, (Array<double>{3, 2, 5, 4}));
+}
+
+TEST(TransducerTest, LineBreakerTest) {
+  auto s1 = std::make_shared<std::stringstream>();
+  auto s2 = std::make_shared<std::stringstream>();
+
+  *s1 << "Kattskit\nBra\nMu";
+  *s2 << "Katt\nCalibration";
+
+  auto result = transduce(
+      std::vector<std::shared_ptr<std::stringstream>>{s1, s2},
+      trStreamLines(),
+      IntoArray<std::string>());
+  EXPECT_EQ(result, (Array<std::string>{
+    "Kattskit", "Bra", "Mu", "Katt", "Calibration"}));
+}
+
+TEST(TransducerTest, EarlyStoppingTest) {
+  auto result = transduce(
+      Span<int>(0, 300),
+      trMap([](int i) {
+        EXPECT_LT(i, 4); // Check that we actually only take 4 elements.
+        return i;
+      })
+      |
+      trTake(4),
+      IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{0, 1, 2, 3}));
+}
+
+TEST(TransducerTest, EarlyStoppingTest2) { // Like the test before, but reversed order
+  auto result = transduce(
+      Span<int>(0, 300),
+      trTake(4)
+      |
+      trMap([](int i) {
+        EXPECT_LT(i, 4); // Check that we actually only take 4 elements.
+        return i;
+      }),
+      IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{0, 1, 2, 3}));
+}
+
+TEST(TransducerTest, SplitNumbers) {
+  auto results = transduce(
+      std::string("  , , , ,   999,34  ,,,  ,, , ,   "),
+      trMap([](char c) {
+        if (c == ',') {return '.';}
+        return c;
+      })
+      |
+      trTokenize([](char c) {
+        return c == ' ' || c == '.';
+      }),
+      IntoArray<std::string>());
+
+  EXPECT_EQ(results, (Array<std::string>{"999", "34"}));
+}
+
+TEST(TransducerTest, IntoAssignmentTest) {
+  Optional<int> dst;
+  auto result = transduce(
+      std::vector<int>({119}),
+      trMap([](int i) {return 2*i;}),
+      intoAssignment(&dst));
+
+  EXPECT_TRUE(result.defined());
+  EXPECT_EQ(238, result.get());
+}
+
+TEST(TransducerTest, TestTakeWhile) {
+  auto result = transduce(
+      std::vector<int>{6, 5, 4, 3, 2, 1, 0, -1, -2, -1, 0, 1, 2, 3, 4},
+      trTakeWhile([](int i) {return 0 < i;}),
+      IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{6, 5, 4, 3, 2, 1}));
 }
