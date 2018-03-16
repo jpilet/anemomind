@@ -62,6 +62,26 @@ private:
   int64_t counter = 0;
 };
 
+class IntoOr {
+public:
+  bool result() const {return _value;}
+  void add(bool v) {_value = _value || v;}
+  bool done() const {return _value;}
+  void flush() {}
+private:
+  bool _value = false;
+};
+
+class IntoAnd {
+public:
+  bool result() const {return _value;}
+  void add(bool v) {_value = _value && v;}
+  bool done() const {return !_value;}
+  void flush() {}
+private:
+  bool _value = true;
+};
+
 template <typename T>
 class IntoArray {
 public:

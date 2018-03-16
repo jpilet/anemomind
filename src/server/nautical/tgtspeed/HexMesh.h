@@ -12,6 +12,7 @@
 #include <server/common/MDArray.h>
 #include <server/common/WeightedIndex.h>
 #include <server/common/Optional.h>
+#include <array>
 
 namespace sail {
 

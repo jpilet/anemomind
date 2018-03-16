@@ -12,6 +12,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <iostream>
 #include <iomanip>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -75,11 +76,12 @@ Optional<std::array<WeightedIndex, 3>> HexMesh::represent(
   int y = int(yf);
 
   auto lower = (gridPos(0) - xf) + (gridPos(1) - yf) < 1;
-  std::array<int, 3> inds{
+  std::array<int, 3> inds;
+  /*inds[0] =
     vertexIndexAt(x+1, y),
     vertexIndexAt(x, y+1),
     lower? vertexIndexAt(x, y) : vertexIndexAt(x+1, y+1)
-  };
+  };*/
   if (transduce(inds, trMap([](int i) {return i == -1;}), IntoOr())) {
 
   }

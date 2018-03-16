@@ -271,3 +271,20 @@ TEST(TransducerTest, TestTakeWhile) {
       IntoArray<int>());
   EXPECT_EQ(result, (Array<int>{6, 5, 4, 3, 2, 1}));
 }
+
+TEST(TransducerTest, IntoAndTest) {
+  EXPECT_FALSE(
+      transduce(Array<bool>{false, false, true}, trIdentity(), IntoAnd()));
+  EXPECT_TRUE(
+      transduce(Array<bool>{true, true, true}, trIdentity(), IntoAnd()));
+  EXPECT_FALSE(
+      transduce(Array<bool>{true, true, true, false},
+          trIdentity(), IntoAnd()));
+}
+
+TEST(TransducerTest, IntoOrTest) {
+  EXPECT_TRUE(
+      transduce(Array<bool>{false, false, true}, trIdentity(), IntoOr()));
+  EXPECT_FALSE(
+      transduce(Array<bool>{false, false}, trIdentity(), IntoOr()));
+}
