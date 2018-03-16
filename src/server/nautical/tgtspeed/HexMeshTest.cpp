@@ -11,7 +11,7 @@
 using namespace sail;
 
 TEST(HexMeshTest, BasicTest) {
-  HexMesh mesh(2, 1.0);
+  HexMesh mesh(3, 2.0);
 
   {
     auto xw = Eigen::Vector2d(3, 4);
