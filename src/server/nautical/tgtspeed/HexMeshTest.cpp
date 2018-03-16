@@ -56,4 +56,6 @@ TEST(HexMeshTest, BasicTest) {
   mesh.dispVertexLayout();
 
   EXPECT_EQ(37, mesh.vertexCount());
+
+  EXPECT_FALSE(mesh.represent(Eigen::Vector2d(1000, 1000)).defined());
 }
