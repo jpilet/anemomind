@@ -3,6 +3,7 @@
 #include <functional>
 #include <device/anemobox/Dispatcher.h>
 #include <server/nautical/NavDataset.h>
+#include <set>
 #include <string>
 #include <server/common/logging.h>
 
@@ -30,6 +31,15 @@ TimeStamp tileEndTime(int64_t tile, int zoom) {
 
 
 namespace {
+
+bool sourceShouldUploadChartTiles(const std::string& source) {
+  static const std::set<std::string> blacklist{
+    "IMU", // IMU is not reliable. We do not want to expose it in our UI.
+    "NMEA2000/0", // Let's ignore nmea2000 data from unidentified sources.
+  };
+
+  return blacklist.find(source) == blacklist.end();
+}
 
 template <typename T>
 void downSampleData(int64_t tileno, int zoom,
@@ -414,6 +424,10 @@ bool uploadChartTiles(const NavDataset& data,
 
   for (auto channel : allSources) {
     for (auto source : channel.second) {
+      if (!sourceShouldUploadChartTiles(source.first)) {
+        continue;
+      }
+
       if (!uploadChartTiles(source.second.get(), boatId,
                             settings, &inserter, &index)) {
         return false;
