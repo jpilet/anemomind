@@ -76,15 +76,37 @@ Optional<std::array<WeightedIndex, 3>> HexMesh::represent(
   int y = int(yf);
 
   auto lower = (gridPos(0) - xf) + (gridPos(1) - yf) < 1;
-  std::array<int, 3> inds;
-  /*inds[0] =
+  std::array<int, 3> inds{
     vertexIndexAt(x+1, y),
     vertexIndexAt(x, y+1),
     lower? vertexIndexAt(x, y) : vertexIndexAt(x+1, y+1)
-  };*/
+  };
   if (transduce(inds, trMap([](int i) {return i == -1;}), IntoOr())) {
-
+    return {};
   }
+  Eigen::Matrix3d lhs;
+  Eigen::Vector3d rhs;
+  for (int i = 0; i < 3; i++) {
+    auto v = _index2coord[inds[i]];
+    lhs(0, i) = v.first;
+    lhs(1, i) = v.second;
+    lhs(2, i) = 1.0;
+  }
+  rhs(0) = gridPos(0);
+  rhs(1) = gridPos(1);
+  rhs(2) = 1.0;
+  Eigen::Vector3d X = lhs.colPivHouseholderQr().solve(rhs);
+  double sum = 0.0;
+  for (int i = 0; i < 3; i++) {
+    CHECK(-1.0e-6 <= X(i));
+    sum += X(i);
+  }
+  CHECK(fabs(sum - 1.0) <= 1.0e-6);
+  return std::array<WeightedIndex, 3>{
+    WeightedIndex(inds[0], X(0)),
+    WeightedIndex(inds[1], X(1)),
+    WeightedIndex(inds[2], X(2))
+  };
 }
 
 
