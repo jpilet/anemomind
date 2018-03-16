@@ -33,6 +33,17 @@ TEST(HexMeshTest, BasicTest) {
     auto y = mesh.worldToGrid(x);
     EXPECT_LT(0.1, y(0));
     EXPECT_LT(0.1, y(1));
+    EXPECT_NEAR(y(0), 3.0, 0.01);
+    EXPECT_NEAR(y(1), 3.0, 0.01);
+  }
+
+  {
+    auto x = Eigen::Vector2d(1.0, 0.0);
+    auto y = mesh.worldToGrid(x);
+    EXPECT_LT(0.1, y(0));
+    EXPECT_LT(0.1, y(1));
+    EXPECT_NEAR(y(0), 3.5, 0.01);
+    EXPECT_NEAR(y(1), 3.0, 0.01);
   }
 
   {
