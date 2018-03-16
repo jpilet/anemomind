@@ -6,7 +6,7 @@
  */
 
 #include <server/common/ArrayBuilder.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 #include <server/common/logging.h>
 #include <server/math/SampleUtils.h>
 #include <server/nautical/filters/GpsUtils.h>
@@ -112,7 +112,7 @@ TimedValue<Motion2d> toMotion2d(const TimedValue<HorizontalMotion<double>>& x) {
 
 Array<TimedValue<Motion2d>> to2dMotions(
     const Array<TimedValue<HorizontalMotion<double>>>& src) {
-  return sail::map(src, &toMotion2d);
+  return transduce(src, trMap(&toMotion2d), IntoArray<TimedValue<Motion2d>>());
 }
 
 Array<TimedValue<GeographicPosition<double>>>
@@ -524,7 +524,7 @@ Eigen::Vector2d tov2(
 
 Array<Eigen::Vector2d> toV2(
     const Array<TimedValue<Position2d>> &src) {
-  return map(src, &tov2);
+  return transduce(src, trMap(&tov2), IntoArray<Eigen::Vector2d>());
 }
 
 Array<Eigen::Vector2d> toV2(
@@ -953,7 +953,9 @@ TimeSeg segmentTime(
       settings.subProblemThreshold, settings.subProblemLength);
   CHECK(std::is_sorted(splits.begin(), splits.end()));
   if (withDistance) {
-    splits = concat(Array<Array<TimeStamp>>{splits, findDistanceSplits(data.positions)});
+    splits = transduce(Array<Array<TimeStamp>>{
+      splits, findDistanceSplits(data.positions)}, trCat(),
+        IntoArray<TimeStamp>());
     std::sort(splits.begin(), splits.end());
   }
   return TimeSeg{splits, positionTimes,

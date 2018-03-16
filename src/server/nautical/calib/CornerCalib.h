@@ -21,7 +21,7 @@
 #include <server/common/Array.h>
 #include <server/math/PointQuad.h>
 #include <server/math/Integral1d.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 #include <server/common/math.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
@@ -119,10 +119,10 @@ public:
       _settings(s), _n(computeTotalQuadCount(sampleGroups, s.windowSize)) {
     _refSmoothness.reserve(_n);
     for (auto samples: _sampleGroups) {
-      auto quads = sail::map(samples,
-          [&](const Sample &sample) {
+      auto quads = transduce(samples,
+          trMap([&](const Sample &sample) {
         return PointQuad<double, 2>(motionToVec(sample.refMotion()));
-      }).toArray();
+      }), IntoArray<PointQuad<double, 2>>());
       accumulateCornerSmoothnesses<double>(quads, s.windowSize, &_refSmoothness);
     }
   }

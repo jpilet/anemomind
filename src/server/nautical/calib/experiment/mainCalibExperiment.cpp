@@ -61,7 +61,8 @@ void testErrorRelation(int argc, const char **argv) {
   int windowSize = 60;
 
   auto flowErrors = computeRelativeErrors(flows, windowSize);
-  auto gpsErrors = computeRelativeErrors(sail::map(mats, &getB).toArray(),
+  auto gpsErrors = computeRelativeErrors(
+      transduce(mats, trMap(&getB), IntoArray<Eigen::Vector2d>()),
       windowSize);
 
   GnuplotExtra plot;

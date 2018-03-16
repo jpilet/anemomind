@@ -11,7 +11,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/TimedValue.h>
 #include <server/common/Optional.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 #include <server/common/IntervalUtils.h>
 #include <algorithm>
 
@@ -50,9 +50,9 @@ Arrayd toLocalTimes(const Array<TimedValue<T> > &values, const Duration<double> 
     return Arrayd();
   }
   auto offset = values.first().time;
-  return sail::map(values, [&](const TimedValue<T> &x) {
+  return transduce(values, trMap([&](const TimedValue<T> &x) {
     return toLocalTime(offset, x.time, unit);
-  });
+  }), IntoArray<double>());
 }
 
 Arrayd computeBounds(const Arrayd &localTimes);

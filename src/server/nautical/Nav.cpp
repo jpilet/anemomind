@@ -13,7 +13,7 @@
 #include <server/common/string.h>
 #include <server/common/PhysicalQuantityIO.h>
 #include <server/common/logging.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 
 
@@ -55,7 +55,9 @@ bool Nav::hasId() const {
 
 
 Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
-  return toArray(map(navs, [&](const Nav &n) {return n.gpsSpeed();}));
+  return transduce(navs,
+      trMap([&](const Nav &n) {return n.gpsSpeed();}),
+      IntoArray<Velocity<double>>());
 }
 
 HorizontalMotion<double> Nav::estimateTrueWind() const {

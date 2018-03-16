@@ -9,7 +9,7 @@
 #include <server/common/ArrayIO.h>
 #include <server/math/SampleUtils.h>
 #include <gtest/gtest.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 using namespace sail;
 using namespace sail::SampleUtils;
@@ -28,11 +28,11 @@ namespace {
   }
 
   Array<TimeStamp> toTimeArray(const Arrayi &x) {
-    return sail::map(x, &toTime);
+    return transduce(x, trMap(&toTime), IntoArray<TimeStamp>());
   }
 
   Arrayi fromTimeArray(const Array<TimeStamp> &x) {
-    return sail::map(x, &fromTime);
+    return transduce(x, trMap(&fromTime), IntoArray<int>());
   }
 }
 
