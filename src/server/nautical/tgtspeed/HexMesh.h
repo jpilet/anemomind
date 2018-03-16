@@ -18,6 +18,10 @@ public:
   HexMesh() {}
   HexMesh(int size, double triangleSize);
 
+
+
+
+
   Eigen::Vector2d gridToWorld(const Eigen::Vector2d& coords) const {
     return _g2w*(coords - _offset);
   }
@@ -30,6 +34,8 @@ public:
 
   void dispVertexLayout();
 
+  int vertexCount() const {return _index2coord.size();}
+
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 private:
   Eigen::Vector2d _xBasis, _yBasis, _offset;
@@ -38,6 +44,7 @@ private:
   int _gridSize = 0;
   double _triangleSize = 0;
   MDArray<int, 2> _grid;
+  Array<std::pair<int, int>> _index2coord;
 };
 
 

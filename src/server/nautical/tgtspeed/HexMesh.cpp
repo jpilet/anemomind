@@ -48,6 +48,7 @@ HexMesh::HexMesh(int size, double triangleSize)
       }
     }
   }
+  _index2coord = _vertexToCoordBuilder.get();
 }
 
 void HexMesh::dispVertexLayout() {

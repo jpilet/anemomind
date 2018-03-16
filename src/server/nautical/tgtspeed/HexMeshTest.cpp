@@ -54,4 +54,6 @@ TEST(HexMeshTest, BasicTest) {
   }
 
   mesh.dispVertexLayout();
+
+  EXPECT_EQ(37, mesh.vertexCount());
 }
