@@ -62,3 +62,12 @@ cxx_test(tgtspeed_RealPerfSurfTest
   tgtspeed_RealPerfSurf
   gtest_main
   )
+
+add_executable(tgtspeed_PolarDemo
+  PolarDemo.cpp
+  )
+
+target_link_libraries(tgtspeed_PolarDemo
+  logimport_LogLoader
+  tgtspeed_RealPerfSurf
+  )
