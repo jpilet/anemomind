@@ -38,18 +38,23 @@ HexMesh::HexMesh(int size, double triangleSize)
   _grid = MDArray<int, 2>(_gridSize, _gridSize);
   _grid.setAll(-1);
 
-  ArrayBuilder<std::pair<int, int>> _vertexToCoordBuilder;
-  int _counter = 0;
-  for (int y = 0; y < _gridSize; y++) {
-    for (int x = 0; x < _gridSize; x++) {
-      if (isValidIntegerCoordinate(x, y)) {
-        _grid(x, y) = _counter;
-        _vertexToCoordBuilder.add({x, y});
-        _counter++;
+  {
+    ArrayBuilder<std::pair<int, int>> _vertexToCoordBuilder;
+    int _counter = 0;
+    for (int y = 0; y < _gridSize; y++) {
+      for (int x = 0; x < _gridSize; x++) {
+        if (isValidIntegerCoordinate(x, y)) {
+          _grid(x, y) = _counter;
+          _vertexToCoordBuilder.add({x, y});
+          _counter++;
+        }
       }
     }
+    _index2coord = _vertexToCoordBuilder.get();
   }
-  _index2coord = _vertexToCoordBuilder.get();
+  {
+
+  }
 }
 
 void HexMesh::dispVertexLayout() {

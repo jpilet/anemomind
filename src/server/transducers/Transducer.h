@@ -362,6 +362,27 @@ struct CatStepper : public StatelessStepper {
   }
 };
 
+template <typename Iterator>
+class CartesianStepper : public StatelessStepper {
+public:
+  CartesianStepper(Iterator b, Iterator e) : _begin(b), _end(e) {}
+
+  template <typename R, typename T>
+  void apply(R* result, T x) const {
+    for (auto i = _begin; i != _end; i++) {
+      result->add(std::make_pair(x, *i));
+    }
+  }
+private:
+  Iterator _begin, _end;
+};
+
+template <typename Iterator>
+CartesianStepper<Iterator> cartesianStepper(Iterator b, Iterator e) {
+  return CartesianStepper<Iterator>(b, e);
+}
+
+
 // Common transducer types
 
 // Map elements
@@ -385,7 +406,6 @@ GenericTransducer<MergeStepper<Comp, Iterator>> trMerge(
     Iterator b, Iterator e, Comp c = Comp()) {
   return genericTransducer(MergeStepper<Comp, Iterator>(c, b, e));
 }
-
 
 // Merge collections, like trMerge, but takes a collection
 // instead of an iterator pair as argument.
@@ -419,6 +439,14 @@ inline GenericTransducer<TakeWhileStepper<F>> trTakeWhile(F f) {
 
 inline GenericTransducer<CatStepper> trCat() {
   return genericTransducer(CatStepper());
+}
+
+
+
+template <typename Iterator>
+inline GenericTransducer<CartesianStepper<Iterator>> trCartesian(
+    Iterator b, Iterator e) {
+  return cartesianStepper(b, e);
 }
 
 /**

@@ -288,3 +288,13 @@ TEST(TransducerTest, IntoOrTest) {
   EXPECT_FALSE(
       transduce(Array<bool>{false, false}, trIdentity(), IntoOr()));
 }
+
+TEST(TransducerTest, CartesianTest) {
+  auto right = std::vector<int>{3, 4, 5};
+  auto result = transduce(std::vector<int>{9, 10},
+      trCartesian(right.begin(), right.end()),
+      IntoArray<std::pair<int, int>>());
+
+  EXPECT_EQ(result, (Array<std::pair<int, int>>{{9, 3}, {9, 4}, {9, 5},
+    {10, 3}, {10, 4}, {10, 5}}));
+}
