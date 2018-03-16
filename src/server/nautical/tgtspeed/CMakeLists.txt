@@ -71,3 +71,14 @@ target_link_libraries(tgtspeed_PolarDemo
   logimport_LogLoader
   tgtspeed_RealPerfSurf
   )
+
+add_library(tgtspeed_HexMesh
+  HexMesh.h
+  HexMesh.cpp
+  )
+
+cxx_test(tgtspeed_HexMeshTest
+  HexMeshTest.cpp
+  tgtspeed_HexMesh
+  gtest_main
+  )
