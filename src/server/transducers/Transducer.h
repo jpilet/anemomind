@@ -369,7 +369,7 @@ public:
 
   template <typename R, typename T>
   void apply(R* result, T x) const {
-    for (auto i = _begin; i != _end; i++) {
+    for (auto i = _begin; i != _end; ++i) {
       result->add(std::make_pair(x, *i));
     }
   }

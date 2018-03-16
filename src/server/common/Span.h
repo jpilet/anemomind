@@ -147,8 +147,9 @@ class Span {
       return _index;
     }
 
-    void operator++() {
+    Iterator& operator++() {
       _index++;
+      return *this;
     }
 
     bool operator== (Iterator other) const {

@@ -11,6 +11,13 @@
 
 using namespace sail;
 
+TEST(HexMeshTest, BasicTest1) {
+  HexMesh mesh(1, 2.0);
+  EXPECT_EQ(12, mesh.edges().size());
+  mesh.dispVertexLayout();
+}
+
+
 TEST(HexMeshTest, BasicTest) {
   HexMesh mesh(3, 2.0);
 

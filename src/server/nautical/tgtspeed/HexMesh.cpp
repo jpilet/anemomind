@@ -13,6 +13,7 @@
 #include <iostream>
 #include <iomanip>
 #include <server/transducers/Transducer.h>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -53,7 +54,38 @@ HexMesh::HexMesh(int size, double triangleSize)
     _index2coord = _vertexToCoordBuilder.get();
   }
   {
+    Span<int> gridInds(0, _gridSize);
 
+    std::vector<std::pair<int, int>> localEdges{
+      {1, 0},
+      {0, 1},
+      {1, -1}
+    };
+
+    auto edges = transduce(
+        gridInds,
+        trCartesian(gridInds.begin(), gridInds.end())
+        |
+        trCartesian(localEdges.begin(), localEdges.end())
+        |
+        trMap([&](const std::pair<
+            std::pair<int, int>, std::pair<int, int>>& xy_and_displacement) {
+          auto xy = xy_and_displacement.first;
+          auto disp = xy_and_displacement.second;
+          return std::make_pair(
+              vertexIndexAt(xy.first, xy.second),
+              vertexIndexAt(xy.first + disp.first, xy.second + disp.second));
+        })
+        |
+        trFilter([&](const std::pair<int, int>& inds) {
+          return inds.first != -1 && inds.second != -1;
+        })
+        |
+        trMap([&](const std::pair<int, int>& x) {
+          return x.first <= x.second? x : std::make_pair(x.second, x.first);
+        }),
+        IntoArray<std::pair<int, int>>());
+    _edges = std::set<std::pair<int, int>>(edges.begin(), edges.end());
   }
 }
 
