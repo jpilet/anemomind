@@ -12,7 +12,7 @@
 #ifndef SERVER_NAUTICAL_TGTSPEED_REALPERFSURF_H_
 #define SERVER_NAUTICAL_TGTSPEED_REALPERFSURF_H_
 
-#include <server/common/Transducer.h>
+#include <server/transducers/Transducer.h>
 #include <iostream>
 #include <server/nautical/NavDataset.h>
 #include <server/common/Functional.h>

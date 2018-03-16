@@ -210,7 +210,6 @@ auto concat(ArrayOfArrays arrayOfArrays) -> Array<decltype(copyOf(std::declval<A
   return dst.get();
 }
 
-<<<<<<< HEAD
 template <typename T>
 struct Constantly {
   T value;
@@ -223,7 +222,8 @@ struct Constantly {
 template <typename T>
 Constantly<T> constantly(T x) {
   return Constantly<T>{x};
-=======
+}
+
 template <typename F>
 struct ComplementFunction {
   F f;
@@ -239,7 +239,6 @@ struct ComplementFunction {
 template <typename F>
 ComplementFunction<F> complementFunction(F f) {
   return ComplementFunction<F>{f};
->>>>>>> master
 }
 
 }

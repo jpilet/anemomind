@@ -111,10 +111,7 @@ Optional<Duration<double>> parseTimeOfDay(
 TimeStamp minDefined(TimeStamp a, TimeStamp b);
 TimeStamp maxDefined(TimeStamp a, TimeStamp b);
 
-<<<<<<< HEAD
 TimeStamp average(const std::initializer_list<TimeStamp>& ts);
-=======
->>>>>>> master
 
 } /* namespace sail */
 

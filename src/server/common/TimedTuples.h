@@ -24,7 +24,7 @@
 #ifndef SERVER_COMMON_TIMEDTUPLES_H_
 #define SERVER_COMMON_TIMEDTUPLES_H_
 
-#include <server/common/Transducer.h>
+#include <server/transducers/Transducer.h>
 #include <server/common/TimedValue.h>
 #include <server/common/math.h>
 #include <server/common/logging.h>
@@ -50,8 +50,9 @@ struct Settings {
 };
 
 template <typename T, int TupleSize>
-class Stepper {
+class Stepper : public NeverDone {
 public:
+
   static constexpr int StateSize = staticPower(2, TupleSize)-1;
   static constexpr double HighCost = std::numeric_limits<double>::infinity();
   static constexpr double LowCost = 0.0;
