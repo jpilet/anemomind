@@ -535,7 +535,7 @@ int mainProcessBoatLogs(int argc, const char **argv) {
       "Produce a HTML report with the specified name in the output directory")
     .setArgCount(1).store(&processor._htmlReportName);
 
-  amap.registerOption("--saveSimulated <file.log>",
+  amap.registerOption("--save-simulated",
                       "Save dispatcher in the given file after simulation")
     .store(&processor._saveSimulated);
 
