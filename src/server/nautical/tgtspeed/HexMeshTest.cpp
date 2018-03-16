@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <server/nautical/tgtspeed/HexMesh.h>
+#include <server/transducers/Transducer.h>
 
 using namespace sail;
 
@@ -58,4 +59,14 @@ TEST(HexMeshTest, BasicTest) {
   EXPECT_EQ(37, mesh.vertexCount());
 
   EXPECT_FALSE(mesh.represent(Eigen::Vector2d(1000, 1000)).defined());
+  {
+    auto r = Eigen::Vector2d(0.5, 0.3);
+    auto wi0 = mesh.represent(r);
+    EXPECT_TRUE(wi0.defined());
+    auto wi = wi0.get();
+    EXPECT_FALSE(
+        transduce(wi,
+            trMap([](WeightedIndex wi) {return wi.index == -1;}),
+            IntoOr()));
+  }
 }
