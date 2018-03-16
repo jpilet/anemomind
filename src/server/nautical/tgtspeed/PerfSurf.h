@@ -16,22 +16,10 @@
 #include <ceres/jet.h>
 #include <Eigen/Dense>
 #include <ceres/loss_function.h>
+#include <server/common/WeightedIndex.h>
+
 
 namespace sail {
-
-
-/*
- * A weighted index is a struct used to encoding a sparse linear combination
- * of vertices in order to parameterize a point. Barycentric coordinates in
- * computer graphics are a special case of that.
- */
-struct WeightedIndex {
-  int index = 0;
-  double weight = 1.0;
-
-  WeightedIndex() {}
-  WeightedIndex(int i, double w) : index(i), weight(w) {}
-};
 
 inline std::ostream& operator<<(std::ostream& s, const WeightedIndex& wi) {
   s << "(i=" << wi.index << ", w=" << wi.weight << ")";
