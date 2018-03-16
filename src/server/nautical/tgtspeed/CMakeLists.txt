@@ -79,6 +79,7 @@ add_library(tgtspeed_HexMesh
 
 cxx_test(tgtspeed_HexMeshTest
   HexMeshTest.cpp
-  tgtspeed_HexMesh
   gtest_main
+  tgtspeed_HexMesh
+  common_logging
   )
