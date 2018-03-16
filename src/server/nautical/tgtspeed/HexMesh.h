@@ -21,6 +21,14 @@ public:
   HexMesh() {}
   HexMesh(int size, double triangleSize);
 
+  Optional<std::array<WeightedIndex, 3>> represent(
+      const Eigen::Vector2d& pos) const;
+
+  Eigen::Vector2d eval(
+      const std::array<WeightedIndex, 3>& x) const;
+
+
+
 
 
 
@@ -38,9 +46,6 @@ public:
   void dispVertexLayout();
 
   int vertexCount() const {return _index2coord.size();}
-
-  Optional<std::array<WeightedIndex, 3>> represent(
-      const Eigen::Vector2d& pos) const;
 
   int vertexIndexAt(int x, int y) const;
 

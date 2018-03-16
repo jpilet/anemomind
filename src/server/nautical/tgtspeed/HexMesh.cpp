@@ -109,5 +109,16 @@ Optional<std::array<WeightedIndex, 3>> HexMesh::represent(
   };
 }
 
+Eigen::Vector2d HexMesh::eval(
+    const std::array<WeightedIndex, 3>& X) const {
+  Eigen::Vector2d sum(0.0, 0.0);
+  for (auto x: X) {
+    auto vertex = _index2coord[x.index];
+    sum += x.weight*Eigen::Vector2d(vertex.first, vertex.second);
+  }
+  return gridToWorld(sum);
+}
+
+
 
 } /* namespace sail */
