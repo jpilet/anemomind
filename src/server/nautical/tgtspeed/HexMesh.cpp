@@ -9,8 +9,17 @@
 #include <Eigen/Dense>
 #include <math.h>
 #include <server/common/logging.h>
+#include <server/common/ArrayBuilder.h>
+#include <iostream>
+#include <iomanip>
 
 namespace sail {
+
+bool HexMesh::isValidIntegerCoordinate(int x, int y) const {
+  auto xy = x + y;
+  return 0 <= x && x < _gridSize && 0 <= y && y < _gridSize
+      && _size <= xy && xy <= 3*_size;
+}
 
 HexMesh::HexMesh(int size, double triangleSize)
   : _size(size), _triangleSize(triangleSize),
@@ -25,6 +34,29 @@ HexMesh::HexMesh(int size, double triangleSize)
     _g2w(i, 1) = _yBasis(i);
   }
   _w2g = _g2w.inverse();
+  _grid = MDArray<int, 2>(_gridSize, _gridSize);
+  _grid.setAll(-1);
+
+  ArrayBuilder<std::pair<int, int>> _vertexToCoordBuilder;
+  int _counter = 0;
+  for (int y = 0; y < _gridSize; y++) {
+    for (int x = 0; x < _gridSize; x++) {
+      if (isValidIntegerCoordinate(x, y)) {
+        _grid(x, y) = _counter;
+        _vertexToCoordBuilder.add({x, y});
+        _counter++;
+      }
+    }
+  }
+}
+
+void HexMesh::dispVertexLayout() {
+  for (int y = 0; y < _gridSize; y++) {
+    for (int x = 0; x < _gridSize; x++) {
+      std::cout << std::setw(3) << _grid(x, _gridSize-1-y) << " ";
+    }
+    std::cout << std::endl;
+  }
 }
 
 

@@ -52,4 +52,6 @@ TEST(HexMeshTest, BasicTest) {
     EXPECT_LT(y(0), -0.1);
     EXPECT_LT(y(1), -0.1);
   }
+
+  mesh.dispVertexLayout();
 }

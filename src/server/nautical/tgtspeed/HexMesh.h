@@ -9,6 +9,7 @@
 #define SERVER_NAUTICAL_TGTSPEED_HEXMESH_H_
 
 #include <Eigen/Dense>
+#include <server/common/MDArray.h>
 
 namespace sail {
 
@@ -25,6 +26,10 @@ public:
     return _w2g*coords + _offset;
   }
 
+  bool isValidIntegerCoordinate(int x, int y) const;
+
+  void dispVertexLayout();
+
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 private:
   Eigen::Vector2d _xBasis, _yBasis, _offset;
@@ -32,6 +37,7 @@ private:
   int _size = 0;
   int _gridSize = 0;
   double _triangleSize = 0;
+  MDArray<int, 2> _grid;
 };
 
 
