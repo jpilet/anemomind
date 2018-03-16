@@ -68,5 +68,7 @@ TEST(HexMeshTest, BasicTest) {
         transduce(wi,
             trMap([](WeightedIndex wi) {return wi.index == -1;}),
             IntoOr()));
+
+    EXPECT_NEAR((r - mesh.eval(wi)).norm(), 0.0, 1.0e-6);
   }
 }
