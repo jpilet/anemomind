@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <deque>
+#include <list>
 
 #include <NMEA2000.h> 
 #include <N2kMsg.h>
@@ -55,6 +56,11 @@ class NodeNmea2000 : public Nan::ObjectWrap, public tNMEA2000 {
   Nan::Persistent<v8::Object> deviceConfigHandle_;
 
   std::deque<Packet> packets_;
+
+  // Once an element has been added to pgnLists_, we don't want that element to
+  // be relocated when the list grows, because someone has a pointer to the
+  // data of the vector.
+  std::list<std::vector<unsigned long>> pgnLists_;
 };
 
 #endif  // __MAIN_H_

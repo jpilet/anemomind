@@ -293,6 +293,19 @@ void Logger::unpack(const AbsOrientValueSet& values,
   }
 }
 
+void Logger::unpack(const AngularVelocityValueSet& values,
+                    std::vector<AngularVelocity<double>>* result) {
+  result->clear();
+  result->reserve(values.delta_size());
+
+  int32_t accumulate = 0;
+  for (int32_t i = 0; i < values.delta_size(); ++i) {
+    accumulate += values.delta(i);
+    result->push_back(AngularVelocity<double>::radiansPerSecond(
+            accumulate * 1e-3));
+  }
+}
+
 void unpackTimeStamps(const google::protobuf::RepeatedField<std::int64_t> &times,
                    std::vector<TimeStamp>* result) {
   result->clear();

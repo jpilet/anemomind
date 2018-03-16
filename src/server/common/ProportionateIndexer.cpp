@@ -6,7 +6,7 @@
 #include "ProportionateIndexer.h"
 #include <cassert>
 #include <cmath>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -40,11 +40,17 @@ ProportionateIndexer::ProportionateIndexer(int count,
 
 
 Arrayb ProportionateIndexer::selected() const {
-  return toArray(map(proportions(), [&](double x) {return x == 0;}));
+  return transduce(
+      proportions(),
+      trMap([&](double x) {return x == 0;}),
+      IntoArray<bool>());
 }
 
 Arrayb ProportionateIndexer::remaining() const {
-  return toArray(map(proportions(), [&](double x) {return x != 0;}));
+  return transduce(
+      proportions(),
+      trMap([&](double x) {return x != 0;}),
+      IntoArray<bool>());
 }
 
 

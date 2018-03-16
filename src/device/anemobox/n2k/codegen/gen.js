@@ -2,6 +2,7 @@ var parseString = require('xml2js').parseString;
 var fs = require('fs');
 var assert = require('assert');
 var Path = require('path');
+var extra = require('./extrapgns.js');
 
 function findValidPath(paths) {
   for (var i = 0; i < paths.length; i++) {
@@ -109,7 +110,11 @@ function filterPgnsOfInterest(pgns) {
 }
 
 function getPgnArrayFromParsedXml(xml) {
-  return xml.PGNDefinitions.PGNs[0].PGNInfo;
+  var arr = xml.PGNDefinitions.PGNs[0].PGNInfo;
+  for (var i = 0; i < extra.length; i++) {
+    arr.push(extra[i]);
+  }
+  return arr;
 }
 
 function getClassName(pgn) {
@@ -197,7 +202,8 @@ function getUnits(field) {
 }
 
 function isPhysicalQuantity(field) {
-  return field.Units != null && field.Units != '';
+  return (field.Units != null && field.Units != ''
+          && field.Units != 'hPa'); // hPa ignored for now
 }
 
 function isSigned(field) {
@@ -214,7 +220,7 @@ function getBitOffset(field) {
   return parseInt(field.BitOffset + '');
 }
 
-
+// NOT USED:
 function makeIntegerReadExpr(field, srcName) {
   var signed = isSigned(field);
   var extractor = signed? "getSigned" : "getUnsigned";
@@ -223,6 +229,12 @@ function makeIntegerReadExpr(field, srcName) {
 
 function isData(field) {
   return getFieldId(field) == "data" || (getBitLength(field) > 64);
+}
+
+function isRational(field) {
+  return hasResolution(field) 
+    && !isPhysicalQuantity(field)
+    && field.Type != "Integer";
 }
 
 unitMap = {
@@ -257,6 +269,10 @@ unitMap = {
   "rad/s": {
     type: "sail::AngularVelocity<double>",
     unit: "(sail::Angle<double>::radians(1.0)/sail::Duration<double>::seconds(1.0))"
+  },
+  "rpm": {
+    type: "sail::AngularVelocity<double>",
+    unit: "(sail::Angle<double>::degrees(360)/sail::Duration<double>::minutes(1.0))"
   }
 };
 
@@ -271,6 +287,8 @@ function getFieldType(field) {
     return getEnumClassName(field);
   } else if (isPhysicalQuantity(field)) {
     return getUnitInfo(field).type;
+  } else if (isRational(field)) {
+    return "double";
   } else if (isSigned(field)) {
     return "int64_t";
   } else if (isData(field)) {
@@ -318,6 +336,7 @@ var encodeDecl = "std::vector<uint8_t> encode() const override;";
 var commonMethods = [
   "bool hasSomeData() const;",
   "bool hasAllData() const;",
+  "bool valid() const;",
   encodeDecl
 ];
 
@@ -358,6 +377,27 @@ function getFieldComment(field) {
   return "// " + (d? d : "") + " at " + explainBits(field.BitOffset);
 }
 
+function getMatchExpr(field) {
+  var m = field.Match;
+  if (m == undefined) {
+    return null;
+  }
+
+  var pairs = getEnumPairs(field);
+  if (pairs) {
+    var e = pairs.filter(function(p) {return p.value == m;})[0];
+    assert(e);
+    return getEnumClassName(field) + "::" + e.symbol;
+  } else {
+    return m;
+  }
+}
+
+function getFieldInitialization(field) {
+  var e = getMatchExpr(field);
+  return e == null? "" : (" = " + e);
+}
+
 function makeInstanceVariableDecl(field) {
   var skip = skipField(field);
   if (skip) {
@@ -366,7 +406,8 @@ function makeInstanceVariableDecl(field) {
       + explainBits(field.BitOffset) + ": " + skip; 
   }
   return getOptionalFieldType(field) + " "
-    + getInstanceVariableName(field) + "; "
+    + getInstanceVariableName(field)  
+    + getFieldInitialization(field) + "; "
     + getFieldComment(field);
 }
 
@@ -422,7 +463,11 @@ function makeSymbolFromDescription(desc) {
 }
 
 function getEnumPairs(field) {
-  return field.EnumValues[0].EnumPair.map(function(x) {
+  var vals = field.EnumValues;
+  if (!vals) {
+    return null;
+  }
+  return vals[0].EnumPair.map(function(x) {
     for (var i in x) {
       var y = x[i];
       var value = parseInt(y.Value);
@@ -816,9 +861,6 @@ function callApplyMethod(pgnDefs) {
   }
 }
 
-
-
-
 function makePgnEnum(pgnDefs) {
   if (pgnDefs.length == 1) {
     return null;
@@ -978,6 +1020,8 @@ function makeFieldAssignment(dstName, field) {
     var signed = isSigned(field);
     var signedExpr = boolToString(signed);
     var offset = getOffset(field);
+    var definedness = "N2kField::Definedness::" 
+        + (8 < bits? "MaybeUndefined" : "AlwaysDefined");
     if (isPhysicalQuantity(field)) {
       var info = getUnitInfo(field);
       return lhs + "src.getPhysicalQuantity(" 
@@ -987,6 +1031,11 @@ function makeFieldAssignment(dstName, field) {
       return lhs + "src.getUnsignedInSet(" 
         + bits + ", " + getEnumValueSet(field) + ").cast<" 
         + getFieldType(field) + ">();";
+    } else if (isRational(field)){
+      return lhs + "src.getDoubleWithResolution(" 
+        + getResolution(field) + ", "
+        + signedExpr + ", " + bits + ", " 
+        + offset + ", " + definedness + ");";
     } else if (isData(field)) {
       assert(bits % 8 == 0, 
              "Cannot read bytes, because the number of bits is not a multiple of 8.");
@@ -995,7 +1044,7 @@ function makeFieldAssignment(dstName, field) {
       return lhs
         + (signed? "src.getSigned(" : "src.getUnsigned(")
         + bits + (signed? ", " + offset : "") 
-        + ", N2kField::Definedness::AlwaysDefined);";
+        + ", " + definedness + ");";
     }
   }
 }
@@ -1021,6 +1070,11 @@ function makeEncodeFieldStatement(valueExpr, field) {
     } else if (isLookupTable(field)) {
       return "dst.pushUnsigned(" 
         + bits + ", " + valueExpr + ".cast<uint64_t>());" 
+    } else if (isRational(field)) {
+      return "dst.pushDoubleWithResolution("
+        + getResolution(field) + ", "
+        + signedExpr + ", " + bits + ", " 
+        + offset + ", " + valueExpr + ");";
     } else if (isData(field)) {
       assert(bits % 8 == 0, 
              "Cannot write bytes, because the number of bits is not a multiple of 8.");
@@ -1123,7 +1177,12 @@ function makeHasDataMethod(pgn, what, op, depth) {
 
 function makeEncodeMethodStatements(pgn) {
   var dst = [
-    "N2kField::N2kFieldOutputStream dst;"
+    "N2kField::N2kFieldOutputStream dst;",
+    "if (!valid()) {", [
+      'std::cerr << "Cannot encode ' + getClassName(pgn) + '";',
+      "return {};"
+    ],
+    "}"
   ];
   
   var fields = getStaticFieldArray(pgn);
@@ -1142,6 +1201,7 @@ function makeEncodeMethodStatements(pgn) {
     }));
     dst.push('}');
   }
+  dst.push("dst.fillUpToLength(8*8, true);");
   dst.push("return dst.moveData();");
   return dst;
 }
@@ -1199,15 +1259,35 @@ function makeExtraMethodsInClass(pgn, depth) {
   return tryMakeTimeStampAccessor(fieldMap, depth);
 }
 
+function matchesItsValue(f) {
+  var fname = getInstanceVariableName(f);
+  return " && " 
+    + fname + ".defined() && " 
+    + fname + ".get() == " + getMatchExpr(f);
+}
+
+function makeValidMethod(pgn) {
+  var m = getStaticFieldArray(pgn).filter(function(f) {return "Match" in f;});
+  return indentLineArray(1, [
+    "bool " + getClassName(pgn) + "::valid() const {", [
+      "return true",
+      m.map(matchesItsValue),
+      ";"
+    ],
+    "}"
+  ]);
+}
+
 function makeMethodsForPgn(pgn, depth) {
   return makeDefaultConstructor(pgn, depth) 
     + makeConstructor(pgn, depth)
     + makeHasDataMethod(pgn, "Some", "||", depth)
     + makeHasDataMethod(pgn, "All", "&&", depth)
+    + makeValidMethod(pgn)
     + makeEncodeMethod(pgn, depth);
 }
 
-var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n#include<server/common/logging.h>\n\n';
+var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n#include<server/common/logging.h>\n#include <iostream>\n\n';
 
 function makeImplementationFileContents(moduleName, pgns) {
   var depth = 1;
@@ -1428,6 +1508,7 @@ function main(argv) {
         console.log(err);
         console.log(err.stack);
       } else {
+        console.log('Output path: ' + outputPath);
         console.log("Success!");
       }
     });

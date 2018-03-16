@@ -1,4 +1,5 @@
-
+var pgntable = require('./pgntable.js');
+var utils = require('./utils.js');
 
 var splitRegEx = /\$.*\*[0-9A-F]{2}\n/g;
 
@@ -66,7 +67,9 @@ function floatOrUndefined(f) {
   return f ? parseFloat(f) : undefined;
 }
 
-function makeGnssPositionData(nmea) {
+var sid = 0;
+
+function makePackets(nmea) {
   var gga = getAndSplitSentence(nmea, 'GGA');
   var rmc = getAndSplitSentence(nmea, 'RMC');
   var gsv = getAndSplitSentence(nmea, 'GSV');
@@ -81,10 +84,20 @@ function makeGnssPositionData(nmea) {
   var days = Math.floor(date.getTime() / (1000 * secondsInDay));
   var seconds = Math.floor(date.getTime() / 1000) - days * secondsInDay;
 
-  var sats = satsUsedForFix(nmea);
+  sid = utils.nextSid(sid);
+  var deviceIndex = 1;// GPS virtual device
 
-  return {
-    pgn: 129029, // GNSS Position Data
+  return [{
+    pgn: pgntable.cogSogRapidUpdate,
+    sid: sid,
+    deviceIndex: deviceIndex,
+    cogReference: 0,
+    cog: utils.tag(floatOrUndefined(rmc[8]), "deg"),
+    sog: utils.tag(floatOrUndefined(rmc[7]), "knots")
+  }, {
+    pgn: pgntable.gnssPositionData,
+    sid: sid,
+    deviceIndex: deviceIndex,
     date: days,
     time: seconds,
     latitude: parseLatitude(gga[2], gga[3]),
@@ -96,10 +109,10 @@ function makeGnssPositionData(nmea) {
     numberOfSvs: parseInt(gsv[3]),
     hdop: floatOrUndefined(gga[8]),
     pdop: floatOrUndefined(gsa[15]),
-    geoidalSeparation: floatOrUndefined(gga[11]),
-    referenceStations: sats
-  };
+    geoidalSeparation: utils.tag(floatOrUndefined(gga[11]), "m"),
+    referenceStations: [] // I am not sure what we should send here.
+  }];
 }
 
-module.exports.makeGnssPositionData = makeGnssPositionData;
+module.exports.makePackets = makePackets;
 

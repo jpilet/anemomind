@@ -433,9 +433,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   HTML_DISPLAY(_generateChartTiles, &_htmlReport);
   if (_generateChartTiles) {
     if (!uploadChartTiles(
-        current, _boatid, _chartTileSettings, db.db)
-        || !uploadChartSourceIndex(
-            current, _boatid, _chartTileSettings, db.db)) {
+        current, _boatid, _chartTileSettings, db.db)) {
       LOG(ERROR) << "Failed to upload chart tiles!";
       return false;
     }
@@ -537,7 +535,7 @@ int mainProcessBoatLogs(int argc, const char **argv) {
       "Produce a HTML report with the specified name in the output directory")
     .setArgCount(1).store(&processor._htmlReportName);
 
-  amap.registerOption("--saveSimulated <file.log>",
+  amap.registerOption("--save-simulated",
                       "Save dispatcher in the given file after simulation")
     .store(&processor._saveSimulated);
 

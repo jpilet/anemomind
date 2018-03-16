@@ -7,6 +7,9 @@ using namespace PgnClasses;
 
 namespace {
   std::string makeDispatcherSourceName(uint64_t x) {
+    // Here, we could do something much more user friendly than
+    // printing an hex "name". The current implementation is compatible with
+    // the existing solution.
     std::stringstream ss;
     ss << "NMEA2000/" << std::hex << x;
     return ss.str();
@@ -61,9 +64,8 @@ bool Nmea2000Source::send(
 }
 
 std::string deviceNameToString(const Optional<uint64_t>& dn) {
-  return dn.defined()?
-      makeDispatcherSourceName(dn.get())
-      : "UndefinedNMEA2000Source";
+  return makeDispatcherSourceName(
+      dn.get(0 /* we dont know the nmea2000 name yet */));
 }
 
 
@@ -233,6 +235,54 @@ bool Nmea2000Source::apply(const tN2kMsg &c,
       _dispatcher->publishValue(
           RUDDER_ANGLE, source, packet.position.get());
     }
+    return true;
+  }
+  return false;
+}
+
+bool Nmea2000Source::apply(const tN2kMsg &c,
+                           const PgnClasses::Attitude& packet) {
+  if (packet.yaw.defined()
+      && packet.pitch.defined()
+      && packet.roll.defined()) {
+    AbsoluteOrientation orient;
+    orient.heading = packet.yaw.get();
+    orient.roll = packet.roll.get();
+    orient.pitch = packet.pitch.get();
+
+    _dispatcher->publishValue(ORIENT, _lastSourceName, orient);
+  } else {
+    if (packet.yaw.defined()) {
+      _dispatcher->publishValue(YAW, _lastSourceName, packet.yaw.get());
+    }
+    if (packet.pitch.defined()) {
+      _dispatcher->publishValue(PITCH, _lastSourceName, packet.pitch.get());
+    }
+    if (packet.roll.defined()) {
+      _dispatcher->publishValue(ROLL, _lastSourceName, packet.roll.get());
+    }
+  }
+  return true;
+}
+
+bool Nmea2000Source::apply(const tN2kMsg &c,
+                           const PgnClasses::RateOfTurn& packet) {
+  if (packet.rate.defined()) {
+    _dispatcher->publishValue(RATE_OF_TURN, _lastSourceName, packet.rate.get());
+    return true;
+  }
+  return false;
+}
+
+bool Nmea2000Source::apply(
+    const tN2kMsg &c, const PgnClasses::EngineParametersRapidUpdate& packet) {
+  if (packet.engineSpeed.defined()) {
+    std::string source = _lastSourceName;
+    if (packet.engineInstance.get() ==
+        EngineParametersRapidUpdate::EngineInstance::Dual_Engine_Starboard) {
+      source += " starboard";
+    }
+    _dispatcher->publishValue(ENGINE_RPM, source, packet.engineSpeed.get());
     return true;
   }
   return false;

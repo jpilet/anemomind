@@ -365,3 +365,140 @@ TEST(Nmea2000SourceTest, SendTest) {
   EXPECT_NEAR(pos.latitude.get().degrees(), 13.4, 0.01);
   EXPECT_NEAR(pos.longitude.get().degrees(), 51.9, 0.01);
 }
+
+
+
+void initializeN2k(tNMEA2000* n2k) {
+  // FIRST OPEN!
+  n2k->Open();
+
+  // Code copy/pasted from
+  // https://github.com/ttlappalainen/NMEA2000/blob/master/Examples/BatteryMonitor/BatteryMonitor.ino
+  const tNMEA2000::tProductInformation BatteryMonitorProductInformation ={
+                                         1300,                        // N2kVersion
+                                         100,                         // Manufacturer's product code
+                                         "Simple battery monitor",    // Manufacturer's Model ID
+                                         "1.1.0.14 (2017-06-11)",     // Manufacturer's Software version code
+                                         "1.1.0.0 (2017-06-11)",      // Manufacturer's Model version
+                                         "00000001",                  // Manufacturer's Model serial code
+                                         0,                           // SertificationLevel
+                                         1                            // LoadEquivalency
+                                        };
+
+  // ---  Example of using PROGMEM to hold Configuration information.  However, doing this will prevent any updating of
+  //      these details outside of recompiling the program.
+  const char BatteryMonitorManufacturerInformation [] = "John Doe, john.doe@unknown.com";
+  const char BatteryMonitorInstallationDescription1 [] = "Just for sample";
+  const char BatteryMonitorInstallationDescription2 [] = "No real information send to bus";
+
+  // Set Product information
+  n2k->SetProductInformation(&BatteryMonitorProductInformation );
+  // Set Configuration information
+  n2k->SetProgmemConfigurationInformation(BatteryMonitorManufacturerInformation,BatteryMonitorInstallationDescription1,BatteryMonitorInstallationDescription2);
+  // Set device information
+  n2k->SetDeviceInformation(1,      // Unique number. Use e.g. Serial number.
+                                  170,    // Device function=Battery. See codes on http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
+                                  35,     // Device class=Electrical Generation. See codes on  http://www.nmea.org/Assets/20120726%20nmea%202000%20class%20&%20function%20codes%20v%202.00.pdf
+                                  2046    // Just choosen free from code list on http://www.nmea.org/Assets/20121020%20nmea%202000%20registration%20list.pdf
+                                 );
+
+
+  // Uncomment 3 rows below to see, what device will send to bus
+  //Serial.begin(115200);
+  //NMEA2000.SetForwardStream(&Serial);
+  // NMEA2000.SetForwardType(tNMEA2000::fwdt_Text);     // Show in clear text. Leave uncommented for default Actisense format.
+  // If you also want to see all traffic on the bus use N2km_ListenAndNode instead of N2km_NodeOnly below
+  n2k->SetMode(tNMEA2000::N2km_NodeOnly,22);
+  // NMEA2000.SetDebugMode(tNMEA2000::dm_ClearText);     // Uncomment this, so you can test code without CAN bus chips on Arduino Mega
+  // NMEA2000.EnableForward(false);                      // Disable all msg forwarding to USB (=Serial)
+
+  //  NMEA2000.SetN2kCANMsgBufSize(2);                    // For this simple example, limit buffer size to 2, since we are only sending data
+
+}
+
+
+TEST(Nmea2000SourceTest, SendGnssTest) {
+
+  using namespace PgnClasses;
+
+
+  std::queue<CanFrame> testData;
+  {
+    GnssPositionData msg;
+    {
+      std::vector<uint8_t> data{
+      /*0xa0, 0x2f, */ 0x66, 0xa7, 0x42, 0xa0, 0x38, 0x19
+      /*, 0xa1*/, 0x13, 0x00, 0xf0, 0x78, 0x62, 0x77, 0x1a
+    /*, 0xa2*/, 0xbe, 0x05, 0x30, 0xd5, 0xf5, 0x51, 0x56
+    /*, 0xa3*/, 0xa7, 0x4d, 0x00, 0xcb, 0xa4, 0x15, 0x03
+    /*, 0xa4*/, 0x00, 0x00, 0x00, 0x00, 0x13, 0xfc, 0x09
+    /*, 0xa5*/, 0x63, 0x00, 0xb6, 0x00, 0x08, 0x14, 0x00
+    /*, 0xa6*/, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff
+      };
+      // EXPECTED:
+      //2018-02-09-16:16:41.696 3   1 255 129029 GNSS Position Data:
+      // SID = 102; Date = 2016.09.19; Time = 08:54:02;
+      // Latitude = 41.3797315; Longitude =  2.1857562;
+      // Altitude = Unhandled value 51750091 (0);
+      // GNSS type = GPS+SBAS/WAAS; Method = GNSS fix;
+      // Integrity = No integrity checking; Number of SVs = 9;
+      // HDOP = 0.99; PDOP = 1.82; Geoidal Separation = 51.28 m;
+      // Reference Stations = 0
+
+      msg = GnssPositionData(data.data(), data.size());
+      msg.sid = 0;
+      msg.repeating.clear();
+      msg.referenceStations = 0;
+    }
+
+    NMEA2000ForTesting n2k;
+    Dispatcher dispatcher;
+    Nmea2000Source source(&n2k, &dispatcher);
+
+    initializeN2k(&n2k);
+
+    // Now the tNMEA2000 instance is both open and has
+    // a device from which we can send.
+    EXPECT_TRUE(n2k.framesToTransmit.empty());
+
+    EXPECT_TRUE(source.send(0, msg));
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+
+    // n2k.ParseMessages(); // Doesn't seem to be necessary to call this
+    EXPECT_FALSE(n2k.framesToTransmit.empty());
+    testData = n2k.framesToTransmit;
+  }{
+    NMEA2000ForTesting n2k;
+    Dispatcher dispatcher;
+    Nmea2000Source source(&n2k, &dispatcher);
+
+    initializeN2k(&n2k);
+
+    // Parse the message that we just sent.
+    TestHandler<GnssPositionData> handler(&n2k);
+
+    n2k.framesToReceive = testData;
+
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+    n2k.ParseMessages();
+
+    EXPECT_FALSE(handler.data.empty());
+    EXPECT_EQ(1, handler.data.size());
+    auto pos = handler.data.back();
+
+    EXPECT_NEAR(pos.geoidalSeparation.get().meters(), 51.28, 0.05);
+  }
+}

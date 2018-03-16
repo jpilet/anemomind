@@ -55,7 +55,13 @@ namespace sail {
   X(VMG, 14, "vmg", Velocity<>, "VMG") \
   X(ORIENT, 15, "orient", AbsoluteOrientation, "Absolute anemobox orientation") \
   X(RUDDER_ANGLE, 16, "rudderAngle", Angle<>, "Rudder angle") \
-  X(VALID_GPS, 17, "validGps", BinaryEdge, "Valid GPS periods")
+  X(VALID_GPS, 17, "validGps", BinaryEdge, "Valid GPS periods") \
+  X(RATE_OF_TURN, 18, "rot", AngularVelocity<>, "Rate of turn") \
+  X(TOT_WAT_DIST, 19, "totDist", Length<>, "total distance over water") \
+  X(ENGINE_RPM, 20, "rpm", AngularVelocity<>, "Engine RPM") \
+  X(YAW, 21, "yaw", Angle<>, "Yaw (heading)") \
+  X(PITCH, 22, "pitch", Angle<>, "Pitch") \
+  X(ROLL, 23, "roll", Angle<>, "Roll")
 
 enum DataCode {
 #define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
@@ -168,6 +174,7 @@ typedef TypedDispatchData<GeographicPosition<double>> DispatchGeoPosData;
 typedef TypedDispatchData<TimeStamp> DispatchTimeStampData;
 typedef TypedDispatchData<AbsoluteOrientation> DispatchAbsoluteOrientationData;
 typedef TypedDispatchData<BinaryEdge> DispatchBinaryEdge;
+typedef TypedDispatchData<AngularVelocity<double>> DispatchAngularVelocityData;
 
 template <typename T>
 class DispatchDataProxy : public TypedDispatchData<T> {
@@ -205,6 +212,7 @@ class DispatchDataVisitor {
   virtual void run(DispatchTimeStampData *timestamp) = 0;
   virtual void run(DispatchAbsoluteOrientationData *orient) = 0;
   virtual void run(DispatchBinaryEdge *data) = 0;
+  virtual void run(DispatchAngularVelocityData *data) = 0;
   virtual ~DispatchDataVisitor() {}
 };
 
@@ -467,6 +475,10 @@ class SubscribeVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchBinaryEdge *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchAngularVelocityData *data) {
     data->dispatcher()->subscribe(listener_);
   }
 

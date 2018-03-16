@@ -115,7 +115,6 @@ std::string removeFractionalParts(std::string s) {
   }
 }
 
-
 TimeStamp tryParseTime(const char *fmt, std::string s) {
   struct tm tm = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nullptr};
 
@@ -147,6 +146,23 @@ TimeStamp TimeStamp::parse(const std::string &x0) {
   return TimeStamp();
 }
 
+Optional<struct tm> parseTimeToStruct(
+    const char* fmt, const std::string& src0) {
+  auto src = removeFractionalParts(src0);
+  struct tm dst = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nullptr};
+
+  // http://man7.org/linux/man-pages/man3/strptime.3.html
+  auto ret = strptime(src.c_str(), fmt, &dst);
+  return ret == nullptr? Optional<struct tm>() : dst;
+}
+
+
+TimeStamp TimeStamp::parse(const char* fmt, const std::string &x) {
+  for (auto tm: parseTimeToStruct(fmt, x)) {
+    return TimeStamp::fromTM(tm);
+  }
+  return TimeStamp();
+}
 
 TimeStamp TimeStamp::makeUndefined() {
   return TimeStamp(UndefinedTime);
@@ -267,6 +283,17 @@ TimeStamp maxDefined(TimeStamp a, TimeStamp b) {
     return b;
   }
 }
+
+Optional<Duration<double>> parseTimeOfDay(
+    const char* fmt, const std::string& src) {
+  for (auto p: parseTimeToStruct(fmt, src)) {
+    return double(p.tm_hour)*1.0_h
+        + double(p.tm_min)*1.0_minutes
+        + double(p.tm_sec)*1.0_s;
+  }
+  return {};
+}
+
 
 TimeStamp MonotonicClock::now() {
 #ifdef HAVE_CLOCK_GETTIME

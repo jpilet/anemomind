@@ -10,6 +10,7 @@ using namespace node;
 namespace sail {
 
 std::map<int, JsListener *> JsDispatchData::registeredCallbacks;
+int64_t JsDispatchData::subscriptionIndex = 0;
 
 // We declare a couple of visitors used to handle the different types
 // stored in the Dispatcher.
@@ -19,7 +20,7 @@ class GetValueVisitor : public DispatchDataVisitor {
  public:
   GetValueVisitor(unsigned index) : index_(index), valid_(false) { }
   virtual void run(DispatchAngleData *angle) {
-    auto values = angle->dispatcher()->values();
+    const auto& values = angle->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -28,7 +29,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     }
   }
   virtual void run(DispatchVelocityData *velocity) {
-    auto values = velocity->dispatcher()->values();
+    const auto& values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -37,8 +38,17 @@ class GetValueVisitor : public DispatchDataVisitor {
     }
   }
 
+  virtual void run(DispatchAngularVelocityData *velocity) {
+    const auto& values = velocity->dispatcher()->values();
+    valid_ = values.size() > index_;
+    if (valid_) {
+      auto val = values.back(index_);
+      value_ = Nan::New(val.value.degreesPerSecond());
+      timestamp_ = val.time;
+    }
+  }
   virtual void run(DispatchLengthData *velocity) {
-    auto values = velocity->dispatcher()->values();
+    const auto& values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -48,7 +58,7 @@ class GetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchBinaryEdge *edge) {
-    auto values = edge->dispatcher()->values();
+    const auto& values = edge->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -58,7 +68,7 @@ class GetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchGeoPosData *pos) {
-    auto values = pos->dispatcher()->values();
+    const auto& values = pos->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -71,7 +81,7 @@ class GetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchTimeStampData *dateTime) {
-    auto values = dateTime->dispatcher()->values();
+    const auto& values = dateTime->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -81,7 +91,7 @@ class GetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchAbsoluteOrientationData *orient) {
-    auto values = orient->dispatcher()->values();
+    const auto& values = orient->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values.back(index_);
@@ -113,6 +123,9 @@ class CountValuesVisitor : public DispatchDataVisitor {
     count_ = angle->dispatcher()->values().size();
   }
   virtual void run(DispatchVelocityData *v) {
+    count_ = v->dispatcher()->values().size();
+  }
+  virtual void run(DispatchAngularVelocityData *v) {
     count_ = v->dispatcher()->values().size();
   }
   virtual void run(DispatchLengthData *v) {
@@ -155,6 +168,14 @@ class SetValueVisitor : public DispatchDataVisitor {
           velocity->dataCode(),
           source_.c_str(),
           Velocity<double>::knots(value_->ToNumber()->Value()));
+    }
+  }
+  virtual void run(DispatchAngularVelocityData *velocity) {
+    if (checkNumberAndSetSuccess()) {
+      dispatcher_->publishValue(
+          velocity->dataCode(),
+          source_.c_str(),
+          AngularVelocity<double>::degreesPerSecond(value_->ToNumber()->Value()));
     }
   }
   virtual void run(DispatchLengthData *velocity) {
@@ -247,6 +268,7 @@ class SetValueVisitor : public DispatchDataVisitor {
 class JsListener:
   public Listener<Angle<double>>,
   public Listener<Velocity<double>>,
+  public Listener<AngularVelocity<double>>,
   public Listener<Length<double>>,
   public Listener<BinaryEdge>,
   public Listener<GeographicPosition<double>>,
@@ -265,6 +287,7 @@ class JsListener:
 
   virtual void onNewValue(const ValueDispatcher<Angle<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<Velocity<double>> &) { valueChanged(); }
+  virtual void onNewValue(const ValueDispatcher<AngularVelocity<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<Length<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<GeographicPosition<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<TimeStamp> &) { valueChanged(); }
@@ -296,6 +319,10 @@ class GetTypeAndUnitVisitor : public DispatchDataVisitor {
   virtual void run(DispatchVelocityData *) {
     type_ = "velocity";
     unit_ = "knots";
+  }
+  virtual void run(DispatchAngularVelocityData *) {
+    type_ = "angular velocity";
+    unit_ = "degrees per second";
   }
   virtual void run(DispatchLengthData *) {
     type_ = "distance";
@@ -494,7 +521,7 @@ NAN_METHOD(JsDispatchData::subscribe) {
   }
   JsListener *listener = new JsListener(
       dispatchData, cb, minInterval);
-  int index = registeredCallbacks.size() + 1;
+  int index = subscriptionIndex++;
   registeredCallbacks[index] = listener;
 
   SubscribeVisitor<JsListener> subscriber(listener);

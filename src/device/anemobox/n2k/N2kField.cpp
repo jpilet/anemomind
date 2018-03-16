@@ -80,8 +80,16 @@ Optional<double> N2kFieldStream::getDouble(bool isSigned, int bits, int64_t offs
   return isSigned?
       toDouble(getSigned(bits, offset, d))
       : toDouble(getUnsigned(bits, d));
-
 }
+
+Optional<double> N2kFieldStream::getDoubleWithResolution(double resolution,
+    bool isSigned, int bits, int64_t offset, Definedness definedness) {
+  auto x = getDouble(isSigned, bits, offset, definedness);
+  return x.defined()?
+      Optional<double>(x.get()*resolution)
+      : Optional<double>();
+}
+
 
 Optional<uint64_t> N2kFieldStream::getUnsignedInSet(int numBits, const std::initializer_list<int> &set) {
   auto x = getUnsigned(numBits, Definedness::AlwaysDefined);
@@ -185,6 +193,16 @@ void N2kFieldOutputStream::pushSigned(
       value.defined()?
           (value.get() - offset)
           : getMaxSignedValue(bits, offset)));
+}
+
+void N2kFieldOutputStream::pushDoubleWithResolution(
+    double resolution,
+    bool isSigned, int bits,
+    int64_t offset, Optional<double> value0) {
+  Optional<double> value = value0.defined()?
+      Optional<double>(value0.get()/resolution)
+      : Optional<double>();
+  push<double>(isSigned, bits, offset, value);
 }
 
 void N2kFieldOutputStream::pushBytes(

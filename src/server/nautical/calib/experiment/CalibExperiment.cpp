@@ -6,7 +6,7 @@
  */
 
 #include <server/nautical/calib/experiment/CalibExperiment.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 #include <server/common/numerics.h>
 #include <server/plot/extra.h>
 
@@ -125,7 +125,12 @@ bool isFiniteFlowMats(const FlowMats &x) {
 }
 
 Array<FlowMats> makeCurrentMats(const Array<Nav> &navs) {
-  return sail::filter(sail::map(navs, &makeCurrentMatrix), &isFiniteFlowMats);
+  return transduce(
+      navs,
+      trMap(&makeCurrentMatrix)
+      |
+      trFilter(&isFiniteFlowMats),
+      IntoArray<FlowMats>());
 }
 
 }

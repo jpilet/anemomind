@@ -87,6 +87,11 @@ class Optional {
     }
     return Optional<Other>();
   }
+
+  // Let's us work with the optional as if it were
+  // a collection with at most one element.
+  const T* begin() const {return &_value;}
+  const T* end() const {return begin() + (_defined? 1 : 0);}
  private:
   bool _defined;
   T _value;
@@ -104,6 +109,5 @@ namespace sail {
     return true;
   }
 }
-
 
 #endif /* SERVER_COMMON_OPTIONAL_H_ */

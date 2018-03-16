@@ -17,7 +17,7 @@
 
 #include <server/common/ExpLine.h>
 #include "../CalibratedNav/CalibratedNav.h"
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -199,7 +199,10 @@ class CorrectorObject : public CorrectorFunction {
   CorrectorObject(Corrector<double> c) : _c(c) {}
 
   Array<CalibratedNav<double> > operator()(const NavDataset &navs) const {
-    return toArray(map(NavCompat::Range(navs), [&](const Nav &x) {return _c.correct(x);}));
+    return transduce(
+        NavCompat::Range(navs),
+        trMap([&](const Nav &x) {return _c.correct(x);}),
+        IntoArray<CalibratedNav<double>>());
   }
 
   std::string toString() const {
