@@ -60,5 +60,30 @@ void HexMesh::dispVertexLayout() {
   }
 }
 
+int HexMesh::vertexIndexAt(int x, int y) const {
+  return isValidIntegerCoordinate(x, y)?
+      _grid(x, y) : -1;
+}
+
+Optional<std::array<WeightedIndex, 3>> HexMesh::represent(
+    const Eigen::Vector2d& pos) const {
+  auto gridPos = worldToGrid(pos);
+
+  auto xf = floor(gridPos(0));
+  int x = int(xf);
+  auto yf = floor(gridPos(1));
+  int y = int(yf);
+
+  auto lower = (gridPos(0) - xf) + (gridPos(1) - yf) < 1;
+  std::array<int, 3> inds{
+    vertexIndexAt(x+1, y),
+    vertexIndexAt(x, y+1),
+    lower? vertexIndexAt(x, y) : vertexIndexAt(x+1, y+1)
+  };
+  if (transduce(inds, trMap([](int i) {return i == -1;}), IntoOr())) {
+
+  }
+}
+
 
 } /* namespace sail */

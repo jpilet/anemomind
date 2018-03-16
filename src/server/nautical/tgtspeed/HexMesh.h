@@ -10,6 +10,8 @@
 
 #include <Eigen/Dense>
 #include <server/common/MDArray.h>
+#include <server/common/WeightedIndex.h>
+#include <server/common/Optional.h>
 
 namespace sail {
 
@@ -35,6 +37,11 @@ public:
   void dispVertexLayout();
 
   int vertexCount() const {return _index2coord.size();}
+
+  Optional<std::array<WeightedIndex, 3>> represent(
+      const Eigen::Vector2d& pos) const;
+
+  int vertexIndexAt(int x, int y) const;
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 private:
