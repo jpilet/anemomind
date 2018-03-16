@@ -11,6 +11,7 @@
 #include <server/common/string.h>
 #include <server/common/MDArray.h>
 #include <fstream>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -401,9 +402,9 @@ NKEData::NKEData(TimeStamp offset, Arrayi typeIndices, Array<NKEArray> values) :
 }
 
 Array<TimeStamp> NKEData::timeStamps() const {
-  return toArray(map(_values[0].durations(), [&](const Duration<double> &d) {
+  return transduce(_values[0].durations(), trMap([&](const Duration<double> &d) {
     return d + _offset;
-  }));
+  }), IntoArray<TimeStamp>());
 }
 
 bool NKEData::hasAllFields(std::initializer_list<NKEType> types) {

@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <vector>
 #include <server/common/ArrayBuilder.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -125,9 +125,9 @@ Array<Arrayi> listChildren(Array<HNode> nodes) {
       children[node.parent()].add(node.index());
     }
   }
-  return toArray(map(children, [&](ArrayBuilder<int> builder) {
+  return transduce(children, trMap([&](ArrayBuilder<int> builder) {
     return builder.get();
-  }));
+  }), IntoArray<Array<int>>());
 }
 
 // Sub-routine to calcLevelPerNode.
@@ -154,9 +154,9 @@ Arrayi calcLevelPerNode(int rootNode, Array<Arrayi> children) {
 }
 
 Arrayb calcTerminals(Array<Arrayi> children) {
-  return toArray(map(children, [&] (const Arrayi &c) {
+  return transduce(children, trMap([&] (const Arrayi &c) {
     return c.empty();
-  }));
+  }), IntoArray<bool>());
 }
 
 int getMaxLevel(Arrayi levels) {
