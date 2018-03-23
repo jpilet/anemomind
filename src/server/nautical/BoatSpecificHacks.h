@@ -27,10 +27,6 @@ extern bool forceDateForGLL;
 // Used to generate dates when the above is true.
 extern int bootCount;
 
-extern double motionWeight;
-
-
-
 void ConfigureForBoat(const std::string& boatId);
 
 void SelectSources(NavDataset *dataset);

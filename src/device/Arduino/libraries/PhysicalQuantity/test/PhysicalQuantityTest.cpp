@@ -202,3 +202,9 @@ TEST(PhysQuantTest, VectorizeNorm) {
   EXPECT_NEAR(x.norm().meters(), 5.0, 1.0e-6);
 }
 
+TEST(PhysQuantTest, AngularVelocity) {
+  AngularVelocity<float> base = AngularVelocity<float>::radiansPerSecond(4);
+  EXPECT_NEAR(38.19718, base.rpm(), 1e-5);
+  EXPECT_NEAR(4 * 180 / M_PI, base.degreesPerSecond(), 1e-5);
+}
+

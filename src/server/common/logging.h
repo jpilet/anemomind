@@ -9,6 +9,8 @@
 #include <string>
 #include <sstream>
 
+namespace sail {
+
 //! Defines the severity of log messages.
 enum LogLevel {
   //! The message provides information about a normal case.
@@ -161,5 +163,6 @@ void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int
 
 void SetLogLevelThreshold(LogLevel level);
 
+}  // namespace sail
 
 #endif  // _SERVER_COMMON_LOGGING_H

@@ -8,7 +8,7 @@
 #include <sstream>
 #include <algorithm>
 #include <string>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 using std::string;
 using namespace sail;
@@ -73,8 +73,8 @@ namespace {
   }
 
   Angle<double> getMedianAbsValue(Array<Angle<double> > difs0) {
-    Array<Angle<double> > difs = toArray(sail::map(difs0, [&](Angle<double> x) {
-      return fabs(x);}));
+    Array<Angle<double> > difs = transduce(difs0, trMap([&](Angle<double> x) {
+      return fabs(x);}), IntoArray<Angle<double>>());
     std::sort(difs.begin(), difs.end());
     return difs[difs.size()/2];
   }

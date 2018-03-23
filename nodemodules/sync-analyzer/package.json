@@ -1,0 +1,16 @@
+{
+  "name": "sync-analyzer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "directory-list": "^1.1.1",
+    "immutable": "^3.8.2",
+    "sqlite3": "^3.1.13"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -11,7 +11,7 @@
 #include <Eigen/Dense>
 #include <server/math/Integral1d.h>
 #include <server/nautical/NavCompatibility.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 #include <server/math/PointQuad.h>
 
 namespace sail {
@@ -47,18 +47,19 @@ Array<FlowMats> makeCurrentMats(const Array<Nav> &navs);
 
 template <typename T>
 Array<Eigen::Matrix<T, 2, 1> > computeFlows(const Array<FlowMats> &mats, const T *x) {
-  return sail::map(mats, [&](const FlowMats &m) {
+  return transduce(mats, trMap([&](const FlowMats &m) {
     return m.eval(x);
-  });
+  }), IntoArray<Eigen::Matrix<T, 2, 1>>());
 }
 
 
 
 template <typename T>
 Array<T> computeRelativeErrors(const Array<Eigen::Matrix<T, 2, 1> > &vecs, int size) {
-  Integral1d<PointQuad<T, 2> > itg(sail::map(vecs, [&](const Eigen::Matrix<T, 2, 1> &v) {
+  Integral1d<PointQuad<T, 2> > itg(transduce(vecs,
+      trMap([&](const Eigen::Matrix<T, 2, 1> &v) {
     return PointQuad<T, 2>(v);
-  }), PointQuad<T, 2>());
+  }), IntoArray<PointQuad<T, 2>>()), PointQuad<T, 2>());
   int n = vecs.size() - size + 1;
   auto half = size/2;
   Array<T> result(n);

@@ -1,5 +1,6 @@
 # Full synchronization test procedure
-That we can perform on some boxes before we deliver them.
+
+*Description*: This is a more realistic test that we can perform on boxes before delivering them. It requires a bit more labour. For a more regular test, see ```repeatable_test_sync_procedure.md```
 
 ## Equipment needed
   * An anemobox that replays data, tagged "Test REPLAY box"

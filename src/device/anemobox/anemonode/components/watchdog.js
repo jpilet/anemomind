@@ -26,15 +26,20 @@ function startWatchdog() {
       });
     };
 
+    var closeWatchdog = 
     fs.open(dev, 'w', function(err, fd) {
       if (err) {
         console.log(dev + ': ' + err);
       } else {
         watchdogFd = fd;
         setInterval(pingWatchdog, 30 * 1000);
+        module.exports.closeWatchdog = function(done) {
+          fw.write(watchdogFd, 'V', function() { if (done) done(); });
+        };
       }
     });
   });
 }
 
 module.exports.startWatchdog = startWatchdog;
+module.exports.closeWatchdog = function() { };

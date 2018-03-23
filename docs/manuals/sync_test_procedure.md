@@ -23,8 +23,9 @@ We will be referring to a number of interfaces between which you need to switch 
 #### Common initial steps
 There are currently three tests in place, indexed 1, 2, 3. Replace X by 1, 2 or 3, where appropriate in the description below.
 
+ - Edit ```www2/synctest/boxid.txt``` to contain the box id, e.g. ```90b6860a8b13``` (no special characters, just hexadecimal digits).
  - Connect your iOS device to your Macbook.
- - Open all of the above interface.
+ - Open all of the above interfaces.
  - **anemomind/www2**: Make sure that no server is running.
  - **XCode**, **iOS**: Make sure the app isn't running. If it is, press the stop button in XCode.
 

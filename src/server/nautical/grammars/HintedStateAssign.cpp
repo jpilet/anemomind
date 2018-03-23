@@ -6,7 +6,7 @@
 #include "HintedStateAssign.h"
 #include <server/common/Span.h>
 #include <server/common/logging.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -40,13 +40,19 @@ HintedStateAssign::HintedStateAssign(std::shared_ptr<StateAssign> ref,
     CHECK(hints.same<int>([&](const LocalStateAssignPtr &h) {return h->getStateCount();}));
     CHECK(hints[0]->getStateCount() == _ref->getStateCount());
   }
-  Array<Spani> stateSpans = toArray(map(hints, [=] (const LocalStateAssignPtr &hint) {
-    return Spani(hint->begin(), hint->end());
-  }));
+  auto stateSpans = transduce(
+      hints,
+      trMap([=] (const LocalStateAssignPtr &hint) {
+        return Spani(hint->begin(), hint->end());
+      }),
+      IntoArray<Spani>());
 
-  Array<Spani> transitionSpans = toArray(map(hints, [=] (const LocalStateAssignPtr &hint) {
-    return makeTSpan(hint);
-  }));
+  auto transitionSpans = transduce(
+      hints,
+      trMap([=] (const LocalStateAssignPtr &hint) {
+        return makeTSpan(hint);
+      }),
+      IntoArray<Spani>());
 
   int len = ref->getLength();
   computeOverlapsAndTable(len, stateSpans, hints, &_stateOverlaps, &_stateTable);

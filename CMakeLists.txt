@@ -66,6 +66,13 @@ endif ()
 find_package(Protobuf REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system iostreams filesystem)
 
+if (APPLE)
+  set(WHOLE_ARCHIVE "-Wl,-force_load")
+  set(NOWHOLE_ARCHIVE "")
+else ()
+  set(WHOLE_ARCHIVE "-Wl,--whole-archive")
+  set(NOWHOLE_ARCHIVE "-Wl,--no-whole-archive")
+endif ()
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
@@ -76,3 +83,4 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 add_definitions("-DON_SERVER")
 
 add_subdirectory(src)
+

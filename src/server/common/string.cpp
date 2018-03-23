@@ -206,4 +206,18 @@ Array<std::string> split(std::string x, char delimiter) {
   return builder.get();
 }
 
+bool isBlank(char c) {
+  // std::isblank does not seem to return true for '\r' (carriage return).
+  return std::isblank(c) || c == '\r' || c == '\n';
+}
+
+bool isBlankString(const std::string& s) {
+  for (auto c: s) {
+    if (!isBlank(c)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 } /* namespace sail */

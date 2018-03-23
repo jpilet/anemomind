@@ -66,10 +66,12 @@ WindCurrentErrors compareCorrectors(
   auto getWind = [&](const CalibratedNav<double> &x) {return x.trueWindOverGround();};
   auto getCurrent = [&](const CalibratedNav<double> &x) {return x.trueCurrentOverGround();};
   return WindCurrentErrors{
-    FlowErrors(toArray(map(aNavs, getWind)),
-               toArray(map(bNavs, getWind))),
-    FlowErrors(toArray(map(aNavs, getCurrent)),
-               toArray(map(bNavs, getCurrent))),
+    FlowErrors(
+        transduce(aNavs, trMap(getWind), IntoArray<HorizontalMotion<double>>()),
+        transduce(bNavs, trMap(getWind), IntoArray<HorizontalMotion<double>>())),
+    FlowErrors(
+        transduce(aNavs, trMap(getCurrent), IntoArray<HorizontalMotion<double>>()),
+        transduce(bNavs, trMap(getCurrent), IntoArray<HorizontalMotion<double>>())),
     NavCompat::getNavSize(navs)
   };
 }

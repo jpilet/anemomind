@@ -31,6 +31,12 @@
 	  id="logRawNmea2000" 
           name="logRawNmea2000"/></dd>
       </dl>
+      <dl class="dl-horizontal">
+        <dt><label for="outputNmea2000">Output NMEA 2000</label></dt>
+	<dd><input type="checkbox" 
+	  id="outputNmea2000" 
+          name="outputNmea2000"/></dd>
+      </dl>
     </div>
     <p class="body-link"><a href="/">Input data</a></p>
     <p class="body-link"><a href="/allSources.html">Detailed input data</a></p>
@@ -66,13 +72,22 @@
 
     var loadedConfig;
 
+    function initializeCheckbox(dstId, srcValue) {
+      var box = document.getElementById(dstId);
+      box.checked = srcValue;
+      return box;
+    }
+    
     function readConfig(data) {
           loadedConfig = data;
           $('#nmea0183Speed option[value=' 
             + data.boxConfig.nmea0183Speed + ']')
             .prop('selected', true);
-	  logRawNmea2000Checkbox = document.getElementById("logRawNmea2000");
-          logRawNmea2000Checkbox.checked = data.boxConfig.logRawNmea2000;
+	  
+	  initializeCheckbox("logRawNmea2000", data.boxConfig.logRawNmea2000);
+	  initializeCheckbox("outputNmea2000", data.boxConfig.outputNmea2000);
+	  	
+	  
           var table = $('#dataTable');
           table.html('');
 
@@ -128,6 +143,9 @@
       });
       $("#logRawNmea2000").change(function(e) {
         changeBoxConfig("logRawNmea2000", this.checked);
+      });
+      $("#outputNmea2000").change(function(e) {
+        changeBoxConfig("outputNmea2000", this.checked);
       });
     });
   </script>

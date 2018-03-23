@@ -8,7 +8,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <Poco/DirectoryIterator.h>
 #include <assert.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 #include <limits>
 #include <iostream>
 
@@ -75,7 +75,8 @@ Array<Poco::Path> listFilesRecursively(Poco::Path rootPath, std::function<bool(P
 }
 
 Array<Poco::Path> listFilesRecursivelyByExtension(Poco::Path rootPath, Array<std::string> extensions) {
-  Array<std::string> extensionsLowerCase = toArray(map(extensions, &toLower));
+  Array<std::string> extensionsLowerCase = transduce(
+      extensions, trMap(&toLower), IntoArray<std::string>());
   return listFilesRecursively(rootPath, [&](Poco::Path p) {return hasExtension(p, extensionsLowerCase);});
 }
 

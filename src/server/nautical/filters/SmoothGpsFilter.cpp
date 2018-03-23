@@ -6,7 +6,7 @@
  */
 
 #include <server/common/ArrayBuilder.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 #include <server/common/logging.h>
 #include <server/math/SampleUtils.h>
 #include <server/nautical/filters/GpsUtils.h>
@@ -112,7 +112,7 @@ TimedValue<Motion2d> toMotion2d(const TimedValue<HorizontalMotion<double>>& x) {
 
 Array<TimedValue<Motion2d>> to2dMotions(
     const Array<TimedValue<HorizontalMotion<double>>>& src) {
-  return sail::map(src, &toMotion2d);
+  return transduce(src, trMap(&toMotion2d), IntoArray<TimedValue<Motion2d>>());
 }
 
 Array<TimedValue<GeographicPosition<double>>>
@@ -248,6 +248,12 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
   int n = gaps.size();
   ArrayBuilder<TimedValue<bool>> goodBuilder(2*n);
   std::vector<LargeGap> largeGaps;
+
+  CHECK(std::is_sorted(filtered.begin(), filtered.end()));
+  CHECK(std::is_sorted(gaps.begin(), gaps.end()));
+  CHECK(std::is_sorted(inlierPositions.begin(), inlierPositions.end()));
+  CHECK(inlierPositions.size() == n + 1);
+  CHECK(filtered.size() == n);
   for (int i = 0; i < n; i++) {
     const auto& y = filtered[i];
     auto pos = Vec2<Length<double>>{
@@ -256,6 +262,8 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
     };
     const auto& a = inlierPositions[i];
     const auto& b = inlierPositions[i+1];
+    CHECK(a.time <= y.time);
+    CHECK(y.time <= b.time);
     goodBuilder.add(TimedValue<bool>(a.time, true));
     auto maxl = std::max(
         (pos - a.value).norm(),
@@ -268,7 +276,16 @@ Array<LocalGpsFilterResults::Curve> segmentCurvesByDistanceThreshold(
       largeGaps.push_back(LargeGap{maxl, threshold});
     }
   }
-  goodBuilder.add(TimedValue<bool>(filtered.last().time, true));
+
+
+
+  {
+    auto lastFilteredTime = filtered.last().time;
+    if (!goodBuilder.empty() && goodBuilder.last().time <= lastFilteredTime) {
+      goodBuilder.add(TimedValue<bool>(lastFilteredTime, true));
+    }
+  }
+
   auto good = goodBuilder.get();
   CHECK(std::is_sorted(good.begin(), good.end()));
 
@@ -507,7 +524,7 @@ Eigen::Vector2d tov2(
 
 Array<Eigen::Vector2d> toV2(
     const Array<TimedValue<Position2d>> &src) {
-  return map(src, &tov2);
+  return transduce(src, trMap(&tov2), IntoArray<Eigen::Vector2d>());
 }
 
 Array<Eigen::Vector2d> toV2(
@@ -936,7 +953,9 @@ TimeSeg segmentTime(
       settings.subProblemThreshold, settings.subProblemLength);
   CHECK(std::is_sorted(splits.begin(), splits.end()));
   if (withDistance) {
-    splits = concat(Array<Array<TimeStamp>>{splits, findDistanceSplits(data.positions)});
+    splits = transduce(Array<Array<TimeStamp>>{
+      splits, findDistanceSplits(data.positions)}, trCat(),
+        IntoArray<TimeStamp>());
     std::sort(splits.begin(), splits.end());
   }
   return TimeSeg{splits, positionTimes,

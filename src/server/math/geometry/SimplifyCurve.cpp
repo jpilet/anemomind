@@ -6,6 +6,8 @@
 #include <server/common/logging.h>
 #include <set>
 
+using namespace sail;
+
 // Implements Visvalingam’s algorithm for line simplification.
 // Inspired by http://bost.ocks.org/mike/simplify/
 

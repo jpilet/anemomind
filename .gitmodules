@@ -1,0 +1,3 @@
+[submodule "src/third_party/NMEA2000"]
+	path = src/third_party/NMEA2000
+	url = git@github.com:jonasseglare/NMEA2000.git

@@ -1,3 +1,4 @@
+
 var dispatcher = require('./build/Release/anemonode').dispatcher;
 var version = require('./version');
 var logRoot = '/media/sdcard/logs/';
@@ -20,12 +21,16 @@ var withIMU = true;
 var withCUPS = false;
 var withNMEA2000 = true;
 var withWatchdog = !process.env['NO_WATCHDOG'];
+var withSendN2kGps = true;
+
 var spiBugDetected = false;
+
 var config = require('./components/config');
 var reboot = require('./components/reboot').reboot;
 var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
-var nmea2000raw = require('./components/nmea2000raw.js');
+var nmea2000 = require('./components/nmea2000.js');
+var n2kgps = require('./components/n2kgps.js');
 
 // To free up space if possible.
 function cleanOld() {
@@ -51,7 +56,7 @@ function setLogRawNmea2000FromConfig(err, cfg) {
   if (err) {
     console.log("Error reading config setting to set log raw NMEA 2000 state");
   } else {
-    nmea2000raw.setState(cfg.logRawNmea2000);
+    nmea2000.setRawLogging(cfg.logRawNmea2000);
   }
 }
 
@@ -117,6 +122,9 @@ function gpsData(data) {
   }
   if (withLogger && logInternalGpsNmea) {
     logger.logText("Internal GPS NMEA", data.toString('ascii'));
+  }
+  if (withSendN2kGps) {
+    nmea2000.sendPackets(n2kgps.makePackets(data.toString()));
   }
 }
 
@@ -194,13 +202,23 @@ if (withCUPS) {
 }
 
 if (withNMEA2000) {
-  require('./components/nmea2000.js').detectSPIBug(function() {
+  nmea2000.detectSPIBug(function() {
     var message = 'SPI bug detected, rebooting!';
     console.log(message);
     spiBugDetected = true;
     if (withLogger) {
       logger.logText("syslog", message);
       logger.flush();
+    }
+  });
+  config.get(function(err, cfg) {
+    nmea2000.startNmea2000(cfg);
+  });
+  config.getAndListen(function(err, cfg) {
+    if (err) {
+      console.warn("Got an error when refreshing the NMEA2000 state from config");
+    } else if (cfg) {
+      nmea2000.updateFromConfig(cfg);
     }
   });
 }
