@@ -15,6 +15,7 @@ namespace {
 std::string gBoatId;
 
 const char kRealTeamD35[] = "5992fcc6035eb352cf36d594";
+const char kRealTeamGC32[] = "5a6b312270d7bf3fce86b6ad";
 }
 
 bool forceDateForGLL = false;
@@ -42,6 +43,10 @@ void SelectSources(NavDataset *dataset) {
   if (gBoatId == kRealTeamD35) {
     // Realteam, issue #1138. NMEA0183 buffering likely
     dataset->dispatcher()->setSourcePriority("NMEA0183: /dev/ttyMFD1", -10);
+
+  } else if (gBoatId == kRealTeamGC32) {
+    // Take apparent wind from the processor, not the sensor (rotating mast).
+    dataset->dispatcher()->setSourcePriority("NMEA2000/c078be002fb01596", 20);
   }
 }
 
