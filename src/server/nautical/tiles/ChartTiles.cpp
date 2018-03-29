@@ -36,6 +36,7 @@ bool sourceShouldUploadChartTiles(const std::string& source) {
   static const std::set<std::string> blacklist{
     "IMU", // IMU is not reliable. We do not want to expose it in our UI.
     "NMEA2000/0", // Let's ignore nmea2000 data from unidentified sources.
+    "NMEA2000/0 i255", // unidentified source for rudder angle
   };
 
   return blacklist.find(source) == blacklist.end();
@@ -162,6 +163,9 @@ class ChartSourceIndexBuilder {
   std::shared_ptr<Dispatcher> _dispatcher;
   WrapBson _index;
   BsonSubDocument _channels;
+  std::string _currentChannelType;
+  std::unique_ptr<BsonSubDocument> _currentChannelDoc;
+
   std::string _boatId;
 };
 
@@ -445,8 +449,15 @@ ChartSourceIndexBuilder::ChartSourceIndexBuilder(
 void ChartSourceIndexBuilder::add(const TileMetaData& metadata,
                                   TimeStamp first, TimeStamp last,
                                   int64_t tileCount) {
-  BsonSubDocument chanObj(&_channels, metadata.what.c_str());
-  BsonSubDocument sourceObj(&chanObj, metadata.source.c_str());
+  if (_currentChannelType != metadata.what.c_str()) {
+    if (_currentChannelDoc) {
+      _currentChannelDoc->finalize();
+    }
+    _currentChannelDoc.reset(new BsonSubDocument(&_channels, metadata.what.c_str()));
+    _currentChannelType = metadata.what;
+  }
+
+  BsonSubDocument sourceObj(_currentChannelDoc.get(), metadata.source.c_str());
 
   bsonAppend(&sourceObj, "first", first);
   bsonAppend(&sourceObj, "last", last);
@@ -458,6 +469,9 @@ void ChartSourceIndexBuilder::add(const TileMetaData& metadata,
 bool ChartSourceIndexBuilder::upload(
     const std::shared_ptr<mongoc_database_t>& db,
     const ChartTileSettings& settings) {
+  if (_currentChannelDoc) {
+    _currentChannelDoc->finalize();
+  }
   _channels.finalize();
   auto oid = makeOid(_boatId);
   BSON_APPEND_OID(&_index, "_id", &oid);
