@@ -199,6 +199,7 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
     BSON_APPEND_INT64(&key, "tileno", (long long) tile.tileno);
     bsonAppend(&key, "what", data.what);
     bsonAppend(&key, "source", data.source);
+    key.finalize();
   }
 
   StatArrays arrays;
@@ -399,6 +400,7 @@ bool uploadChartTiles(const NavDataset& data,
     {
       BsonSubDocument id(&selector, "_id");
       BSON_APPEND_OID(&id, "boat", &oid);
+      id.finalize();
     }
     auto concern = nullptr;
     bson_error_t error;
@@ -464,6 +466,7 @@ void ChartSourceIndexBuilder::add(const TileMetaData& metadata,
   bsonAppend(&sourceObj, "priority",
              _dispatcher->sourcePriority(metadata.source));
   bsonAppend(&sourceObj, "tileCount", tileCount);
+  sourceObj.finalize();
 }
 
 bool ChartSourceIndexBuilder::upload(
@@ -471,7 +474,7 @@ bool ChartSourceIndexBuilder::upload(
     const ChartTileSettings& settings) {
   if (_currentChannelDoc) {
     _currentChannelDoc->finalize();
-    _currentChannelDoc.release();
+    _currentChannelDoc.reset();
     _currentChannelType.clear();
   }
   _channels.finalize();
