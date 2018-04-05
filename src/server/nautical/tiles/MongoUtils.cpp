@@ -114,7 +114,12 @@ BsonSubDocument::BsonSubDocument(bson_t* parent, const char* key0)
       this);
 }
 
-BsonSubDocument::~BsonSubDocument() { finalize(); }
+BsonSubDocument::~BsonSubDocument() {
+  // For some reason, calling finalize in this destructor seems unsafe.
+  // TODO: refactor the code so that the destructor works properly.
+  // finalize();
+  CHECK_EQ(_parent, nullptr);
+}
 
 void BsonSubDocument::finalize() {
   if (_parent) {
