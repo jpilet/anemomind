@@ -42,4 +42,19 @@ void Nmea0183Source::onRSA(const char *senderAndSentence,
   }
 }
 
+void Nmea0183Source::onXDRPitch(const char *senderAndSentence,
+                                bool valid,
+                                sail::Angle<double> angle) {
+  if (valid) {
+    _dispatcher->publishValue(PITCH, _sourceName, angle);
+  }
+}
+void Nmea0183Source::onXDRRoll(const char *senderAndSentence,
+                               bool valid,
+                               sail::Angle<double> angle) {
+  if (valid) {
+    _dispatcher->publishValue(ROLL, _sourceName, angle);
+  }
+}
+
 }  // namespace sail

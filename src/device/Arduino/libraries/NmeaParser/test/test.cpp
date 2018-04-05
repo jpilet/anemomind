@@ -23,7 +23,7 @@ NmeaParser::NmeaSentence sendSentence(const char *sentence, NmeaParser *parser) 
   for (const char *s = sentence; *s; ++s) {
     NmeaParser::NmeaSentence status = parser->processByte(*s); 
     if (status != NmeaParser::NMEA_NONE) {
-      result = status;
+      return status;
     }
   }
   return result;
@@ -42,9 +42,7 @@ TEST(NmeaParserTest, TestVLW) {
 TEST(NmeaParserTest, TestMWV) {
   NmeaParser parser;
   EXPECT_EQ(NmeaParser::NMEA_AW,
-           sendSentence("$IIMTW,020.0,C*21\n"
-                        "$IIMTW,020.4,C*25\n"
-                        "$IIMWV,010,R,004.8,N,A*2E", &parser));
+            sendSentence("$IIMWV,010,R,004.8,N,A*2E", &parser));
   EXPECT_EQ(10, parser.awa().degrees());
   EXPECT_EQ(int(4.8f * 256.0f), int(256.0f * (float) parser.aws().knots()));
 }
@@ -327,6 +325,8 @@ class MockNmeaParser : public NmeaParser {
     MOCK_METHOD3(onRSA, void(const char *senderAndSentence,
                      Optional<sail::Angle<>> rudderAngle0,
                      Optional<sail::Angle<>> rudderAngle1));
+    MOCK_METHOD3(onXDRRoll, void(const char*, bool, Angle<double>));
+    MOCK_METHOD3(onXDRPitch, void(const char*, bool, Angle<double>));
 };
 
 double degrees(const Angle<double>& d) { return d.degrees(); }
@@ -383,4 +383,44 @@ TEST(NmeaParserTest, TestRSA) {
 
   EXPECT_EQ(NmeaParser::NMEA_RSA,
            sendSentence("$IIRSA,4.3,A,,V*7E", &parser));
+}
+
+TEST(NmeaParserTest, TestInvalid) {
+  MockNmeaParser parser;
+  EXPECT_EQ(NmeaParser::NMEA_NONE,
+            sendSentence("$GNRMC,,V,,,,,,,,,,N*4D", &parser));
+  EXPECT_EQ(NmeaParser::NMEA_NONE,
+            sendSentence("$GNVTG,,,,,,,,,N*2E", &parser));
+  EXPECT_EQ(NmeaParser::NMEA_NONE,
+            sendSentence("$GNGLL,,,,,,V,N*7A", &parser));
+}
+
+TEST(NmeaParserTest, TestCalypsoUltrasonic) {
+  MockNmeaParser parser;
+  EXPECT_CALL(parser, onXDRRoll(StrEq("IIXDR"), true,
+                                ResultOf(degrees, DoubleEq(0))));
+  EXPECT_EQ(NmeaParser::NMEA_AW,
+            sendSentence("$IIMWV,72,R,0.0,N,A*16", &parser));
+
+  EXPECT_EQ(NmeaParser::NMEA_UNKNOWN,
+            sendSentence("$HCHDM,306,M*32", &parser));
+
+  EXPECT_CALL(parser, onXDRRoll(StrEq("IIXDR"), true,
+                                 ResultOf(degrees, DoubleEq(64))));
+  EXPECT_EQ(NmeaParser::NMEA_ROLL,
+            sendSentence("$IIXDR,A,64,D,ROLL*54", &parser));
+
+  EXPECT_CALL(parser, onXDRPitch(StrEq("IIXDR"), true,
+                                 ResultOf(degrees, DoubleEq(-19))));
+  EXPECT_EQ(NmeaParser::NMEA_PITCH,
+            sendSentence("$IIXDR,A,-19,D,PTCH*61", &parser));
+
+  EXPECT_EQ(NmeaParser::NMEA_ROLL,
+            sendSentence("$IIXDR,A,0,D,ROLL*66", &parser));
+
+  EXPECT_CALL(parser, onXDRPitch(StrEq("IIXDR"), true,
+                                 ResultOf(degrees, DoubleEq(2))));
+
+  EXPECT_EQ(NmeaParser::NMEA_PITCH,
+            sendSentence("$IIXDR,A,2,D,PTCH*76", &parser));
 }
