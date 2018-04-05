@@ -471,6 +471,8 @@ bool ChartSourceIndexBuilder::upload(
     const ChartTileSettings& settings) {
   if (_currentChannelDoc) {
     _currentChannelDoc->finalize();
+    _currentChannelDoc.release();
+    _currentChannelType.clear();
   }
   _channels.finalize();
   auto oid = makeOid(_boatId);
