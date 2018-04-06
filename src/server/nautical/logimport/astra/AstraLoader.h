@@ -154,6 +154,8 @@ inline GenericTransducer<AstraDataStepper> trMakeAstraData() {
   return genericTransducer(AstraDataStepper());
 }
 
+Array<AstraData> loadAstraFile(const std::string& filename);
+
 } /* namespace sail */
 
 #endif /* SERVER_NAUTICAL_LOGIMPORT_ASTRALOADER_H_ */
