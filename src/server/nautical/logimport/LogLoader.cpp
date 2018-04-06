@@ -19,6 +19,7 @@
 #include <server/nautical/GeographicPosition.h>
 #include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/nautical/logimport/ProtobufLogLoader.h>
+#include <server/nautical/logimport/astra/AstraLoader.h>
 
 namespace sail {
 
@@ -33,7 +34,8 @@ bool LogLoader::loadFile(const std::string &filename) {
     loadCsv(filename, &_acc);
     return true;
   } else if (ext == "log") {
-    return ProtobufLogLoader::load(filename, &_acc);
+    return ProtobufLogLoader::load(filename, &_acc)
+      || accumulateAstraLogs(filename, &_acc);
   } else if (ext == "db") {
     return sailmonDbLoad(filename, &_acc);
   } else {

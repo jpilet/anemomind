@@ -50,6 +50,7 @@ target_link_libraries(logimport_LogLoader
                       logimport_SailmonDbLoader
                       nautical_BoatSpecificHacks
                       nautical_NavDataset
+                      astra_AstraLoader
                      )
 
 cxx_test(logimport_LogLoaderTest 

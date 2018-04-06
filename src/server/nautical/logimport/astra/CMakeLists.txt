@@ -5,6 +5,7 @@ add_library(astra_AstraLoader
 target_link_libraries(astra_AstraLoader
   common_string
   common_TimeStamp
+  common_RegexUtils
   )
 
 cxx_test(astra_AstraLoaderTest
@@ -13,7 +14,6 @@ cxx_test(astra_AstraLoaderTest
   common_PathBuilder
   common_Env
   astra_AstraLoader
-  common_RegexUtils
   )
 
 add_executable(astra_AstraLogViewer
