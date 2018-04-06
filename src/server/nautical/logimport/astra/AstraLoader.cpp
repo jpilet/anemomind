@@ -29,37 +29,33 @@ Optional<AstraHeader> tryParseAstraHeader(const std::string& s) {
   return {};
 }
 
-Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
-    const std::string& s) {
+namespace {
   using namespace Regex;
-
-
   auto notColon = "[^:]";
   auto colon = ":";
   auto wordChar = charNotInString(spaceChars + "\\:");
-  //auto word = atLeastOnce(wordChar);
-  //auto words = join(atLeastOnce(space), word);
-  //auto namedParameter = words/colon/anyCount(space)/basicNumber(digit);
   auto name = captureGroup(wordChar/anyCount(notColon));
   auto value = captureGroup(basicNumber(digit));
   auto namedParameter = name/colon/anyCount(space)/value;
-  auto pattern = entireString(
+  std::regex reNamedNumericParameters(
+      entireString(
       anyCount(space)
         /join1(atLeastOnce(space), namedParameter)
-        /anyCount(space));
+        /anyCount(space)));
+}
 
-  //std::cout << "Pattern is " << pattern << std::endl;
-  static std::regex re(
-      pattern);
+Optional<std::map<std::string, Array<std::string>>>
+  tryParseNamedNumericParameters(
+    const std::string& s) {
+
   std::smatch m;
-  if (std::regex_match(s, m, re)) {
-    /*std::cout << "Matches in '" << s << "':" << std::endl;
+  if (std::regex_match(s, m, reNamedNumericParameters)) {
     for (int i = 0; i < m.size(); i++) {
       auto x = m[i];
       std::cout << "  * '" << x << "'" << std::endl;
       std::cout << "     At position " << m.position(i) << std::endl;
       std::cout << "     Matched? " << x.matched << std::endl;
-    }*/
+    }
     return std::map<std::string, Array<std::string>>();
   } else {
     return {};
@@ -299,6 +295,7 @@ Optional<Array<std::pair<std::string, AstraValueParser>>>
       : Optional<Array<std::pair<std::string, AstraValueParser>>>();
 }
 
+// Useful for explaining what other columns need to be considered.
 void displayColHint(const AstraTableRow& rawData) {
   std::set<std::string> recognized, notRecognized;
   for (auto x: rawData) {

@@ -21,8 +21,6 @@ std::string nonCaptureGroup(const std::string& s) {
   return "(?:" + s + ")";
 }
 
-// Use this instead of '+' to concatenate patterns, so that the
-// evaluation order is preserved.
 std::string operator/(const std::string& a, const std::string& b) {
   return nonCaptureGroup(a + b);
 }

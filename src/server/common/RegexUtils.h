@@ -18,12 +18,15 @@ namespace Regex {
 std::string captureGroup(const std::string& s);
 std::string nonCaptureGroup(const std::string& s);
 
-// Use this instead of '+' to concatenate patterns, so that the
-// evaluation order is preserved.
+// I read somewhere that C++11 regex don't support named capture groups.
+
+// Use this instead of '+' to concatenate patterns 'a' and 'b'
+// in a way that respects the order of evaluation.
 std::string operator/(const std::string& a, const std::string& b);
 
-
+// Constructs a pattern meaning "either a or b"
 std::string operator|(const std::string& a, const std::string& b);
+
 std::string anyCount(const std::string& s);
 std::string atLeastOnce(const std::string& s);
 std::string entireString(const std::string& s);
@@ -45,7 +48,7 @@ std::string join0(
     const std::string& itemPattern);
 std::string signedNumber(const std::string& num);
 extern std::string fractionalSeparator;
-std::string unsignedFractionalNumber(const std::string& digitPattern);
+std::string unsignedFractionalNumber(const std::string& digit);
 std::string basicNumber(const std::string& digit);
 
 bool matches(const std::string& queryValue, const std::regex& re);

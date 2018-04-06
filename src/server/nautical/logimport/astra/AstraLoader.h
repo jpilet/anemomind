@@ -81,7 +81,7 @@ Optional<Duration<double>> tryParseAstraTimeOfDay(const std::string& s);
 
 Optional<TimeStamp> tryParseAstraDate(const std::string& s);
 
-Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
+Optional<std::map<std::string, Array<std::string>>> tryParseNamedNumericParameters(
     const std::string& s);
 
 
