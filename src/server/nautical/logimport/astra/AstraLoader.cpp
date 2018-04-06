@@ -25,7 +25,7 @@ Optional<AstraHeader> tryParseAstraHeader(const std::string& s) {
 }
 
 namespace Regex { // TODO: put this in its own library maybe
-  std::string space = "[:space:]";
+  std::string space = "[ \\t\\r\\n\\v\\f]"; //"[:space:]";
 
   std::string group(const std::string& s) {
     return "(" + s + ")";
@@ -49,7 +49,7 @@ namespace Regex { // TODO: put this in its own library maybe
 Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
     const std::string& s) {
   using namespace Regex;
-  auto pattern = entireString(".?" + anyCount(space) + ".?");
+  auto pattern = anyCount(space); //entireString(".?" + anyCount(space));
   std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
       pattern);
