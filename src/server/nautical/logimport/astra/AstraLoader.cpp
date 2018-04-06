@@ -47,7 +47,7 @@ namespace Regex { // TODO: put this in its own library maybe
   }
 
   std::string maybe(const std::string& s) {
-    return s + "?";
+    return nonCaptureGroup(s) + "?";
   }
 
   std::string space = "[ \\t\\r\\n\\v\\f]"; // "[:space:]" doesn't work;
@@ -55,10 +55,22 @@ namespace Regex { // TODO: put this in its own library maybe
   std::string nonNegativeInteger = atLeastOnce(digit);
   std::string maybeSign = maybe("[+-]");
 
-  std::string joinAtLeastOnce(
+
+  std::string moreItems(
       const std::string& separatorPattern,
       const std::string& itemPattern) {
-    return itemPattern + anyCount(nonCaptureGroup(separatorPattern + itemPattern));
+    return anyCount(nonCaptureGroup(separatorPattern + itemPattern));
+  }
+  std::string join1(
+      const std::string& separatorPattern,
+      const std::string& itemPattern) {
+    return nonCaptureGroup(itemPattern + moreItems(separatorPattern, itemPattern));
+  }
+
+  std::string join0(
+      const std::string& separatorPattern,
+      const std::string& itemPattern) {
+    return maybe(join1(separatorPattern, itemPattern));
   }
 
   std::string signedNumber(const std::string& num) {
@@ -75,7 +87,7 @@ Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
   using namespace Regex;
   auto pattern = entireString(
       anyCount(space)
-      + joinAtLeastOnce(",", signedNumber(nonNegativeInteger))
+      + join0(",", signedNumber(nonNegativeInteger))
       + anyCount(space));
   std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
