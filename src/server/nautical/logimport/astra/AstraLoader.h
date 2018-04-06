@@ -102,6 +102,7 @@ Optional<AstraData> tryMakeAstraData(
 
 void displayColHint(const AstraTableRow& rawData);
 
+// Used to guess the type of log we are importing
 bool isDinghyLogHeader(const std::string& s);
 bool isProcessedCoachLogHeader(const std::string& s);
 

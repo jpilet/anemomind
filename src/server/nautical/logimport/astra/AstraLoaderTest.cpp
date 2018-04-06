@@ -124,5 +124,11 @@ TEST(TestAstraLoader, TestLoadCoach) {
       IntoArray<AstraData>());
   EXPECT_LT(0, results.size());
   EXPECT_EQ(results[0].logType, AstraLogType::ProcessedCoach);
+}
 
+TEST(TestAstraLoader, TestIdentifyHeader) {
+  EXPECT_TRUE(isDinghyLogHeader("Device___23423"));
+  EXPECT_FALSE(isDinghyLogHeader("Devic___23423"));
+  EXPECT_TRUE(isProcessedCoachLogHeader("asdfsadf_Charts"));
+  EXPECT_FALSE(isProcessedCoachLogHeader("asdfsadf_Chart"));
 }
