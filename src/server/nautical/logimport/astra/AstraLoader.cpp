@@ -55,7 +55,7 @@ namespace Regex { // TODO: put this in its own library maybe
   }
 
   std::string maybe(const std::string& s) {
-    return nonCaptureGroup(s) + "?";
+    return nonCaptureGroup(s + "?");
   }
 
   std::string space = "[ \\t\\r\\n\\v\\f]"; // "[:space:]" doesn't work;
@@ -67,12 +67,12 @@ namespace Regex { // TODO: put this in its own library maybe
   std::string moreItems(
       const std::string& separatorPattern,
       const std::string& itemPattern) {
-    return anyCount(nonCaptureGroup(separatorPattern + itemPattern));
+    return anyCount(concat({separatorPattern, itemPattern}));
   }
   std::string join1(
       const std::string& separatorPattern,
       const std::string& itemPattern) {
-    return nonCaptureGroup(itemPattern + moreItems(separatorPattern, itemPattern));
+    return concat({itemPattern, moreItems(separatorPattern, itemPattern)});
   }
 
   std::string join0(
