@@ -25,10 +25,13 @@ Optional<AstraHeader> tryParseAstraHeader(const std::string& s) {
 }
 
 namespace Regex { // TODO: put this in its own library maybe
-  std::string space = "[ \\t\\r\\n\\v\\f]"; // "[:space:]" doesn't work;
 
-  std::string group(const std::string& s) {
+  std::string captureGroup(const std::string& s) {
     return "(" + s + ")";
+  }
+
+  std::string nonCaptureGroup(const std::string& s) {
+    return "(:?" + s + ")";
   }
 
   std::string anyCount(const std::string& s) {
@@ -43,13 +46,37 @@ namespace Regex { // TODO: put this in its own library maybe
     return "^" + s + "$";
   }
 
+  std::string maybe(const std::string& s) {
+    return s + "?";
+  }
+
+  std::string space = "[ \\t\\r\\n\\v\\f]"; // "[:space:]" doesn't work;
+  std::string digit = "[0-9]";
+  std::string nonNegativeInteger = atLeastOnce(digit);
+  std::string maybeSign = maybe("[+-]");
+
+  std::string joinAtLeastOnce(
+      const std::string& separatorPattern,
+      const std::string& itemPattern) {
+    return itemPattern + anyCount(nonCaptureGroup(separatorPattern + itemPattern));
+  }
+
+  std::string signedNumber(const std::string& num) {
+    return maybeSign + num;
+  }
+
+
+
 
 }
 
 Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
     const std::string& s) {
   using namespace Regex;
-  auto pattern = entireString(anyCount(space));
+  auto pattern = entireString(
+      anyCount(space)
+      + joinAtLeastOnce(",", signedNumber(nonNegativeInteger))
+      + anyCount(space));
   std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
       pattern);
