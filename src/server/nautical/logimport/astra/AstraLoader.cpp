@@ -42,20 +42,26 @@ namespace Regex { // TODO: put this in its own library maybe
     return nonCaptureGroup(dst);
   }
 
+  // Use this instead of '+' to concatenate patterns, so that the
+  // evaluation order is preserved.
+  std::string operator/(const std::string& a, const std::string& b) {
+    return nonCaptureGroup(a + b);
+  }
+
   std::string anyCount(const std::string& s) {
-    return concat({s, "*"});
+    return s/"*";
   }
 
   std::string atLeastOnce(const std::string& s) {
-    return concat({s, "+"});
+    return s/"+";
   }
 
   std::string entireString(const std::string& s) {
-    return concat({"^", s, "$"});
+    return "^"/s/"$";
   }
 
   std::string maybe(const std::string& s) {
-    return concat({s, "?"});
+    return s/"?";
   }
 
   std::string space = "[ \\t\\r\\n\\v\\f]"; // "[:space:]" doesn't work;
