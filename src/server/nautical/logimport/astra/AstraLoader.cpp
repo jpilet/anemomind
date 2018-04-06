@@ -49,7 +49,7 @@ namespace Regex { // TODO: put this in its own library maybe
 Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
     const std::string& s) {
   using namespace Regex;
-  auto pattern = anyCount(space); //entireString(".?" + anyCount(space));
+  auto pattern = entireString(anyCount(space));
   std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
       pattern);
