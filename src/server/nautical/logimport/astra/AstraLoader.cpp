@@ -101,7 +101,7 @@ Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
   using namespace Regex;
   auto pattern = entireString(
       anyCount(space)
-      + join0(",", signedNumber(nonNegativeInteger))
+      + join1(",", signedNumber(nonNegativeInteger))
       + anyCount(space));
   std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
