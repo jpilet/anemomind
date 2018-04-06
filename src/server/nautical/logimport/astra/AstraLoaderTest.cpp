@@ -96,5 +96,5 @@ TEST(TestAstraLoader, TestLoadCoach) {
 }
 
 TEST(TestAstraLoader, ParseParameters) {
-  EXPECT_TRUE(tryParseNamedParameters("  a: 3.4").defined());
+  EXPECT_TRUE(tryParseNamedParameters("  ").defined());
 }

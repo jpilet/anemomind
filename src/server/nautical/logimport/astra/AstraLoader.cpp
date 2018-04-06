@@ -42,17 +42,23 @@ namespace Regex { // TODO: put this in its own library maybe
   std::string entireString(const std::string& s) {
     return "^" + s + "$";
   }
+
+
 }
 
 Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
     const std::string& s) {
   using namespace Regex;
+  auto pattern = entireString(".?" + anyCount(space) + ".?");
+  std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
-      entireString(""));
+      pattern);
   std::smatch m;
   if (std::regex_match(s, m, re)) {
+    std::cout << "GOOD" << std::endl;
     return std::map<std::string, Array<std::string>>();
   } else {
+    std::cout << "BAD" << std::endl;
     return {};
   }
 }
