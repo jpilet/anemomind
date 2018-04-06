@@ -44,21 +44,20 @@ Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
         /join1(atLeastOnce(space), namedParameter)
         /anyCount(space));
 
-  std::cout << "Pattern is " << pattern << std::endl;
+  //std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
       pattern);
   std::smatch m;
   if (std::regex_match(s, m, re)) {
-    std::cout << "Matches in '" << s << "':" << std::endl;
+    /*std::cout << "Matches in '" << s << "':" << std::endl;
     for (int i = 0; i < m.size(); i++) {
       auto x = m[i];
       std::cout << "  * '" << x << "'" << std::endl;
       std::cout << "     At position " << m.position(i) << std::endl;
       std::cout << "     Matched? " << x.matched << std::endl;
-    }
+    }*/
     return std::map<std::string, Array<std::string>>();
   } else {
-    std::cout << "BAD" << std::endl;
     return {};
   }
 }

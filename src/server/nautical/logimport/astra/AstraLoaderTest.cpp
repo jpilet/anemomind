@@ -64,7 +64,17 @@ TEST(TestAstraLoader, DateTest) {
       TimeStamp::UTC(2018, 3, 9, 0, 0, 0));
 }
 
-TEST(TestAstraLoader, TestLoadCoach) {
+auto testTransducer = trStreamLines() // All the lines of the file
+        |
+        trTake(12) // No need to load the entire file.
+        |
+        trFilter(complementFunction(&isBlankString))
+        |
+        trPreparseAstraLine() // Identify the type of line: header, column spec or data?
+        |
+        trMakeAstraData();
+
+TEST(TestAstraLoader, TestLoadDinghy) {
   std::string filename = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("astradata")
@@ -73,15 +83,7 @@ TEST(TestAstraLoader, TestLoadCoach) {
 
   auto results = transduce(
       makeOptional(std::make_shared<std::ifstream>(filename)),
-      trStreamLines() // All the lines of the file
-      |
-      trTake(12) // No need to load the entire file.
-      |
-      trFilter(complementFunction(&isBlankString))
-      |
-      trPreparseAstraLine() // Identify the type of line: header, column spec or data?
-      |
-      trMakeAstraData(), // Produce structs from table rows.
+      testTransducer, // Produce structs from table rows.
       IntoArray<AstraData>());
   EXPECT_LT(0, results.size());
 
@@ -103,4 +105,19 @@ TEST(TestAstraLoader, ParseParameters) {
   EXPECT_FALSE(tryParseNamedParameters(":::b:").defined());
   EXPECT_TRUE(tryParseNamedParameters("   Zis value is good: 119").defined());
   //EXPECT_FALSE(tryParseNamedParameters("  kattskit: 934.3 ").defined());
+}
+
+TEST(TestAstraLoader, TestLoadCoach) {
+  std::string filename = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+      .pushDirectory("datasets")
+      .pushDirectory("astradata")
+      .pushDirectory("Coach")
+      .makeFile("log1Hz20180215_0957_Charts.log").get().toString();
+
+  /*auto results = transduce(
+      makeOptional(std::make_shared<std::ifstream>(filename)),
+      testTransducer, // Produce structs from table rows.
+      IntoArray<AstraData>());
+  EXPECT_LT(0, results.size());*/
+
 }
