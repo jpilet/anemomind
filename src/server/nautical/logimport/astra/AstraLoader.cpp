@@ -28,11 +28,19 @@ Optional<AstraHeader> tryParseAstraHeader(const std::string& s) {
 Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
     const std::string& s) {
   using namespace Regex;
-  auto namedParameter = basicNumber(digit);
+
+
+  auto colon = ":";
+  //auto wordChar = charNotInString(spaceChars + colon);
+  //auto word = atLeastOnce(wordChar);
+  //auto words = join(atLeastOnce(space), word);
+  //auto namedParameter = words/colon/anyCount(space)/basicNumber(digit);
+  auto namedParameter = colon/basicNumber(digit);
   auto pattern = entireString(
       anyCount(space)
         /join1(atLeastOnce(space), namedParameter)
         /anyCount(space));
+
   std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
       pattern);

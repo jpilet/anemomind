@@ -28,6 +28,8 @@ std::string anyCount(const std::string& s);
 std::string atLeastOnce(const std::string& s);
 std::string entireString(const std::string& s);
 std::string maybe(const std::string& s);
+std::string charInString(const std::string& chars);
+std::string charNotInString(const std::string& chars);
 extern std::string spaceChars;
 extern std::string space;
 extern std::string nonspace;
