@@ -49,7 +49,10 @@ Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
       pattern);
   std::smatch m;
   if (std::regex_match(s, m, re)) {
-    std::cout << "GOOD" << std::endl;
+    std::cout << "Matches in '" << s << "':" << std::endl;
+    for (auto x: m) {
+      std::cout << "  * " << x << std::endl;
+    }
     return std::map<std::string, Array<std::string>>();
   } else {
     std::cout << "BAD" << std::endl;
