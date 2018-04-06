@@ -73,12 +73,12 @@ namespace Regex { // TODO: put this in its own library maybe
   std::string moreItems(
       const std::string& separatorPattern,
       const std::string& itemPattern) {
-    return anyCount(concat({separatorPattern, itemPattern}));
+    return anyCount(separatorPattern/itemPattern);
   }
   std::string join1(
       const std::string& separatorPattern,
       const std::string& itemPattern) {
-    return concat({itemPattern, moreItems(separatorPattern, itemPattern)});
+    return itemPattern/moreItems(separatorPattern, itemPattern);
   }
 
   std::string join0(
@@ -88,7 +88,7 @@ namespace Regex { // TODO: put this in its own library maybe
   }
 
   std::string signedNumber(const std::string& num) {
-    return maybeSign + num;
+    return maybeSign/num;
   }
 
 
