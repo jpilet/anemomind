@@ -94,6 +94,33 @@ AstraValueParser inUnit(Q unit, FieldAccess f) {
 }
 
 template <typename FieldAccess>
+AstraValueParser geographicAngle(
+    char posChar, char negChar,
+    Angle<double> unit, FieldAccess f) {
+  return [=](const std::string& s, AstraData* dst) {
+    if (s.empty()) {
+      return false;
+    }
+    char last = s.back();
+    int sign = 0;
+    if (last == posChar) {
+      sign = 1;
+    } else if (last == negChar) {
+      sign = -1;
+    } else {
+      return false;
+    }
+    auto numericPart = s.substr(0, s.length()-1);
+
+    for (auto num: tryParse<double>(numericPart)) {
+      *(f(dst)) = double(sign*num)*unit;
+      return true;
+    }
+    return false;
+  };
+}
+
+template <typename FieldAccess>
 AstraValueParser asString(FieldAccess f) {
   return [f](const std::string& s, AstraData* dst) {
     *(f(dst)) = s;
@@ -227,8 +254,10 @@ std::map<std::string, AstraValueParser,
   {"SOG", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(SOG)))},
 
   // Boat position
-  {"Lat", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lon)))},
-  {"Lon", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},
+  {"Lat", AstraValueParser(geographicAngle(
+      'N', 'S', 1.0_deg, FIELD_ACCESS(lat)))},
+  {"Lon", AstraValueParser(geographicAngle(
+      'E', 'W', 1.0_deg, FIELD_ACCESS(lon)))},
   {"LAT", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},
   {"LON", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lon)))},
 
