@@ -114,10 +114,10 @@ TEST(TestAstraLoader, TestLoadCoach) {
       .pushDirectory("Coach")
       .makeFile("log1Hz20180215_0957_Charts.log").get().toString();
 
-  /*auto results = transduce(
+  auto results = transduce(
       makeOptional(std::make_shared<std::ifstream>(filename)),
       testTransducer, // Produce structs from table rows.
       IntoArray<AstraData>());
-  EXPECT_LT(0, results.size());*/
+  EXPECT_LT(0, results.size());
 
 }

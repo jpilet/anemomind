@@ -87,7 +87,10 @@ inline GenericTransducer<AstraLinePreparseStep> trPreparseAstraLine() {
 
 Optional<AstraData> tryMakeAstraData(
     const AstraColSpec& cols,
-    const AstraTableRow& rawData);
+    const AstraTableRow& rawData,
+    bool verbose);
+
+void displayColHint(const AstraTableRow& rawData);
 
 /**
  * Transforms tokens into
@@ -111,11 +114,16 @@ public:
   /// Called for tokenized table rows.
   template <typename R>
   void apply(R* result, const AstraTableRow& row) {
-    for (auto s: tryMakeAstraData(_spec, row)) {
-      result->add(s);
+    auto cols = tryMakeAstraData(_spec, row, _verbose);
+    if (cols.defined()) {
+      result->add(cols.get());
+    } else if (_spec.empty() && _verbose) {
+      displayColHint(row);
+      _verbose = false;
     }
   }
 private:
+  bool _verbose = true;
   AstraColSpec _spec;
 };
 

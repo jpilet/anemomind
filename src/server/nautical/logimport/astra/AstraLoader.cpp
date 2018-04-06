@@ -13,6 +13,7 @@
 #include <server/common/logging.h>
 #include <server/transducers/ParseTransducers.h>
 #include <server/common/RegexUtils.h>
+#include <set>
 
 namespace sail {
 
@@ -121,14 +122,19 @@ Optional<TimeStamp> tryParseAstraDate(const std::string& s) {
 
 Optional<AstraData> tryMakeAstraData(
     const AstraColSpec& cols,
-    const AstraTableRow& rawData) {
+    const AstraTableRow& rawData,
+    bool verbose) {
   if (cols.size() != rawData.size()) {
-    LOG(WARNING) << "Incompatible col-spec size and raw data size";
-    for (int i = 0; i < cols.size(); i++) {
-      LOG(INFO) << "  Col " << i+1 << ": " << cols[i].first;
-    }
-    for (int i = 0; i < rawData.size(); i++) {
-      LOG(INFO) << "  Data " << i+1 << ": " << rawData[i];
+    if (verbose) {
+      LOG(WARNING) << "Incompatible col-spec size and raw data size";
+      LOG(INFO) << "Col size: " << cols.size();
+      LOG(INFO) << "Raw size: " << rawData.size();
+      for (int i = 0; i < cols.size(); i++) {
+        LOG(INFO) << "  Col " << i+1 << ": " << cols[i].first;
+      }
+      for (int i = 0; i < rawData.size(); i++) {
+        LOG(INFO) << "  Data " << i+1 << ": " << rawData[i];
+      }
     }
     return {};
   }
@@ -237,6 +243,23 @@ Optional<Array<std::pair<std::string, AstraValueParser>>>
       Optional<Array<std::pair<std::string, AstraValueParser>>>(result)
       : Optional<Array<std::pair<std::string, AstraValueParser>>>();
 }
+
+void displayColHint(const AstraTableRow& rawData) {
+  std::set<std::string> recognized, notRecognized;
+  for (auto x: rawData) {
+    auto f = knownHeaders.find(x);
+    if (f == knownHeaders.end()) {
+      notRecognized.insert(x);
+    } else {
+      recognized.insert(x);
+    }
+  }
+  LOG(INFO) << "If this is a col spec header, then these cols are not known:";
+  for (auto x: notRecognized) {
+    LOG(INFO) << "  * '" << x << "'";
+  }
+}
+
 
 Array<std::string> tokenizeAstra(const std::string& s) {
   return transduce(s, trTokenize(&isBlank), IntoArray<std::string>());
