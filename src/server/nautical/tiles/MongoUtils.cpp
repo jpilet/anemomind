@@ -118,7 +118,7 @@ BsonSubDocument::~BsonSubDocument() {
   // For some reason, calling finalize in this destructor seems unsafe.
   // TODO: refactor the code so that the destructor works properly.
   // finalize();
-  CHECK_EQ(_parent, nullptr);
+  CHECK(_parent == nullptr);
 }
 
 void BsonSubDocument::finalize() {
