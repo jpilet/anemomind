@@ -23,6 +23,7 @@ TEST(MongoUtilsTest, TestIt) {
         {
           BsonSubArray pts(&curve, "points");
         }
+        curve.finalize();
       }
   }
 }
