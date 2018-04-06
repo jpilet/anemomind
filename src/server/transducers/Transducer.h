@@ -10,6 +10,7 @@
 
 #include <iterator>
 #include <server/common/ArrayBuilder.h>
+#include <array>
 
 namespace sail {
 
@@ -315,6 +316,25 @@ struct CatStepper : public StatelessStepper {
   }
 };
 
+template <typename T, int Size>
+class PartitionStepper : public NeverDone, public NothingToFlush {
+public:
+  PartitionStepper() {}
+
+  template <typename R>
+  void apply(R* result, const T& X) {
+    _p[_counter++] = X;
+    if (_counter >= Size) {
+      result->add(_p);
+      _counter = 0;
+    }
+  }
+private:
+  int _counter = 0;
+  int _step = 0;
+  std::array<T, Size> _p;
+};
+
 
 // Common transducer types
 
@@ -357,6 +377,11 @@ inline GenericTransducer<TakeWhileStepper<F>> trTakeWhile(F f) {
 
 inline GenericTransducer<CatStepper> trCat() {
   return genericTransducer(CatStepper());
+}
+
+template <typename T, int N>
+inline GenericTransducer<PartitionStepper<T, N>> trPartition() {
+  return genericTransducer(PartitionStepper<T, N>());
 }
 
 /**
