@@ -100,5 +100,7 @@ TEST(TestAstraLoader, ParseParameters) {
   EXPECT_TRUE(tryParseNamedParameters(" kattskit :  934.3    a: 3.4").defined());
   EXPECT_TRUE(tryParseNamedParameters("b:9  c:10").defined());
   EXPECT_FALSE(tryParseNamedParameters("b:").defined());
+  EXPECT_FALSE(tryParseNamedParameters(":::b:").defined());
+  EXPECT_TRUE(tryParseNamedParameters("   Zis value is good: 119").defined());
   //EXPECT_FALSE(tryParseNamedParameters("  kattskit: 934.3 ").defined());
 }
