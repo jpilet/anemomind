@@ -36,8 +36,8 @@ Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
   //auto word = atLeastOnce(wordChar);
   //auto words = join(atLeastOnce(space), word);
   //auto namedParameter = words/colon/anyCount(space)/basicNumber(digit);
-  auto name = wordChar/anyCount(notColon);
-  auto value = basicNumber(digit);
+  auto name = captureGroup(wordChar/anyCount(notColon));
+  auto value = captureGroup(basicNumber(digit));
   auto namedParameter = name/colon/anyCount(space)/value;
   auto pattern = entireString(
       anyCount(space)
