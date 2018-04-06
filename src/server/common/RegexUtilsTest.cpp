@@ -44,9 +44,26 @@ TEST(RegexUtilsTest, TestIt) {
       "93",
       entireString(unsignedFractionalNumber(digit))));
   EXPECT_TRUE(matches(
-      "93",
+      "-93",
       entireString(basicNumber(digit))));
-
+  EXPECT_TRUE(matches(
+      "+93",
+      entireString(basicNumber(digit))));
+  EXPECT_TRUE(matches(
+      "+.93",
+      entireString(basicNumber(digit))));
+  EXPECT_TRUE(matches(
+      "-.93",
+      entireString(basicNumber(digit))));
+  EXPECT_TRUE(matches(
+      "+34.93",
+      entireString(basicNumber(digit))));
+  EXPECT_TRUE(matches(
+      "-34.93",
+      entireString(basicNumber(digit))));
+  EXPECT_TRUE(matches(
+      "+34.",
+      entireString(basicNumber(digit))));
 }
 
 
