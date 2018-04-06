@@ -40,7 +40,7 @@ std::string atLeastOnce(const std::string& s) {
 }
 
 std::string entireString(const std::string& s) {
-  return "^"/s/"$";
+  return "^" + s + "$";
 }
 
 std::string maybe(const std::string& s) {
