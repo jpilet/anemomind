@@ -212,3 +212,18 @@ TEST(TransducerTest, TestTakeWhile) {
       IntoArray<int>());
   EXPECT_EQ(result, (Array<int>{6, 5, 4, 3, 2, 1}));
 }
+
+TEST(TransducerTest, DropTest) {
+  auto result = transduce(
+      std::vector<int>{1, 2, 3, 4},
+      trDrop(2), IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{3, 4}));
+}
+
+TEST(TransducerTest, PartitionTest) {
+  auto result = transduce(
+      std::vector<int>{1, 2, 3, 4, 5},
+      trPartition<int, 2>(),
+      IntoArray<std::array<int, 2>>());
+  EXPECT_EQ(result, (Array<std::array<int, 2>>{{1, 2}, {3, 4}}));
+}
