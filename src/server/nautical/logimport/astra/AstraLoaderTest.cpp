@@ -117,10 +117,17 @@ TEST(TestAstraLoader, ParseParameters) {
   EXPECT_FALSE(tryParseNamedNumericParameters(":::b:").defined());
   EXPECT_TRUE(tryParseNamedNumericParameters(
       "   Zis value is good: 119").defined());
-  auto parsed0 = tryParseNamedNumericParameters("a: 119");
-  EXPECT_TRUE(parsed0.defined());
-  auto p = parsed0.get();
-  EXPECT_EQ(p, (decltype(p)({{"a", {"119"}}})));
+  {
+    auto parsed0 = tryParseNamedNumericParameters("a: 119");
+    EXPECT_TRUE(parsed0.defined());
+    auto p = parsed0.get();
+    EXPECT_EQ(p, (decltype(p)({{"a", {"119"}}})));
+  }{
+    auto parsed0 = tryParseNamedNumericParameters("a: 119   b: 120");
+    EXPECT_TRUE(parsed0.defined());
+    auto p = parsed0.get();
+    EXPECT_EQ(p, (decltype(p)({{"a", {"119"}}, {"b", {"120"}}})));
+  }
 }
 
 TEST(TestAstraLoader, TestLoadCoach) {
