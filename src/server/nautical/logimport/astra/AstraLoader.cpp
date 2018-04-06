@@ -51,13 +51,13 @@ Optional<std::map<std::string, Array<std::string>>>
   tryParseNamedNumericParameters(
     const std::string& s) {
 
-  std::smatch m;
+  std::smatch matches;
   static std::regex re(namedNumericParametersPattern());
-  if (std::regex_match(s, m, re)) {
+  if (std::regex_match(s, matches, re)) {
     typedef std::map<std::string, Array<std::string>> Dst;
     Dst dst;
     return *transduce(
-        m,
+        matches,
         trDrop(1)
         |
         trFilter([](const std::smatch::value_type& sm) {
