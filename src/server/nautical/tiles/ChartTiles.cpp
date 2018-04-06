@@ -32,6 +32,13 @@ TimeStamp tileEndTime(int64_t tile, int zoom) {
 
 namespace {
 
+std::string sourceNameToKey(const std::string& source) {
+  if (source.size() == 0) {
+    return "(unknown source)";
+  }
+  return source;
+}
+
 bool sourceShouldUploadChartTiles(const std::string& source) {
   static const std::set<std::string> blacklist{
     "IMU", // IMU is not reliable. We do not want to expose it in our UI.
@@ -199,6 +206,7 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
     BSON_APPEND_INT64(&key, "tileno", (long long) tile.tileno);
     bsonAppend(&key, "what", data.what);
     bsonAppend(&key, "source", data.source);
+    key.finalize();
   }
 
   StatArrays arrays;
@@ -399,6 +407,7 @@ bool uploadChartTiles(const NavDataset& data,
     {
       BsonSubDocument id(&selector, "_id");
       BSON_APPEND_OID(&id, "boat", &oid);
+      id.finalize();
     }
     auto concern = nullptr;
     bson_error_t error;
@@ -457,13 +466,15 @@ void ChartSourceIndexBuilder::add(const TileMetaData& metadata,
     _currentChannelType = metadata.what;
   }
 
-  BsonSubDocument sourceObj(_currentChannelDoc.get(), metadata.source.c_str());
+  std::string key = sourceNameToKey(metadata.source);
+  BsonSubDocument sourceObj(_currentChannelDoc.get(), key.c_str());
 
   bsonAppend(&sourceObj, "first", first);
   bsonAppend(&sourceObj, "last", last);
   bsonAppend(&sourceObj, "priority",
              _dispatcher->sourcePriority(metadata.source));
   bsonAppend(&sourceObj, "tileCount", tileCount);
+  sourceObj.finalize();
 }
 
 bool ChartSourceIndexBuilder::upload(
@@ -471,7 +482,7 @@ bool ChartSourceIndexBuilder::upload(
     const ChartTileSettings& settings) {
   if (_currentChannelDoc) {
     _currentChannelDoc->finalize();
-    _currentChannelDoc.release();
+    _currentChannelDoc.reset();
     _currentChannelType.clear();
   }
   _channels.finalize();
