@@ -37,6 +37,7 @@ void Nmea0183ProcessByte(const std::string &sourceName,
     case NmeaParser::NMEA_NONE: break;
 
     // These are handled by callbacks, nothing to do.
+    case NmeaParser::NMEA_HDM:
     case NmeaParser::NMEA_RUDDER:
     case NmeaParser::NMEA_MWD:
     case NmeaParser::NMEA_ROLL:

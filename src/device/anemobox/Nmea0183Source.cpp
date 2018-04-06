@@ -56,5 +56,8 @@ void Nmea0183Source::onXDRRoll(const char *senderAndSentence,
     _dispatcher->publishValue(ROLL, _sourceName, angle);
   }
 }
+void Nmea0183Source::onHDM(const char *senderAndSentence, Angle<> angle) {
+  _dispatcher->publishValue(MAG_HEADING, _sourceName, angle);
+}
 
 }  // namespace sail

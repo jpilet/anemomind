@@ -26,12 +26,13 @@ if false; then
   ../canutils/compile-iproute2.sh
 fi
 
-EXCLUDE='--exclude=*.log --exclude=.*.sw[po] --include=src/*.js --exclude=src/*.* --include=src/*.js --exclude=*\.[oadh] --exclude=binding.gyp --exclude=README.md --exclude=install.sh --exclude=build/Release/obj --exclude=obj.target --exclude=*.target.mk --exclude=Makefile --exclude=*.tar.gz --exclude=*.gypi'
+strip build/Release/anemonode.node
+
+EXCLUDE='--exclude=*.log --exclude=.*.sw[po] --include=src/*.js --exclude=src/*.* --include=src/*.js --exclude=*\.[oadh] --exclude=binding.gyp --exclude=README.md --exclude=install.sh --exclude=build/Release/obj --exclude=obj.target --exclude=*.target.mk --exclude=Makefile --exclude=*.tar.gz --exclude=*.gypi --exclude=build/Debug'
 
 git rev-parse HEAD > commit
 
 ssh root@${HOST} rm -fR "/anemonode/*"
-#rm -fR "${DEST}/anemonode/*"
 rsync -ar ${EXCLUDE} . ${DEST}
 
 echo "Installed. After testing, please validate the release files with: "

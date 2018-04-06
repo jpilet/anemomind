@@ -13,6 +13,10 @@ using namespace sail;
 
 namespace {
 
+bool isEmpty(const char* str) {
+  return str == nullptr || str[0] == 0;
+}
+
 char HexDigitToInt(char data) {
   if( (data - '0') <= 9) {
     return (data - '0');
@@ -338,6 +342,8 @@ NmeaParser::NmeaSentence NmeaParser::processCommand() {
     return processMWD();
   } else if (strcmp(c, "RSA") == 0) {
     return processRSA();
+  } else if (strcmp(c, "HDM") == 0) {
+    return processHDM();
   }
 
   return NMEA_UNKNOWN;
@@ -488,8 +494,8 @@ NmeaParser::NmeaSentence NmeaParser::processVLW() {
   int n=0;
 
   if (argc_!=5
-      || argv_[1][0] == 0
-      || sizeof(argv_[3]) < 3)  {
+      || isEmpty(argv_[1])
+      || strlen(argv_[3]) < 3)  {
     return NMEA_NONE;
   }
 
@@ -609,8 +615,10 @@ $--VTG,x.x,T,x.x,M,x.x,N,x.x,K*hh
 */
 NmeaParser::NmeaSentence NmeaParser::processVTG() {
   if (argc_<6
-      || argv_[1][0] == 0
-      || argv_[5][0] == 0) return NMEA_NONE;
+      || isEmpty(argv_[1])
+      || isEmpty(argv_[5])) {
+    return NMEA_NONE;
+  }
 
   gpsBearing_ = parseInt(argv_[1],0);
   gpsSpeed_ = parseSpeed(argv_[5], argv_[6]);
@@ -647,6 +655,34 @@ NmeaParser::NmeaSentence NmeaParser::processXDR() {
     return NMEA_ROLL;
   }
   return NMEA_UNKNOWN;
+}
+
+/*
+ HDM Heading – Magnetic
+
+        1   2  3
+        |   |  |
+    $--HDM,x.x,M*hh
+
+  1) Heading Degrees, magnetic
+  2) M = magnetic
+  3) Checksum
+*/
+NmeaParser::NmeaSentence NmeaParser::processHDM() {
+  if (argc_ < 3
+      || strcmp(argv_[2], "M") != 0
+      || strlen(argv_[1]) < 1) {
+    return NMEA_NONE;
+  }
+
+  double value;
+  if (sscanf(argv_[1], "%lf", &value) != 1) {
+    return NMEA_NONE;
+  }
+  magHdg_ = std::round(value);
+  onHDM(argv_[0], Angle<>::degrees(value));
+
+  return NMEA_HDM;
 }
 
 Optional<double> readDouble(const char *str) {

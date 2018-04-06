@@ -327,6 +327,7 @@ class MockNmeaParser : public NmeaParser {
                      Optional<sail::Angle<>> rudderAngle1));
     MOCK_METHOD3(onXDRRoll, void(const char*, bool, Angle<double>));
     MOCK_METHOD3(onXDRPitch, void(const char*, bool, Angle<double>));
+    MOCK_METHOD2(onHDM, void(const char*, Angle<double>));
 };
 
 double degrees(const Angle<double>& d) { return d.degrees(); }
@@ -402,7 +403,8 @@ TEST(NmeaParserTest, TestCalypsoUltrasonic) {
   EXPECT_EQ(NmeaParser::NMEA_AW,
             sendSentence("$IIMWV,72,R,0.0,N,A*16", &parser));
 
-  EXPECT_EQ(NmeaParser::NMEA_UNKNOWN,
+  EXPECT_CALL(parser, onHDM(StrEq("HCHDM"), ResultOf(degrees, DoubleEq(306))));
+  EXPECT_EQ(NmeaParser::NMEA_HDM,
             sendSentence("$HCHDM,306,M*32", &parser));
 
   EXPECT_CALL(parser, onXDRRoll(StrEq("IIXDR"), true,
@@ -423,4 +425,11 @@ TEST(NmeaParserTest, TestCalypsoUltrasonic) {
 
   EXPECT_EQ(NmeaParser::NMEA_PITCH,
             sendSentence("$IIXDR,A,2,D,PTCH*76", &parser));
+}
+
+TEST(NmeaParserTest, TestHDM) {
+  MockNmeaParser parser;
+  EXPECT_CALL(parser, onHDM(StrEq("HCHDM"), ResultOf(degrees, DoubleEq(26))));
+  EXPECT_EQ(NmeaParser::NMEA_HDM,
+            sendSentence("$HCHDM,26,M*03", &parser));
 }

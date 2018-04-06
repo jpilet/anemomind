@@ -131,6 +131,7 @@ class NmeaParser {
     NMEA_RSA,
     NMEA_PITCH,
     NMEA_ROLL,
+    NMEA_HDM,
     // Aliases must come last, otherwise we might end up with
     // multiple NMEA_XXX having the same number.
     NMEA_TIME_POS = NMEA_RMC
@@ -296,6 +297,8 @@ class NmeaParser {
   virtual void onRSA(const char *senderAndSentence,
                      Optional<sail::Angle<>> rudderAngle0,
                      Optional<sail::Angle<>> rudderAngle1) { }
+  virtual void onHDM(const char *senderAndSentence,
+                     sail::Angle<> magHdg) { }
 
 
  private:
@@ -353,6 +356,7 @@ class NmeaParser {
   NmeaSentence processZDA();
   NmeaSentence processVTG();
   NmeaSentence processXDR();
+  NmeaSentence processHDM();
   NmeaSentence processMWD();
   NmeaSentence processRSA();
 };

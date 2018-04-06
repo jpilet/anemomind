@@ -29,6 +29,8 @@ class Nmea0183Source: public NmeaParser {
   virtual void onXDRRoll(const char *senderAndSentence,
                          bool valid,
                          sail::Angle<double> angle);
+  virtual void onHDM(const char *senderAndSentence,
+                     Angle<double> angle);
  private:
   Dispatcher *_dispatcher;
   std::string _sourceName;
