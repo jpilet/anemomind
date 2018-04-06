@@ -51,11 +51,11 @@ namespace Regex { // TODO: put this in its own library maybe
   }
 
   std::string entireString(const std::string& s) {
-    return "^" + s + "$";
+    return concat({"^", s, "$"});
   }
 
   std::string maybe(const std::string& s) {
-    return nonCaptureGroup(s + "?");
+    return concat({s, "?"});
   }
 
   std::string space = "[ \\t\\r\\n\\v\\f]"; // "[:space:]" doesn't work;
