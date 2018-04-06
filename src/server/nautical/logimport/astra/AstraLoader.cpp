@@ -34,18 +34,14 @@ namespace Regex { // TODO: put this in its own library maybe
     return "(?:" + s + ")";
   }
 
-  std::string concat(const std::initializer_list<std::string>& items) {
-    std::string dst;
-    for (auto x: items) {
-      dst += x;
-    }
-    return nonCaptureGroup(dst);
-  }
-
   // Use this instead of '+' to concatenate patterns, so that the
   // evaluation order is preserved.
   std::string operator/(const std::string& a, const std::string& b) {
     return nonCaptureGroup(a + b);
+  }
+
+  std::string operator|(const std::string& a, const std::string& b) {
+    return a/"|"/b;
   }
 
   std::string anyCount(const std::string& s) {
@@ -69,12 +65,13 @@ namespace Regex { // TODO: put this in its own library maybe
   std::string nonNegativeInteger = atLeastOnce(digit);
   std::string maybeSign = maybe("[+-]");
 
-
+  // Helper for join
   std::string moreItems(
       const std::string& separatorPattern,
       const std::string& itemPattern) {
     return anyCount(separatorPattern/itemPattern);
   }
+
   std::string join1(
       const std::string& separatorPattern,
       const std::string& itemPattern) {
@@ -91,8 +88,17 @@ namespace Regex { // TODO: put this in its own library maybe
     return maybeSign/num;
   }
 
+  std::string fractionalSeparator = "\\.";
 
+  std::string fractionalNumber(const std::string& digitPattern) {
+    return (digitPattern/fractionalSeparator/digitPattern)
+        | (digitPattern/fractionalSeparator)
+        | (fractionalSeparator/digitPattern);
+  }
 
+  std::string possiblyFractionalNumber(const std::string& digitPattern) {
+    return digitPattern | fractionalNumber(digitPattern);
+  }
 
 }
 
@@ -101,7 +107,7 @@ Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
   using namespace Regex;
   auto pattern = entireString(
       anyCount(space)
-      + join1(",", signedNumber(nonNegativeInteger))
+      + join1(",", signedNumber(fractionalNumber(nonNegativeInteger)))
       + anyCount(space));
   std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
