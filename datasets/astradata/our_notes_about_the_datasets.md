@@ -90,5 +90,47 @@ Date	Time	Ts	GWD	GWS	TWD	TWS	SET	DRIFT	Lat	Lon
 
 
 ## ESA Regata (regata/ subdirectory)
+
+*This is our sailing software, it records the data coming from a multiplexer (our GAMP) that stream the data of the instrumentation (like you try to do with the anemomind box).*
+*This data can be recorded to be further analyzed on our local offline software that is esa data polar analyzer that is a macro over excel. *
+*This sw allows to reconstruct performances during the log and to see polar navigation data. similar to your anemolab in a more “analog” old style way.*
+*See picture: they show:*
+*- all log file with route and overlay on maps and data*
+*-start page plus the boys*
+*- performance and polar analysis*
+
+*Log in the folder are:
+log1Hz20170708_1239 its the one with all recordings
+polar20170708_1244 this is only related to polar comparison (the one you call vpp)
+polarESA20170708_1244.ESA this is the REAL polar recorded of the boat
+StartProc20170708_1239 is all data recorded during starting procedure which is often important to be analyzed.*
+
+
+### Sample data
+```
 SECOND	COUNTDOWN	LON_BUOY_P	LAT_BUOY_P	LON_BUOY_S	LAT_BUOY_S	TWD	LON_BOAT	LAT_BOAT	BOAT_SPEED	DISTANCE_START_LINE	DISTANCE_P	DISTANCE_S	FL_TWD	GAIN	TTB_P	TTB_S	TTB_VMG_P	TTB_VMG_S	DISTANCE_VMG_P	DISTANCE_VMG_S	VMG	HEADING
 20800	5:00	0.000000	0.000000	1341.052979	4540.818848	215.000000	1341.108643	4540.820312	6.400000	68.481194	5270292.500000	72.086647	285.433807	-4936773.500000	496:07:06	0:19	-:-	0:22	-256.725189	82.322739	7.200000	296.100006
+```
+
+## D7
+
+*this is our chartplotter, it could send via hotspot like it does now the log to a certain email or can save data on the microsd*
+
+*Log in the folder are:*
+
+*20170422_1417 this is all data coming from instrumentation like esa regatta
+esa polar and polar are similar to esa regatta*
+
+### Sample data
+```
+-------------------- 20170422_1417----------------------
+
+Date	Time	Ts	Boatspeed	AWA	AWS	Heading	TWA	TWS	TWD	Ext_SOG	Ext_COG	Latitudine	Longitudine	BS_target	TWA_target	BS_polar	Type_tgt	Leeway_Ang	Leeway_Mod	Set	Drift
+22/04/17	14:17:16	20295	7.03	-37	16.65	316	-85	13.08	231	5.80	320	423.6692N	1147.0928E	6.77	-41	7.87	Y	-2.35	0.29	155	1.36	
+
+...
+```
+
+## GAMP and Esa Instruments (nmea boxes)
+
+*This are record from nmea boxes connected to instrumentation or directly to the sensor. this record are available on micro sd.*
