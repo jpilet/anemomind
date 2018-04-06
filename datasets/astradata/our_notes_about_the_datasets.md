@@ -15,8 +15,10 @@
     'LAT' and 'LON' are degrees, 'COG' is in radians and 'SOG' is in knots
     but I am not sure. Or should 'SOG' be in km/h?
     
-
-        
+  * The goal would be to merge the data of the Coach-boat logs
+    (log1Hz20180215_0957_Charts.log) with the Dinghy logs
+    (Device___15___2018-03-02.log). But the timestamps of the two datasets
+    don't seem to overlap, is that right?
 
 
 
