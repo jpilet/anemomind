@@ -212,3 +212,10 @@ TEST(TransducerTest, TestTakeWhile) {
       IntoArray<int>());
   EXPECT_EQ(result, (Array<int>{6, 5, 4, 3, 2, 1}));
 }
+
+TEST(TransducerTest, DropTest) {
+  auto result = transduce(
+      std::vector<int>{1, 2, 3, 4},
+      trDrop(2), IntoArray<int>());
+  EXPECT_EQ(result, (Array<int>{3, 4}));
+}

@@ -268,6 +268,24 @@ struct TakeStepper : public NothingToFlush {
 };
 
 template <typename F>
+class IndexedFilterStepper : public NothingToFlush, public NeverDone {
+public:
+  IndexedFilterStepper(F f) : _f(f) {}
+
+  template <typename R, typename T>
+  void apply(R* result, const T& x) {
+    if (_f(_counter)) {
+      result->add(x);
+    }
+    _counter++;
+  }
+private:
+  F _f;
+  int _counter = 0;
+};
+
+
+template <typename F>
 struct TakeWhileStepper : public NothingToFlush {
   F f;
   bool good = true;
@@ -312,6 +330,24 @@ GenericTransducer<FilterStepper<F>> trFilter(F f) {
 
 inline GenericTransducer<TakeStepper> trTake(int limit) {
   return genericTransducer(TakeStepper(limit));
+}
+
+template <typename F>
+inline GenericTransducer<IndexedFilterStepper<F>> trIndexedFilter(F f) {
+  return genericTransducer(IndexedFilterStepper<F>(f));
+}
+
+struct AtLeast {
+  int n = 0;
+  bool operator()(int i) const {
+    return n <= i;
+  }
+};
+
+inline GenericTransducer<IndexedFilterStepper<AtLeast>> trDrop(int n) {
+  AtLeast al;
+  al.n = n;
+  return trIndexedFilter(al);
 }
 
 template <typename F>
