@@ -418,7 +418,6 @@ bool accumulateAstraLogs(const std::string& filename, LogAccumulator* dst) {
   if (data.empty()) {
     return false;
   }
-  LOG(INFO) << "Loaded " << data.size() << " Astra log records";
   for (auto x: data) {
     switch (x.logType) {
     case AstraLogType::ProcessedCoach:
