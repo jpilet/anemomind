@@ -1,6 +1,23 @@
 # Our notes about the files
 
-## What units do they use?
+## Questions
+  
+  * Regarding the file log1Hz20180215_0957_Charts.log,
+    what are the units of the columns 'GWD', 'GWS', 'TWD', 
+    'TWS', 'Lat', 'Lon'?
+
+    Looking at the data, it seems to me degrees and knots are used
+    everywhere, but I might be wrong. The 'Lon' column being in 
+    degrees seems strange to me.
+
+  * Regarding the file Device___15___2018-03-02.log, what are the units
+    of the columns 'COG', 'SOG', 'LAT' and 'LON'? It looks to me that
+    'LAT' and 'LON' are degrees, 'COG' is in radians and 'SOG' is in knots
+    but I am not sure. Or should 'SOG' be in km/h?
+    
+
+        
+
 
 
 

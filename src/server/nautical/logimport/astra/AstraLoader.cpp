@@ -112,6 +112,8 @@ AstraValueParser asPrimitive(FieldAccess f) {
   };
 }
 
+bool ignoreAstraValue(const std::string&, AstraData*) {return true;}
+
 Optional<Duration<double>> tryParseAstraTimeOfDay(const std::string& src) {
   return parseTimeOfDay("%T", src);
 }
@@ -188,29 +190,50 @@ AstraValueParser asTimeOfDay(FieldAccess f) {
  */
 std::map<std::string, AstraValueParser,
   LongWordsFirst> knownHeaders{
-  {"DateTimeTs", AstraValueParser()},
-  {"BS", AstraValueParser()},
-  {"AWA", AstraValueParser()},
-  {"AWS", AstraValueParser()},
-  {"HDG", AstraValueParser()},
-  {"TWA", AstraValueParser()},
-  {"TWS", AstraValueParser()},
-  {"TWD", AstraValueParser()},
-  {"WindType", AstraValueParser()},
-  {"Lat", AstraValueParser()},
-  {"Lon", AstraValueParser()},
+
+  // Current, and things like that?
   {"Set", AstraValueParser()},
   {"Drift", AstraValueParser()},
+  {"DRIFT", &ignoreAstraValue},
+  {"SET", &ignoreAstraValue},
+
+  // Wind
+  {"WindType", AstraValueParser()},
+  {"AWA", AstraValueParser()},
+  {"AWS", AstraValueParser()},
+  {"TWA", AstraValueParser()},
+  {"TWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(TWS)))},
+  {"TWD", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWD)))},
+  {"GWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(GWS)))},
+  {"GWD", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(GWD)))},
+
+  // Not sure...
   {"FreezeWind", AstraValueParser()},
   {"FreezeTide", AstraValueParser()},
+
+  // Time
+  {"DateTimeTs", AstraValueParser()},
   {"Date", AstraValueParser(asDate(FIELD_ACCESS(partialTimestamp)))},
   {"Time", AstraValueParser(asTimeOfDay(FIELD_ACCESS(timeOfDay)))},
+  {"Ts", &ignoreAstraValue},
+
+  // Meta
   {"DinghyID", AstraValueParser(asPrimitive<int>(FIELD_ACCESS(dinghyId)))},
   {"UserID", AstraValueParser(asString(FIELD_ACCESS(userId)))},
+
+  // Boat motion
+  {"BS", AstraValueParser()},
   {"COG", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(COG)))},
   {"SOG", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(SOG)))},
+
+  // Boat position
+  {"Lat", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lon)))},
+  {"Lon", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},
   {"LAT", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},
   {"LON", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lon)))},
+
+  // Other boat orientation
+  {"HDG", AstraValueParser()},
   {"Pitch", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(pitch)))},
   {"Roll", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(roll)))}
 };

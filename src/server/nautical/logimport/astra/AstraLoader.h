@@ -45,6 +45,9 @@ struct AstraData {
   Optional<Angle<double>> roll;
   Optional<Angle<double>> COG;
   Optional<Velocity<double>> SOG;
+
+  Optional<Angle<double>> GWD, TWD;
+  Optional<Velocity<double>> GWS, TWS;
 };
 
 typedef std::function<bool(std::string, AstraData*)> AstraValueParser;
