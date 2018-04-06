@@ -32,11 +32,11 @@ Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
 
   auto notColon = "[^:]";
   auto colon = ":";
-  //auto wordChar = charNotInString(spaceChars + colon);
+  auto wordChar = charNotInString(spaceChars + "\\:");
   //auto word = atLeastOnce(wordChar);
   //auto words = join(atLeastOnce(space), word);
   //auto namedParameter = words/colon/anyCount(space)/basicNumber(digit);
-  auto name = atLeastOnce(notColon);
+  auto name = nonspace/anyCount(notColon);
   auto value = basicNumber(digit);
   auto namedParameter = name/colon/anyCount(space)/value;
   auto pattern = entireString(
