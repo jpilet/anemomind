@@ -54,9 +54,7 @@ Optional<std::map<std::string, Array<std::string>>>
   std::smatch matches;
   static std::regex re(namedNumericParametersPattern());
   if (std::regex_match(s, matches, re)) {
-    typedef std::map<std::string, Array<std::string>> Dst;
-    Dst dst;
-    return *transduce(
+    auto pairs = transduce(
         matches,
         trDrop(1)
         |
@@ -69,12 +67,12 @@ Optional<std::map<std::string, Array<std::string>>>
         })
         |
         trPartition<std::string, 2>(),
-        intoReduction(
-            [](Dst* dst, const std::array<std::string, 2>& kv) {
-              (*dst)[kv[0]] = {kv[1]};
-              return dst;
-            },
-            &dst));
+        IntoArray<std::array<std::string, 2>>());
+    std::map<std::string, Array<std::string>> dst;
+    for (auto p: pairs) {
+      dst[p[0]] = {p[1]};
+    }
+    return dst;
   } else {
     return {};
   }
