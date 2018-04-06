@@ -346,7 +346,6 @@ Array<AstraData> loadAstraFile(const std::string& filename) {
       makeOptional(std::make_shared<std::ifstream>(filename)),
       astraParser, // Produce structs from table rows.
       IntoArray<AstraData>());
-
 }
 
 
