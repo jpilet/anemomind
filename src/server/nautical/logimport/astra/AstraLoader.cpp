@@ -31,15 +31,23 @@ namespace Regex { // TODO: put this in its own library maybe
   }
 
   std::string nonCaptureGroup(const std::string& s) {
-    return "(:?" + s + ")";
+    return "(?:" + s + ")";
+  }
+
+  std::string concat(const std::initializer_list<std::string>& items) {
+    std::string dst;
+    for (auto x: items) {
+      dst += x;
+    }
+    return nonCaptureGroup(dst);
   }
 
   std::string anyCount(const std::string& s) {
-    return s + "*";
+    return concat({s, "*"});
   }
 
   std::string atLeastOnce(const std::string& s) {
-    return s + "+";
+    return concat({s, "+"});
   }
 
   std::string entireString(const std::string& s) {
