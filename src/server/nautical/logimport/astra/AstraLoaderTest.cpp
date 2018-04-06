@@ -104,6 +104,7 @@ TEST(TestAstraLoader, TestLoadDinghy) {
   EXPECT_EQ(x.userId.get(), "59cd04e5805f02002beba652");
 
   EXPECT_NEAR(x.lat.get().degrees(), 45.797494, 1.0e-9);
+  EXPECT_EQ(x.logType, AstraLogType::RawDinghy);
 }
 
 TEST(TestAstraLoader, ParseParameters) {
