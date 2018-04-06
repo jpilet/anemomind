@@ -32,6 +32,13 @@ TimeStamp tileEndTime(int64_t tile, int zoom) {
 
 namespace {
 
+std::string sourceNameToKey(const std::string& source) {
+  if (source.size() == 0) {
+    return "(unknown source)";
+  }
+  return source;
+}
+
 bool sourceShouldUploadChartTiles(const std::string& source) {
   static const std::set<std::string> blacklist{
     "IMU", // IMU is not reliable. We do not want to expose it in our UI.
@@ -459,7 +466,8 @@ void ChartSourceIndexBuilder::add(const TileMetaData& metadata,
     _currentChannelType = metadata.what;
   }
 
-  BsonSubDocument sourceObj(_currentChannelDoc.get(), metadata.source.c_str());
+  std::string key = sourceNameToKey(metadata.source);
+  BsonSubDocument sourceObj(_currentChannelDoc.get(), key.c_str());
 
   bsonAppend(&sourceObj, "first", first);
   bsonAppend(&sourceObj, "last", last);
