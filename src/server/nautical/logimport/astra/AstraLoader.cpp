@@ -348,6 +348,94 @@ Array<AstraData> loadAstraFile(const std::string& filename) {
       IntoArray<AstraData>());
 }
 
+namespace {
+  std::string stringOrQ(const Optional<std::string>& s) {
+    return s.defined()? s.get() : "?";
+  }
+  std::string stringOrQ(const Optional<int>& s) {
+    std::stringstream ss;
+    if (s.defined()) {
+      ss << s.get();
+    } else {
+      ss << "?";
+    }
+    return ss.str();
+  }
+
+  template <typename T>
+  void copyIfDefined(
+      const std::string& srcName, TimeStamp full,
+      const Optional<T>& x, std::map<std::string,
+        typename TimedSampleCollection<T>::TimedVector>* dst) {
+    if (!full.defined()) {
+      LOG(WARNING) << "Missing timestamp for " << srcName;
+    } else if (!x.defined()) {
+      LOG(WARNING) << "Missing value";
+    } else {
+      (*dst)[srcName].push_back(TimedValue<T>(full, x.get()));
+    }
+  }
+
+  void accumulateDinghy(const AstraData& src, LogAccumulator* dst) {
+    std::string sourceName = "astraDinghy_id"
+        + stringOrQ(src.dinghyId)
+        + "_user"
+        + stringOrQ(src.userId);
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.COG, &(dst->_GPS_BEARINGsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.SOG, &(dst->_GPS_SPEEDsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.geoPos(), &(dst->_GPS_POSsources));
+
+    // There is also Pitch, Roll
+  }
+
+
+  void accumulateCoach(const AstraData& src, LogAccumulator* dst) {
+    std::string sourceName = "astraCoach";
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.TWD, &(dst->_TWDIRsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.TWS, &(dst->_TWSsources));
+  }
+}
+
+/**
+ *
+ * When loading logs, we should ensure we don't load logs from unrelated coach
+ * boats that are somewhere else.
+ *
+ *
+ */
+bool accumulateAstraLogs(const std::string& filename, LogAccumulator* dst) {
+  auto data = loadAstraFile(filename);
+  if (data.empty()) {
+    return false;
+  }
+  LOG(INFO) << "Loaded " << data.size() << " Astra log records";
+  for (auto x: data) {
+    switch (x.logType) {
+    case AstraLogType::ProcessedCoach:
+      accumulateCoach(x, dst);
+      break;
+    case AstraLogType::RawDinghy:
+      accumulateDinghy(x, dst);
+      break;
+    default:
+      LOG(WARNING) << "Unknown Astra log file type for "
+        << filename << ". Please update the parsing code.";
+      break;
+    }
+  }
+  return true;
+}
+
 
 
 } /* namespace sail */

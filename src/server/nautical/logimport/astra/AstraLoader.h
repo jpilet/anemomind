@@ -13,6 +13,7 @@
 #include <server/common/Optional.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/TimeStamp.h>
+#include <server/nautical/logimport/LogAccumulator.h>
 #include <map>
 
 namespace sail {
@@ -55,6 +56,15 @@ struct AstraData {
 
   Optional<Angle<double>> GWD, TWD;
   Optional<Velocity<double>> GWS, TWS;
+
+  Optional<GeographicPosition<double>> geoPos() const {
+    for (auto lon0: lon) {
+      for (auto lat0: lat) {
+        return GeographicPosition<double>(lon0, lat0);
+      }
+    }
+    return {};
+  }
 };
 
 typedef std::function<bool(std::string, AstraData*)> AstraValueParser;
@@ -155,6 +165,8 @@ inline GenericTransducer<AstraDataStepper> trMakeAstraData() {
 }
 
 Array<AstraData> loadAstraFile(const std::string& filename);
+
+bool accumulateAstraLogs(const std::string& filename, LogAccumulator* dst);
 
 } /* namespace sail */
 

@@ -105,6 +105,8 @@ TEST(TestAstraLoader, TestLoadDinghy) {
 
   EXPECT_NEAR(x.lat.get().degrees(), 45.797494, 1.0e-9);
   EXPECT_EQ(x.logType, AstraLogType::RawDinghy);
+  EXPECT_TRUE(x.COG.defined());
+  EXPECT_TRUE(x.SOG.defined());
 }
 
 TEST(TestAstraLoader, ParseParameters) {
@@ -131,4 +133,27 @@ TEST(TestAstraLoader, TestIdentifyHeader) {
   EXPECT_FALSE(isDinghyLogHeader("Devic___23423"));
   EXPECT_TRUE(isProcessedCoachLogHeader("asdfsadf_Charts"));
   EXPECT_FALSE(isProcessedCoachLogHeader("asdfsadf_Chart"));
+}
+
+template <typename T>
+bool hasSomeData(
+    const std::map<std::string, T>& src) {
+  for (auto keyAndSamples: src) {
+    for (auto x: keyAndSamples.second) {
+      return true;
+    }
+  }
+  return false;
+}
+
+TEST(TestAstraLoader, TestLoadLogs) {
+  LogAccumulator acc;
+  EXPECT_TRUE(accumulateAstraLogs(dinghyFilename, &acc));
+  EXPECT_TRUE(accumulateAstraLogs(coachFilename, &acc));
+
+  EXPECT_TRUE(hasSomeData(acc._GPS_BEARINGsources));
+  EXPECT_TRUE(hasSomeData(acc._GPS_SPEEDsources));
+  EXPECT_TRUE(hasSomeData(acc._GPS_POSsources));
+  EXPECT_TRUE(hasSomeData(acc._TWDIRsources));
+  EXPECT_TRUE(hasSomeData(acc._TWSsources));
 }
