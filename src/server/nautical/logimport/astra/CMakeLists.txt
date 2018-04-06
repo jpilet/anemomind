@@ -14,3 +14,11 @@ cxx_test(astra_AstraLoaderTest
   common_Env
   astra_AstraLoader
   )
+
+add_executable(astra_AstraLogViewer
+  AstraLogViewer.cpp
+  )
+
+target_link_libraries(astra_AstraLogViewer
+  astra_AstraLoader
+  )

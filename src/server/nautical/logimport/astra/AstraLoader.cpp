@@ -24,6 +24,40 @@ Optional<AstraHeader> tryParseAstraHeader(const std::string& s) {
   return {};
 }
 
+namespace Regex { // TODO: put this in its own library maybe
+  std::string space = "[:space:]";
+
+  std::string group(const std::string& s) {
+    return "(" + s + ")";
+  }
+
+  std::string anyCount(const std::string& s) {
+    return s + "*";
+  }
+
+  std::string atLeastOnce(const std::string& s) {
+    return s + "+";
+  }
+
+  std::string entireString(const std::string& s) {
+    return "^" + s + "$";
+  }
+}
+
+Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
+    const std::string& s) {
+  using namespace Regex;
+  static std::regex re(
+      entireString(""));
+  std::smatch m;
+  if (std::regex_match(s, m, re)) {
+    return std::map<std::string, Array<std::string>>();
+  } else {
+    return {};
+  }
+}
+
+
 namespace {
   std::pair<int, std::string> negativeLengthAndDataOf(const std::string& k) {
     return {-k.length(), k};

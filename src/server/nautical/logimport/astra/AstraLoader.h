@@ -13,6 +13,7 @@
 #include <server/common/Optional.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/TimeStamp.h>
+#include <map>
 
 namespace sail {
 
@@ -60,6 +61,10 @@ Optional<Duration<double>> tryParseAstraTimeOfDay(const std::string& s);
 
 Optional<TimeStamp> tryParseAstraDate(const std::string& s);
 
+Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
+    const std::string& s);
+
+
 struct AstraLinePreparseStep : public StatelessStepper {
   template <typename R>
   void apply(R* result, std::string& s) {
@@ -84,16 +89,26 @@ Optional<AstraData> tryMakeAstraData(
     const AstraColSpec& cols,
     const AstraTableRow& rawData);
 
+/**
+ * Transforms tokens into
+ */
 class AstraDataStepper : public StatelessStepper {
 public:
+
+  /**
+   *  Called when a new column specification is parsed,
+   *  explaining what each column means.
+   */
   template <typename R>
   void apply(R* result, const AstraColSpec& spec) {
     _spec = spec;
   }
 
+  /// Called for headers starting with '-----'
   template <typename R>
   void apply(R* result, const AstraHeader& ) {}
 
+  /// Called for tokenized table rows.
   template <typename R>
   void apply(R* result, const AstraTableRow& row) {
     for (auto s: tryMakeAstraData(_spec, row)) {
