@@ -12,6 +12,7 @@
 #include <server/common/string.h>
 #include <server/common/logging.h>
 #include <server/transducers/ParseTransducers.h>
+#include <server/common/RegexUtils.h>
 
 namespace sail {
 
@@ -24,18 +25,14 @@ Optional<AstraHeader> tryParseAstraHeader(const std::string& s) {
   return {};
 }
 
-namespace Regex { // TODO: put this in its own library maybe
-
-
-}
-
 Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
     const std::string& s) {
   using namespace Regex;
+  auto namedParameter = basicNumber(digit);
   auto pattern = entireString(
       anyCount(space)
-      + join1(",", signedNumber(fractionalNumber(nonNegativeInteger)))
-      + anyCount(space));
+        /join1(atLeastOnce(space), namedParameter)
+        /anyCount(space));
   std::cout << "Pattern is " << pattern << std::endl;
   static std::regex re(
       pattern);

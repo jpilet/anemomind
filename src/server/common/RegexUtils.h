@@ -28,7 +28,9 @@ std::string anyCount(const std::string& s);
 std::string atLeastOnce(const std::string& s);
 std::string entireString(const std::string& s);
 std::string maybe(const std::string& s);
+extern std::string spaceChars;
 extern std::string space;
+extern std::string nonspace;
 extern std::string digit;
 extern std::string xdigit;
 std::string unsignedInteger(const std::string& d = digit);
@@ -42,7 +44,6 @@ std::string join0(
 std::string signedNumber(const std::string& num);
 extern std::string fractionalSeparator;
 std::string unsignedFractionalNumber(const std::string& digitPattern);
-std::string possiblyFractionalNumber(const std::string& digitPattern);
 std::string basicNumber(const std::string& digit);
 
 }

@@ -28,7 +28,7 @@ std::string operator/(const std::string& a, const std::string& b) {
 }
 
 std::string operator|(const std::string& a, const std::string& b) {
-  return nonCaptureGroup(a + "|" + b);
+  return nonCaptureGroup(a + "|" + b); // Don't use '/' to concatenate here here.
 }
 
 std::string anyCount(const std::string& s) {
@@ -47,7 +47,19 @@ std::string maybe(const std::string& s) {
   return s/"?";
 }
 
-std::string space = "[ \\t\\r\\n\\v\\f]"; // "[:space:]" doesn't work;
+std::string charInString(const std::string& chars) {
+  return "[" + chars + "]";
+}
+
+std::string charNotInString(const std::string& chars) {
+  return "[^" + chars + "]";
+}
+
+std::string spaceChars = " \\t\\r\\n\\v\\f";
+
+std::string space = charInString(spaceChars);
+std::string nonspace = charNotInString(spaceChars);
+//std::string space = "[:space:]"; // <-- does not work.
 std::string digit = "[0-9]";
 std::string xdigit = "[A-Fa-f0-9]";
 

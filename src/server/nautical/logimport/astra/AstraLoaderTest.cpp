@@ -96,8 +96,5 @@ TEST(TestAstraLoader, TestLoadCoach) {
 }
 
 TEST(TestAstraLoader, ParseParameters) {
-  EXPECT_TRUE(tryParseNamedParameters("  934,3 ").defined());
-  EXPECT_FALSE(tryParseNamedParameters("  a ").defined());
-  EXPECT_FALSE(tryParseNamedParameters("  a : ").defined());
-  EXPECT_FALSE(tryParseNamedParameters("").defined());
+  EXPECT_TRUE(tryParseNamedParameters("  934.3 ").defined());
 }

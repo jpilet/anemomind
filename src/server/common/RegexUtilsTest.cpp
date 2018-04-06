@@ -62,9 +62,12 @@ TEST(RegexUtilsTest, TestIt) {
       "-34.93",
       entireString(basicNumber(digit))));
   EXPECT_TRUE(matches(
-      "+34.",
-      entireString(basicNumber(digit))));
-}
+       "+34.",
+       entireString(basicNumber(digit))));
+  EXPECT_FALSE(matches(
+       "k34.",
+       entireString(basicNumber(digit))));
+ }
 
 
 
