@@ -30,12 +30,15 @@ Optional<std::map<std::string, Array<std::string>>> tryParseNamedParameters(
   using namespace Regex;
 
 
+  auto notColon = "[^:]";
   auto colon = ":";
   //auto wordChar = charNotInString(spaceChars + colon);
   //auto word = atLeastOnce(wordChar);
   //auto words = join(atLeastOnce(space), word);
   //auto namedParameter = words/colon/anyCount(space)/basicNumber(digit);
-  auto namedParameter = colon/anyCount(space)/basicNumber(digit);
+  auto name = atLeastOnce(notColon);
+  auto value = basicNumber(digit);
+  auto namedParameter = name/colon/anyCount(space)/value;
   auto pattern = entireString(
       anyCount(space)
         /join1(atLeastOnce(space), namedParameter)
