@@ -23,6 +23,14 @@ class Nmea0183Source: public NmeaParser {
   virtual void onRSA(const char *senderAndSentence,
                      Optional<sail::Angle<>> rudderAngle0,
                      Optional<sail::Angle<>> rudderAngle1);
+  virtual void onXDRPitch(const char *senderAndSentence,
+                          bool valid,
+                          sail::Angle<double> angle);
+  virtual void onXDRRoll(const char *senderAndSentence,
+                         bool valid,
+                         sail::Angle<double> angle);
+  virtual void onHDM(const char *senderAndSentence,
+                     Angle<double> angle);
  private:
   Dispatcher *_dispatcher;
   std::string _sourceName;

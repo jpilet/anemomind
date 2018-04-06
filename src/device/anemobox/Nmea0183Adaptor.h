@@ -12,6 +12,8 @@
 #include <server/nautical/BoatSpecificHacks.h>
 #endif
 
+#include <iostream>
+
 class NmeaParser;
 
 namespace sail {
@@ -29,9 +31,20 @@ inline GeographicPosition<double> getPos(const NmeaParser& parser) {
 template <typename Handler>
 void Nmea0183ProcessByte(const std::string &sourceName,
     unsigned char b, NmeaParser *parser, Handler *handler) {
+
   switch (parser->processByte(b)) {
-    case NmeaParser::NMEA_NONE:
-    case NmeaParser::NMEA_UNKNOWN: break;
+    // Nothing
+    case NmeaParser::NMEA_NONE: break;
+
+    // These are handled by callbacks, nothing to do.
+    case NmeaParser::NMEA_HDM:
+    case NmeaParser::NMEA_RUDDER:
+    case NmeaParser::NMEA_MWD:
+    case NmeaParser::NMEA_ROLL:
+    case NmeaParser::NMEA_PITCH:
+    case NmeaParser::NMEA_RSA: break;
+
+    case NmeaParser::NMEA_UNKNOWN: break; // Valid sentence, but unknown to us.
     case NmeaParser::NMEA_RMC:
       handler->template add<DATE_TIME>(sourceName, getTime(*parser));
       handler->template add<GPS_BEARING>(sourceName,
