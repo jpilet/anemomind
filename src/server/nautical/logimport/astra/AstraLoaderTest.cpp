@@ -74,15 +74,24 @@ auto testTransducer = trStreamLines() // All the lines of the file
         |
         trMakeAstraData();
 
-TEST(TestAstraLoader, TestLoadDinghy) {
-  std::string filename = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+std::string dinghyFilename = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+  .pushDirectory("datasets")
+  .pushDirectory("astradata")
+  .pushDirectory("Log from Dinghy")
+  .makeFile("Device___15___2018-03-02.log").get().toString();
+
+std::string coachFilename = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("astradata")
-    .pushDirectory("Log from Dinghy")
-    .makeFile("Device___15___2018-03-02.log").get().toString();
+    .pushDirectory("Coach")
+    .makeFile("log1Hz20180215_0957_Charts.log").get().toString();
 
+
+
+
+TEST(TestAstraLoader, TestLoadDinghy) {
   auto results = transduce(
-      makeOptional(std::make_shared<std::ifstream>(filename)),
+      makeOptional(std::make_shared<std::ifstream>(dinghyFilename)),
       testTransducer, // Produce structs from table rows.
       IntoArray<AstraData>());
   EXPECT_LT(0, results.size());
@@ -108,16 +117,11 @@ TEST(TestAstraLoader, ParseParameters) {
 }
 
 TEST(TestAstraLoader, TestLoadCoach) {
-  std::string filename = PathBuilder::makeDirectory(Env::SOURCE_DIR)
-      .pushDirectory("datasets")
-      .pushDirectory("astradata")
-      .pushDirectory("Coach")
-      .makeFile("log1Hz20180215_0957_Charts.log").get().toString();
-
   auto results = transduce(
-      makeOptional(std::make_shared<std::ifstream>(filename)),
+      makeOptional(std::make_shared<std::ifstream>(coachFilename)),
       testTransducer, // Produce structs from table rows.
       IntoArray<AstraData>());
   EXPECT_LT(0, results.size());
+  EXPECT_EQ(results[0].logType, AstraLogType::ProcessedCoach);
 
 }

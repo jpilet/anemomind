@@ -14,6 +14,9 @@
 #include <server/transducers/ParseTransducers.h>
 #include <server/common/RegexUtils.h>
 #include <set>
+#include <fstream>
+#include <server/common/Functional.h>
+
 
 namespace sail {
 
@@ -312,9 +315,38 @@ void displayColHint(const AstraTableRow& rawData) {
   }
 }
 
+bool isDinghyLogHeader(const std::string& s) {
+  using namespace Regex;
+  static std::regex re(entireString("Device_.*"));
+  return matches(s, re);
+}
+
+bool isProcessedCoachLogHeader(const std::string& s) {
+  using namespace Regex;
+  static std::regex re(entireString(".*_Charts"));
+  return matches(s, re);
+}
+
+
 
 Array<std::string> tokenizeAstra(const std::string& s) {
   return transduce(s, trTokenize(&isBlank), IntoArray<std::string>());
+}
+
+auto astraParser = trStreamLines() // All the lines of the file
+        |
+        trFilter(complementFunction(&isBlankString))
+        |
+        trPreparseAstraLine() // Identify the type of line: header, column spec or data?
+        |
+        trMakeAstraData();
+
+Array<AstraData> loadAstraFile(const std::string& filename) {
+  return transduce(
+      makeOptional(std::make_shared<std::ifstream>(filename)),
+      astraParser, // Produce structs from table rows.
+      IntoArray<AstraData>());
+
 }
 
 

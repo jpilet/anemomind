@@ -105,6 +105,11 @@ std::string basicNumber(const std::string& d) {
   return signedNumber(unsignedInteger(d) | unsignedFractionalNumber(d));
 }
 
+bool matches(const std::string& queryValue, const std::regex& re) {
+  std::smatch sm;
+  return std::regex_match(queryValue, sm, re);
+}
+
 
 }
 } /* namespace sail */

@@ -48,6 +48,8 @@ extern std::string fractionalSeparator;
 std::string unsignedFractionalNumber(const std::string& digitPattern);
 std::string basicNumber(const std::string& digit);
 
+bool matches(const std::string& queryValue, const std::regex& re);
+
 }
 } /* namespace sail */
 

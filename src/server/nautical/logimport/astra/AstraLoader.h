@@ -23,7 +23,14 @@ struct AstraHeader {
 
 Optional<AstraHeader> tryParseAstraHeader(const std::string& s);
 
+enum AstraLogType {
+  RawDinghy,
+  ProcessedCoach,
+  Unknown
+};
+
 struct AstraData {
+  AstraLogType logType = AstraLogType::Unknown;
   TimeStamp partialTimestamp; // <-- Full timestamp, or only the day/date.
   Optional<Duration<double>> timeOfDay;
 
@@ -95,6 +102,9 @@ Optional<AstraData> tryMakeAstraData(
 
 void displayColHint(const AstraTableRow& rawData);
 
+bool isDinghyLogHeader(const std::string& s);
+bool isProcessedCoachLogHeader(const std::string& s);
+
 /**
  * Transforms tokens into
  */
@@ -112,20 +122,29 @@ public:
 
   /// Called for headers starting with '-----'
   template <typename R>
-  void apply(R* result, const AstraHeader& ) {}
+  void apply(R* result, const AstraHeader& h) {
+    if (isDinghyLogHeader(h.value)) {
+      _type = AstraLogType::RawDinghy;
+    } else if (isProcessedCoachLogHeader(h.value)) {
+      _type = AstraLogType::ProcessedCoach;
+    }
+  }
 
   /// Called for tokenized table rows.
   template <typename R>
   void apply(R* result, const AstraTableRow& row) {
     auto cols = tryMakeAstraData(_spec, row, _verbose);
     if (cols.defined()) {
-      result->add(cols.get());
+      auto r = cols.get();
+      r.logType = _type;
+      result->add(r);
     } else if (_spec.empty() && _verbose) {
       displayColHint(row);
       _verbose = false;
     }
   }
 private:
+  AstraLogType _type;
   bool _verbose = true;
   AstraColSpec _spec;
 };
