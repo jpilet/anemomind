@@ -49,7 +49,41 @@ double twaPrior(Angle<double> twa) {
 }
 
 Velocity<double> targetSpeedPrior(Angle<double> twa, Velocity<double> tws) {
-  return twaPrior(twa)*tws;
+  return twaPrior(twa)*tws + 1.0e-9_kn;
+}
+
+std::array<Velocity<double>, 2> toCartesian(
+    Angle<double> twa, Velocity<double> tws) {
+  return {sin(twa)*tws, cos(twa)*tws};
+}
+
+
+//return makeDataPoint(
+//    twa, tws, boatSpeed, hexMesh, speedUnit);
+
+struct DataPoint {
+  double normalizedBoatSpeed = 0.0;
+  std::array<WeightedIndex, 3> vertexWeights;
+};
+
+Optional<DataPoint> makeDataPoint(
+    TimedValue<Angle<double>> twa,
+    TimedValue<Velocity<double>> tws,
+    TimedValue<Velocity<double>> boatSpeed,
+    HexMesh mesh, Velocity<double> meshGridUnit) {
+  auto local = toCartesian(twa.value, tws.value);
+  auto weights = mesh.represent(
+      Eigen::Vector2d(local[0]/meshGridUnit,
+      local[1]/meshGridUnit));
+  if (weights.undefined()) {
+    return {};
+  }
+
+  DataPoint dst;
+  dst.vertexWeights = weights.get();
+  dst.normalizedBoatSpeed = boatSpeed.value/targetSpeedPrior(
+      twa.value, tws.value);
+  return dst;
 }
 
 
@@ -65,6 +99,10 @@ RealPerfSurfResults optimizeRealPerfSurf(
   auto bsWrap = BoatSpeedWrap();
 
   RealPerfSurfResults results;
+
+  HexMesh mesh(25, 25.0);
+
+  auto meshGridUnit = 1.0_mps;
 
   auto inputData = transduce(
       tws,
@@ -92,13 +130,12 @@ RealPerfSurfResults optimizeRealPerfSurf(
         auto twa = twaWrap.get(vt);
         auto tws = twsWrap.get(vt);
         auto boatSpeed = bsWrap.get(vt);
-        dst.twa = twa.value;
-        dst.tws = tws.value;
-        dst.boatSpeed = boatSpeed.value;
-        return TimedValue<WindAndBoatSpeedSample>(
-            average({twa.time, tws.time, boatSpeed.time}),
-            dst);
-      }),
+        return makeDataPoint(
+            twa, tws, boatSpeed,
+            mesh, meshGridUnit);
+      })
+      |
+      trCat(),
       IntoCount());
   results.finalSampleCount = inputData;
   return results;

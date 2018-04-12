@@ -28,6 +28,9 @@ struct RealPerfSurfSettings {
 double twaPrior(Angle<double> twa);
 Velocity<double> targetSpeedPrior(Angle<double> twa, Velocity<double> tws);
 
+std::array<Velocity<double>, 2> toCartesian(
+    Angle<double> twa, Velocity<double> tws);
+
 struct RealPerfSurfResults {
   int finalSampleCount = 0;
 };
