@@ -94,38 +94,6 @@ bool LongWordsFirst::operator()(
   return negativeLengthAndDataOf(a) < negativeLengthAndDataOf(b);
 }
 
-std::ostream& operator<<(std::ostream& s, const AstraData& x) {
-  s << "LogType: " << int(x.logType) << std::endl;
-  s << "Time stamp: " << x.partialTimestamp.toString() << std::endl;
-  for (auto tod: x.timeOfDay) {
-    s << "Time of day: " << tod.hours() << std::endl;
-  }
-
-    /*Optional<std::string> userId;
-    Optional<int> dinghyId;
-    Optional<Angle<double>> lat;
-    Optional<Angle<double>> lon;
-    Optional<Angle<double>> pitch;
-    Optional<Angle<double>> roll;
-    Optional<Angle<double>> COG;
-    Optional<Angle<double>> magHdg;
-    Optional<Velocity<double>> SOG;
-    Optional<Velocity<double>> waterSpeed;
-
-    Optional<Angle<double>> GWD, TWD, AWA, TWA;
-    Optional<Velocity<double>> GWS, TWS, AWS;
-
-    Optional<GeographicPosition<double>> geoPos() const {
-      for (auto lon0: lon) {
-        for (auto lat0: lat) {
-          return GeographicPosition<double>(lon0, lat0);
-        }
-      }
-      return {};
-    }*/
-  return s;
-}
-
 template <typename Q, typename FieldAccess>
 AstraValueParser inUnit(Q unit, FieldAccess f) {
   return [f, unit](const std::string& s, AstraData* dst) {
@@ -276,6 +244,8 @@ AstraValueParser asTimeOfDay(FieldAccess f) {
  * For this reason, every log file needs its own map like below.
  */
 
+auto fracDeg = 0.01_deg;
+
 LogFileHeaderSpec regataLogFileSpec{
   // Current, and things like that?
   {"Set", AstraValueParser()},
@@ -314,14 +284,18 @@ LogFileHeaderSpec regataLogFileSpec{
   {"SOG", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(SOG)))},
 
   // Boat position
+
+  // Should be some kind of fractional degrees here.
   {"Lat", AstraValueParser(geographicAngle(
-      'N', 'S', 1.0_deg, FIELD_ACCESS(lat)))},
+      'N', 'S', fracDeg, FIELD_ACCESS(lat)))},
   {"Lon", AstraValueParser(geographicAngle(
-      'E', 'W', 1.0_deg, FIELD_ACCESS(lon)))},
+      'E', 'W', fracDeg, FIELD_ACCESS(lon)))},
   {"Latitudine", AstraValueParser(geographicAngle(
-      'N', 'S', 0.01_deg, FIELD_ACCESS(lat)))},
+      'N', 'S', fracDeg, FIELD_ACCESS(lat)))},
   {"Longitudine", AstraValueParser(geographicAngle(
-      'E', 'W', 0.01_deg, FIELD_ACCESS(lon)))},
+      'E', 'W', fracDeg, FIELD_ACCESS(lon)))},
+
+  // Should be unit degrees here.
   {"LAT", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},
   {"LON", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lon)))},
 
@@ -542,20 +516,8 @@ bool accumulateAstraLogs(const std::string& filename, LogAccumulator* dst) {
 
   for (auto x: data) {
     accumulateRegatta(x, dst);
-    /*
-    switch (x.logType) {
-    case AstraLogType::ProcessedCoach:
-      accumulateCoach(x, dst);
-      break;
-    case AstraLogType::RawDinghy:
-      accumulateDinghy(x, dst);
-      break;
-    default:
-      LOG(WARNING) << "Unknown Astra log file type for "
-        << filename << ". Please update the parsing code.";
-      break;
-    }
-    */
+
+    // TODO: Switch based on x.logType
   }
   return true;
 }
