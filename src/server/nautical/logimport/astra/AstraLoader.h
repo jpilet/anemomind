@@ -27,6 +27,7 @@ Optional<AstraHeader> tryParseAstraHeader(const std::string& s);
 enum AstraLogType {
   RawDinghy,
   ProcessedCoach,
+  Regata,
   Unknown
 };
 
@@ -52,10 +53,12 @@ struct AstraData {
   Optional<Angle<double>> pitch;
   Optional<Angle<double>> roll;
   Optional<Angle<double>> COG;
+  Optional<Angle<double>> magHdg;
   Optional<Velocity<double>> SOG;
+  Optional<Velocity<double>> waterSpeed;
 
-  Optional<Angle<double>> GWD, TWD;
-  Optional<Velocity<double>> GWS, TWS;
+  Optional<Angle<double>> GWD, TWD, AWA, TWA;
+  Optional<Velocity<double>> GWS, TWS, AWS;
 
   Optional<GeographicPosition<double>> geoPos() const {
     for (auto lon0: lon) {

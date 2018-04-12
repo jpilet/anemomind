@@ -187,8 +187,9 @@ Optional<AstraData> tryMakeAstraData(
     const auto& kv = cols[i];
     const auto& rd = rawData[i];
     if (!bool(kv.second)) {
-      LOG(FATAL) << "No value parser registered for Astra value of type '"
-          << kv.first << "'";
+      //LOG(FATAL) << "No value parser registered for Astra value of type '"
+      //    << kv.first << "'";
+      continue;
     }
     if (!kv.second(rd, &dst)) {
       LOG(WARNING) << "Failed to parse col '" << kv.first << "' from value '"
@@ -273,13 +274,33 @@ std::map<std::string, AstraValueParser,
       'N', 'S', 1.0_deg, FIELD_ACCESS(lat)))},
   {"Lon", AstraValueParser(geographicAngle(
       'E', 'W', 1.0_deg, FIELD_ACCESS(lon)))},
+  {"Latitudine", AstraValueParser(geographicAngle(
+      'N', 'S', 1.0_deg, FIELD_ACCESS(lat)))},
+  {"Longitudine", AstraValueParser(geographicAngle(
+      'E', 'W', 1.0_deg, FIELD_ACCESS(lon)))},
   {"LAT", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},
   {"LON", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lon)))},
 
   // Other boat orientation
   {"HDG", AstraValueParser()},
   {"Pitch", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(pitch)))},
-  {"Roll", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(roll)))}
+  {"Roll", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(roll)))},
+
+  {"AW_angle", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(AWA)))},
+  {"AW_speed", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(AWS)))},
+  {"BS_polar",AstraValueParser()},
+  {"BS_target",AstraValueParser()},
+  {"Boatspeed", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(waterSpeed)))},
+  {"Ext_COG", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(COG)))},
+  {"Ext_SOG", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(SOG)))},
+  {"Heading", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(magHdg)))},
+  {"LeewayAng",AstraValueParser()},
+  {"LeewayMod",AstraValueParser()},
+  {"TWA_target",AstraValueParser()},
+  {"TW_Dir", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWD)))},
+  {"TW_angle", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWA)))},
+  {"TW_speed", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(TWS)))},
+  {"Type_tgt",AstraValueParser()}
 };
 
 Optional<Array<std::pair<std::string, AstraValueParser>>>
@@ -389,6 +410,40 @@ namespace {
     }
   }
 
+  void accumulateRegatta(const AstraData& src, LogAccumulator* dst) {
+    const std::string sourceName = "Astra regata";
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.COG, &(dst->_GPS_BEARINGsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.SOG, &(dst->_GPS_SPEEDsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.geoPos(), &(dst->_GPS_POSsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.TWA, &(dst->_TWAsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.TWD, &(dst->_TWDIRsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.TWS, &(dst->_TWSsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.AWA, &(dst->_AWAsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.AWS, &(dst->_AWSsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.magHdg, &(dst->_MAG_HEADINGsources));
+
+    copyIfDefined(sourceName, src.fullTimestamp(),
+        src.waterSpeed, &(dst->_WAT_SPEEDsources));
+  }
+
   void accumulateDinghy(const AstraData& src, LogAccumulator* dst) {
     std::string sourceName = "astraDinghy_id"
         + stringOrQ(src.dinghyId)
@@ -427,11 +482,13 @@ namespace {
  *
  */
 bool accumulateAstraLogs(const std::string& filename, LogAccumulator* dst) {
-  auto data = loadAstraFile(filename);
+  Array<AstraData> data = loadAstraFile(filename);
   if (data.empty()) {
     return false;
   }
   for (auto x: data) {
+    accumulateRegatta(x, dst);
+    /*
     switch (x.logType) {
     case AstraLogType::ProcessedCoach:
       accumulateCoach(x, dst);
@@ -444,6 +501,7 @@ bool accumulateAstraLogs(const std::string& filename, LogAccumulator* dst) {
         << filename << ". Please update the parsing code.";
       break;
     }
+    */
   }
   return true;
 }
