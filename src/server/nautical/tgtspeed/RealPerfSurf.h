@@ -16,6 +16,7 @@
 #include <iostream>
 #include <server/nautical/NavDataset.h>
 #include <server/common/Functional.h>
+#include <Eigen/Dense>
 
 namespace sail {
 
@@ -30,6 +31,10 @@ Velocity<double> targetSpeedPrior(Angle<double> twa, Velocity<double> tws);
 
 std::array<Velocity<double>, 2> toCartesian(
     Angle<double> twa, Velocity<double> tws);
+
+Eigen::MatrixXd makeFirstOrderReg(
+    int vertexCount,
+    const Array<std::pair<int, int>>& edges);
 
 struct RealPerfSurfResults {
   int finalSampleCount = 0;

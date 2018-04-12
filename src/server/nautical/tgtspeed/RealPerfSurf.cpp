@@ -57,6 +57,18 @@ std::array<Velocity<double>, 2> toCartesian(
   return {sin(twa)*tws, cos(twa)*tws};
 }
 
+Eigen::MatrixXd makeFirstOrderReg(
+    int vertexCount,
+    const Array<std::pair<int, int>>& edges) {
+  int edgeCount = edges.size();
+  Eigen::MatrixXd dst = Eigen::MatrixXd::Zero(edgeCount, vertexCount);
+  for (int i = 0; i < edges.size(); i++) {
+    auto e = edges[i];
+    dst(i, e.first) = 1.0;
+    dst(i, e.second) = -1.0;
+  }
+  return dst;
+}
 
 //return makeDataPoint(
 //    twa, tws, boatSpeed, hexMesh, speedUnit);
