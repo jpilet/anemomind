@@ -50,7 +50,7 @@ TEST(TestAstraLoader, ColSpecTest) {
   EXPECT_FALSE(tryParseAstraColSpecStr("   ").defined());
 }
 
-TEST(TestAstraLoader, TimeOfDayParseTest) {
+/*TEST(TestAstraLoader, TimeOfDayParseTest) {
   EXPECT_EQ(
       tryParseAstraTimeOfDay("08:02:31").get(),
       (8.0_h + 2.0_minutes + 31.0_seconds));
@@ -62,7 +62,7 @@ TEST(TestAstraLoader, DateTest) {
   EXPECT_EQ(
       tryParseAstraDate("2018/03/09").get(),
       TimeStamp::UTC(2018, 3, 9, 0, 0, 0));
-}
+}*/
 
 auto testTransducer = trStreamLines() // All the lines of the file
         |

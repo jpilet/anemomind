@@ -72,17 +72,28 @@ struct AstraData {
 
 typedef std::function<bool(std::string, AstraData*)> AstraValueParser;
 
+struct LongWordsFirst {
+  bool operator()(const std::string& a, const std::string& b) const;
+};
+
+// Specifies what the headers of a log file mean. Different log file types
+// have different formats.
+typedef std::map<std::string, AstraValueParser, LongWordsFirst>
+  LogFileHeaderSpec;
+
+
 typedef Array<std::pair<
     std::string, AstraValueParser>> AstraColSpec;
 typedef Array<std::string> AstraTableRow;
 
-Optional<AstraColSpec> tryParseAstraColSpec(const Array<std::string>& s);
+Optional<AstraColSpec> tryParseAstraColSpec(
+    const Array<std::string>& s);
 
 Array<std::string> tokenizeAstra(const std::string& s);
 
 Optional<Duration<double>> tryParseAstraTimeOfDay(const std::string& s);
 
-Optional<TimeStamp> tryParseAstraDate(const std::string& s);
+Optional<TimeStamp> tryParseAstraDate(const char* fmt, const std::string& s);
 
 Optional<std::map<std::string, Array<std::string>>> tryParseNamedNumericParameters(
     const std::string& s);

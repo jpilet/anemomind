@@ -85,17 +85,46 @@ namespace {
   }
 
 }
-
 // When we iterate over the possibilities
 // in the parser, we want to start trying
 // to match the long words (for instance we want
 // to try 'DateTimeTs' before we try just 'Date'.
-struct LongWordsFirst {
-  bool operator()(
-      const std::string& a, const std::string& b) const {
-    return negativeLengthAndDataOf(a) < negativeLengthAndDataOf(b);
+bool LongWordsFirst::operator()(
+    const std::string& a, const std::string& b) const {
+  return negativeLengthAndDataOf(a) < negativeLengthAndDataOf(b);
+}
+
+std::ostream& operator<<(std::ostream& s, const AstraData& x) {
+  s << "LogType: " << int(x.logType) << std::endl;
+  s << "Time stamp: " << x.partialTimestamp.toString() << std::endl;
+  for (auto tod: x.timeOfDay) {
+    s << "Time of day: " << tod.hours() << std::endl;
   }
-};
+
+    /*Optional<std::string> userId;
+    Optional<int> dinghyId;
+    Optional<Angle<double>> lat;
+    Optional<Angle<double>> lon;
+    Optional<Angle<double>> pitch;
+    Optional<Angle<double>> roll;
+    Optional<Angle<double>> COG;
+    Optional<Angle<double>> magHdg;
+    Optional<Velocity<double>> SOG;
+    Optional<Velocity<double>> waterSpeed;
+
+    Optional<Angle<double>> GWD, TWD, AWA, TWA;
+    Optional<Velocity<double>> GWS, TWS, AWS;
+
+    Optional<GeographicPosition<double>> geoPos() const {
+      for (auto lon0: lon) {
+        for (auto lat0: lat) {
+          return GeographicPosition<double>(lon0, lat0);
+        }
+      }
+      return {};
+    }*/
+  return s;
+}
 
 template <typename Q, typename FieldAccess>
 AstraValueParser inUnit(Q unit, FieldAccess f) {
@@ -160,8 +189,14 @@ Optional<Duration<double>> tryParseAstraTimeOfDay(const std::string& src) {
   return parseTimeOfDay("%T", src);
 }
 
-Optional<TimeStamp> tryParseAstraDate(const std::string& s) {
-  return TimeStamp::parse("%Y/%m/%d", s);
+Optional<TimeStamp> tryParseAstraDate(
+    const char* fmt, const std::string& s) {
+  auto x = TimeStamp::parse(fmt, s);
+  if (x.defined()) {
+    return x;
+  } else {
+    return {};
+  }
 }
 
 Optional<AstraData> tryMakeAstraData(
@@ -201,9 +236,9 @@ Optional<AstraData> tryMakeAstraData(
 }
 
 template <typename FieldAccess>
-AstraValueParser asDate(FieldAccess f) {
-  return [f](const std::string& src, AstraData* dst) {
-    for (auto d: tryParseAstraDate(src)) {
+AstraValueParser asDate(const char* fmt, FieldAccess f) {
+  return [f, fmt](const std::string& src, AstraData* dst) {
+    for (auto d: tryParseAstraDate(fmt, src)) {
       *(f(dst)) = d;
       return true;
     }
@@ -229,11 +264,19 @@ AstraValueParser asTimeOfDay(FieldAccess f) {
  * WARNING: I am not at all sure about the units used
  * by Astra, e.g. degrees vs radians, m/s vs knots vs km/h.
  *
+ * Also, different log files have different formats for a column with the
+ * same name. For instance, in the file
  *
+ * datasets/astradata/Regata/log1Hz20170708_1239.log
+ *
+ * the "Date" column has a different format than the "Date" column of
+ *
+ * datasets/astradata/Log from Dinghy/Device___15___2018-03-02.log
+ *
+ * For this reason, every log file needs its own map like below.
  */
-std::map<std::string, AstraValueParser,
-  LongWordsFirst> knownHeaders{
 
+LogFileHeaderSpec regataLogFileSpec{
   // Current, and things like that?
   {"Set", AstraValueParser()},
   {"Drift", AstraValueParser()},
@@ -256,7 +299,8 @@ std::map<std::string, AstraValueParser,
 
   // Time
   {"DateTimeTs", AstraValueParser()},
-  {"Date", AstraValueParser(asDate(FIELD_ACCESS(partialTimestamp)))},
+  {"Date", AstraValueParser(
+      asDate("%d/%m/%y", FIELD_ACCESS(partialTimestamp)))},
   {"Time", AstraValueParser(asTimeOfDay(FIELD_ACCESS(timeOfDay)))},
   {"Ts", &ignoreAstraValue},
 
@@ -275,9 +319,9 @@ std::map<std::string, AstraValueParser,
   {"Lon", AstraValueParser(geographicAngle(
       'E', 'W', 1.0_deg, FIELD_ACCESS(lon)))},
   {"Latitudine", AstraValueParser(geographicAngle(
-      'N', 'S', 1.0_deg, FIELD_ACCESS(lat)))},
+      'N', 'S', 0.01_deg, FIELD_ACCESS(lat)))},
   {"Longitudine", AstraValueParser(geographicAngle(
-      'E', 'W', 1.0_deg, FIELD_ACCESS(lon)))},
+      'E', 'W', 0.01_deg, FIELD_ACCESS(lon)))},
   {"LAT", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},
   {"LON", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lon)))},
 
@@ -304,9 +348,16 @@ std::map<std::string, AstraValueParser,
 };
 
 Optional<Array<std::pair<std::string, AstraValueParser>>>
-  tryParseAstraColSpec(const Array<std::string>& tokens) {
+  tryParseAstraColSpec(
+      const Array<std::string>& tokens) {
+
+  // Once we want to support multiple log file formats, we can
+  // instead pass this as a parameter.
+  const auto& spec = regataLogFileSpec;
+
+
   typedef std::map<std::string, AstraValueParser,
-      LongWordsFirst>::iterator Iterator;
+      LongWordsFirst>::const_iterator Iterator;
 
   if (tokens.empty()) {
     return {};
@@ -314,12 +365,12 @@ Optional<Array<std::pair<std::string, AstraValueParser>>>
 
   auto result = transduce(
       tokens,
-      trMap([](const std::string& token) {
-        return knownHeaders.find(token);
+      trMap([&](const std::string& token) {
+        return spec.find(token);
       })
       |
       trTakeWhile([](Iterator f){
-        return f != knownHeaders.end();
+        return f != spec.end();
       })
       |
       trMap([](Iterator f) {
@@ -334,10 +385,12 @@ Optional<Array<std::pair<std::string, AstraValueParser>>>
 
 // Useful for explaining what other columns need to be considered.
 void displayColHint(const AstraTableRow& rawData) {
+  const auto& spec = regataLogFileSpec;
+
   std::set<std::string> recognized, notRecognized;
   for (auto x: rawData) {
-    auto f = knownHeaders.find(x);
-    if (f == knownHeaders.end()) {
+    auto f = spec.find(x);
+    if (f == spec.end()) {
       notRecognized.insert(x);
     } else {
       recognized.insert(x);
@@ -486,6 +539,7 @@ bool accumulateAstraLogs(const std::string& filename, LogAccumulator* dst) {
   if (data.empty()) {
     return false;
   }
+
   for (auto x: data) {
     accumulateRegatta(x, dst);
     /*
