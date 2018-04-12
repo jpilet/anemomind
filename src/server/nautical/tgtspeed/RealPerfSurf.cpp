@@ -59,14 +59,16 @@ std::array<Velocity<double>, 2> toCartesian(
 
 Eigen::MatrixXd makeFirstOrderReg(
     int vertexCount,
-    const Array<std::pair<int, int>>& edges) {
+    const std::set<std::pair<int, int>>& edges) {
   int edgeCount = edges.size();
   Eigen::MatrixXd dst = Eigen::MatrixXd::Zero(edgeCount, vertexCount);
-  for (int i = 0; i < edges.size(); i++) {
-    auto e = edges[i];
+  int i = 0;
+  for (const auto& e: edges) {
     dst(i, e.first) = 1.0;
     dst(i, e.second) = -1.0;
+    i++;
   }
+  CHECK(i == edges.size());
   return dst;
 }
 
@@ -148,8 +150,11 @@ RealPerfSurfResults optimizeRealPerfSurf(
       })
       |
       trCat(),
-      IntoCount());
-  results.finalSampleCount = inputData;
+      IntoArray<DataPoint>());
+
+  auto reg = makeFirstOrderReg(mesh.vertexCount(), mesh.edges());
+
+  results.finalSampleCount = inputData.size();
   return results;
 }
 

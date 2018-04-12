@@ -34,7 +34,15 @@ std::array<Velocity<double>, 2> toCartesian(
 
 Eigen::MatrixXd makeFirstOrderReg(
     int vertexCount,
-    const Array<std::pair<int, int>>& edges);
+    const std::set<std::pair<int, int>>& edges);
+
+struct QuantileRegressionSettings {
+  int iterations = 30;
+  double regWeight = 1.0;
+  double slope = 1.0;
+};
+
+Array<double> solveSurfaceFit();
 
 struct RealPerfSurfResults {
   int finalSampleCount = 0;
