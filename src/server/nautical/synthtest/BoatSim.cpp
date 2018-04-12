@@ -15,7 +15,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/Progress.h>
 #include <limits>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -162,7 +162,9 @@ Array<BoatSim::FullState> BoatSim::simulate(Duration<double> simulationDuration,
 BoatSim::TwaFunction BoatSim::makePiecewiseTwaFunction(
     Array<Duration<double> > durs,
     Array<Angle<double> > twa) {
-  Arrayd dursSeconds = toArray(map(durs, [](Duration<double> x) {return x.seconds();}));
+  Arrayd dursSeconds = transduce(
+      durs, trMap([](Duration<double> x) {return x.seconds();}),
+      IntoArray<double>());
   ProportionateIndexer indexer(dursSeconds);
   return [=](Duration<double> x) {
     return twa[indexer.get(x.seconds()).index];
@@ -171,9 +173,9 @@ BoatSim::TwaFunction BoatSim::makePiecewiseTwaFunction(
 
 namespace {
   Arrayd getTimes(Array<BoatSim::FullState> states) {
-    return toArray(map(states, [=](BoatSim::FullState s) {
+    return transduce(states, trMap([=](BoatSim::FullState s) {
       return s.time.seconds();
-    }));
+    }), IntoArray<double>());
   }
 
 
@@ -183,7 +185,11 @@ namespace {
     plot.set_title(title);
     plot.set_style("lines");
     plot.plot_xy(getTimes(states),
-        toArray(map(map(states, fun), [&](Angle<double> x) {return x.degrees();})));
+        transduce(states,
+            trMap(fun)
+            |
+            trMap([&](Angle<double> x) {return x.degrees();}),
+            IntoArray<double>()));
     plot.show();
   }
 
@@ -193,8 +199,14 @@ namespace {
     plot.set_title(title);
     plot.set_style("lines");
     plot.plot_xy(getTimes(states),
-        toArray(map(map(states, fun), [&](Velocity<double> x)
-            {return x.knots();})));
+        transduce(
+            states,
+            trMap(fun)
+            |
+            trMap([&](Velocity<double> x) {
+              return x.knots();
+            }),
+            IntoArray<double>()));
     plot.show();
   }
 
@@ -203,8 +215,10 @@ namespace {
     plot.set_title("Trajectory (meters)");
     plot.set_style("lines");
     plot.plot_xy(
-        toArray(map(states, [&](BoatSim::FullState x) {return x.pos[0].meters();})),
-        toArray(map(states, [&](BoatSim::FullState x) {return x.pos[1].meters();}))
+        transduce(states, trMap([&](BoatSim::FullState x) {return x.pos[0].meters();}),
+            IntoArray<double>()),
+        transduce(states, trMap([&](BoatSim::FullState x) {return x.pos[1].meters();}),
+            IntoArray<double>())
     );
     plot.show();
   }

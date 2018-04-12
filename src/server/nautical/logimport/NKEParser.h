@@ -12,7 +12,7 @@
 #include <set>
 #include <server/common/TimeStamp.h>
 #include <server/nautical/NavCompatibility.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -109,21 +109,21 @@ class NKEArray {
   }
 
   Array<Angle<double> > angles() const {
-    return toArray(map(_values, [&](const std::string &x) {
+    return transduce(_values, trMap([&](const std::string &x) {
       return _unit->toAngle(x);
-    }));
+    }), IntoArray<Angle<double>>());
   }
 
   Array<Velocity<double> > velocities() const {
-    return toArray(map(_values, [&](const std::string &x) {
+    return transduce(_values, trMap([&](const std::string &x) {
       return _unit->toVelocity(x);
-    }));
+    }), IntoArray<Velocity<double>>());
   }
 
   Array<Duration<double> > durations() const {
-    return toArray(map(_values, [&](const std::string &x) {
+    return transduce(_values, trMap([&](const std::string &x) {
       return _unit->toDuration(x);
-    }));
+    }), IntoArray<Duration<double>>());
   }
 
   std::shared_ptr<NKEUnit> unit() const {

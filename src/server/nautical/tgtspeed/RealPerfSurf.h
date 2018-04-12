@@ -25,6 +25,9 @@ struct RealPerfSurfSettings {
   std::function<bool(TimeStamp)> timeFilter = constantly(true);
 };
 
+double twaPrior(Angle<double> twa);
+Velocity<double> targetSpeedPrior(Angle<double> twa, Velocity<double> tws);
+
 struct RealPerfSurfResults {
   int finalSampleCount = 0;
 };

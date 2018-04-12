@@ -10,6 +10,7 @@
 #include <server/nautical/calib/CornerCalib.h>
 #include <server/nautical/filters/TimedAngleIntegrator.h>
 #include <server/nautical/common.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 namespace CurrentCalib {
@@ -143,9 +144,9 @@ if (varName.empty()) { \
   Array<Array<CurrentDataSample> > makeSampleGroups(
         const Array<NavDataset> &ds,
         const Duration<double> &samplingPeriod) {
-    return sail::map(ds, [&](const NavDataset &ds) {
+    return transduce(ds, trMap([&](const NavDataset &ds) {
       return makeSamples(ds, samplingPeriod);
-    });
+    }), IntoArray<Array<CurrentDataSample>>());
   }
 
   MotionSamples applyCurrentCalibration(

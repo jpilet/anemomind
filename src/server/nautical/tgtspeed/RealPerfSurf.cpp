@@ -8,6 +8,7 @@
 #include "RealPerfSurf.h"
 #include <server/common/VariantIterator.h>
 #include <server/common/TimedTuples.h>
+#include <server/nautical/tgtspeed/HexMesh.h>
 #include <fstream>
 
 namespace sail {
@@ -42,6 +43,15 @@ template <typename T>
 Inc<T> incVisitor(T* dst) {
   return Inc<T>{dst};
 }
+
+double twaPrior(Angle<double> twa) {
+  return std::pow(0.5*(-cos(twa) + 1), 0.1);
+}
+
+Velocity<double> targetSpeedPrior(Angle<double> twa, Velocity<double> tws) {
+  return twaPrior(twa)*tws;
+}
+
 
 RealPerfSurfResults optimizeRealPerfSurf(
     const NavDataset& src,

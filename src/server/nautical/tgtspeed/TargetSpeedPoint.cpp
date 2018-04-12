@@ -6,7 +6,7 @@
 #include <cassert>
 #include <server/nautical/tgtspeed/TargetSpeedPoint.h>
 #include <server/common/Span.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -52,18 +52,26 @@ Array<ValueWithStability<T> > computeValuesWithStability(Array<T> values) {
 
 
 Array<Velocity<double> > getBoatSpeeds(Array<TargetSpeedPoint> x) {
-  return toArray(map(x, [&](const TargetSpeedPoint &x) {return x.boatSpeed();}));
+  return transduce(
+      x, trMap([&](const TargetSpeedPoint &x) {return x.boatSpeed();}),
+      IntoArray<Velocity<double>>());
 }
 Array<Velocity<double> > getWindSpeeds(Array<TargetSpeedPoint> x) {
-  return toArray(map(x, [&](const TargetSpeedPoint &x) {return x.windSpeed();}));
+  return transduce(
+      x, trMap([&](const TargetSpeedPoint &x) {return x.windSpeed();}),
+      IntoArray<Velocity<double>>());
 }
 
 Array<Angle<double> > getWindAngles(Array<TargetSpeedPoint> x) {
-  return toArray(map(x, [&](const TargetSpeedPoint &x) {return x.windAngle();}));
+  return transduce(
+      x, trMap([&](const TargetSpeedPoint &x) {return x.windAngle();}),
+      IntoArray<Angle<double>>());
 }
 
 Array<double> getStabilities(Array<TargetSpeedPoint> x) {
-  return toArray(map(x, [&] (const TargetSpeedPoint &x) {return x.stability()();}));
+  return transduce(
+      x, trMap([&] (const TargetSpeedPoint &x) {return x.stability()();}),
+      IntoArray<double>());
 }
 
 Array<TargetSpeedPoint> computeStabilities(Array<TargetSpeedPoint> src) {

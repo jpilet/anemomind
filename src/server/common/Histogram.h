@@ -11,7 +11,7 @@
 #include <server/common/MDArray.h>
 #include <server/common/Span.h>
 #include <server/common/math.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -23,7 +23,7 @@ struct CastToDoubleFunctor {
 namespace HistogramInternal {
   template <typename T>
   Array<Array<T> > allocateGroups(Arrayi cpb) {
-    return toArray(map([&](int i) {return Array<T>(i);}, cpb));
+    return transduce(cpb, trMap([&](int i) {return Array<T>(i);}), IntoArray<Array<T>>());
   }
 
   void drawBin(double left, double right, double height, MDArray2d dst);

@@ -5,7 +5,7 @@
 
 #include <server/nautical/tgtspeed/table.h>
 #include <server/common/string.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 namespace sail {
 
@@ -15,10 +15,12 @@ Array<Angle<double> > getNorthSailsAngles() {
                        60, 70, 80, 90, 100,
                        110, 120, 135, 150,
                        160, 170, 180};
-  return toArray(map(Arrayd(count, anglesDeg),
-  [&](double x) {
-      return Angle<double>::degrees(x);
-  }));
+  return transduce(
+      Arrayd(count, anglesDeg),
+      trMap([&](double x) {
+        return Angle<double>::degrees(x);
+      }),
+      IntoArray<Angle<double>>());
 }
 
 Array<Velocity<double> > getNorthSailsSpeeds() {
@@ -27,7 +29,10 @@ Array<Velocity<double> > getNorthSailsSpeeds() {
   auto toVel = [&](double x) {
         return Velocity<double>::knots(x);
       };
-  return toArray(map(Arrayd(count, speedsKnots), toVel));
+  return transduce(
+      Arrayd(count, speedsKnots),
+      trMap(toVel),
+      IntoArray<Velocity<double>>());
 }
 
 void outputValue(double x, std::ostream *dst) {

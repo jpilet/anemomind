@@ -21,7 +21,7 @@ var verbose = false;
 var counter = 0;
 
 var channel = null;
-var minResendTime = 100; // ms
+var minResendTime = 80; // ms
 var sidMap = { };
 var anemomindEstimatorSource = 'Anemomind estimator';
 var trueWindFields = [ 'twa', 'tws', 'twdir' ];
@@ -30,6 +30,12 @@ var windLimiters = {
   twa: makeSendLimiter(),
   twdir: makeSendLimiter()
 };
+var lastSentTimestamps = {
+  twa: undefined,
+  twdir: undefined,
+  perf: undefined
+};
+
 var perfSendLimiter = makeSendLimiter();
 // Either it is null, meaning we are not sending
 // anything, or it is a map, meaning we are sending.
@@ -243,9 +249,7 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
       return null;
     }
     
-    var t = dispatchData.time();
-    var age = timestamp - t;
-    if (threshold <= age) {
+    if (dispatchData.time() < timestamp) {
       return null;
     }
 
@@ -270,7 +274,8 @@ function makeWindPackets() {
   // wind angle references.
   for (var wa in windAngleRefs) {
     windLimiters[wa](function() {
-      var data2send = tryGetIfFresh([wa, "tws"], source, now);
+      var lastSent = lastSentTimestamps[wa] || (now - 1000);
+      var data2send = tryGetIfFresh([wa, "tws"], source, lastSent);
       if (data2send) {
         packetsToSend.push({
           deviceIndex: 0,
@@ -280,6 +285,7 @@ function makeWindPackets() {
           windAngle: data2send[wa],
           reference: windAngleRefs[wa]
         });
+        lastSentTimestamps[wa] = now;
       }
     }, now);
   }
@@ -291,7 +297,8 @@ function makePerformancePackets() {
   var source = anemomindEstimatorSource;
   var packets = [];
   perfSendLimiter(function() {
-    var data2send = tryGetIfFresh(performanceFields, source, now);
+    var lastSent = lastSentTimestamps.perf || (now - 1000);
+    var data2send = tryGetIfFresh(performanceFields, source, lastSent);
     if (data2send) {
       var vmgSI = utils.taggedToSI(data2send.vmg);
       var targetVmgSI = utils.taggedToSI(data2send.targetVmg);
@@ -302,6 +309,7 @@ function makePerformancePackets() {
         vmgPerformance: perf,
         sid: nextSid('performance')
       });
+      lastSentTimestamps.perf = now;
     }
   }, now);
   return packets;

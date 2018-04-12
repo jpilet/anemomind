@@ -3,6 +3,7 @@
 #include <functional>
 #include <device/anemobox/Dispatcher.h>
 #include <server/nautical/NavDataset.h>
+#include <set>
 #include <string>
 #include <server/common/logging.h>
 
@@ -30,6 +31,23 @@ TimeStamp tileEndTime(int64_t tile, int zoom) {
 
 
 namespace {
+
+std::string sourceNameToKey(const std::string& source) {
+  if (source.size() == 0) {
+    return "(unknown source)";
+  }
+  return source;
+}
+
+bool sourceShouldUploadChartTiles(const std::string& source) {
+  static const std::set<std::string> blacklist{
+    "IMU", // IMU is not reliable. We do not want to expose it in our UI.
+    "NMEA2000/0", // Let's ignore nmea2000 data from unidentified sources.
+    "NMEA2000/0 i255", // unidentified source for rudder angle
+  };
+
+  return blacklist.find(source) == blacklist.end();
+}
 
 template <typename T>
 void downSampleData(int64_t tileno, int zoom,
@@ -152,6 +170,9 @@ class ChartSourceIndexBuilder {
   std::shared_ptr<Dispatcher> _dispatcher;
   WrapBson _index;
   BsonSubDocument _channels;
+  std::string _currentChannelType;
+  std::unique_ptr<BsonSubDocument> _currentChannelDoc;
+
   std::string _boatId;
 };
 
@@ -185,6 +206,7 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
     BSON_APPEND_INT64(&key, "tileno", (long long) tile.tileno);
     bsonAppend(&key, "what", data.what);
     bsonAppend(&key, "source", data.source);
+    key.finalize();
   }
 
   StatArrays arrays;
@@ -385,6 +407,7 @@ bool uploadChartTiles(const NavDataset& data,
     {
       BsonSubDocument id(&selector, "_id");
       BSON_APPEND_OID(&id, "boat", &oid);
+      id.finalize();
     }
     auto concern = nullptr;
     bson_error_t error;
@@ -414,6 +437,10 @@ bool uploadChartTiles(const NavDataset& data,
 
   for (auto channel : allSources) {
     for (auto source : channel.second) {
+      if (!sourceShouldUploadChartTiles(source.first)) {
+        continue;
+      }
+
       if (!uploadChartTiles(source.second.get(), boatId,
                             settings, &inserter, &index)) {
         return false;
@@ -431,19 +458,33 @@ ChartSourceIndexBuilder::ChartSourceIndexBuilder(
 void ChartSourceIndexBuilder::add(const TileMetaData& metadata,
                                   TimeStamp first, TimeStamp last,
                                   int64_t tileCount) {
-  BsonSubDocument chanObj(&_channels, metadata.what.c_str());
-  BsonSubDocument sourceObj(&chanObj, metadata.source.c_str());
+  if (_currentChannelType != metadata.what.c_str()) {
+    if (_currentChannelDoc) {
+      _currentChannelDoc->finalize();
+    }
+    _currentChannelDoc.reset(new BsonSubDocument(&_channels, metadata.what.c_str()));
+    _currentChannelType = metadata.what;
+  }
+
+  std::string key = sourceNameToKey(metadata.source);
+  BsonSubDocument sourceObj(_currentChannelDoc.get(), key.c_str());
 
   bsonAppend(&sourceObj, "first", first);
   bsonAppend(&sourceObj, "last", last);
   bsonAppend(&sourceObj, "priority",
              _dispatcher->sourcePriority(metadata.source));
   bsonAppend(&sourceObj, "tileCount", tileCount);
+  sourceObj.finalize();
 }
 
 bool ChartSourceIndexBuilder::upload(
     const std::shared_ptr<mongoc_database_t>& db,
     const ChartTileSettings& settings) {
+  if (_currentChannelDoc) {
+    _currentChannelDoc->finalize();
+    _currentChannelDoc.reset();
+    _currentChannelType.clear();
+  }
   _channels.finalize();
   auto oid = makeOid(_boatId);
   BSON_APPEND_OID(&_index, "_id", &oid);

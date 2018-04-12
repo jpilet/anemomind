@@ -15,6 +15,7 @@
 #include <server/common/string.h>
 #include <server/math/SampleUtils.h>
 #include <server/nautical/BoatSpecificHacks.h>
+#include <server/transducers/Transducer.h>
 
 
 namespace sail {
@@ -77,7 +78,7 @@ Cost::Ptr toCommonCost(const std::shared_ptr<DataCost>& x) {
 }
 
 Array<Cost::Ptr> toCommonCosts(const Array<std::shared_ptr<DataCost>>& src) {
-  return map(src, &toCommonCost);
+  return transduce(src, trMap(&toCommonCost), IntoArray<Cost::Ptr>());
 }
 
 Array<std::shared_ptr<DataCost>> makePositionCosts(
@@ -196,19 +197,20 @@ Results optimize(
   auto motionCosts = makeMotionCosts(
       mapper, motions, settings, b);
 
-  auto dataCosts = concat(Array<Array<Cost::Ptr>>({
-    toCommonCosts(positionCosts),
-    toCommonCosts(motionCosts)
-  }));
+  auto dataCosts = transduce(
+      Array<Array<Cost::Ptr>>({
+        toCommonCosts(positionCosts),
+        toCommonCosts(motionCosts)
+      }), trCat(), IntoArray<Cost::Ptr>());
 
   BandedIrls::Results solution;
   Array<TimedValue<Vec2<Length<double>>>> inlierPositions;
   BandedIrls::Settings birls;
   for (auto w: settings.regWeights) {
     auto regCosts = makeRegCosts(w, mapper, settings, b);
-    auto costs = concat(Array<Array<Cost::Ptr>>{
+    auto costs = transduce(Array<Array<Cost::Ptr>>{
       dataCosts, regCosts
-    });
+    }, trCat(), IntoArray<Cost::Ptr>());
     solution = solve(birls, costs, solution.X);
 
     if (!solution.OK()) {
@@ -223,11 +225,11 @@ Results optimize(
   }
   if (settings.postReg.defined()) {
     solution = BandedIrls::constantSolve(birls,
-        concat(Array<Array<Cost::Ptr>>{
+        transduce(Array<Array<Cost::Ptr>>{
           dataCosts,
           makeRegCosts(settings.postReg.get(), mapper,
               settings, b)
-    }));
+    }, trCat(), IntoArray<Cost::Ptr>()));
     if (!solution.OK()) {
       LOG(ERROR) << "Post reg failed";
       return Results();

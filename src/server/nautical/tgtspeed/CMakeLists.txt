@@ -55,6 +55,7 @@ add_library(tgtspeed_RealPerfSurf
 
 target_link_libraries(tgtspeed_RealPerfSurf
   tgtspeed_PerfSurf
+  nautical_NavDataset
   )
 
 cxx_test(tgtspeed_RealPerfSurfTest

@@ -11,7 +11,7 @@
 #include <string>
 #include <algorithm>
 #include <server/nautical/logimport/TestdataNavs.h>
-#include <server/common/Functional.h>
+#include <server/transducers/Transducer.h>
 
 using std::string;
 using namespace sail;
@@ -48,13 +48,16 @@ namespace {
   }
 
   Arrayd toDouble(Array<Angle<double> > X) {
-    return toArray(sail::map(X, [](Angle<double> x) {return x.degrees();}));
+    return transduce(X, trMap([](Angle<double> x) {return x.degrees();}),
+        IntoArray<double>());
   }
 
 
   Angle<double> getMedianAbsValue(Array<Angle<double> > difs0) {
-    Array<Angle<double> > difs = toArray(sail::map(difs0,
-        [&](Angle<double> x) {return fabs(x);}));
+    auto difs = transduce(
+        difs0,
+        trMap([&](Angle<double> x) {return fabs(x);}),
+        IntoArray<Angle<double>>());
     std::sort(difs.begin(), difs.end());
     return difs[difs.size()/2];
   }

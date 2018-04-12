@@ -91,6 +91,7 @@ void navsToBSON(const Array<Nav>& navs, bson_t* result) {
   for (auto nav: navs) {
    BsonSubDocument dst(result, nextMongoArrayIndex);
    navToBSON(nav, &dst);
+   dst.finalize();
   }
 }
 
@@ -131,9 +132,11 @@ class TileInserter {
         {
           BsonSubDocument gte(&query, "startTime");
           bsonAppend(&gte, "$gte", key.startTime);
+          gte.finalize();
         }{
           BsonSubDocument lte(&query, "endTime");
           bsonAppend(&lte, "$lte", key.endTime);
+          lte.finalize();
         }
         auto concern = nullptr;
         bson_error_t error;
@@ -362,6 +365,7 @@ std::pair<std::string, std::shared_ptr<bson_t>> makeBsonSession(
   {
     BsonSubDocument loc(session.get(), "location");
     locationForSession(navArray, &loc);
+    loc.finalize();
   }
 
 
@@ -418,6 +422,7 @@ std::pair<BsonTileKey, std::shared_ptr<bson_t>>
         BsonSubArray pts(&curve, "points");
         navsToBSON(subCurve, &pts);
       }
+      curve.finalize();
     }
   }
   return {btk, tile};
