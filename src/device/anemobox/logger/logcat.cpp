@@ -289,10 +289,10 @@ void streamCat(const ValueSet& valueSet,
 }
 
 std::string formatNmea2000Data(
-    int n, const uint8_t* data) {
+    int n, const uint8_t* data, bool swap) {
   std::stringstream ss;
   for (int i = 0; i < n; i++) {
-    auto x = data[i];
+    auto x = data[swap ? n - i - 1 : i];
     ss << std::setfill('0')
        << std::setw(2) << std::hex
        << std::uppercase << x;
@@ -303,17 +303,26 @@ std::string formatNmea2000Data(
 }
 
 std::string formatNmea2000Data(
-    const std::string& data) {
+    const std::string& data, bool swap) {
   return formatNmea2000Data(
       data.length(),
-      reinterpret_cast<const uint8_t*>(data.c_str()));
+      reinterpret_cast<const uint8_t*>(data.c_str()),
+      swap);
 }
 
 std::string formatNmea2000Data(
-    google::protobuf::uint64 x, int w = 2*8) {
+    google::protobuf::uint64 value, bool swap, int w = 2*8) {
   std::stringstream ss;
-  ss << std::setfill('0')
-    << std::hex << std::uppercase << std::setw(w) << x;
+
+  int n = w/2;
+  for (int i = 0; i < n; i++) {
+    int byte = (swap ? n - i - 1 : i);
+    auto x = (value >> (byte * 8)) & 0xff;
+
+    ss << std::setfill('0')
+       << std::setw(2) << std::hex
+       << std::uppercase << x;
+  }
   auto s = ss.str();
   CHECK(s.length() == w);
   return s;
@@ -321,7 +330,7 @@ std::string formatNmea2000Data(
 
 std::string formatNmea2000Id(
     google::protobuf::uint64 x) {
-  return formatNmea2000Data(x, 8);
+  return formatNmea2000Data(x, true, 8);
 }
 
 template <typename T>
@@ -342,7 +351,7 @@ void outputRawSentences(
     entries->push_back(
         TimedString{
           times[i],
-          prefix + formatNmea2000Data(values.Get(i))});
+          prefix + formatNmea2000Data(values.Get(i), false)});
   }
 }
 
@@ -380,8 +389,8 @@ void dispEntries(std::vector<TimedString> *entries,
         break;
       };
       case DateFormat::Nmea2000Replay: {
-        cout << "(" << 0.001*entry.time
-            .toMilliSecondsSince1970() << ") ";
+        cout << std::fixed << std::setprecision(3)
+         <<  "(" << 0.001*entry.time.toMilliSecondsSince1970() << ") ";
         break;
       }
     };
