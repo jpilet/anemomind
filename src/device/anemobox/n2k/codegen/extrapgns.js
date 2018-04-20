@@ -73,8 +73,10 @@ var all = [{
     "EnumValues": wrapEnumPairs([{
       "Name": "VMG target percentage", 
       "Value": 285
+    }, {
+      "Name": "Course",
+      "Value": 105
     }]),
-    "Match": 285
   }, {
     "Order": 4,
     "Id": "length",
