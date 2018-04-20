@@ -413,9 +413,16 @@ bool sendBandGVmgPerformance(
   using namespace PgnClasses;
 
   BandGVmgPerformance perf;
-  perf.dataId = BandGVmgPerformance::DataId::VMG_target_percentage;
 
-  TRY_LOOK_UP(obj, "vmgPerformance", &(perf.vmgPerformance));
+  if (tryLookUp(obj, "vmgPerformance", &(perf.vmgPerformance))) {
+    perf.dataId = BandGVmgPerformance::DataId::VMG_target_percentage;
+  } else if (tryLookUp(obj, "course", &(perf.course))) {
+    perf.dataId = BandGVmgPerformance::DataId::Course;
+  } else {
+    Nan::ThrowError(
+      "No valid 'vmgPerformance' or 'course' field in packet");
+    return false;
+  }
 
   auto result = dst->send(deviceIndex, perf);
   CHECK_CONDITION_BOOL(result, "Failed to send BandGVmgPerformance");
