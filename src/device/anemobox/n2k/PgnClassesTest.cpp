@@ -187,10 +187,15 @@ TEST(PgnClassesTest, ANotherGnssPositionDataTest) {
 
 TEST(PgnClassesTest, BAndGPerf) {
   PgnClasses::BandGVmgPerformance perf;
-  EXPECT_TRUE(perf.valid());
 
-  // This is the only value you would want to touch for this class.
+  // This selects that we want to send the vmgPerformance value.
+  perf.dataId = PgnClasses
+      ::BandGVmgPerformance
+      ::DataId
+       ::VMG_target_percentage;
+
   perf.vmgPerformance = 0.75;
+  EXPECT_TRUE(perf.valid());
   auto data = perf.encode();
   EXPECT_EQ(data.size(), 8);
   EXPECT_EQ(data[0], 0x7d); // Manufacturer id part 1
@@ -207,10 +212,33 @@ TEST(PgnClassesTest, BAndGPerf) {
   EXPECT_EQ(perf2.vmgPerformance.get(), perf.vmgPerformance.get());
   EXPECT_TRUE(perf2.valid());
 
+  EXPECT_FALSE(perf2.course.defined());
+
   EXPECT_EQ(data, perf2.encode());
 
+  // Should fail to encode.
   perf2.manufacturerId = Optional<uint64_t>();
   EXPECT_TRUE(perf2.encode().empty());
+}
+
+TEST(PgnClassesTest, BAndGPerfCourse) {
+  PgnClasses::BandGVmgPerformance perf;
+
+  // This selects that we want to send the course value.
+  perf.dataId = PgnClasses
+      ::BandGVmgPerformance
+      ::DataId::Course;
+
+  perf.course = sail::Angle<double>::degrees(119.0);
+  EXPECT_TRUE(perf.valid());
+  auto data = perf.encode();
+
+  PgnClasses::BandGVmgPerformance perf2(data.data(), data.size());
+
+  EXPECT_FALSE(perf2.vmgPerformance.defined());
+
+  EXPECT_NEAR(perf2.course.get().degrees(), perf.course.get().degrees(), 0.1);
+  EXPECT_TRUE(perf2.valid());
 }
 
 

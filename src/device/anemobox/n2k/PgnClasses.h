@@ -1,4 +1,4 @@
-/** Generated on Thu Mar 01 2018 14:52:49 GMT+0100 (CET) using 
+/** Generated on Fri Apr 20 2018 15:39:30 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -510,11 +510,12 @@ namespace PgnClasses {
   };
   
   struct BandGVmgPerformance: public PgnBaseClass { // B&G Proprietary PGN – VMG Performance
-    // Minimum size: 48 bits = 6 bytes. 
+    // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 65330;
     int code() const override {return 65330;}
     enum class DataId {
-      VMG_target_percentage = 285
+      VMG_target_percentage = 285, 
+      Course = 105
     };
 
     BandGVmgPerformance();
@@ -525,9 +526,10 @@ namespace PgnClasses {
     std::vector<uint8_t> encode() const override;
     
     Optional<uint64_t > manufacturerId = 39293; // B&G at 0 bits = 0 bytes
-    Optional<DataId > dataId = DataId::VMG_target_percentage; //  at 16 bits = 2 bytes
+    Optional<DataId > dataId; //  at 16 bits = 2 bytes
     Optional<uint64_t > length = 2; // The length is in bytes, see the red text in the NDA for this field. at 28 bits = 3 bytes + 4 bits
-    Optional<double > vmgPerformance; // 'Each bit is 0.1%' according to NDA. Regarding the decoded value, 1.0 means 100% at 32 bits = 4 bytes
+    /* Related to dataId --> */Optional<double > vmgPerformance; // 'Each bit is 0.1%' according to NDA. Regarding the decoded value, 1.0 means 100% at 32 bits = 4 bytes
+    /* Related to dataId --> */Optional<sail::Angle<double> > course; // Each bit is 0.0001 radians, unsigned 2 bytes at 32 bits = 4 bytes
   };
   
 

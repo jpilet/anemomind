@@ -1,4 +1,4 @@
-/** Generated on Thu Mar 01 2018 14:52:49 GMT+0100 (CET) using 
+/** Generated on Fri Apr 20 2018 15:39:30 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -1007,11 +1007,16 @@ namespace PgnClasses {
 
   BandGVmgPerformance::BandGVmgPerformance(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (48 <= src.remainingBits()) {
+    if (64 <= src.remainingBits()) {
       manufacturerId = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
-      dataId = src.getUnsignedInSet(12, {285}).cast<DataId>();
+      dataId = src.getUnsignedInSet(12, {105, 285}).cast<DataId>();
       length = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
-      vmgPerformance = src.getDoubleWithResolution(0.001, true, 16, 0, N2kField::Definedness::MaybeUndefined);
+        if ((dataId.defined() && dataId.get() == static_cast<DataId>(285))) {
+          vmgPerformance = src.getDoubleWithResolution(0.001, true, 16, 0, N2kField::Definedness::MaybeUndefined);
+        }
+        if ((dataId.defined() && dataId.get() == static_cast<DataId>(105))) {
+          course = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+        }
     // No repeating fields.
     }
   }
@@ -1020,7 +1025,6 @@ namespace PgnClasses {
          manufacturerId.defined()
       || dataId.defined()
       || length.defined()
-      || vmgPerformance.defined()
     ;
   }
   bool BandGVmgPerformance::hasAllData() const {
@@ -1028,13 +1032,12 @@ namespace PgnClasses {
          manufacturerId.defined()
       && dataId.defined()
       && length.defined()
-      && vmgPerformance.defined()
     ;
   }
   bool BandGVmgPerformance::valid() const {
     return true
        && manufacturerId.defined() && manufacturerId.get() == 39293
-       && dataId.defined() && dataId.get() == DataId::VMG_target_percentage
+       && dataId.defined()
        && length.defined() && length.get() == 2
     ;
   }
@@ -1047,7 +1050,12 @@ namespace PgnClasses {
       dst.pushUnsigned(16, manufacturerId);
       dst.pushUnsigned(12, dataId.cast<uint64_t>());
       dst.pushUnsigned(4, length);
-      dst.pushDoubleWithResolution(0.001, true, 16, 0, vmgPerformance);
+        if ((dataId.defined() && dataId.get() == static_cast<DataId>(285))) {
+          dst.pushDoubleWithResolution(0.001, true, 16, 0, vmgPerformance);
+        }
+        if ((dataId.defined() && dataId.get() == static_cast<DataId>(105))) {
+          dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, course);
+        }
     dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
