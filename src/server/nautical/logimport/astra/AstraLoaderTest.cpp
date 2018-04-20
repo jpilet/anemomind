@@ -162,3 +162,15 @@ TEST(TestAstraLoader, TestLoadLogs) {
   EXPECT_TRUE(hasSomeData(acc._TWDIRsources));
   EXPECT_TRUE(hasSomeData(acc._TWSsources));
 }
+
+TEST(TestAstraLoader, ParseGeoAngle) {
+  Angle<double> result;
+  AstraValueParser parser = geographicAngle('N', 'S', [&](AstraData*) { return &result; });
+
+  EXPECT_TRUE(parser("4540.8188N", nullptr));
+  EXPECT_NEAR(result.degrees(), 45 + (40.818 / 60), 1e-5);
+
+  EXPECT_TRUE(parser("4539.8779N", nullptr));
+  EXPECT_NEAR(result.degrees(), 45 + (38.8779 / 60), 1e-5);
+}
+

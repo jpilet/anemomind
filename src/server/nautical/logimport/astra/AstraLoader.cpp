@@ -106,33 +106,6 @@ AstraValueParser inUnit(Q unit, FieldAccess f) {
 }
 
 template <typename FieldAccess>
-AstraValueParser geographicAngle(
-    char posChar, char negChar,
-    Angle<double> unit, FieldAccess f) {
-  return [=](const std::string& s, AstraData* dst) {
-    if (s.empty()) {
-      return false;
-    }
-    char last = s.back();
-    int sign = 0;
-    if (last == posChar) {
-      sign = 1;
-    } else if (last == negChar) {
-      sign = -1;
-    } else {
-      return false;
-    }
-    auto numericPart = s.substr(0, s.length()-1);
-
-    for (auto num: tryParse<double>(numericPart)) {
-      *(f(dst)) = double(sign*num)*unit;
-      return true;
-    }
-    return false;
-  };
-}
-
-template <typename FieldAccess>
 AstraValueParser asString(FieldAccess f) {
   return [f](const std::string& s, AstraData* dst) {
     *(f(dst)) = s;
@@ -287,13 +260,13 @@ LogFileHeaderSpec regataLogFileSpec{
 
   // Should be some kind of fractional degrees here.
   {"Lat", AstraValueParser(geographicAngle(
-      'N', 'S', fracDeg, FIELD_ACCESS(lat)))},
+      'N', 'S', FIELD_ACCESS(lat)))},
   {"Lon", AstraValueParser(geographicAngle(
-      'E', 'W', fracDeg, FIELD_ACCESS(lon)))},
+      'E', 'W', FIELD_ACCESS(lon)))},
   {"Latitudine", AstraValueParser(geographicAngle(
-      'N', 'S', fracDeg, FIELD_ACCESS(lat)))},
+      'N', 'S', FIELD_ACCESS(lat)))},
   {"Longitudine", AstraValueParser(geographicAngle(
-      'E', 'W', fracDeg, FIELD_ACCESS(lon)))},
+      'E', 'W', FIELD_ACCESS(lon)))},
 
   // Should be unit degrees here.
   {"LAT", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},

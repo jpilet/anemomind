@@ -182,6 +182,45 @@ Array<AstraData> loadAstraFile(const std::string& filename);
 
 bool accumulateAstraLogs(const std::string& filename, LogAccumulator* dst);
 
+template <typename FieldAccess>
+AstraValueParser geographicAngle(
+    char posChar, char negChar,
+    FieldAccess f) {
+  return [=](const std::string& s, AstraData* dst) {
+    if (s.empty()) {
+      return false;
+    }
+    char last = s.back();
+    int sign = 0;
+    if (last == posChar) {
+      sign = 1;
+    } else if (last == negChar) {
+      sign = -1;
+    } else {
+      return false;
+    }
+
+    size_t dotPos = s.find('.');
+
+    if (dotPos == std::string::npos || dotPos < 3) {
+      return false;
+    }
+
+    std::string degPart = s.substr(0, dotPos-2);
+    std::string minPart = s.substr(dotPos - 2, s.length() - 1);
+
+    Optional<double> deg = tryParse<double>(degPart);
+    Optional<double> min = tryParse<double>(minPart);
+    if (!deg.defined() || !min.defined()) {
+      return false;
+    }
+
+    *(f(dst)) = Angle<double>::degrees(sign*(deg.get() + min.get() / 60.0));
+
+    return true;
+  };
+}
+
 } /* namespace sail */
 
 #endif /* SERVER_NAUTICAL_LOGIMPORT_ASTRALOADER_H_ */
