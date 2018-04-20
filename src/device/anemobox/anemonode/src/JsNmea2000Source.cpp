@@ -413,6 +413,7 @@ bool sendBandGVmgPerformance(
   using namespace PgnClasses;
 
   BandGVmgPerformance perf;
+  perf.dataId = BandGVmgPerformance::DataId::Vmg_Target_Percentage;
 
   TRY_LOOK_UP(obj, "vmgPerformance", &(perf.vmgPerformance));
 
