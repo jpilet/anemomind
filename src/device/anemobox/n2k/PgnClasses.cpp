@@ -1,4 +1,4 @@
-/** Generated on Fri Apr 20 2018 16:18:46 GMT+0200 (CEST) using 
+/** Generated on Fri Apr 20 2018 16:50:01 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -1052,10 +1052,10 @@ namespace PgnClasses {
       dst.pushUnsigned(4, length);
         if ((dataId.defined() && dataId.get() == static_cast<DataId>(285))) {
           dst.pushDoubleWithResolution(0.001, true, 16, 0, vmgPerformance);
-        }
+        } else { using namespace sail; CHECK(!vmgPerformance.defined()); }
         if ((dataId.defined() && dataId.get() == static_cast<DataId>(105))) {
           dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, course);
-        }
+        } else { using namespace sail; CHECK(!course.defined()); }
     dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }

@@ -1217,11 +1217,20 @@ function logIgnoringField(field, err) {
   console.log('Ignoring field ' + getFieldId(field) + ': ' + err);
 }
 
-function conditionallyWrapCode(field, code) {
+function conditionallyWrapCode(field, code, nameOfFieldForExtraCheck) {
   var cond = field.conditionExpression;
-  return cond? ['if (' + cond + ') {',
-                [code],
-                '}'] : code;
+
+  if (cond) {
+    var extraCheck = '';
+    if (nameOfFieldForExtraCheck) {
+      extraCheck = ' else { using namespace sail; CHECK(!' + nameOfFieldForExtraCheck + '.defined()); }';
+    }
+    return ['if (' + cond + ') {',
+            [code],
+            '}' + extraCheck];
+  } else {
+    return code;
+  }
 }
 
 function makeConditionalFieldAssignment(dstName, f) {
@@ -1309,7 +1318,8 @@ function makeHasDataMethod(pgn, what, op, depth) {
 
 function makeConditionalEncodeFieldStatement(varName, field) {
   return conditionallyWrapCode(
-    field, makeEncodeFieldStatement(varName, field));
+    field, makeEncodeFieldStatement(varName, field),
+    varName);
 }
 
 function makeEncodeMethodStatements(pgn) {
