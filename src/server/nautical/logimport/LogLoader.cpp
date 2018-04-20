@@ -19,6 +19,7 @@
 #include <server/nautical/GeographicPosition.h>
 #include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/nautical/logimport/ProtobufLogLoader.h>
+#include <server/nautical/logimport/astra/AstraLoader.h>
 
 namespace sail {
 
@@ -32,6 +33,8 @@ bool LogLoader::loadFile(const std::string &filename) {
   } else if (ext == "csv") {
     loadCsv(filename, &_acc);
     return true;
+  } else if (ext == "ast") {// Astra files must be renamed to end with ast
+    return accumulateAstraLogs(filename, &_acc);
   } else if (ext == "log") {
     return ProtobufLogLoader::load(filename, &_acc);
   } else if (ext == "db") {
@@ -65,7 +68,8 @@ bool LogLoader::load(const Poco::Path &name) {
       name,
       [&](const Poco::Path &path) {
     std::string ext = toLower(path.getExtension());
-    if (ext == "txt" || ext == "csv" || ext == "log" || ext == "db") {
+    if (ext == "txt" || ext == "csv"
+        || ext == "log" || ext == "db" || ext == "ast") {
       if (!loadFile(path.toString())) {
         if (failCount < 12) { // So that we don't flood the log file if there are many files.
           LOG(ERROR) << "Failed to load log file " << path.toString();

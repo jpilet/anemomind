@@ -1,5 +1,6 @@
 include_directories(${CMAKE_BINARY_DIR}/src/device/anemobox/logger)
 
+add_subdirectory(astra)
 
 add_library(logimport_ProtobufLogLoader
   ProtobufLogLoader.h
@@ -49,6 +50,7 @@ target_link_libraries(logimport_LogLoader
                       logimport_SailmonDbLoader
                       nautical_BoatSpecificHacks
                       nautical_NavDataset
+                      astra_AstraLoader
                      )
 
 cxx_test(logimport_LogLoaderTest 
@@ -168,20 +170,3 @@ target_link_libraries(logimport_summary
                       logimport_LogLoader
                       nautical_NavDataset
                      )
-
-add_library(logimport_AstraLoader
-  AstraLoader.h
-  AstraLoader.cpp
-  )
-target_link_libraries(logimport_AstraLoader
-  common_string
-  common_TimeStamp
-  )
-
-cxx_test(logimport_AstraLoaderTest
-  AstraLoaderTest.cpp
-  gtest_main
-  common_PathBuilder
-  common_Env
-  logimport_AstraLoader
-  )
