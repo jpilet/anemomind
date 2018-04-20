@@ -36,7 +36,6 @@ var lastSentTimestamps = {
   perf: undefined
 };
 
-var perfSendLimiter = makeSendLimiter();
 // Either it is null, meaning we are not sending
 // anything, or it is a map, meaning we are sending.
 var subscriptions = null;
@@ -292,28 +291,36 @@ function makeWindPackets() {
   return packetsToSend;
 }
 
-function makePerformancePackets() {
-  var now = anemonode.currentTime();
-  var source = anemomindEstimatorSource;
-  var packets = [];
-  perfSendLimiter(function() {
-    var lastSent = lastSentTimestamps.perf || (now - 1000);
-    var data2send = tryGetIfFresh(performanceFields, source, lastSent);
-    if (data2send) {
-      var vmgSI = utils.taggedToSI(data2send.vmg);
-      var targetVmgSI = utils.taggedToSI(data2send.targetVmg);
-      var perf = vmgSI/targetVmgSI;
-      packets.push({
-        deviceIndex: 0, // Which device?
-        pgn: pgntable.BandGVmgPerformance,
-        vmgPerformance: perf,
-        sid: nextSid('performance')
-      });
-      lastSentTimestamps.perf = now;
-    }
-  }, now);
-  return packets;
+function rateLimitedPacketMaker(fields, packetMakerFunction) {
+  var sendLimiter = makeSendLimiter();
+  return function() {
+    var now = anemonode.currentTime();
+    var source = anemomindEstimatorSource;
+    var packets = [];
+    sendLimiter(function() {
+      var lastSent = lastSentTimestamps.perf || (now - 1000);
+      var data2send = tryGetIfFresh(fields, source, lastSent);
+      if (data2send) {
+        packets.push(packetMakerFunction(data2send));
+        lastSentTimestamps.perf = now;
+      }
+    }, now);
+    return packets;
+  };
 }
+
+var makePerformancePackets = rateLimitedPacketMaker(
+  performanceFields, function(data2send) {
+    var vmgSI = utils.taggedToSI(data2send.vmg);
+    var targetVmgSI = utils.taggedToSI(data2send.targetVmg);
+    var perf = vmgSI/targetVmgSI;
+    return {
+      deviceIndex: 0, // Which device?
+      pgn: pgntable.BandGVmgPerformance,
+      vmgPerformance: perf,
+      sid: nextSid('performance')
+    };
+  });
 
 function subscribeForFields(fields, callback) {
   fields.forEach(function(field) {
