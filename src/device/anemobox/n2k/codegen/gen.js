@@ -144,7 +144,7 @@ function arrayToMap(key, fields) {
 function makeConditionForKey(field, expectedValue) {
   var variableName = getInstanceVariableName(field);
   return variableName + '.defined() && ' 
-    + variableName + '.get() == (' 
+    + variableName + '.get() == static_cast<' + getFieldType(field) + '>(' 
     + expectedValue + ')';
 }
 
