@@ -121,7 +121,7 @@ function getClassName(pgn) {
   return capitalizeFirstLetter(pgn.Id + '');
 }
 
-function getFullFieldArray(pgn) {
+function getFullFieldArraySub(pgn) {
   if (pgn.Fields) {
     assert(pgn.Fields.length == 1);
     var fields = pgn.Fields[0];
@@ -130,6 +130,61 @@ function getFullFieldArray(pgn) {
     return arr;
   }
   return [];
+}
+
+function arrayToMap(key, fields) {
+  var m = {};
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i];
+    m[f[key]] = f;
+  }
+  return m;
+}
+
+function makeConditionForKey(field, expectedValue) {
+  var variableName = getInstanceVariableName(field);
+  return variableName + '.defined() && ' 
+    + variableName + '.get() == (' 
+    + expectedValue + ')';
+}
+
+function getFieldConditionExpression(fieldMap, field) {
+  if (!('condition' in field)) {
+    return null;
+  }
+  var exprs = [];
+  var condition = field.condition;
+  for (var k in condition) {
+    var conditionField = fieldMap[k];
+    var expectedValue = condition[k];
+
+    // When decoding fields in the constructor, 
+    // the value of the conditionField must be known
+    // before we can evaluate the condition! This
+    // is maybe not the simplest way, 
+    // but probably the easiest way,
+    // to ensure that is true.
+    assert(conditionField.Order < field.Order);
+
+    exprs.push(makeConditionForKey(conditionField, expectedValue));
+  }
+  return exprs.map(function(s) {return '(' + s + ')';}).join(' && ');
+}
+
+function decorateFields(fields) {
+  var m = arrayToMap("Id", fields);
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i];
+    var expr = getFieldConditionExpression(m, f);
+    if (expr) {
+      f.conditionExpression = expr;
+    }
+  }
+  return fields;
+}
+
+function getFullFieldArray(pgn) {
+  return decorateFields(getFullFieldArraySub(pgn));
 }
 
 function getStaticFieldArray(pgn) {
@@ -1100,50 +1155,7 @@ function logIgnoringField(field, err) {
   console.log('Ignoring field ' + getFieldId(field) + ': ' + err);
 }
 
-function arrayToMap(key, fields) {
-  var m = {};
-  for (var i = 0; i < fields.length; i++) {
-    var f = fields[i];
-    m[f[key]] = f;
-  }
-  return m;
-}
-
-function makeConditionForKey(field, expectedValue) {
-  return 'FIELD(' + field.Id + ')';
-}
-
-function getFieldConditionExpression(fieldMap, field) {
-  if (!('condition' in field)) {
-    return null;
-  }
-  var exprs = [];
-  var condition = field.condition;
-  for (var k in condition) {
-    var conditionField = fieldMap[k];
-    var expectedValue = condition[k];
-
-    // When decoding fields in the constructor, 
-    // the value of the conditionField must be known
-    // before we can evaluate the condition! This
-    // is maybe not the simplest way, 
-    // but probably the easiest way,
-    // to ensure that is true.
-    assert(conditionField.Order < field.Order);
-
-    exprs.push(makeConditionForKey(conditionField, expectedValue));
-  }
-  return exprs.map(function(s) {return '(' + s + ')';}).join(' && ');
-}
-
 function makeFieldAssignments(fields) {
-  var m = arrayToMap("Id", fields);
-
-  for (var i = 0; i < fields.length; i++) {
-    console.log('CONDITION: %s', getFieldConditionExpression(m, fields[i]));
-  }
-
-  console.log('M: %j', m);
   return fields.map(function(f) {
     return makeFieldAssignment(getInstanceVariableName(f), f);
   });
