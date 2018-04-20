@@ -168,9 +168,14 @@ TEST(TestAstraLoader, ParseGeoAngle) {
   AstraValueParser parser = geographicAngle('N', 'S', [&](AstraData*) { return &result; });
 
   EXPECT_TRUE(parser("4540.8188N", nullptr));
-  EXPECT_NEAR(result.degrees(), 45 + (40.818 / 60), 1e-5);
+  EXPECT_NEAR(result.degrees(), 45 + (40.8188 / 60), 1e-7);
 
   EXPECT_TRUE(parser("4539.8779N", nullptr));
-  EXPECT_NEAR(result.degrees(), 45 + (38.8779 / 60), 1e-5);
+  EXPECT_NEAR(result.degrees(), 45 + (39.8779 / 60), 1e-7);
+
+  EXPECT_TRUE(parser("539.8779N", nullptr));
+  EXPECT_NEAR(result.degrees(), 5 + (39.8779 / 60), 1e-7);
+
+  EXPECT_FALSE(parser("39.8779N", nullptr));
 }
 

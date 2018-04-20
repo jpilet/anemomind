@@ -13,6 +13,7 @@
 #include <server/common/Optional.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/TimeStamp.h>
+#include <server/common/string.h>
 #include <server/nautical/logimport/LogAccumulator.h>
 #include <map>
 
@@ -202,12 +203,17 @@ AstraValueParser geographicAngle(
 
     size_t dotPos = s.find('.');
 
-    if (dotPos == std::string::npos || dotPos < 3) {
+    if (dotPos == std::string::npos) {
       return false;
     }
 
-    std::string degPart = s.substr(0, dotPos-2);
-    std::string minPart = s.substr(dotPos - 2, s.length() - 1);
+    int splitPos = dotPos - 2;
+    if (splitPos < 1) {
+      return false;
+    }
+
+    std::string degPart = s.substr(0, splitPos);
+    std::string minPart = sliceString(s, splitPos, s.length() - 1);
 
     Optional<double> deg = tryParse<double>(degPart);
     Optional<double> min = tryParse<double>(minPart);
