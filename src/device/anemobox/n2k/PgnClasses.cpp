@@ -1,4 +1,4 @@
-/** Generated on Thu Mar 01 2018 14:52:49 GMT+0100 (CET) using 
+/** Generated on Fri Apr 20 2018 11:45:13 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -1009,7 +1009,7 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (48 <= src.remainingBits()) {
       manufacturerId = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
-      dataId = src.getUnsignedInSet(12, {285}).cast<DataId>();
+      dataId = src.getUnsignedInSet(12, {105, 285}).cast<DataId>();
       length = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
       vmgPerformance = src.getDoubleWithResolution(0.001, true, 16, 0, N2kField::Definedness::MaybeUndefined);
     // No repeating fields.
@@ -1034,7 +1034,6 @@ namespace PgnClasses {
   bool BandGVmgPerformance::valid() const {
     return true
        && manufacturerId.defined() && manufacturerId.get() == 39293
-       && dataId.defined() && dataId.get() == DataId::VMG_target_percentage
        && length.defined() && length.get() == 2
     ;
   }

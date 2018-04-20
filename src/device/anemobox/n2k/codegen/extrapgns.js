@@ -91,6 +91,7 @@ var all = [{
   }, {
     // This field depends on the dataId value.
     "Order": 5,
+    "condition": {"dataId": 285},
     "Id": "vmgPerformance",
     "Name": "VMG Performance",
     "BitOffset": 32,
@@ -103,6 +104,19 @@ var all = [{
     // 1.0 means 100 %.
     "Resolution": 0.001,
     "Description": "'Each bit is 0.1%' according to NDA. Regarding the decoded value, 1.0 means 100%"
+  }, {
+    // This field depends on the dataId value.
+    "Order": 5,
+    "condition": {"dataId": 105},
+    "Id": "course",
+    "Name": "Course",
+    "BitOffset": 32,
+    "BitStart": 0,
+    "BitLength": 16,
+    "Signed": false,
+    "Units": "rad",
+    "Resolution": 0.0001,
+    "Description": "Each bit is 0.0001 radians, unsigned 2 bytes"
   }])
 }];
 
