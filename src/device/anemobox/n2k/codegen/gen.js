@@ -187,6 +187,7 @@ function getFullFieldArray(pgn) {
   return decorateFields(getFullFieldArraySub(pgn));
 }
 
+
 function getStaticFieldArray(pgn) {
   var r = pgn.RepeatingFields;
   var fields = getFullFieldArray(pgn);
@@ -1155,14 +1156,25 @@ function logIgnoringField(field, err) {
   console.log('Ignoring field ' + getFieldId(field) + ': ' + err);
 }
 
+function conditionallyWrapCode(field, code) {
+  var cond = field.conditionExpression;
+  return cond? ['if (' + cond + ') {',
+                [code],
+                '}'] : code;
+}
+
+function makeConditionalFieldAssignment(dstName, f) {
+  return conditionallyWrapCode(f, makeFieldAssignment(dstName, f));
+}
+
 function makeFieldAssignments(fields) {
   return fields.map(function(f) {
-    return makeFieldAssignment(getInstanceVariableName(f), f);
+    return makeConditionalFieldAssignment(getInstanceVariableName(f), f);
   });
 }
 
 function bindRepeatingFieldToLocalVar(field) {
-  return makeFieldAssignment("auto " + getLocalVariableName(field), field);
+  return makeConditionalFieldAssignment("auto " + getLocalVariableName(field), field);
 }
  
 function bindRepeatingFieldsToLocalVars(fields) {
@@ -1230,6 +1242,11 @@ function makeHasDataMethod(pgn, what, op, depth) {
   ]);
 }
 
+function makeConditionalEncodeFieldStatement(varName, field) {
+  return conditionallyWrapCode(
+    field, makeEncodeFieldStatement(varName, field));
+}
+
 function makeEncodeMethodStatements(pgn) {
   var dst = [
     "N2kField::N2kFieldOutputStream dst;",
@@ -1246,13 +1263,13 @@ function makeEncodeMethodStatements(pgn) {
 
   dst.push(fields.map(function(field) {
     var valueExpr = getInstanceVariableName(field);
-    return makeEncodeFieldStatement(valueExpr, field);
+    return makeConditionalEncodeFieldStatement(valueExpr, field);
   }));
   var repeating = getRepeatingFieldArray(pgn);
   if (0 < repeating.length) {
     dst.push('for (const auto& x: repeating) {');
     dst.push(repeating.filter(complement(skipField)).map(function(f) {
-      return makeEncodeFieldStatement('x.' + getInstanceVariableName(f), f);
+      return makeConditionalEncodeFieldStatement('x.' + getInstanceVariableName(f), f);
     }));
     dst.push('}');
   }
