@@ -65,33 +65,22 @@ var all = [{
     "Order": 3,
     "Id": "dataId",
     "Name": "Data ID",
-    "BitLength": 12,
+    "BitLength": 16,
     "BitOffset": 16,
     "BitStart": 0,
     "Type": "Lookup table",
     "Signed": false,
     "EnumValues": wrapEnumPairs([{
       "Name": "VMG target percentage", 
-      "Value": 285
+      "Value": 4637
     }, {
       "Name": "Course",
-      "Value": 105
+      "Value": 617
     }]),
   }, {
-    "Order": 4,
-    "Id": "length",
-    "Name": "Data length",
-    "BitLength": 4,
-    "BitOffset": 28,
-    "BitStart": 0,
-    "Type": "Integer",
-    "Signed": false,
-    "Description": "The length is in bytes, see the red text in the NDA for this field.",
-    "Match": 2
-  }, {
     // This field depends on the dataId value.
-    "Order": 5,
-    "condition": {"dataId": 285},
+    "Order": 4,
+    "condition": {"dataId": 4637},
     "Id": "vmgPerformance",
     "Name": "VMG Performance",
     "BitOffset": 32,
@@ -106,8 +95,8 @@ var all = [{
     "Description": "'Each bit is 0.1%' according to NDA. Regarding the decoded value, 1.0 means 100%"
   }, {
     // This field depends on the dataId value.
-    "Order": 5,
-    "condition": {"dataId": 105},
+    "Order": 4,
+    "condition": {"dataId": 617},
     "Id": "course",
     "Name": "Course",
     "BitOffset": 32,

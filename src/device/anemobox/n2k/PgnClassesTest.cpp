@@ -185,6 +185,32 @@ TEST(PgnClassesTest, ANotherGnssPositionDataTest) {
 
 }
 
+void bytePatternTest(unsigned char a, unsigned char b) {
+  const int n = 2;
+  int bitCount = n*8;
+  std::vector<uint8_t> data{a, b};
+
+  BitStream bs(data.data(), n);
+  auto value = bs.getUnsigned(bitCount);
+
+  std::cout << "The bytes (";
+  for (int i = 0; i < n; i++) {
+    std::cout << std::hex << int(data[i]) << " ";
+  }
+  std::cout << ") translate to " << std::dec << value << std::endl;
+
+  BitOutputStream bo;
+  bo.pushUnsigned(bitCount, value);
+  EXPECT_EQ(bo.moveData(), data);
+}
+
+TEST(PgnClassesTest, WhatUnsignedNumberShouldItBe) {
+  std::cout << "Performance" << std::endl;
+  bytePatternTest(0x1d, 0x12);
+  std::cout << "Course" << std::endl;
+  bytePatternTest(0x69, 0x02);
+}
+
 TEST(PgnClassesTest, BAndGPerf) {
   PgnClasses::BandGVmgPerformance perf;
 
@@ -200,8 +226,11 @@ TEST(PgnClassesTest, BAndGPerf) {
   EXPECT_EQ(data.size(), 8);
   EXPECT_EQ(data[0], 0x7d); // Manufacturer id part 1
   EXPECT_EQ(data[1], 0x99); // Manufacturer id part 2
+
+  // DataId and Length baked together, see the
+  // unit test named 'WhatUnsignedNumberShouldItBe'.
   EXPECT_EQ(data[2], 0x1d); // Data id part 1
-  EXPECT_EQ(data[3] & 0x0F, 0x01); // Data id part 2
+  EXPECT_EQ(data[3] , 0x12); // Data id part 2
 
   // The two unused bytes should be 0xFF
   EXPECT_EQ(data[6], 0xFF);
