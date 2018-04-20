@@ -220,4 +220,8 @@ bool isBlankString(const std::string& s) {
   return true;
 }
 
+std::string sliceString(const std::string& s, int from, int to) {
+  return s.substr(from, to - from);
+}
+
 } /* namespace sail */

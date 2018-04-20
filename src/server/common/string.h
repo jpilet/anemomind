@@ -64,6 +64,8 @@ Array<std::string> split(std::string x, char delimiter);
 bool isBlank(char c);
 bool isBlankString(const std::string& s);
 
+std::string sliceString(const std::string& s, int from, int to);
+
 template <class StringCollection>
 std::string join(const StringCollection& array, const std::string& delimiter) {
   std::string result;
