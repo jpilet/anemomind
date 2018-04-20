@@ -1,4 +1,4 @@
-/** Generated on Fri Apr 20 2018 15:36:28 GMT+0200 (CEST) using 
+/** Generated on Fri Apr 20 2018 15:39:30 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -1037,6 +1037,7 @@ namespace PgnClasses {
   bool BandGVmgPerformance::valid() const {
     return true
        && manufacturerId.defined() && manufacturerId.get() == 39293
+       && dataId.defined()
        && length.defined() && length.get() == 2
     ;
   }

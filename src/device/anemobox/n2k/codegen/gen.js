@@ -166,6 +166,8 @@ function getFieldConditionExpression(fieldMap, field) {
     // to ensure that is true.
     assert(conditionField.Order < field.Order);
 
+    conditionField.required = true;
+
     exprs.push(makeConditionForKey(conditionField, expectedValue));
   }
   return exprs.map(function(s) {return '(' + s + ')';}).join(' && ');
@@ -1357,16 +1359,9 @@ function validFieldCheck(f) {
     return " && " 
       + fname + ".defined() && " 
       + fname + ".get() == " + me;
-  }
-/*
-
-  I was considering this, but probably should not:
-
-  } else if (isLookupTable(f)) {
+  } else if (f.required) {
     return ' && ' + fname + '.defined()';
   }
-
-*/
   return null;
 }
 
