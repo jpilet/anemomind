@@ -1335,19 +1335,25 @@ function makeExtraMethodsInClass(pgn, depth) {
   return tryMakeTimeStampAccessor(fieldMap, depth);
 }
 
-function matchesItsValue(f) {
+function validFieldCheck(f) {
+  var me = getMatchExpr(f);
   var fname = getInstanceVariableName(f);
-  return " && " 
-    + fname + ".defined() && " 
-    + fname + ".get() == " + getMatchExpr(f);
+  if (me != null) {
+    return " && " 
+      + fname + ".defined() && " 
+      + fname + ".get() == " + me;
+  } else if (isLookupTable(f)) {
+    return ' && ' + fname + '.defined()';
+  }
+  return null;
 }
 
 function makeValidMethod(pgn) {
-  var m = getStaticFieldArray(pgn).filter(function(f) {return "Match" in f;});
+  var fields = getStaticFieldArray(pgn);
   return indentLineArray(1, [
     "bool " + getClassName(pgn) + "::valid() const {", [
       "return true",
-      m.map(matchesItsValue),
+        fields.map(validFieldCheck).filter(function(x) {return x != null;}),
       ";"
     ],
     "}"
