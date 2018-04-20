@@ -1,4 +1,4 @@
-/** Generated on Fri Apr 20 2018 15:14:02 GMT+0200 (CEST) using 
+/** Generated on Fri Apr 20 2018 15:24:02 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -348,7 +348,6 @@ namespace PgnClasses {
   }
   bool SystemTime::valid() const {
     return true
-       && source.defined()
     ;
   }
   std::vector<uint8_t> SystemTime::encode() const {
@@ -450,7 +449,6 @@ namespace PgnClasses {
   }
   bool VesselHeading::valid() const {
     return true
-       && reference.defined()
     ;
   }
   std::vector<uint8_t> VesselHeading::encode() const {
@@ -585,7 +583,6 @@ namespace PgnClasses {
   }
   bool EngineParametersRapidUpdate::valid() const {
     return true
-       && engineInstance.defined()
     ;
   }
   std::vector<uint8_t> EngineParametersRapidUpdate::encode() const {
@@ -636,7 +633,6 @@ namespace PgnClasses {
   }
   bool Speed::valid() const {
     return true
-       && speedWaterReferencedType.defined()
     ;
   }
   std::vector<uint8_t> Speed::encode() const {
@@ -728,7 +724,6 @@ namespace PgnClasses {
   }
   bool CogSogRapidUpdate::valid() const {
     return true
-       && cogReference.defined()
     ;
   }
   std::vector<uint8_t> CogSogRapidUpdate::encode() const {
@@ -815,9 +810,6 @@ namespace PgnClasses {
   }
   bool GnssPositionData::valid() const {
     return true
-       && gnssType.defined()
-       && method.defined()
-       && integrity.defined()
     ;
   }
   std::vector<uint8_t> GnssPositionData::encode() const {
@@ -924,7 +916,6 @@ namespace PgnClasses {
   }
   bool WindData::valid() const {
     return true
-       && reference.defined()
     ;
   }
   std::vector<uint8_t> WindData::encode() const {
@@ -989,8 +980,6 @@ namespace PgnClasses {
   }
   bool DirectionData::valid() const {
     return true
-       && dataMode.defined()
-       && cogReference.defined()
     ;
   }
   std::vector<uint8_t> DirectionData::encode() const {
@@ -1048,7 +1037,6 @@ namespace PgnClasses {
   bool BandGVmgPerformance::valid() const {
     return true
        && manufacturerId.defined() && manufacturerId.get() == 39293
-       && dataId.defined()
        && length.defined() && length.get() == 2
     ;
   }

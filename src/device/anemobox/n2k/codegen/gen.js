@@ -1342,9 +1342,16 @@ function validFieldCheck(f) {
     return " && " 
       + fname + ".defined() && " 
       + fname + ".get() == " + me;
+  }
+/*
+
+  I was considering this, but probably should not:
+
   } else if (isLookupTable(f)) {
     return ' && ' + fname + '.defined()';
   }
+
+*/
   return null;
 }
 
