@@ -26,6 +26,7 @@ var sidMap = { };
 var anemomindEstimatorSource = 'Anemomind estimator';
 var trueWindFields = [ 'twa', 'tws', 'twdir' ];
 var performanceFields = ['vmg', 'targetVmg'];
+var courseFields = ['magHdg'];
 var windLimiters = {
   twa: makeSendLimiter(),
   twdir: makeSendLimiter()
@@ -41,7 +42,8 @@ var lastSentTimestamps = {
 var subscriptions = null;
 var fieldSubscriptions = [
   {fields: trueWindFields, makePackets: makeWindPackets},
-  {fields: performanceFields, makePackets: makePerformancePackets}
+  {fields: performanceFields, makePackets: makePerformancePackets},
+  {fields: courseFields, makePackets: makeCoursePackets}
 ];
 
 
@@ -321,6 +323,17 @@ var makePerformancePackets = rateLimitedPacketMaker(
       sid: nextSid('performance')
     };
   });
+
+var makeCoursePackets = rateLimitedPacketMaker(
+  courseFields, function(data2send) {
+    return {
+      deviceIndex: 0,
+      pgn: pgntable.BandGVmgPerformance,
+      course: data2send.course, // Note: On tagged format
+      sid: nextSid('performance')
+    };
+  });
+
 
 function subscribeForFields(fields, callback) {
   fields.forEach(function(field) {
