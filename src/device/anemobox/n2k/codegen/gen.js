@@ -428,7 +428,21 @@ function explainBits(bits0) {
     + (rem == 0? "" : (" + " + rem + " bits"));
 }
 
-function getFieldComment(field) {
+function getFieldPreComment(field) {
+  var cond = field.condition;
+  if (cond == null) {
+    return "";
+  }
+
+  var keys = [];
+  for (var k in cond) {
+    keys.push(k);
+  }
+  var s = '/* Related to ' + keys.join(", ") + ' --> */';
+  return s;
+}
+
+function getFieldPostComment(field) {
   var d = field.Description;
   return "// " + (d? d : "") + " at " + explainBits(field.BitOffset);
 }
@@ -461,10 +475,11 @@ function makeInstanceVariableDecl(field) {
       + getBitLength(field) + " at " 
       + explainBits(field.BitOffset) + ": " + skip; 
   }
-  return getOptionalFieldType(field) + " "
+  return getFieldPreComment(field)
+    + getOptionalFieldType(field) + " "
     + getInstanceVariableName(field)  
     + getFieldInitialization(field) + "; "
-    + getFieldComment(field);
+    + getFieldPostComment(field);
 }
 
 
