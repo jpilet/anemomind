@@ -121,7 +121,7 @@ function getClassName(pgn) {
   return capitalizeFirstLetter(pgn.Id + '');
 }
 
-function getFullFieldArray(pgn) {
+function getFullFieldArraySub(pgn) {
   if (pgn.Fields) {
     assert(pgn.Fields.length == 1);
     var fields = pgn.Fields[0];
@@ -131,6 +131,64 @@ function getFullFieldArray(pgn) {
   }
   return [];
 }
+
+function arrayToMap(key, fields) {
+  var m = {};
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i];
+    m[f[key]] = f;
+  }
+  return m;
+}
+
+function makeConditionForKey(field, expectedValue) {
+  var variableName = getInstanceVariableName(field);
+  return variableName + '.defined() && ' 
+    + variableName + '.get() == static_cast<' + getFieldType(field) + '>(' 
+    + expectedValue + ')';
+}
+
+function getFieldConditionExpression(fieldMap, field) {
+  if (!('condition' in field)) {
+    return null;
+  }
+  var exprs = [];
+  var condition = field.condition;
+  for (var k in condition) {
+    var conditionField = fieldMap[k];
+    var expectedValue = condition[k];
+
+    // When decoding fields in the constructor, 
+    // the value of the conditionField must be known
+    // before we can evaluate the condition! This
+    // is maybe not the simplest way, 
+    // but probably the easiest way,
+    // to ensure that is true.
+    assert(conditionField.Order < field.Order);
+
+    conditionField.required = true;
+
+    exprs.push(makeConditionForKey(conditionField, expectedValue));
+  }
+  return exprs.map(function(s) {return '(' + s + ')';}).join(' && ');
+}
+
+function decorateFields(fields) {
+  var m = arrayToMap("Id", fields);
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i];
+    var expr = getFieldConditionExpression(m, f);
+    if (expr) {
+      f.conditionExpression = expr;
+    }
+  }
+  return fields;
+}
+
+function getFullFieldArray(pgn) {
+  return decorateFields(getFullFieldArraySub(pgn));
+}
+
 
 function getStaticFieldArray(pgn) {
   var r = pgn.RepeatingFields;
@@ -372,7 +430,21 @@ function explainBits(bits0) {
     + (rem == 0? "" : (" + " + rem + " bits"));
 }
 
-function getFieldComment(field) {
+function getFieldPreComment(field) {
+  var cond = field.condition;
+  if (cond == null) {
+    return "";
+  }
+
+  var keys = [];
+  for (var k in cond) {
+    keys.push(k);
+  }
+  var s = '/* Related to ' + keys.join(", ") + ' --> */';
+  return s;
+}
+
+function getFieldPostComment(field) {
   var d = field.Description;
   return "// " + (d? d : "") + " at " + explainBits(field.BitOffset);
 }
@@ -405,10 +477,11 @@ function makeInstanceVariableDecl(field) {
       + getBitLength(field) + " at " 
       + explainBits(field.BitOffset) + ": " + skip; 
   }
-  return getOptionalFieldType(field) + " "
+  return getFieldPreComment(field)
+    + getOptionalFieldType(field) + " "
     + getInstanceVariableName(field)  
     + getFieldInitialization(field) + "; "
-    + getFieldComment(field);
+    + getFieldPostComment(field);
 }
 
 
@@ -1087,27 +1160,91 @@ function makeEncodeFieldStatement(valueExpr, field) {
   }
 }
 
-function getTotalBitLength(fields) {
+function getTotalBitLengthAsSum(fields) {
   var n = 0;
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
-    n += parseInt(field.BitLength);
+    if (!field.condition) { // Not sure how to count those bits...
+      n += parseInt(field.BitLength);
+    }
   }
   return n;
+}
+
+function getBitInterval(field) {
+  var offset = parseInt(field.BitOffset);
+  var len = parseInt(field.BitLength);
+  return {lower: offset, upper: offset + len};
+}
+
+function extendIntervalByValue(interval, value) {
+  return {
+    lower: Math.min(interval.lower, value), 
+    upper: Math.max(interval.upper, value)
+  };
+}
+
+function extendIntervalByInterval(interval, ivl) {
+  return extendIntervalByValue(
+    extendIntervalByValue(interval, ivl.lower),
+    ivl.upper);
+}
+
+// Compute the total bit length as the bits being spanned by these
+// fields.
+function getTotalBitLength(fields) {
+  var n = fields.length;
+  if (n == 0) {
+    return 0;
+  }
+  var interval = fields
+      .map(getBitInterval)
+      .reduce(extendIntervalByInterval);
+
+  var bitCount = interval.upper - interval.lower;
+
+  // How we used to compute it before.
+  var alternativeCount = getTotalBitLengthAsSum(fields);
+
+  var hasCond = 0 < fields.filter(
+    function(x) {return 'condition' in x}).length;
+
+  assert(alternativeCount == bitCount || hasCond);
+  return bitCount;
 }
 
 function logIgnoringField(field, err) {
   console.log('Ignoring field ' + getFieldId(field) + ': ' + err);
 }
 
+function conditionallyWrapCode(field, code, nameOfFieldForExtraCheck) {
+  var cond = field.conditionExpression;
+
+  if (cond) {
+    var extraCheck = '';
+    if (nameOfFieldForExtraCheck) {
+      extraCheck = ' else { using namespace sail; CHECK(!' + nameOfFieldForExtraCheck + '.defined()); }';
+    }
+    return ['if (' + cond + ') {',
+            [code],
+            '}' + extraCheck];
+  } else {
+    return code;
+  }
+}
+
+function makeConditionalFieldAssignment(dstName, f) {
+  return conditionallyWrapCode(f, makeFieldAssignment(dstName, f));
+}
+
 function makeFieldAssignments(fields) {
   return fields.map(function(f) {
-    return makeFieldAssignment(getInstanceVariableName(f), f);
+    return makeConditionalFieldAssignment(getInstanceVariableName(f), f);
   });
 }
 
 function bindRepeatingFieldToLocalVar(field) {
-  return makeFieldAssignment("auto " + getLocalVariableName(field), field);
+  return makeConditionalFieldAssignment("auto " + getLocalVariableName(field), field);
 }
  
 function bindRepeatingFieldsToLocalVars(fields) {
@@ -1159,7 +1296,11 @@ function makeConstructor(pgn, depth) {
 }
 
 function hasData(pgn, op) {
-  var fieldsDefined = getInstanceVariableFieldArray(pgn).map(function(f, i) {
+  var fieldsDefined = getInstanceVariableFieldArray(pgn)
+      .filter(function(f) {
+        return !('condition' in f);
+      })
+      .map(function(f, i) {
     var s = getInstanceVariableName(f) + ".defined()";
     return (i == 0? "  " : op) + " " + s;
   });
@@ -1173,6 +1314,12 @@ function makeHasDataMethod(pgn, what, op, depth) {
     hasData(pgn, op),
     "}"
   ]);
+}
+
+function makeConditionalEncodeFieldStatement(varName, field) {
+  return conditionallyWrapCode(
+    field, makeEncodeFieldStatement(varName, field),
+    varName);
 }
 
 function makeEncodeMethodStatements(pgn) {
@@ -1191,13 +1338,13 @@ function makeEncodeMethodStatements(pgn) {
 
   dst.push(fields.map(function(field) {
     var valueExpr = getInstanceVariableName(field);
-    return makeEncodeFieldStatement(valueExpr, field);
+    return makeConditionalEncodeFieldStatement(valueExpr, field);
   }));
   var repeating = getRepeatingFieldArray(pgn);
   if (0 < repeating.length) {
     dst.push('for (const auto& x: repeating) {');
     dst.push(repeating.filter(complement(skipField)).map(function(f) {
-      return makeEncodeFieldStatement('x.' + getInstanceVariableName(f), f);
+      return makeConditionalEncodeFieldStatement('x.' + getInstanceVariableName(f), f);
     }));
     dst.push('}');
   }
@@ -1259,19 +1406,25 @@ function makeExtraMethodsInClass(pgn, depth) {
   return tryMakeTimeStampAccessor(fieldMap, depth);
 }
 
-function matchesItsValue(f) {
+function validFieldCheck(f) {
+  var me = getMatchExpr(f);
   var fname = getInstanceVariableName(f);
-  return " && " 
-    + fname + ".defined() && " 
-    + fname + ".get() == " + getMatchExpr(f);
+  if (me != null) {
+    return " && " 
+      + fname + ".defined() && " 
+      + fname + ".get() == " + me;
+  } else if (f.required) {
+    return ' && ' + fname + '.defined()';
+  }
+  return null;
 }
 
 function makeValidMethod(pgn) {
-  var m = getStaticFieldArray(pgn).filter(function(f) {return "Match" in f;});
+  var fields = getStaticFieldArray(pgn);
   return indentLineArray(1, [
     "bool " + getClassName(pgn) + "::valid() const {", [
       "return true",
-      m.map(matchesItsValue),
+        fields.map(validFieldCheck).filter(function(x) {return x != null;}),
       ";"
     ],
     "}"
