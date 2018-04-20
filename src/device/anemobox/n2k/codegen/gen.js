@@ -1226,7 +1226,11 @@ function makeConstructor(pgn, depth) {
 }
 
 function hasData(pgn, op) {
-  var fieldsDefined = getInstanceVariableFieldArray(pgn).map(function(f, i) {
+  var fieldsDefined = getInstanceVariableFieldArray(pgn)
+      .filter(function(f) {
+        return !('condition' in f);
+      })
+      .map(function(f, i) {
     var s = getInstanceVariableName(f) + ".defined()";
     return (i == 0? "  " : op) + " " + s;
   });
