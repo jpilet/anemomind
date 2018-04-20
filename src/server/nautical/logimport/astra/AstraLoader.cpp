@@ -231,10 +231,10 @@ LogFileHeaderSpec regataLogFileSpec{
   {"AWA", AstraValueParser()},
   {"AWS", AstraValueParser()},
   {"TWA", AstraValueParser()},
-  {"TWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(TWS)))},
-  {"TWD", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWD)))},
-  {"GWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(GWS)))},
-  {"GWD", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(GWD)))},
+  {"TWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(TWS)))},// <-- See message2.txt
+  {"TWD", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWD)))},// <-- See message2.txt
+  {"GWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(GWS)))},// <-- See message2.txt
+  {"GWD", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(GWD)))},// <-- See message2.txt
 
   // Not sure...
   {"FreezeWind", AstraValueParser()},
@@ -253,8 +253,21 @@ LogFileHeaderSpec regataLogFileSpec{
 
   // Boat motion
   {"BS", AstraValueParser()},
+
+
+
+  // TODO: Because the log file typically contains some sort of date,
+  // could we use that date to determine what unit to use for COG and SOG?
+  // The date is also stored in the header at the top of the file. So
+  // we can decide on the units before we have even started parsing the data.
+  //
+  // This value could be unreliable, See message2.txt:
+  //   "'COG' in radians (but it will be in degrees like GWD and TWD);"
   {"COG", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(COG)))},
-  {"SOG", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(SOG)))},
+
+  // This value could be unreliable, See message2.txt:
+  //   "'SOG' in m/s (but it will be in knots);"
+  {"SOG", AstraValueParser(inUnit(1.0_mps, FIELD_ACCESS(SOG)))},
 
   // Boat position
 
@@ -268,7 +281,12 @@ LogFileHeaderSpec regataLogFileSpec{
   {"Longitudine", AstraValueParser(geographicAngle(
       'E', 'W', FIELD_ACCESS(lon)))},
 
-  // Should be unit degrees here.
+  // Should be unit degrees here? Not sure. In message2.txt, it says
+  //
+  // "  'LAT' and 'LON' is like google maps format, so decimals of degrees (but it will be as explained just before"
+  //
+  // But looking at the log file data, it seems that degrees is the unit
+  // being used.
   {"LAT", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},
   {"LON", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lon)))},
 
