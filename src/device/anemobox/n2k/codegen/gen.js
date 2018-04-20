@@ -1160,13 +1160,57 @@ function makeEncodeFieldStatement(valueExpr, field) {
   }
 }
 
-function getTotalBitLength(fields) {
+function getTotalBitLengthAsSum(fields) {
   var n = 0;
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
-    n += parseInt(field.BitLength);
+    if (!field.condition) { // Not sure how to count those bits...
+      n += parseInt(field.BitLength);
+    }
   }
   return n;
+}
+
+function getBitInterval(field) {
+  var offset = parseInt(field.BitOffset);
+  var len = parseInt(field.BitLength);
+  return {lower: offset, upper: offset + len};
+}
+
+function extendIntervalByValue(interval, value) {
+  return {
+    lower: Math.min(interval.lower, value), 
+    upper: Math.max(interval.upper, value)
+  };
+}
+
+function extendIntervalByInterval(interval, ivl) {
+  return extendIntervalByValue(
+    extendIntervalByValue(interval, ivl.lower),
+    ivl.upper);
+}
+
+// Compute the total bit length as the bits being spanned by these
+// fields.
+function getTotalBitLength(fields) {
+  var n = fields.length;
+  if (n == 0) {
+    return 0;
+  }
+  var interval = fields
+      .map(getBitInterval)
+      .reduce(extendIntervalByInterval);
+
+  var bitCount = interval.upper - interval.lower;
+
+  // How we used to compute it before.
+  var alternativeCount = getTotalBitLengthAsSum(fields);
+
+  var hasCond = 0 < fields.filter(
+    function(x) {return 'condition' in x}).length;
+
+  assert(alternativeCount == bitCount || hasCond);
+  return bitCount;
 }
 
 function logIgnoringField(field, err) {

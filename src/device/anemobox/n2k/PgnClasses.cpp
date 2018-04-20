@@ -1,4 +1,4 @@
-/** Generated on Fri Apr 20 2018 15:39:30 GMT+0200 (CEST) using 
+/** Generated on Fri Apr 20 2018 16:18:46 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -1007,7 +1007,7 @@ namespace PgnClasses {
 
   BandGVmgPerformance::BandGVmgPerformance(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (64 <= src.remainingBits()) {
+    if (48 <= src.remainingBits()) {
       manufacturerId = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
       dataId = src.getUnsignedInSet(12, {105, 285}).cast<DataId>();
       length = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);

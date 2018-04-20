@@ -1,4 +1,4 @@
-/** Generated on Fri Apr 20 2018 15:39:30 GMT+0200 (CEST) using 
+/** Generated on Fri Apr 20 2018 16:18:46 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -510,7 +510,7 @@ namespace PgnClasses {
   };
   
   struct BandGVmgPerformance: public PgnBaseClass { // B&G Proprietary PGN – VMG Performance
-    // Minimum size: 64 bits = 8 bytes. 
+    // Minimum size: 48 bits = 6 bytes. 
     static const int ThisPgn = 65330;
     int code() const override {return 65330;}
     enum class DataId {
