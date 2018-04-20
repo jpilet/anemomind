@@ -378,3 +378,15 @@ cxx_test(common_DynamicUtilsTest
 add_executable(common_traitsTest # only static tests
   traitsTest.cpp
   )
+
+
+add_library(common_RegexUtils
+  RegexUtils.h
+  RegexUtils.cpp
+  )
+
+cxx_test(common_RegexUtilsTest
+  RegexUtilsTest.cpp
+  gtest_main
+  common_RegexUtils
+  )

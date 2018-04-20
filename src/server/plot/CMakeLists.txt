@@ -1,3 +1,5 @@
+if (CAIRO_LIBRARIES)
+
 add_library(plot_gnuplot
   extra.h
   extra.cpp
@@ -82,3 +84,5 @@ add_executable(plot_plotDemo
 target_link_libraries(plot_plotDemo
   plot_CairoUtils
   )
+
+endif()

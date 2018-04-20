@@ -10,6 +10,7 @@
 
 #include <iterator>
 #include <server/common/ArrayBuilder.h>
+#include <array>
 
 namespace sail {
 
@@ -268,6 +269,24 @@ struct TakeStepper : public NothingToFlush {
 };
 
 template <typename F>
+class IndexedFilterStepper : public NothingToFlush, public NeverDone {
+public:
+  IndexedFilterStepper(F f) : _f(f) {}
+
+  template <typename R, typename T>
+  void apply(R* result, const T& x) {
+    if (_f(_counter)) {
+      result->add(x);
+    }
+    _counter++;
+  }
+private:
+  F _f;
+  int _counter = 0;
+};
+
+
+template <typename F>
 struct TakeWhileStepper : public NothingToFlush {
   F f;
   bool good = true;
@@ -297,6 +316,25 @@ struct CatStepper : public StatelessStepper {
   }
 };
 
+template <typename T, int Size>
+class PartitionStepper : public NeverDone, public NothingToFlush {
+public:
+  PartitionStepper() {}
+
+  template <typename R>
+  void apply(R* result, const T& X) {
+    _p[_counter++] = X;
+    if (_counter >= Size) {
+      result->add(_p);
+      _counter = 0;
+    }
+  }
+private:
+  int _counter = 0;
+  int _step = 0;
+  std::array<T, Size> _p;
+};
+
 
 // Common transducer types
 
@@ -315,12 +353,35 @@ inline GenericTransducer<TakeStepper> trTake(int limit) {
 }
 
 template <typename F>
+inline GenericTransducer<IndexedFilterStepper<F>> trIndexedFilter(F f) {
+  return genericTransducer(IndexedFilterStepper<F>(f));
+}
+
+struct AtLeast {
+  int n = 0;
+  bool operator()(int i) const {
+    return n <= i;
+  }
+};
+
+inline GenericTransducer<IndexedFilterStepper<AtLeast>> trDrop(int n) {
+  AtLeast al;
+  al.n = n;
+  return trIndexedFilter(al);
+}
+
+template <typename F>
 inline GenericTransducer<TakeWhileStepper<F>> trTakeWhile(F f) {
   return genericTransducer(TakeWhileStepper<F>(f));
 }
 
 inline GenericTransducer<CatStepper> trCat() {
   return genericTransducer(CatStepper());
+}
+
+template <typename T, int N>
+inline GenericTransducer<PartitionStepper<T, N>> trPartition() {
+  return genericTransducer(PartitionStepper<T, N>());
 }
 
 /**
