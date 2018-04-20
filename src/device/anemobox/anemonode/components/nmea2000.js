@@ -1,3 +1,4 @@
+var assert = require('assert');
 var buffer = require('buffer');
 var can = require('socketcan');
 var anemonode = require('../build/Release/anemonode');
@@ -26,6 +27,7 @@ var sidMap = { };
 var anemomindEstimatorSource = 'Anemomind estimator';
 var trueWindFields = [ 'twa', 'tws', 'twdir' ];
 var performanceFields = ['vmg', 'targetVmg'];
+var courseFields = ['magHdg'];
 var windLimiters = {
   twa: makeSendLimiter(),
   twdir: makeSendLimiter()
@@ -36,13 +38,41 @@ var lastSentTimestamps = {
   perf: undefined
 };
 
-var perfSendLimiter = makeSendLimiter();
+var makePerformancePackets = rateLimitedPacketMaker(
+  anemomindEstimatorSource,
+  performanceFields, function(data2send) {
+    var vmgSI = utils.taggedToSI(data2send.vmg);
+    var targetVmgSI = utils.taggedToSI(data2send.targetVmg);
+    var perf = vmgSI/targetVmgSI;
+    return {
+      deviceIndex: 0, // Which device?
+      pgn: pgntable.BandGVmgPerformance,
+      vmgPerformance: perf,
+      sid: nextSid('performance')
+    };
+  });
+
+var makeCoursePackets = rateLimitedPacketMaker(
+  null,
+  courseFields, function(data2send) {
+    return {
+      deviceIndex: 0,
+      pgn: pgntable.BandGVmgPerformance,
+      course: data2send.magHdg,
+      sid: nextSid('performance')
+    };
+  });
+
+assert(makeCoursePackets);
+assert(makePerformancePackets);
+
 // Either it is null, meaning we are not sending
 // anything, or it is a map, meaning we are sending.
 var subscriptions = null;
 var fieldSubscriptions = [
   {fields: trueWindFields, makePackets: makeWindPackets},
-  {fields: performanceFields, makePackets: makePerformancePackets}
+  {fields: performanceFields, makePackets: makePerformancePackets},
+  {fields: courseFields, makePackets: makeCoursePackets}
 ];
 
 
@@ -242,14 +272,20 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
     var f = fields[i];
     var sourcesAndData = channels[f];
     if (!sourcesAndData) {
+      console.log('No source');
       return null;
     }
-    var dispatchData = sourcesAndData[sourceName];
+    
+    var dispatchData = sourceName? 
+    	sourcesAndData[sourceName] : anemonode.dispatcher.values[f];
+	
     if (!dispatchData) {
+      console.log('No dispatch data');
       return null;
     }
     
     if (dispatchData.time() < timestamp) {
+      console.log('Outdated');
       return null;
     }
 
@@ -292,28 +328,23 @@ function makeWindPackets() {
   return packetsToSend;
 }
 
-function makePerformancePackets() {
-  var now = anemonode.currentTime();
-  var source = anemomindEstimatorSource;
-  var packets = [];
-  perfSendLimiter(function() {
-    var lastSent = lastSentTimestamps.perf || (now - 1000);
-    var data2send = tryGetIfFresh(performanceFields, source, lastSent);
-    if (data2send) {
-      var vmgSI = utils.taggedToSI(data2send.vmg);
-      var targetVmgSI = utils.taggedToSI(data2send.targetVmg);
-      var perf = vmgSI/targetVmgSI;
-      packets.push({
-        deviceIndex: 0, // Which device?
-        pgn: pgntable.BandGVmgPerformance,
-        vmgPerformance: perf,
-        sid: nextSid('performance')
-      });
-      lastSentTimestamps.perf = now;
-    }
-  }, now);
-  return packets;
+function rateLimitedPacketMaker(source, fields, packetMakerFunction) {
+  var sendLimiter = makeSendLimiter();
+  return function() {
+    var now = anemonode.currentTime();
+    var packets = [];
+    sendLimiter(function() {
+      var lastSent = lastSentTimestamps.perf || (now - 1000);
+      var data2send = tryGetIfFresh(fields, null, lastSent);
+      if (data2send) {
+        packets.push(packetMakerFunction(data2send));
+        lastSentTimestamps.perf = now;
+      }
+    }, now);
+    return packets;
+  };
 }
+
 
 function subscribeForFields(fields, callback) {
   fields.forEach(function(field) {
