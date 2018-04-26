@@ -1,4 +1,4 @@
-/** Generated on Fri Apr 20 2018 16:50:01 GMT+0200 (CEST) using 
+/** Generated on Fri Apr 20 2018 19:43:49 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -514,8 +514,8 @@ namespace PgnClasses {
     static const int ThisPgn = 65330;
     int code() const override {return 65330;}
     enum class DataId {
-      VMG_target_percentage = 285, 
-      Course = 105
+      VMG_target_percentage = 4637, 
+      Course = 617
     };
 
     BandGVmgPerformance();
@@ -527,7 +527,6 @@ namespace PgnClasses {
     
     Optional<uint64_t > manufacturerId = 39293; // B&G at 0 bits = 0 bytes
     Optional<DataId > dataId; //  at 16 bits = 2 bytes
-    Optional<uint64_t > length = 2; // The length is in bytes, see the red text in the NDA for this field. at 28 bits = 3 bytes + 4 bits
     /* Related to dataId --> */Optional<double > vmgPerformance; // 'Each bit is 0.1%' according to NDA. Regarding the decoded value, 1.0 means 100% at 32 bits = 4 bytes
     /* Related to dataId --> */Optional<sail::Angle<double> > course; // Each bit is 0.0001 radians, unsigned 2 bytes at 32 bits = 4 bytes
   };
