@@ -1,4 +1,4 @@
-/** Generated on Fri Apr 20 2018 19:43:49 GMT+0200 (CEST) using 
+/** Generated on Fri Apr 20 2018 16:50:01 GMT+0200 (CEST) using 
  *
  *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
  *
@@ -1009,11 +1009,12 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (48 <= src.remainingBits()) {
       manufacturerId = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
-      dataId = src.getUnsignedInSet(16, {617, 4637}).cast<DataId>();
-        if ((dataId.defined() && dataId.get() == static_cast<DataId>(4637))) {
+      dataId = src.getUnsignedInSet(12, {105, 285}).cast<DataId>();
+      length = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
+        if ((dataId.defined() && dataId.get() == static_cast<DataId>(285))) {
           vmgPerformance = src.getDoubleWithResolution(0.001, true, 16, 0, N2kField::Definedness::MaybeUndefined);
         }
-        if ((dataId.defined() && dataId.get() == static_cast<DataId>(617))) {
+        if ((dataId.defined() && dataId.get() == static_cast<DataId>(105))) {
           course = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
         }
     // No repeating fields.
@@ -1023,18 +1024,21 @@ namespace PgnClasses {
     return 
          manufacturerId.defined()
       || dataId.defined()
+      || length.defined()
     ;
   }
   bool BandGVmgPerformance::hasAllData() const {
     return 
          manufacturerId.defined()
       && dataId.defined()
+      && length.defined()
     ;
   }
   bool BandGVmgPerformance::valid() const {
     return true
        && manufacturerId.defined() && manufacturerId.get() == 39293
        && dataId.defined()
+       && length.defined() && length.get() == 2
     ;
   }
   std::vector<uint8_t> BandGVmgPerformance::encode() const {
@@ -1044,11 +1048,12 @@ namespace PgnClasses {
       return {};
     }
       dst.pushUnsigned(16, manufacturerId);
-      dst.pushUnsigned(16, dataId.cast<uint64_t>());
-        if ((dataId.defined() && dataId.get() == static_cast<DataId>(4637))) {
+      dst.pushUnsigned(12, dataId.cast<uint64_t>());
+      dst.pushUnsigned(4, length);
+        if ((dataId.defined() && dataId.get() == static_cast<DataId>(285))) {
           dst.pushDoubleWithResolution(0.001, true, 16, 0, vmgPerformance);
         } else { using namespace sail; CHECK(!vmgPerformance.defined()); }
-        if ((dataId.defined() && dataId.get() == static_cast<DataId>(617))) {
+        if ((dataId.defined() && dataId.get() == static_cast<DataId>(105))) {
           dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, course);
         } else { using namespace sail; CHECK(!course.defined()); }
     dst.fillUpToLength(8*8, true);

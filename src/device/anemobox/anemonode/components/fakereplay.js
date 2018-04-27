@@ -25,6 +25,8 @@ function makeFakeData(timeSeconds) {
     'magHdg': sampleAngle,
 
     // Velocities
+    'vmg': sampleVel,
+    'targetVmg': sampleVel,
     'aws': sampleVel,
     'gpsSpeed': sampleVel,
     'aws': sampleVel,
@@ -38,7 +40,6 @@ function start() {
   var intervalMillis = Math.round(intervalSeconds*1000.0);;
   setInterval(function() {
     var data = makeFakeData(counter*intervalSeconds);
-    console.log('FAKE REPLAY: Post this data: %j', data);
     for (var key in data) {
       assert(key in dispatchers);
       dispatchers[key].setValue(source, data[key]);

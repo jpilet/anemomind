@@ -50,7 +50,8 @@ var makePerformancePackets = rateLimitedPacketMaker(
       vmgPerformance: perf,
       sid: nextSid('performance')
     };
-  });
+  },
+  'perf');
 
 var makeCoursePackets = rateLimitedPacketMaker(
   null,
@@ -61,7 +62,8 @@ var makeCoursePackets = rateLimitedPacketMaker(
       course: data2send.magHdg,
       sid: nextSid('performance')
     };
-  });
+  },
+  'course');
 
 assert(makeCoursePackets);
 assert(makePerformancePackets);
@@ -325,19 +327,16 @@ function makeWindPackets() {
   return packetsToSend;
 }
 
-function rateLimitedPacketMaker(source, fields, packetMakerFunction) {
-  var sendLimiter = makeSendLimiter();
+function rateLimitedPacketMaker(source, fields, packetMakerFunction, type) {
   return function() {
     var now = anemonode.currentTime();
     var packets = [];
-    sendLimiter(function() {
-      var lastSent = lastSentTimestamps.perf || (now - 1000);
-      var data2send = tryGetIfFresh(fields, null, lastSent);
-      if (data2send) {
-        packets.push(packetMakerFunction(data2send));
-        lastSentTimestamps.perf = now;
-      }
-    }, now);
+    var lastSent = lastSentTimestamps[type] || (now - 1000);
+    var data2send = tryGetIfFresh(fields, null, lastSent);
+    if (data2send) {
+      packets.push(packetMakerFunction(data2send));
+      lastSentTimestamps[type] = now;
+    }
     return packets;
   };
 }
@@ -346,7 +345,7 @@ function rateLimitedPacketMaker(source, fields, packetMakerFunction) {
 function subscribeForFields(fields, callback) {
   fields.forEach(function(field) {
     var dispatchData = anemonode.dispatcher.values[field];
-	  var code = dispatchData.subscribe(callback);
+    var code = dispatchData.subscribe(callback);
     if (field in subscriptions) {
 	    subscriptions[field].push(code);
     } else {
