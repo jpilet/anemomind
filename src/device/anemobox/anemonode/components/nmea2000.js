@@ -28,10 +28,6 @@ var anemomindEstimatorSource = 'Anemomind estimator';
 var trueWindFields = [ 'twa', 'tws', 'twdir' ];
 var performanceFields = ['vmg', 'targetVmg'];
 var courseFields = ['magHdg'];
-var windLimiters = {
-  twa: makeSendLimiter(),
-  twdir: makeSendLimiter()
-};
 var lastSentTimestamps = {
   twa: undefined,
   twdir: undefined,
@@ -249,19 +245,13 @@ module.exports.detectSPIBug = function(callback) {
   , 10 * 1000);
 };
 
-
-
-function makeSendLimiter() {
-  return utils.makeTemporalLimiter(minResendTime);
-}
-
 function nextSid(key) {
   var sid = sidMap[key] || 0;
   sidMap[key] = (sid + 1) % 250; // <-- Good value?
   return sid;
 }
 
-function tryGetIfFresh(fields, sourceName, timestamp) {
+function tryGetIfFresh(fields, sourceName, lastTimestamp, currentTimestamp) {
   var channels = anemonode.dispatcher.allSources();
   
   // No value must be older than zis:
@@ -284,7 +274,13 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
       return null;
     }
     
-    if (dispatchData.time() < timestamp) {
+    // Nothing new to send?
+    if (dispatchData.time() < lastTimestamp) {
+      return null;
+    }
+
+    // Sending too often?
+    if (currentTimestamp - lastTimestamp < minResendTime) {
       return null;
     }
 
@@ -308,21 +304,19 @@ function makeWindPackets() {
   // Collect the packets for the different kinds of 
   // wind angle references.
   for (var wa in windAngleRefs) {
-    windLimiters[wa](function() {
-      var lastSent = lastSentTimestamps[wa] || (now - 1000);
-      var data2send = tryGetIfFresh([wa, "tws"], source, lastSent);
-      if (data2send) {
-        packetsToSend.push({
-          deviceIndex: 0,
-          pgn: pgntable.windData,
-          sid: nextSid(wa),
-          windSpeed: data2send.tws,
-          windAngle: data2send[wa],
-          reference: windAngleRefs[wa]
-        });
-        lastSentTimestamps[wa] = now;
-      }
-    }, now);
+    var lastSent = lastSentTimestamps[wa] || (now - 1000);
+    var data2send = tryGetIfFresh([wa, "tws"], source, lastSent, now);
+    if (data2send) {
+      packetsToSend.push({
+        deviceIndex: 0,
+        pgn: pgntable.windData,
+        sid: nextSid(wa),
+        windSpeed: data2send.tws,
+        windAngle: data2send[wa],
+        reference: windAngleRefs[wa]
+      });
+      lastSentTimestamps[wa] = now;
+    }
   }
   return packetsToSend;
 }
