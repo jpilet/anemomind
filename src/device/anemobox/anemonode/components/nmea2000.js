@@ -272,7 +272,6 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
     var f = fields[i];
     var sourcesAndData = channels[f];
     if (!sourcesAndData) {
-      console.log('No source');
       return null;
     }
     
@@ -280,12 +279,10 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
     	sourcesAndData[sourceName] : anemonode.dispatcher.values[f];
 	
     if (!dispatchData) {
-      console.log('No dispatch data');
       return null;
     }
     
     if (dispatchData.time() < timestamp) {
-      console.log('Outdated');
       return null;
     }
 
