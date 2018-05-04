@@ -259,6 +259,11 @@ function tryGetIfFresh(fields, sourceName, lastTimestamp, currentTimestamp) {
   
   // Here we accumulate the return value
   var dst = {};
+
+  // Sending too often?
+  if (currentTimestamp - lastTimestamp < minResendTime) {
+    return null;
+  }
   
   for (var i = 0; i < fields.length; i++) {
     var f = fields[i];
@@ -276,11 +281,6 @@ function tryGetIfFresh(fields, sourceName, lastTimestamp, currentTimestamp) {
     
     // Nothing new to send?
     if (dispatchData.time() < lastTimestamp) {
-      return null;
-    }
-
-    // Sending too often?
-    if (currentTimestamp - lastTimestamp < minResendTime) {
       return null;
     }
 
