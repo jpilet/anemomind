@@ -28,10 +28,6 @@ var anemomindEstimatorSource = 'Anemomind estimator';
 var trueWindFields = [ 'twa', 'tws', 'twdir' ];
 var performanceFields = ['vmg', 'targetVmg'];
 var courseFields = ['magHdg'];
-var windLimiters = {
-  twa: makeSendLimiter(),
-  twdir: makeSendLimiter()
-};
 var lastSentTimestamps = {
   twa: undefined,
   twdir: undefined,
@@ -50,7 +46,8 @@ var makePerformancePackets = rateLimitedPacketMaker(
       vmgPerformance: perf,
       sid: nextSid('performance')
     };
-  });
+  },
+  'perf');
 
 var makeCoursePackets = rateLimitedPacketMaker(
   null,
@@ -61,7 +58,8 @@ var makeCoursePackets = rateLimitedPacketMaker(
       course: data2send.magHdg,
       sid: nextSid('performance')
     };
-  });
+  },
+  'course');
 
 assert(makeCoursePackets);
 assert(makePerformancePackets);
@@ -247,19 +245,13 @@ module.exports.detectSPIBug = function(callback) {
   , 10 * 1000);
 };
 
-
-
-function makeSendLimiter() {
-  return utils.makeTemporalLimiter(minResendTime);
-}
-
 function nextSid(key) {
   var sid = sidMap[key] || 0;
   sidMap[key] = (sid + 1) % 250; // <-- Good value?
   return sid;
 }
 
-function tryGetIfFresh(fields, sourceName, timestamp) {
+function tryGetIfFresh(fields, sourceName, lastTimestamp, currentTimestamp) {
   var channels = anemonode.dispatcher.allSources();
   
   // No value must be older than zis:
@@ -267,6 +259,11 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
   
   // Here we accumulate the return value
   var dst = {};
+
+  // Sending too often?
+  if (currentTimestamp - lastTimestamp < minResendTime) {
+    return null;
+  }
   
   for (var i = 0; i < fields.length; i++) {
     var f = fields[i];
@@ -282,7 +279,8 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
       return null;
     }
     
-    if (dispatchData.time() < timestamp) {
+    // Nothing new to send?
+    if (dispatchData.time() < lastTimestamp) {
       return null;
     }
 
@@ -306,38 +304,33 @@ function makeWindPackets() {
   // Collect the packets for the different kinds of 
   // wind angle references.
   for (var wa in windAngleRefs) {
-    windLimiters[wa](function() {
-      var lastSent = lastSentTimestamps[wa] || (now - 1000);
-      var data2send = tryGetIfFresh([wa, "tws"], source, lastSent);
-      if (data2send) {
-        packetsToSend.push({
-          deviceIndex: 0,
-          pgn: pgntable.windData,
-          sid: nextSid(wa),
-          windSpeed: data2send.tws,
-          windAngle: data2send[wa],
-          reference: windAngleRefs[wa]
-        });
-        lastSentTimestamps[wa] = now;
-      }
-    }, now);
+    var lastSent = lastSentTimestamps[wa] || (now - 1000);
+    var data2send = tryGetIfFresh([wa, "tws"], source, lastSent, now);
+    if (data2send) {
+      packetsToSend.push({
+        deviceIndex: 0,
+        pgn: pgntable.windData,
+        sid: nextSid(wa),
+        windSpeed: data2send.tws,
+        windAngle: data2send[wa],
+        reference: windAngleRefs[wa]
+      });
+      lastSentTimestamps[wa] = now;
+    }
   }
   return packetsToSend;
 }
 
-function rateLimitedPacketMaker(source, fields, packetMakerFunction) {
-  var sendLimiter = makeSendLimiter();
+function rateLimitedPacketMaker(source, fields, packetMakerFunction, type) {
   return function() {
     var now = anemonode.currentTime();
     var packets = [];
-    sendLimiter(function() {
-      var lastSent = lastSentTimestamps.perf || (now - 1000);
-      var data2send = tryGetIfFresh(fields, null, lastSent);
-      if (data2send) {
-        packets.push(packetMakerFunction(data2send));
-        lastSentTimestamps.perf = now;
-      }
-    }, now);
+    var lastSent = lastSentTimestamps[type] || (now - 1000);
+    var data2send = tryGetIfFresh(fields, null, lastSent);
+    if (data2send) {
+      packets.push(packetMakerFunction(data2send));
+      lastSentTimestamps[type] = now;
+    }
     return packets;
   };
 }
@@ -346,7 +339,7 @@ function rateLimitedPacketMaker(source, fields, packetMakerFunction) {
 function subscribeForFields(fields, callback) {
   fields.forEach(function(field) {
     var dispatchData = anemonode.dispatcher.values[field];
-	  var code = dispatchData.subscribe(callback);
+    var code = dispatchData.subscribe(callback);
     if (field in subscriptions) {
 	    subscriptions[field].push(code);
     } else {
