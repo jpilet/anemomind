@@ -13,6 +13,10 @@ using namespace sail;
 
 namespace {
 
+bool isEmpty(const char* str) {
+  return str == nullptr || str[0] == 0;
+}
+
 char HexDigitToInt(char data) {
   if( (data - '0') <= 9) {
     return (data - '0');
@@ -308,6 +312,10 @@ void NmeaParser::setXTE(float dist, bool left) {
 NmeaParser::NmeaSentence NmeaParser::processCommand() {
   numSentences_++;
 
+  if (strlen(argv_[0]) != 5) {
+    return NMEA_UNKNOWN;
+  }
+
   char *c = argv_[0] + 2;
 
   if (strcmp(c, "RMC") == 0) {
@@ -334,6 +342,8 @@ NmeaParser::NmeaSentence NmeaParser::processCommand() {
     return processMWD();
   } else if (strcmp(c, "RSA") == 0) {
     return processRSA();
+  } else if (strcmp(c, "HDM") == 0) {
+    return processHDM();
   }
 
   return NMEA_UNKNOWN;
@@ -351,6 +361,12 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
   day_ = parse2c(argv_[9]);
   month_ = parse2c(argv_[9]+2);
   year_ = parse2c(argv_[9]+4);
+
+  if (strlen(argv_[3]) < 4 || strlen(argv_[5]) < 4) {
+    // No position is available.
+    // pretend to be a ZDA sentence, that contains only data&time.
+    return NMEA_ZDA;
+  }
 
   pos_.lat.set(parse2c(argv_[3]) + atof(argv_[3] + 2) / 60.0);
   if (argv_[4][0] == 'S') {
@@ -477,7 +493,11 @@ NmeaParser::NmeaSentence NmeaParser::processVHW() {
 NmeaParser::NmeaSentence NmeaParser::processVLW() {
   int n=0;
 
-  if (argc_!=5) return NMEA_NONE;
+  if (argc_!=5
+      || isEmpty(argv_[1])
+      || strlen(argv_[3]) < 3)  {
+    return NMEA_NONE;
+  }
 
   cwd_ = parseInt(argv_[1], 0);
   wd_ = 10*parseInt(argv_[3], &n);
@@ -498,9 +518,9 @@ $--GLL,llll.ll,a,yyyyy.yy,a,hhmmss.ss,A*hh
 7) Checksum
 */
 NmeaParser::NmeaSentence NmeaParser::processGLL() {
-  if (argc_<7) return NMEA_NONE;
-  if (argv_[6][0] != 'A') return NMEA_NONE;
-  if (strlen(argv_[1]) < 8 || strlen(argv_[2]) != 1
+  if (argc_<7
+      || argv_[6][0] != 'A'
+      || strlen(argv_[1]) < 8 || strlen(argv_[2]) != 1
       || strlen(argv_[3]) < 9 || strlen(argv_[4]) != 1) {
     return NMEA_NONE;
   }
@@ -594,7 +614,11 @@ $--VTG,x.x,T,x.x,M,x.x,N,x.x,K*hh
 9) Checksum
 */
 NmeaParser::NmeaSentence NmeaParser::processVTG() {
-  if (argc_<6) return NMEA_NONE;
+  if (argc_<6
+      || isEmpty(argv_[1])
+      || isEmpty(argv_[5])) {
+    return NMEA_NONE;
+  }
 
   gpsBearing_ = parseInt(argv_[1],0);
   gpsSpeed_ = parseSpeed(argv_[5], argv_[6]);
@@ -603,19 +627,62 @@ NmeaParser::NmeaSentence NmeaParser::processVTG() {
 }
 
 NmeaParser::NmeaSentence NmeaParser::processXDR() {
-  if (argc_ < 5 || strcmp("RUDDER", argv_[4]) != 0) {
+  if (argc_ < 5) {
+    return NMEA_NONE;
+  }
+  double value;
+  if (sscanf(argv_[2], "%lf", &value) != 1) {
+    return NMEA_NONE;
+  }
+  if (strcmp("RUDDER", argv_[4]) == 0) {
+    onXDRRudder(argv_[0], argv_[1][0] == 'A',
+                Angle<double>::degrees(value),
+                argv_[3]);
+    return NMEA_RUDDER;
+  } else if (strcmp("PTCH", argv_[4]) == 0) {
+    if (argv_[3][0] != 'D') {
+      return NMEA_NONE;
+    }
+    onXDRPitch(argv_[0], argv_[1][0] == 'A',
+               Angle<double>::degrees(value));
+    return NMEA_PITCH;
+  } else if (strcmp("ROLL", argv_[4]) == 0) {
+    if (argv_[3][0] != 'D') {
+      return NMEA_NONE;
+    }
+    onXDRRoll(argv_[0], argv_[1][0] == 'A',
+              Angle<double>::degrees(value));
+    return NMEA_ROLL;
+  }
+  return NMEA_UNKNOWN;
+}
+
+/*
+ HDM Heading – Magnetic
+
+        1   2  3
+        |   |  |
+    $--HDM,x.x,M*hh
+
+  1) Heading Degrees, magnetic
+  2) M = magnetic
+  3) Checksum
+*/
+NmeaParser::NmeaSentence NmeaParser::processHDM() {
+  if (argc_ < 3
+      || strcmp(argv_[2], "M") != 0
+      || strlen(argv_[1]) < 1) {
     return NMEA_NONE;
   }
 
-  double angle;
-  if (sscanf(argv_[2], "%lf", &angle) != 1) {
+  double value;
+  if (sscanf(argv_[1], "%lf", &value) != 1) {
     return NMEA_NONE;
   }
+  magHdg_ = std::round(value);
+  onHDM(argv_[0], Angle<>::degrees(value));
 
-  onXDRRudder(argv_[0], argv_[1][0] == 'A',
-              Angle<double>::degrees(angle),
-              argv_[3]);
-  return NMEA_RUDDER;
+  return NMEA_HDM;
 }
 
 Optional<double> readDouble(const char *str) {

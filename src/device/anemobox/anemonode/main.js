@@ -21,6 +21,8 @@ var withIMU = true;
 var withCUPS = false;
 var withNMEA2000 = true;
 var withWatchdog = !process.env['NO_WATCHDOG'];
+var withFakeReplay = process.env['FAKE_REPLAY'];
+
 var withSendN2kGps = true;
 
 var spiBugDetected = false;
@@ -31,6 +33,12 @@ var settings = require('./components/GlobalSettings.js');
 var dof = require('./components/deleteOldFiles.js');
 var nmea2000 = require('./components/nmea2000.js');
 var n2kgps = require('./components/n2kgps.js');
+
+if (withFakeReplay) {
+  console.log('With fake replay');
+  var fakeReplay = require('./components/fakereplay.js');
+  fakeReplay.start();
+}
 
 // To free up space if possible.
 function cleanOld() {

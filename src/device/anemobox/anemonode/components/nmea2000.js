@@ -1,3 +1,4 @@
+var assert = require('assert');
 var buffer = require('buffer');
 var can = require('socketcan');
 var anemonode = require('../build/Release/anemonode');
@@ -26,23 +27,50 @@ var sidMap = { };
 var anemomindEstimatorSource = 'Anemomind estimator';
 var trueWindFields = [ 'twa', 'tws', 'twdir' ];
 var performanceFields = ['vmg', 'targetVmg'];
-var windLimiters = {
-  twa: makeSendLimiter(),
-  twdir: makeSendLimiter()
-};
+var courseFields = ['magHdg'];
 var lastSentTimestamps = {
   twa: undefined,
   twdir: undefined,
   perf: undefined
 };
 
-var perfSendLimiter = makeSendLimiter();
+var makePerformancePackets = rateLimitedPacketMaker(
+  anemomindEstimatorSource,
+  performanceFields, function(data2send) {
+    var vmgSI = utils.taggedToSI(data2send.vmg);
+    var targetVmgSI = utils.taggedToSI(data2send.targetVmg);
+    var perf = vmgSI/targetVmgSI;
+    return {
+      deviceIndex: 0, // Which device?
+      pgn: pgntable.BandGVmgPerformance,
+      vmgPerformance: perf,
+      sid: nextSid('performance')
+    };
+  },
+  'perf');
+
+var makeCoursePackets = rateLimitedPacketMaker(
+  null,
+  courseFields, function(data2send) {
+    return {
+      deviceIndex: 0,
+      pgn: pgntable.BandGVmgPerformance,
+      course: data2send.magHdg,
+      sid: nextSid('performance')
+    };
+  },
+  'course');
+
+assert(makeCoursePackets);
+assert(makePerformancePackets);
+
 // Either it is null, meaning we are not sending
 // anything, or it is a map, meaning we are sending.
 var subscriptions = null;
 var fieldSubscriptions = [
   {fields: trueWindFields, makePackets: makeWindPackets},
-  {fields: performanceFields, makePackets: makePerformancePackets}
+  {fields: performanceFields, makePackets: makePerformancePackets},
+  {fields: courseFields, makePackets: makeCoursePackets}
 ];
 
 
@@ -217,19 +245,13 @@ module.exports.detectSPIBug = function(callback) {
   , 10 * 1000);
 };
 
-
-
-function makeSendLimiter() {
-  return utils.makeTemporalLimiter(minResendTime);
-}
-
 function nextSid(key) {
   var sid = sidMap[key] || 0;
   sidMap[key] = (sid + 1) % 250; // <-- Good value?
   return sid;
 }
 
-function tryGetIfFresh(fields, sourceName, timestamp) {
+function tryGetIfFresh(fields, sourceName, lastTimestamp, currentTimestamp) {
   var channels = anemonode.dispatcher.allSources();
   
   // No value must be older than zis:
@@ -237,6 +259,11 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
   
   // Here we accumulate the return value
   var dst = {};
+
+  // Sending too often?
+  if (currentTimestamp - lastTimestamp < minResendTime) {
+    return null;
+  }
   
   for (var i = 0; i < fields.length; i++) {
     var f = fields[i];
@@ -244,12 +271,16 @@ function tryGetIfFresh(fields, sourceName, timestamp) {
     if (!sourcesAndData) {
       return null;
     }
-    var dispatchData = sourcesAndData[sourceName];
+    
+    var dispatchData = sourceName? 
+    	sourcesAndData[sourceName] : anemonode.dispatcher.values[f];
+	
     if (!dispatchData) {
       return null;
     }
     
-    if (dispatchData.time() < timestamp) {
+    // Nothing new to send?
+    if (dispatchData.time() < lastTimestamp) {
       return null;
     }
 
@@ -273,52 +304,42 @@ function makeWindPackets() {
   // Collect the packets for the different kinds of 
   // wind angle references.
   for (var wa in windAngleRefs) {
-    windLimiters[wa](function() {
-      var lastSent = lastSentTimestamps[wa] || (now - 1000);
-      var data2send = tryGetIfFresh([wa, "tws"], source, lastSent);
-      if (data2send) {
-        packetsToSend.push({
-          deviceIndex: 0,
-          pgn: pgntable.windData,
-          sid: nextSid(wa),
-          windSpeed: data2send.tws,
-          windAngle: data2send[wa],
-          reference: windAngleRefs[wa]
-        });
-        lastSentTimestamps[wa] = now;
-      }
-    }, now);
+    var lastSent = lastSentTimestamps[wa] || (now - 1000);
+    var data2send = tryGetIfFresh([wa, "tws"], source, lastSent, now);
+    if (data2send) {
+      packetsToSend.push({
+        deviceIndex: 0,
+        pgn: pgntable.windData,
+        sid: nextSid(wa),
+        windSpeed: data2send.tws,
+        windAngle: data2send[wa],
+        reference: windAngleRefs[wa]
+      });
+      lastSentTimestamps[wa] = now;
+    }
   }
   return packetsToSend;
 }
 
-function makePerformancePackets() {
-  var now = anemonode.currentTime();
-  var source = anemomindEstimatorSource;
-  var packets = [];
-  perfSendLimiter(function() {
-    var lastSent = lastSentTimestamps.perf || (now - 1000);
-    var data2send = tryGetIfFresh(performanceFields, source, lastSent);
+function rateLimitedPacketMaker(source, fields, packetMakerFunction, type) {
+  return function() {
+    var now = anemonode.currentTime();
+    var packets = [];
+    var lastSent = lastSentTimestamps[type] || (now - 1000);
+    var data2send = tryGetIfFresh(fields, null, lastSent);
     if (data2send) {
-      var vmgSI = utils.taggedToSI(data2send.vmg);
-      var targetVmgSI = utils.taggedToSI(data2send.targetVmg);
-      var perf = vmgSI/targetVmgSI;
-      packets.push({
-        deviceIndex: 0, // Which device?
-        pgn: pgntable.BandGVmgPerformance,
-        vmgPerformance: perf,
-        sid: nextSid('performance')
-      });
-      lastSentTimestamps.perf = now;
+      packets.push(packetMakerFunction(data2send));
+      lastSentTimestamps[type] = now;
     }
-  }, now);
-  return packets;
+    return packets;
+  };
 }
+
 
 function subscribeForFields(fields, callback) {
   fields.forEach(function(field) {
     var dispatchData = anemonode.dispatcher.values[field];
-	  var code = dispatchData.subscribe(callback);
+    var code = dispatchData.subscribe(callback);
     if (field in subscriptions) {
 	    subscriptions[field].push(code);
     } else {

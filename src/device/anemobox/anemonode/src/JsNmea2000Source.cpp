@@ -405,6 +405,10 @@ bool sendCogSogRapidUpdate(
   return true;
 }
 
+  bool has(const v8::Local<v8::Object>& obj, const std::string& key) {
+    return obj->Has(Nan::New<v8::String>(key).ToLocalChecked());
+  }
+
 bool sendBandGVmgPerformance(
   int32_t deviceIndex,
   const v8::Local<v8::Object>& obj, 
@@ -413,8 +417,17 @@ bool sendBandGVmgPerformance(
   using namespace PgnClasses;
 
   BandGVmgPerformance perf;
-
-  TRY_LOOK_UP(obj, "vmgPerformance", &(perf.vmgPerformance));
+  if (has(obj, "vmgPerformance")
+    && tryLookUp(obj, "vmgPerformance", &(perf.vmgPerformance))) {
+    perf.dataId = BandGVmgPerformance::DataId::VMG_target_percentage;
+  } else if (has(obj, "course")
+    && tryLookUp(obj, "course", &(perf.course))) {
+    perf.dataId = BandGVmgPerformance::DataId::Course;
+  } else {
+    Nan::ThrowError(
+      "No valid 'vmgPerformance' or 'course' field in packet");
+    return false;
+  }
 
   auto result = dst->send(deviceIndex, perf);
   CHECK_CONDITION_BOOL(result, "Failed to send BandGVmgPerformance");

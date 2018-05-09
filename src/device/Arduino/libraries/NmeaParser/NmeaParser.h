@@ -24,7 +24,7 @@ typedef int32_t DWord;
 typedef int16_t Word;
 typedef unsigned char Byte;
 
-#define NP_MAX_DATA_LEN 82
+#define NP_MAX_DATA_LEN 100
 #define NP_MAX_ARGS 20
 
 // Represents an accurate angle in fixed point.
@@ -126,10 +126,15 @@ class NmeaParser {
     NMEA_GLL,
     NMEA_VTG,
     NMEA_ZDA,
-    NMEA_TIME_POS = NMEA_RMC,
     NMEA_RUDDER,
     NMEA_MWD,
-    NMEA_RSA
+    NMEA_RSA,
+    NMEA_PITCH,
+    NMEA_ROLL,
+    NMEA_HDM,
+    // Aliases must come last, otherwise we might end up with
+    // multiple NMEA_XXX having the same number.
+    NMEA_TIME_POS = NMEA_RMC
   };
 
   NmeaParser();
@@ -275,6 +280,12 @@ class NmeaParser {
                            bool valid,
                            sail::Angle<double> angle,
                            const char *whichRudder) { }
+  virtual void onXDRPitch(const char *senderAndSentence,
+                          bool valid,
+                          sail::Angle<double> angle) { }
+  virtual void onXDRRoll(const char *senderAndSentence,
+                         bool valid,
+                         sail::Angle<double> angle) { }
 
   // The direction from which the wind blows across the earth’s surface, with
   // respect to north, and the speed of the wind.
@@ -286,6 +297,9 @@ class NmeaParser {
   virtual void onRSA(const char *senderAndSentence,
                      Optional<sail::Angle<>> rudderAngle0,
                      Optional<sail::Angle<>> rudderAngle1) { }
+  virtual void onHDM(const char *senderAndSentence,
+                     sail::Angle<> magHdg) { }
+
 
  private:
   enum NPState {
@@ -342,6 +356,7 @@ class NmeaParser {
   NmeaSentence processZDA();
   NmeaSentence processVTG();
   NmeaSentence processXDR();
+  NmeaSentence processHDM();
   NmeaSentence processMWD();
   NmeaSentence processRSA();
 };
