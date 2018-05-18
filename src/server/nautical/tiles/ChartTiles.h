@@ -3,6 +3,7 @@
 
 #include <map>
 #include <string>
+#include <set>
 
 #include <device/anemobox/TimedSampleCollection.h>
 #include <server/common/MeanAndVar.h>
@@ -54,7 +55,7 @@ template <typename T> struct Statistics {
   static double unit(Length<> x) { return x.meters(); }
   static double unit(AngularVelocity<> x) { return x.degreesPerSecond(); }
 
-  void appendToArrays(StatArrays* arrays) const {
+  void appendToArrays(const string& /*what*/, StatArrays* arrays) const {
     if (stats.count() > 0) {
       arrays->count.push_back(1);
       arrays->mean.push_back(stats.mean());
@@ -86,10 +87,19 @@ template <> struct Statistics<Angle<double>> {
     return result;
   }
 
-  void appendToArrays(StatArrays* arrays) const {
+  void appendToArrays(const string& what, StatArrays* arrays) const {
+    static const std::set<std::string> negativeAngles {
+      "awa", "twa", "rudderAngle", "pitch", "roll" };
+
     if (count > 0 && vectorSum.norm() > 0.01_kn) {
       arrays->count.push_back(static_cast<long long>(count));
-      arrays->mean.push_back( vectorSum.angle().degrees());
+
+      double value = 
+        (negativeAngles.find(what) != negativeAngles.end() ?
+         vectorSum.angle().normalizedAt0().degrees()
+         : vectorSum.angle().positiveMinAngle().degrees());
+
+      arrays->mean.push_back(value);
     } else {
       arrays->count.push_back(0);
       arrays->mean.push_back(0);
