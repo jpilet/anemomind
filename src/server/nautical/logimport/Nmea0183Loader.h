@@ -145,12 +145,12 @@ void streamToNmeaParser(std::istream *src, NmeaParser *dstParser,
     Nmea0183LogLoaderAdaptor *adaptor);
 
 
-void loadNmea0183Stream(
+bool loadNmea0183Stream(
     std::istream *stream,
     LogAccumulator *dst,
     const std::string &srcName);
 
-void loadNmea0183File(const std::string &filename, LogAccumulator *dst);
+bool loadNmea0183File(const std::string &filename, LogAccumulator *dst);
 
 
 }

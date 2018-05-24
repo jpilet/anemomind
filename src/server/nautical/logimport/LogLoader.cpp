@@ -26,23 +26,16 @@ namespace sail {
 
 
 bool LogLoader::loadFile(const std::string &filename) {
-  std::string ext = toLower(Poco::Path(filename).getExtension());
-  if (ext == "txt") {
-    Nmea0183Loader::loadNmea0183File(filename, &_acc);
-    return true;
-  } else if (ext == "csv") {
-    loadCsv(filename, &_acc);
-    return true;
-  } else if (ext == "ast") {// Astra files must be renamed to end with ast
-    return accumulateAstraLogs(filename, &_acc);
-  } else if (ext == "log") {
-    return ProtobufLogLoader::load(filename, &_acc);
-  } else if (ext == "db") {
-    return sailmonDbLoad(filename, &_acc);
-  } else {
-    LOG(ERROR) << filename << ": unknown log file extension.";
-    return false;
+  bool r =
+    ProtobufLogLoader::load(filename, &_acc)
+    || Nmea0183Loader::loadNmea0183File(filename, &_acc)
+    || loadCsv(filename, &_acc)
+    || accumulateAstraLogs(filename, &_acc)
+    || sailmonDbLoad(filename, &_acc);
+  if (!r) {
+    LOG(ERROR) << filename << ": file empty or format not recognized.";
   }
+  return r;
 }
 
 void LogLoader::loadNmea0183(std::istream *s) {

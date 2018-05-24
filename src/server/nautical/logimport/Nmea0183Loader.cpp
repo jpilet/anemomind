@@ -112,7 +112,7 @@ void streamToNmeaParser(std::istream *src, NmeaParser *dstParser,
   }
 }
 
-void loadNmea0183Stream(std::istream *stream, LogAccumulator *dst,
+bool loadNmea0183Stream(std::istream *stream, LogAccumulator *dst,
     const std::string &srcName) {
   LogLoaderNmea0183Parser parser(dst, srcName);
   Nmea0183LogLoaderAdaptor adaptor(
@@ -120,11 +120,12 @@ void loadNmea0183Stream(std::istream *stream, LogAccumulator *dst,
             // on whatever time source there is.
       &parser, dst, srcName);
   streamToNmeaParser(stream, &parser, &adaptor);
+  return parser.numSentences() > 0;
 }
 
-void loadNmea0183File(const std::string &filename, LogAccumulator *dst) {
+bool loadNmea0183File(const std::string &filename, LogAccumulator *dst) {
   std::ifstream file(filename);
-  loadNmea0183Stream(&file, dst, defaultNmea0183SourceName);
+  return loadNmea0183Stream(&file, dst, defaultNmea0183SourceName);
 }
 
 
