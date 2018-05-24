@@ -13,7 +13,7 @@ router.get('/:boatId',
            access.boatWriteAccess,
            controller.listFiles);
 
-router.post('/:boatId/:filename',
+router.post('/:boatId',
             auth.isAuthenticated(),
             access.boatWriteAccess,
             controller.postFile,
