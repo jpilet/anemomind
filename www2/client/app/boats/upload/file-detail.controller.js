@@ -6,7 +6,7 @@ angular.module('www2App')
     $scope.boat = { };
     $scope.isBoatAdmin = true;
     $scope.boatId=$stateParams.boatId;
-    $scope.filename=$stateParams.file;
+    $scope.filename=$stateParams.filename;
     $scope.file = {};
     $scope.warnings = [];
 
@@ -20,7 +20,7 @@ angular.module('www2App')
     $scope.fetchFile = function() {
       $scope.details = {};
       $http.get('/api/files/' + $stateParams.boatId
-                + '/' + $stateParams.file).then(function(response) {
+                + '/' + $stateParams.filename).then(function(response) {
         const f = $scope.file = response.data;
         f.start = new Date(f.start);
         f.end = new Date(f.start.getTime() + f.duration_sec * 1000);

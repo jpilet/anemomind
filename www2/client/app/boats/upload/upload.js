@@ -10,7 +10,7 @@ angular.module('www2App')
   })
   .config(function ($stateProvider) {
       $stateProvider.state('boat-file-detail', {
-        url: '/boats/:boatId/upload/:file',
+        url: '/boats/:boatId/upload/:filename',
         templateUrl: 'app/boats/upload/file-detail.html',
         controller: 'BoatFileDetailCtrl'
       });
