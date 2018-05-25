@@ -15,6 +15,7 @@ var app = angular.module('www2App')
 
         scope.currentPage = 1;
         scope.sessions = [];
+        scope.isBoatAdmin = false;
 
         function updateSessions() {
 
@@ -24,6 +25,8 @@ var app = angular.module('www2App')
 
           boatList.boat(scope.boatId).then(function (boat) {
             scope.boat = boat;
+            var userid=Auth.getCurrentUser()._id;
+            scope.isBoatAdmin = Auth.isAdmin() || (boat.admins && boat.admins.indexOf(userid) > -1);
             scope.sessions = boatList.sessionsForBoat(scope.boatId)
               .filter(function(session) {
                 // Ignore sessions smaller than 0.6 nautical miles

@@ -105,41 +105,14 @@
     </div>
   </div>
 
-</div>
-
-<!-- KEEP THIS UNTIL MERGE -->
-<!--
-<div class="panel panel-default hide ">
-  <div class="panel-heading">
-    <h3 class="panel-title"><a ng-href="/boats/{{boat._id}}">{{boat.name}} [details]</a>
-    <a ng-href="/vmgplot/{{boat._id}}">[vmg]</a>
-    <a ng-href="/map/{{boat._id}}">[full map]</a>
-    </h3>
-  </div>
-  <div class="panel-body">
-    <table class="table">
-      <tr ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |  limitTo:pageSize">
-        <td>
-          <a href="/map/{{boatId}}?c={{session._id}}">{{session.startTime | date: 'd.M.yyyy H:mm'}} ({{[session.startTime, session.endTime] | timeSpan}})</a>
-        (<a href="/map/{{boatId}}?c={{session._id}}&t={{timeToInt(session.maxSpeedOverGroundTime)}}">max {{session.maxSpeedOverGround | number: 1}} kn</a>,
-        distance: {{ session.trajectoryLength | number : 1 }} nm)
-        ({{ twdirToCardinal(session.avgWindDir) }}
-         {{ knotsToBeaufort(session.avgWindSpeed) }} bf, 
-         max: {{ session.strongestWindSpeed | number: 1 }} kn)
-        </td>
-      </tr>
-    </table>
-    <uib-pagination
-      ng-hide="sessions.length <= pageSize"
-      total-items="sessions.length"
-      items-per-page="pageSize"
-      ng-model="currentPage"
-      class="pagination-sm"
-      previous-text="&lsaquo;" next-text="&rsaquo;"
-      first-text="&laquo;" last-text="&raquo;"></pagination>
-    <p ng-hide="sessions.length > 0">
-      Sorry, no sailing sessions yet.
-    </p>
+  <div ng-show="isBoatAdmin" class="card card-horizontal ">
+    <div class="card-image">
+    </div>
+    <div class="card-content">
+      <a href="/boats/{{boatId}}/upload"><h3>Upload data </h3></a>
+      <div class="card-content">
+        <a href="/boats/{{boatId}}/upload"><i class="fa fa-upload fa-3x "></i></a>
+      </div>
+    </div>
   </div>
 </div>
--->
