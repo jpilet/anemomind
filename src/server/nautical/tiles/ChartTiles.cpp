@@ -212,7 +212,7 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
   StatArrays arrays;
 
   for (const TimedValue<Statistics<T>>& stats : tile.samples) {
-    stats.value.appendToArrays(&arrays);
+    stats.value.appendToArrays(data.what, &arrays);
   }
 
   bsonAppendCollection(result.get(), "mean", arrays.mean);

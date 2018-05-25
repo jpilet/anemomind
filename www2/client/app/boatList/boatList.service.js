@@ -208,7 +208,7 @@ angular.module('www2App')
       addMember:addMember,
       boats: cachedBoats,
       sessions: function() { return $.extend({}, sessionsForBoats); },
-      sessionsForBoat: function(boatId) { return sessionsForBoats[boatId]; },
+      sessionsForBoat: function(boatId) { return sessionsForBoats[boatId] || []; },
       getCurveData: function(curveId) { return curves[curveId]; },
       getDefaultBoat: getDefaultBoat,
       locationForCurve: locationForCurve,

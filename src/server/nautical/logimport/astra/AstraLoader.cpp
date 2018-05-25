@@ -334,7 +334,7 @@ Optional<Array<std::pair<std::string, AstraValueParser>>>
         return spec.find(token);
       })
       |
-      trTakeWhile([](Iterator f){
+      trTakeWhile([&](Iterator f){
         return f != spec.end();
       })
       |

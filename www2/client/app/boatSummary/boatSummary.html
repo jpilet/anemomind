@@ -91,9 +91,11 @@
   <!-- END OF SESSION -->
   <!-- MORE SESSIONS -->
   <div class="card card-horizontal " 
-       ng-click="showMoreSessions()" ng-if="sessions.length>pageSize">
+       ng-click="showMoreSessions()"
+       ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:currentPage*pageSize | limitTo:1"
+       >
     <div class="card-image">
-      <div class="img-responsive img"  style="background-image:url('/assets/images/boat-session.png');background-size: cover;height:100%" ></div>                  
+      <div class="" thumbnailspng="{{session._id}}" boat-id="{{boatId}}"></div>
     </div>
     <div class="card-content">
       <h3>Load more </h3>

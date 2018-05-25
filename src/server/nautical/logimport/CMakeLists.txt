@@ -170,3 +170,13 @@ target_link_libraries(logimport_summary
                       logimport_LogLoader
                       nautical_NavDataset
                      )
+
+add_executable(logimport_try_load
+               try_load.cpp
+              )
+target_link_libraries(logimport_try_load
+                      common_ArgMap
+                      common_string
+                      logimport_LogLoader
+                      nautical_NavDataset
+                     )

@@ -32,10 +32,14 @@ std::function<void(std::string)> makeTimeSetter(TimeStamp *dst) {
   };
 }
 
+void doNothing(const std::string &s) {}
+
 class CsvRowProcessor {
  public:
   CsvRowProcessor(const MDArray<std::string, 2> &header);
   void process(const MDArray<std::string, 2> &row, SourceGroup *dst);
+
+  bool hasValidHeader() const { return _validHeader; }
  private:
   // Prohibit copying since we have pointers pointing at this object... a bit dirty
   CsvRowProcessor &operator=(const CsvRowProcessor &other) = delete;
@@ -46,6 +50,7 @@ class CsvRowProcessor {
   Angle<double> _awa, _twa, _magHdg, _gpsBearing, _lon, _lat;
   Velocity<double> _aws, _tws, _gpsSpeed, _watSpeed;
   TimeStamp _time;
+  bool _validHeader;
 
   template <typename T>
   void _pushBack(const T &x, typename TimedSampleCollection<T>::TimedVector *dst) {
@@ -53,8 +58,6 @@ class CsvRowProcessor {
   }
 
 };
-
-void doNothing(const std::string &s) {}
 
 CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   std::map<std::string, std::function<void(std::string)> > m;
@@ -71,11 +74,14 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   m["TWA"] = makeSetter(degrees, &_twa);
   assert(header.rows() == 1);
   int cols = header.cols();
+  _validHeader = false;
   for (int i = 0; i < cols; i++) {
     auto h = Poco::trim(header(0, i));
     auto found = m.find(h);
     bool wasFound = found != m.end();
     _setters.push_back(wasFound? found->second : doNothing);
+    _validHeader |= wasFound;
+
     if (!wasFound) {
       LOG(INFO) << "CSV header ignored: '" << h << "'";
     }
@@ -100,17 +106,26 @@ void CsvRowProcessor::process(const MDArray<std::string, 2> &row, SourceGroup *d
   _pushBack(pos, dst->geoPos);
 }
 
-void loadCsv(const MDArray<std::string, 2> &table, LogAccumulator *dst) {
+bool loadCsv(const MDArray<std::string, 2> &table, LogAccumulator *dst) {
+  if (table.rows() == 0 || table.cols() == 0) {
+    return false;
+  }
   SourceGroup toPopulate("CSV imported", dst);
   CsvRowProcessor processor(table.sliceRow(0));
+
+  if (!processor.hasValidHeader()) {
+    return false;
+  }
+
   int n = table.rows();
   for (int i = 1; i < n; i++) {
     processor.process(table.sliceRow(i), &toPopulate);
   }
+  return true;
 }
 
-void loadCsv(const std::string &filename, LogAccumulator *dst) {
-  loadCsv(parseCsv(filename), dst);
+bool loadCsv(const std::string &filename, LogAccumulator *dst) {
+  return loadCsv(parseCsv(filename), dst);
 }
 
 } /* namespace sail */

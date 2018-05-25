@@ -222,7 +222,7 @@ bool Logger::read(const std::string& filename, LogFile *dst) {
     // multiple smaller files... but for now we simply increase the limit
     // to 500MB, with a warning at 400.
     decoder.SetTotalBytesLimit(500 * 1024 * 1024, 400 * 1024 * 1024);
-    return dst->ParseFromCodedStream(&decoder);
+    return dst->ParseFromCodedStream(&decoder) && dst->stream_size() > 0;
 }
 
 void Logger::unpack(const AngleValueSet& values, std::vector<Angle<double>>* angles) {
