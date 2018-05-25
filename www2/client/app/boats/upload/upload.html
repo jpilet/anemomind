@@ -3,13 +3,17 @@
 
 <div class="container">
 
-  <ol class="breadcrumb">
-    <li><a href="/boats">Boats</a></li>
-    <li><a href="/boats/{{::boatId}}">{{ boat.name }}</a></li>
-    <li class="active"><a href="/boats/{{::boatId}}/upload">Upload</a></li>
-  </ol>
+<ol class="breadcrumb">
+  <li><a href="/boats">Boats</a></li>
+  <li><a href="/boats/{{::boatId}}">{{ boat.name }}</a></li>
+  <li class="active"><a href="/boats/{{::boatId}}/upload">Upload</a></li>
+</ol>
 
+<div ng-hide="isBoatAdmin">
+  You must have administration rights on the boat to manage its files.
+</div>
 
+<div ng-show="isBoatAdmin">
   <h1>Upload data for: {{ boat.name }}</h1>
 
   Supported file formats:
@@ -121,6 +125,7 @@
       </tr>
     </tbody>
   </table>
+</div>
 
 </div>
 

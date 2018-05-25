@@ -4,7 +4,7 @@ angular.module('www2App')
   .controller('BoatFileDetailCtrl', function ($scope, $stateParams, $http,
                                           Auth, FileUploader, boatList) {
     $scope.boat = { };
-    $scope.isAdmin = Auth.isAdmin;
+    $scope.isBoatAdmin = true;
     $scope.boatId=$stateParams.boatId;
     $scope.filename=$stateParams.file;
     $scope.file = {};
@@ -13,6 +13,8 @@ angular.module('www2App')
     boatList.boat($stateParams.boatId)
       .then(function (boat) {
         $scope.boat = boat;
+        var userid = Auth.getCurrentUser()._id;
+        $scope.isBoatAdmin = Auth.isAdmin() || (boat.admins && boat.admins.indexOf(userid) > -1);
       });
 
     $scope.fetchFile = function() {

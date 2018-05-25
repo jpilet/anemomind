@@ -11,13 +11,15 @@ angular.module('www2App')
       autoUpload: true
     });
     $scope.boat = { };
-    $scope.isAdmin = Auth.isAdmin;
+    $scope.isBoatAdmin = true;
     $scope.boatId=$stateParams.boatId;
     $scope.files = [];
 
     boatList.boat($stateParams.boatId)
       .then(function (boat) {
         $scope.boat = boat;
+        var userid = Auth.getCurrentUser()._id;
+        $scope.isBoatAdmin = Auth.isAdmin() || (boat.admins && boat.admins.indexOf(userid) > -1);
       });
 
     $scope.fetchFileList = function() {

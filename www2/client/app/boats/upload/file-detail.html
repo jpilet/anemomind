@@ -11,44 +11,48 @@
   </ol>
 
 
-  <h1>{{ ::filename }} file details</h1>
+  <div ng-hide="isBoatAdmin">
+    You must have administration rights on the boat to manage its files.
+  </div>
+  <div ng-show="isBoatAdmin">
+    <h1>{{ ::filename }} file details</h1>
 
 
-  <table class="table">
-    <tbody>
-      <tr>
-        <th>File</th>
-        <td>
-          {{ file.name }}
-        </td>
-      </tr>
-      <tr ng-show="file.error">
-        <th>Error</th>
-        <td>{{ file.error }}</td>
-      </tr>
-      <tr ng-show="file.data">
-        <th>Imported data</th>
-        <td>{{ file.data }}</td>
-      </tr>
-      <tr ng-show="file.data">
-        <th>Beginning</th>
-        <td>{{ file.start | date:'medium' }}</td>
-      </tr>
-      <tr ng-show="file.data">
-        <th>End</th>
-        <td>{{ file.end | date:'medium' }}</td>
-      </tr>
-      <tr ng-show="file.data">
-        <th>Duration</th>
-        <td>{{ file.duration_sec | timeSpan }}</td>
-      </tr>
-      <tr ng-repeat="w in warnings">
-        <th><i class="glyphicon glyphicon-warning-sign orange"></i></th>
-        <td>{{ w }}</td>
-      </tr>
-    </tbody>
-  </table>
-
+    <table class="table">
+      <tbody>
+        <tr>
+          <th>File</th>
+          <td>
+            {{ file.name }}
+          </td>
+        </tr>
+        <tr ng-show="file.error">
+          <th>Error</th>
+          <td>{{ file.error }}</td>
+        </tr>
+        <tr ng-show="file.data">
+          <th>Imported data</th>
+          <td>{{ file.data }}</td>
+        </tr>
+        <tr ng-show="file.data">
+          <th>Beginning</th>
+          <td>{{ file.start | date:'medium' }}</td>
+        </tr>
+        <tr ng-show="file.data">
+          <th>End</th>
+          <td>{{ file.end | date:'medium' }}</td>
+        </tr>
+        <tr ng-show="file.data">
+          <th>Duration</th>
+          <td>{{ file.duration_sec | timeSpan }}</td>
+        </tr>
+        <tr ng-repeat="w in warnings">
+          <th><i class="glyphicon glyphicon-warning-sign orange"></i></th>
+          <td>{{ w }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <div ng-include="'components/footer/footer.html'"></div>
