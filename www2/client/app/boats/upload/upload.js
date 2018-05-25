@@ -7,4 +7,11 @@ angular.module('www2App')
         templateUrl: 'app/boats/upload/upload.html',
         controller: 'BoatUploadCtrl'
       });
+  })
+  .config(function ($stateProvider) {
+      $stateProvider.state('boat-file-detail', {
+        url: '/boats/:boatId/upload/:file',
+        templateUrl: 'app/boats/upload/file-detail.html',
+        controller: 'BoatFileDetailCtrl'
+      });
   });

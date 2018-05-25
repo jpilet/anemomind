@@ -13,10 +13,20 @@ router.get('/:boatId',
            access.boatWriteAccess,
            controller.listFiles);
 
+router.get('/:boatId/:file',
+            auth.isAuthenticated(),
+            access.boatWriteAccess,
+            controller.getSingle);
+
 router.post('/:boatId',
             auth.isAuthenticated(),
             access.boatWriteAccess,
             controller.postFile,
             controller.handleUploadedFile);
+
+router.delete('/:boatId/:file',
+            auth.isAuthenticated(),
+            access.boatWriteAccess,
+            controller.delete);
 
 module.exports = router;

@@ -1,18 +1,67 @@
 'use strict';
 
+const { execFile } = require('child_process');
+
 var multer  = require('multer');
 var fs = require('fs');
 var config = require('../../config/environment');
 var mkdirp = require('mkdirp');
 
+
 var uploadPath = fs.realpathSync(config.uploadDir) + '/anemologs/boat';
 console.log('Uploading log files to: ' + uploadPath);
+
+function isFileNameOk(filename) {
+  if (!filename || typeof(filename) != 'string') {
+    return false;
+  }
+
+  var regexp = /^[a-z0-9_-][a-z0-9_., -]+$/i;
+  return !!filename.match(regexp);
+}
 
 function fileDir(req) {
   if (req.params.boatId && req.params.boatId.match(/^[0-9a-zA-Z_-]+$/)) {
     return uploadPath + '/' + req.params.boatId + '/files';
   }
   return undefined;
+}
+
+function fileName(req) {
+  var file = req.params.file;
+  if (!isFileNameOk(file)) {
+    return undefined;
+  }
+  return file;
+}
+
+function getDetailsForFiles(dir, files) {
+  return new Promise((resolve, reject) => {
+    execFile(config.tryLoadBin, [ '-C', dir ].concat(files),
+             (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(JSON.parse(stdout));
+    });
+  });
+}
+
+exports.getSingle = function(req, res, next) {
+  const dir = fileDir(req);
+  const name = fileName(req);
+  if (!dir || !name) {
+    res.status(400).send();
+    return;
+  }
+
+  getDetailsForFiles(dir, [name])
+  .then((details) => {
+    res.status(200).json(details[0]);
+  })
+  .catch((err) => {
+    res.status(404).send();
+  });
 };
 
 exports.listFiles = function(req, res, next) {
@@ -29,23 +78,8 @@ exports.listFiles = function(req, res, next) {
           resolve(files);
         }
       });
-    });
-    p.then((files) => {
-      const promises = [];
-      files.forEach((file) => {
-        promises.push(new Promise((resolve, reject) => {
-          fs.stat(dir + '/' + file, (err, stat) => {
-            if (err) {
-              console.warn(err);
-              reject(err);
-            } else {
-              resolve({ name: file, date: stat.ctime, size: stat.size });
-            }
-          });
-        }));
-      });
-      return Promise.all(promises);
     })
+    .then((files) => { return getDetailsForFiles(dir, files); })
     .then((data) => {
       res.json(data);
     })
@@ -74,8 +108,7 @@ exports.postFile = multer({storage: multer.diskStorage({
       .replace(/^[.]/, '_'); // initial dot is not allowed
 
     // For paranoia, let's check the result.
-    var regexp = /^[a-z0-9_-][a-z0-9_., -]+$/i;
-    if (filename.match(regexp)) {
+    if (isFileNameOk(filename)) {
       console.log('file handler: accepting file: ' + file.originalname
         + ' as: ' + filename);
       file.newname = filename;
@@ -93,4 +126,20 @@ exports.handleUploadedFile = function(req, res, next) {
   res.status(201).json({ result: 'OK', file: req.file.newname });
 };
 
+exports.delete = function(req, res, next) {
+  const dir = fileDir(req);
+  const name = fileName(req);
+  if (!dir || !name) {
+    res.status(400).send();
+    return;
+  }
+  fs.unlink(dir + '/' + name, function(err) {
+    if (err) {
+      console.warn(err);
+      res.status(500).send(err);
+    } else {
+      res.status(204 /* no content */).send();
+    }
+  });
+};
 

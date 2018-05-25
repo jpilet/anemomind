@@ -69,7 +69,10 @@ var all = {
     port: 587,
     requireTLS: true,
     auth: { user: 'anemolab@calodox.org', pass: process.env.SMTP_PASSWORD || '' }
-  }
+  },
+
+  tryLoadBin: path.normalize(__dirname +
+                               '/../../../../build/src/server/nautical/logimport/logimport_try_load')
 };
 
 // Export the config object based on the NODE_ENV

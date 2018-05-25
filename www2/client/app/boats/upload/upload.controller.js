@@ -23,6 +23,10 @@ angular.module('www2App')
     $scope.fetchFileList = function() {
       $http.get('/api/files/' + $stateParams.boatId).then(function(response) {
         $scope.files = response.data;
+        $scope.files.forEach(function(f) {
+          f.start = new Date(f.start);
+          f.complete = f.data && f.data.match(/awa/) && f.data.match(/pos/);
+        });
       });
     };
 
@@ -30,6 +34,19 @@ angular.module('www2App')
       console.log('Uploaded: ', response.file);
       fileItem.remove();
       $scope.fetchFileList();
+    };
+
+    $scope.fileIsGood = function(f) {
+      return !!f.data;
+    };
+    $scope.fileIsBad = function(f) {
+      return !f.data;
+    };
+    $scope.delete = function(f) {
+      $http.delete('/api/files/' + $stateParams.boatId + '/' + f.name)
+      .then(function() {
+        $scope.files.splice($scope.files.indexOf(f), 1);
+      });
     };
 
     $scope.fetchFileList();

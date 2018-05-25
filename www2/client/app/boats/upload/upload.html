@@ -17,6 +17,7 @@
     <li>NMEA0183. Must contain GPS date and time.</li>
     <li>Astra ESA instrument log files</li>
     <li>Anemomind log files</li>
+    <li>CSV</li>
   </ul>
 
   <input type="file" nv-file-select uploader="uploader"/>
@@ -24,7 +25,7 @@
     Drag log files for {{ boat.name }} here.
   </div>
 
-  <table class="table">
+  <table ng-show="uploader.queue.length > 0" class="table">
     <thead>
       <tr>
         <th width="50%">Name</th>
@@ -63,9 +64,63 @@
     </tbody>
   </table>
 
-  <ul>
-    <li ng-repeat="file in files">{{ file.name }} {{ file.date }}</li>
-  </ul>
+  <table ng-show="files.length > 0" class="table">
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="file in files | filter: fileIsBad">
+        <td>
+          <a href="/boats/{{ boatId }}/upload/{{ file.name }}">
+          <i class="glyphicon glyphicon-remove-sign red"></i>
+          {{ file.name }}</td></a>
+        <td>{{ file.error }}</td>
+        <td>
+          <button ng-hide="file.confirm" type="button"
+                  class="btn btn-xs" ng-click="file.confirm=true">
+            <i class="glyphicon glyphicon-trash"></i>
+          </button>
+          <button ng-show="file.confirm" type="button"
+                  class="btn btn-danger btn-xs" ng-click="delete(file)">
+            Delete {{ file.name }}
+          </button>
+          <button ng-show="file.confirm" type="button"
+                  class="btn btn-xs" ng-click="file.confirm=false">
+            <i class="glyphicon glyphicon-remove"></i>
+          </button>
+        </td>
+      </tr>
+      <tr ng-repeat="file in files | filter: fileIsGood">
+        <td>
+          <a href="/boats/{{ boatId }}/upload/{{ file.name }}">
+          <i ng-show="file.complete" class="glyphicon glyphicon-ok-sign green"></i>
+          <i ng-show="!file.complete" class="glyphicon glyphicon-warning-sign orange"></i>
+          {{ file.name }}</a>
+        </td>
+        <td>{{ file.start | date:'short' }}, 
+          {{ file.duration_sec | timeSpan }}
+        </td>
+        <td>
+          <button ng-hide="file.confirm" type="button"
+                  class="btn btn-xs" ng-click="file.confirm=true">
+            <i class="glyphicon glyphicon-trash"></i>
+          </button>
+          <button ng-show="file.confirm" type="button"
+                  class="btn btn-danger btn-xs" ng-click="delete(file)">
+            Delete {{ file.name }}
+          </button>
+          <button ng-show="file.confirm" type="button"
+                  class="btn btn-xs" ng-click="file.confirm=false">
+            <i class="glyphicon glyphicon-remove"></i>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 
 </div>
 
