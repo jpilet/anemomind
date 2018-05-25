@@ -62,7 +62,7 @@ int main(int argc, const char **argv) {
     if (containsData(dataset)) {
       ss << "{\n"
         << "  \"name\": \"" << filename << "\",\n"
-        << "  \"start\": \"" << dataset.lowerBound().toString() << "\"\n"
+        << "  \"start\": \"" << dataset.lowerBound().toString() << "Z\",\n"
         << "  \"duration_sec\": "
           << (dataset.upperBound() - dataset.lowerBound()).seconds() << ",\n"
         << "  \"data\": \"" << join(listChannels(dataset), ", ") << "\"\n"
