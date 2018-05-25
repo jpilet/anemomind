@@ -12,7 +12,7 @@ namespace sail {
 
 class LogAccumulator;
 
-void loadCsv(const std::string &filename, LogAccumulator *dst);
+bool loadCsv(const std::string &filename, LogAccumulator *dst);
 
 }
 
