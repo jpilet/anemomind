@@ -1,6 +1,7 @@
 'use strict';
 
 const { execFile } = require('child_process');
+const backup = require('../../components/backup');
 
 var multer  = require('multer');
 var fs = require('fs');
@@ -122,7 +123,9 @@ exports.postFile = multer({storage: multer.diskStorage({
 })}).single('file');
 
 exports.handleUploadedFile = function(req, res, next) {
-  console.log(req.file.filename + ' uploaded, size: ' + req.file.size);
+  console.log(fileDir(req) + '/' + fileName(req)
+              + ' uploaded, size: ' + req.file.size);
+  backup.pushLogFilesToProcessingServer();
   res.status(201).json({ result: 'OK', file: req.file.newname });
 };
 
