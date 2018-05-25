@@ -262,5 +262,6 @@ exports.inviteUser = function(req, res) {
 };
 
 function handleError(res, err) {
+  console.warn(err);
   return res.status(500).send(err);
 }
