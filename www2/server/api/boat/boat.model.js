@@ -29,19 +29,18 @@ var BoatSchema = new Schema({
 //
 // load boat with photos and comments 
 BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
+  var promise=new Promise((resolve, reject) => {
+
   var Events=mongoose.model('Event');
-  var promise=new mongoose.Promise;
   var results=[];
   var filteredEvents=[];
 
-  if(callback){promise.addBack(callback);}
-
   this.find(query, function (err, boats){
     if(err){
-      return promise.reject(err);
+      return reject(err);
     }
     if(!boats.length){
-      return promise.resolve(null,[]);
+      return resolve([]);
     }
 
     //
@@ -52,7 +51,7 @@ BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
 
     Events.collectSocialDataByBoat(boats_id,function(err,eventsByBoat) {
       if(err){
-        return promise.reject(err);
+        return reject(err);
       }
       boats.forEach(function(boat) {
 
@@ -84,10 +83,15 @@ BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
       // new API coldrun 10-20 ms hotrun 5-10ms
       // old API coldrun 80-90 ms hotrun 60-80ms
       // console.log('----------------- collect',(Date.now()-time)/1000);
-      promise.resolve(null,results);
+      resolve(results);
     });
-
   });
+  });
+
+  if(callback){
+    promise.then((boats) => { callback(undefined, boats); });
+    promise.catch((err) => { callback(err); });
+  }
 
   return promise;
 }
