@@ -10,33 +10,17 @@ function pad(num, size) {
   return s;
 }
 
-function formatTime(date, locale) {
-  // the letters follow strftime convention
-  var Y = date.getUTCFullYear();
-  var m = pad(date.getUTCMonth() + 1, 2);
-  var d = pad(date.getUTCDate(), 2);
-  var H = pad(date.getUTCHours(), 2);
-  var I = pad((H > 12 ? H - 12 : H), 2);
-  var p = (H > 12 ? 'pm' : 'am');
-  var M = pad(date.getUTCMinutes(), 2);
-  var S = pad(date.getUTCSeconds(), 2);
-  var T = [H, M, S].join(':');
-
-  // For now, there is no way for our users to choose a locale.
-  // Because Alinghi needs the 'us' locale to import into KND sailing performance,
-  // the default is 'us'.
-  locale = locale || 'us';
-
-  // Same time locale as in exportNavs
-  if (locale == 'us') {
-    return [m, d, Y].join('/') + ' ' + [I, M, S].join(':') + ' ' + p;
-  } else if (locale == 'fr') {
-    return [d, m, Y].join('.') + ' ' + T;
-  } else {
-    // iso locale
-    // use it also in case of unknown locale.
-    return [Y, m, d].join('-') + 'T' + T + 'Z';
-  }
+function formatTime(date) {
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: 'UTC'
+  }).replace(/,/, '');
 }
 
 function getColumn (columns, title) {
