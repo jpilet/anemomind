@@ -85,8 +85,14 @@ exports.listFiles = function(req, res, next) {
       res.json(data);
     })
     .catch((err) => {
+      if (err.code == 'ENOENT') {
+        // The 'files' folder has not been created. It means there
+        // are no file, it is not an error.
+        res.json([]);
+      } else {
         console.warn(err);
-        req.status(500).send(err).send();
+        res.status(500).send(err);
+      }
     });
   }
 };
