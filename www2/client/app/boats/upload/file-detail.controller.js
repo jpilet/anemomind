@@ -21,7 +21,7 @@ angular.module('www2App')
       $scope.details = {};
       $http.get('/api/files/' + $stateParams.boatId
                 + '/' + $stateParams.filename).then(function(response) {
-        const f = $scope.file = response.data;
+        var f = $scope.file = response.data;
         f.start = new Date(f.start);
         f.end = new Date(f.start.getTime() + f.duration_sec * 1000);
         if (f.data && !f.data.match(/pos/)) {
