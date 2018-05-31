@@ -26,7 +26,7 @@
     "https": "^1.0.0",
     "json-buffer": "^3.0.0",
     "jsonwebtoken": "^8.2.1",
-    "lodash": "~4.17.10",
+    "lodash": "^3.10.1",
     "method-override": "~2.3.10",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
