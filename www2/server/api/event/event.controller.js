@@ -196,9 +196,11 @@ exports.postPhoto = multer({storage: multer.diskStorage({
     if (req.params.boatId && req.params.boatId.match(/^[0-9a-zA-Z_-]+$/)) {
       dir = photoUploadPath + '/' + req.params.boatId;
     } else {
-      return cb('no boatId', undefined);
+      cb('no boatId', undefined);
+      return;
     }
-    mkdirp(dir, cb);
+    console.log('photo upload dir: ', dir);
+    mkdirp(dir, (err) => { cb(err, dir); });
   },
 
   filename: function (req, file, cb) {
@@ -215,11 +217,15 @@ exports.postPhoto = multer({storage: multer.diskStorage({
       cb('Bad filename', undefined);
     }
   }
-})}).single('photo');
+})}).any();
 
-exports.backupPhotos = function(file, req, res) {
-  res.sendStatus(201);
-  backup.backupPhotos();
+exports.backupPhotos = function(req, res, next) {
+  if (req.files.length == 0) {
+    res.status(400).send();
+  } else {
+    res.sendStatus(201);
+    backup.backupPhotos();
+  }
 }
 
 exports.photoUploadPath = photoUploadPath;

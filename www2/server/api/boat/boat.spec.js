@@ -67,10 +67,11 @@ describe('GET /api/boats', function() {
         if (err) return done(err);
         res.body.should.be.instanceof(Array);
         res.body.should.have.length(2);
+        res.body.sort((a, b) => a.name.localeCompare(b.name));
         res.body[0].should.have.property('name');
-        res.body[0].name.should.equal('writable boat');
+        res.body[0].name.should.equal('readable boat');
         res.body[1].should.have.property('name');
-        res.body[1].name.should.equal('readable boat');
+        res.body[1].name.should.equal('writable boat');
         done();
       });
   });

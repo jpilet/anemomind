@@ -126,13 +126,27 @@ exports.postFile = multer({storage: multer.diskStorage({
       cb('Bad filename', undefined);
     }
   }
-})}).single('file');
+})}).any();
 
 exports.handleUploadedFile = function(req, res, next) {
-  console.log(fileDir(req) + '/' + fileName(req)
-              + ' uploaded, size: ' + req.file.size);
+  const dir = fileDir(req);
+  if (req.files.length == 0) {
+    res.status(400).json({error:'please attach at least one file'});
+    return;
+  }
+  if (!dir) {
+    console.warn('handleUploadedFile: no dir');
+    res.status(500); // should be caught by previous stage
+    return;
+  }
+  const result = [];
+  for (let i of req.files) {
+    console.log(dir + '/' + i.newname
+                + ' uploaded, size: ' + i.size);
+    result.push(i.newname);
+  }
+  res.status(201).json({ result: 'OK', files: result });
   backup.pushLogFilesToProcessingServer();
-  res.status(201).json({ result: 'OK', file: req.file.newname });
 };
 
 exports.delete = function(req, res, next) {

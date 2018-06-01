@@ -175,7 +175,6 @@ describe('GET /api/events', function() {
       .post('/api/events/photo/' + boat1.id)
       .set('Authorization', 'Bearer ' + token)
       .attach(photoName, photoPath)
-      .send()
       .expect(201)
       .end(done);
   });
@@ -200,7 +199,6 @@ describe('GET /api/events', function() {
       .post('/api/events/photo/' + boat2.id)
       .set('Authorization', 'Bearer ' + token)
       .attach(photoName, photoPath)
-      .send()
       .expect(403)
       .end(done);
   });
