@@ -23,10 +23,7 @@
     "express-session": "~1.14.2",
     "glob": "^7.0.5",
     "gm": "^1.20.0",
-    "grunt-contrib-imagemin": "^1.0.1",
     "https": "^1.0.0",
-    "imagemin": "^3.1.0",
-    "imagemin-gifsicle": "^4.1.0",
     "json-buffer": "^2.0.11",
     "jsonwebtoken": "^5.0.1",
     "lodash": "~3.9.3",
@@ -55,6 +52,9 @@
     "winston": "^1.0.0"
   },
   "devDependencies": {
+    "grunt-contrib-imagemin": "^2.0.1",
+    "imagemin": "^5.3.1",
+    "imagemin-gifsicle": "^4.1.0",
     "connect-livereload": "^0.6.0",
     "grunt": "^1.0.1",
     "grunt-angular-templates": "^1.1.0",
