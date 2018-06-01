@@ -23,7 +23,7 @@ function isFileNameOk(filename) {
 
 function fileDir(req) {
   if (req.params.boatId && req.params.boatId.match(/^[0-9a-zA-Z_-]+$/)) {
-    return uploadPath + '/' + req.params.boatId + '/files';
+    return uploadPath + req.params.boatId + '/files';
   }
   return undefined;
 }
