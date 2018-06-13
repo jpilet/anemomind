@@ -233,6 +233,27 @@ NavDataset NavDataset::clone() const {
   return r;
 }
 
+NavDataset NavDataset::stripSource(const std::string& source) const {
+  if (_dispatcher == nullptr) {
+    return NavDataset();
+  }
+
+  NavDataset r(
+      cloneAndfilterDispatcher(
+          _dispatcher.get(),
+          [source](DataCode testedCode, const std::string& s) {
+            return s != source;
+          }),
+      _lowerBound,
+      _upperBound);
+  for (auto s : _activeSource) {
+    if (s.second->source() != source) {
+      r._activeSource[s.first] = s.second;
+    }
+  }
+  return r;
+}
+
 NavDataset NavDataset::stripChannel(DataCode code) const {
   if (_dispatcher == nullptr) {
     return NavDataset();

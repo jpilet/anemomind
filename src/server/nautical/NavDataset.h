@@ -222,6 +222,7 @@ public:
   NavDataset clone() const;
 
   NavDataset stripChannel(DataCode code) const;
+  NavDataset stripSource(const std::string& source) const;
 
   bool hasLowerBound() const;
   bool hasUpperBound() const;
