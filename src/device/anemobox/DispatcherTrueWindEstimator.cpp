@@ -54,9 +54,11 @@ void DispatcherTrueWindEstimator::compute(const std::string &srcName) const {
   Angle<> twa;
   Velocity<> tws;
 
-  if (!_dispatcher->get<GPS_SPEED>()->dispatcher()->hasValue()
-      || !_dispatcher->get<AWA>()->dispatcher()->hasValue()
-      || !_dispatcher->get<AWS>()->dispatcher()->hasValue()) {
+  TimeStamp freshLimit = _dispatcher->currentTime() - Duration<double>::seconds(5);
+
+  if (!_dispatcher->get<GPS_SPEED>()->dispatcher()->hasFreshValue(freshLimit)
+      || !_dispatcher->get<AWA>()->dispatcher()->hasFreshValue(freshLimit)
+      || !_dispatcher->get<AWS>()->dispatcher()->hasFreshValue(freshLimit)) {
     // we can't compute anything useful without GPS.
     return;
   }

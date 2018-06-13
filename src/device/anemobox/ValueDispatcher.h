@@ -73,6 +73,9 @@ class ValueDispatcher {
   virtual bool hasValue() const { return values_.size() > 0; }
   virtual T lastValue() const { return values_.lastValue(); }
   virtual TimeStamp lastTimeStamp() const { return values_.lastTimeStamp(); }
+  virtual bool hasFreshValue(TimeStamp t) const {
+    return hasValue() && lastTimeStamp() >= t;
+  }
 
   virtual const TimedSampleCollection<T>& values() const { return values_; }
 
@@ -161,6 +164,9 @@ class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
   virtual bool hasValue() const { return _forward && _forward->hasValue(); }
   virtual T lastValue() const { return _forward ? _forward->lastValue() : T(); }
   virtual TimeStamp lastTimeStamp() const { return _forward->lastTimeStamp(); }
+  virtual bool hasFreshValue(TimeStamp t) const {
+    return hasValue() && lastTimeStamp() >= t;
+  }
 
   virtual const TimedSampleCollection<T>& values() const {
     return _forward ? _forward->values() : emptyValues_;
