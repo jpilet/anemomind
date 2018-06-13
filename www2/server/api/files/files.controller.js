@@ -23,6 +23,9 @@ function isFileNameOk(filename) {
 
 function fileDir(req) {
   if (req.params.boatId && req.params.boatId.match(/^[0-9a-zA-Z_-]+$/)) {
+    // There must be no '/' between uploadPath and boatid, because the folder
+    // name looks like: /path/boat12345/files for boat id 12345. Adding a slash
+    // would lead to /path/boat/12345/files instead.
     return uploadPath + req.params.boatId + '/files';
   }
   return undefined;
