@@ -73,6 +73,7 @@ void queryToMongo(
   if (q.lower.defined()) {
     BsonSubDocument end(dst, tsEnd);
     bsonAppend(&end, "$gte", q.lower);
+    end.finalize();
   }
 
   // Only pick intervals such that their first time
@@ -80,6 +81,7 @@ void queryToMongo(
   if (q.upper.defined()) {
     BsonSubDocument begin(dst, tsBegin);
     bsonAppend(&begin, "$lte", q.upper);
+    begin.finalize();
   }
 }
 
