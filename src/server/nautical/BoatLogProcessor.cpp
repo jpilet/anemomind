@@ -314,23 +314,42 @@ void outputInfoPerSession(
 
 namespace {
 
-  std::vector<WindOrientedGrammarSettings> generateMoreGrammarSettings(
+  struct GrammarAndCalibSettings {
+    WindOrientedGrammarSettings grammarSettings;
+    CalibratorSettings calibSettings;
+  };
+
+
+  std::vector<GrammarAndCalibSettings> generateMoreGrammarSettings(
       const WindOrientedGrammarSettings& source) {
-    auto primarySettings = source;
+    GrammarAndCalibSettings primary;
+    primary.grammarSettings = source;
 
     // For some boats, it seems like we incorrectly segment large
     // portions of data as not being in a race. This results in
     // too few maneuvers. So if the first try of calibration fails due to
     // too few maneuvers, we can penalize some major states to encourage
     // more maneuvers.
-    auto settingsWithMoreManeuvers = primarySettings;
-    settingsWithMoreManeuvers.majorStatesToPenalize.insert("before-race");
-    settingsWithMoreManeuvers.majorStatesToPenalize.insert("idle");
+    auto next = primary;
+    next.grammarSettings.majorStatesToPenalize.insert("before-race");
+    next.grammarSettings.majorStatesToPenalize.insert("idle");
 
-    return std::vector<WindOrientedGrammarSettings>{
-      primarySettings,
-      settingsWithMoreManeuvers
+    std::vector<GrammarAndCalibSettings> dst{
+      primary,
+      next
     };
+
+    // Further relax the requirements for segmenting a maneuver.
+    while (true) {
+      next.calibSettings.childCountMargin /= 2;
+      if (next.calibSettings.childCountMargin < 2) {
+        break;
+      } else {
+        dst.push_back(next);
+      }
+    }
+
+    return dst;
   }
 
 }
@@ -398,7 +417,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   // Try different settings until we get a working calibration.
   for (int i = 0; i < settingsToTry.size(); i++) {
-    _grammar = WindOrientedGrammar(settingsToTry[i]);
+    const auto& stt = settingsToTry[i];
+    _grammar = WindOrientedGrammar(stt.grammarSettings);
 
     fulltree = _grammar.parse(
         current.stripSource("Anemomind estimator") // avoid "loop back" effects
@@ -411,7 +431,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
     grammarDebug(fulltree, current);
 
-    Calibrator calibrator(_grammar, CalibratorSettings());
+    Calibrator calibrator(_grammar, stt.calibSettings);
     if (_verboseCalibrator) { calibrator.setVerbose(); }
 
 
