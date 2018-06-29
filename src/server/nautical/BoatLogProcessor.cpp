@@ -417,6 +417,10 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   // Try different settings until we get a working calibration.
   for (int i = 0; i < settingsToTry.size(); i++) {
+    if (0 < i) {
+      LOG(WARNING) << "Trying grammar/calib settings " << i+1 << " of "
+          << settingsToTry.size();
+    }
     const auto& stt = settingsToTry[i];
     _grammar = WindOrientedGrammar(stt.grammarSettings);
 

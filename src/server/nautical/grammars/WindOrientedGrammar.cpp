@@ -397,8 +397,6 @@ std::shared_ptr<HTree> WindOrientedGrammar::parse(NavDataset navs0,
     file << mapToRawMinorState(nav) << " " << states[i] << std::endl;
   }
   auto tree = _hierarchy.parse(states);
-  exploreTree(_hierarchy.nodes(), tree);
-
   return tree;
 }
 
