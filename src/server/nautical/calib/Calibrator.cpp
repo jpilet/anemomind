@@ -324,7 +324,7 @@ bool Calibrator::segment(const NavDataset& navs,
   if (_maneuvers.size() < 30) {
     // we do not have enough maneuvers.
     if (_verbose) {
-      LOG(INFO) << "only " << _maneuvers.size()
+      LOG(WARNING) << "only " << _maneuvers.size()
         << " maneuvers, cancelling calibration.";
     }
     clear();
@@ -365,6 +365,7 @@ bool Calibrator::calibrate(const NavDataset& navs,
                            std::shared_ptr<HTree> tree,
                            Nav::Id boatId) {
   if (!segment(navs, tree)) {
+    LOG(ERROR) << "FAILED to segment the navs";
     return false;
   }
 
