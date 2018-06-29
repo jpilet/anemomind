@@ -16,11 +16,20 @@ namespace sail {
 class TackCost;
 class GnuplotExtra;
 
+struct CalibratorSettings {
+  int childCountMargin = 20;
+};
+
 
 class Calibrator  {
   public:
     Calibrator() : _grammar(_settings), _verbose(false) { clear(); }
-    Calibrator(const WindOrientedGrammar& grammar) : _grammar(grammar), _verbose(false) { clear(); }
+    Calibrator(
+        const WindOrientedGrammar& grammar,
+        const CalibratorSettings& s = CalibratorSettings()) :
+        _grammar(grammar),
+        _verbose(false),
+        _calibSettings(s) { clear(); }
 
     //! Attempt to load data and run the minimizer. Clears previous results.
     bool calibrate(Poco::Path dataPath, Nav::Id boatId);
@@ -83,6 +92,7 @@ class Calibrator  {
     vector<TackCost*> _maneuvers;
 
     bool _verbose;
+    CalibratorSettings _calibSettings;
 };
 
 // Calibrates a Corrector<double> by using a Calibrator.

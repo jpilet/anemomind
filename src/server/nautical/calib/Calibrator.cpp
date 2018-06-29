@@ -278,8 +278,10 @@ void Calibrator::addAllTack(std::shared_ptr<HTree> tree) {
 
         if (childBeforeDescr == childAfterDescr
             && (childBeforeDescr == "close-hauled" || childBeforeDescr == "broad-reach")
-            && (before->child(before->childCount() - 1)->count() > 20)
-            && (after->child(0)->count() > 20)) {
+            && (before->child(before->childCount() - 1)->count()
+                > _calibSettings.childCountMargin)
+            && (after->child(0)->count()
+                > _calibSettings.childCountMargin)) {
           addTack(before->right(), 1.0);
         }
       }

@@ -411,7 +411,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
     grammarDebug(fulltree, current);
 
-    Calibrator calibrator(_grammar);
+    Calibrator calibrator(_grammar, CalibratorSettings());
     if (_verboseCalibrator) { calibrator.setVerbose(); }
 
 
