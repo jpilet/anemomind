@@ -23,17 +23,6 @@ enum VmgSampleSelection {
   VMG_SAMPLES_BLIND
 };
 
-struct GrammarRunner {
-  WindOrientedGrammarSettings settings;
-  WindOrientedGrammar grammar;
-
-  GrammarRunner() : grammar(settings) { }
-  std::shared_ptr<HTree> parse(const NavDataset& navs) {
-    std::shared_ptr<HTree> fulltree = grammar.parse(navs);
-    return fulltree;
-  }
-};
-
 struct BoatLogProcessor {
   bool process(ArgMap* amap);
   void readArgs(ArgMap* amap);
@@ -48,7 +37,8 @@ struct BoatLogProcessor {
   TileGeneratorParameters _tileParams;
   ChartTileSettings _chartTileSettings;
   GpsFilterSettings _gpsFilterSettings;
-  GrammarRunner _grammar;
+  WindOrientedGrammar _grammar =
+      WindOrientedGrammar(WindOrientedGrammarSettings());
   bool _generateTiles = false;
   bool _generateChartTiles = false;
   VmgSampleSelection _vmgSampleSelection;

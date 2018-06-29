@@ -36,6 +36,7 @@ class WindOrientedGrammar : public Grammar {
   MDArray2b startOfRaceTransitions() const {return _startOfRaceTransitions;}
   MDArray2b endOfRaceTransitions() const {return _endOfRaceTransitions;}
   const Hierarchy &hierarchy() const {return _hierarchy;}
+  const WindOrientedGrammarSettings& settings() const {return _settings;}
  private:
   MDArray2b _startOfRaceTransitions, _endOfRaceTransitions;
   Hierarchy _hierarchy;

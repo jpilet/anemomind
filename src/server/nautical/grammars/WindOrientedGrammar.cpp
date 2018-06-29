@@ -353,6 +353,7 @@ namespace {
     }
 
     for (const auto& p: toPenalize) {
+      std::cout << "Penalize this! " << p << std::endl;
       auto f = majorStateToIndex.find(p);
       CHECK(f != majorStateToIndex.end())
         << "No such major state '" << p << "'";
@@ -370,6 +371,8 @@ G001SA::G001SA(WindOrientedGrammarSettings s, Array<Nav> navs) :
 
   _isPenalizedMajorState = makeMajorStatePenaltyMask(
       _settings.majorStatesToPenalize);
+
+  std::cout << "Is penalized: " << _isPenalizedMajorState << std::endl;
 }
 
 double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {

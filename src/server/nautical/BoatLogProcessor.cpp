@@ -283,12 +283,12 @@ void BoatLogProcessor::grammarDebug(
       [&](std::shared_ptr<HTree> t) {return grammarNodeInfo(resampled, t);};
   if (_exploreGrammar) {
     exploreTree(
-        _grammar.grammar.nodeInfo(), fulltree, &std::cout,
+        _grammar.nodeInfo(), fulltree, &std::cout,
         grammarNodeInfoResampled);
   }
   if (_logGrammar) {
     std::ofstream file(_dstPath.toString() + "/loggrammar.txt");
-    outputLogGrammar(&file, _grammar.grammar.nodeInfo(),
+    outputLogGrammar(&file, _grammar.nodeInfo(),
         fulltree, grammarNodeInfoResampled);
   }
 }
@@ -386,7 +386,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   current = current.createMergedChannels(
       std::set<DataCode>{AWA, AWS}, Duration<>::seconds(.3));
 
-  auto settingsToTry = generateMoreGrammarSettings(_grammar.settings);
+  auto settingsToTry = generateMoreGrammarSettings(_grammar.settings());
 
 
   // Place-holders for the result of the for-loop over the grammar settings.
@@ -398,7 +398,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   // Try different settings until we get a working calibration.
   for (int i = 0; i < settingsToTry.size(); i++) {
-    _grammar.settings = settingsToTry[i];
+    _grammar = WindOrientedGrammar(settingsToTry[i]);
 
     fulltree = _grammar.parse(
         current.stripSource("Anemomind estimator") // avoid "loop back" effects
@@ -411,7 +411,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
     grammarDebug(fulltree, current);
 
-    Calibrator calibrator(_grammar.grammar);
+    Calibrator calibrator(_grammar);
     if (_verboseCalibrator) { calibrator.setVerbose(); }
 
 
@@ -450,7 +450,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
   outputTargetSpeedTable(_debug, 
                          fulltree,
-                         _grammar.grammar.nodeInfo(),
+                         _grammar.nodeInfo(),
                          current,
                          _vmgSampleSelection,
                          &boatDatFile);
@@ -469,7 +469,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   HTML_DISPLAY(_generateTiles, &_htmlReport);
   if (_generateTiles) {
     Array<NavDataset> sessions =
-      extractAll("Sailing", current, _grammar.grammar, fulltree);
+      extractAll("Sailing", current, _grammar, fulltree);
     outputInfoPerSession(sessions, &_htmlReport);
     if (!generateAndUploadTiles(_boatid, sessions, db.db, _tileParams)) {
       LOG(ERROR) << "generateAndUpload: tile generation failed";
