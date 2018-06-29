@@ -441,12 +441,14 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
     bool successfullyCalibrated =
         calibrator.calibrate(current, fulltree, _boatid);
-
     bool isLast = i+1 == settingsToTry.size();
+    bool stop = successfullyCalibrated || isLast;
 
-    if (successfullyCalibrated || isLast) {
+    if (stop) {
 
-      if (!successfullyCalibrated) {
+      if (successfullyCalibrated) {
+        LOG(INFO) << "Calibration succeeded on try " << i+1;
+      } else {
         LOG(WARNING) << "Calibration failed. Using default calib values.";
         calibrator.clear();
       }
@@ -457,6 +459,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
 
       // First simulation pass: adds true wind
       current = calibrator.simulate(current);
+
+      break;
     } else {
       LOG(WARNING) << "Calibration failed, but we will try other settings.";
     }
