@@ -31,6 +31,7 @@ WindOrientedGrammarSettings::WindOrientedGrammarSettings() {
   onOffCost = 2*majorTransitionCost;
   majorStateCost = 1.0;
   switchOnOffDuringRace = true;
+  majorStatePenalty = 1.0e4;
 }
 
 
@@ -43,8 +44,11 @@ namespace {
     return 0 <= stateIndex && stateIndex < stateCount;
   }
 
+  const int majorStateCount = 5;
+  const char *majorStates[majorStateCount] = {
+      "before-race", "upwind-leg", "downwind-leg", "idle", "off"
+  };
 
-  const char *majorStates[] = {"before-race", "upwind-leg", "downwind-leg", "idle", "off"};
   const char *sides[] = {"starboard-tack", "port-tack"};
   const char *types[] = {"close-hauled", "beam-reach", "broad-reach"};
 
@@ -249,6 +253,7 @@ class G001SA : public StateAssign {
   WindOrientedGrammarSettings _settings;
   Array<Nav> _navs;
   Arrayd _minorStateCostFactors;
+  Array<bool> _isPenalizedMajorState;
 };
 
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
@@ -262,8 +267,14 @@ double G001SA::getStateCost(int stateIndex, int timeIndex) {
     int iQueried = getMinorState(stateIndex);
     int iRawObserved = mapToRawMinorState(nav);
 
+    auto majorStatePenalty =
+        _isPenalizedMajorState[getMajorState(stateIndex)]?
+            _settings.majorStatePenalty : 0;
+
     // Constant cost for being in this state
-    double stateCost = _settings.majorStateCost*_minorStateCostFactors[stateIndex];
+    double stateCost =
+        _settings.majorStateCost*_minorStateCostFactors[stateIndex]
+        + majorStatePenalty;
 
     // Penalty for this minor state index not matching the input
     double matchCost =
@@ -331,9 +342,34 @@ namespace {
   }
 }
 
+namespace {
+
+  Array<bool> makeMajorStatePenaltyMask(
+      const std::set<std::string>& toPenalize) {
+    auto dst = Array<bool>::fill(majorStateCount, false);
+    std::map<std::string, int> majorStateToIndex;
+    for (int i = 0; i < majorStateCount; i++) {
+      majorStateToIndex[majorStates[i]] = i;
+    }
+
+    for (const auto& p: toPenalize) {
+      auto f = majorStateToIndex.find(p);
+      CHECK(f != majorStateToIndex.end())
+        << "No such major state '" << p << "'";
+      dst[f->second] = true;
+    }
+
+    return dst;
+  }
+}
+
 G001SA::G001SA(WindOrientedGrammarSettings s, Array<Nav> navs) :
     _settings(s), _navs(navs), _minorStateCostFactors(makeCostFactors()),
     _preds(makePredecessorsPerState(makeConnections(s.switchOnOffDuringRace))) {
+
+
+  _isPenalizedMajorState = makeMajorStatePenaltyMask(
+      _settings.majorStatesToPenalize);
 }
 
 double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {

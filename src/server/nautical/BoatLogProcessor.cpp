@@ -312,6 +312,29 @@ void outputInfoPerSession(
   }
 }
 
+namespace {
+
+  std::vector<WindOrientedGrammarSettings> generateMoreGrammarSettings(
+      const WindOrientedGrammarSettings& source) {
+    auto primarySettings = source;
+
+    // For some boats, it seems like we incorrectly segment large
+    // portions of data as not being in a race. This results in
+    // too few maneuvers. So if the first try of calibration fails due to
+    // too few maneuvers, we can penalize some major states to encourage
+    // more maneuvers.
+    auto settingsWithMoreManeuvers = primarySettings;
+    settingsWithMoreManeuvers.majorStatesToPenalize.insert("before-race");
+    settingsWithMoreManeuvers.majorStatesToPenalize.insert("idle");
+
+    return std::vector<WindOrientedGrammarSettings>{
+      primarySettings,
+      settingsWithMoreManeuvers
+    };
+  }
+
+}
+
 
 //
 // high-level processing logic
@@ -362,36 +385,58 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   hack::SelectSources(&current);
   current = current.createMergedChannels(
       std::set<DataCode>{AWA, AWS}, Duration<>::seconds(.3));
-  std::shared_ptr<HTree> fulltree = _grammar.parse(
-      current.stripSource("Anemomind estimator") // avoid "loop back" effects
-      );
 
-  if (!fulltree) {
-    LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
-    return false;
-  }
+  auto settingsToTry = generateMoreGrammarSettings(_grammar.settings);
 
-  grammarDebug(fulltree, current);
 
-  Calibrator calibrator(_grammar.grammar);
-  if (_verboseCalibrator) { calibrator.setVerbose(); }
+  // Place-holders for the result of the for-loop over the grammar settings.
+  std::shared_ptr<HTree> fulltree;
+
   std::string boatDatPath = _dstPath.toString() + "/boat.dat";
   std::ofstream boatDatFile(boatDatPath);
   CHECK(boatDatFile.is_open()) << "Error opening " << boatDatPath;
 
-  // Calibrate. TODO: use filtered data instead of resampled.
-  if (calibrator.calibrate(current, fulltree, _boatid)) {
-      calibrator.saveCalibration(&boatDatFile);
-  } else {
-    LOG(WARNING) << "Calibration failed. Using default calib values.";
-    calibrator.clear();
-    if (_saveDefaultCalib) {
-      calibrator.saveCalibration(&boatDatFile);
+  // Try different settings until we get a working calibration.
+  for (int i = 0; i < settingsToTry.size(); i++) {
+    _grammar.settings = settingsToTry[i];
+
+    fulltree = _grammar.parse(
+        current.stripSource("Anemomind estimator") // avoid "loop back" effects
+        );
+
+    if (!fulltree) {
+      LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
+      return false;
+    }
+
+    grammarDebug(fulltree, current);
+
+    Calibrator calibrator(_grammar.grammar);
+    if (_verboseCalibrator) { calibrator.setVerbose(); }
+
+
+    bool successfullyCalibrated =
+        calibrator.calibrate(current, fulltree, _boatid);
+
+    bool isLast = i+1 == settingsToTry.size();
+
+    if (successfullyCalibrated || isLast) {
+
+      if (!successfullyCalibrated) {
+        LOG(WARNING) << "Calibration failed. Using default calib values.";
+        calibrator.clear();
+      }
+
+      if (successfullyCalibrated || _saveDefaultCalib) {
+        calibrator.saveCalibration(&boatDatFile);
+      }
+
+      // First simulation pass: adds true wind
+      current = calibrator.simulate(current);
+    } else {
+      LOG(WARNING) << "Calibration failed, but we will try other settings.";
     }
   }
-
-  // First simulation pass: adds true wind
-  current = calibrator.simulate(current);
 
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system

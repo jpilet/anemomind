@@ -23,6 +23,8 @@ struct WindOrientedGrammarSettings {
   double onOffCost;           // cost for being in the off-state
   double majorStateCost;
   bool switchOnOffDuringRace;
+  double majorStatePenalty;   // Cost to strongly discourage certain major states.
+  std::set<std::string> majorStatesToPenalize;
 };
 
 class WindOrientedGrammar : public Grammar {
