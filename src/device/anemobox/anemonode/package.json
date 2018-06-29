@@ -6,6 +6,7 @@
     "async": "^1.4.2",
     "bleno": "^0.2.0",
     "body-parser": "^1.13.3",
+    "calypso_ultrasonic": "jpilet/calypso_ultrasonic",
     "debug": "^2.6.8",
     "diskspace": "^2.0.0",
     "endpoint": "file:../../../../nodemodules/endpoint",
