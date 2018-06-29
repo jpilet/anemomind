@@ -14,6 +14,7 @@
 #include <server/nautical/grammars/StaticCostFactory.h>
 #include <server/nautical/grammars/HintedStateAssignFactory.h>
 #include <server/common/SharedPtrUtils.h>
+#include <server/nautical/grammars/TreeExplorer.h>
 
 namespace sail {
 
@@ -348,7 +349,18 @@ std::shared_ptr<HTree> WindOrientedGrammar::parse(NavDataset navs0,
   }
   G001SA sa(_settings, navs);
   Arrayi states = makeHintedStateAssign(*this, makeSharedPtrToStack(sa), hints, navs).solve();
-  return _hierarchy.parse(states);
+
+  LOG(INFO) << "Number of states: " << states.size();
+  std::ofstream file("/tmp/states.txt");
+  CHECK(states.size() == navs.size());
+  for (int i = 0; i < states.size(); i++) {
+    const auto& nav = navs[i];
+    file << mapToRawMinorState(nav) << " " << states[i] << std::endl;
+  }
+  auto tree = _hierarchy.parse(states);
+  exploreTree(_hierarchy.nodes(), tree);
+
+  return tree;
 }
 
 
