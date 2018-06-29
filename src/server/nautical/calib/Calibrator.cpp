@@ -326,6 +326,9 @@ bool Calibrator::segment(const NavDataset& navs,
     if (_verbose) {
       LOG(WARNING) << "only " << _maneuvers.size()
         << " maneuvers, cancelling calibration.";
+      for (const auto& maneuver: _maneuvers) {
+        LOG(WARNING) << "Maneuver at " << maneuver->time().toString();
+      }
     }
     clear();
     return false;
