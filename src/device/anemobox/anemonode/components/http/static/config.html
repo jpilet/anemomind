@@ -37,6 +37,12 @@
 	  id="outputNmea2000" 
           name="outputNmea2000"/></dd>
       </dl>
+      <dl class="dl-horizontal">
+        <dt><label for="calypsoUltrasonic">Calypso Ultrasonic support</label></dt>
+	<dd><input type="checkbox" 
+	  id="calypsoUltrasonic" 
+          name="calypsoUltrasonic"/></dd>
+      </dl>
     </div>
     <p class="body-link"><a href="/">Input data</a></p>
     <p class="body-link"><a href="/allSources.html">Detailed input data</a></p>
@@ -86,6 +92,7 @@
 	  
 	  initializeCheckbox("logRawNmea2000", data.boxConfig.logRawNmea2000);
 	  initializeCheckbox("outputNmea2000", data.boxConfig.outputNmea2000);
+	  initializeCheckbox("calypsoUltrasonic", data.boxConfig.calypsoUltrasonic);
 	  	
 	  
           var table = $('#dataTable');
@@ -146,6 +153,9 @@
       });
       $("#outputNmea2000").change(function(e) {
         changeBoxConfig("outputNmea2000", this.checked);
+      });
+      $("#calypsoUltrasonic").change(function(e) {
+        changeBoxConfig("calypsoUltrasonic", this.checked);
       });
     });
   </script>

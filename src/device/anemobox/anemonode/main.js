@@ -241,5 +241,15 @@ callrpc.WITH_BT = withBT;
 callrpc.WITH_HTTP = withHttp;
 
 if (withCalypsoUltrasonic) {
-  require('./components/ultrasonic').startScanning();
+  var ultrasonic = require('./components/ultrasonic');
+
+  config.getAndListen(function(err, cfg) {
+    if (cfg) {
+      if (cfg.calypsoUltrasonic) {
+        ultrasonic.start();
+      } else {
+        ultrasonic.shutdown();
+      }
+    }
+  });
 }
