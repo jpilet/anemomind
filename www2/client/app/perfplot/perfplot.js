@@ -81,7 +81,15 @@ Graph.prototype.prepare = function() {
     });
   }
 
+
   var yForPoint = function(d) { return y(d.value); };
+  var defined = function(d) {
+        var range = me.x.range();
+        var x = me.x(d.time);
+        return (x < range[1] && x >= range[0]
+          && !isNaN(d.value));
+      };
+
   if (!this.svg) {
     // Create the SVG and all its visual element (without data yet).
 
@@ -91,26 +99,26 @@ Graph.prototype.prepare = function() {
       .x(function(d) { return x(d.time); })
       .y0(rangeMax(y.range()))
       .y1(yForPoint)
-      .defined(function(d) { return !isNaN(d.value); });
+      .defined(defined);
 
     // A line generator.
     this.line = d3.svg.line()
       .interpolate("linear")
       .x(function(d) { return x(d.time); })
       .y(yForPoint)
-      .defined(function(d) { return !isNaN(d.value); });
+      .defined(defined);
 
     this.lowLine = d3.svg.line()
       .interpolate("linear")
       .x(function(d) { return x(d.time); })
       .y(function(d) { return y(d.low); })
-      .defined(function(d) { return !isNaN(d.low); });
+      .defined(function(d) { return defined(d) && !isNaN(d.low); });
 
     this.highLine = d3.svg.line()
       .interpolate("linear")
       .x(function(d) { return x(d.time); })
       .y(function(d) { return y(d.high); })
-      .defined(function(d) { return !isNaN(d.high); });
+      .defined(function(d) { return defined(d) && !isNaN(d.high); });
 
     $(this.container).empty();
 
@@ -231,8 +239,14 @@ Graph.prototype.prepare = function() {
 };
 
 Graph.prototype.setTimeBounds = function(startTime, endTime) {
+  var domain = this.x.domain();
+
+  // The subtraction for comparison makes sure that we can compare
+  // Date or Number objects.
+  if ((startTime - domain[0]) != 0 || (endTime - domain[1]) != 0) {
     this.x.domain([startTime, endTime]);
     this.zoom.x(this.x);
+  }
 };
 
 Graph.prototype.setYBounds = function(data) {
@@ -249,16 +263,27 @@ Graph.prototype.setTimeMarks = function(times) {
   this.draw();
 };
 
+Graph.prototype.cleanUp = function() {
+  var svg = this.svg;
+  var data = [];
+  svg.select("path.area").data([data]);
+  svg.select("#mainLine").data([data]);
+  svg.select("#lowLine").data([data]);
+  svg.select("#highLine").data([data]);
+};
+
 Graph.prototype.draw = function() {
   if (this.preparedWidth != this.width()
       || this.preparedHeight != this.height()) {
     if (!this.prepare()) {
+      this.cleanUp();
       return;
     }
   }
 
   this.loader.fetchTilesInView(this.x);
   if (!this.prepareTileData()) {
+    this.cleanUp();
     return;
   }
 
@@ -270,6 +295,8 @@ Graph.prototype.draw = function() {
     svg.select("#lowLine").attr("d", this.lowLine);
     svg.select("#highLine").attr("d", this.highLine);
     svg.select("#mainLine").attr("d", this.line);
+  } else {
+    this.cleanUp();
   }
 
   var x = this.x;
@@ -318,13 +345,11 @@ Graph.prototype.prepareTileData = function() {
     if (data.length > 0) {
       this.hasData = true;
       this.setYBounds(data);
-      this.svg.select("path.area").data([data]);
-      this.svg.select("#mainLine").data([data]);
-      this.svg.select("#lowLine").data([data]);
-      this.svg.select("#highLine").data([data]);
-    } else {
-      this.hasData = false;
     }
+    this.svg.select("path.area").data([data]);
+    this.svg.select("#mainLine").data([data]);
+    this.svg.select("#lowLine").data([data]);
+    this.svg.select("#highLine").data([data]);
 
     return true;
   }
