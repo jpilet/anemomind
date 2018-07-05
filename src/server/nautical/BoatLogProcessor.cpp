@@ -391,7 +391,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   }
 
   // First simulation pass: adds true wind
-  current = calibrator.simulate(current);
+  current = calibrator.simulate(current.stripSource("Anemomind estimator"));
 
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system
