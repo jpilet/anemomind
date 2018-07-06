@@ -76,8 +76,8 @@ void DispatcherTrueWindEstimator::compute(const std::string &srcName) const {
     twa = (twdir - _filter.gpsBearing());
     _dispatcher->publishValue(TWA, srcName, twa);
   } else {
-    if (!_dispatcher->get<TWA>()->dispatcher()->hasValue()
-        || !_dispatcher->get<TWS>()->dispatcher()->hasValue()) {
+    if (!_dispatcher->get<TWA>()->dispatcher()->hasFreshValue(freshLimit)
+        || !_dispatcher->get<TWS>()->dispatcher()->hasFreshValue(freshLimit)) {
       return;
     }
     twa = _dispatcher->get<TWA>()->dispatcher()->lastValue();
