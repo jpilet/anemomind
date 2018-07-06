@@ -64,7 +64,7 @@ TEST(MongoNavDatasetLoader, TestIt) {
   }
 
   //boatId = "552b806a35ce7cb254dc9515";
-  auto dataset = loadEvents(db, boatId);
+  auto dataset = loadEvents(NavDataset(), db, boatId);
   int toOnCount = 0;
   int toOffCount = 0;
   for (auto s: dataset.samples<USER_DEF_SESSION>()) {

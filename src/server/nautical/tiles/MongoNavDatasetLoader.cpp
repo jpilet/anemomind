@@ -43,13 +43,6 @@ namespace {
     return TimeStamp();
   }
 
-  NavDataset wrapLoadedMongoDataInNavDataset(
-      const TimedSampleCollection<BinaryEdge>::TimedVector& src) {
-    auto d = std::make_shared<Dispatcher>();
-    d->insertValues<BinaryEdge>(USER_DEF_SESSION, "iosApp", src);
-    return d;
-  }
-
   bool startsWith(const std::string& msg, const std::string& p) {
     if (msg.size() < p.size()) {
       return false;
@@ -59,6 +52,7 @@ namespace {
 }
 
 NavDataset loadEvents(
+    const NavDataset& dst,
     const MongoDBConnection& connection,
     const std::string& boatId) {
   if (!connection.defined()) {
@@ -117,7 +111,8 @@ NavDataset loadEvents(
     }
     LOG(WARNING) << ss.str();
   }
-  return wrapLoadedMongoDataInNavDataset(sessionEdges);
+  return dst.addChannel<BinaryEdge>(
+      USER_DEF_SESSION, "iosApp", sessionEdges);
 }
 
 

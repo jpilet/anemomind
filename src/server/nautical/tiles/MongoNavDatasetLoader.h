@@ -14,6 +14,7 @@
 namespace sail {
 
 NavDataset loadEvents(
+    const NavDataset& dst,
     const MongoDBConnection& connection,
     const std::string& boatId);
 
