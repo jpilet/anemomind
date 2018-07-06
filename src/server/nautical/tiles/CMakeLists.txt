@@ -78,3 +78,20 @@ target_depends_on_mongoc(tiles_NavTileGeneratorTest)
   )
   
   target_depends_on_mongoc(tiles_MongoUtilsTest)
+  
+  add_library(tiles_MongoNavDatasetLoader
+    MongoNavDatasetLoader.h
+    MongoNavDatasetLoader.cpp
+    )
+  target_depends_on_mongoc(tiles_MongoNavDatasetLoader)
+  
+  cxx_test(tiles_MongoNavDatasetLoaderTest
+    MongoNavDatasetLoaderTest.cpp
+    tiles_MongoNavDatasetLoader
+    tiles_MongoUtils
+    gtest_main
+    nautical_NavDataset
+    )
+  target_depends_on_mongoc(tiles_MongoNavDatasetLoaderTest)
+  
+  
