@@ -49,8 +49,14 @@ namespace {
     d->insertValues<BinaryEdge>(USER_DEF_SESSION, "iosApp", src);
     return d;
   }
-}
 
+  bool startsWith(const std::string& msg, const std::string& p) {
+    if (msg.size() < p.size()) {
+      return false;
+    }
+    return msg.substr(0, p.size()) == p;
+  }
+}
 
 NavDataset loadEvents(
     const MongoDBConnection& connection,
@@ -97,6 +103,7 @@ NavDataset loadEvents(
       } else if (msg == "End session") {
         sessionEdges.push_back(TimedValue<BinaryEdge>(
             t, BinaryEdge::ToOff));
+      } else if (startsWith(msg, "Sail:")) {
       } else {
         unknown.insert(msg);
       }
