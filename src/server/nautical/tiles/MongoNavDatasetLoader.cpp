@@ -71,6 +71,12 @@ NavDataset loadEvents(
 
   WrapBson query;
   bsonAppendAsOid(&query, "boat", boatId);
+  {
+    BsonSubDocument nonEmptyMsg(&query, "structuredMessage");
+    bsonAppend(&nonEmptyMsg, "$exists", true);
+    bsonAppend(&nonEmptyMsg, "$ne", "");
+    nonEmptyMsg.finalize();
+  }
   auto cursor = UNIQUE_MONGO_PTR(
       mongoc_cursor,
       mongoc_collection_find_with_opts(
