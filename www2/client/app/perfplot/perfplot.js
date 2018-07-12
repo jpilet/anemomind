@@ -82,11 +82,15 @@ Graph.prototype.prepare = function() {
   }
 
 
+  // In D3, data is bound to DOM/SVG elements. D3 functions,
+  // such as d3.svg.area to draw a filled polygon, are paremeterized with
+  // functions of this data. The 'd' parameter name in those functions mean one
+  // data point.
   var yForPoint = function(d) { return y(d.value); };
   var defined = function(d) {
         var range = me.x.range();
         var x = me.x(d.time);
-        return (x < range[1] && x >= range[0]
+        return (range[0] <= x && x < range[1]
           && !isNaN(d.value));
       };
 
@@ -255,6 +259,10 @@ Graph.prototype.setYBounds = function(data) {
     this.y.domain([
       Math.min(0, d3.min(data, getField)),
       d3.max(data, getField) * 1.2]);
+  } else {
+    // If there is no data, there is nothing to plot.
+    // No need to modify this.y.domain. It will be set when data
+    // becomes available.
   }
 };
 
@@ -263,13 +271,15 @@ Graph.prototype.setTimeMarks = function(times) {
   this.draw();
 };
 
+Graph.prototype.setData = function(data) {
+  this.svg.select("path.area").data([data]);
+  this.svg.select("#mainLine").data([data]);
+  this.svg.select("#lowLine").data([data]);
+  this.svg.select("#highLine").data([data]);
+};
+
 Graph.prototype.cleanUp = function() {
-  var svg = this.svg;
-  var data = [];
-  svg.select("path.area").data([data]);
-  svg.select("#mainLine").data([data]);
-  svg.select("#lowLine").data([data]);
-  svg.select("#highLine").data([data]);
+  this.setData([]);
 };
 
 Graph.prototype.draw = function() {
@@ -346,10 +356,7 @@ Graph.prototype.prepareTileData = function() {
       this.hasData = true;
       this.setYBounds(data);
     }
-    this.svg.select("path.area").data([data]);
-    this.svg.select("#mainLine").data([data]);
-    this.svg.select("#lowLine").data([data]);
-    this.svg.select("#highLine").data([data]);
+    this.setData(data);
 
     return true;
   }
