@@ -186,6 +186,9 @@ ostream& operator<<(ostream& out, const Velocity<double>& value) {
 ostream& operator<<(ostream& out, const Length<double>& value) {
   return out << value.nauticalMiles() << " miles.";
 }
+ostream& operator<<(ostream& out, const AngularVelocity<double>& value) {
+  return out << value.degreesPerSecond() << " deg/sec.";
+}
 ostream& operator<<(ostream& out, const GeographicPosition<double>& value) {
   // this format is compatible with google maps.
   return out << setprecision(10) << "(" << value.lat().degrees() << ", "
@@ -281,6 +284,11 @@ void streamCat(const ValueSet& valueSet,
     Logger::unpack(valueSet.exttimes(), &extTimes);
     formatValues(times, extTimes, prefix, entries);
   }
+  if (valueSet.has_angularvelocity()) {
+    vector<AngularVelocity<double>> values;
+    Logger::unpack(valueSet.angularvelocity(), &values);
+    formatValues(times, values, prefix, entries);
+  }
 
   for (int i = 0; i < valueSet.text_size(); ++i) {
     entries->push_back(TimedString(times[i], prefix + ": " + valueSet.text(i)));
@@ -303,12 +311,17 @@ std::string formatNmea2000Data(
 }
 
 std::string formatNmea2000Data(
-    const std::string& data, bool swap) {
-  return formatNmea2000Data(
-      data.length(),
-      reinterpret_cast<const uint8_t*>(data.c_str()),
-      swap);
+    const std::string& value, bool swap) {
+  std::stringstream ss;
+  for (int i = 0; i <value.size(); ++i) {
+    ss << std::setfill('0')
+       << std::setw(2) << std::hex
+       << std::uppercase << static_cast<int>(static_cast<unsigned char>(value[i]));
+  }
+  auto s = ss.str();
+  return s;
 }
+
 
 std::string formatNmea2000Data(
     google::protobuf::uint64 value, bool swap, int w = 2*8) {
@@ -337,12 +350,14 @@ template <typename T>
 void outputRawSentences(
     google::protobuf::int64 sentenceId,
     const std::vector<TimeStamp>& times,
-    const google::protobuf::RepeatedField<T>& values,
+    const T& values,
     vector<TimedString>* entries,
     Context* summary) {
   if (times.size() != values.size()) {
     LOG(ERROR) << "The number of timestamps "
-        "does not correspond to the number of values";
+        "does not correspond to the number of values: "
+        << times.size() << " time entries, "
+        << values.size() << " values.";
     return;
   }
   int n = times.size();
@@ -373,7 +388,7 @@ void streamCat(const Nmea2000Sentences& sentences,
         entries, summary);
   } else if (0 < sentences.oddsizesentences_size()) {
     outputRawSentences(
-        id, times, sentences.regularsizesentences(),
+        id, times, sentences.oddsizesentences(),
         entries, summary);
   }
   summary->addSummary("raw NMEA 2000", formatNmea2000Id(id), times);

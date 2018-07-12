@@ -14,6 +14,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_COMPILER_FLAGS} -march=native")
 include("cmake/GTest.cmake")
 
 set(FULL_BUILD ON CACHE BOOL "enables full build or restrict to minimum")
+set(WITH_SAILROOT ON CACHE BOOL "Build the sailroot shared object to load in ROOT")
 
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})

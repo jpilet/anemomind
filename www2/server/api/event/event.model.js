@@ -22,11 +22,10 @@ var EventSchema = new Schema({
 //  - boatsId mondatory, define a list of boat as object id array
 //  - callback optional, you can choose on callback or promise
 EventSchema.statics.collectSocialDataByBoat=function (boatsId,callback) {
-  var promise=new mongoose.Promise;
-  if(callback){promise.addBack(callback);}
+  var promise=new Promise((resolve, reject) => {
 
   if(!boatsId||!boatsId.length){
-  	return promise.reject(new Error("boatsId should not be null or empty!"))
+  	return reject(new Error("boatsId should not be null or empty!"))
   }
 	//
 	// filter relevants events
@@ -79,12 +78,17 @@ EventSchema.statics.collectSocialDataByBoat=function (boatsId,callback) {
        }
    }],function(err,boats) {
    		if(err){
-   			return promise.reject(err);
+   			return reject(err);
    		}
-      promise.resolve(err,boats);
+      resolve(boats);
 
    });
+  });
+  if(callback){
+    promise.then((boats) => { callback(undefined, boats); });
+    promise.catch((err) => { callback(err); });
+  }
+  return promise;
 }
-
 
 module.exports = mongoose.model('Event', EventSchema);

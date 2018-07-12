@@ -22,6 +22,7 @@ var withCUPS = false;
 var withNMEA2000 = true;
 var withWatchdog = !process.env['NO_WATCHDOG'];
 var withFakeReplay = process.env['FAKE_REPLAY'];
+var withCalypsoUltrasonic = true;
 
 var withSendN2kGps = true;
 
@@ -239,3 +240,16 @@ var callrpc = require('./components/callrpc.js');
 callrpc.WITH_BT = withBT;
 callrpc.WITH_HTTP = withHttp;
 
+if (withCalypsoUltrasonic) {
+  var ultrasonic = require('./components/ultrasonic');
+
+  config.getAndListen(function(err, cfg) {
+    if (cfg) {
+      if (cfg.calypsoUltrasonic) {
+        ultrasonic.start();
+      } else {
+        ultrasonic.shutdown();
+      }
+    }
+  });
+}

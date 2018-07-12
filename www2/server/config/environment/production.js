@@ -25,4 +25,5 @@ module.exports = {
   endpointDir: '/db/mail2',
   backupDestination: 'anemomind@vtiger.anemomind.com:userlogs',
 
+  tryLoadBin: "/home/jpilet/bin/logimport_try_load"
 };

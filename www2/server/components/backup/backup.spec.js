@@ -12,7 +12,7 @@ describe('backupPhotos', function() {
         if (err) {
           done(err);
         } else {
-          fs.writeFile(config.uploadDir + '/anemologs/test_log', done);
+          fs.writeFile(config.uploadDir + '/anemologs/test_log', "test", done);
         }
       });
     }

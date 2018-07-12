@@ -43,7 +43,9 @@ processBoat() {
   mkdir -p "${boatprocessdir}"
   local lastprocess="${boatprocessdir}/lastprocess.md5"
 
-  if [ -e "${lastprocess}" ] && ls -lR "${boatdir}" | md5sum | diff -q "${lastprocess}" - ; then
+  local new_md5=$(ls -lR "${boatdir}" | md5sum)
+ 
+  if [ -e "${lastprocess}" ] && echo "${new_md5}" | diff -q "${lastprocess}" - ; then
     # checksum OK, nothing to do.
     loginfo "Skipping boat: ${boat}"
     true
@@ -87,7 +89,7 @@ processBoat() {
       fi
 
       # Recompute worked. Update the checksum.
-      ls -lR "${boatdir}" | md5sum > "${lastprocess}"
+      echo "${new_md5}" > "${lastprocess}"
 
       # Update data associated with events
       safeRun mongo --quiet \
@@ -109,6 +111,6 @@ export -f loginfo
 export -f safeRun
 
 export SHELL=/bin/bash
-parallel -j 3 processBoat ::: "${LOG_DIR}/"*
+parallel -j 1 processBoat ::: "${LOG_DIR}/"*
 
 safeRun "${BIN}"/uploadVmgTable.sh

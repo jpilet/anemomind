@@ -12,6 +12,7 @@
 
 namespace sail {
 
+double computeMinorStateCost(double twaDegs, int minorState);
 
 struct WindOrientedGrammarSettings {
   WindOrientedGrammarSettings();

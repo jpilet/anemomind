@@ -215,20 +215,23 @@ namespace {
     }
     return factors;
   }
+}
 
-
-
-  int mapToRawMinorState(double twaDegs) {
-    if (!std::isfinite(twaDegs)) {
-      return -1;
-    }
-    double atMost360 = positiveMod(twaDegs, 360.0);
-    return int(atMost360/60);
+double computeMinorStateCost(double twaDegs, int minorState) {
+  if (!std::isfinite(twaDegs)) {
+    return 0.0;
   }
+  double atMost360 = positiveMod(twaDegs, 360.0);
+  double divided = atMost360/60.0;
+  double rawDiff = divided - (minorState + .5);
+  double alignedDiff = positiveMod<double>(rawDiff + 3, 6) - 3;
+  double diff = 2*fabs(alignedDiff) - 1;
+  return max(0.0, min(1.0, diff));
+}
 
-  int mapToRawMinorState(const Nav &nav) {
-    return mapToRawMinorState(nav.bestTwaEstimate().degrees());
-  }
+double computeMinorStateCost(const Nav& nav, int minorState) {
+  return computeMinorStateCost(
+      nav.bestTwaEstimate().degrees(), minorState);
 }
 
 
@@ -259,14 +262,14 @@ double G001SA::getStateCost(int stateIndex, int timeIndex) {
     return _settings.majorStateCost;
   } else {
     int iQueried = getMinorState(stateIndex);
-    int iRawObserved = mapToRawMinorState(nav);
+    double minorStateCost = computeMinorStateCost(nav, iQueried);
 
     // Constant cost for being in this state
-    double stateCost = _settings.majorStateCost*_minorStateCostFactors[stateIndex];
+    double stateCost =
+        _settings.majorStateCost*_minorStateCostFactors[stateIndex];
 
     // Penalty for this minor state index not matching the input
-    double matchCost =
-        (iQueried == iRawObserved || iRawObserved == -1)? 0 : 1;
+    double matchCost = minorStateCost;
 
     if (nav.gpsSpeed() < .5_kn) {
       matchCost += .5;

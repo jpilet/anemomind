@@ -24,7 +24,7 @@ app.use(morgan());
 
 var server = require('http').createServer(app);
 var socketio = require('socket.io')(server, {
-  serveClient: (config.env === 'production') ? false : true,
+  serveClient: true,
   path: '/socket.io-client'
 });
 var handleSocketIo = require('./config/socketio');

@@ -15,8 +15,8 @@ router.post('/', auth.isAuthenticated(), controller.create);
 router.post('/photo/:boatId',
             auth.isAuthenticated(),
             access.boatWriteAccess,
-            controller.createUploadDirForBoat,
-            controller.postPhoto);
+            controller.postPhoto,
+            controller.backupPhotos);
 
 // To view a photo from an img tag, the authorization token can be passed in
 // the parameter:

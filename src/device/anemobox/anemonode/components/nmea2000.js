@@ -166,7 +166,16 @@ function instantiateNmea2000Real(boxid, fullCfg) {
   nmea2000Source = new anemonode.Nmea2000Source(nmea2000);
 
   nmea2000.setSendCanFrame(function(id, data) {
-    if (channel && sendEnabled) {
+    /* Even if NMEA2000 output is disabled, we need to let through the packets
+     * that asks other node for their NMEA2000 name (the 64 bit "address"),
+     * otherwise the source will remain NMEA2000/0. If we let through packets
+     * of size 3, whenever the nmea2000 system will receive data from a device
+     * with an unknown name, it will send a request to that device for its
+     * name. The request fits in 3 bytes. We let the request through, the
+     * device sends its name, and we pick it up. Then, next time the device
+     * send data, we will know its name and will tag it with the correct
+     * "NMEA2000/xxxxxxxx" source string. */
+    if (channel && (sendEnabled || data.length == 3)) {
       var msg = { id: id, data: data, ext: true };
       var r = channel.send(msg);
       return r > 0;
@@ -361,9 +370,12 @@ function wrapSendCallback(makePackets) {
       try {
         nmea2000Source.send(packetsToSend);
       } catch(e) {
-        console.warn("Failed to send packets: %j", packetsToSend);
-        console.warn("because");
-        console.warn(e);
+        // Not a big deal if we can't send packet.
+        if (false) {
+          console.warn("Failed to send packets: %j", packetsToSend);
+          console.warn("because");
+          console.warn(e);
+        }
       }
     }
   };

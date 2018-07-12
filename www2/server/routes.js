@@ -20,10 +20,10 @@ module.exports = function(app) {
   app.use('/api/session', require('./api/session'));  
   app.use('/api/timeset', require('./api/timeset'));  
   app.use('/api/tiles', require('./api/tiles'));
-  app.use('/api/upload', require('./api/upload'));
   app.use('/api/users', require('./api/user'));
   app.use('/api/chart', require('./api/chart'));
   app.use('/api/export', require('./api/export'));
+  app.use('/api/files', require('./api/files'));
 
   app.use('/auth', require('./auth'));
   app.use('/map', require('./social')(app));

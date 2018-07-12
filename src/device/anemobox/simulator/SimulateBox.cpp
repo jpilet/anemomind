@@ -137,22 +137,13 @@ NavDataset SimulateBox(const std::string& boatDat, const NavDataset &ds) {
   return SimulateBox(file, ds);
 }
 
-NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
+NavDataset SimulateBox(std::istream &boatDat, const NavDataset &src) {
   auto replay = std::make_shared<ReplayDispatcher>();
   DispatcherTrueWindEstimator estimator(replay.get());
   if (!estimator.loadCalibration(boatDat)) {
     return NavDataset();
   }
   auto srcName = std::string("Simulated ") + estimator.sourceName();
-
-  // For now, the UI makes no difference between what has been computed
-  // live on the box and what is simulated.
-  // Therefore, it is useless to let both go through.
-  // We keep only the simulated stuff, except for TWA and TWS, because
-  // they can go in 'externalTw[sa]'.
-  NavDataset src = ds
-    .stripChannel(TWDIR)
-    .stripChannel(TARGET_VMG);
 
   EstimateOnNewValue listener(&estimator, srcName, replay.get());
 
@@ -165,7 +156,7 @@ NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
   NavDataset result(std::static_pointer_cast<Dispatcher>(replay));
 
   for (DataCode code : allDataCodes()) {
-    std::shared_ptr<DispatchData> active(ds.activeChannelOrNull(code));
+    std::shared_ptr<DispatchData> active(src.activeChannelOrNull(code));
     if (active) {
       result.preferSource(code, active->source());
     }

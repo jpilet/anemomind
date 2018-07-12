@@ -61,7 +61,8 @@ namespace sail {
   X(ENGINE_RPM, 20, "rpm", AngularVelocity<>, "Engine RPM") \
   X(YAW, 21, "yaw", Angle<>, "Yaw (heading)") \
   X(PITCH, 22, "pitch", Angle<>, "Pitch") \
-  X(ROLL, 23, "roll", Angle<>, "Roll")
+  X(ROLL, 23, "roll", Angle<>, "Roll") \
+  X(USER_DEF_SESSION, 24, "userDefSession", BinaryEdge, "User defined session")
 
 enum DataCode {
 #define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \

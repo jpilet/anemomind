@@ -66,6 +66,17 @@ namespace {
   }
 }
 
+TEST(WindOrientedGrammarTest, SoftStateCost) {
+  //double computeMinorStateCost(double twaDegs, int minorState);
+  EXPECT_NEAR(computeMinorStateCost(0.0, 0), 0.0, 1.0e-6);
+  EXPECT_NEAR(computeMinorStateCost(120, 1), 0.0, 1.0e-6);
+  EXPECT_NEAR(computeMinorStateCost(150, 1), 1.0, 1.0e-6);
+  EXPECT_NEAR(computeMinorStateCost(135, 1), 0.5, 1.0e-6);
+  EXPECT_NEAR(computeMinorStateCost(15, 5), 0.5, 1.0e-6);
+  EXPECT_NEAR(computeMinorStateCost(15 + 720, 5), 0.5, 1.0e-6);
+  EXPECT_NEAR(computeMinorStateCost(15 - 720, 5), 0.5, 1.0e-6);
+}
+
 TEST(WindOrientedGrammarTest, Hinting) {
   Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")

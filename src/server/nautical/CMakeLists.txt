@@ -109,31 +109,6 @@ target_depends_on_mongoc(nautical_processBoatLogs)
 # nautical_sailroot is a shared library that can be loaded into CERN's ROOT.
 # All symbols within ${WHOLE_ARCHIVE} lib ${NOWHOLE_ARCHIVE} will be exposed.
 # Other symbols will be used for linking the .so / .dylib, but not exposed.
-add_library(nautical_sailroot SHARED "")
-target_link_libraries(nautical_sailroot
-    ${WHOLE_ARCHIVE} anemobox_Dispatcher ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} anemobox_SimulateBox ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} calib_Calibrator ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} common_ArgMap ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} common_DOMUtils ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} common_Env ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} common_PathBuilder ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} common_ScopedLog ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} common_logging ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} device_ChunkFile ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} logimport_LogLoader ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} math_hmm_StateAssign ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} nautical_BoatLogProcessor ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} nautical_BoatSpecificHacks ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} nautical_TargetSpeed ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} nautical_downsamplegps ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} nautical_grammars_TreeExplorer ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} nautical_grammars_WindOrientedGrammar ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} nautical_tiles_TileUtils ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} plot_gnuplot ${NOWHOLE_ARCHIVE}
-    ${WHOLE_ARCHIVE} tiles_ChartTiles ${NOWHOLE_ARCHIVE}
-    )
-
 
 add_library(nautical_GeographicReference
             GeographicReference.h

@@ -362,7 +362,9 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   hack::SelectSources(&current);
   current = current.createMergedChannels(
       std::set<DataCode>{AWA, AWS}, Duration<>::seconds(.3));
-  std::shared_ptr<HTree> fulltree = _grammar.parse(current);
+  std::shared_ptr<HTree> fulltree = _grammar.parse(
+      current.stripSource("Anemomind estimator") // avoid "loop back" effects
+      );
 
   if (!fulltree) {
     LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
@@ -389,7 +391,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   }
 
   // First simulation pass: adds true wind
-  current = calibrator.simulate(current);
+  current = calibrator.simulate(current.stripSource("Anemomind estimator"));
 
   // This choice should be left to the user.
   // TODO: add a per-boat configuration system
