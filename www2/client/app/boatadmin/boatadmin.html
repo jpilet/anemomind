@@ -21,7 +21,7 @@
   <ul class="list-group">
     <li class="list-group-item" ng-repeat="boat in boats">
         <input type="checkbox" ng-model="boat.selected"/>
-        <strong>{{boat.name}}</strong> {{boat._id }}
+        <a href="/boats/{{boat._id}}"><strong>{{boat.name}}</strong> {{boat._id }}</a>
         <span>[<a href="/boatadmin/boxexec/{{boat._id}}">execs</a>]</span>
         <br>
         <span class="text-muted">{{boat.type}} {{boat.sailnumber}} {{ boat.anemobox}} {{boat.firmwareVersion}} </span>
