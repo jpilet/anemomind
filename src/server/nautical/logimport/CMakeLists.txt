@@ -66,6 +66,7 @@ add_library(logimport_CsvLoader
            
 target_link_libraries(logimport_CsvLoader
                       common_CsvParser
+                      common_string
                       logimport_SourceGroup
                      )           
 
