@@ -11,6 +11,8 @@ using std::map;
 using std::shared_ptr;
 using std::string;
 
+static const bool kChartTilesWithIdObject = false;
+
 namespace sail {
 
 // A tile at zoom level z spans 2^z seconds
@@ -176,6 +178,24 @@ class ChartSourceIndexBuilder {
   std::string _boatId;
 };
 
+template <class T>
+void appendBinaryFloatArray(bson_t* builder, const char* key,
+                            const T& array) {
+  if (array.size() == 0) {
+    return;
+  }
+
+  std::vector<float> arr;
+  arr.reserve(array.size());
+  for (auto val: array) {
+    arr.push_back(val);
+  }
+
+  bson_append_binary(builder, key, -1, BSON_SUBTYPE_BINARY,
+                     reinterpret_cast<const uint8_t *>(arr.data()),
+                     arr.size() * 4);
+}
+
 template<class T>
 std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
                      const std::string& boatId,
@@ -187,6 +207,7 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
   }
 
   auto result = SHARED_MONGO_PTR(bson, bson_new());
+  auto oid = makeOid(boatId);
   // The key is function of:
   // boatId, zoom, tileno, code, source.
   // The order matters, because mongodb indexes first on boatId, then zoom,
@@ -198,15 +219,20 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
   //   "_id.tileno" : 256});
   // and it will return all codes + all sources available for this boat, zoom,
   // and tileno.
-  {
+  if (kChartTilesWithIdObject) {
     BsonSubDocument key(result.get(), "_id");
-    auto oid = makeOid(boatId);
     BSON_APPEND_OID(&key, "boat", &oid);
     BSON_APPEND_INT32(&key, "zoom", tile.zoom);
     BSON_APPEND_INT64(&key, "tileno", (long long) tile.tileno);
     bsonAppend(&key, "what", data.what);
     bsonAppend(&key, "source", data.source);
     key.finalize();
+  } else {
+    BSON_APPEND_OID(result.get(), "boat", &oid);
+    BSON_APPEND_INT32(result.get(), "zoom", tile.zoom);
+    BSON_APPEND_INT64(result.get(), "tileno", (long long) tile.tileno);
+    bsonAppend(result.get(), "what", data.what);
+    bsonAppend(result.get(), "source", data.source);
   }
 
   StatArrays arrays;
@@ -215,10 +241,14 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
     stats.value.appendToArrays(data.what, &arrays);
   }
 
-  bsonAppendCollection(result.get(), "mean", arrays.mean);
-  bsonAppendCollection(result.get(), "min", arrays.min);
-  bsonAppendCollection(result.get(), "max", arrays.max);
-  bsonAppendCollection(result.get(), "count", arrays.count);
+  if (data.what != "latitude" && data.what != "longitude") {
+    appendBinaryFloatArray(result.get(), "mean_fbin", arrays.mean);
+  } else {
+    bsonAppendCollection(result.get(), "mean", arrays.mean);
+  }
+  appendBinaryFloatArray(result.get(), "min_fbin", arrays.min);
+  appendBinaryFloatArray(result.get(), "max_fbin", arrays.max);
+  appendBinaryFloatArray(result.get(), "count_fbin", arrays.count);
 
   return result;
 }
@@ -404,16 +434,18 @@ bool uploadChartTiles(const NavDataset& data,
   auto oid = makeOid(boatId);
   {
     WrapBson selector;
-    {
+    if (kChartTilesWithIdObject) {
       BsonSubDocument id(&selector, "_id");
       BSON_APPEND_OID(&id, "boat", &oid);
       id.finalize();
+    } else {
+      BSON_APPEND_OID(&selector, "boat", &oid);
     }
     auto concern = nullptr;
     bson_error_t error;
     if (!mongoc_collection_remove(
         collection.get(),
-        MONGOC_REMOVE_NONE,
+        MONGOC_REMOVE_NONE, // All matching documents will be removed.
         &selector,
         concern,
         &error)) {

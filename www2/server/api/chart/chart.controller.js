@@ -4,15 +4,16 @@ var _ = require('lodash');
 var ChartTile = require('./charttile.model');
 var ChartSource = require('./chartsource.model');
 var mongoose = require('mongoose');
+var expandArrays = require('./expand-array').expandArrays;
 
 var makeQuery = function(boatId, zoom, tile, channel, source) {
-  return {_id: {
+  return {
     boat : mongoose.Types.ObjectId(boatId),
     zoom: parseInt(zoom),
     tileno: parseInt(tile),
     what: channel || '',
     source: source || ''
-  }};
+  };
   return obj;
 };
 
@@ -23,8 +24,7 @@ exports.retrieve = function(req, res, next) {
                         req.params.channel,
                         req.params.source);
 
-  // The query bypasses mongoose. It does not like having an object
-  // as _id.
+  // The query bypasses mongoose.
   ChartTile.collection.find(query).toArray(function(err, tiles) {
     if (err) {
       return next(err);
@@ -32,13 +32,14 @@ exports.retrieve = function(req, res, next) {
     if (!tiles) return res.sendStatus(404);
 
     res.contentType('application/json');
-    return res.send(JSON.stringify(tiles));
+
+    return res.send(JSON.stringify(tiles.map((x) => expandArrays(x))));
   });
 };
 
 function sampleTime(tile, sampleno) {
-  return new Date((tile._id.tileno << tile._id.zoom)
-                  + (sampleno / tile.samples.length) * (1 << tile._id.zoom));
+  return new Date((tile.tileno << tile.zoom)
+                  + (sampleno / tile.samples.length) * (1 << tile.zoom));
 }
 
 

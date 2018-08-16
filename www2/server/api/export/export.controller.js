@@ -1,8 +1,16 @@
 
 var mongoose = require('mongoose');
 var ChartTile = require('../chart/charttile.model');
+var expandArrays = require('../chart/expand-array').expandArrays;
+var ObjectId = mongoose.Types.ObjectId;
+var strftime = require('./strftime');
 
 var dateLength = '2016-09-14T16:25:26'.length;
+
+ // These values should match those in CharTiles.h
+const minZoom = 9;
+const maxZoom = 28;
+const samplesPerTile = 512;
 
 function pad(num, size) {
   var s = num+"";
@@ -11,6 +19,9 @@ function pad(num, size) {
 }
 
 function formatTime(date) {
+  // 06/20/2018 4:26:35 PM
+  return strftime("%m/%d/%Y %l:%M:%S %p", date);
+  /* The following is the reference implementation, but it is too slow.
   return date.toLocaleString('en-US', {
     year: 'numeric',
     month: '2-digit',
@@ -21,6 +32,7 @@ function formatTime(date) {
     hour12: true,
     timeZone: 'UTC'
   }).replace(/,/, '');
+  */
 }
 
 function getColumn (columns, title) {
@@ -39,6 +51,9 @@ function getRow(table, timeSec) {
 }
 
 function csvEscape(s) {
+  if (!s) {
+    return '"-"';
+  }
   return '"' + s.replace(/"/g, '""').replace(/,/g,';') + '"';
 }
 
@@ -80,11 +95,13 @@ function formatColumnEntry(type, entry) {
 }
 
 
-function sendCsv(res, columns, table, columnType) {
-  var row = [ "DATE/TIME(UTC)" ];
-  for (var c in columns) { row[1 + columns[c]] = csvEscape(c); }
+function sendCsvHeader(res, columns) {
+  var row = [ "DATE/TIME(UTC)" ].concat(columns).map(csvEscape);
   res.write(row.join(',') + '\n');
-  var numCols = row.length;
+}
+
+function sendCsvChunk(res, columns, table, columnType) {
+  var numCols = 1 + columns.length;
 
   var times = Object.keys(table);
   times.sort(function(a, b) { return parseInt(a) - parseInt(b); });
@@ -103,10 +120,147 @@ function sendCsv(res, columns, table, columnType) {
     res.write(row.join(', ') + '\n');
   }
 }
-    
+
+var listChannelsWithSources = function(boat, zoom, firstTile, lastTile, cb) {
+  ChartTiles.aggregate([
+    {
+      $match: {
+        boat: ObjectId(boat),
+        zoom: zoom,
+        tileno: { $gte: firstTile, $lte: lastTile }
+      },
+    }, {
+      $group: {
+        _id: { what: "$what", source: "$source" },
+        total: { $sum: 1 }
+      }
+    }, {
+      $group: {
+        _id: "$_id.what",
+        sources: { $push: "$_id.source" }
+      }
+    }, {
+      $project: {
+        _id: false,
+        what: "$_id",
+        sources: true
+      }
+    }, {
+      $sort: {what: 1}
+    }
+  ]).exec(cb);
+};
+
+var listColumns = function(boat, zoom, firstTile, lastTile, cb) {
+  ChartTile.aggregate([
+    {
+      $match: {
+        boat: ObjectId(boat),
+        zoom: zoom,
+        tileno: { $gte: firstTile, $lte: lastTile }
+      },
+    }, {
+      $group: {
+        _id: { what: "$what", source: "$source" },
+      }
+    }, {
+      $sort: { _id: 1 }
+    }
+  ]).exec(function(err, res) {
+    if (err) {
+      cb(err);
+    } else {
+      cb(undefined, res.map(function(e) {
+        return e._id.what + ' - ' + e._id.source;
+      }));
+    }
+  });
+};
+ 
+function sendCsvWithColumns(start, end, boat, zoom, firstTile, lastTile,
+                            columns, res, timeRange) {
+  var query = {
+    boat: mongoose.Types.ObjectId(boat),
+    zoom: zoom,
+    tileno: {
+      "$gte": firstTile,
+      "$lte": lastTile
+    }
+  };
+
+  console.warn(query);
+
+  var table = { };
+  var columnType = { };
+
+  var resultSent = false;
+
+  var currentTile = firstTile;
+
+  res.contentType('text/csv');
+  res.header("Content-Disposition", "attachment;filename=" + timeRange + ".csv");
+  sendCsvHeader(res, columns);
+
+  // The query bypasses mongoose.
+  ChartTile.collection
+    .find(query)
+    // see https://docs.mongodb.com/manual/tutorial/sort-results-with-indexes/
+    .sort({ boat:1, zoom:1, tileno: 1})
+    .forEach(function(tile) {
+      tile = expandArrays(tile);
+
+      var columnTitle = tile.what + ' - ' + tile.source;
+      var firstTime = new Date(1000 * tile.tileno * (1 << tile.zoom));
+
+      if (tile.tileno > currentTile) {
+        sendCsvChunk(res, columns, table, columnType);
+        currentTile = tile.tileno;
+        table = { };
+        columnType = { };
+      }
+
+      // increment between samples in s
+      var increment = (1 << tile.zoom) / samplesPerTile;
+      var firstTimeSec = Math.floor(firstTime / 1000);
+      var startTimeSec = start.getTime() / 1000;
+      var endTimeSec = end.getTime() / 1000;
+
+      var colno = columns.indexOf(columnTitle);
+      if (colno < 0) {
+        return;
+      }
+      columnType[colno] = tile.what;
+      for (var i = 0; i < samplesPerTile; ++i) {
+        if (tile.count && tile.count[i] > 0) {
+          var time = firstTimeSec + i * increment;
+          if (time > startTimeSec && time < endTimeSec) {
+            var row = getRow(table, time);
+            row[colno] = tile.mean[i];
+          }
+        }
+      }
+
+      if (resultSent) {
+        console.warn('ERROR! received DB data to build an reply that has been sent already!');
+        console.warn(new Error().stack);
+      }
+    },
+    function(err) {
+      if (err) {
+        res.status(500).send();
+      } else {
+        setTimeout(function() {
+          resultSent = true;
+          sendCsvChunk(res, columns, table, columnType);
+          res.status(200).end();
+        }, 1);
+      }
+    });
+}
+
 exports.exportCsv = function(req, res, next) {
   var timeRange = req.params.timerange;
-  var boat = req.params.boat;
+  var boat = req.params.boat + '';
   if (typeof(timeRange) != 'string' || timeRange.length != 2 * dateLength) {
     return res.status(400).send();
   }
@@ -119,103 +273,25 @@ exports.exportCsv = function(req, res, next) {
   // Fixed for now, might be configurable by the user later.
   var frequency = 1; // Hz
 
-   // These values should match those in CharTiles.h
-  var minZoom = 9;
-  var maxZoom = 28;
-  var samplesPerTile = 512;
-
   var zoom = Math.log2(samplesPerTile / frequency)
 
   var tileNo = function(date, rounding) {
     return Math[rounding](date.getTime() / 1000 / (1 << zoom));
   };
 
-  // The following query fetches all data for a given tile:
-  // db.charttiles.find({_id: {
-  //   $gt: {
-  //     "boat" : ObjectId("552b806a35ce7cb254dc9515"),
-  //     "zoom" : 9,
-  //     "tileno" : NumberLong(2799447),
-  //     what: '',
-  //     source: ''
-  //   },
-  //   $lt: {
-  //     "boat" : ObjectId("552b806a35ce7cb254dc9515"),
-  //     "zoom" : 9,
-  //     "tileno" : NumberLong(2799447),
-  //     what: 'zzz',
-  //     source: 'zzz'
-  //  } } }).forEach(function(t) { print(t._id.what +': ' + t._id.source); });
+  var firstTile = tileNo(start, 'floor');
+  var lastTile = tileNo(end, 'ceil');
 
-  var query = {
-    _id: {
-      $gt: {
-        boat: mongoose.Types.ObjectId(boat),
-        zoom: zoom,
-        tileno: tileNo(start, 'floor'),
-        what: '',
-        source: ''
-      },
-      $lt: {
-        boat: mongoose.Types.ObjectId(boat),
-        zoom: zoom,
-        tileno: tileNo(end, 'ceil'),
-        what: 'zzz',
-        source: 'zzz'
-      }
-    }
-  };
-
-  var columns = { };
-  var table = { };
-  var columnType = { };
-
-  var resultSent = false;
-
-  // The query bypasses mongoose. It does not like having an object
-  // as _id.
-  ChartTile.collection.find(query).forEach(function(tile) {
-    var columnTitle = tile._id.what + ' - ' + tile._id.source;
-    var firstTime = new Date(1000 * tile._id.tileno * (1 << tile._id.zoom));
-
-    // increment between samples in s
-    var increment = (1 << tile._id.zoom) / samplesPerTile;
-    var firstTimeSec = Math.floor(firstTime / 1000);
-    var startTimeSec = start.getTime() / 1000;
-    var endTimeSec = end.getTime() / 1000;
-
-    var colno = getColumn(columns, columnTitle);
-    columnType[colno] = tile._id.what;
-    for (var i = 0; i < samplesPerTile; ++i) {
-      if (tile.count && tile.count[i] > 0) {
-        var time = firstTimeSec + i * increment;
-        if (time > startTimeSec && time < endTimeSec) {
-          var row = getRow(table, time);
-          row[colno] = tile.mean[i];
-        }
-      }
-    }
-
-    if (resultSent) {
-      console.warn('ERROR! received DB data to build an reply that has been sent already!');
-      console.warn(new Error().stack);
-    }
-  },
-  function(err) {
-    if (err) {
-      res.status(500).send();
-    } else {
-      if (Object.keys(columns).length == 0) {
+  listColumns(boat, zoom, firstTile, lastTile,
+    function(err, columns) {
+      if (err) {
+        console.warn(err);
+        res.status(500).send();
+      } else if (columns.length == 0) {
         res.status(404).send();
       } else {
-        setTimeout(function() {
-          res.contentType('text/csv');
-          res.header("Content-Disposition", "attachment;filename=" + timeRange + ".csv");
-          resultSent = true;
-          sendCsv(res, columns, table, columnType);
-          res.status(200).end();
-        }, 1);
+        sendCsvWithColumns(start, end, boat, zoom, firstTile, lastTile,
+                           columns, res, timeRange);
       }
-    }
-  });
-}
+    });
+};
