@@ -4,6 +4,7 @@ var _ = require('lodash');
 var ChartTile = require('./charttile.model');
 var ChartSource = require('./chartsource.model');
 var mongoose = require('mongoose');
+var expandArrays = require('./expand-array').expandArrays;
 
 var makeQuery = function(boatId, zoom, tile, channel, source) {
   return {
@@ -31,7 +32,8 @@ exports.retrieve = function(req, res, next) {
     if (!tiles) return res.sendStatus(404);
 
     res.contentType('application/json');
-    return res.send(JSON.stringify(tiles));
+
+    return res.send(JSON.stringify(tiles.map((x) => expandArrays(x))));
   });
 };
 
