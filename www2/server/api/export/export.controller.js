@@ -464,6 +464,7 @@ var listColumns = function(boat, zoom, firstTile, lastTile, cb) {
  
 function sendWithColumns(
   outputFormat,
+  chartSources,
   start, end, boat, zoom, firstTile, lastTile,
   columns, res, timeRange) {
 
@@ -503,6 +504,7 @@ function sendWithColumns(
       var columnTitle = tile.what + ' - ' + tile.source;
       var firstTime = new Date(1000 * tile.tileno * (1 << tile.zoom));
 
+      // Should we complete this chunk and move on?
       if (tile.tileno > currentTile) {
         // Send what we have.
         outputFormat.sendChunk(res, columns, table, columnType);
@@ -584,18 +586,30 @@ exports.exportCsv = function(req, res, next) {
   var firstTile = tileNo(start, 'floor');
   var lastTile = tileNo(end, 'ceil');
 
-  listColumns(boat, zoom, firstTile, lastTile,
-    function(err, columns) {
-      if (err) {
-        console.warn(err);
-        res.status(500).send();
-      } else if (columns.length == 0) {
-        res.status(404).send();
-      } else {
-        sendWithColumns(
-          csvFormat, // This is where the format is decided: csvFormat or esaFormat
-          start, end, boat, zoom, firstTile, lastTile,
-          columns, res, timeRange);
-      }
-    });
+  ChartSource.findById(boat, function(err, chartSources) {
+    if (err) {
+      console.warn(err);
+      res.status(404).send();
+    } else {
+
+      console.log('Chart sources: %j', chartSources);
+
+      listColumns(
+        boat, zoom, firstTile, lastTile,
+        function(err, columns) {
+          if (err) {
+            console.warn(err);
+            res.status(500).send();
+          } else if (columns.length == 0) {
+            res.status(404).send();
+          } else {
+            sendWithColumns(
+              csvFormat, // This is where the format is decided: csvFormat or esaFormat
+              chartSources,
+              start, end, boat, zoom, firstTile, lastTile,
+              columns, res, timeRange);
+          }
+        });
+    }
+  });
 };
