@@ -11,6 +11,8 @@ using std::map;
 using std::shared_ptr;
 using std::string;
 
+static const bool kChartTilesWithIdObject = false;
+
 namespace sail {
 
 // A tile at zoom level z spans 2^z seconds
@@ -187,6 +189,7 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
   }
 
   auto result = SHARED_MONGO_PTR(bson, bson_new());
+  auto oid = makeOid(boatId);
   // The key is function of:
   // boatId, zoom, tileno, code, source.
   // The order matters, because mongodb indexes first on boatId, then zoom,
@@ -198,15 +201,20 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
   //   "_id.tileno" : 256});
   // and it will return all codes + all sources available for this boat, zoom,
   // and tileno.
-  {
+  if (kChartTilesWithIdObject) {
     BsonSubDocument key(result.get(), "_id");
-    auto oid = makeOid(boatId);
     BSON_APPEND_OID(&key, "boat", &oid);
     BSON_APPEND_INT32(&key, "zoom", tile.zoom);
     BSON_APPEND_INT64(&key, "tileno", (long long) tile.tileno);
     bsonAppend(&key, "what", data.what);
     bsonAppend(&key, "source", data.source);
     key.finalize();
+  } else {
+    BSON_APPEND_OID(result.get(), "boat", &oid);
+    BSON_APPEND_INT32(result.get(), "zoom", tile.zoom);
+    BSON_APPEND_INT64(result.get(), "tileno", (long long) tile.tileno);
+    bsonAppend(result.get(), "what", data.what);
+    bsonAppend(result.get(), "source", data.source);
   }
 
   StatArrays arrays;
@@ -404,16 +412,18 @@ bool uploadChartTiles(const NavDataset& data,
   auto oid = makeOid(boatId);
   {
     WrapBson selector;
-    {
+    if (kChartTilesWithIdObject) {
       BsonSubDocument id(&selector, "_id");
       BSON_APPEND_OID(&id, "boat", &oid);
       id.finalize();
+    } else {
+      BSON_APPEND_OID(&selector, "boat", &oid);
     }
     auto concern = nullptr;
     bson_error_t error;
     if (!mongoc_collection_remove(
         collection.get(),
-        MONGOC_REMOVE_NONE,
+        MONGOC_REMOVE_NONE, // All matching documents will be removed.
         &selector,
         concern,
         &error)) {
