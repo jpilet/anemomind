@@ -19,6 +19,10 @@ function renderEsaUndefined(data) {
 }
 
 /*
+
+This is the code in AstraLoader.cpp.
+Learn from it.
+
 auto fracDeg = 0.01_deg;
 
 LogFileHeaderSpec regataLogFileSpec{
@@ -214,7 +218,8 @@ function sendEsaHeader(res, columns) {
   res.write('ESA HEADER goes here!!!\n');
 }
 
-function sendCsvChunk(res, columns, table, columnType) {
+function sendEsaChunk(res, columns, table, columnType) {
+  res.write('ESA CHUNK goes here!!!\n');
 }
 
 
@@ -255,6 +260,8 @@ function getColumn (columns, title) {
   return columns[title] = Object.keys(columns).length;
 }
 
+// Returns a row in the table as an array, 
+// or allocates a new array if the row does not exist.
 function getRow(table, timeSec) {
   var t = timeSec + '';
   if (!(t in table)) {
@@ -460,8 +467,6 @@ function sendWithColumns(
   start, end, boat, zoom, firstTile, lastTile,
   columns, res, timeRange) {
 
-  console.log("COLUMNS are %j", columns);
-
   var query = {
     boat: mongoose.Types.ObjectId(boat),
     zoom: zoom,
@@ -473,7 +478,10 @@ function sendWithColumns(
 
   console.warn(query);
 
+  // Maps a time (in seconds) to arrays of mean values
   var table = { };
+
+  // Maps a column index to a channel source name
   var columnType = { };
 
   var resultSent = false;
@@ -496,8 +504,11 @@ function sendWithColumns(
       var firstTime = new Date(1000 * tile.tileno * (1 << tile.zoom));
 
       if (tile.tileno > currentTile) {
+        // Send what we have.
         outputFormat.sendChunk(res, columns, table, columnType);
         currentTile = tile.tileno;
+
+        // Reset them, so that we can start over.
         table = { };
         columnType = { };
       }
@@ -513,10 +524,13 @@ function sendWithColumns(
         return;
       }
       columnType[colno] = tile.what;
+
       for (var i = 0; i < samplesPerTile; ++i) {
         if (tile.count && tile.count[i] > 0) {
           var time = firstTimeSec + i * increment;
           if (time > startTimeSec && time < endTimeSec) {
+
+            // Populate the table row
             var row = getRow(table, time);
             row[colno] = tile.mean[i];
           }
@@ -579,7 +593,7 @@ exports.exportCsv = function(req, res, next) {
         res.status(404).send();
       } else {
         sendWithColumns(
-          csvFormat,
+          csvFormat, // This is where the format is decided: csvFormat or esaFormat
           start, end, boat, zoom, firstTile, lastTile,
           columns, res, timeRange);
       }
