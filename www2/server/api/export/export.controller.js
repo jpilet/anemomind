@@ -208,6 +208,16 @@ var esaColumns = [{
   render: renderEsaDRIFT
 }];
 
+function sendEsaHeader(res, columns) {
+  //var row = [ "DATE/TIME(UTC)" ].concat(columns).map(csvEscape);
+  //res.write(row.join(',') + '\n');
+  res.write('ESA HEADER goes here!!!\n');
+}
+
+function sendCsvChunk(res, columns, table, columnType) {
+}
+
+
 
 
  // These values should match those in CharTiles.h
@@ -330,6 +340,14 @@ var csvFormat = {
   sendChunk: sendCsvChunk,
   fileExtension: ".csv"
 };
+
+var esaFormat = {
+  contentType: 'text/plain',
+  sendHeader: sendEsaHeader,
+  sendChunk: sendEsaChunk,
+  fileExtension: ".log"
+};
+
 
 var listChannelsWithSources = function(boat, zoom, firstTile, lastTile, cb) {
   ChartTiles.aggregate([
