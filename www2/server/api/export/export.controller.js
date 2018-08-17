@@ -258,6 +258,107 @@ function sendCsvWithColumns(start, end, boat, zoom, firstTile, lastTile,
     });
 }
 
+
+//// ESA log rendering
+
+
+function renderEsaUndefined(data) {
+  return "UNDEFINED";
+}
+
+//// How the exported ESA values are rendered
+var renderEsaDate = renderEsaUndefined;
+var renderEsaTime = renderEsaUndefined;
+var renderEsaTs = renderEsaUndefined;
+var renderEsaBoatspeed = renderEsaUndefined;
+var renderEsaAW_angle = renderEsaUndefined;
+var renderEsaAW_speed = renderEsaUndefined;
+var renderEsaHeading = renderEsaUndefined;
+var renderEsaTW_angle = renderEsaUndefined;
+var renderEsaTW_speed = renderEsaUndefined;
+var renderEsaTW_Dir = renderEsaUndefined;
+var renderEsaExt_SOG = renderEsaUndefined;
+var renderEsaExt_COG = renderEsaUndefined;
+var renderEsaLatitudine = renderEsaUndefined;
+var renderEsaLongitudine = renderEsaUndefined;
+var renderEsaBS_target = renderEsaUndefined;
+var renderEsaTWA_target = renderEsaUndefined;
+var renderEsaBS_polar = renderEsaUndefined;
+var renderEsaType_tgt = renderEsaUndefined;
+var renderEsaLeewayAng = renderEsaUndefined;
+var renderEsaLeewayMod = renderEsaUndefined;
+var renderEsaSET = renderEsaUndefined;
+var renderEsaDRIFT = renderEsaUndefined;
+
+//// Declaration of all the columns to be exported for the ESA log file format
+var esaColumns = [{
+  esaName: 'Date',
+  render: renderEsaDate
+}, {
+  esaName: 'Time',
+  render: renderEsaTime
+}, {
+	esaName: 'Ts',
+  render: renderEsaTs
+}, {
+  esaName: 'Boatspeed',
+  render: renderEsaBoatspeed
+}, {
+  esaName: 'AW_angle',
+  render: renderEsaAW_angle
+}, {
+  esaName: 'AW_speed',
+  render: renderEsaAW_speed
+}, {
+	esaName: 'Heading',
+  render: renderEsaHeading
+}, {
+  esaName: 'TW_angle',
+  render: renderEsaTW_angle
+}, {
+  esaName: 'TW_speed',
+  render: renderEsaTW_speed
+}, {
+	esaName: 'TW_Dir',
+  render: renderEsaTW_Dir
+}, {
+	esaName: 'Ext_SOG',
+  render: renderEsaExt_SOG
+}, {
+  esaName: 'Ext_COG',
+  render: renderEsaExt_COG
+}, {
+  esaName: 'Latitudine',
+  render: renderEsaLatitudine
+}, {
+  esaName: 'Longitudine',
+  render: renderEsaLongitudine
+}, {
+  esaName: 'BS_target',
+  render: renderEsaBS_target
+}, {
+  esaName: 'TWA_target',
+  render: renderEsaTWA_target
+}, {
+	esaName: 'BS_polar',
+  render: renderEsaBS_polar
+}, {
+  esaName: 'Type_tgt',
+  render: renderEsaType_tgt
+}, {
+  esaName: 'LeewayAng',
+  render: renderEsaLeewayAng
+}, {
+	esaName: 'LeewayMod',
+  render: renderEsaLeewayMod
+}, {
+  esaName: 'SET',
+  render: renderEsaSET
+}, {
+  esaName: 'DRIFT',
+  render: renderEsaDRIFT
+}];
+
 exports.exportCsv = function(req, res, next) {
   var timeRange = req.params.timerange;
   var boat = req.params.boat + '';
