@@ -314,9 +314,12 @@ function formatColumnEntry(type, entry) {
   }
 }
 
+function columnString(sourceAndType) {
+  return sourceAndType.type + ' - ' + sourceAndType.source;
+}
 
 function sendCsvHeader(res, columns) {
-  var row = [ "DATE/TIME(UTC)" ].concat(columns).map(csvEscape);
+  var row = [ "DATE/TIME(UTC)" ].concat(columns.map(columnString)).map(csvEscape);
   res.write(row.join(',') + '\n');
 }
 
@@ -456,12 +459,15 @@ var listColumns = function(boat, zoom, firstTile, lastTile, cb) {
       cb(err);
     } else {
       cb(undefined, res.map(function(e) {
-        return e._id.what + ' - ' + e._id.source;
+        return {
+          source: e._id.source,
+          type: e._id.what
+        };
       }));
     }
   });
 };
- 
+
 function sendWithColumns(
   outputFormat,
   chartSources,
@@ -501,7 +507,10 @@ function sendWithColumns(
     .forEach(function(packedTile) {
       var tile = expandArrays(packedTile);
 
-      var columnTitle = tile.what + ' - ' + tile.source;
+      var columnTitle = columnString({
+        type: tile.what,
+        source: tile.source
+      });
       var firstTime = new Date(1000 * tile.tileno * (1 << tile.zoom));
 
       // Should we complete this chunk and move on?
@@ -521,7 +530,7 @@ function sendWithColumns(
       var startTimeSec = start.getTime() / 1000;
       var endTimeSec = end.getTime() / 1000;
 
-      var colno = columns.indexOf(columnTitle);
+      var colno = columns.map(columnString).indexOf(columnTitle);
       if (colno < 0) {
         return;
       }
