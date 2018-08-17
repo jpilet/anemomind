@@ -264,7 +264,7 @@ angular.module('www2App')
               $scope.sourceList.push(s);
 
               var prio = +source.priority;
-              if (source.match(/mix/)) {
+              if (s.match(/mix/)) {
                 prio += .1;
               }
               if (!best || (best.prio < prio)) {

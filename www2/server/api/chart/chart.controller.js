@@ -50,7 +50,6 @@ exports.index = function(req, res, next) {
     return res.sendStatus(400);
   }
 
-  console.log('findById(' + boat + ')');
   ChartSource.findById(boat, function(err, sources) {
       if (err) {
         console.log(err);
