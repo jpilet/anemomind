@@ -26,6 +26,7 @@ const char externalRegex[] =
   "|(^NMEA0183 input reparsed$)"
   "|(^CUPS$)"
   "|(^CSV imported$)"
+  "|(^Astra regata.*)"
   ;
 
 }  // namespace
