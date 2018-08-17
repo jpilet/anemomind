@@ -9,6 +9,7 @@
 #include <Poco/String.h>
 #include <server/common/CsvParser.h>
 #include <server/nautical/logimport/SourceGroup.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -75,6 +76,9 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   assert(header.rows() == 1);
   int cols = header.cols();
   _validHeader = false;
+
+  std::vector<std::string> ignoredHeaders;
+
   for (int i = 0; i < cols; i++) {
     auto h = Poco::trim(header(0, i));
     auto found = m.find(h);
@@ -83,8 +87,17 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
     _validHeader |= wasFound;
 
     if (!wasFound) {
-      LOG(INFO) << "CSV header ignored: '" << h << "'";
+      ignoredHeaders.push_back(h);
     }
+  }
+  if (_validHeader) {
+    // It seems to be a valid CSV, but we ignored some columns.
+    // It is worth notifying the user.
+      LOG(INFO) << "CSV header ignored: "
+        << join(ignoredHeaders, ", ");
+  } else {
+    // Invalid CSV. We won't read any data from this file. No need to report
+    // ignored columns.
   }
 }
 
