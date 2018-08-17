@@ -468,6 +468,14 @@ var listColumns = function(boat, zoom, firstTile, lastTile, cb) {
   });
 };
 
+function computeBestSourcePerChannel(chartSources) {
+  var dst = {};
+  for (var k in chartSources.channels) {
+    dst[k] = bestSourceForChannel(k, chartSources);
+  }
+  return dst;
+}
+
 function sendWithColumns(
   outputFormat,
   chartSources,
@@ -483,12 +491,13 @@ function sendWithColumns(
     }
   };
 
-  console.warn(query);
+  // A map from every channel type to the best sources, e.g. {awa: mix, aws: external, ...}
+  var bestSourcePerChannel = computeBestSourcePerChannel(chartSources);
 
   // Maps a time (in seconds) to arrays of mean values
   var table = { };
 
-  // Maps a column index to a channel source name
+  // What type of data each column stores
   var columnType = { };
 
   var resultSent = false;
