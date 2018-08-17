@@ -13,8 +13,6 @@ module.exports.expandArrays = function(obj) {
   const keys = Object.keys(obj);
   const result = { };
 
-  console.log('expandArrays');
-
   for (let k of keys) {
     const match = k.match(/(.*)_fbin$/);
     if (match) {

@@ -206,8 +206,8 @@ function sendCsvWithColumns(start, end, boat, zoom, firstTile, lastTile,
     .find(query)
     // see https://docs.mongodb.com/manual/tutorial/sort-results-with-indexes/
     .sort({ boat:1, zoom:1, tileno: 1})
-    .forEach(function(tile) {
-      tile = expandArrays(tile);
+    .forEach(function(packedTile) {
+      var tile = expandArrays(packedTile);
 
       var columnTitle = tile.what + ' - ' + tile.source;
       var firstTime = new Date(1000 * tile.tileno * (1 << tile.zoom));

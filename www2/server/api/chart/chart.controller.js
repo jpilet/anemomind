@@ -33,7 +33,7 @@ exports.retrieve = function(req, res, next) {
 
     res.contentType('application/json');
 
-    return res.send(JSON.stringify(tiles.map((x) => expandArrays(x))));
+    return res.send(JSON.stringify(tiles.map(expandArrays)));
   });
 };
 
