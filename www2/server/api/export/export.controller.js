@@ -1,6 +1,7 @@
 
 var mongoose = require('mongoose');
 var ChartTile = require('../chart/charttile.model');
+var ChartSource = require('../chart/chartsource.model');
 var expandArrays = require('../chart/expand-array').expandArrays;
 var ObjectId = mongoose.Types.ObjectId;
 var strftime = require('./strftime');
@@ -148,8 +149,58 @@ var listChannelsWithSources = function(boat, zoom, firstTile, lastTile, cb) {
     }, {
       $sort: {what: 1}
     }
-  ]).exec(cb);
+  ]).exec(function(err, data) {
+    if (err) {
+      cb(err);
+      return;
+    }
+    ChartSource.findById(boat, (err, chartSources) => {
+      if (err) {
+        cb(err);
+        return;
+      }
+      cb(null, data.map((x) => {
+        return {
+          what: x.what,
+          sources: x.sources.map((source) => {
+            return {
+              source: source,
+              prio: prioOfSource(x.what, source, chartSources)
+            };
+          }).sort((a, b) => b.prio - a.prio)
+        };
+      }));
+    });
+  });
 };
+
+// Finds the most suitable source for a given channel.
+//
+// Example usage:
+//
+//  ChartSource.findById(boat, (err, chartSources) => {
+//    if (err) {
+//      // handle error
+//      return;
+//    }
+//    const gpsSpeedSource = bestSourceForChannel("gpsSpeed", chartSources);
+//    const latitudeSource = bestSourceForChannel("latitude", chartSources);
+//    const longitudeSource = bestSourceForChannel("longitude", chartSources);
+//  });
+function bestSourceForChannel(channel, chartSources) {
+  const sources = Object.keys(chartSources.channels[channel]);
+  let bestPrio;
+  let bestSource;
+  for (let s of sources) {
+    let prio = chartSources.channels[channel][s].priority
+      + (s.match(/mix/) ? .1 : 0);
+    if (bestPrio == undefined || prio > bestPrio) {
+      bestPrio = prio;
+      bestSource = s;
+    }
+  }
+  return bestSource;
+}
 
 var listColumns = function(boat, zoom, firstTile, lastTile, cb) {
   ChartTile.aggregate([
