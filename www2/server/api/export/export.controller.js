@@ -18,6 +18,103 @@ function renderEsaUndefined(data) {
   return "UNDEFINED";
 }
 
+/*
+auto fracDeg = 0.01_deg;
+
+LogFileHeaderSpec regataLogFileSpec{
+  // Current, and things like that?
+  {"Set", AstraValueParser()},
+  {"Drift", AstraValueParser()},
+  {"DRIFT", &ignoreAstraValue},
+  {"SET", &ignoreAstraValue},
+
+  // Wind
+  {"WindType", AstraValueParser()},
+  {"AWA", AstraValueParser()},
+  {"AWS", AstraValueParser()},
+  {"TWA", AstraValueParser()},
+  {"TWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(TWS)))},// <-- See message2.txt
+  {"TWD", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWD)))},// <-- See message2.txt
+  {"GWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(GWS)))},// <-- See message2.txt
+  {"GWD", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(GWD)))},// <-- See message2.txt
+
+  // Not sure...
+  {"FreezeWind", AstraValueParser()},
+  {"FreezeTide", AstraValueParser()},
+
+  // Time
+  {"DateTimeTs", AstraValueParser()},
+  {"Date", AstraValueParser(
+      asDate("%d/%m/%y", FIELD_ACCESS(partialTimestamp)))},
+  {"Time", AstraValueParser(asTimeOfDay(FIELD_ACCESS(timeOfDay)))},
+  {"Ts", &ignoreAstraValue},
+
+  // Meta
+  {"DinghyID", AstraValueParser(asPrimitive<int>(FIELD_ACCESS(dinghyId)))},
+  {"UserID", AstraValueParser(asString(FIELD_ACCESS(userId)))},
+
+  // Boat motion
+  {"BS", AstraValueParser()},
+
+
+
+  // TODO: Because the log file typically contains some sort of date,
+  // could we use that date to determine what unit to use for COG and SOG?
+  // The date is also stored in the header at the top of the file. So
+  // we can decide on the units before we have even started parsing the data.
+  //
+  // This value could be unreliable, See message2.txt:
+  //   "'COG' in radians (but it will be in degrees like GWD and TWD);"
+  {"COG", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(COG)))},
+
+  // This value could be unreliable, See message2.txt:
+  //   "'SOG' in m/s (but it will be in knots);"
+  {"SOG", AstraValueParser(inUnit(1.0_mps, FIELD_ACCESS(SOG)))},
+
+  // Boat position
+
+  // Should be some kind of fractional degrees here.
+  {"Lat", AstraValueParser(geographicAngle(
+      'N', 'S', FIELD_ACCESS(lat)))},
+  {"Lon", AstraValueParser(geographicAngle(
+      'E', 'W', FIELD_ACCESS(lon)))},
+  {"Latitudine", AstraValueParser(geographicAngle(
+      'N', 'S', FIELD_ACCESS(lat)))},
+  {"Longitudine", AstraValueParser(geographicAngle(
+      'E', 'W', FIELD_ACCESS(lon)))},
+
+  // Should be unit degrees here? Not sure. In message2.txt, it says
+  //
+  // "  'LAT' and 'LON' is like google maps format, so decimals of degrees (but it will be as explained just before"
+  //
+  // But looking at the log file data, it seems that degrees is the unit
+  // being used.
+  {"LAT", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lat)))},
+  {"LON", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(lon)))},
+
+  // Other boat orientation
+  {"HDG", AstraValueParser()},
+  {"Pitch", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(pitch)))},
+  {"Roll", AstraValueParser(inUnit(1.0_rad, FIELD_ACCESS(roll)))},
+
+  {"AW_angle", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(AWA)))},
+  {"AW_speed", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(AWS)))},
+  {"BS_polar",AstraValueParser()},
+  {"BS_target",AstraValueParser()},
+  {"Boatspeed", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(waterSpeed)))},
+  {"Ext_COG", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(COG)))},
+  {"Ext_SOG", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(SOG)))},
+  {"Heading", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(magHdg)))},
+  {"LeewayAng",AstraValueParser()},
+  {"LeewayMod",AstraValueParser()},
+  {"TWA_target",AstraValueParser()},
+  {"TW_Dir", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWD)))},
+  {"TW_angle", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWA)))},
+  {"TW_speed", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(TWS)))},
+  {"Type_tgt",AstraValueParser()}
+*/
+
+
 //// How the exported ESA values are rendered
 var renderEsaDate = renderEsaUndefined;
 var renderEsaTime = renderEsaUndefined;
