@@ -178,6 +178,24 @@ class ChartSourceIndexBuilder {
   std::string _boatId;
 };
 
+template <class T>
+void appendBinaryFloatArray(bson_t* builder, const char* key,
+                            const T& array) {
+  if (array.size() == 0) {
+    return;
+  }
+
+  std::vector<float> arr;
+  arr.reserve(array.size());
+  for (auto val: array) {
+    arr.push_back(val);
+  }
+
+  bson_append_binary(builder, key, -1, BSON_SUBTYPE_BINARY,
+                     reinterpret_cast<const uint8_t *>(arr.data()),
+                     arr.size() * 4);
+}
+
 template<class T>
 std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
                      const std::string& boatId,
@@ -223,10 +241,14 @@ std::shared_ptr<bson_t> chartTileToBson(const ChartTile<T> tile,
     stats.value.appendToArrays(data.what, &arrays);
   }
 
-  bsonAppendCollection(result.get(), "mean", arrays.mean);
-  bsonAppendCollection(result.get(), "min", arrays.min);
-  bsonAppendCollection(result.get(), "max", arrays.max);
-  bsonAppendCollection(result.get(), "count", arrays.count);
+  if (data.what != "latitude" && data.what != "longitude") {
+    appendBinaryFloatArray(result.get(), "mean_fbin", arrays.mean);
+  } else {
+    bsonAppendCollection(result.get(), "mean", arrays.mean);
+  }
+  appendBinaryFloatArray(result.get(), "min_fbin", arrays.min);
+  appendBinaryFloatArray(result.get(), "max_fbin", arrays.max);
+  appendBinaryFloatArray(result.get(), "count_fbin", arrays.count);
 
   return result;
 }
