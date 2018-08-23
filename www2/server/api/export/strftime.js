@@ -48,48 +48,45 @@ module.exports = function (sFormat, date) {
       return ('' + (Math.pow(10, nPad) + nNum)).slice(1);
     };
   return sFormat.replace(/%[a-z]/gi, function(sMatch) {
-    return {
-      '%m': zeroPad(nMonth + 1, 2),
-      '%d': zeroPad(nDate, 2),
-      '%Y': nYear,
-      '%l': (nHour+11)%12 + 1,
-      '%M': zeroPad(date.getUTCMinutes(), 2),
-      '%S': zeroPad(date.getUTCSeconds(), 2),
-      '%p': (nHour<12) ? 'AM' : 'PM'
-
-      /*
-      '%I': zeroPad((nHour+11)%12 + 1, 2),
-      '%a': aDays[nDay].slice(0,3),
-      '%A': aDays[nDay],
-      '%b': aMonths[nMonth].slice(0,3),
-      '%B': aMonths[nMonth],
-      '%c': date.toUTCString(),
-      '%C': Math.floor(nYear/100),
-      '%e': nDate,
-      '%F': date.toISOString().slice(0,10),
-      '%G': getThursday().getFullYear(),
-      '%g': ('' + getThursday().getFullYear()).slice(2),
-      '%H': zeroPad(nHour, 2),
-      '%j': zeroPad(aDayCount[nMonth] + nDate + ((nMonth>1 && isLeapYear()) ? 1 : 0), 3),
-      '%k': '' + nHour,
-      '%P': (nHour<12) ? 'am' : 'pm',
-      '%s': Math.round(date.getTime()/1000),
-      '%u': nDay || 7,
-      '%V': (function() {
+    switch(sMatch) {
+      case '%m': return zeroPad(nMonth + 1, 2);
+      case '%d': return zeroPad(nDate, 2);
+      case '%Y': return nYear;
+      case '%l': return (nHour+11)%12 + 1;
+      case '%M': return zeroPad(date.getUTCMinutes(), 2);
+      case '%S': return zeroPad(date.getUTCSeconds(), 2);
+      case '%p': return (nHour<12) ? 'AM' : 'PM';
+      case '%I': return zeroPad((nHour+11)%12 + 1, 2);
+      case '%a': return aDays[nDay].slice(0,3);
+      case '%A': return aDays[nDay];
+      case '%b': return aMonths[nMonth].slice(0,3);
+      case '%B': return aMonths[nMonth];
+      case '%c': return date.toUTCString();
+      case '%C': return Math.floor(nYear/100);
+      case '%e': return nDate;
+      case '%F': return date.toISOString().slice(0,10);
+      case '%G': return getThursday().getFullYear();
+      case '%g': return ('' + getThursday().getFullYear()).slice(2);
+      case '%H': return zeroPad(nHour, 2);
+      case '%j': return zeroPad(aDayCount[nMonth] + nDate + ((nMonth>1 && isLeapYear()) ? 1 : 0), 3);
+      case '%k': return '' + nHour;
+      case '%P': return (nHour<12) ? 'am' : 'pm';
+      case '%s': return Math.round(date.getTime()/1000);
+      case '%u': return nDay || 7;
+      case '%V': 
               var target = getThursday(),
                 n1stThu = target.valueOf();
               target.setMonth(0, 1);
               var nJan1 = target.getDay();
               if (nJan1!==4) target.setMonth(0, 1 + ((4-nJan1)+7)%7);
               return zeroPad(1 + Math.ceil((n1stThu-target)/604800000), 2);
-            })(),
-      '%w': '' + nDay,
-      '%x': date.toLocaleDateString(),
-      '%X': date.toLocaleTimeString(),
-      '%y': ('' + nYear).slice(2),
-      '%z': date.toTimeString().replace(/.+GMT([+-]\d+).+/, '$1'),
-      '%Z': date.toTimeString().replace(/.+\((.+?)\)$/, '$1')
-      */
-    }[sMatch] || sMatch;
+      case '%w': return '' + nDay;
+      case '%x': return date.toLocaleDateString();
+      case '%X': return date.toLocaleTimeString();
+      case '%y': return ('' + nYear).slice(2);
+      case '%z': return date.toTimeString().replace(/.+GMT([+-]\d+).+/, '$1');
+      case '%Z': return date.toTimeString().replace(/.+\((.+?)\)$/, '$1');
+    };
+    return sMatch;
   });
 }; 

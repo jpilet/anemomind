@@ -1,38 +1,27 @@
 
 var mongoose = require('mongoose');
 var ChartTile = require('../chart/charttile.model');
+var ChartSource = require('../chart/chartsource.model');
 var expandArrays = require('../chart/expand-array').expandArrays;
+
+var esaFormat = require('./esaFormat');
+var csvFormat = require('./csvFormat');
+
 var ObjectId = mongoose.Types.ObjectId;
-var strftime = require('./strftime');
 
 var dateLength = '2016-09-14T16:25:26'.length;
+
 
  // These values should match those in CharTiles.h
 const minZoom = 9;
 const maxZoom = 28;
 const samplesPerTile = 512;
 
+/*
 function pad(num, size) {
   var s = num+"";
   while (s.length < size) s = "0" + s;
   return s;
-}
-
-function formatTime(date) {
-  // 06/20/2018 4:26:35 PM
-  return strftime("%m/%d/%Y %l:%M:%S %p", date);
-  /* The following is the reference implementation, but it is too slow.
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-    timeZone: 'UTC'
-  }).replace(/,/, '');
-  */
 }
 
 function getColumn (columns, title) {
@@ -41,7 +30,10 @@ function getColumn (columns, title) {
   }
   return columns[title] = Object.keys(columns).length;
 }
+*/
 
+// Returns a row in the table as an array, 
+// or allocates a new array if the row does not exist.
 function getRow(table, timeSec) {
   var t = timeSec + '';
   if (!(t in table)) {
@@ -50,76 +42,6 @@ function getRow(table, timeSec) {
   return table[t];
 }
 
-function csvEscape(s) {
-  if (!s) {
-    return '"-"';
-  }
-  return '"' + s.replace(/"/g, '""').replace(/,/g,';') + '"';
-}
-
-function formatNumber(s, decimals) {
-  s = s + '';
-  if (s.match(/^[ ]*[-]?\d+\.\d+$/)) {
-    var fixed = parseFloat(s).toFixed(decimals);
-    return fixed.match(/(.*?)\.?0*$/)[1];
-  }
-  return s;
-}
-
-function formatColumnEntry(type, entry) {
-  if (entry == undefined) {
-    return '';
-  }
-
-  switch (type) {
-    case 'longitude':
-    case 'latitude':
-      return entry;
-    case 'awa':
-    case 'twa':
-    case 'gpsBearing':
-    case 'magHdg':
-    case 'twdir':
-    case 'vmg':
-    case 'targetVmg':
-      return formatNumber(entry, 1);
-    case 'aws':
-    case 'tws':
-    case 'rudderAngle':
-    case 'waterSpeed':
-    case 'gpsSpeed':
-      return formatNumber(entry, 2);
-    default:
-      return formatNumber(entry, 2);
-  }
-}
-
-
-function sendCsvHeader(res, columns) {
-  var row = [ "DATE/TIME(UTC)" ].concat(columns).map(csvEscape);
-  res.write(row.join(',') + '\n');
-}
-
-function sendCsvChunk(res, columns, table, columnType) {
-  var numCols = 1 + columns.length;
-
-  var times = Object.keys(table);
-  times.sort(function(a, b) { return parseInt(a) - parseInt(b); });
-
-  for (var time_index = 0 ; time_index < times.length; ++ time_index) {
-    var t = times[time_index];
-
-    var rowDate = new Date(parseInt(t) * 1000);
-
-    row = [];
-    row[0] = formatTime(rowDate);
-    var tableRow = table[t];
-    for (var i = 0; i < numCols; ++i) {
-      row[i + 1] = formatColumnEntry(columnType[i], tableRow[i]); 
-    }
-    res.write(row.join(', ') + '\n');
-  }
-}
 
 var listChannelsWithSources = function(boat, zoom, firstTile, lastTile, cb) {
   ChartTiles.aggregate([
@@ -148,8 +70,31 @@ var listChannelsWithSources = function(boat, zoom, firstTile, lastTile, cb) {
     }, {
       $sort: {what: 1}
     }
-  ]).exec(cb);
+  ]).exec(function(err, data) {
+    if (err) {
+      cb(err);
+      return;
+    }
+    ChartSource.findById(boat, (err, chartSources) => {
+      if (err) {
+        cb(err);
+        return;
+      }
+      cb(null, data.map((x) => {
+        return {
+          what: x.what,
+          sources: x.sources.map((source) => {
+            return {
+              source: source,
+              prio: prioOfSource(x.what, source, chartSources)
+            };
+          }).sort((a, b) => b.prio - a.prio)
+        };
+      }));
+    });
+  });
 };
+
 
 var listColumns = function(boat, zoom, firstTile, lastTile, cb) {
   ChartTile.aggregate([
@@ -171,14 +116,21 @@ var listColumns = function(boat, zoom, firstTile, lastTile, cb) {
       cb(err);
     } else {
       cb(undefined, res.map(function(e) {
-        return e._id.what + ' - ' + e._id.source;
+        return {
+          source: e._id.source,
+          type: e._id.what
+        };
       }));
     }
   });
 };
- 
-function sendCsvWithColumns(start, end, boat, zoom, firstTile, lastTile,
-                            columns, res, timeRange) {
+
+function sendWithColumns(
+  outputFormat,
+  chartSources,
+  start, end, boat, zoom, firstTile, lastTile,
+  columns, res, timeRange) {
+
   var query = {
     boat: mongoose.Types.ObjectId(boat),
     zoom: zoom,
@@ -188,33 +140,48 @@ function sendCsvWithColumns(start, end, boat, zoom, firstTile, lastTile,
     }
   };
 
-  console.warn(query);
-
+  // Maps a time (in seconds) to arrays of mean values
   var table = { };
+
+  // What type of data each column stores
   var columnType = { };
 
   var resultSent = false;
 
   var currentTile = firstTile;
 
-  res.contentType('text/csv');
-  res.header("Content-Disposition", "attachment;filename=" + timeRange + ".csv");
-  sendCsvHeader(res, columns);
+  res.contentType(outputFormat.contentType);
+  res.header("Content-Disposition", "attachment;filename=" + timeRange + outputFormat.fileExtension);
+  outputFormat.sendHeader(res, columns);
+
+  var columnNames = columns.map((x) => outputFormat.columnString(x, chartSources));
 
   // The query bypasses mongoose.
   ChartTile.collection
     .find(query)
     // see https://docs.mongodb.com/manual/tutorial/sort-results-with-indexes/
     .sort({ boat:1, zoom:1, tileno: 1})
-    .forEach(function(tile) {
-      tile = expandArrays(tile);
+    .forEach(function(packedTile) {
+      var tile = expandArrays(packedTile);
 
-      var columnTitle = tile.what + ' - ' + tile.source;
+      var columnTitle = outputFormat.columnString({
+        type: tile.what,
+        source: tile.source
+      }, chartSources);
+      if (!columnTitle) {
+        // column is ignored, skip it.
+        return;
+      }
+
       var firstTime = new Date(1000 * tile.tileno * (1 << tile.zoom));
 
+      // Should we complete this chunk and move on?
       if (tile.tileno > currentTile) {
-        sendCsvChunk(res, columns, table, columnType);
+        // Send what we have.
+        outputFormat.sendChunk(res, columns, table, columnType, columnNames);
         currentTile = tile.tileno;
+
+        // Reset them, so that we can start over.
         table = { };
         columnType = { };
       }
@@ -225,15 +192,18 @@ function sendCsvWithColumns(start, end, boat, zoom, firstTile, lastTile,
       var startTimeSec = start.getTime() / 1000;
       var endTimeSec = end.getTime() / 1000;
 
-      var colno = columns.indexOf(columnTitle);
+      var colno = columnNames.indexOf(columnTitle);
       if (colno < 0) {
         return;
       }
       columnType[colno] = tile.what;
+
       for (var i = 0; i < samplesPerTile; ++i) {
         if (tile.count && tile.count[i] > 0) {
           var time = firstTimeSec + i * increment;
           if (time > startTimeSec && time < endTimeSec) {
+
+            // Populate the table row
             var row = getRow(table, time);
             row[colno] = tile.mean[i];
           }
@@ -251,14 +221,16 @@ function sendCsvWithColumns(start, end, boat, zoom, firstTile, lastTile,
       } else {
         setTimeout(function() {
           resultSent = true;
-          sendCsvChunk(res, columns, table, columnType);
+          outputFormat.sendChunk(res, columns, table, columnType, columnNames);
           res.status(200).end();
         }, 1);
       }
     });
 }
 
-exports.exportCsv = function(req, res, next) {
+
+function exportInFormat(format, req, res, next) {
+  console.log('Export in format: ', format);
   var timeRange = req.params.timerange;
   var boat = req.params.boat + '';
   if (typeof(timeRange) != 'string' || timeRange.length != 2 * dateLength) {
@@ -282,16 +254,34 @@ exports.exportCsv = function(req, res, next) {
   var firstTile = tileNo(start, 'floor');
   var lastTile = tileNo(end, 'ceil');
 
-  listColumns(boat, zoom, firstTile, lastTile,
-    function(err, columns) {
-      if (err) {
-        console.warn(err);
-        res.status(500).send();
-      } else if (columns.length == 0) {
-        res.status(404).send();
-      } else {
-        sendCsvWithColumns(start, end, boat, zoom, firstTile, lastTile,
-                           columns, res, timeRange);
-      }
-    });
+  ChartSource.findById(boat, function(err, chartSources) {
+    if (err) {
+      console.warn(err);
+      res.status(404).send();
+    } else {
+
+      console.log('Chart sources: %j', chartSources);
+
+      listColumns(
+        boat, zoom, firstTile, lastTile,
+        function(err, columns) {
+          if (err) {
+            console.warn(err);
+            res.status(500).send();
+          } else if (columns.length == 0) {
+            res.status(404).send();
+          } else {
+            sendWithColumns(
+              format,
+              chartSources,
+              start, end, boat, zoom, firstTile, lastTile,
+              columns, res, timeRange);
+          }
+        });
+    }
+  });
 };
+
+exports.exportCsv = (req, res, next) => exportInFormat(csvFormat, req, res, next);
+exports.exportEsa = (req, res, next) => exportInFormat(esaFormat, req, res, next);
+

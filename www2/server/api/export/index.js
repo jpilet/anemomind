@@ -12,4 +12,9 @@ router.get('/:boat/:timerange.csv',
   access.boatReadAccess,
   controller.exportCsv);
 
+router.get('/:boat/:timerange.esa.log',
+  auth.maybeAuthenticated(),
+  access.boatReadAccess,
+  controller.exportEsa);
+
 module.exports = router;
