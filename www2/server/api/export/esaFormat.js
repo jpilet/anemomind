@@ -43,7 +43,7 @@ var esaColumns = [{
   render: renderSpeed
 }, {
   esaName: 'Heading',
-  fromName: 'magHeading',
+  fromName: 'magHdg',
   render: renderAngle
 }, {
   esaName: 'TW_angle',
