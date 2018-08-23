@@ -4,11 +4,11 @@ const format = require('./format');
 //// ESA log rendering
 
 function renderAngle(date, val) {
-  return (val == undefined ? '' : format.number(val, 0));
+  return (val == undefined ? '0' : format.number(val, 0));
 }
 
 function renderSpeed(date, val) {
-  return (val == undefined ? '' : format.number(val, 2));
+  return (val == undefined ? '0.00' : format.number(val, 2));
 }
 
 function renderGeoAngle(val, pos, neg) {
@@ -104,27 +104,63 @@ function sendEsaHeader(res, columns) {
   + 'Date	Time	Ts	Boatspeed	AW_angle	AW_speed	Heading	TW_angle	TW_speed	TW_Dir	Ext_SOG	Ext_COG	Latitudine	Longitudine	BS_target	TWA_target	BS_polar	Type_tgt	LeewayAng	LeewayMod	SET	DRIFT\n');
 }
 
+// Astra loader does not like holes in the file.
+// We fill holes with a value either a bit before or a bit after.
+// If none is available, we put 0.
+function fillHoles(table, times) {
+  const findValue = (col, t) => {
+    const maxDist = Math.max(t, times.length - t);
+    for (let dist = 1; dist < maxDist; ++dist) {
+      if (((t - dist) >= 0)
+          && table[times[t - dist]][col] != undefined) {
+        return table[times[t - dist]][col];
+      }
+      if (((t + dist) < times.length)
+          && table[times[t + dist]][col] != undefined) {
+        return table[times[t + dist]][col];
+      }
+    }
+    return 0;
+  };
+
+  for (let t = 0; t < times.length; t++) {
+    let row = table[times[t]];
+    for (let col = 0; col < row.length; ++col) {
+      if (!isFinite(parseFloat(row[col]))) {
+        let newVal = findValue(col, t);
+        //console.log('Replacing ', row[col], ' in col ', col, ' with ', newVal);
+        row[col] = newVal;
+        //console.log('result: ', table[times[t]][col]);
+      }
+    }
+  }
+}
+
 function sendEsaChunk(res, columns, table, columnType, columnNames) {
   const times = Object.keys(table);
   times.sort(function(a, b) { return parseInt(a) - parseInt(b); });
 
+  fillHoles(table, times);
+
   const esaToRow = [];
-  for (let esaCol of esaColumns) {
+  for (let i = 0; i < esaColumns.length; ++i) {
+    let esaCol = esaColumns[i];
     if (esaCol.fromName) {
-      const index = columnNames.indexOf(esaCol.esaName);
+      const index = columnNames.indexOf(esaCol.fromName);
       if (index >= 0) {
-        esaToRow.push(index);
-        continue;
+        esaToRow[i] = index;
+      } else {
+        console.log('Can\'t find column ' + esaCol.fromName + '/' + esaCol.esaName);
       }
     }
-    esaToRow.push(undefined);
   }
 
   const mandatory =
-    ['Latitudine', 'Longitudine'].map((x) => columnNames.indexOf(x));
+    ['latitude', 'longitude'].map((x) => columnNames.indexOf(x));
 
   if (mandatory.indexOf(-1) != -1) {
     console.warn("No GPS column, can't to export ESA file!");
+    res.send(500);
     return;
   }
 
@@ -184,7 +220,7 @@ function columnString(sourceType, chartSources) {
   for (let c of esaColumns) {
     if (c.fromName && c.fromName == sourceType.type
         && sourceType.source == bestSourceForChannel(c.fromName, chartSources)) {
-      return c.esaName;
+      return c.fromName;
     }
   }
   return undefined;
