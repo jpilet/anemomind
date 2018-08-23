@@ -130,7 +130,8 @@ function fillHoles(table, times, col) {
       if (newVal != undefined) {
         row[col] = newVal;
       } else {
-        console.log('Failed to find a value for col ', col, ' at time ', t);
+        // This message is too noisy in the console.
+        //console.log('Failed to find a value for col ', col, ' at time ', t);
       }
     }
   }
@@ -182,7 +183,8 @@ function sendEsaChunk(res, columns, table, columnType, columnNames) {
     for (let i = 0; i < esaColumns.length; ++i) {
       const val = (esaToRow[i] ? tableRow[esaToRow[i]] : undefined);
       if (val == undefined && esaToRow[i] != undefined) {
-        console.log('Warning, missing value for col ', i);
+        // Too noisy on the console.
+        // console.log('Warning, missing value for col ', i);
       }
       const separator = (i == (esaColumns.length -1) ? '\n' : '\t');
       const str = '' + esaColumns[i].render(rowDate, val);
