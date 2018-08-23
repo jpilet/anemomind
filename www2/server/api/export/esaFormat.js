@@ -4,7 +4,7 @@ const format = require('./format');
 //// ESA log rendering
 
 function renderAngle(date, val) {
-  return (val == undefined ? '0' : format.number(val, 0));
+  return (!isFinite(parseFloat(val)) ? '0' : format.number(val, 0));
 }
 
 function renderSpeed(date, val) {
@@ -107,8 +107,8 @@ function sendEsaHeader(res, columns) {
 // Astra loader does not like holes in the file.
 // We fill holes with a value either a bit before or a bit after.
 // If none is available, we put 0.
-function fillHoles(table, times) {
-  const findValue = (col, t) => {
+function fillHoles(table, times, col) {
+  const findValue = (t) => {
     const maxDist = Math.max(t, times.length - t);
     for (let dist = 1; dist < maxDist; ++dist) {
       if (((t - dist) >= 0)
@@ -120,18 +120,20 @@ function fillHoles(table, times) {
         return table[times[t + dist]][col];
       }
     }
-    return 0;
+    return undefined;
   };
 
   for (let t = 0; t < times.length; t++) {
     let row = table[times[t]];
-    for (let col = 0; col < row.length; ++col) {
-      if (!isFinite(parseFloat(row[col]))) {
-        let newVal = findValue(col, t);
-        //console.log('Replacing ', row[col], ' in col ', col, ' with ', newVal);
+    if (!isFinite(parseFloat(row[col]))) {
+      let newVal = findValue(t);
+      //console.log('Replacing ', row[col], ' in col ', col, ' with ', newVal);
+      if (newVal != undefined) {
         row[col] = newVal;
-        //console.log('result: ', table[times[t]][col]);
+      } else {
+        console.log('Failed to find a value for col ', col, ' at time ', t);
       }
+      //console.log('result: ', table[times[t]][col]);
     }
   }
 }
@@ -140,8 +142,6 @@ function sendEsaChunk(res, columns, table, columnType, columnNames) {
   const times = Object.keys(table);
   times.sort(function(a, b) { return parseInt(a) - parseInt(b); });
 
-  fillHoles(table, times);
-
   const esaToRow = [];
   for (let i = 0; i < esaColumns.length; ++i) {
     let esaCol = esaColumns[i];
@@ -149,6 +149,8 @@ function sendEsaChunk(res, columns, table, columnType, columnNames) {
       const index = columnNames.indexOf(esaCol.fromName);
       if (index >= 0) {
         esaToRow[i] = index;
+        console.log('Filling holes for column ', columnNames[index]);
+        fillHoles(table, times, index);
       } else {
         console.log('Can\'t find column ' + esaCol.fromName + '/' + esaCol.esaName);
       }
@@ -156,7 +158,7 @@ function sendEsaChunk(res, columns, table, columnType, columnNames) {
   }
 
   const mandatory =
-    ['latitude', 'longitude'].map((x) => columnNames.indexOf(x));
+    ['latitude', 'longitude', 'twdir'].map((x) => columnNames.indexOf(x));
 
   if (mandatory.indexOf(-1) != -1) {
     console.warn("No GPS column, can't to export ESA file!");
@@ -171,7 +173,7 @@ function sendEsaChunk(res, columns, table, columnType, columnNames) {
 
     let ok = true;
     for (let m of mandatory) {
-      if (!isFinite(tableRow[m])) {
+      if (!isFinite(parseFloat(tableRow[m]))) {
         ok = false;
       }
     }
@@ -182,8 +184,12 @@ function sendEsaChunk(res, columns, table, columnType, columnNames) {
         
     for (let i = 0; i < esaColumns.length; ++i) {
       const val = (esaToRow[i] ? tableRow[esaToRow[i]] : undefined);
+      if (val == undefined && esaToRow[i] != undefined) {
+        console.log('Warning, missing value for col ', i);
+      }
       const separator = (i == (esaColumns.length -1) ? '\n' : '\t');
-      res.write(esaColumns[i].render(rowDate, val) + separator);
+      const str = '' + esaColumns[i].render(rowDate, val);
+      res.write(str + separator);
     }
   }
 }
