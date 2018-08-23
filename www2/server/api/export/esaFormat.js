@@ -127,13 +127,11 @@ function fillHoles(table, times, col) {
     let row = table[times[t]];
     if (!isFinite(parseFloat(row[col]))) {
       let newVal = findValue(t);
-      //console.log('Replacing ', row[col], ' in col ', col, ' with ', newVal);
       if (newVal != undefined) {
         row[col] = newVal;
       } else {
         console.log('Failed to find a value for col ', col, ' at time ', t);
       }
-      //console.log('result: ', table[times[t]][col]);
     }
   }
 }
@@ -149,7 +147,6 @@ function sendEsaChunk(res, columns, table, columnType, columnNames) {
       const index = columnNames.indexOf(esaCol.fromName);
       if (index >= 0) {
         esaToRow[i] = index;
-        console.log('Filling holes for column ', columnNames[index]);
         fillHoles(table, times, index);
       } else {
         console.log('Can\'t find column ' + esaCol.fromName + '/' + esaCol.esaName);
@@ -158,7 +155,7 @@ function sendEsaChunk(res, columns, table, columnType, columnNames) {
   }
 
   const mandatory =
-    ['latitude', 'longitude', 'twdir'].map((x) => columnNames.indexOf(x));
+    ['latitude', 'longitude'].map((x) => columnNames.indexOf(x));
 
   if (mandatory.indexOf(-1) != -1) {
     console.warn("No GPS column, can't to export ESA file!");
