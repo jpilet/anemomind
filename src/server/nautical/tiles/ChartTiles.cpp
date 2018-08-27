@@ -193,7 +193,7 @@ void appendBinaryFloatArray(bson_t* builder, const char* key,
 
   bson_append_binary(builder, key, -1, BSON_SUBTYPE_BINARY,
                      reinterpret_cast<const uint8_t *>(arr.data()),
-                     arr.size() * 4);
+                     arr.size() * sizeof(float));
 }
 
 template<class T>
