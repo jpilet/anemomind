@@ -51,6 +51,16 @@ namespace {
   }
 }
 
+void PushOnEdge(TimeStamp t,
+                TimedSampleCollection<BinaryEdge>::TimedVector* collection) {
+  collection->push_back(TimedValue<BinaryEdge>(t, BinaryEdge::ToOn));
+}
+
+void PushOffEdge(TimeStamp t,
+                TimedSampleCollection<BinaryEdge>::TimedVector* collection) {
+  collection->push_back(TimedValue<BinaryEdge>(t, BinaryEdge::ToOff));
+}
+
 NavDataset loadEvents(
     const NavDataset& dst,
     const MongoDBConnection& connection,
@@ -86,17 +96,24 @@ NavDataset loadEvents(
   const bson_t* doc = nullptr;
   std::set<std::string> unknown;
   TimedSampleCollection<BinaryEdge>::TimedVector sessionEdges;
+  TimedSampleCollection<BinaryEdge>::TimedVector mergeEdges;
+  TimedSampleCollection<BinaryEdge>::TimedVector splitEdges;
+
   while (mongoc_cursor_next (cursor.get(), &doc)) {
     auto msg0 = readStructuredMessage(doc);
     auto t = readTime(doc);
     if (msg0.defined() && t.defined()) {
       auto msg = msg0.get();
       if (msg == "New session") {
-        sessionEdges.push_back(TimedValue<BinaryEdge>(
-            t, BinaryEdge::ToOn));
+        PushOnEdge(t, &sessionEdges);
       } else if (msg == "End session") {
-        sessionEdges.push_back(TimedValue<BinaryEdge>(
-            t, BinaryEdge::ToOff));
+        PushOffEdge(t, &sessionEdges);
+      } else if (msg == "Session merge start") {
+        PushOnEdge(t, &mergeEdges);
+      } else if (msg == "Session merge end") {
+        PushOffEdge(t, &mergeEdges);
+      } else if (msg == "Session split") {
+        PushOnEdge(t, &splitEdges);
       } else if (startsWith(msg, "Sail:")) {
       } else {
         unknown.insert(msg);
@@ -111,8 +128,21 @@ NavDataset loadEvents(
     }
     LOG(WARNING) << ss.str();
   }
-  return dst.addChannel<BinaryEdge>(
+
+  NavDataset result = dst;
+
+  if (sessionEdges.size() >0) {
+    result = result.addChannel<BinaryEdge>(
       USER_DEF_SESSION, "iosApp", sessionEdges);
+  }
+  if (mergeEdges.size() > 0) {
+    result = result.addChannel<BinaryEdge>(
+        MERGED_SESSION, "anemolab", mergeEdges);
+  }
+  if (splitEdges.size() > 0) {
+    result = result.addChannel<BinaryEdge>(
+        SPLIT_SESSION, "anemolab", splitEdges);
+  }
 }
 
 
