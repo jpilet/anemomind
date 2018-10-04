@@ -18,6 +18,7 @@
 #include <device/anemobox/DispatcherUtils.h>
 #include <device/anemobox/TimedSampleCollection.h>
 #include <memory>
+#include <server/common/Period.h>
 #include <server/common/TimeStamp.h>
 #include <server/common/logging.h>
 #include <server/nautical/types/SampledSignal.h>
@@ -157,6 +158,7 @@ public:
         = std::map<DataCode, std::shared_ptr<DispatchData>>());
 
   NavDataset slice(TimeStamp a, TimeStamp b) const;
+  NavDataset slice(const Period& p) const { return slice(p.begin, p.end); }
   NavDataset sliceFrom(TimeStamp ts) const;
   NavDataset sliceTo(TimeStamp ts) const;
   NavDataset sliceFirst(const Duration<double> &dur) const;

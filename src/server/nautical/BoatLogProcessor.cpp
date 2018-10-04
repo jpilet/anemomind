@@ -338,6 +338,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   } else {
     NavDataset loaded = loadNavs(*amap, _boatid);
     hack::SelectSources(&loaded);
+    loaded.dispatcher()->setSourcePriority(" reparsed", -1);
+
     current = removeStrangeGpsPositions(loaded);
     infoNavDataset("After loading", current);
 
@@ -361,7 +363,7 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   // It has to do its own estimate.
   hack::SelectSources(&current);
   current = current.createMergedChannels(
-      std::set<DataCode>{AWA, AWS}, Duration<>::seconds(.3));
+      std::set<DataCode>{AWA, AWS, MAG_HEADING}, Duration<>::seconds(.3));
   std::shared_ptr<HTree> fulltree = _grammar.parse(
       current.stripSource("Anemomind estimator") // avoid "loop back" effects
       );

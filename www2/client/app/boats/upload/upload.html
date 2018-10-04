@@ -105,8 +105,11 @@
           <i ng-show="!file.complete" class="glyphicon glyphicon-warning-sign orange"></i>
           {{ file.name }}</a>
         </td>
-        <td>{{ file.start | date:'short' }}, 
+        <td ng-show="file.start">{{ file.start | date:'short' }}, 
           {{ file.duration_sec | timeSpan }}
+        </td>
+        <td ng-show="file.type == 'ESA Polar'">
+          <a href="/polar/{{ boatId }}/{{ file.name }}">ESA Polar</a>
         </td>
         <td>
           <button ng-hide="file.confirm" type="button"

@@ -62,7 +62,9 @@ namespace sail {
   X(YAW, 21, "yaw", Angle<>, "Yaw (heading)") \
   X(PITCH, 22, "pitch", Angle<>, "Pitch") \
   X(ROLL, 23, "roll", Angle<>, "Roll") \
-  X(USER_DEF_SESSION, 24, "userDefSession", BinaryEdge, "User defined session")
+  X(USER_DEF_SESSION, 24, "userDefSession", BinaryEdge, "User defined session") \
+  X(MERGED_SESSION, 25, "mergeSession", BinaryEdge, "Merged/unbreakable sessions") \
+  X(SPLIT_SESSION, 26, "splitSession", BinaryEdge, "Force session splits")
 
 enum DataCode {
 #define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \

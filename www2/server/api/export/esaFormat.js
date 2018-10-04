@@ -31,7 +31,7 @@ var esaColumns = [{
   render: (date, val) => (date.getTime() / 1000).toFixed(0)
 }, {
   esaName: 'Boatspeed',
-  fromName: 'gpsSpeed',
+  fromName: 'watSpeed',
   render: renderSpeed
 }, {
   esaName: 'AW_angle',
@@ -99,8 +99,14 @@ var esaColumns = [{
   render: () => '0.00'
 }];
 
+<<<<<<< HEAD
 function sendEsaHeader(res, columns) {
   res.write('----------------------------- exported_from_anemolab.esa.log --------------------------\n'
+=======
+function sendEsaHeader(res, columns, boat) {
+  let url = 'https://anemolab.com/boat/' + boat;
+  res.write('----------------------------- ' + url + ' --------------------------\n'
+>>>>>>> origin/jp-esa-polar-frontend
   + 'Date	Time	Ts	Boatspeed	AW_angle	AW_speed	Heading	TW_angle	TW_speed	TW_Dir	Ext_SOG	Ext_COG	Latitudine	Longitudine	BS_target	TWA_target	BS_polar	Type_tgt	LeewayAng	LeewayMod	SET	DRIFT\n');
 }
 

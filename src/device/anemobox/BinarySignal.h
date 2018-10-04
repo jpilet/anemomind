@@ -2,6 +2,7 @@
 #define ANEMOBOX_BINARY_SIGNAL_H_
 
 #include <device/anemobox/TimedSampleCollection.h>
+#include <server/common/Period.h>
 
 #include <cassert>
 #include <iterator>
@@ -17,19 +18,6 @@ using BinarySignal = TimedSampleCollection<BinaryEdge>::TimedVector;
 
 BinarySignal binarySignalUnion(const BinarySignal& a,
                                const BinarySignal& b);
-
-struct Period {
-  TimeStamp begin;
-  TimeStamp end;
-
-  Period() { }
-  Period(TimeStamp b, TimeStamp e) : begin(b), end(e) { }
-  Period(TimeStamp b, Duration<> d) : begin(b), end(b + d) { }
-
-  Duration<> duration() const { return end - begin; }
-
-  bool defined() const { return begin.defined(); }
-};
 
 // a class temporarily wrapping a BinarySignal to make it look as a
 // collection of Period.

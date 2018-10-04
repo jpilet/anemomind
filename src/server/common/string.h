@@ -80,5 +80,16 @@ std::string join(const StringCollection& array, const std::string& delimiter) {
   }
   return result;
 }
+
+static bool startsWith(const std::string& s, const char *prefix) {
+  const int end = s.size();
+  for (int i = 0; prefix[i] != 0; ++i) {
+    if (i == end || prefix[i] != s[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 } /* namespace sail */
 #endif /* TEXT_H_ */

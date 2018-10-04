@@ -204,8 +204,9 @@ template <typename T, typename system, int TimeDim/*t*/, int LengthDim/*l*/, int
 class PhysicalQuantity;
 
 #if ON_SERVER
-template <typename T, typename sys>
-std::string physQuantToString(const PhysicalQuantity<T, sys, 1, 0, 0, 0> &x);
+template <typename T, typename sys, int Time/*t*/, int Length/*l*/, int Angle/*a*/, int Mass/*m*/>
+std::string physQuantToString(const PhysicalQuantity<T, sys, Time, Length, Angle, Mass> &x);
+
 #endif
 
 struct NonsenseType {};
@@ -519,6 +520,35 @@ PhysicalQuantity<T, System, t, l, a, m> operator*(T s,
 }
 
 #if ON_SERVER
+
+template <typename T, typename sys, int Time/*t*/, int Length/*l*/, int Angle/*a*/, int Mass/*m*/>
+std::string physQuantToString(const PhysicalQuantity<T, sys, Time, Length, Angle, Mass> &x) {
+  std::stringstream ss;
+
+  const auto exponent = [](int e) -> std::string {
+    if (e) {
+      return std::string("^") + std::to_string(e);
+    }
+    return "";
+  };
+
+  ss << x.getSI() << " [";
+  if (Time != 0) {
+    ss << " s" << exponent(Time);
+  }
+  if (Length != 0) {
+    ss << " m" << exponent(Length);
+  }
+  if (Angle != 0) {
+    ss << " r" << exponent(Angle);
+  }
+  if (Mass != 0) {
+    ss << " g" << exponent(Mass);
+  }
+  ss << " ]";
+  return ss.str();
+}
+
 template <typename T, typename System>
 std::string physQuantToString(const PhysicalQuantity<T, System, 1, 0, 0, 0> &x) {
    std::stringstream ss;
@@ -537,6 +567,7 @@ std::string physQuantToString(const PhysicalQuantity<T, System, 1, 0, 0, 0> &x) 
 #undef FORMAT_DURATION_UNIT
    return ss.str();
 }
+
 #endif
 
 

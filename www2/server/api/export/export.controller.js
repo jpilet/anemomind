@@ -152,7 +152,7 @@ function sendWithColumns(
 
   res.contentType(outputFormat.contentType);
   res.header("Content-Disposition", "attachment;filename=" + timeRange + outputFormat.fileExtension);
-  outputFormat.sendHeader(res, columns);
+  outputFormat.sendHeader(res, columns, boat);
 
   var columnNames = columns.map((x) => outputFormat.columnString(x, chartSources));
 
@@ -269,6 +269,10 @@ function exportInFormat(format, req, res, next) {
             console.warn(err);
             res.status(500).send();
           } else if (columns.length == 0) {
+<<<<<<< HEAD
+=======
+            console.warn('No columns! tiles: ', firstTile, ' -> ', lastTile);
+>>>>>>> origin/jp-esa-polar-frontend
             res.status(404).send();
           } else {
             sendWithColumns(
