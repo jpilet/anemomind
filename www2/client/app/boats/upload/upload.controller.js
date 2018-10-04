@@ -26,8 +26,12 @@ angular.module('www2App')
       $http.get('/api/files/' + $stateParams.boatId).then(function(response) {
         $scope.files = response.data;
         $scope.files.forEach(function(f) {
-          f.start = new Date(f.start);
-          f.complete = f.data && f.data.match(/awa/) && f.data.match(/pos/);
+          if ('start' in f) {
+            f.start = new Date(f.start);
+            f.complete = f.data && f.data.match(/awa/) && f.data.match(/pos/);
+          } else if (f.type && f.type == 'ESA Polar') {
+            f.complete = true;
+          }
         });
       });
     };
@@ -39,10 +43,10 @@ angular.module('www2App')
     };
 
     $scope.fileIsGood = function(f) {
-      return !!f.data;
+      return (f.data != undefined || f.type == 'ESA Polar');
     };
     $scope.fileIsBad = function(f) {
-      return !f.data;
+      return !$scope.fileIsGood(f);
     };
     $scope.delete = function(f) {
       $http.delete('/api/files/' + $stateParams.boatId + '/' + f.name)

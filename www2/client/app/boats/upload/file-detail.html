@@ -42,6 +42,10 @@
           <th>End</th>
           <td>{{ file.end | date:'medium' }}</td>
         </tr>
+        <tr ng-show="file.type">
+          <th>File type</th>
+          <td>{{ file.type }}</td>
+        </tr>
         <tr ng-show="file.data">
           <th>Duration</th>
           <td>{{ file.duration_sec | timeSpan }}</td>
