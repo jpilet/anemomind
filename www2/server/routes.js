@@ -24,6 +24,7 @@ module.exports = function(app) {
   app.use('/api/chart', require('./api/chart'));
   app.use('/api/export', require('./api/export'));
   app.use('/api/files', require('./api/files'));
+  app.use('/api/perfstat', require('./api/perfstats'));
 
   app.use('/auth', require('./auth'));
   app.use('/map', require('./social')(app));

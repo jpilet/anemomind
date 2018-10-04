@@ -2,6 +2,7 @@
 
 const { execFile } = require('child_process');
 const backup = require('../../components/backup');
+const esaPolar = require('./esapolar');
 
 var multer  = require('multer');
 var fs = require('fs');
@@ -40,14 +41,25 @@ function fileName(req) {
 }
 
 function getDetailsForFiles(dir, files) {
-  return new Promise((resolve, reject) => {
-    execFile(config.tryLoadBin, [ '-C', dir ].concat(files),
-             (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-      }
-      resolve(JSON.parse(stdout));
+  const regex = /ESA$/;
+  let esaFiles = files.filter((f) => f.match(regex))
+    .map((f) => {
+      return { name: f, type: 'ESA Polar' };
     });
+
+  return new Promise((resolve, reject) => {
+    const logfiles = files.filter((f) => !f.match(regex));
+    if (logfiles.length == 0) {
+      return resolve(esaFiles);
+    } else {
+      execFile(config.tryLoadBin, [ '-C', dir ].concat(logfiles),
+               (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        }
+        resolve(JSON.parse(stdout).concat(esaFiles));
+      });
+    }
   });
 }
 
@@ -150,6 +162,12 @@ exports.handleUploadedFile = function(req, res, next) {
   }
   res.status(201).json({ result: 'OK', files: result });
   backup.pushLogFilesToProcessingServer();
+
+  result.forEach((f) => {
+    esaPolar.readEsaPolar(dir + '/' + f)
+    .then((data) => { return esaPolar.uploadEsaPolar(req.params.boatId, data); })
+    .catch(console.warn);
+  });
 };
 
 exports.delete = function(req, res, next) {
