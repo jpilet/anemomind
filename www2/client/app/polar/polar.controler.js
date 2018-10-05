@@ -128,7 +128,7 @@ angular.module('www2App')
           var max = maxForSeries($scope[what + 'Points' + upDown], 'x');
           if (!xMax || xMax < max) { xMax = max; }
           var min = minForSeries($scope[what + 'Points' + upDown], 'x');
-          if (!xMin || xMin < min) { xMin = min; }
+          if (!xMin || xMin > min) { xMin = min; }
         });
       });
 
