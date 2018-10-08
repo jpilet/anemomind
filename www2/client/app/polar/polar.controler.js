@@ -162,5 +162,10 @@ angular.module('www2App')
     $scope.speed_options.chart.yAxis1.tickFormat =
       function(d){ return d3.format('.0f')(d); };
     $scope.speed_options.title.text = 'Boat speed / TWS';
+
+  $http.get('/api/perfstat/' + $stateParams.boatId)
+    .success(function(data, status, headers, config) {
+      $scope.perfstatIndex = data;
+    });
 });
 
