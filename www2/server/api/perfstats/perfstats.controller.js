@@ -17,8 +17,19 @@ function replyWithMongoResults(res, err, data) {
 
 module.exports.list = (req, res, next) => {
   const boatid = req.params.boatId + '';
-  PerfStat.find({ boat: mongoose.Types.ObjectId(boatid) },
-                (err, data) => replyWithMongoResults(res, err, data));
+  PerfStat.find({ boat: mongoose.Types.ObjectId(boatid) }, (err, data) => {
+    if (err) {
+      console.warn(new Error(err));
+      res.sendStatus(500);
+      return;
+    }
+    if (!data || data.length == 0) {
+      res.json([]).status(200);
+    }
+
+    res.json(data.map((obj) => { return { name: obj.name, type: obj.type }; }))
+    .status(200);
+  });
 };
 
 module.exports.show = (req, res, next) => {

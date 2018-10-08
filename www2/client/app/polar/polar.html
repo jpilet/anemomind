@@ -6,7 +6,17 @@
   <ol class="breadcrumb">
     <li><a href="/boats">Boats</a></li>
     <li><a href="/boats/{{::boatId}}">{{ boat.name }}</a></li>
-    <li><a href="/polar/{{::boatId}}/{{name}}">{{name}}</a></li>
+    <li><a href="/polar/{{::boatId}}">Performance</a></li>
+    <li><span class="dropdown">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    {{ name }}
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+    <li ng-repeat="perf in perfstatIndex">
+      <a href="/polar/{{::boatId}}/{{ perf.name }}">{{ perf.name }}</a></li>
+  </ul>
+      </span></li>
   </ol>
 
 
