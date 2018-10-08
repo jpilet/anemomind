@@ -316,6 +316,10 @@ function makeWindPackets() {
     var lastSent = lastSentTimestamps[wa] || (now - 1000);
     var data2send = tryGetIfFresh([wa, "tws"], source, lastSent, now);
     if (data2send) {
+      // TWA has to be transmitted as a positive angle
+      if (data2send[wa][0] < 0) {
+        data2send[wa][0] += 360;
+      }
       packetsToSend.push({
         deviceIndex: 0,
         pgn: pgntable.windData,
