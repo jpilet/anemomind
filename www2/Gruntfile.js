@@ -1,6 +1,8 @@
 // Generated on 2014-11-27 using generator-angular-fullstack 2.0.13
 'use strict';
 
+var appPath = require('./bower.json').appPath || process.env.VHOST || 'client';
+
 module.exports = function (grunt) {
   var localConfig;
   try {
@@ -44,7 +46,7 @@ module.exports = function (grunt) {
     },
     yeoman: {
       // configurable paths
-      client: require('./bower.json').appPath || process.env.VHOST || 'client',
+      client: appPath,
       dist: 'dist'
     },
     express: {
@@ -488,7 +490,7 @@ module.exports = function (grunt) {
       scripts: {
         options: {
           transform: function(filePath) {
-            filePath = filePath.replace('/client/', '');
+            filePath = filePath.replace('/' + appPath + '/', '');
             filePath = filePath.replace('/.tmp/', '');
             return '<script src="' + filePath + '"></script>';
           },
@@ -509,7 +511,7 @@ module.exports = function (grunt) {
       css: {
         options: {
           transform: function(filePath) {
-            filePath = filePath.replace('/client/', '');
+            filePath = filePath.replace('/' + appPath + '/', '');
             filePath = filePath.replace('/.tmp/', '');
             return '<link rel="stylesheet" href="' + filePath + '">';
           },

@@ -2,7 +2,7 @@
 
 set -e
 
-if [[ "x$VHOST" == "x" ]] then
+if [[ "x$VHOST" == "x" ]] ; then
   echo "VHOST is not defined, using 'client' as default."
   export VHOST="client"
 fi
