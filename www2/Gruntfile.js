@@ -44,7 +44,7 @@ module.exports = function (grunt) {
     },
     yeoman: {
       // configurable paths
-      client: require('./bower.json').appPath || 'client',
+      client: require('./bower.json').appPath || process.env.VHOST || 'client',
       dist: 'dist'
     },
     express: {
