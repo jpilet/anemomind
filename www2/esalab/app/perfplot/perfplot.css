@@ -1,0 +1,57 @@
+.graph-container {
+  /* see the following page for an explanation
+   * https://developers.google.com/web/updates/2017/01/scrolling-intervention
+   *
+   * Basically, we have to tell chrome we'll handle touch events ourselves.
+   * The preventDefault() way that works with other browsers is not working
+   * with chrome. "aggressive optimization" ?
+   */
+  touch-action: none;
+}
+
+.graph-controls {
+  position: absolute;
+  top: 0px;
+}
+
+.graph-controls select {
+  max-width: 40%;
+}
+
+svg {
+  font-size: 10px;
+}
+
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke-width: .5px;
+}
+
+.x.axis path {
+  stroke: #000;
+}
+
+.x.axis line {
+  stroke: #fff;
+  stroke-opacity: .5;
+}
+
+.y.axis line {
+  stroke: #ddd;
+}
+
+path.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: .5px;
+}
+
+rect.pane {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}

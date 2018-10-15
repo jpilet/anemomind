@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg4483" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="230" width="230" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <metadata id="metadata4488">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <path id="path3263" stroke-linejoin="miter" d="m2.086,170.42c4.7128-4.6559,14.138-4.6559,18.851,0,4.7128,4.6559,14.138,4.6559,18.851,0,4.7128-4.6559,14.138-4.6559,18.851,0,4.7079,4.6559,14.133,4.6559,18.847,0,4.7128-4.6559,14.138-4.6559,18.851,0,4.7128,4.6559,14.138,4.6559,18.851,0,4.7128-4.6559,14.138-4.6559,18.851,0,4.7128,4.6559,14.138,4.6559,18.851,0,4.7128-4.6559,14.138-4.6559,18.851,0,4.7079,4.6559,14.133,4.6559,18.847,0,4.7128-4.6559,14.138-4.6559,18.851,0,4.7128,4.6559,14.138,4.6559,18.851,0" stroke="#000" stroke-linecap="butt" stroke-miterlimit="4" stroke-dasharray="none" stroke-width="2.52708197" fill="none"/>
+ <g id="g3128" transform="matrix(2.627461,-1.268886,1.268886,2.627461,104.6799,159.90209)">
+  <g id="boat">
+   <path id="path3267" stroke-linejoin="miter" d="m9.6053,3.9864-0.11625,0.235c-1.395,2.8312-4.845,4.0112-7.7038,2.6312l-6.2862-3.035c-2.8588-1.3762-4.045-4.79-2.6475-7.6225l0.11625-0.235,16.638,8.0262" fill-rule="nonzero" stroke="#fafafa" stroke-linecap="butt" stroke-miterlimit="10" stroke-dasharray="none" stroke-width="0.41875002" fill="#ff213e"/>
+   <path id="path3269" fill-rule="nonzero" fill="#ff213e" d="M1.3353-0.11358,19.124-36.38m0.001-0.001-9.5674,40.279-16.546-8.07,26.114-32.209z"/>
+   <path id="path3273" stroke-linejoin="miter" d="M1.3353-0.11358,19.124-36.38m0.001-0.001-9.5675,40.279-16.546-8.07,26.114-32.209z" stroke="#fafafa" stroke-linecap="butt" stroke-miterlimit="10" stroke-dasharray="none" stroke-width="0.41875002" fill="none"/>
+   <path id="path3277" stroke-linejoin="miter" d="m-4.9447,12.966c0.41875,0.20375,0.925,0.03,1.1288-0.38875,0.205-0.41875,0.03-0.925-0.38875-1.1288-0.41875-0.205-0.92375-0.0312-1.1288,0.38875-0.20375,0.41875-0.03,0.92375,0.38875,1.1288" fill-rule="nonzero" stroke="#ff213e" stroke-linecap="butt" stroke-miterlimit="4" stroke-dasharray="none" stroke-width="1.68874991" fill="#9e181f"/>
+   <path id="path3281" stroke-linejoin="miter" d="M0.32531,2.1764-4.1759,11.349" stroke="#ff213e" stroke-linecap="butt" stroke-miterlimit="4" stroke-dasharray="none" stroke-width="0.83750004" fill="none"/>
+  </g>
+ </g>
+</svg>

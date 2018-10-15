@@ -1,0 +1,19 @@
+
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<!-- IF ANONYMOUS -->
+<div ng-if="!isLoggedIn" class="welcome-boat" >
+	<div class="container">
+			<h1>Welcome to ESA Lab!</h1>
+			<h2>
+				<a href="/login" class="btn btn-welcome btn-lg"> 
+					<i class="fa fa-sign-in"></i>
+					&nbsp;Please login</a>
+			</h2>
+	</div>
+</div>
+
+<div ng-show="loading">Loading...</div>
+
+<div ng-include="'components/footer/footer.html'"></div>
+

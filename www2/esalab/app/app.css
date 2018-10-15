@@ -1,0 +1,167 @@
+
+/**
+ * Bootstrap Fonts
+ */
+
+@font-face {
+    font-family: 'Glyphicons Halflings';
+    src: url('../bower_components/bootstrap/fonts/glyphicons-halflings-regular.eot');
+    src: url('../bower_components/bootstrap/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'),
+    url('../bower_components/bootstrap/fonts/glyphicons-halflings-regular.woff') format('woff'),
+    url('../bower_components/bootstrap/fonts/glyphicons-halflings-regular.ttf') format('truetype'),
+    url('../bower_components/bootstrap/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+}
+
+/**
+ *Font Awesome Fonts
+ */
+
+@font-face {
+    font-family: 'FontAwesome';
+    src: url('../bower_components/font-awesome/fonts/fontawesome-webfont.eot?v=4.1.0');
+    src: url('../bower_components/font-awesome/fonts/fontawesome-webfont.eot?#iefix&v=4.1.0') format('embedded-opentype'),
+    url('../bower_components/font-awesome/fonts/fontawesome-webfont.woff?v=4.1.0') format('woff'),
+    url('../bower_components/font-awesome/fonts/fontawesome-webfont.ttf?v=4.1.0') format('truetype'),
+    url('../bower_components/font-awesome/fonts/fontawesome-webfont.svg?v=4.1.0#fontawesomeregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/**
+ * App-wide Styles
+ */
+
+.browsehappy {
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Chrome/Safari/Opera */
+     -khtml-user-select: none; /* Konqueror */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  not supported by any browser */
+}
+
+/**
+ * Anemomind-specific styles
+ */
+
+html, body, .angular-leaflet-map {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* NEW CSS VERSION */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  background-color: #fff;
+  font-size: 16px;
+  height: 100%;
+  /* https://www.google.com/fonts#UsePlace:use/Collection:Muli */
+  font-family: 'Muli', "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-weight: 400;
+  letter-spacing:-.1px;
+}
+
+
+
+html:not(.app-loading) #app-loading-wrapper{
+  display: none!important;
+}
+
+html.app-loading #app-loading-wrapper {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,.7);
+    z-index: 99999;
+}
+
+#app-loading-wrapper .app-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    opacity: .8;
+    content: '';
+    border-radius: 50%;
+    font-size: 3em;
+    width: 1em;
+    height: 1em;
+    margin: -.5em 0 0 -.5em;
+    color: white;
+}
+
+
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+
+body>div>div.container {
+  margin-top: 60px;
+  padding: 0px 15px 0;
+}
+
+/*h1, h2, h3, h4 {
+  font-weight: normal !important;
+  font-family: 'Boing', "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+*/
+p {
+  font-family: 'Muli', "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-weight: 400 !important;
+}
+
+
+.main-view{
+  width: 100%;
+  clear: both;
+  background-color: #fff;
+}
+
+/* moving main.css here 
+ -------------------------------------------------- */
+
+#banner {
+    border-bottom: none;
+    margin-top: -20px;
+}
+
+#banner h1 {
+    font-size: 60px;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.navbar-static-top{
+  position: fixed;
+  top: 0;
+  right: 0;
+  left:0;
+}
+
+.green {
+  color: green;
+}
+
+.orange {
+  color: orange;
+}
+
+.red {
+  color: red;
+}
