@@ -165,8 +165,11 @@ exports.handleUploadedFile = function(req, res, next) {
 
   result.forEach((f) => {
     esaPolar.readEsaPolar(dir + '/' + f)
-    .then((data) => { return esaPolar.uploadEsaPolar(req.params.boatId, data); })
-    .catch(console.warn);
+    .then((data) => {
+      return esaPolar.uploadEsaPolar(req.params.boatId, data); })
+    .catch((err) => {
+      console.warn('ESA polar error for file: ', f, ': ', err);
+    });
   });
 };
 
