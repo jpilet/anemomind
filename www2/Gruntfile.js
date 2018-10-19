@@ -2,6 +2,7 @@
 'use strict';
 
 var appPath = require('./bower.json').appPath || process.env.VHOST || 'client';
+console.log('Building for: ' + appPath)
 
 var fs = require('fs');
 fs.writeFile(".bowerrc", JSON.stringify({ "directory": appPath + "/bower_components" }), console.warn);
