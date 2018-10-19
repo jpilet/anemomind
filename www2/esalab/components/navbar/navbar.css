@@ -3,16 +3,23 @@
   color: #000;  /*Sets the text hover color on navbar*/
 }
 
-.navbar-anemomind .navbar-nav > .active > a, 
+.navbar-anemomind .navbar-nav > .active > a {
+  background-color: transparent;
+  color: #000000; /*BACKGROUND color for active*/
+  border-bottom: 4px solid #ff7800;
+}
 .navbar-anemomind .navbar-nav > .active > a:hover, 
 .navbar-anemomind .navbar-nav > .active > a:focus {
-  color: #ff0033; /*BACKGROUND color for active*/
-  background-color: transparent;
-  border-bottom: 4px solid #ff0033;
+  color: #ff7800; 
+  border-bottom: 4px solid #ff7800;
+}
+
+.orange {
+  color: #ff7800;
 }
 
 .navbar-anemomind {
-  color: #ff0033;
+  color: #000000;
   background-color: rgba(255,255,255,0.92);
   border-color: transparent;
 }
@@ -22,7 +29,7 @@
 }
 
 .navbar-anemomind .navbar-text{
-  color: #ff0033;
+  color: #ff7800;
   padding: 15px 10px 5px 5px;
   margin: 0 10px;
   font-weight: 700;
@@ -32,20 +39,21 @@
 
 .navbar-anemomind .dropdown-menu > li > a:hover,
 .navbar-anemomind .dropdown-menu > li > a:focus {
-  color: #ff0033;
+  color: #ff7800;
   text-decoration: none;
   background-color: transparent;  /*change color of links in drop down here*/
 }
 
 .navbar-anemomind .nav > li > a:hover,
 .navbar-anemomind .nav > li > a:focus {
+  color: #ff7800;
   text-decoration: none;
-  border-bottom: 2px solid #ff0033;
+  border-bottom: 2px solid #ff7800;
   background-color: transparent; /*Change rollover cell color here*/
 }
 
 .navbar-anemomind .navbar-nav > li > a {
-  color: #ff0033; /*Change active text color here*/
+  color: #000000; /*Change active text color here*/
   text-transform:uppercase;
   padding: 15px 10px 5px 5px;
   margin: 0 10px;  
@@ -54,7 +62,7 @@
   margin-top: 8px;  
 }
 .navbar-anemomind .navbar-nav .dropdown-menu > li > a{
-  color: #ff0033;
+  color: #ff7800;
 }
 
 .navbar-anemomind .navbar-nav > .open > a, 
@@ -67,14 +75,14 @@
 .navbar-anemomind .navbar-nav .dropdown-menu > .active > a, 
 .navbar-anemomind .navbar-nav .dropdown-menu > .active > a:hover,
 .navbar-anemomind .navbar-nav .dropdown-menu > .active > a:focus{
-  background-color: #ff0033;
+  background-color: #ff7800;
   color: #fff;
 }
 
 
 .navbar-anemomind .navbar-brand,
 .navbar-anemomind .navbar-brand:hover{
-  color: #ff0033;
+  color: #000000;
   font-size: 30px;
   margin-right: 20px;    
   margin-top: 5px;
@@ -83,10 +91,10 @@
 
 /* hamburger */
 .navbar-anemomind .navbar-toggle{
-  border-color: #ff0033;
+  border-color: #ff7800;
 }
 .navbar-anemomind .navbar-toggle .icon-bar{
-  background-color: #ff0033;
+  background-color: #ff7800;
 }
 
 /**/
@@ -144,3 +152,7 @@
         position: static;
     }
 }
+.navbar-brand {
+  font-family: 'Boing', "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+

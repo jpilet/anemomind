@@ -109,10 +109,12 @@ html.app-loading #app-loading-wrapper {
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
 
+/*
 body>div>div.container {
   margin-top: 60px;
   padding: 0px 15px 0;
 }
+*/
 
 /*h1, h2, h3, h4 {
   font-weight: normal !important;
@@ -164,4 +166,8 @@ p {
 
 .red {
   color: red;
+}
+
+a {
+  color: #000;
 }

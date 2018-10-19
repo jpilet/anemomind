@@ -8,7 +8,7 @@
         <span class="icon-bar"></span>
       </button>
       <a href="/" class="navbar-logo hide"><img src="assets/images/header.logo.png" height="37" width="60"></a>
-      <a class="navbar-brand" href="/">esalab</a>
+      <a class="navbar-brand" href="/"><span class="orange">esa</span>lab</a>
 
     </div>
     <div uib-collapse="isCollapsed" class="navbar-collapse collapse" id="navbar-main">
@@ -16,9 +16,9 @@
         <li ng-repeat="item in menu" ng-class="{active: isActive(item.link)}">
             <a ng-href="{{item.link}}">{{item.title}}</a>
         </li>
+        <li ng-show="!isLoggedIn()" ng-class="{active: isActive('/boats/552b806a35ce7cb254dc9515')}"><a href="/boats/552b806a35ce7cb254dc9515">Demo</a></li>
         <li ng-show="isAdmin()" ng-class="{active: isActive('/admin')}"><a href="/admin">Admin</a></li>
         <li ng-show="isAdmin()" ng-class="{active: isActive('/boatadmin')}"><a href="/boatadmin">Boat admin</a></li>
-        <li class="dropdown" ng-show="isLoggedIn()" ng-class="{active: isActive('/boats')}">
         <li class="dropdown" ng-show="isLoggedIn()" ng-class="{active: isActive('/boats')}">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">My Boats <span class="fa fa-caret-down"></span></a>
           <ul class="dropdown-menu" role="menu">

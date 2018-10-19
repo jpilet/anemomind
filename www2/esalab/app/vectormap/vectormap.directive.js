@@ -62,7 +62,8 @@ angular.module('www2App')
             
           scope.pathLayer = new VectorTileLayer({
             maxNumCachedTiles: 512,
-            token: Auth.getToken()
+            token: Auth.getToken(),
+	    colors: 'esalab'
           }, canvas);
           canvas.addLayer(scope.pathLayer);
 

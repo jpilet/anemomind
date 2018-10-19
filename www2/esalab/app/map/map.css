@@ -83,7 +83,7 @@ height:100%;
 
 .extension {
   position: absolute;
-  background-color: #ed1a28;
+  background-color: #ff7800;
   padding: 0;
   font-size: 22px;
   line-height: 22px;
@@ -91,7 +91,7 @@ height:100%;
   cursor: pointer;
 }
 .extension:hover {
-  color: #ed1a28;
+  color: #ff7800;
   background-color: #fff;
 }
 .extension.top-curve {
@@ -141,7 +141,7 @@ height:100%;
 }
 .mainControl .boat-name label,
 .mainControl .share-boat-holder span {
-  color: #ed1a28;
+  color: #000000;
   vertical-align:sub;
 }
 .mainControl .boat-name label {
@@ -151,7 +151,7 @@ height:100%;
   font-size: 22px;
   font-weight: 600;
   padding: 0;
-  color: #898888;
+  color: #ff7800;
 }
 .mainControl .heading .share-boat {
   padding: 4px 6px 4px 4px;
@@ -192,7 +192,7 @@ height:100%;
 .button-round {
   border-radius: 10px;
   background-color: #e6e6e6;
-  color: #fc0f3a;
+  color: #000000;
   text-align: center;
   padding-top: 6px;  /* TODO: dynamically vertical align */
 }
@@ -304,7 +304,7 @@ height:100%;
 }
 .mainControl .group.perf-vmg label,
 .mainControl .group.tail label {
-  color: #ed1a28;
+  color: #000000;
   font-weight: 600;
   margin: 0;
   padding-left: 5px;
@@ -345,7 +345,7 @@ height:100%;
   top: -5px;
   width: 12px;
   height: 12px;
-  background-color: #fc0f3a;
+  background-color: #ff7800;
 }
 .mainControl .group.tail-length .rzslider .rz-pointer:after {
   position: static;
@@ -381,7 +381,7 @@ height:100%;
 .mainControl .details label {
   padding: 5px 10px;
   font-weight: normal;
-  color: #ed1a28;
+  color: #000;
   cursor: pointer;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -393,12 +393,12 @@ height:100%;
 .mainControl .perf-speed label i,
 .mainControl .wind label i,
 .mainControl .details label i {
-  border: 1px solid #ed1a28;
+  border: 1px solid #000000;
   border-radius: 50%;
   width: 17px;
   padding-left: 2px;
   margin-left: 5px;
-  color: #ed1a28;
+  color: #000000;
 }
 .mainControl .wind .top-wheel {
   padding-top: 20px !important;
@@ -440,7 +440,7 @@ height:100%;
   width: 70%;
   display: inline-block;
   padding-left: 5%;
-  color: #ed1a28;
+  color: #000000;
 }
 .mainControl .indicator-label,
 .mainControl .indicator-value {
@@ -695,7 +695,7 @@ height:100%;
   margin-bottom: 25px;
   min-height: 150px;
   padding: 5px 10px;
-  color: #ed1a28;
+  color: #000000;
 }
 .custom-modal-container .share-box button {
   border: none;
@@ -746,7 +746,7 @@ height:100%;
   top:20px;
   left:0px;
   z-index: 10;
-  background:#ff0033;
+  background:#ff7800;
   color:white;
   padding:15px;
   text-transform: uppercase;
@@ -767,7 +767,7 @@ height:100%;
   top: 20px;
   right: 0px;
   z-index: 10;
-  /* background: #ff0033; */
+  /* background: #ff7800; */
   color: white;
   padding: 15px;
   text-transform: uppercase;  
@@ -848,7 +848,7 @@ perfplot {
   border-radius: 0;
 }
 .responsiveNavButtons .nav-tabs > li a i {
-  color: #ed1a28;
+  color: #000000;
 }
 .responsiveNavButtons .nav-tabs > li.active a i {
   color: #fff;
@@ -901,7 +901,7 @@ perfplot {
   .res-container.res-wind .indicator-label, 
   .res-container.res-wind .indicator-value {
     font-size: 14pt;
-    color: #ed1a28;
+    color: #000000;
   }
   .res-container.res-perf {
     position: relative;
@@ -976,7 +976,7 @@ perfplot {
   .res-container.res-details .group span {
     width: 55%;
     display: inline-block;
-    color: #ed1a28;
+    color: #000000;
   }
 
   .res-container.res-photos {
@@ -1295,7 +1295,7 @@ perfplot {
   border: medium none;
 }
 .nav-tabs > li > a:hover {
-  background-color: #ff0033 !important;
+  background-color: #ff7800 !important;
     border: medium none;
     border-radius: 1;
     color:#fff;
@@ -1322,7 +1322,7 @@ perfplot {
 .nav-tabs > li.active > a:focus {
   color: #fff;
   cursor: default;
-  background-color: #ff0033;
+  background-color: #ff7800;
   border: 1px solid #ddd;
   border-bottom-color: transparent;
 }

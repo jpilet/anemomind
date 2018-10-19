@@ -43,7 +43,7 @@
   box-sizing: border-box;
 }
 .card .card-content a {
-  color: #ff0033;
+  color: #ff7800;
 }
 
 .card .card-content p {
@@ -59,7 +59,7 @@
 
 /* boat info */
 .card .card-content div.boat-info{
-  color: #ff0033;
+  color: #ff7800;
   margin-bottom: 30px;
   height: 75px;
   vertical-align: bottom;
@@ -85,11 +85,19 @@
   font-size: 13px;  
 }
 
+/*
 .card .card-content div.boat-info-actions{
   position: absolute;
   right: 5px;
   top: 40px;
   width: 40px;
+}
+*/
+
+.boat-info-actions .btn-action {
+  text-align: left;
+  font-size:16px;
+  padding: 1px 5px 4px 15px;
 }
 
 
@@ -157,7 +165,7 @@
 }
 
 .session-container .card.card-horizontal  .card-content p{
-  color: #ff0033;
+  color: #ff7800;
   font-size: 14px;
   margin-top: 16px;
 }
@@ -260,4 +268,7 @@
   .footer>.container> div >ul{
     padding-left: 0;
   }
+}
+
+.polar-icon {
 }

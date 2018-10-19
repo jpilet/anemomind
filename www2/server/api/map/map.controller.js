@@ -79,14 +79,15 @@ function getCanvas(width, height, name, cb) {
       maxNumCachedTiles: 256
     });
 
-    if (name == 'noMap') {
+    if (name.match(/^noMap/)) {
       renderer.layers[0] = new ClearLayer({color: '#d9d9d9'});
     }
 
     pathLayer = new VectorTileLayer({
       maxNumCachedTiles: 512,
       maxSimultaneousLoads: 64,
-      maxUpLevel: 1
+      maxUpLevel: 1,
+      colors: name.replace(/.*-col:/, '')
     }, renderer);
     renderer.addLayer(pathLayer);
 
@@ -177,11 +178,14 @@ module.exports.getMapPng = function(req, res, next) {
   var width = parseInt(req.params.width);
   var height = parseInt(req.params.height);
 
-  generateMapImage(boat, start, end, location, width, height, 'map',
+  var styleSuffix = '-col:'
+    + (req.host.match(/esa/) || process.env.VHOST == 'esalab' ?
+      'esalab' : 'default');
+  generateMapImage(boat, start, end, location, width, height, 'map' + styleSuffix,
                    function(err, buffer) {
     if (err) {
       // something went wrong. Try again without the map.
-      generateMapImage(boat, start, end, location, width, height, 'noMap',
+      generateMapImage(boat, start, end, location, width, height, 'noMap' + styleSuffix,
                        function(err, buffer) {
         if (err || !buffer) {
           // Does not work without the map :(

@@ -3,14 +3,38 @@
 
 <!-- IF ANONYMOUS -->
 <div ng-if="!isLoggedIn" class="welcome-boat" >
-	<div class="container">
-			<h1>Welcome to ESA Lab!</h1>
-			<h2>
-				<a href="/login" class="btn btn-welcome btn-lg"> 
-					<i class="fa fa-sign-in"></i>
-					&nbsp;Please login</a>
-			</h2>
-	</div>
+  <div class="container">
+    <span class="btn-welcome block">
+      <div class="block">
+	The artificial intelligence serving regatta reports
+	<a href="/boats/552b806a35ce7cb254dc9515"
+	  class="btn welcome-demo btn-lg"><i class="fa fa-sign-in"></i>Demo</a>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="home-boxes">
+  <div class="row">
+    <div class="col-sm-3">
+      <h1>Sail</h1>
+      <div>and collect data</div>
+    </div>
+
+    <div class="col-sm-1">
+      <div class="big-plus">+</div>
+    </div>
+
+    <div class="col-sm-3">
+      <h1>Sync</h1>
+      <div>data to esalab</div>
+    </div>
+
+    <div class="col-sm-5 home-highlight">
+      <h1>Summarize</h1>
+      <div>Analyze your navigation performance and your polar</div>
+    </div>
+  </div>
 </div>
 
 <div ng-show="loading">Loading...</div>

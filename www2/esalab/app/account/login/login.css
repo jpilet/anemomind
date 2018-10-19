@@ -9,7 +9,7 @@ div.member_signin {
 
 div.member_signin  i {
     color: #FFF;
-    background-color: #F03;
+    background-color: #ff7800;
     border-radius: 500px;
     font-size: 36px;
     padding: 15px 20px 15px 20px;
@@ -40,13 +40,18 @@ p.forgotpass {
 }
 
 p.forgotpass a {
-    color: #F03;
+    color: #ff7800;
 }
 p.help-block {
-    color: #F03 !important;
+    color: #ff7800 !important;
 }
 .btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:focus{
   color: #fff;
-  background-color: #F03;
-  border-color: #F03;
+  background-color: #ff7800;
+  border-color: #ff7800;
+}
+
+.panel-body .navbar-brand {
+  float: none;
+  font-size: 36pt;
 }

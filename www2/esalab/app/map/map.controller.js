@@ -23,7 +23,7 @@ angular.module('www2App')
                                    ModalService, $timeout, $http, $interval,
                                    $state, $location, $window, Auth) {
 
-    var defaultColor = '#FF0033';
+    var defaultColor = '#FF7800';
     var defaultTaillength = 300;
 
     $scope.tailLength = defaultTaillength;

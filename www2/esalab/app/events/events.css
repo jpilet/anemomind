@@ -83,7 +83,7 @@
 }
 
 .timeline > li.selected .timeline-panel .bottom .eventdate a {
-  color: #ff0033;
+  color: #ff7800;
 }
 
 .timeline > li .timeline-panel .bottom .message,
@@ -98,9 +98,9 @@
 }
 
 .modal.lightbox-modal .btn-group a.btn {
-  background-color: #ff0033;
+  background-color: #ff7800;
   color: #fff;
-  border-color: #ff0033;
+  border-color: #ff7800;
   margin-right: 2px;
 }
 

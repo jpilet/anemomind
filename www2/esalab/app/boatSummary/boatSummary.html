@@ -13,17 +13,19 @@
         <h1 class="fixed-size">{{::boat.name}}</h1>
         <p ng-show="sessionGetFirstDate(sessions)">Since {{sessionGetFirstDate(sessions)|date:'yyyy'}} </p>
 
-        <div class="boat-info-actions">
-          <a ng-href="/boats/{{::boat._id}}/edit" class="btn btn-action btn-sm btn-block"><i class="fa fa-cogs"></i></a>
-          <a ng-href="/vmgplot/{{::boat._id}}" class="btn btn-action btn-sm btn-block"><i class="fa fa-area-chart"></i></a>
-          <a ng-href="/map/{{ ::boat._id }}" class="btn btn-action btn-sm btn-block " ><i class="fa fa-map"></i></a>
-        </div>
-
-
       </div>
       <div class="card-content-bottom">
-        <h3>Recent activity</h3>
-        <div session-plot="sessions" ></div>                  
+	<h3>{{::boat.name}} menu</h3>
+        <div class="boat-info-actions">
+          <a ng-href="/boats/{{::boat._id}}/edit" class="btn btn-action btn-sm btn-block"><i class="fa fa-cogs"></i>
+	  Settings</a>
+          <a ng-href="/map/{{ ::boat._id }}" class="btn btn-action btn-sm btn-block " ><i class="fa fa-map"></i>
+	  Full map</a>
+	  <a ng-href="/polar/{{ ::boat._id }}" class="btn btn-action btn-sm btn-block polar-icon">
+	    <img src="/assets/images/Polaire31.svg" height=18 />
+	    Performance
+	  </a>
+        </div>
       </div>
   </div>
 

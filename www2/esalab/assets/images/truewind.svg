@@ -5,7 +5,7 @@
 	 width="11.941px" height="27.33px" viewBox="1 -7.925 11.941 27.33" enable-background="new 1 -7.925 11.941 27.33"
 	 xml:space="preserve">
 <g id="layer1" transform="translate(-197.98762,-352.07679)">
-	<path id="path672" fill="#FF0033" d="M210.113,344.967l-2.024,19.408l-3.257,6.292l-3.029-6.495l-2-19.205H210.113L210.113,344.967
+	<path id="path672" fill="#FF7800" d="M210.113,344.967l-2.024,19.408l-3.257,6.292l-3.029-6.495l-2-19.205H210.113L210.113,344.967
 		z"/>
 	<g enable-background="new    ">
 		<path fill="#FFFFFF" d="M204.23,355.33l0.013-6.303l-2.246-0.005l0.002-1.283l6.029,0.013l-0.003,1.283l-2.25-0.005l-0.014,6.303
@@ -13,7 +13,7 @@
 	</g>
 	<g id="g678" transform="matrix(-1.2134606,0.30002229,0.30002229,1.2134606,214.39383,353.12538)">
 		
-			<path id="path680" fill="none" stroke="#FF0033" stroke-width="1.63" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="
+			<path id="path680" fill="none" stroke="#FF7800" stroke-width="1.63" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="
 			M1.758-7.158l5.3,14.684l3.737,4.261L11.9,6.162L9.765-9.137L1.758-7.158z"/>
 	</g>
 </g>
