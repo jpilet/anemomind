@@ -51,8 +51,17 @@ module.exports = function(app) {
 
   if ('development' === env || 'test' === env) {
     app.use(require('connect-livereload')());
-    app.use(express.static(path.join(config.root, '.tmp')));
+
     const vhost = process.env.VHOST || 'client';
+    const serveCss = express.static(path.join(config.root, vhost));
+    app.use((req, res, next) => {
+      if (req.path.match(/css$/)) {
+	serveCss(req, res, next);
+      } else {
+	next();
+      }
+    });
+    app.use(express.static(path.join(config.root, '.tmp')));
     app.use(express.static(path.join(config.root, vhost)));
     app.set('appPath', vhost);
     app.use(morgan('dev'));
