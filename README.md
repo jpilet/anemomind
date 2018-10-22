@@ -60,11 +60,13 @@ Summary:
 
 On debian/ubuntu:
 
-    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcxsparse3 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev libcairo2-dev build-essential git libarmadillo-dev f2c parallel mongo-clients
+    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcxsparse3 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev libcairo2-dev build-essential git libarmadillo-dev f2c parallel mongo-clients catdoc clang libicu-dev libpython2.7
+
+additionally, swift has to be installed: see https://www.cansurmeli.com/posts/install-swift-on-debian/
 
 On macOS with macports:
 
-    sudo port install cairo cmake eigen3 f2c armadillo protobuf-cpp
+    sudo port install cairo cmake eigen3 f2c armadillo protobuf-cpp catdoc
 
 ### For the web server
   * **node** and **npm**. Find packages here: ```https://nodejs.org/en/download/package-manager/```
