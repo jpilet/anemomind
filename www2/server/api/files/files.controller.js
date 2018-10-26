@@ -57,7 +57,12 @@ function getDetailsForFiles(dir, files) {
         if (error) {
           reject(error);
         }
-        resolve(JSON.parse(stdout).concat(esaFiles));
+        try {
+          resolve(JSON.parse(stdout).concat(esaFiles));
+        } catch(err) {
+          console.warn(err);
+          resolve(logfiles.map((f) => { return { name: f }; }).concat(esaFiles));
+        }
       });
     }
   });
@@ -164,9 +169,11 @@ exports.handleUploadedFile = function(req, res, next) {
   backup.pushLogFilesToProcessingServer();
 
   result.forEach((f) => {
-    esaPolar.readEsaPolar(dir + '/' + f)
-    .then((data) => { return esaPolar.uploadEsaPolar(req.params.boatId, data); })
-    .catch(console.warn);
+    if (f.match(/ESA$/)) {
+      esaPolar.readEsaPolar(dir + '/' + f)
+      .then((data) => { return esaPolar.uploadEsaPolar(req.params.boatId, data); })
+      .catch(console.warn);
+    }
   });
 };
 

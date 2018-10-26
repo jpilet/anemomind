@@ -8,21 +8,20 @@
 
 namespace sail {
 
-SourceGroup::SourceGroup() :
-  awa(nullptr), aws(nullptr), twa(nullptr),
-  tws(nullptr), magHdg(nullptr), geoPos(nullptr),
-  gpsBearing(nullptr), gpsSpeed(nullptr), watSpeed(nullptr) {}
+SourceGroup::SourceGroup() {
+#define INIT_NULL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  HANDLE = nullptr;
 
-SourceGroup::SourceGroup(const std::string &srcName, LogAccumulator *dst) :
-    awa(allocateSourceIfNeeded<Angle<double> >(srcName, dst->getAWAsources())),
-    aws(allocateSourceIfNeeded<Velocity<double> >(srcName, dst->getAWSsources())),
-    twa(allocateSourceIfNeeded<Angle<double> >(srcName, dst->getTWAsources())),
-    tws(allocateSourceIfNeeded<Velocity<double> >(srcName, dst->getTWSsources())),
-    magHdg(allocateSourceIfNeeded<Angle<double> >(srcName, dst->getMAG_HEADINGsources())),
-    watSpeed(allocateSourceIfNeeded<Velocity<double> >(srcName, dst->getWAT_SPEEDsources())),
-    geoPos(allocateSourceIfNeeded<GeographicPosition<double> >(srcName, dst->getGPS_POSsources())),
-    gpsBearing(allocateSourceIfNeeded<Angle<double> >(srcName, dst->getGPS_BEARINGsources())),
-    gpsSpeed(allocateSourceIfNeeded<Velocity<double> >(srcName, dst->getGPS_SPEEDsources()))
-  {}
-
+  FOREACH_CHANNEL(INIT_NULL)
+#undef INIT_NULL
 }
+
+SourceGroup::SourceGroup(const std::string &srcName, LogAccumulator *dst) {
+#define ALLOC_IF_NEEDED(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  HANDLE = allocateSourceIfNeeded<TYPE >(srcName, dst->get ## HANDLE ## sources());
+
+  FOREACH_CHANNEL(ALLOC_IF_NEEDED)
+#undef ALLOC_IF_NEEDED
+}
+
+}  // namespace sail
