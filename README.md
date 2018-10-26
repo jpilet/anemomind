@@ -60,7 +60,7 @@ Summary:
 
 On debian/ubuntu:
 
-    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcxsparse3 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev libcairo2-dev build-essential git libarmadillo-dev f2c parallel mongo-clients catdoc clang libicu-dev libpython2.7
+    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcxsparse3 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev libcairo2-dev build-essential git libarmadillo-dev f2c parallel mongo-clients catdoc clang libicu-dev libpython2.7 libsqlite3-dev
 
 additionally, swift has to be installed: see https://www.cansurmeli.com/posts/install-swift-on-debian/
 

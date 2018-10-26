@@ -75,7 +75,7 @@ bool LogLoader::load(const Poco::Path &name) {
       name,
       [&](const Poco::Path &path) {
     std::string ext = toLower(path.getExtension());
-    if (ext == "txt" || ext == "csv"
+    if (ext == "txt" || ext == "csv" || ext == "xls" || ext == "vdr"
         || ext == "log" || ext == "db" || ext == "ast") {
       if (!loadFile(path.toString())) {
         if (failCount < 12) { // So that we don't flood the log file if there are many files.
