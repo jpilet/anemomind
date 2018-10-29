@@ -9,6 +9,7 @@
 #define SERVER_NAUTICAL_LOGIMPORT_SOURCEGROUP_H_
 
 #include <server/common/TimeStamp.h>
+#include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/TimedSampleCollection.h>
 #include <server/nautical/GeographicPosition.h>
 #include <map>
@@ -42,15 +43,11 @@ struct SourceGroup {
 
   TimeStamp lastTime;
 
-  TimedSampleCollection<Angle<double> >::TimedVector *awa;
-  TimedSampleCollection<Velocity<double> >::TimedVector *aws;
-  TimedSampleCollection<Angle<double> >::TimedVector *twa;
-  TimedSampleCollection<Velocity<double> >::TimedVector *tws;
-  TimedSampleCollection<Angle<double> >::TimedVector *magHdg;
-  TimedSampleCollection<Velocity<double> >::TimedVector *watSpeed;
-  TimedSampleCollection<GeographicPosition<double> >::TimedVector *geoPos;
-  TimedSampleCollection<Angle<double> >::TimedVector *gpsBearing;
-  TimedSampleCollection<Velocity<double> >::TimedVector *gpsSpeed;
+#define DEFINE_MEMBER(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  TimedSampleCollection<TYPE >::TimedVector *HANDLE;
+
+  FOREACH_CHANNEL(DEFINE_MEMBER)
+#undef DEFINE_MEMBER
 };
 
 }

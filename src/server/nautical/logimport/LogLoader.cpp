@@ -4,6 +4,7 @@
  */
 
 #include <fstream>
+#include <regex>
 #include <Poco/Path.h>
 #include <Poco/String.h>
 #include <server/common/CsvParser.h>
@@ -23,15 +24,28 @@
 
 namespace sail {
 
-
+bool hasExtension(const std::string& filename, const char* ext) {
+  return std::regex_search(filename, std::regex(std::string(ext) + "$",
+                                                std::regex_constants::icase));
+}
 
 bool LogLoader::loadFile(const std::string &filename) {
-  bool r =
-    ProtobufLogLoader::load(filename, &_acc)
-    || Nmea0183Loader::loadNmea0183File(filename, &_acc)
-    || loadCsv(filename, &_acc)
-    || accumulateAstraLogs(filename, &_acc)
-    || sailmonDbLoad(filename, &_acc);
+  bool r = false;
+  if (hasExtension(filename, "xls")) {
+    r = loadCsvFromPipe(std::string("xls2csv -x '") + filename + "'",
+                        "Imported from XLS file", &_acc);
+  } else if (hasExtension(filename, "vdr")) {
+    r = loadCsvFromPipe(std::string("weather4d '") + filename + "'",
+                        "Imported from Weather4D VDR", &_acc);
+  } else {
+    r =
+      ProtobufLogLoader::load(filename, &_acc)
+      || Nmea0183Loader::loadNmea0183File(filename, &_acc)
+      || loadCsv(filename, &_acc)
+      || accumulateAstraLogs(filename, &_acc)
+      || sailmonDbLoad(filename, &_acc);
+  }
+
   if (!r) {
     LOG(ERROR) << filename << ": file empty or format not recognized.";
   }
@@ -61,7 +75,7 @@ bool LogLoader::load(const Poco::Path &name) {
       name,
       [&](const Poco::Path &path) {
     std::string ext = toLower(path.getExtension());
-    if (ext == "txt" || ext == "csv"
+    if (ext == "txt" || ext == "csv" || ext == "xls" || ext == "vdr"
         || ext == "log" || ext == "db" || ext == "ast") {
       if (!loadFile(path.toString())) {
         if (failCount < 12) { // So that we don't flood the log file if there are many files.

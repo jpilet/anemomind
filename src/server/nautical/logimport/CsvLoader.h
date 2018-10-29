@@ -14,6 +14,8 @@ class LogAccumulator;
 
 bool loadCsv(const std::string &filename, LogAccumulator *dst);
 
+bool loadCsvFromPipe(const std::string& cmd, const std::string& sourceName,
+                     LogAccumulator *dst);
 }
 
 #endif /* SERVER_NAUTICAL_LOGIMPORT_CSVLOADER_H_ */
