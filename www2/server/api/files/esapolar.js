@@ -110,8 +110,8 @@ function readEsaPolar(file) {
           const triplet = line.split(/\s+/)
             .map((x) => parseFloat(x))
             .filter(isFinite);
-          if (triplet.length != 3) {
-            parseError('Expecting a triplet, got: ' + line);
+          if (triplet.length < 3 || triplet.length > 4) {
+            parseError('Expecting a triplet/quarduplet, got: ' + line);
           } else {
             result[state].push({
               tws: triplet[0],
