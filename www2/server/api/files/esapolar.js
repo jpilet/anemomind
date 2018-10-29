@@ -59,19 +59,27 @@ function readEsaPolar(file) {
         case 'EstremiDX_data': 
         case 'EstremiUP_data': 
         case 'EstremiDOWN_data': {
-          result[state] = line.split(/\s+/)
-            .map((x) => parseFloat(x))
-            .filter(isFinite);
-          if (result[state].length != 3) {
-            parseError('Bad data for ' + state + ': ' + line);
-          }
           const next = {
             'EstremiSX_data': 'EstremiDX',
             'EstremiDX_data': 'EstremiUP',
             'EstremiUP_data': 'EstremiDOWN',
             'EstremiDOWN_data': 'Data Regime'
           };
-          state = next[state];
+	  if (line == next[state]) {
+	    if (line == 'Data Regime') {
+	      state = 'regime';
+	    } else {
+	      state = next[state] + '_data';
+	    }
+	  } else {
+	    result[state] = line.split(/\s+/)
+	      .map((x) => parseFloat(x))
+	      .filter(isFinite);
+	    if (result[state].length != 3) {
+	      parseError('Bad data for ' + state + ': ' + line);
+	    }
+	    state = next[state];
+	  }
           break;
         }
         case 'Data Regime': 
@@ -133,6 +141,8 @@ function readEsaPolar(file) {
           break;
         }
         case 'done': break;
+	default: parseError('internal error in ESA polar parser, at state: ' + state);
+	  break;
       } 
     });
   });

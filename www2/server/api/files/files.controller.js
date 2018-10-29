@@ -172,7 +172,9 @@ exports.handleUploadedFile = function(req, res, next) {
     if (f.match(/ESA$/)) {
       esaPolar.readEsaPolar(dir + '/' + f)
       .then((data) => { return esaPolar.uploadEsaPolar(req.params.boatId, data); })
-      .catch(console.warn);
+      .catch((err) => {
+        console.warn('ESA polar error for file: ', f, ': ', err);
+      });
     }
   });
 };
