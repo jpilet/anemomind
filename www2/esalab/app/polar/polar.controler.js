@@ -39,18 +39,29 @@ angular.module('www2App')
       },
       useInteractiveGuideline: true,
       xAxis: {
-        axisLabel: 'TWS [knots]'
+        axisLabel: 'TWS [knots]',
+        tickFormat: d3.format('.02f'),
+      },
+      xAxis1: {
+        tickFormat: d3.format('.02f'),
       },
       yAxis1: {
-        tickFormat: function(d){
-          return d3.format('.02f')(d);
-        },
+        tickFormat: d3.format('.02f'),
+        axisLabelDistance: -10
+      },
+      yAxis2: {
+        tickFormat: d3.format('.02f'),
         axisLabelDistance: -10
       },
       scatters1: {
         xDomain: [0, 20]
       },
-      callback: function(chart){ }
+      callback: function(chart){ },
+      interactiveLayer: {
+        tooltip: {
+          valueFormatter: d3.format('.02f')
+        }
+      }
     },
     title: {
       enable: true,
@@ -114,12 +125,13 @@ angular.module('www2App')
       var maxVmg = Math.max(maxForSeries($scope.vmgPointsUp),
                             maxForSeries($scope.vmgPointsDown));
       if (maxVmg != undefined) {
-        $scope.vmg_options.chart.yDomain1[1] = Math.ceil(maxVmg * margin)
+        $scope.vmg_up_options.chart.yDomain1[1] = Math.ceil(maxVmg * margin)
       }
 
       var maxBoatSpeed = Math.max(maxForSeries($scope.speedPointsUp),
                                   maxForSeries($scope.speedPointsDown));
-      $scope.speed_options.chart.yDomain1 = [0, Math.ceil(maxBoatSpeed * margin)];
+      $scope.speed_up_options.chart.yDomain1 =
+      $scope.speed_down_options.chart.yDomain1 = [0, Math.ceil(maxBoatSpeed * margin)];
 
       var xMax;
       var xMin;
@@ -135,33 +147,43 @@ angular.module('www2App')
       xMax = Math.ceil(xMax);
       xMin = Math.floor(xMin);
 
-      ['vmg', 'speed', 'twa_up', 'twa_down'].forEach(function(x) {
-        $scope[x + '_options'].chart.xDomain =
-        $scope[x + '_options'].chart.scatters1.xDomain = [xMin, xMax];
+      ['vmg', 'speed', 'twa'].forEach(function(x) {
+        ['_up', '_down'].forEach(function(direction) {
+          $scope[x + direction + '_options'].chart.xDomain =
+          $scope[x + direction + '_options'].chart.scatters1.xDomain = [xMin, xMax];
+        });
       });
     });
 
 
-    $scope.vmg_options = angular.copy(baseOptions);
-    $scope.vmg_options.chart.yDomain1 = [ 0, 1 ];
-    $scope.vmg_options.chart.yAxis1axisLabel = 'VMG [knots]';
-    $scope.vmg_options.title.text = 'VMG / TWS';
+    $scope.vmg_up_options = angular.copy(baseOptions);
+    $scope.vmg_up_options.chart.yDomain1 = [ 0, 1 ];
+    $scope.vmg_up_options.chart.yAxis1.axisLabel = 'VMG [knots]';
+    $scope.vmg_up_options.title.text = 'VMG / TWS Up';
+    $scope.vmg_down_options = angular.copy($scope.vmg_up_options);
+    $scope.vmg_down_options.title.text = 'VMG / TWS Down';
 
     $scope.twa_down_options = angular.copy(baseOptions);
     $scope.twa_down_options.chart.yDomain1 = [ 90, 180 ];
-    $scope.twa_down_options.chart.yAxis1axisLabel = 'TWA [Degrees]';
-    $scope.twa_down_options.title.text = 'TWA / TWS';
-    $scope.twa_down_options.chart.yAxis1.tickFormat =
-      function(d){ return d3.format('.0f')(d); };
+    $scope.twa_down_options.chart.yAxis1.axisLabel = 'TWA [Degrees]';
+    $scope.twa_down_options.title.text = 'TWA / TWS Down';
+    $scope.twa_down_options.chart.xAxis.tickFormat =
+    $scope.twa_down_options.chart.xAxis1.tickFormat = d3.format('.2f');
+    $scope.twa_down_options.chart.yAxis1.tickFormat = d3.format('.0f');
+    $scope.twa_down_options.chart.interactiveLayer.tooltip.valueFormatter =
+          d3.format('.01f');
 
     $scope.twa_up_options = angular.copy($scope.twa_down_options);
     $scope.twa_up_options.chart.yDomain1 = [0, 90];
+    $scope.twa_up_options.title.text = 'TWA / TWS Up';
 
-    $scope.speed_options = angular.copy($scope.twa_down_options);
-    $scope.speed_options.chart.yAxis1.axisLabel = 'Boat speed [knots]';
-    $scope.speed_options.chart.yAxis1.tickFormat =
-      function(d){ return d3.format('.0f')(d); };
-    $scope.speed_options.title.text = 'Boat speed / TWS';
+    $scope.speed_up_options = angular.copy(baseOptions);
+    $scope.speed_up_options.chart.yAxis1.axisLabel = 'Boat speed [knots]';
+    $scope.speed_up_options.chart.yAxis1.tickFormat = d3.format('.0f');
+    $scope.speed_up_options.title.text = 'Boat speed / TWS Up';
+
+    $scope.speed_down_options = angular.copy($scope.speed_up_options);
+    $scope.speed_down_options.title.text = 'Boat speed / TWS Down';
 
   $http.get('/api/perfstat/' + $stateParams.boatId)
     .success(function(data, status, headers, config) {
