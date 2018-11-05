@@ -179,7 +179,7 @@ module.exports.getMapPng = function(req, res, next) {
   var height = parseInt(req.params.height);
 
   var styleSuffix = '-col:'
-    + (req.host.match(/esa/) || process.env.VHOST == 'esalab' ?
+    + (req.host.match(/(esa)|(regattapolar)/) || process.env.VHOST == 'esalab' ?
       'esalab' : 'default');
   generateMapImage(boat, start, end, location, width, height, 'map' + styleSuffix,
                    function(err, buffer) {
