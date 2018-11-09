@@ -6,7 +6,14 @@ angular.module('www2App')
     $scope.menu = [{
       'title': 'Home',
       'link': '/'
-    }];
+    }, {
+      'title': 'About',
+      'link': '/about'
+    }, {
+      'title': 'Contact',
+      'link': '/contact'
+    }
+    ];
 
     boatList.boats().then(function(boats) {
       var displayNavbarBoats=11;
