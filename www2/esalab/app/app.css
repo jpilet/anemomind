@@ -48,6 +48,10 @@
                                   not supported by any browser */
 }
 
+.show-links a {
+  color: #ff7800;
+}
+
 /**
  * Anemomind-specific styles
  */
@@ -161,7 +165,7 @@ p {
 }
 
 .orange {
-  color: orange;
+  color: #ff7800;
 }
 
 .red {

@@ -4,11 +4,10 @@
     background-image: url("/assets/images/gc32.jpg");
     background-color: transparent;
     background-size: cover;
-    background-position: 50% 20%;	
-    background-position: center; 
+    background-position: 50% 90%;	
 }
 .welcome-boat>div{
-	padding-top: 150px;
+	padding-top: 110px;
 }
 
 .welcome-boat h1, .welcome-boat h2, .welcome-boat a{
