@@ -63,7 +63,9 @@ class CsvRowProcessor {
   std::vector<std::function<void(std::string)> > _setters;
 
   Angle<double> _awa, _twa, _magHdg, _gpsBearing, _lon, _lat, _pitch, _roll;
+  Angle<double> _twdir, _rudder;
   Velocity<double> _aws, _tws, _gpsSpeed, _watSpeed;
+  AngularVelocity<double> _rateOfTurn;
   TimeStamp _time;
   bool _validHeader;
 
@@ -104,6 +106,23 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   m["Roll"] = makeSetter(degrees, &_roll);
   m["Pitch"] = makeSetter(degrees, &_pitch);
   m["eCompass"] = makeSetter(degrees, &_magHdg);
+
+  // Support for Expedition
+  m["Utc"] = [&](const std::string& s) {
+    double x = 0;
+    if (tryParseDouble(s, &x)) {
+      // Microsoft DATE format
+      // https://msdn.microsoft.com/en-us/library/82ab7w69.aspx
+      _time = TimeStamp::fromMilliSecondsSince1970(
+          (x - 25569) * 24 * 60 * 60 * 1000);
+    }
+  };
+  m["BSP"] = makeSetter(knots, &_watSpeed);
+  m["TWD"] = makeSetter(degrees, &_twdir);
+  m["Rudder"] = makeSetter(degrees, &_rudder);
+  m["Heel"] = makeSetter(degrees, &_roll);
+  m["ROT"] = makeSetter(AngularVelocity<double>::degreesPerSecond(1), &_rateOfTurn);
+
 
   assert(header.rows() == 1);
   int cols = header.cols();
@@ -148,6 +167,9 @@ void CsvRowProcessor::process(const MDArray<std::string, 2> &row, SourceGroup *d
   _pushBack(_gpsBearing, dst->GPS_BEARING);
   _pushBack(_pitch, dst->PITCH);
   _pushBack(_pitch, dst->ROLL);
+  _pushBack(_rudder, dst->RUDDER_ANGLE);
+  _pushBack(_twdir, dst->TWDIR);
+  _pushBack(_rateOfTurn, dst->RATE_OF_TURN);
   auto pos = GeographicPosition<double>(_lon, _lat);
 
   _pushBack(pos, dst->GPS_POS);
