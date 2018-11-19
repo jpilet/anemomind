@@ -1,0 +1,57 @@
+
+body .login-panel{
+    background-color: #eee !important;
+}
+
+div.member_signin {
+    text-align: center;
+}
+
+div.member_signin  i {
+    color: #FFF;
+    background-color: #ff7800;
+    border-radius: 500px;
+    font-size: 36px;
+    padding: 15px 20px 15px 20px;
+}
+
+div.fa_user {
+    margin-top: -47px;
+    margin-bottom: 15px;
+}
+
+p.member {
+    font-size: 19px;
+    color: #888888;
+    margin-bottom: 20px;
+}
+
+button.login {
+    width: 100%;
+    text-transform: uppercase;
+}
+
+form.loginform div.input-group {
+    width: 100%;
+}
+
+p.forgotpass {
+    margin-top: 10px;
+}
+
+p.forgotpass a {
+    color: #ff7800;
+}
+p.help-block {
+    color: #ff7800 !important;
+}
+.btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:focus{
+  color: #fff;
+  background-color: #ff7800;
+  border-color: #ff7800;
+}
+
+.panel-body .navbar-brand {
+  float: none;
+  font-size: 24pt;
+}

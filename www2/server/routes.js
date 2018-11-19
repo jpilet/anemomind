@@ -12,6 +12,7 @@ module.exports = function(app) {
   app.use('/api/updates', require('./api/update'));
   app.use('/api/boxexecs', require('./api/boxexec'));
   app.use('/api/boatstats', require('./api/boatstat'));
+  app.use('/api/contact', require('./api/contact'));
   app.use('/api/events', require('./api/event'));
   app.use('/api/boats', require('./api/boat'));
   app.use('/api/map', require('./api/map'));

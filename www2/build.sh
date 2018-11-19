@@ -2,12 +2,17 @@
 
 set -e
 
+if [[ "x$VHOST" == "x" ]] ; then
+  echo "VHOST is not defined, using 'client' as default."
+  export VHOST="client"
+fi
+
 if [[ "$1" != "-n" ]] ; then
   # npm install is not really needed, because grunt build:dist will create a
   # dist/package.json file that contains the list of packages required for
   # production.
 
-  bower install
+  bower install --config.directory=$VHOST/bower_components
 fi
 
 grunt build:dist

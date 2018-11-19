@@ -1,0 +1,16 @@
+
+svg text {
+    fill: #000000;
+    font-weight: bold;
+}
+
+.nvd3.nv-pie .nv-slice text {
+    fill: #ff0033 !important;  
+}
+
+.nvd3 .nv-axis path {
+    fill: none;
+    stroke: #ddd;
+    stroke-opacity: .05;
+    shape-rendering: crispEdges;
+}

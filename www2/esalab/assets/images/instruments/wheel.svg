@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg3617" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 230" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <metadata id="metadata3622">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="g3163" stroke-linejoin="miter" transform="matrix(0.84054337,0,0,0.84054337,118.54163,112.44549)" stroke="#000" stroke-linecap="butt" fill="none">
+  <path id="path3365" stroke-miterlimit="10" stroke-width="0.99287134" stroke-dasharray="none" d="m-42.526-16.16c6.3981-18.42,18.023-35.72,38.309-52.517,18.602,16.555,30.328,33.528,37.191,51.512"/>
+  <path id="path3369" stroke-dasharray="none" stroke-width="0.99287134" stroke-miterlimit="10" d="m-49.556,43.343,0,28.087,90.685,0,0-28.087"/>
+  <path id="path3383" d="m-3.9471-69.33,0-35.121" stroke-dashoffset="0" stroke-miterlimit="4" stroke-dasharray="1.84876579, 1.84876579" stroke-width="0.47821155"/>
+ </g>
+ <path id="path4418" d="m-79.127-13.936c0.01187,27.007-0.67458,53.924-1.864,73.088s-2.8668,30.337-4.5548,30.337-3.3654-11.172-4.5548-30.337c-1.1894-19.164-1.8758-46.081-1.864-73.088-0.01187-27.007,0.67458-53.924,1.864-73.088s2.8668-30.337,4.5548-30.337,3.3654,11.172,4.5548,30.337c1.1894,19.164,1.8758,46.081,1.864,73.088z" fill="none"/>
+ <text id="anglevaluea" y="126.40308" x="118.77319" font-size="11.91445637px">
+  <tspan id="anglevalue" font-size="36px" fill-rule="nonzero" style="writing-mode:lr-tb;text-anchor:middle;" font-variant="normal" y="126.40308" x="118.77319" font-weight="600" fill="#000000">0°</tspan>
+ </text>
+ <text id="text3015" y="142.6993" x="171.55133" font-size="12px" style="text-anchor:middle;text-align:center;">
+  <tspan id="tspan3017" font-size="12px" fill-rule="nonzero" style="writing-mode:lr-tb;text-anchor:middle;text-align:center;" font-variant="normal" y="142.6993" x="116.34431" font-weight="600" fill="#000000">True Wind Angle</tspan>
+ </text>
+ <g id="g3051" transform="matrix(-0.71206474,0.70211381,-0.70211381,-0.71206474,115.00216,116.34741)">
+  <g id="northtext">
+   <path id="cercle" d="m94.534-1.2182a94.29,94.29,0,1,1,-188.58,0,94.29,94.29,0,1,1,188.58,0z" stroke-dashoffset="0" transform="translate(-0.05338376,1.0279602)" stroke="#000" stroke-miterlimit="4" stroke-dasharray="none" stroke-width="5" fill="none"/>
+   <path id="north" stroke-linejoin="miter" d="m-71.091,73.157,6.8868-7.1519" stroke="#000" stroke-linecap="butt" stroke-miterlimit="10" stroke-dasharray="none" stroke-width="0.99287134" fill="none"/>
+   <g id="g3015" transform="matrix(0.70495888,0.70924818,-0.70924818,0.70495888,-74.258881,77.609648)">
+    <path id="letter" d="M3.9672,4.3131,0.84028,4.2883-3.0494-3.1893-3.1084,4.257l-2.6542-0.021038,0.085981-10.857,3.1269,0.024732,3.8897,7.4776,0.058971-7.4463,2.6542,0.021035-0.085981,10.857" fill="#000" fill-rule="nonzero"/>
+   </g>
+  </g>
+  <path id="red" fill-rule="nonzero" fill="#ff213e" d="m-77.826,67.626,9.6268-10.59,11.211,0.37923,1.0694,11.114-9.4632,10.41-12.444-11.312z"/>
+ </g>
+</svg>

@@ -1,0 +1,34 @@
+
+/* Boat styles
+ -------------------------------------- */
+
+.btn-action{
+  color: #ff0033;
+  background-color: #fff;
+  border-color: #ccc;
+  border-radius: 25px;  
+}
+
+.btn-action-inv{
+  color: #fff;
+  background-color: #ff0033;
+  border-color: #ccc;
+  border-radius: 25px;  
+}
+
+.form-control-inline {
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    -border-bottom: 1px solid #ccc;
+}
+
+.form-control-inline {
+    display: inline;
+    width: calc(100% - 40px);
+}
+
+.list-group-item button.close{
+  padding: 7px;
+}
+

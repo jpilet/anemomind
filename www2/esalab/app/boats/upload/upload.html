@@ -1,0 +1,135 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+
+<div class="container">
+
+<ol class="breadcrumb">
+  <li><a href="/boats">Boats</a></li>
+  <li><a href="/boats/{{::boatId}}">{{ boat.name }}</a></li>
+  <li class="active"><a href="/boats/{{::boatId}}/upload">Upload</a></li>
+</ol>
+
+<div ng-hide="isBoatAdmin">
+  You must have administration rights on the boat to manage its files.
+</div>
+
+<div ng-show="isBoatAdmin">
+  <h1>Upload data for: {{ boat.name }}</h1>
+
+  Supported file formats:
+  <ul>
+    <li>NMEA0183. Must contain GPS date and time.</li>
+    <li>Astra ESA instrument log files</li>
+    <li>Anemomind log files</li>
+    <li>CSV</li>
+  </ul>
+
+  <input type="file" nv-file-select uploader="uploader"/>
+  <div class="upload-drop-zone" nv-file-drop uploader="uploader">
+    Drag log files for {{ boat.name }} here.
+  </div>
+
+  <table ng-show="uploader.queue.length > 0" class="table">
+    <thead>
+      <tr>
+        <th width="50%">Name</th>
+        <th ng-show="uploader.isHTML5">Size</th>
+        <th ng-show="uploader.isHTML5">Progress</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="item in uploader.queue">
+        <td><strong>{{ item.file.name }}</strong></td>
+        <td ng-show="uploader.isHTML5" nowrap>{{ item.file.size/1024/1024|number:2 }} MB</td>
+        <td ng-show="uploader.isHTML5">
+          <div class="progress" style="margin-bottom: 0;">
+            <div class="progress-bar" role="progressbar" ng-style="{ 'width': item.progress + '%' }"></div>
+          </div>
+        </td>
+        <td class="text-center">
+          <span ng-show="item.isSuccess"><i class="glyphicon glyphicon-ok"></i></span>
+          <span ng-show="item.isCancel"><i class="glyphicon glyphicon-ban-circle"></i></span>
+          <span ng-show="item.isError"><i class="glyphicon glyphicon-remove"></i></span>
+        </td>
+        <td nowrap>
+          <button type="button" class="btn btn-success btn-xs" ng-click="item.upload()" ng-disabled="item.isReady || item.isUploading || item.isSuccess">
+            <span class="glyphicon glyphicon-upload"></span> Upload
+          </button>
+          <button type="button" class="btn btn-warning btn-xs" ng-click="item.cancel()" ng-disabled="!item.isUploading">
+            <span class="glyphicon glyphicon-ban-circle"></span> Cancel
+          </button>
+          <button type="button" class="btn btn-danger btn-xs" ng-click="item.remove()">
+            <span class="glyphicon glyphicon-trash"></span> Remove
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table ng-show="files.length > 0" class="table">
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="file in files | filter: fileIsBad">
+        <td>
+          <a href="/boats/{{ boatId }}/upload/{{ file.name }}">
+          <i class="glyphicon glyphicon-remove-sign red"></i>
+          {{ file.name }}</td></a>
+        <td>{{ file.error }}</td>
+        <td>
+          <button ng-hide="file.confirm" type="button"
+                  class="btn btn-xs" ng-click="file.confirm=true">
+            <i class="glyphicon glyphicon-trash"></i>
+          </button>
+          <button ng-show="file.confirm" type="button"
+                  class="btn btn-danger btn-xs" ng-click="delete(file)">
+            Delete {{ file.name }}
+          </button>
+          <button ng-show="file.confirm" type="button"
+                  class="btn btn-xs" ng-click="file.confirm=false">
+            <i class="glyphicon glyphicon-remove"></i>
+          </button>
+        </td>
+      </tr>
+      <tr ng-repeat="file in files | filter: fileIsGood">
+        <td>
+          <a href="/boats/{{ boatId }}/upload/{{ file.name }}">
+          <i ng-show="file.complete" class="glyphicon glyphicon-ok-sign green"></i>
+          <i ng-show="!file.complete" class="glyphicon glyphicon-warning-sign orange"></i>
+          {{ file.name }}</a>
+        </td>
+        <td ng-show="file.start">{{ file.start | date:'short' }}, 
+          {{ file.duration_sec | timeSpan }}
+        </td>
+        <td ng-show="file.type == 'ESA Polar'">
+          <a href="/polar/{{ boatId }}/{{ file.name }}">ESA Polar</a>
+        </td>
+        <td>
+          <button ng-hide="file.confirm" type="button"
+                  class="btn btn-xs" ng-click="file.confirm=true">
+            <i class="glyphicon glyphicon-trash"></i>
+          </button>
+          <button ng-show="file.confirm" type="button"
+                  class="btn btn-danger btn-xs" ng-click="delete(file)">
+            Delete {{ file.name }}
+          </button>
+          <button ng-show="file.confirm" type="button"
+                  class="btn btn-xs" ng-click="file.confirm=false">
+            <i class="glyphicon glyphicon-remove"></i>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<div ng-include="'components/footer/footer.html'"></div>

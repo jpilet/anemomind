@@ -1,0 +1,26 @@
+
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<div class="container">
+  <p ng-hide="isAdmin()">This page is restricted to administrators.</p>
+
+
+  <ul class="list-group">
+    <li class="list-group-item" ng-repeat="update in availableUpdates">
+        <strong>{{update.name}}</strong> {{ update.size/1024 | number: 1}}kb<br>
+    </li>
+  </ul>
+
+  <div class="form-group">
+    <label for="fromVersion">From tag:</label>
+    <textarea class="form-control" rows="1" id="fromVersion" ng-model="fromVersion"></textarea>
+    <label for="toVersion">To tag:</label>
+    <textarea class="form-control" rows="1" id="toVersion" ng-model="toVersion"></textarea>
+    <div>
+    <label for="updateDeployCode">Deploy code</label>:
+    <textarea class="form-control" rows="10" id="updateDeployCode" ng-model="updateDeployCode"></textarea>
+    </div>
+
+    <button class="btn btn-default" ng-click="createUpdate()">create: {{ patchName }}</button>
+
+</div>

@@ -25,6 +25,7 @@ module.exports.list = (req, res, next) => {
     }
     if (!data || data.length == 0) {
       res.json([]).status(200);
+      return;
     }
 
     res.json(data.map((obj) => { return { name: obj.name, type: obj.type }; }))
