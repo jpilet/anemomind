@@ -29,11 +29,16 @@ angular.module('www2App')
           err = err.data;
           $scope.errors = {};
 
-          // Update validity of form fields that match the mongoose errors
-          angular.forEach(err.errors, function(error, field) {
-            form[field].$setValidity('mongoose', false);
-            $scope.errors[field] = error.message;
-          });
+          if (err.code == 11000) {
+            form.email.$setValidity('alreadyRegistered', false);
+            $scope.errors.email = "e-mail address already registered";
+          } else if (err.errors) {
+            // Update validity of form fields that match the mongoose errors
+            angular.forEach(err.errors, function(error, field) {
+              form[field].$setValidity('mongoose', false);
+              $scope.errors[field] = error.message;
+            });
+          }
         });
       }
     };
