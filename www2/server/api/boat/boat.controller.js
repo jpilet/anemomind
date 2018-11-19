@@ -13,6 +13,12 @@ var winston = require('winston');
 var mailer = require('../../components/mailer');
 var transporter = mailer.transporter;
 
+function host(req) {
+  return ((req.host.match(/(esa)|(regattapolar)/)
+           || process.env.VHOST == 'esalab') 
+          ? 'regattapolar' : 'anemolab');
+}
+
 var validateBoatForUser = function(user, boat) {
   // Make sure the following arrays contain unique values.
   var fields = ['admins', 'readers', 'invited'];
@@ -28,25 +34,43 @@ var validateBoatForUser = function(user, boat) {
   }
 }
 
-var sendInvitationEmail = function(inviter, email, boat, hasAnAccount) {
+var sendInvitationEmail = function(inviter, email, boat, hasAnAccount, hostkey) {
+  // TODO: move this where appropriate.
+  const info = {
+    anemolab: {
+      url: 'https://anemolab.com/',
+      name: 'Anemolab',
+      signature: 'Anemobot'
+    },
+    regattapolar: {
+      url: 'https://regattapolar.com/',
+      name: 'Regatta Polar',
+      signature: 'Your Regatta Polar automated agent'
+    }
+  };
+
+  const host = info[hostkey] || info.anemolab;
+
   var messageBody;
   if (hasAnAccount) {
     messageBody = 'Hello!\n'
      + inviter.name + ' invites you to see the navigation data ' +
-    'of the boat ' + boat.name + '.\nPlease go to anemolab.com and log in ' +
-    'with this email address: ' + email + '\n\nBest regards,\nAnemobot';
+    'of the boat ' + boat.name + '.\nPlease go to '
+     + host.url + ' and log in ' +
+    'with this email address: ' + email + '\n\nBest regards,\n'
+    + host.signature;
   } else {
     messageBody = 'Hello!\n'
      + inviter.name + ' invites you to see the navigation data ' +
     'of the boat ' + boat.name + '.\n'
-    + 'Please create your account here: http://anemolab.com/signup?email=' + email
-    + '\n\nBest regards,\nAnemobot';
+    + 'Please create your account here: ' + host.url + 'signup?email=' + email
+    + '\n\nBest regards,\n' + host.signature;
   }
   transporter.sendMail({
     from: mailer.from,
     to: email,
     subject: 'You have been invited to see ' + boat.name + ' navigation data ' +
-    'on anemolab.com',
+    'on ' + host.name,
     text: messageBody
   }, function(err, info) {
     if (err) {
@@ -221,7 +245,7 @@ exports.inviteUser = function(req, res) {
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
 
-          sendInvitationEmail(req.user, req.body.email, boat, false);
+          sendInvitationEmail(req.user, req.body.email, boat, false, host(req));
 
           return res.status(200).json({
              message: 'user invited at address: ' + req.body.email,
@@ -248,7 +272,7 @@ exports.inviteUser = function(req, res) {
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
 
-          sendInvitationEmail(req.user, req.body.email, boat, true);
+          sendInvitationEmail(req.user, req.body.email, boat, true, host(req));
 
           return res.status(200).json({
             message: 'user ' + users[0].name + ' added as ' + (invitedAdmin ? 'admin' : 'reader'),
