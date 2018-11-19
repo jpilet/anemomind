@@ -52,6 +52,7 @@ angular.module('www2App')
         if (data.boat) {
           $scope.boat = data.boat;
         }
+        $scope.invitedEMail = "";
       })
       .error(function(err) {
          $scope.invitationMessage = err;
