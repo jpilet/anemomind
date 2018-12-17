@@ -1,0 +1,22 @@
+<section class="eventlist">
+  <ul class="timeline">
+    <li ng-repeat="event in events | orderBy:'when'" data-id="{{ event._id }}">
+      
+      <article class="timeline-panel">
+        <div ng-if="event.photo" class="top">
+          <a ng-click="openLightboxModal(event.photo)">
+            <img ng-src="{{ thumbnail(event) }}"></img>
+          </a>
+        </div>
+        <div class="bottom" ng-class="{ 'full-border': !event.photo }">
+          <div class="timeline-badge" ng-class="{ 'to-top': !event.photo }" ng-click="onTimeSelect(event.when)"></div>
+          <div class="eventdate"><a href="" ng-click="onTimeSelect(event.when)">{{event.when | date: "H'h'mm"}}</a></div>
+          <div class="eventauthor">{{ users[event.author].name }}</div>
+          <p class="comment" ng-if="event.comment">{{event.comment}}</p>
+          <p class="message" ng-if="event.structuredMessage">{{ event.structuredMessage }}</p>
+        </div>
+      </article>
+    </li>
+
+  </ul>
+</section>

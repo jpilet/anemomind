@@ -1,0 +1,37 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+
+<div class="container">
+
+  <ol class="breadcrumb">
+    <li><a href="/boats">Boats</a></li>
+    <li><a href="/boats/{{::boatId}}">{{ boat.name }}</a></li>
+    <li><a href="/polar/{{::boatId}}">Performance</a></li>
+    <li><span class="dropdown">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    {{ name }}
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+    <li ng-repeat="perf in perfstatIndex">
+      <a href="/polar/{{::boatId}}/{{ perf.name }}">{{ perf.name }}</a></li>
+  </ul>
+      </span></li>
+  </ol>
+
+
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-4"><nvd3 options="speed_up_options" data="speedPointsUp"></nvd3></div>
+    <div class="col-md-4"><nvd3 options="twa_up_options" data="twaPointsUp"></nvd3></div>
+    <div class="col-md-4"><nvd3 options="vmg_up_options" data="vmgPointsUp"></nvd3></div>
+  </div>
+  <div class="row">
+    <div class="col-md-4"><nvd3 options="speed_down_options" data="speedPointsDown"></nvd3></div>
+    <div class="col-md-4"><nvd3 options="twa_down_options" data="twaPointsDown"></nvd3></div>
+    <div class="col-md-4"><nvd3 options="vmg_down_options" data="vmgPointsDown"></nvd3></div>
+</div>
+
+<div ng-include="'components/footer/footer.html'"></div>

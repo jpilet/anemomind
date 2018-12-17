@@ -1,0 +1,240 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> 
+<html class="no-js"> <!--<![endif]-->
+  <head>
+<!--
+    _   _  _ ___ __  __  ___  __  __ ___ _  _ ___  
+   /_\ | \| | __|  \/  |/ _ \|  \/  |_ _| \| |   \ 
+  / _ \| .` | _|| |\/| | (_) | |\/| || || .` | |) |
+ /_/ \_\_|\_|___|_|  |_|\___/|_|  |_|___|_|\_|___/ 
+ Hello there! 
+-->            
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <base href="/">
+    <title>Regatta Polar</title>
+    <meta name="description" content="">
+
+    <!-- OPEN GRAPH -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href='//fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(esalab) app/vendor.css -->
+      <!-- bower:css -->
+      <link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css" />
+      <link rel="stylesheet" href="bower_components/angular-bootstrap-lightbox/dist/angular-bootstrap-lightbox.css" />
+      <link rel="stylesheet" href="bower_components/angularjs-slider/dist/rzslider.css" />
+      <link rel="stylesheet" href="bower_components/slick-carousel/slick/slick.css" />
+      <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css({.tmp,esalab}) app/app.css -->
+    <link rel="stylesheet" href="app/app.css">
+      <!-- injector:css -->
+      <link rel="stylesheet" href="app/account/login/login.css">
+      <link rel="stylesheet" href="app/admin/admin.css">
+      <link rel="stylesheet" href="app/app.css">
+      <link rel="stylesheet" href="app/arrowIndicator/arrowIndicator.css">
+      <link rel="stylesheet" href="app/boats/boats.css">
+      <link rel="stylesheet" href="app/boats/upload/upload.css">
+      <link rel="stylesheet" href="app/boatSummary/boatSummary.css">
+      <link rel="stylesheet" href="app/challengeDetails/challenge-details.css">
+      <link rel="stylesheet" href="app/challenges/challenges.css">
+      <link rel="stylesheet" href="app/events/events.css">
+      <link rel="stylesheet" href="app/gaugeIndicator/gaugeIndicator.css">
+      <link rel="stylesheet" href="app/heelingIndicator/heelingIndicator.css">
+      <link rel="stylesheet" href="app/home/home.css">
+      <link rel="stylesheet" href="app/icon.css">
+      <link rel="stylesheet" href="app/map/map.css">
+      <link rel="stylesheet" href="app/perfplot/perfplot.css">
+      <link rel="stylesheet" href="app/rewards/rewards.css">
+      <link rel="stylesheet" href="app/sessionplot/sessionplot.css">
+      <link rel="stylesheet" href="app/share/share.css">
+      <link rel="stylesheet" href="app/util.css">
+      <link rel="stylesheet" href="app/vmgplot/vmgplot.css">
+      <link rel="stylesheet" href="app/wheelIndicator/wheelIndicator.css">
+      <link rel="stylesheet" href="app/wheelSmallIndicator/wheelSmallIndicator.css">
+      <link rel="stylesheet" href="components/footer/footer.css">
+      <link rel="stylesheet" href="components/modal/modal.css">
+      <link rel="stylesheet" href="components/navbar/navbar.css">
+      <link rel="stylesheet" href="app/account/login/login.css">
+      <link rel="stylesheet" href="app/admin/admin.css">
+      <link rel="stylesheet" href="app/app.css">
+      <link rel="stylesheet" href="app/arrowIndicator/arrowIndicator.css">
+      <link rel="stylesheet" href="app/boats/boats.css">
+      <link rel="stylesheet" href="app/boats/upload/upload.css">
+      <link rel="stylesheet" href="app/boatSummary/boatSummary.css">
+      <link rel="stylesheet" href="app/challengeDetails/challenge-details.css">
+      <link rel="stylesheet" href="app/challenges/challenges.css">
+      <link rel="stylesheet" href="app/events/events.css">
+      <link rel="stylesheet" href="app/gaugeIndicator/gaugeIndicator.css">
+      <link rel="stylesheet" href="app/heelingIndicator/heelingIndicator.css">
+      <link rel="stylesheet" href="app/home/home.css">
+      <link rel="stylesheet" href="app/icon.css">
+      <link rel="stylesheet" href="app/map/map.css">
+      <link rel="stylesheet" href="app/perfplot/perfplot.css">
+      <link rel="stylesheet" href="app/rewards/rewards.css">
+      <link rel="stylesheet" href="app/sessionplot/sessionplot.css">
+      <link rel="stylesheet" href="app/share/share.css">
+      <link rel="stylesheet" href="app/util.css">
+      <link rel="stylesheet" href="app/vmgplot/vmgplot.css">
+      <link rel="stylesheet" href="app/wheelIndicator/wheelIndicator.css">
+      <link rel="stylesheet" href="app/wheelSmallIndicator/wheelSmallIndicator.css">
+      <link rel="stylesheet" href="components/footer/footer.css">
+      <link rel="stylesheet" href="components/modal/modal.css">
+      <link rel="stylesheet" href="components/navbar/navbar.css">
+      <!-- endinjector -->
+    <!-- endbuild -->
+  </head>
+  <body ng-app="www2App">
+    <!--[if lt IE 7]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+
+    <!-- top layers -->
+    <div id="app-loading-wrapper" shown-when-loading=""> 
+      <div class="app-loading fa-spin fa fa fa-spinner"></div> 
+    </div>
+
+    <div id="flash" flash-message="5000" ></div>
+
+
+    <!-- Add your site or application content here -->
+    <div ui-view="" class="main-view"></div>
+
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-XXXXX-X');
+      ga('send', 'pageview');
+    </script>
+    -->
+
+    <!--[if lt IE 9]>
+    <script src="bower_components/es5-shim/es5-shim.js"></script>
+    <script src="bower_components/json3/lib/json3.min.js"></script>
+    <![endif]-->
+    <!-- build:js({esalab,node_modules}) app/vendor.js -->
+      <!-- bower:js -->
+      <script src="bower_components/jquery/dist/jquery.js"></script>
+      <script src="bower_components/angular/angular.js"></script>
+      <script src="bower_components/angular-resource/angular-resource.js"></script>
+      <script src="bower_components/angular-cookies/angular-cookies.js"></script>
+      <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+      <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+      <script src="bower_components/lodash/lodash.js"></script>
+      <script src="bower_components/angular-socket-io/socket.js"></script>
+      <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+      <script src="bower_components/d3/d3.js"></script>
+      <script src="bower_components/nvd3/build/nv.d3.js"></script>
+      <script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+      <script src="bower_components/angular-bootstrap-lightbox/dist/angular-bootstrap-lightbox.js"></script>
+      <script src="bower_components/angularjs-slider/dist/rzslider.js"></script>
+      <script src="bower_components/angular-modal-service/dst/angular-modal-service.js"></script>
+      <script src="bower_components/slick-carousel/slick/slick.js"></script>
+      <script src="bower_components/angular-file-upload/dist/angular-file-upload.min.js"></script>
+      <!-- endbower -->
+      <script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+      <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <!-- endbuild -->
+      <script src="socket.io-client/socket.io.js"></script>
+
+        <!-- build:js({.tmp,esalab}) app/app.js -->
+        <script src="app/app.js"></script>
+          <!-- injector:js -->
+          <script src="app/account/account.js"></script>
+          <script src="app/account/login/login.controller.js"></script>
+          <script src="app/account/resetpassword/resetpassword.controller.js"></script>
+          <script src="app/account/settings/settings.controller.js"></script>
+          <script src="app/account/signup/signup.controller.js"></script>
+          <script src="app/admin/admin.controller.js"></script>
+          <script src="app/admin/admin.js"></script>
+          <script src="app/arrowIndicator/arrowIndicator.directive.js"></script>
+          <script src="app/arrowIndicator/arrowIndicator.js"></script>
+          <script src="app/boatadmin/boatadmin.controller.js"></script>
+          <script src="app/boatadmin/boatadmin.js"></script>
+          <script src="app/boatadmin/boxexec.service.js"></script>
+          <script src="app/boatadmin/boxexec/boxexec.controller.js"></script>
+          <script src="app/boatadmin/boxexec/boxexec.js"></script>
+          <script src="app/boatadmin/updates.controller.js"></script>
+          <script src="app/boatList/boatList.directive.js"></script>
+          <script src="app/boatList/boatList.service.js"></script>
+          <script src="app/boats/boat-detail.controller.js"></script>
+          <script src="app/boats/boats.controller.js"></script>
+          <script src="app/boats/boats.js"></script>
+          <script src="app/boats/upload/file-detail.controller.js"></script>
+          <script src="app/boats/upload/upload.controller.js"></script>
+          <script src="app/boats/upload/upload.js"></script>
+          <script src="app/boatSummary/boatSummary.directive.js"></script>
+          <script src="app/challengeDetails/challenge-details.controller.js"></script>
+          <script src="app/challengeDetails/challenge-details.js"></script>
+          <script src="app/challenges/challenges.controller.js"></script>
+          <script src="app/challenges/challenges.directive.js"></script>
+          <script src="app/challenges/challenges.js"></script>
+          <script src="app/events/events.directive.js"></script>
+          <script src="app/filters/angle/angle.filter.js"></script>
+          <script src="app/filters/geopos/geopos.js"></script>
+          <script src="app/filters/speed/speed.filter.js"></script>
+          <script src="app/filters/timeSpan/timeSpan.filter.js"></script>
+          <script src="app/gaugeIndicator/gaugeIndicator.directive.js"></script>
+          <script src="app/gaugeIndicator/gaugeIndicator.js"></script>
+          <script src="app/heelingIndicator/heelingIndicator.directive.js"></script>
+          <script src="app/heelingIndicator/heelingIndicator.js"></script>
+          <script src="app/home/home.controller.js"></script>
+          <script src="app/home/home.js"></script>
+          <script src="app/map/map.controller.js"></script>
+          <script src="app/map/map.directive.js"></script>
+          <script src="app/map/map.js"></script>
+          <script src="app/perfplot/dynloader.js"></script>
+          <script src="app/perfplot/perfplot.directive.js"></script>
+          <script src="app/perfplot/perfplot.js"></script>
+          <script src="app/polar/anm-multi-chart.js"></script>
+          <script src="app/polar/index.js"></script>
+          <script src="app/polar/polar_index.controler.js"></script>
+          <script src="app/polar/polar.controler.js"></script>
+          <script src="app/rewards/rewards.controller.js"></script>
+          <script src="app/rewards/rewards.js"></script>
+          <script src="app/sessionplot/sessionplot.directive.js"></script>
+          <script src="app/share/share.controller.js"></script>
+          <script src="app/userDB/userDB.service.js"></script>
+          <script src="app/vectormap/thumbnailsmap.directive.js"></script>
+          <script src="app/vectormap/thumbnailspng.directive.js"></script>
+          <script src="app/vectormap/tiles/affinetransform.js"></script>
+          <script src="app/vectormap/tiles/CanvasTilesRenderer.js"></script>
+          <script src="app/vectormap/tiles/CopyrightLayer.js"></script>
+          <script src="app/vectormap/tiles/pinchzoom.js"></script>
+          <script src="app/vectormap/tiles/POILayer.js"></script>
+          <script src="app/vectormap/tiles/ScaleLayer.js"></script>
+          <script src="app/vectormap/tiles/TileLayer.js"></script>
+          <script src="app/vectormap/tiles/timebar.js"></script>
+          <script src="app/vectormap/tiles/utils.js"></script>
+          <script src="app/vectormap/tiles/VectorTileLayer.js"></script>
+          <script src="app/vectormap/vectormap.directive.js"></script>
+          <script src="app/vmgplot/vmgplot.controller.js"></script>
+          <script src="app/vmgplot/vmgplot.js"></script>
+          <script src="app/wheelIndicator/wheelIndicator.directive.js"></script>
+          <script src="app/wheelIndicator/wheelIndicator.js"></script>
+          <script src="app/wheelSmallIndicator/wheelSmallIndicator.directive.js"></script>
+          <script src="app/wheelSmallIndicator/wheelSmallIndicator.js"></script>
+          <script src="components/auth/auth.service.js"></script>
+          <script src="components/auth/user.service.js"></script>
+          <script src="components/modal/modal.service.js"></script>
+          <script src="components/mongoose-error/mongoose-error.directive.js"></script>
+          <script src="components/navbar/navbar.controller.js"></script>
+          <script src="components/popover/popover.directive.js"></script>
+          <script src="components/slider/slider.directive.js"></script>
+          <script src="components/socket/socket.service.js"></script>
+          <!-- endinjector -->
+        <!-- endbuild -->
+</body>
+</html>

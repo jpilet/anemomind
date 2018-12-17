@@ -1,0 +1,23 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+
+<div class="container">
+
+  <ol class="breadcrumb">
+    <li><a href="/boats">Boats</a></li>
+    <li><a href="/boats/{{::boatId}}">{{ boat.name }}</a></li>
+    <li><a href="/polar/{{::boatId}}">Performance</a></li>
+  </ol>
+
+
+</div>
+
+<div class="container">
+  <div class="list-group">
+    <a class="list-group-item"  ng-repeat="perf in perfstatIndex"
+				href="/polar/{{::boatId}}/{{ perf.name }}">
+      {{ perf.name }} ({{perf.type }})</a>
+  </div>
+</div>
+
+<div ng-include="'components/footer/footer.html'"></div>

@@ -1,0 +1,12 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<div class="container">
+	<ol class="breadcrumb">
+	  <li><a href="/boats">Boats</a></li>
+	  <li><a href="/boats/{{::boatId}}">{{ ::boat.name }}</a></li>
+	  <li class="active">VMG Statistics</li>
+	</ol>	
+</div>
+
+<div>{{ message }}</div>
+<nvd3 options="options" data="vmgtable"></nvd3>

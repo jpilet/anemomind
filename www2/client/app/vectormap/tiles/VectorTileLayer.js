@@ -91,7 +91,11 @@ function VectorTileLayer(params, renderer) {
   if (!this.params.maxNumCachedTiles) this.params.maxNumCachedTiles = 64;
   if (!this.params.maxSimultaneousLoads) this.params.maxSimultaneousLoads = 3;
 
-
+  if (this.params.colors == 'esalab') {
+    this.red = '#FF7800';
+  } else {
+    this.red = '#FF0033';
+  }
 }
 
 VectorTileLayer.prototype.buildUrl = function(boatId,starts,end) {
@@ -383,7 +387,7 @@ VectorTileLayer.prototype.colorForPoint = function(point) {
       return this.colorForVmgPerf(point);
 
     // default color when no tail is displayed
-    return '#FF0033';
+    return this.red;
   }
 };
 
@@ -537,7 +541,7 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
       context.moveTo(cos * r, sin * r);
       context.lineTo(cos * (r - t), sin * (r - t));
     }
-    context.strokeStyle = '#ff0033';
+    context.strokeStyle = this.red;
     context.stroke();
 
     var l = this.boatIcon.height * pixelRatio;
