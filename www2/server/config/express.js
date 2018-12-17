@@ -56,7 +56,7 @@ module.exports = function(app) {
     const serveCss = express.static(path.join(config.root, vhost));
     app.use((req, res, next) => {
       if (req.path.match(/css$/)) {
-	serveCss(req, res, next);
+        serveCss(req, res, next);
       } else {
 	next();
       }
