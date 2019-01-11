@@ -92,6 +92,16 @@ angular.module('www2App')
           poiLayer.loadIcon('comment', "/assets/images/chat.svg", options);
           poiLayer.loadIcon('image', "/assets/images/image.svg", options);
 
+          Auth.isLoggedInAsync(function() {
+            if (Auth.getCurrentUser().hasOwnProperty('mapUrl')) {
+              var params = Object.create(canvas.params);
+              params.url = Auth.getCurrentUser().mapUrl;
+              var navigationLayer = new TileLayer(params, canvas);
+              canvas.layers.splice(1, 0, navigationLayer);
+              canvas.refreshIfNotMoving();
+            }
+          });
+
           function setTailTrack() {
             if ($location.search().queue) {
               var lengthTime = new Date(
