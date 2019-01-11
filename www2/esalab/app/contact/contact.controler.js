@@ -1,4 +1,3 @@
-
 angular.module('www2App')
   .controller('ContactCtrl', function ($scope, $http, Auth) {
     $scope.isLoggedIn = Auth.isLoggedIn();
@@ -11,6 +10,8 @@ angular.module('www2App')
     };
     $scope.messageSent = false;
     $scope.messageError = undefined;
+
+    var emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
     var update = function() {
       if ($scope.isLoggedIn) {
@@ -37,6 +38,10 @@ angular.module('www2App')
       }
       if ($scope.form.message.length < 10) {
         $scope.messageError = "Please enter a message";
+        return;
+      }
+      if (!$scope.isLoggedIn && !$scope.form.addr.match(emailRegex)) {
+        $scope.messageError = "Please enter a valid email address";
         return;
       }
 

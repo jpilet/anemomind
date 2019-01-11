@@ -20,7 +20,7 @@ var sendContactMessage = function(name, addr, subject, message, cb) {
     from: mailer.from,
     to: "info@astrayacht.com, julien@anemomind.com",
     subject: 'Contact form: ' + subject,
-    text: message
+    text: messageBody
   }, function(err, info) {
     if (err) {
       // TODO: update the info page and notify the inviter
