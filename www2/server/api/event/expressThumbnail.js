@@ -5,6 +5,7 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var imageMagick = require('gm').subClass({ imageMagick: true });
+var normalizePhotoFilename = require('./event.controller').normalizePhotoFilename;
 
 var expressThumbnail = module.exports;
 
@@ -25,7 +26,8 @@ expressThumbnail.register = function(rootDir, options) {
   options.gravity = options.gravity || 'Center';
 
   return function (req, res, next) {
-    var filename = path.join(req.params.boatId, req.params.photo);
+    var filename = path.join(req.params.boatId,
+                             normalizePhotoFilename(req.params.photo));
     var filepath = path.join(rootDir, filename);
 
     // wanted thumbnail dimensions
