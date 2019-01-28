@@ -82,6 +82,10 @@ expressThumbnail.convert = function(options, callback) {
     if (err) { return callback(err); }
     var img = imageMagick(options.filepath).autoOrient().gravity(options.gravity);
     img.size(function(err, size) {
+      if (err) {
+        callback(err);
+        return;
+      }
       // If either 'width' or 'height' is missing, we'll simply preserve the
       // original image aspect ratio.
       if (options.width == '_') {

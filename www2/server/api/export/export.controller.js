@@ -269,10 +269,6 @@ function exportInFormat(format, req, res, next) {
             console.warn(err);
             res.status(500).send();
           } else if (columns.length == 0) {
-<<<<<<< HEAD
-=======
-            console.warn('No columns! tiles: ', firstTile, ' -> ', lastTile);
->>>>>>> origin/jp-esa-polar-frontend
             res.status(404).send();
           } else {
             sendWithColumns(
