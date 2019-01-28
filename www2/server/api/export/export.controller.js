@@ -269,7 +269,6 @@ function exportInFormat(format, req, res, next) {
             console.warn(err);
             res.status(500).send();
           } else if (columns.length == 0) {
-            console.warn('No columns! tiles: ', firstTile, ' -> ', lastTile);
             res.status(404).send();
           } else {
             sendWithColumns(
