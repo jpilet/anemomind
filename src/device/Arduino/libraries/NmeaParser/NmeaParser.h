@@ -249,7 +249,7 @@ class NmeaParser {
   Word numErr() const {
     return numErr_;
   }
-  Word numSentences() const {
+  DWord numSentences() const {
     return numSentences_;
   }
 
@@ -338,8 +338,8 @@ class NmeaParser {
 
   Byte receivedChecksum_;
   DWord numBytes_;
-  Word numErr_;
-  Word numSentences_;
+  DWord numErr_;
+  DWord numSentences_;
 
   bool ignoreWrongChecksum_;
 

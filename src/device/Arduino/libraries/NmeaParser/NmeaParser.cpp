@@ -94,6 +94,11 @@ int parseInt(char *s, int *n) {
   return r;
 }
 
+bool checkSpeedArgs(char *speed, char *unit) {
+  return strlen(speed) > 0
+    && (unit == nullptr || (strlen(unit) == 1 && *unit == 'N'));
+}
+
 int parseSpeed(char *speed, char *unit) {
   int i,j;
   int frac;
@@ -177,7 +182,7 @@ NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
   // Retrieve command (NMEA Address)
   case NP_STATE_CMD :
     if (input == ',') {
-      if (argc_ >= NP_MAX_ARGS || (index_ + 1) >= NP_MAX_DATA_LEN) {
+      if ((argc_ + 1) >= NP_MAX_ARGS || (index_ + 1) >= NP_MAX_DATA_LEN) {
         state_ = NP_STATE_SOM;
         numErr_++;
       } else {
@@ -206,7 +211,7 @@ NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
       checksum_ ^= input;
 
       // Check for command overflow
-      if(index_ >= NP_MAX_DATA_LEN) {
+      if((index_ + 1) >= NP_MAX_DATA_LEN) {
         state_ = NP_STATE_SOM;
         numErr_++;
       }
@@ -350,17 +355,27 @@ NmeaParser::NmeaSentence NmeaParser::processCommand() {
 }
 
 NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
-  if (argc_<10) return NMEA_NONE;
-  if (strlen(argv_[1]) < 6) return NMEA_NONE;
-  if (strlen(argv_[9]) < 6) return NMEA_NONE;
+  if (argc_ < 10
+      || !checkSpeedArgs(argv_[7], nullptr)
+      || strlen(argv_[1]) < 6
+      || strlen(argv_[9]) < 6) return NMEA_NONE;
 
   gpsSpeed_ = parseSpeed(argv_[7], argv_[8]);
-  hour_ = parse2c(argv_[1]);
-  min_ = parse2c(argv_[1]+2);
-  sec_ = parse2c(argv_[1]+4);
-  day_ = parse2c(argv_[9]);
-  month_ = parse2c(argv_[9]+2);
-  year_ = parse2c(argv_[9]+4);
+
+  char tmp;
+
+#define PARSE_AND_CHECK(ptr, var, min, max) \
+  tmp = parse2c(ptr); \
+  if (tmp > max || tmp < min) { return NMEA_NONE; } \
+  var = tmp
+
+  PARSE_AND_CHECK(argv_[1], hour_, 0, 23);
+  PARSE_AND_CHECK(argv_[1]+2, min_, 0, 59);
+  PARSE_AND_CHECK(argv_[1]+4, sec_, 0, 59);
+  PARSE_AND_CHECK(argv_[9], day_, 0, 31);
+  PARSE_AND_CHECK(argv_[9]+2, month_, 0, 12);
+  PARSE_AND_CHECK(argv_[9]+4, year_, 0, 99);
+#undef PARSE_AND_CHECK
 
   if (strlen(argv_[3]) < 4 || strlen(argv_[5]) < 4) {
     // No position is available.
@@ -385,7 +400,9 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
 }
 
 NmeaParser::NmeaSentence NmeaParser::processMWV() {
-  if (argc_<=5 || argv_[5][0] != 'A') return NMEA_NONE;
+  if (argc_ <= 5
+      || argv_[5][0] != 'A'
+      || !checkSpeedArgs(argv_[3], argv_[4])) return NMEA_NONE;
 
   int s = parseSpeed(argv_[3], argv_[4]);
 
@@ -422,7 +439,9 @@ $--VWR,x.x,a,x.x,N,x.x,M,x.x,K*hh
 9) Checksum
 */
 NmeaParser::NmeaSentence NmeaParser::processVWR() {
-  if (argc_<8) return NMEA_NONE;
+  if (argc_ < 8
+      || strlen(argv_[1]) < 1
+      || !checkSpeedArgs(argv_[3], argv_[4])) return NMEA_NONE;
   int s = parseSpeed(argv_[3], argv_[4]);
 
   if (!isSpeedRealistic(s)) {
@@ -463,7 +482,10 @@ $IIVWT,045.,L,19.6,N,10.1,M,036.3,K*68
         1   2   3  4   5  6   7   8
 */
 NmeaParser::NmeaSentence NmeaParser::processVWT() {
-  if (argc_<6) return NMEA_NONE;
+  if (argc_ < 6
+      || !checkSpeedArgs(argv_[3], argv_[4])
+      || (strlen(argv_[1]) < 1)
+      || strlen(argv_[2]) != 1) return NMEA_NONE;
 
   twa_ = parseInt(argv_[1],0);
   if (argv_[2][0] == 'L') {
@@ -481,7 +503,9 @@ NmeaParser::NmeaSentence NmeaParser::processVWT() {
 }
 
 NmeaParser::NmeaSentence NmeaParser::processVHW() {
-  if (argc_<6) return NMEA_NONE;
+  if (argc_ < 6
+      || !checkSpeedArgs(argv_[5], argv_[6])
+      || strlen(argv_[3]) < 1) return NMEA_NONE;
 
   magHdg_ = parseInt(argv_[3],0);
   watSpeed_ = parseSpeed(argv_[5], argv_[6]);
@@ -527,9 +551,17 @@ NmeaParser::NmeaSentence NmeaParser::processGLL() {
 
   // Some funny systems do not send the time.
   if (strlen(argv_[5]) >= 6) {
-    hour_ = parse2c(argv_[5]);
-    min_ = parse2c(argv_[5]+2);
-    sec_ = parse2c(argv_[5]+4);
+    char hour = parse2c(argv_[5]);
+    char min = parse2c(argv_[5]+2);
+    char sec = parse2c(argv_[5]+4);
+    if (hour > 23 || hour < 0
+        || min > 59 || min < 0
+        || sec > 59 || sec < 0) {
+      return NMEA_NONE;
+    }
+    hour_ = hour;
+    min_ = min;
+    sec_ = sec;
   }
 
   double latMinutes;
@@ -571,6 +603,9 @@ $--ZDA,hhmmss.ss,xx,xx,xxxx,xx,xx*hh
 However, NKE sends:
 $IIZDA,084546,27,02,2015,,*55
 
+I have seen also:
+$GPZDA,171549,,,,00,*47
+
 field [2] is not present. The order is day, month, year.
 */
 NmeaParser::NmeaSentence NmeaParser::processZDA() {
@@ -582,7 +617,7 @@ NmeaParser::NmeaSentence NmeaParser::processZDA() {
   sec_ = parse2c(argv_[1]+4);
 
   int yearLen = strlen(argv_[4]);
-  if (yearLen < 2) {
+  if (yearLen != 2 && yearLen != 4) {
     return NMEA_NONE;
   }
   year_ = parse2c(argv_[4] + yearLen - 2);
@@ -616,7 +651,7 @@ $--VTG,x.x,T,x.x,M,x.x,N,x.x,K*hh
 NmeaParser::NmeaSentence NmeaParser::processVTG() {
   if (argc_<6
       || isEmpty(argv_[1])
-      || isEmpty(argv_[5])) {
+      || !checkSpeedArgs(argv_[5], argv_[6])) {
     return NMEA_NONE;
   }
 
