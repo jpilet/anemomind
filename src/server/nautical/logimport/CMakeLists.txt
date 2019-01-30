@@ -56,6 +56,7 @@ target_link_libraries(logimport_LogLoader
 cxx_test(logimport_LogLoaderTest 
          LogLoaderTest.cpp
          logimport_LogLoader
+         common_Env
          gtest_main
         )
                      
