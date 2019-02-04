@@ -19,6 +19,8 @@ var inited = false;
 
 function init() {
   if (!inited) {
+    console.log('Connecting to mongo with uri: ', env.mongo.uri,
+                ' and options: ', env.mongo.options);
     mongoose.connect(env.mongo.uri, env.mongo.options);
     inited = true;
   }
