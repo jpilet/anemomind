@@ -52,10 +52,19 @@ target_link_libraries(logimport_LogLoader
                       nautical_NavDataset
                       astra_AstraLoader
                      )
+find_program(BUNZIP2_EXE bunzip2)
+find_program(GUNZIP_EXE gunzip)
+find_program(UNZX_EXE unxz)
+target_compile_definitions(logimport_LogLoader PRIVATE
+  "BUNZIP2_EXE=\"${BUNZIP2_EXE}\""
+  "GUNZIP_EXE=\"${GUNZIP_EXE}\""
+  "UNXZ_EXE=\"${UNXZ_EXE}\"")
+
 
 cxx_test(logimport_LogLoaderTest 
          LogLoaderTest.cpp
          logimport_LogLoader
+         common_Env
          gtest_main
         )
                      
