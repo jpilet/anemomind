@@ -316,6 +316,12 @@ TEST(NmeaParserTest, TestVWT) {
   EXPECT_EQ(2, parser.numSentences());
 }
 
+TEST(NmeaParserTest, TestRejectInvalidChecksum) {
+  NmeaParser parser;
+  EXPECT_EQ(NmeaParser::NMEA_NONE, sendSentence(
+          "$IIVWT,045.,L,19.6,N,10.1,M,036.3,K*11", &parser));
+}
+
 class MockNmeaParser : public NmeaParser {
   public:
     MOCK_METHOD4(onXDRRudder, void(const char*, bool, Angle<double>, const char*));
