@@ -362,19 +362,18 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
 
   gpsSpeed_ = parseSpeed(argv_[7], argv_[8]);
 
-  char tmp;
 
 #define PARSE_AND_CHECK(ptr, var, min, max) \
-  tmp = parse2c(ptr); \
+  { char tmp = parse2c(ptr); \
   if (tmp > max || tmp < min) { return NMEA_NONE; } \
-  var = tmp
+  var = tmp; }
 
-  PARSE_AND_CHECK(argv_[1], hour_, 0, 23);
-  PARSE_AND_CHECK(argv_[1]+2, min_, 0, 59);
-  PARSE_AND_CHECK(argv_[1]+4, sec_, 0, 59);
-  PARSE_AND_CHECK(argv_[9], day_, 0, 31);
-  PARSE_AND_CHECK(argv_[9]+2, month_, 0, 12);
-  PARSE_AND_CHECK(argv_[9]+4, year_, 0, 99);
+  PARSE_AND_CHECK(argv_[1], hour_, 0, 23)
+  PARSE_AND_CHECK(argv_[1]+2, min_, 0, 59)
+  PARSE_AND_CHECK(argv_[1]+4, sec_, 0, 59)
+  PARSE_AND_CHECK(argv_[9], day_, 0, 31)
+  PARSE_AND_CHECK(argv_[9]+2, month_, 0, 12)
+  PARSE_AND_CHECK(argv_[9]+4, year_, 0, 99)
 #undef PARSE_AND_CHECK
 
   if (strlen(argv_[3]) < 4 || strlen(argv_[5]) < 4) {

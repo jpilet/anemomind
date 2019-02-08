@@ -44,11 +44,11 @@ std::string uncompressFile(const std::string& filename) {
   std::string command;
 
   if (ext == "gz") {
-    command = "gunzip";
+    command = GUNZIP_EXE;
   } else if (ext == "bz2") {
-    command = "bunzip2";
+    command = BUNZIP2_EXE;
   } else if (ext == "xz") {
-    command = "unxz";
+    command = UNXZ_EXE;
   } else {
     return "";
   }

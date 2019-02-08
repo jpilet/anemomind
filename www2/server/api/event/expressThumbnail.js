@@ -5,6 +5,7 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var imageMagick = require('gm').subClass({ imageMagick: true });
+var normalizePhotoFilename = require('./event.controller').normalizePhotoFilename;
 
 var expressThumbnail = module.exports;
 
@@ -25,7 +26,8 @@ expressThumbnail.register = function(rootDir, options) {
   options.gravity = options.gravity || 'Center';
 
   return function (req, res, next) {
-    var filename = path.join(req.params.boatId, req.params.photo);
+    var filename = path.join(req.params.boatId,
+                             normalizePhotoFilename(req.params.photo));
     var filepath = path.join(rootDir, filename);
 
     // wanted thumbnail dimensions
@@ -82,6 +84,10 @@ expressThumbnail.convert = function(options, callback) {
     if (err) { return callback(err); }
     var img = imageMagick(options.filepath).autoOrient().gravity(options.gravity);
     img.size(function(err, size) {
+      if (err) {
+        callback(err);
+        return;
+      }
       // If either 'width' or 'height' is missing, we'll simply preserve the
       // original image aspect ratio.
       if (options.width == '_') {

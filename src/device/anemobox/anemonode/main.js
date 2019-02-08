@@ -23,6 +23,7 @@ var withNMEA2000 = true;
 var withWatchdog = !process.env['NO_WATCHDOG'];
 var withFakeReplay = process.env['FAKE_REPLAY'];
 var withCalypsoUltrasonic = true;
+var withNmea0183Perf = true;
 
 var withSendN2kGps = true;
 
@@ -250,6 +251,17 @@ if (withCalypsoUltrasonic) {
       } else {
         ultrasonic.shutdown();
       }
+    }
+  });
+}
+
+if (withNmea0183Perf) {
+  var nmea0183perf = require('./components/nmea0183perf');
+  config.getAndListen(function(err, cfg) {
+    if (cfg) {
+      nmea0183perf.activateNmea0183PerfOutput(
+         function(s) { nmea0183port.emitNmea0183Sentence(s); },
+         'NKE' /* cfg.nmea0183PerfOutFormat */);
     }
   });
 }
