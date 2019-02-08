@@ -134,7 +134,7 @@ bool isProcessedCoachLogHeader(const std::string& s);
 /**
  * Transforms tokens into
  */
-class AstraDataStepper : public StatelessStepper {
+class AstraDataStepper : public NothingToFlush {
 public:
 
   /**
@@ -153,12 +153,22 @@ public:
       _type = AstraLogType::RawDinghy;
     } else if (isProcessedCoachLogHeader(h.value)) {
       _type = AstraLogType::ProcessedCoach;
+    } else {
+      // It could be D7, also..
+      _type = AstraLogType::Regata;
     }
   }
 
   /// Called for tokenized table rows.
   template <typename R>
   void apply(R* result, const AstraTableRow& row) {
+    if (_type == AstraLogType::Unknown) {
+      // We received data for an unknown AstraLogType:
+      // something is wrong, let's abort.
+      _done = true;
+      return;
+    }
+
     auto cols = tryMakeAstraData(_spec, row, _verbose);
     if (cols.defined()) {
       auto r = cols.get();
@@ -169,10 +179,13 @@ public:
       _verbose = false;
     }
   }
+  template <typename R>
+  bool done(const R& ) const { return _done; }
 private:
-  AstraLogType _type;
+  AstraLogType _type = AstraLogType::Unknown;
   bool _verbose = true;
   AstraColSpec _spec;
+  bool _done = false;
 };
 
 inline GenericTransducer<AstraDataStepper> trMakeAstraData() {
