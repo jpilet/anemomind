@@ -134,3 +134,5 @@ function activateNmea0183PerfOutput(nmea0183cb, format) {
 }
 
 module.exports.activateNmea0183PerfOutput = activateNmea0183PerfOutput;
+module.exports.nkeDynamic = nkeDynamic;
+module.exports.nmeaPacket = nmeaPacket;
