@@ -73,7 +73,7 @@ TEST(TimeStampTest, Sleep) {
   EXPECT_LE(before + delta, after);
 }
 
-#ifdef HAVE_CLOCK_GETTIME
+#if defined(HAVE_CLOCK_GETTIME) || defined(__MACH__)
 TEST(TimeStampTest, MonotonicClock) {
   TimeStamp before = MonotonicClock::now();
   Duration<> delta = Duration<>::seconds(.1);
