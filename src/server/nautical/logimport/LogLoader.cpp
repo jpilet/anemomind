@@ -12,6 +12,7 @@
 #include <server/common/filesystem.h>
 #include <server/common/logging.h>
 #include <server/common/math.h>
+#include <server/nautical/logimport/iwatch.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/logimport/CsvLoader.h>
 #include <server/nautical/logimport/SailmonDbLoader.h>
@@ -84,7 +85,8 @@ bool LogLoader::loadFile(const std::string &filename) {
                         "Imported from Weather4D VDR", &_acc);
   } else {
     r =
-      ProtobufLogLoader::load(filename, &_acc)
+      parseIwatch(filename, &_acc)
+      || ProtobufLogLoader::load(filename, &_acc)
       || Nmea0183Loader::loadNmea0183File(filename, &_acc)
       || loadCsv(filename, &_acc)
       || accumulateAstraLogs(filename, &_acc)
