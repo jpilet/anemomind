@@ -92,6 +92,9 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   m["AWA"] = makeSetter(degrees, &_awa);
   m["TWA"] = makeSetter(degrees, &_twa);
 
+  m["LAT"] = makeSetter(degrees, &_lat);
+  m["LON"] = makeSetter(degrees, &_lon);
+
   // Support for Calypso XLS recording
   m["Id"] = doNothing;
   m["Lat"] = makeSetter(degrees, &_lat);
@@ -123,6 +126,15 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   m["Heel"] = makeSetter(degrees, &_roll);
   m["ROT"] = makeSetter(AngularVelocity<double>::degreesPerSecond(1), &_rateOfTurn);
 
+  m["Cog"] = makeSetter(degrees, &_gpsBearing);
+  m["Sog"] = makeSetter(knots, &_gpsSpeed);
+
+  // Support for Sailgrib txt files
+  m["time"] = makeTimeSetter(&_time);
+  m["lat"] = makeSetter(degrees, &_lat);
+  m["lon"] = makeSetter(degrees, &_lon);
+  m["bearing"] = makeSetter(degrees, &_gpsBearing);
+  m["speed"] = makeSetter(metersPerSecond, &_gpsSpeed);
 
   assert(header.rows() == 1);
   int cols = header.cols();
