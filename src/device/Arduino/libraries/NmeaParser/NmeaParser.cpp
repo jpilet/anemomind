@@ -165,6 +165,7 @@ NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
       checksum_ = 0;		// reset checksum
       index_ = 0;		// reset index
       argc_ = 1;
+      for (int i = 1; i < NP_MAX_ARGS; ++i) { argv_[i] = 0; }
       argv_[0] = data_;
       state_ = NP_STATE_CMD;
     }
@@ -503,11 +504,11 @@ NmeaParser::NmeaSentence NmeaParser::processVWT() {
 
 NmeaParser::NmeaSentence NmeaParser::processVHW() {
   if (argc_ < 6
-      || !checkSpeedArgs(argv_[5], argv_[6])
+      || !checkSpeedArgs(argv_[5], (argc_ > 6 ? argv_[6] : nullptr))
       || strlen(argv_[3]) < 1) return NMEA_NONE;
 
   magHdg_ = parseInt(argv_[3],0);
-  watSpeed_ = parseSpeed(argv_[5], argv_[6]);
+  watSpeed_ = parseSpeed(argv_[5], (argc_ > 6 ? argv_[6] : nullptr));
 
   return NMEA_WAT_SP_HDG;
 }
@@ -608,7 +609,7 @@ $GPZDA,171549,,,,00,*47
 field [2] is not present. The order is day, month, year.
 */
 NmeaParser::NmeaSentence NmeaParser::processZDA() {
-  if (argc_<4) return NMEA_NONE;
+  if (argc_<5) return NMEA_NONE;
 
   if (strlen(argv_[1]) < 6) return NMEA_NONE;
   hour_ = parse2c(argv_[1]);
@@ -650,12 +651,12 @@ $--VTG,x.x,T,x.x,M,x.x,N,x.x,K*hh
 NmeaParser::NmeaSentence NmeaParser::processVTG() {
   if (argc_<6
       || isEmpty(argv_[1])
-      || !checkSpeedArgs(argv_[5], argv_[6])) {
+      || !checkSpeedArgs(argv_[5], (argc_ > 6 ? argv_[6] : nullptr))) {
     return NMEA_NONE;
   }
 
   gpsBearing_ = parseInt(argv_[1],0);
-  gpsSpeed_ = parseSpeed(argv_[5], argv_[6]);
+  gpsSpeed_ = parseSpeed(argv_[5], (argc_ > 6 ? argv_[6] : nullptr));
 
   return NMEA_VTG;
 }
