@@ -609,7 +609,7 @@ $GPZDA,171549,,,,00,*47
 field [2] is not present. The order is day, month, year.
 */
 NmeaParser::NmeaSentence NmeaParser::processZDA() {
-  if (argc_<4) return NMEA_NONE;
+  if (argc_<5) return NMEA_NONE;
 
   if (strlen(argv_[1]) < 6) return NMEA_NONE;
   hour_ = parse2c(argv_[1]);
