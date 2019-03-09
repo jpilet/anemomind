@@ -83,14 +83,15 @@ bool LogLoader::loadFile(const std::string &filename) {
   } else if (hasExtension(filename, "vdr")) {
     r = loadCsvFromPipe(std::string("weather4d '") + filename + "'",
                         "Imported from Weather4D VDR", &_acc);
+  } else if (hasExtension(filename, "db")) {
+    r = sailmonDbLoad(filename, &_acc);
   } else {
     r =
       parseIwatch(filename, &_acc)
       || ProtobufLogLoader::load(filename, &_acc)
       || Nmea0183Loader::loadNmea0183File(filename, &_acc)
       || loadCsv(filename, &_acc)
-      || accumulateAstraLogs(filename, &_acc)
-      || sailmonDbLoad(filename, &_acc);
+      || accumulateAstraLogs(filename, &_acc);
   }
 
   if (!r) {
