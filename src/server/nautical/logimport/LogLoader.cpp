@@ -114,6 +114,15 @@ bool LogLoader::load(const LogFile &data) {
   return true;
 }
 
+bool LogLoader::acceptFile(const std::string& filename) {
+  Poco::Path path(filename);
+  std::string ext = toLower(path.getExtension());
+
+  return ext == "txt" || ext == "csv" || ext == "xls" || ext == "vdr"
+        || ext == "log" || ext == "db" || ext == "ast"
+        || ext == "json" || ext == "";
+}
+
 bool LogLoader::load(const Poco::Path &name) {
   FileTraverseSettings settings;
   settings.visitDirectories = false;
@@ -122,9 +131,8 @@ bool LogLoader::load(const Poco::Path &name) {
   traverseDirectory(
       name,
       [&](const Poco::Path &path) {
-    std::string ext = toLower(path.getExtension());
-    if (ext == "txt" || ext == "csv" || ext == "xls" || ext == "vdr"
-        || ext == "log" || ext == "db" || ext == "ast") {
+    std::string filename = path.toString();
+    if (acceptFile(filename)) {
       if (!loadFile(path.toString())) {
         if (failCount < 12) { // So that we don't flood the log file if there are many files.
           LOG(ERROR) << "Failed to load log file " << path.toString();
