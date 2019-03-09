@@ -46,9 +46,11 @@ class LogLoader {
   // These methods are needed by the various parsers in order
   // to populate this object with data.
 
-
   void loadNmea0183(std::istream *s);
   bool load(const LogFile &data);
+
+  // Check if extension is accepted. Only the filename is inspected.
+  static bool acceptFile(const std::string& filename);
 
  private:
   LogAccumulator _acc;

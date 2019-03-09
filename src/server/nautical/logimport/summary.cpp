@@ -27,7 +27,7 @@ int main(int argc, const char **argv) {
 
   for (auto file : files) {
     string filename = file->value();
-    if (loader.loadFile(filename)) {
+    if (loader.load(filename)) {
       cout << filename << ": loaded." << endl;
     } else {
       cerr << filename << ": failed to load." << endl;
