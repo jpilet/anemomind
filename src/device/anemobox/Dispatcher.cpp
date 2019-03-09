@@ -1,4 +1,5 @@
 #include <device/anemobox/Dispatcher.h>
+#include <server/common/string.h>
 
 #include <assert.h>
 
@@ -66,6 +67,17 @@ Dispatcher::Dispatcher() {
     if (it != sourcePriority.end()) {
       return it->second;
     }
+
+    if (source.size() > 5) {
+      if (startsWith(source, "mix (")) {
+        return 100;
+      } else if (startsWith(source, "NMEA2000/")) {
+        return 5;
+      } else if (startsWith(source, "iWatch")) {
+        return -1;
+      }
+    }
+
     return Dispatcher::defaultPriority;
   }
 
