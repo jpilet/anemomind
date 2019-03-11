@@ -126,7 +126,7 @@ bool parseIwatch(const std::string& filename, LogAccumulator* dst) {
       foundAnObject = true;
       pushBack(created, sog, &dst->_GPS_SPEEDsources[iwatchSource]);
       pushBack(created, cog, &dst->_GPS_BEARINGsources[iwatchSource]);
-      pushBack(created, GeographicPosition<double>(latitude, longitude),
+      pushBack(created, GeographicPosition<double>(longitude, latitude),
                &dst->_GPS_POSsources[iwatchSource]);
     } else {
      // unknown object type...
