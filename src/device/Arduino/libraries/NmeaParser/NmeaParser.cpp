@@ -56,7 +56,7 @@ char parse2c(char *ab) {
   return (ab[0]-'0')*10 + ab[1]-'0';
 }
 
-Word parseNc(char *a, int n) {
+Word parseNc(const char *a, int n) {
   Word r=0;
   int i;
   for (i=0; i<n; i++) {
@@ -530,6 +530,31 @@ NmeaParser::NmeaSentence NmeaParser::processVLW() {
   return NMEA_VLW;
 }
 
+int posOfChar(const char* str, char c) {
+  if (!str) {
+    return -1;
+  }
+  for (int i = 0; str[i]; ++i) {
+    if (str[i] == c) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+bool parseDegreeMinutes(const char *str1, const char* str2, AccAngle* dst) {
+  double minutes;
+  int dotPos = posOfChar(str1, '.');
+  if (dotPos < 3 || !parseDouble(str1 + dotPos - 2, &minutes)) {
+    return false;
+  }
+  dst->set(parseNc(str1, dotPos - 2), minutes);
+  if (str2[0] == 'S' || str2[0] == 'W') {
+    dst->flip();
+  }
+  return true;
+}
+
 /* GLL Geographic Position – Latitude/Longitude
 
 $--GLL,llll.ll,a,yyyyy.yy,a,hhmmss.ss,A*hh
@@ -565,23 +590,9 @@ NmeaParser::NmeaSentence NmeaParser::processGLL() {
     sec_ = sec;
   }
 
-  double latMinutes;
-  if (!parseDouble(argv_[1] + 2, &latMinutes)) {
+  if (!parseDegreeMinutes(argv_[1], argv_[2], &pos_.lat)
+      || !parseDegreeMinutes(argv_[3], argv_[4], &pos_.lon)) {
     return NMEA_NONE;
-  }
-  pos_.lat.set(parse2c(argv_[1]), latMinutes);
-  if (argv_[2][0] == 'S') {
-    pos_.lat.flip();
-  }
-
-  double lonMinutes;
-  if (!parseDouble(argv_[3] + 3, &lonMinutes)) {
-    return NMEA_NONE;
-  }
-  pos_.lon.set(parseNc(argv_[3],3), lonMinutes);
-
-  if (argv_[4][0] == 'W') {
-    pos_.lon.flip();
   }
 
   return NMEA_GLL;
