@@ -81,7 +81,7 @@ bool parseDouble(const char* str, double *result) {
   return endptr != str;
 }
 
-int parseInt(char *s, int *n) {
+int parseInt(const char *s, int *n) {
   int r=0;
   int i=0;
   if (n) *n=0;
@@ -94,12 +94,12 @@ int parseInt(char *s, int *n) {
   return r;
 }
 
-bool checkSpeedArgs(char *speed, char *unit) {
+bool checkSpeedArgs(const char *speed, const char *unit) {
   return strlen(speed) > 0
     && (unit == nullptr || (strlen(unit) == 1 && *unit == 'N'));
 }
 
-int parseSpeed(char *speed, char *unit) {
+int parseSpeed(const char *speed, const char *unit) {
   int i,j;
   int frac;
   int r = parseInt(speed,&i) << 8;
@@ -165,6 +165,7 @@ NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
       checksum_ = 0;		// reset checksum
       index_ = 0;		// reset index
       argc_ = 1;
+      for (int i = 1; i < NP_MAX_ARGS; ++i) { argv_[i] = 0; }
       argv_[0] = data_;
       state_ = NP_STATE_CMD;
     }
@@ -501,13 +502,14 @@ NmeaParser::NmeaSentence NmeaParser::processVWT() {
   return NMEA_TW;
 }
 
+
 NmeaParser::NmeaSentence NmeaParser::processVHW() {
   if (argc_ < 6
-      || !checkSpeedArgs(argv_[5], argv_[6])
+      || !checkSpeedArgs(argv_[5], argOrNull(6))
       || strlen(argv_[3]) < 1) return NMEA_NONE;
 
   magHdg_ = parseInt(argv_[3],0);
-  watSpeed_ = parseSpeed(argv_[5], argv_[6]);
+  watSpeed_ = parseSpeed(argv_[5], argOrNull(6));
 
   return NMEA_WAT_SP_HDG;
 }
@@ -608,7 +610,7 @@ $GPZDA,171549,,,,00,*47
 field [2] is not present. The order is day, month, year.
 */
 NmeaParser::NmeaSentence NmeaParser::processZDA() {
-  if (argc_<4) return NMEA_NONE;
+  if (argc_<5) return NMEA_NONE;
 
   if (strlen(argv_[1]) < 6) return NMEA_NONE;
   hour_ = parse2c(argv_[1]);
@@ -650,12 +652,12 @@ $--VTG,x.x,T,x.x,M,x.x,N,x.x,K*hh
 NmeaParser::NmeaSentence NmeaParser::processVTG() {
   if (argc_<6
       || isEmpty(argv_[1])
-      || !checkSpeedArgs(argv_[5], argv_[6])) {
+      || !checkSpeedArgs(argv_[5], argOrNull(6))) {
     return NMEA_NONE;
   }
 
   gpsBearing_ = parseInt(argv_[1],0);
-  gpsSpeed_ = parseSpeed(argv_[5], argv_[6]);
+  gpsSpeed_ = parseSpeed(argv_[5], argOrNull(6));
 
   return NMEA_VTG;
 }
