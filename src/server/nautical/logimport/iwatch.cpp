@@ -111,23 +111,33 @@ bool parseIwatch(const std::string& filename, LogAccumulator* dst) {
       } catch (Poco::Exception& ex) { }
     } else if (obj->has("longitude")) {
       // this is a GPS object
-      Angle<> latitude, longitude;
-      Velocity<> sog;
-      Angle<> cog;
+      double rawLat, rawLon, rawSpeed, rawCog;
       try {
-        latitude = Angle<>::degrees(obj->getValue<double>("latitude"));
-        longitude = Angle<>::degrees(obj->getValue<double>("longitude"));
-        sog = Velocity<>::metersPerSecond(obj->getValue<double>("speedMps"));
-        cog = Angle<>::degrees(obj->getValue<double>("course"));
+        rawLat = obj->getValue<double>("latitude");
+        rawLon = obj->getValue<double>("longitude");
+        rawSpeed = obj->getValue<double>("speedMps");
+        rawCog = obj->getValue<double>("course");
       } catch (Poco::Exception& ex) {
         LOG(ERROR) << "Bad value when parsing latitude, longitude, sog or cog." << ex.displayText();
         return false;
       }
-      foundAnObject = true;
-      pushBack(created, sog, &dst->_GPS_SPEEDsources[iwatchSource]);
-      pushBack(created, cog, &dst->_GPS_BEARINGsources[iwatchSource]);
-      pushBack(created, GeographicPosition<double>(longitude, latitude),
-               &dst->_GPS_POSsources[iwatchSource]);
+      if (rawLat != -1 && rawLon != -1) {
+        Angle<> latitude = Angle<>::degrees(rawLat);
+        Angle<> longitude = Angle<>::degrees(rawLon);
+        pushBack(created, GeographicPosition<double>(longitude, latitude),
+                 &dst->_GPS_POSsources[iwatchSource]);
+        foundAnObject = true;
+      }
+      if (rawSpeed != -1) {
+        Velocity<> sog = Velocity<>::metersPerSecond(rawSpeed);
+        pushBack(created, sog, &dst->_GPS_SPEEDsources[iwatchSource]);
+        foundAnObject = true;
+      }
+      if (rawCog != -1) {
+        Angle<> cog = Angle<>::degrees(rawCog);
+        pushBack(created, cog, &dst->_GPS_BEARINGsources[iwatchSource]);
+        foundAnObject = true;
+      }
     } else {
      // unknown object type...
     } 
