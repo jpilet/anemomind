@@ -68,6 +68,7 @@ Dispatcher::Dispatcher() {
       return it->second;
     }
 
+    // we skip calling startsWith altogether if source.size() < 5
     if (source.size() > 5) {
       if (startsWith(source, "mix (")) {
         return 100;
