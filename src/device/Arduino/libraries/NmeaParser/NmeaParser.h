@@ -345,6 +345,10 @@ class NmeaParser {
 
   char computeChecksum() const;
 
+  const char* argOrNull(int i) const {
+    return i < argc_? argv_[i] : nullptr;
+  }
+
   NmeaSentence processCommand();
   NmeaSentence processGPRMC();
   NmeaSentence processMWV();
