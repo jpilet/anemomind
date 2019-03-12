@@ -121,6 +121,7 @@ bool LogLoader::acceptFile(const std::string& filename) {
 
   return ext == "txt" || ext == "csv" || ext == "xls" || ext == "vdr"
         || ext == "log" || ext == "db" || ext == "ast"
+        || ext == "gz" || ext == "bz2" || ext == "xz"
         || ext == "json" || ext == "";
 }
 
