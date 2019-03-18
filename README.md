@@ -11,28 +11,34 @@ To build the cpp code in release mode:
 ```
 mkdir build_release
 cd build_release
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_BUILD_TYPE=RelWidthDebInfo
 make -j 4
 ```
+You can replace 4 by the actual number of cores your CPU has.
 *If you get a compilation error*, you can try to call ```make -j 4``` again until everything builds with no errors.
+Instead of ```RelWidthDebInfo```, it is possible to use or ```Debug``` (removes optimisations).
 
-Then build the test database. Make sure mongo is runnning, then run:
+To build the test database:
+
+1. Start mongo with ```mkdir -p www/db ; mongod -bind_ip 127.0.0.1 -dbpath www/db```
+2. Once mongo is running, run (and wait a bit):
 ```
 build_release/src/server/nautical/tiles/generateDevDB.sh
 ```
-Now prepare the web server:
+  You can safely ignore errors such as "file empty or format not recognized."
+3. Now prepare the web server:
 ```
-mkdir www/db
-cd ../www2
+cd www2
 mkdir uploads
 npm install
 bower install
 ```
-and run it:
-
+4. Kill mongodb (this is necessary because grunt will start a new instance) ```killall mongod```
+5. start the dev server:
 ```
-grunt serve:dev
+CLIENT=client grunt serve:dev
 ```
+Note that you can replace ```CLIENT=client``` with ```CLIENT=esalab```.
 
 ## Reference platform
 The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.

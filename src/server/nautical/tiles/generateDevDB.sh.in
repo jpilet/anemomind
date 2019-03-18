@@ -62,8 +62,9 @@ for i in ${boats}; do
     --dir "${boatdir}" \
     --dst "${boatdir}/processed" \
     --clean \
-    --log-parse \
-    -t \
+    --save-default-calib \
+    --scale 20 \
+    -t -c \
     || true
 
   "${BIN_DIR}/src/server/nautical/nautical_catTargetSpeed" --id "${boatid}" "${boatdir}/processed/boat.dat" | mongo anemomind-dev
