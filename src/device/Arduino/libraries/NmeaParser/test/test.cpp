@@ -229,6 +229,15 @@ TEST(NmeaParserTest, TestGLL) {
   EXPECT_NEAR(23 + (39.63541) / 60.0, parser.pos().lon.toDouble(), 1e-8);
 
   EXPECT_EQ(2, parser.numSentences());
+
+  // Sentence emitted by iCommunicate does not fill with 0.
+  EXPECT_EQ(
+      NmeaParser::NMEA_GLL,
+      sendSentence("2019-03-09T14:43:49.915Z $GPGLL,4606.794922,N,114.750603,W,012801,A*36",
+                   &parser));
+  EXPECT_EQ(3, parser.numSentences());
+  EXPECT_NEAR(46 + (6.794922) / 60.0, parser.pos().lat.toDouble(), 1e-8);
+  EXPECT_NEAR(-1 - (14.750603) / 60.0, parser.pos().lon.toDouble(), 1e-8);
 }
 
 
@@ -314,6 +323,12 @@ TEST(NmeaParserTest, TestVWT) {
   EXPECT_EQ(int(18.9f * 256.0f), int(256.0f * (float) parser.tws().knots()));
 
   EXPECT_EQ(2, parser.numSentences());
+}
+
+TEST(NmeaParserTest, TestRejectInvalidChecksum) {
+  NmeaParser parser;
+  EXPECT_EQ(NmeaParser::NMEA_NONE, sendSentence(
+          "$IIVWT,045.,L,19.6,N,10.1,M,036.3,K*11", &parser));
 }
 
 class MockNmeaParser : public NmeaParser {

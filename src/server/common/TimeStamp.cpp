@@ -16,6 +16,12 @@
 #include <time.h>
 #endif
 
+#ifdef __MACH__
+#include <time.h>
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
 namespace sail {
 
 
@@ -297,15 +303,34 @@ Optional<Duration<double>> parseTimeOfDay(
 
 
 TimeStamp MonotonicClock::now() {
-#ifdef HAVE_CLOCK_GETTIME
   struct timespec t;
+
+#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+  {
+    clock_serv_t cclock;
+    mach_timespec_t mts;
+
+    CHECK_EQ(KERN_SUCCESS,
+        host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock));
+
+    CHECK_EQ(KERN_SUCCESS, clock_get_time(cclock, &mts));
+
+    CHECK_EQ(KERN_SUCCESS,
+      mach_port_deallocate(mach_task_self(), cclock));
+
+    t.tv_sec = mts.tv_sec;
+    t.tv_nsec = mts.tv_nsec;
+  }
+#else
+#ifdef HAVE_CLOCK_GETTIME
   clock_gettime(CLOCK_MONOTONIC, &t);
-  return TimeStamp::fromMilliSecondsSince1970(
-      int64_t(t.tv_sec) * 1000 + int64_t(t.tv_nsec) / 1000000);
 #else
   LOG(FATAL) << "MonotonicClock: clock_gettime is not available.";
   return TimeStamp();
 #endif
+#endif
+  return TimeStamp::fromMilliSecondsSince1970(
+      int64_t(t.tv_sec) * 1000 + int64_t(t.tv_nsec) / 1000000);
 }
 
 } /* namespace sail */

@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 #include <server/nautical/logimport/LogLoader.h>
 
+#include <server/common/Env.h>
+
 using namespace sail;
 using std::string;
 
@@ -49,3 +51,9 @@ TEST(LogToNavTest, ConvertToDispatcher) {
   }
 
 }
+
+TEST(LogLoaderTest, DecompressTest) {
+  LogLoader loader;
+  EXPECT_TRUE(loader.loadFile(std::string(Env::SOURCE_DIR) + "/datasets/tinylog.txt.gz"));
+}
+

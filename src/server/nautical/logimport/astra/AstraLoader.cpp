@@ -17,7 +17,6 @@
 #include <fstream>
 #include <server/common/Functional.h>
 
-
 namespace sail {
 
 Optional<AstraHeader> tryParseAstraHeader(const std::string& s) {
@@ -418,11 +417,16 @@ namespace {
   void copyIfDefined(
       const std::string& srcName, TimeStamp full,
       const Optional<T>& x, std::map<std::string,
-        typename TimedSampleCollection<T>::TimedVector>* dst) {
+        typename TimedSampleCollection<T>::TimedVector>* dst,
+        const char* debug = "") {
+    static bool verbose = true;
     if (!full.defined()) {
       LOG(WARNING) << "Missing timestamp for " << srcName;
     } else if (!x.defined()) {
-      LOG(WARNING) << "Missing value";
+      if (verbose) {
+        verbose = false;
+        LOG(WARNING) << "Missing value for " << srcName << ": " << debug;
+      }
     } else {
       (*dst)[srcName].push_back(TimedValue<T>(full, x.get()));
     }
@@ -432,34 +436,34 @@ namespace {
     const std::string sourceName = "Astra regata";
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.COG, &(dst->_GPS_BEARINGsources));
+        src.COG, &(dst->_GPS_BEARINGsources), "COG");
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.SOG, &(dst->_GPS_SPEEDsources));
+        src.SOG, &(dst->_GPS_SPEEDsources), "SOG");
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.geoPos(), &(dst->_GPS_POSsources));
+        src.geoPos(), &(dst->_GPS_POSsources), "pos");
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.TWA, &(dst->_TWAsources));
+        src.TWA, &(dst->_TWAsources), "TWA");
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.TWD, &(dst->_TWDIRsources));
+        src.TWD, &(dst->_TWDIRsources), "TWD");
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.TWS, &(dst->_TWSsources));
+        src.TWS, &(dst->_TWSsources), "TWS");
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.AWA, &(dst->_AWAsources));
+        src.AWA, &(dst->_AWAsources), "AWA");
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.AWS, &(dst->_AWSsources));
+        src.AWS, &(dst->_AWSsources), "AWS");
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.magHdg, &(dst->_MAG_HEADINGsources));
+        src.magHdg, &(dst->_MAG_HEADINGsources), "magHdg");
 
     copyIfDefined(sourceName, src.fullTimestamp(),
-        src.waterSpeed, &(dst->_WAT_SPEEDsources));
+        src.waterSpeed, &(dst->_WAT_SPEEDsources), "watSpeed");
   }
 
   void accumulateDinghy(const AstraData& src, LogAccumulator* dst) {
@@ -505,7 +509,7 @@ bool accumulateAstraLogs(const std::string& filename, LogAccumulator* dst) {
     return false;
   }
 
-  for (auto x: data) {
+  for (const AstraData& x: data) {
     accumulateRegatta(x, dst);
 
     // TODO: Switch based on x.logType

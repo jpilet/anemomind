@@ -44,6 +44,7 @@ add_library(logimport_LogLoader
            )
 target_link_libraries(logimport_LogLoader
                       common_filesystem
+                      logimport_iwatch
                       logimport_CsvLoader
                       logimport_Nmea0183Loader
                       logimport_ProtobufLogLoader
@@ -52,10 +53,19 @@ target_link_libraries(logimport_LogLoader
                       nautical_NavDataset
                       astra_AstraLoader
                      )
+find_program(BUNZIP2_EXE bunzip2)
+find_program(GUNZIP_EXE gunzip)
+find_program(UNZX_EXE unxz)
+target_compile_definitions(logimport_LogLoader PRIVATE
+  "BUNZIP2_EXE=\"${BUNZIP2_EXE}\""
+  "GUNZIP_EXE=\"${GUNZIP_EXE}\""
+  "UNXZ_EXE=\"${UNXZ_EXE}\"")
+
 
 cxx_test(logimport_LogLoaderTest 
          LogLoaderTest.cpp
          logimport_LogLoader
+         common_Env
          gtest_main
         )
                      
@@ -69,6 +79,20 @@ target_link_libraries(logimport_CsvLoader
                       common_string
                       logimport_SourceGroup
                      )           
+
+add_library(logimport_iwatch iwatch.h iwatch.cpp)
+target_link_libraries(logimport_iwatch
+  common_logging
+  common_TimeStamp
+  logimport_SourceGroup)
+target_depends_on_poco_json(logimport_iwatch)
+
+cxx_test(logimport_iwatch_test
+         iwatchTest.cpp
+         logimport_iwatch
+         common_Env
+         gtest_main
+        )        
 
 add_library(logimport_SourceGroup
             SourceGroup.h

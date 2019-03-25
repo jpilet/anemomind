@@ -5,12 +5,14 @@
 
 #include <fstream>
 #include <regex>
+#include <Poco/File.h>
 #include <Poco/Path.h>
 #include <Poco/String.h>
 #include <server/common/CsvParser.h>
 #include <server/common/filesystem.h>
 #include <server/common/logging.h>
 #include <server/common/math.h>
+#include <server/nautical/logimport/iwatch.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/logimport/CsvLoader.h>
 #include <server/nautical/logimport/SailmonDbLoader.h>
@@ -29,26 +31,73 @@ bool hasExtension(const std::string& filename, const char* ext) {
                                                 std::regex_constants::icase));
 }
 
+std::string randomStr(int len) {
+  std::string s(len, 0);
+  for (int i = 0; i < len; ++i) {
+    s[i] = 'A' + (rand() % ('Z' - 'A'));
+  }
+  return s;
+}
+
+std::string uncompressFile(const std::string& filename) {
+  Poco::Path path(filename);
+  std::string ext = path.getExtension();
+  std::string command;
+
+  if (ext == "gz") {
+    command = GUNZIP_EXE;
+  } else if (ext == "bz2") {
+    command = BUNZIP2_EXE;
+  } else if (ext == "xz") {
+    command = UNXZ_EXE;
+  } else {
+    return "";
+  }
+
+  std::string newfile =
+    Poco::Path::temp() + "/" + randomStr(6) + '_' + path.getBaseName();
+  
+  command += " < '" + filename + "' > '" + newfile + "'";
+
+  LOG(INFO) << "Running: " << command;
+  if (system(command.c_str()) == 0) {
+    return newfile;
+  }
+  return "";
+}
+
+
 bool LogLoader::loadFile(const std::string &filename) {
   bool r = false;
+
+  std::string newFilename = uncompressFile(filename);
+  if (!newFilename.empty()) {
+    r = loadFile(newFilename);
+    Poco::File(newFilename).remove();
+    return r;
+  }
+
   if (hasExtension(filename, "xls")) {
     r = loadCsvFromPipe(std::string("xls2csv -x '") + filename + "'",
                         "Imported from XLS file", &_acc);
   } else if (hasExtension(filename, "vdr")) {
     r = loadCsvFromPipe(std::string("weather4d '") + filename + "'",
                         "Imported from Weather4D VDR", &_acc);
+  } else if (hasExtension(filename, "db")) {
+    r = sailmonDbLoad(filename, &_acc);
   } else {
     r =
-      ProtobufLogLoader::load(filename, &_acc)
+      parseIwatch(filename, &_acc)
+      || ProtobufLogLoader::load(filename, &_acc)
       || Nmea0183Loader::loadNmea0183File(filename, &_acc)
       || loadCsv(filename, &_acc)
-      || accumulateAstraLogs(filename, &_acc)
-      || sailmonDbLoad(filename, &_acc);
+      || accumulateAstraLogs(filename, &_acc);
   }
 
   if (!r) {
     LOG(ERROR) << filename << ": file empty or format not recognized.";
   }
+
   return r;
 }
 
@@ -66,6 +115,15 @@ bool LogLoader::load(const LogFile &data) {
   return true;
 }
 
+bool LogLoader::acceptFile(const std::string& filename) {
+  Poco::Path path(filename);
+  std::string ext = toLower(path.getExtension());
+
+  return ext == "txt" || ext == "csv" || ext == "xls" || ext == "vdr"
+        || ext == "log" || ext == "db" || ext == "ast"
+        || ext == "json" || ext == "";
+}
+
 bool LogLoader::load(const Poco::Path &name) {
   FileTraverseSettings settings;
   settings.visitDirectories = false;
@@ -74,9 +132,8 @@ bool LogLoader::load(const Poco::Path &name) {
   traverseDirectory(
       name,
       [&](const Poco::Path &path) {
-    std::string ext = toLower(path.getExtension());
-    if (ext == "txt" || ext == "csv" || ext == "xls" || ext == "vdr"
-        || ext == "log" || ext == "db" || ext == "ast") {
+    std::string filename = path.toString();
+    if (acceptFile(filename)) {
       if (!loadFile(path.toString())) {
         if (failCount < 12) { // So that we don't flood the log file if there are many files.
           LOG(ERROR) << "Failed to load log file " << path.toString();
