@@ -54,6 +54,9 @@ function getDetailsForFiles(dir, files) {
     } else {
       execFile(config.tryLoadBin, [ '-C', dir ].concat(logfiles),
                (error, stdout, stderr) => {
+        if (stderr) {
+          console.log(config.tryLoadBin, ': ', stderr);
+        }
         if (error) {
           reject(error);
         }

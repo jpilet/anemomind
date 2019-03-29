@@ -21,33 +21,64 @@ function checkBoatInDb(boatid) {
   return deferred.promise;
 }
 
-function extractDateFromExifData(exifData) {
-  if (!exifData || !Array.isArray(exifData) || exifData.length < 1
-      || !exifData[0].gps) {
-    console.warn('EXIF data does not contain GPS, and no alternate method '
-                 + ' to extract time has been implemented !');
-    return undefined;
-  }
-
-  const gps = exifData[0].gps;
-  const ymd = gps.GPSDateStamp.split(':');
-  const hms = gps.GPSTimeStamp;
-  console.log(gps.GPSDateStamp + gps.GPSTimeStamp);
-  const array = ymd.map(function(x) { return parseInt(x); }).concat(hms);
-  array[1] -= 1; // months start at 0, not 1.
-  return new Date(Date.UTC.apply(null, array));
+function parseDate(dateString) {
+  return new Date(dateString.replace(/(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3'));
 }
 
-function importPhoto(path, boatid, dstpath) {
-  const deferred = Q.defer();
+function extractDateFromExifData(exifData) {
+  if (!exifData || !Array.isArray(exifData) || exifData.length < 1) {
+    throw new Error("No exif data");
+  }
 
-  console.log('importing: ' + path);
+  if (exifData[0].gps && exifData[0].GPSDateStamp) {
+    const gps = exifData[0].gps;
+    const ymd = gps.GPSDateStamp.split(':');
+    const hms = gps.GPSTimeStamp;
+    console.log(gps.GPSDateStamp + gps.GPSTimeStamp);
+    const array = ymd.map(function(x) { return parseInt(x); }).concat(hms);
+    array[1] -= 1; // months start at 0, not 1.
+    return new Date(Date.UTC.apply(null, array));
+  }
+
+  if (exifData[0].exif) {
+    for (let key of ['CreateDate', 'DateTimeOriginal']) {
+      if (exifData[0].exif[key]) {
+        try {
+          return parseDate(exifData[0].exif[key]);
+        } catch(err) {
+          console.warn('Failed to parse date: ', exifData[0].exif[key]);
+        }
+      }
+    }
+  }
+
+  throw new Error("Dont known how to extract date from exif data");
+}
+
+function getExifAsync(path) {
+  const deferred = Q.defer();
   try {
     new exif.ExifImage({ image : path }, deferred.makeNodeResolver());
   } catch(err) {
     deferred.reject(err);
   }
-  
+  return deferred.promise;
+}
+
+function showTime(path) {
+  return getExifAsync(path)
+    .then(extractDateFromExifData)
+    .then((date) => {
+      console.log(path, ': ', date);
+    })
+    .catch((err) => {
+      console.warn(path, ': ', err);
+    });
+}
+
+function importPhoto(path, boatid, dstpath) {
+  console.log('importing: ' + path);
+
   const image = sharp(path)
   const path_promise =
   image
@@ -85,8 +116,7 @@ function importPhoto(path, boatid, dstpath) {
     console.warn(err);
   });
 
-  const date_promise = deferred.promise.then(extractDateFromExifData)
-    .catch(function (err) { console.warn(err); });
+  const date_promise = getExifAsync(path).then(extractDateFromExifData);
 
   return Q.all([path_promise, date_promise]).spread(function(filename, date) {
     console.log(filename + ': ' + date);
@@ -119,9 +149,16 @@ function importPhoto(path, boatid, dstpath) {
 }
 
 function main(argv) {
-  if (!argv.b) {
-    console.err('Usage: -b boatid <pic.jpg> [<pic.jpg> ...]');
+  if (!argv.b && !argv.t) {
+    console.warn('Usage: [-t | -b boatid] <pic.jpg> [<pic.jpg> ...]');
     process.exit(1);
+  }
+
+  if (argv.t) {
+    for (i in argv._) {
+      showTime(argv._[i]);
+    }
+    return;
   }
 
   mongoose.connect(config.mongo.uri, config.mongo.options);

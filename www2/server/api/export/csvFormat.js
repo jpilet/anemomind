@@ -19,7 +19,7 @@ function sendCsvHeader(res, columns) {
 
 function formatTime(date) {
   // 06/20/2018 4:26:35 PM
-  return strftime("%m/%d/%Y %l:%M:%S %p", date);
+  return strftime("\"%m/%d/%Y %l:%M:%S %p\"", date);
   /* The following is the reference implementation, but it is too slow.
   return date.toLocaleString('en-US', {
     year: 'numeric',
