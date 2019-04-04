@@ -3,22 +3,33 @@
 var _ = require('lodash');
 var User = require('../user/user.model');
 var mongoose = require('mongoose');
-
+const vhostForReq = require('../../components/vhost').vhostForReq;
 
 var winston = require('winston');
 var mailer = require('../../components/mailer');
 var transporter = mailer.transporter;
 
-var sendContactMessage = function(name, addr, subject, message, cb) {
+var sendContactMessage = function(name, addr, subject, message, vhost, cb) {
   var from = name + "<" + addr + ">";
-  var messageBody = "The contact form on regattapolar has been filled with:\n"
+
+  const platform = {
+    esalab: 'regattapolar',
+    client: 'anemolab',
+  };
+
+  var messageBody = "The contact form on " + platform[vhost] + " has been filled with:\n"
   + "From: " + from + "\n"
   + "Subject: " + subject + "\n"
   + "Message:\n" + message + "\n";
 
+  const dest = {
+    client: "julien@anemomind.com",
+    esalab: "info@astrayacht.com, julien@anemomind.com",
+  };
+
   transporter.sendMail({
     from: mailer.from,
-    to: "info@astrayacht.com, julien@anemomind.com",
+    to: dest[vhost] || dest.client,
     subject: 'Contact form: ' + subject,
     text: messageBody
   }, function(err, info) {
@@ -39,6 +50,7 @@ exports.sendContactMessage = function(req, res) {
   sendContactMessage(req.body.name + '', req.body.addr + '',
                      req.body.subject + '',
                      req.body.message + '',
+                     vhostForReq(req),
                      function(err) {
     if (err) {
       res.sendStatus(400);
