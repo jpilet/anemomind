@@ -22,6 +22,13 @@ To build the test database:
 
 1. Start mongo with ```mkdir -p www/db ; mongod -bind_ip 127.0.0.1 -dbpath www/db```
 2. Once mongo is running, run (and wait a bit):
+
+```
+chmod 777 ./src/server/nautical/tiles/generateDevDB.sh
+```
+
+If you dont find any data in the mongo db after the UI is up and running plase re-run the following command to generate the db
+
 ```
 build_release/src/server/nautical/tiles/generateDevDB.sh
 ```
@@ -66,7 +73,7 @@ Summary:
 
 On debian/ubuntu:
 
-    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcxsparse3 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev libcairo2-dev build-essential git libarmadillo-dev f2c parallel mongo-clients catdoc clang libicu-dev libpython2.7 libsqlite3-dev
+    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcxsparse3 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev libcairo2-dev build-essential git libarmadillo-dev f2c parallel mongodb-clients catdoc clang libicu-dev libpython2.7 libsqlite3-dev build-essential cmake libblkid-dev e2fslibs-dev libboost-all-dev libaudit-dev libeigen3-dev libcairo2-dev libblas-dev liblapack-dev libarmadillo-dev libceres-dev
 
 additionally, swift has to be installed: see https://www.cansurmeli.com/posts/install-swift-on-debian/
 
