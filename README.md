@@ -6,6 +6,13 @@ This repository holds the code for
 
 In ```anemomind-ios```, you will find the code for iOS devices.
 
+# Using the Vagrant box for development
+```
+vagrant up
+vagrant provsion (should be done first time only or if you make any changes in vagrant file)
+vagrant ssh
+```
+
 # Quick dev setup guide
 To build the cpp code in release mode:
 ```
