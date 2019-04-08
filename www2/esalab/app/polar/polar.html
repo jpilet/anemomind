@@ -9,12 +9,12 @@
     <li><a href="/polar/{{::boatId}}">Performance</a></li>
     <li><span class="dropdown">
   <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-    {{ name }}
+    {{ perfstat.name }}
     <span class="caret"></span>
   </button>
   <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
     <li ng-repeat="perf in perfstatIndex">
-      <a href="/polar/{{::boatId}}/{{ perf.name }}">{{ perf.name }}</a></li>
+      <a href="/polar/{{::boatId}}/{{ perf.urlName }}">{{ perf.name }}</a></li>
   </ul>
       </span></li>
   </ol>
