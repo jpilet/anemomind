@@ -18,9 +18,7 @@ namespace {
     table[UserHint::RACE_START] = "race-start";
     table[UserHint::RACE_END] = "race-end";
 
-    assert(all(sail::map(table, [&](const std::string &x) {
-      return !x.empty();
-    })));
+    //assert(all(sail::map(table, [&](const std::string &x) { return !x.empty(); })));
     return table;
   }
 

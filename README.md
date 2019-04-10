@@ -6,33 +6,53 @@ This repository holds the code for
 
 In ```anemomind-ios```, you will find the code for iOS devices.
 
+# Using the Vagrant box for development
+```
+vagrant up
+vagrant provsion (should be done first time only or if you make any changes in vagrant file)
+vagrant ssh
+```
+
 # Quick dev setup guide
 To build the cpp code in release mode:
 ```
 mkdir build_release
 cd build_release
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_BUILD_TYPE=RelWidthDebInfo
 make -j 4
 ```
+You can replace 4 by the actual number of cores your CPU has.
 *If you get a compilation error*, you can try to call ```make -j 4``` again until everything builds with no errors.
+Instead of ```RelWidthDebInfo```, it is possible to use or ```Debug``` (removes optimisations).
 
-Then build the test database. Make sure mongo is runnning, then run:
+To build the test database:
+
+1. Start mongo with ```mkdir -p www/db ; mongod -bind_ip 127.0.0.1 -dbpath www/db```
+2. Once mongo is running, run (and wait a bit):
+
+```
+chmod 777 ./src/server/nautical/tiles/generateDevDB.sh
+```
+
+If you dont find any data in the mongo db after the UI is up and running plase re-run the following command to generate the db
+
 ```
 build_release/src/server/nautical/tiles/generateDevDB.sh
 ```
-Now prepare the web server:
+  You can safely ignore errors such as "file empty or format not recognized."
+3. Now prepare the web server:
 ```
-mkdir www/db
-cd ../www2
+cd www2
 mkdir uploads
 npm install
 bower install
 ```
-and run it:
-
+4. Kill mongodb (this is necessary because grunt will start a new instance) ```killall mongod```
+5. start the dev server:
 ```
-grunt serve:dev
+CLIENT=client grunt serve:dev
 ```
+Note that you can replace ```CLIENT=client``` with ```CLIENT=esalab```.
 
 ## Reference platform
 The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
@@ -60,7 +80,7 @@ Summary:
 
 On debian/ubuntu:
 
-    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcxsparse3 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev libcairo2-dev build-essential git libarmadillo-dev f2c parallel mongo-clients catdoc clang libicu-dev libpython2.7 libsqlite3-dev
+    sudo apt-get install cmake libboost-iostreams-dev libboost-filesystem-dev libboost-system-dev libboost-regex-dev libboost-thread-dev libboost-dev libeigen3-dev libsuitesparse-dev libcxsparse3 liblapack-dev libblas-dev libatlas3-base libprotobuf-dev  protobuf-compiler libssl-dev libcairo2-dev build-essential git libarmadillo-dev f2c parallel mongodb-clients catdoc clang libicu-dev libpython2.7 libsqlite3-dev build-essential cmake libblkid-dev e2fslibs-dev libboost-all-dev libaudit-dev libeigen3-dev libcairo2-dev libblas-dev liblapack-dev libarmadillo-dev libceres-dev
 
 additionally, swift has to be installed: see https://www.cansurmeli.com/posts/install-swift-on-debian/
 

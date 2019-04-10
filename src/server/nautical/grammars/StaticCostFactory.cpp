@@ -36,9 +36,7 @@ StaticCostFactory::StaticCostFactory(const Hierarchy &h) {
     Arrayi allTerminals = Arrayi::fill(n, -1);
     _terminalsPerNode = Array<Arrayi>(n);
     terminalCount = listTerminalsPerNode(h.rootNode(), h, 0, _terminalsPerNode, allTerminals);
-    assert(all(sail::map(_terminalsPerNode, [&](const Arrayi &x) {
-      return x.hasData();
-    })));
+    //assert(all(sail::map(_terminalsPerNode, [&](const Arrayi &x) { return x.hasData(); })));
   }
   int n = terminalCount;
   _stateCosts = Arrayd::fill(n, 0.0);
