@@ -7,8 +7,8 @@ namespace sail {
 namespace {
 
 bool validPos(const GeographicPosition<double>& pos) {
-  return fabs(pos.lat()) > Angle<double>::degrees(1e-5)
-    && fabs(pos.lon()) > Angle<double>::degrees(1e-5);
+  return fabs(pos.lat()) > Angle<double>::degrees(1e-9)
+    && fabs(pos.lon()) > Angle<double>::degrees(1e-9);
 }
 
 TimedSampleCollection<GeographicPosition<double> >
