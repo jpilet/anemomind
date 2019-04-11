@@ -10,6 +10,7 @@ var OffscreenTileRenderer =
 var vm = require('vm');
 var fs = require('fs');
 var config = require('../../config/environment');
+const vhostForReq = require('../../components/vhost').vhostForReq;
 
 var sources = [
   "tiles/VectorTileLayer.js",
@@ -178,9 +179,10 @@ module.exports.getMapPng = function(req, res, next) {
   var width = parseInt(req.params.width);
   var height = parseInt(req.params.height);
 
+  
   var styleSuffix = '-col:'
-    + (req.host.match(/(esa)|(regattapolar)/) || process.env.VHOST == 'esalab' ?
-      'esalab' : 'default');
+    + { 'esalab': 'esalab', 'client': 'default' }[vhostForReq(req)];
+
   generateMapImage(boat, start, end, location, width, height, 'map' + styleSuffix,
                    function(err, buffer) {
     if (err) {
