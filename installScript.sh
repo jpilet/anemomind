@@ -6,23 +6,18 @@ sudo apt-get install -y cmake libboost-iostreams-dev libboost-filesystem-dev lib
 sudo apt-get install -y build-essential cmake libblkid-dev e2fslibs-dev libboost-all-dev libaudit-dev libeigen3-dev libcairo2-dev libblas-dev liblapack-dev libarmadillo-dev libceres-dev
 sudo apt-get install -y mongodb-server
 
+NODE_VERSION=v8.11.3-linux-x64
+
 echo 'Downloading NodeJs.. '
-sudo curl -O https://nodejs.org/download/release/v8.11.3/node-v8.11.3-linux-x64.tar.xz
-echo 'Extracting tar.. '
-sudo tar -xf node-v8.11.3-linux-x64.tar.xz
-echo 'Copying to opt folder '
-sudo cp -r node-v8.11.3-linux-x64 /opt/
+sudo mkdir -p /opt
+sudo curl https://nodejs.org/download/release/v8.11.3/node-${NODE_VERSION}.tar.xz -f -o - | sudo tar -C /opt -xJf -
 
-echo 'Setting path variables... '
-echo 'export NODEJS_HOME=/opt/node-v8.11.3-linux-x64/bin' >> /home/vagrant/.profile
-echo 'export PATH=$NODEJS_HOME:$PATH' >> /home/vagrant/.profile
-echo 'export NODEJS_HOME=/opt/node-v8.11.3-linux-x64/bin' >> /home/vagrant/.bashrc
-echo 'export PATH=$NODEJS_HOME:$PATH' >> /home/vagrant/.bashrc
-
-echo 'export NODEJS_HOME=/opt/node-v8.11.3-linux-x64/bin' >> ~/.profile
-echo 'export PATH=$NODEJS_HOME:$PATH' >> ~/.profile
-echo 'export NODEJS_HOME=/opt/node-v8.11.3-linux-x64/bin' >> ~/.bashrc
-echo 'export PATH=$NODEJS_HOME:$PATH' >> ~/.bashrc
+NODEJS_HOME=/opt/node-${NODE_VERSION}/bin
+PATH=${NODEJS_HOME}:$PATH
+echo 'export PATH="'${NODEJS_HOME}':$PATH"' >> /home/vagrant/.profile
+echo 'export NODEJS_HOME="'${NODEJS_HOME}'"' >> /home/vagrant/.profile
+echo 'export NODEJS_HOME="'${NODEJS_HOME}'"' >> /home/vagrant/.bashrc
+echo 'export PATH="'${NODEJS_HOME}':$PATH"' >> /home/vagrant/.bashrc
 
 echo 'Installing mocha...'
 npm install -g mocha

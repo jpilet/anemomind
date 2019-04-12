@@ -18,7 +18,7 @@ To build the cpp code in release mode:
 ```
 mkdir build_release
 cd build_release
-cmake .. -DCMAKE_BUILD_TYPE=RelWidthDebInfo
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
 make -j 4
 ```
 You can replace 4 by the actual number of cores your CPU has.
@@ -31,15 +31,12 @@ To build the test database:
 2. Once mongo is running, run (and wait a bit):
 
 ```
-chmod 777 ./src/server/nautical/tiles/generateDevDB.sh
-```
-
-If you dont find any data in the mongo db after the UI is up and running plase re-run the following command to generate the db
-
-```
 build_release/src/server/nautical/tiles/generateDevDB.sh
 ```
   You can safely ignore errors such as "file empty or format not recognized."
+
+If you dont find any data in the mongo db after the UI is up and running plase re-run the last command to generate the db.
+
 3. Now prepare the web server:
 ```
 cd www2
