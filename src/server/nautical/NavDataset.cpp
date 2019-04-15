@@ -346,7 +346,7 @@ void NavDataset::preferSourceAll(const std::string& source) {
 namespace {
 
   bool selected(DataCode code, const std::set<DataCode>& selection) {
-    return selection.size() == 0 || selection.find(code) != selection.end();
+    return selection.find(code) != selection.end();
   }
 
   template <class T>
@@ -414,7 +414,7 @@ namespace {
 
 } // namespace
 
-NavDataset NavDataset::createMergedChannels(std::set<DataCode> channelSelection,
+NavDataset NavDataset::createMergedChannels(const std::set<DataCode>& channelSelection,
                                             Duration<> minInterval) {
   if (!_dispatcher) {
     return NavDataset();
@@ -422,17 +422,25 @@ NavDataset NavDataset::createMergedChannels(std::set<DataCode> channelSelection,
 
   NavDataset result{clone()};
 
+  if (channelSelection.size() == 0) {
+    return result;
+  }
+
+  NavDataset replayData{clone()};
+
   ReplayDispatcher replay;
 
 #define LISTEN_TO(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   PublishListener<TYPE> HANDLE##Listener(&replay, HANDLE, minInterval); \
   if (selected(HANDLE, channelSelection)) { \
     replay.get<HANDLE>()->dispatcher()->subscribe(& HANDLE##Listener); \
+  } else { \
+    replayData = replayData.stripChannel(HANDLE); \
   }
 FOREACH_CHANNEL(LISTEN_TO)
 #undef LISTEN_TO
 
-  replay.replay(_dispatcher.get());
+  replay.replay(replayData._dispatcher.get());
 
 #define ADD_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   if (selected(HANDLE, channelSelection)) { \
@@ -462,6 +470,47 @@ NavDataset NavDataset::preferSourceOrCreateMergedChannels(
   }
 }
 
+bool NavDataset::isUnmerged(DataCode code) const {
+  auto codeMapIt = _dispatcher->allSources().find(code);
+
+  if (codeMapIt ==  _dispatcher->allSources().end()
+      || codeMapIt->second.size() == 1) {
+    return false;
+  }
+
+  for (auto it : codeMapIt->second) {
+    if (it.first.substr(0, 3) == "mix") {
+      return false;
+    }
+  }
+  return true;
+}
+
+std::set<DataCode> NavDataset::unmergedChannels() const {
+  std::set<DataCode> result;
+#define CHECK_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  if (isUnmerged(HANDLE)) { \
+    result.insert(HANDLE); \
+  }
+FOREACH_CHANNEL(CHECK_CHANNEL)
+#undef CHECK_CHANNEL
+  return result;
+}
+
+const std::set<DataCode>& AllDataCodes() {
+  static std::set<DataCode> all;
+
+  if (all.size() != 0) {
+    return all;
+  }
+
+#define ADD_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  all.insert(HANDLE);
+FOREACH_CHANNEL(ADD_CHANNEL)
+#undef ADD_CHANNEL
+
+  return all;
+}
 
 }  // namespace sail
 

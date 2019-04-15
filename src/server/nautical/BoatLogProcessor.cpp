@@ -423,6 +423,8 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     visualizeBoatDat(_dstPath);
   }
 
+  current = current.createMergedChannels(current.unmergedChannels());
+
   HTML_DISPLAY(_generateTiles, &_htmlReport);
   if (_generateTiles) {
     Array<NavDataset> sessions =
