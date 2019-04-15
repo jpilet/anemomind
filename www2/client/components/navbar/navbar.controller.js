@@ -6,6 +6,9 @@ angular.module('www2App')
     $scope.menu = [{
       'title': 'Home',
       'link': '/'
+    }, {
+      'title': 'Contact',
+      'link': '/contact'
     }];
 
     boatList.boats().then(function(boats) {

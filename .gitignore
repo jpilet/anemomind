@@ -10,6 +10,7 @@ src/device/Arduino/libraries/IreneTargetSpeed/test/test
 *.log
 *.orig
 tags
+.vagrant*
 
 .tmp
 www/app/bower_components

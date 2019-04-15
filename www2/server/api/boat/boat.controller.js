@@ -13,12 +13,6 @@ var winston = require('winston');
 var mailer = require('../../components/mailer');
 var transporter = mailer.transporter;
 
-function host(req) {
-  return ((req.host.match(/(esa)|(regattapolar)/)
-           || process.env.VHOST == 'esalab') 
-          ? 'regattapolar' : 'anemolab');
-}
-
 var validateBoatForUser = function(user, boat) {
   // Make sure the following arrays contain unique values.
   var fields = ['admins', 'readers', 'invited'];
@@ -37,12 +31,12 @@ var validateBoatForUser = function(user, boat) {
 var sendInvitationEmail = function(inviter, email, boat, hasAnAccount, hostkey) {
   // TODO: move this where appropriate.
   const info = {
-    anemolab: {
+    client: {
       url: 'https://anemolab.com/',
       name: 'Anemolab',
       signature: 'Anemobot'
     },
-    regattapolar: {
+    esalab: {
       url: 'https://regattapolar.com/',
       name: 'Regatta Polar',
       signature: 'Your Regatta Polar automated agent'
@@ -272,7 +266,7 @@ exports.inviteUser = function(req, res) {
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
 
-          sendInvitationEmail(req.user, req.body.email, boat, true, host(req));
+          sendInvitationEmail(req.user, req.body.email, boat, true, vhostForReq(req));
 
           return res.status(200).json({
             message: 'user ' + users[0].name + ' added as ' + (invitedAdmin ? 'admin' : 'reader'),

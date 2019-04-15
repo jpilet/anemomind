@@ -43,6 +43,8 @@ void SelectSources(NavDataset *dataset) {
   if (gBoatId == kRealTeamD35) {
     // Realteam, issue #1138. NMEA0183 buffering likely
     dataset->dispatcher()->setSourcePriority("NMEA0183: /dev/ttyMFD1", -10);
+    dataset->dispatcher()->setSourcePriority("NMEA0183 input reparsed", -10);
+    dataset->dispatcher()->setSourcePriority("Internal GPS", 10);
 
   } else if (gBoatId == kRealTeamGC32) {
     // Take apparent wind from the processor, not the sensor (rotating mast).
