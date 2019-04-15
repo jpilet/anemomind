@@ -26,6 +26,9 @@
 
 namespace sail {
 
+// Returns a set containing all existing DataCode.
+const std::set<DataCode>& AllDataCodes();
+
 // In order to view a slice
 // of a TimedSampleCollection<T>::TimedVector
 template <typename T>
@@ -216,8 +219,11 @@ public:
   // If channelSelection is empty, all channels are merged.
   // minInterval will downsample data.
   NavDataset createMergedChannels(
-      std::set<DataCode> channelSelection = std::set<DataCode>(),
+      const std::set<DataCode>& channelSelection = AllDataCodes(),
       Duration<> minInterval = Duration<>::seconds(0));
+
+  bool isUnmerged(DataCode code) const;
+  std::set<DataCode> unmergedChannels() const;
 
   // Returns a new NavDataset with a cloned dispatcher that is guaranteed not
   // to be shared with anybody else, meaning it can be modified.
