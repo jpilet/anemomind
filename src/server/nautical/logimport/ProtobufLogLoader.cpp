@@ -15,6 +15,15 @@
 namespace sail {
 namespace ProtobufLogLoader {
 
+template <typename T> T LoadTimeHack(const ValueSet& src, const T& x) { return x; }
+template <> Angle<double> LoadTimeHack(const ValueSet& src, const Angle<>& x) {
+  // This calypso was mounter in the wrong direction on M2 Teamwork.
+  if (src.source() == "Calypso c8:18:e2:05:8f:bc" && src.shortname() == "awa") {
+    return (x + Angle<>::degrees(180)).positiveMinAngle();
+  }
+  return x;
+}
+
 /**
  * Log file loading coded in our format (using protobuf)
  */
@@ -28,7 +37,8 @@ void addToVector(const ValueSet &src, Duration<double> offset,
   auto n = dataVector.size();
   if (n == dataVector.size()) {
     for (size_t i = 0; i < n; i++) {
-      dst->push_back(TimedValue<T>(timeVector[i] + offset, dataVector[i]));
+      dst->push_back(TimedValue<T>(timeVector[i] + offset,
+                                   LoadTimeHack(src, dataVector[i])));
     }
   } else {
     LOG(WARNING) << "Incompatible time and data vector sizes. Ignore this data.";
