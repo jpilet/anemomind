@@ -123,6 +123,9 @@ module.exports.findOverlaping = async (req, res, next) => {
 
     if (data
         && data.type == 'ESA Server'
+        && data.status != 'ready'
+        && data.analyzeResult
+        && data.analyzeResult.results
         && data.analyzeResult.results.esa.match(/^http/)) {
       data = await downloadEsaResults(data);
     }
@@ -147,29 +150,35 @@ async function createEsa(req, res, start, end) {
       }
     }
 
-    let result = await sendAnalyzeQuery({
+    const name = req.body.name || start +'.esa';
+    data = new PerfStat({
+        start, end,
+        boat: mongoose.Types.ObjectId(req.params.boatId),
+        name: name,
+        urlName: urlFriendlyForm(name),
+        type: 'ESA Server',
+        created: new Date(),
+        lastStateChange: new Date(),
+        status: 'in-progress'
+    });
+
+    const resultPromise = sendAnalyzeQuery({
         start,
         end,
         boatId: req.params.boatId,
         token: req.headers.authorization.replace(/^Bearer /, ''),
     });
 
-    if (!data) {
-      const name = req.body.name || start +'.esa';
-      data = new PerfStat({
-          start, end,
-          boat: mongoose.Types.ObjectId(req.params.boatId),
-          name: name,
-          urlName: urlFriendlyForm(name),
-          type: 'ESA Server',
-          created: new Date()
-      });
-    }
+    await data.validate();
+    await data.save();
+    let result = await resultPromise;
 
     if (typeof(result) == 'string') {
       try {
         result = JSON.parse(result);
       } catch(err) {
+        console.warn(err);
+        data.lastStateChange = new Date();
         data.status = 'failed';
         data.error = 'Error parsing json from ESA api: ' + err.message;
       }
@@ -177,9 +186,11 @@ async function createEsa(req, res, start, end) {
     if (!data.error) {
       if (result.results && result.results.esa) {
         data.status = 'in-progress';
+        data.lastStateChange = new Date();
         data.analyzeResult = result;
       } else {
         console.log(result);
+        data.lastStateChange = new Date();
         data.status = 'failed';
         data.error = result.error || 'unknown error';
       }
