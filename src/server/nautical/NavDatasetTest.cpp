@@ -201,3 +201,24 @@ TEST(NavDatasetTest, FailIfReadingUnmerged) {
   EXPECT_ANY_THROW(unmerged.samples<AWS>());
 }
 
+TEST(NavDatasetTest, IsUnmergedTest) {
+  NavDataset navs(makeTestDispatcher());
+
+  EXPECT_FALSE(navs.isUnmerged(GPS_SPEED));  // not present
+  EXPECT_FALSE(navs.isUnmerged(AWS));  // single source
+
+  TimedSampleCollection<Velocity<>>::TimedVector aws{
+    {offset + 5.0 *s, 13.0*kn},
+    {offset + 1001.0 *s, 13.1*kn},
+  };
+
+  NavDataset twoChans =
+    navs.addChannel<Velocity<>>(AWS, "NMEA0183: test2", aws);
+
+  EXPECT_TRUE(twoChans.isUnmerged(AWS));
+
+  NavDataset merged = twoChans.createMergedChannels();
+
+  EXPECT_FALSE(merged.isUnmerged(AWS));
+}
+
