@@ -230,7 +230,7 @@ function sendWithColumns(
 }
 
 const AlinghiGC32 = "56a3a9912333f1aba9ed24ff";
-const Alinghi = "55dc89e6838caff0240960a9";
+const AlinghiD35 = "55dc89e6838caff0240960a9";
 
 function exportInFormat(format, req, res, next) {
   console.log('Export in format: ', format);
