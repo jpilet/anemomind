@@ -4,11 +4,13 @@
 // ==================================
 module.exports = {
   // MongoDB connection options
-  mongo: {
-    uri: 'mongodb://localhost/anemomind-dev'
+  mongo: {  
+      uri: process.env.MONGO_URL || 'mongodb://localhost/anemomind-dev'
   },
 
-  endpointDir:'/tmp/endpoints'
+  endpointDir:'/tmp/endpoints',
+
+  stripeSecretKey: 'sk_test_7m1Svu34PK6d75QUKvcBoHYC00Trdg2J0g'
 };
 
 
