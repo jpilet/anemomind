@@ -240,6 +240,14 @@ TEST(NmeaParserTest, TestGLL) {
   EXPECT_NEAR(-1 - (14.750603) / 60.0, parser.pos().lon.toDouble(), 1e-8);
 }
 
+TEST(NmeaParserTest, TestGLLWithSubSec) {
+  NmeaParser parser;
+  EXPECT_EQ(
+      NmeaParser::NMEA_GLL,
+      sendSentence("$IIGLL,4617.05379,N,00610.59775,E,141237.92,A,A*75", &parser));
+  EXPECT_NEAR(parser.sec(), 37.92, 1e-3);
+  EXPECT_EQ(1, parser.numSentences());
+}
 
 TEST(NmeaParserTest, TestGLLSensei) {
   NmeaParser parser;

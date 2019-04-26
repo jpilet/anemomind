@@ -160,6 +160,7 @@ class NmeaParser {
 
   static const short INVALID_DATA_SHORT = 0x8000;
   static const char INVALID_DATA_CHAR = 0x80;
+  constexpr static const double INVALID_SECOND_DATA = -1.0;
   static const long INVALID_DATA_LONG = 0x800000;
 
   static bool isCycleMark(NmeaSentence x) {
@@ -181,7 +182,7 @@ class NmeaParser {
   char min() const {
     return min_;
   }
-  char sec() const {
+  double sec() const {
     return sec_;
   }
   char day() const {
@@ -313,7 +314,8 @@ class NmeaParser {
   // GPS data
   Word gpsSpeed_; // 1/256 knots
   short gpsBearing_; // degrees
-  char hour_, min_, sec_;
+  char hour_, min_;
+  double sec_;
   char day_, month_, year_;
 
   // Wind data
