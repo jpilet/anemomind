@@ -8,7 +8,6 @@ set -e
 BIN="/anemomind/bin"
 PROCESSED_DIR="/anemomind/processed"
 SCRIPT="/tmp/update-vmgtable-$$"
-MONGO_URL="mongodb://anemomongo:27017/anemomind-dev"
 
 echo > $SCRIPT
 
@@ -23,5 +22,4 @@ done
   
 cat $SCRIPT | mongo \
       ${MONGO_URL}
-      # -u anemomindprod -p ${MONGO_PASSWORD} anemolab1,anemolab2,arbiter/anemomind 
 rm $SCRIPT

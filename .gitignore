@@ -39,3 +39,8 @@ src/device/anemobox/canutils/iproute2
 
 datasets/*/processed
 datasets/*/logs/processed
+
+.dockerignore
+src/server/Dockerfile.bkp
+src/server/Dockerfile.v3
+www2/Dockerfile.v3

@@ -5,9 +5,11 @@
 module.exports = {
   // MongoDB connection options
   mongo: {
-    uri: 'mongodb://localhost/anemomind-dev'
+    uri: process.env.MONGO_URL ||
+         'mongodb://localhost/anemomind-dev'
   },
 
+  backupWithRsync: false, 
   endpointDir:'/tmp/endpoints'
 };
 
