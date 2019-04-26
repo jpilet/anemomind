@@ -498,17 +498,11 @@ FOREACH_CHANNEL(CHECK_CHANNEL)
 }
 
 const std::set<DataCode>& AllDataCodes() {
-  static std::set<DataCode> all;
-
-  if (all.size() != 0) {
-    return all;
-  }
-
-#define ADD_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  all.insert(HANDLE);
-FOREACH_CHANNEL(ADD_CHANNEL)
-#undef ADD_CHANNEL
-
+  static std::set<DataCode> all{
+#define CHANNEL_ITEM(HANDLE, CODE, SHORTNAME, TYPE, DESC) HANDLE,
+FOREACH_CHANNEL(CHANNEL_ITEM)
+#undef CHANNEL_ITEM
+  };
   return all;
 }
 
