@@ -73,6 +73,7 @@ std::ostream &operator<<(std::ostream &s, const ChannelSummary &cs) {
 typedef std::pair<std::string, std::string> Key;
 
 enum class DateFormat {
+  None,
   HumanReadable,
   Nmea2000Replay
 };
@@ -401,15 +402,19 @@ void dispEntries(std::vector<TimedString> *entries,
     switch (fmt) {
       case DateFormat::HumanReadable: {
         cout << entry.time.fullPrecisionString() << ": ";
+        cout << entry.str << endl;
         break;
-      };
+      }
       case DateFormat::Nmea2000Replay: {
         cout << std::fixed << std::setprecision(3)
          <<  "(" << 0.001*entry.time.toMilliSecondsSince1970() << ") ";
+        cout << entry.str << endl;
         break;
       }
+      case DateFormat::None:
+        cout << entry.str;
+        break;
     };
-    cout << entry.str << endl;
   }
 }
 
@@ -529,9 +534,12 @@ int main(int argc, const char* argv[]) {
       "--raw-nmea2000",
       "Only raw NMEA 2000 data, formatted to be replayed.");
 
+  cmdLine.registerOption("--no-time", "Hide timestamps");
+
   if (cmdLine.parse(argc, argv) != ArgMap::Continue) {
     return -1;
   }
+
 
   if (cmdLine.optionProvided("-b")) {
     summaryThreshold = std::numeric_limits<double>::infinity();
@@ -541,6 +549,11 @@ int main(int argc, const char* argv[]) {
   sort(files.begin(), files.end(), LexicalOrder());
 
   Context summary(summaryThreshold*1.0_s);
+
+  if (cmdLine.optionProvided("--no-time")) {
+    summary.dateFormat = DateFormat::None;
+  }
+
   if (cmdLine.optionProvided("--raw-nmea2000")) {
     summary.withHeader = false;
     summary.withStreams = false;
