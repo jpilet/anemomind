@@ -15,6 +15,16 @@
 namespace sail {
 namespace ProtobufLogLoader {
 
+namespace {
+
+// For all sort of strange reasons, we receive weird dates.
+// we refuse recording older than 2014.
+const TimeStamp kMinValidTime = TimeStamp::UTC(2014, 1, 1, 0, 0, 0);
+// We refuse recording in the future.
+const TimeStamp kMaxValidTime = TimeStamp::now() + Duration<>::hours(24);
+
+}  // namespace
+
 template <typename T> T LoadTimeHack(const ValueSet& src, const T& x) { return x; }
 template <> Angle<double> LoadTimeHack(const ValueSet& src, const Angle<>& x) {
   // This calypso was mounter in the wrong direction on M2 Teamwork.
@@ -163,7 +173,9 @@ namespace {
     if (times.size() == extTimes.size()) {
       int n = times.size();
       for (int j = 0; j < n; j++) {
-	if (extTimes[j].defined() && times[j].defined()) {
+	if (extTimes[j].defined() && times[j].defined()
+            && extTimes[j] > kMinValidTime
+            && extTimes[j] < kMaxValidTime) {
 	  diffs.push_back(extTimes[j] - times[j]);
 	}
       }
