@@ -6,8 +6,16 @@ var auth = require('../../auth/auth.service');
 
 var router = express.Router();
 
-router.get('/',
+router.get('/getAllPlans',
             auth.maybeAuthenticated(),
             controller.getAllPlans);
+
+router.get('/clearPlans',
+            auth.maybeAuthenticated(),
+            controller.clearPlans);
+
+router.get('/showPricingTab',
+            auth.maybeAuthenticated(),
+            controller.showPricingTab);
 
 module.exports = router;

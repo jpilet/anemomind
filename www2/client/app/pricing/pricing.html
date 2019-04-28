@@ -1,39 +1,206 @@
 
 <div ng-include="'components/navbar/navbar.html'"></div>
 
+<div class="container-fluid">
+  <div class="text-center" >
+      <h1>Choose a plan to register your boat</h1>
+  </div>
+  <div class="container">
+      <div class="row">
+          <div class="col-lg-4">
+                  <div class="card panel panel-default">
+                      <div class="panel-body">
+                          <div class="text-center">
+                              <label class="red-text">DISCOVERY</label>
+                          </div>
+                          <div class="text-center discovery-margin">
+                              <span>
+                                  <span class="price-font"><span class="heading-text">CHF</span><span class="heading-text"> 0 / year</span></span>
+                              </span>
+                          </div>
+                          <hr>
+                          
+                          <ul><label class="label-text">Available History:</label>
+                              <li class="li-text">The last two navigations.</li>
 
-<div class="container">
-  <div class="row">
-      <div class="card-deck">
-          <div class="card col-sm-3">
-            <div class="card-body">
-              <h5 class="card-title">Card title</h5>
-              <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-            </div>
-            <div class="card-footer">
-              <small class="text-muted">Last updated 3 mins ago</small>
-            </div>
+                          </ul>
+                          
+                          <ul><label class="label-text">Sampling Frequancy:</label>
+                              <li class="li-text">1 point per minite.</li>
+
+                          </ul>
+                          <hr>
+                          <div class="div-discovery"></div>
+                          <div class="">
+                              <button type="button" class="btn btn-red btn-block">
+                                  <span class="span-padding">Register</span>
+                              </button>
+                              <div class="margin-top">
+                                  <p class="p-text">-Try it free for unlimited time.</p>
+                                  <p class="p-text">-No credit card details required.</p>
+                                  <p class="p-text">-Switch/cancel to any other plan when required.</p>
+                              </div>
+                          </div>
+
+                      </div>
+                  </div>
+              
           </div>
-          <div class="card col-sm-3">
-            <div class="card-body">
-              <h5 class="card-title">Card title</h5>
-              <p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
+
+          <div data-ng-repeat="plan in plans">
+            <div class="col-lg-4">
+                  <div class="card panel panel-default">
+                      <div class="panel-body">
+                          <div class="text-center">
+                              <label class="red-text">{{plan.nickname}}</label>
+                          </div>
+                          <div class="text-center">
+                              <span>Starts <span class="price-font">
+                                      <!-- <i ngClass="{ plan.currency === 'eur' || plan.currency === 'euro' :fa fa-eur}"                              aria-hidden="true"></i> -->
+                                      <span class="heading-text" ng-if="plan.currency !== 'eur'">CHF</span>
+                                      <span class="heading-text"> {{plan.amount/100}} / year</span></span>
+                                  <p>-per boat</p>
+                              </span>
+                          </div>
+                          <hr>
+                         
+                          <ul> <label class="label-text">Available History:</label>
+                              <li class="li-text">All Navigation.</li>
+                          </ul>
+                          
+                          <ul><label class="label-text">Sampling Frequancy:</label>
+                              <li class="li-text">1 point per {{plan.metadata.samplingFrequency}}.</li>
+                          </ul>
+                          <hr>
+
+                          
+                            <div class="div-height">
+                              <div class="text-center">
+                                  <div class="div-margin-bottom">
+                                      <span class="span-optional bold-font">ADD ON(Optional)</span>
+                                  </div>
+                              </div>
+                              <div data-ng-repeat="addon in plan.addOns">
+                              <label class="bold-font">{{addon.nickname}}</label>
+                              <ul>
+                                  <li class="li-text">
+                                      <span><i class="fa fa-eur" aria-hidden="true"></i><span>
+                                        {{addon.amount/100}}/ year</span></span>
+                                      <span class="pull-right">
+
+                                          <label class="switch">
+                                              <input type="checkbox">
+                                              <span class="slider round"></span>
+                                          </label>
+                                      </span>
+                                  </li>
+
+                              </ul>
+                            </div>
+                          </div>
+
+                          <div class="">
+                              <button type="button" class="btn btn-red btn-block">
+                                  <span class="span-padding">Register</span>
+                              </button>
+                              <div class="margin-top">
+                                  <p class="p-text p-padding-bttom">-Switch to any other plan when required.</p>
+                              </div>
+                          </div>
+
+                      </div>
+                  </div>
             </div>
-            <div class="card-footer">
-              <small class="text-muted">Last updated 3 mins ago</small>
-            </div>
-          </div>
-          <div class="card col-sm-3">
-            <div class="card-body">
-              <h5 class="card-title">Card title</h5>
-              <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This card has even longer content than the first to show that equal height action.</p>
-            </div>
-            <div class="card-footer">
-              <small class="text-muted">Last updated 3 mins ago</small>
-            </div>
-          </div>
         </div>
+          <!-- <div class="col-lg-4">
+                  <div class="card panel panel-default">
+                      <div class="panel-body">
+                          <div class="text-center">
+                              <label class="red-text">LOG BOOK</label>
+                          </div>
+                          <div class="text-center">
+                              <span>
+                                  Starts <span class="price-font"><i class="fa fa-eur"
+                                          aria-hidden="true"></i><span class="heading-text"> 30/year</span></span>
+                                  <p>-per boat</p>
+                              </span>
+                          </div>
+                          <hr>
+                         
+                          <ul> <label class="label-text">Available History:</label>
+                              <li class="li-text">All Navigation.</li>
+
+                          </ul>
+                         
+                          <ul> <label class="label-text">Sampling Frequancy:</label>
+                              <li class="li-text">1 point per second.</li>
+
+                          </ul>
+                          <hr>
+                          <div class="div-height">
+                              <div class="text-center">
+                                  <div class="div-margin-bottom">
+                                      <span class="span-optional bold-font">ADD ON(Optional)</span>
+                                  </div>
+                              </div>
+                              <label class="bold-font">Optimised true wind computation option:</label>
+                              <ul>
+                                  <li class="li-text">
+                                      <span><i class="fa fa-eur" aria-hidden="true"></i><span>
+                                              30/year</span></span>
+                                      <span class="pull-right">
+
+                                          <label class="switch">
+                                              <input type="checkbox">
+                                              <span class="slider round"></span>
+                                          </label>
+                                      </span>
+                                  </li>
+                              </ul>
+                              <label class="bold-font">VMG performance analysis option:</label>
+                              <ul>
+                                  <li class="li-text">
+                                      <span><i class="fa fa-eur" aria-hidden="true"></i><span>
+                                              30/year</span></span>
+                                      <span class="pull-right">
+
+                                          <label class="switch">
+                                              <input type="checkbox">
+                                              <span class="slider round"></span>
+                                          </label>
+                                      </span>
+                                  </li>
+                              </ul>
+                              <label class="bold-font">Private data option:</label>
+                              <ul>
+                                  <li class="li-text">
+                                      <span><i class="fa fa-eur" aria-hidden="true"></i><span>
+                                             30/year</span></span>
+                                      <span class="pull-right">
+
+                                          <label class="switch">
+                                              <input type="checkbox">
+                                              <span class="slider round"></span>
+                                          </label>
+                                      </span>
+                                  </li>
+                              </ul>
+                          </div>
+
+                          <div class="">
+                              <button type="button" class="btn btn-red btn-block">
+                                  <span class="span-padding">Register</span>
+                              </button>
+                              <div class="margin-top">
+                                  <p class="p-text p-padding-bttom">-Switch to any other plan when required.</p>
+                              </div>
+                          </div>
+
+                      </div>
+                  </div>
+          </div> -->
       </div>
+  </div>
 </div>
 
 <div ng-include="'components/footer/footer.html'"></div>

@@ -10,7 +10,9 @@ module.exports = {
 
   endpointDir:'/tmp/endpoints',
 
-  stripeSecretKey: 'sk_test_7m1Svu34PK6d75QUKvcBoHYC00Trdg2J0g'
+  //Stripe secret key test mode
+  stripeSecretKey: 'sk_test_7m1Svu34PK6d75QUKvcBoHYC00Trdg2J0g',
+
+  //pricing tab
+  showPricingTab : true
 };
-
-

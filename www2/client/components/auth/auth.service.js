@@ -157,6 +157,20 @@ angular.module('www2App')
        */
       getToken: function() {
         return $cookieStore.get('token');
+      },
+
+      showPricingTab: function () {
+        // Not showing the pricing tab in prod mode
+        $http.get("/api/pricing/showPricingTab").
+        success(function(data) {
+          console.log(data);
+          deferred.resolve(data);
+          return data.showTab;
+        }).error(function(err){
+          console.log(err);
+          deferred.reject(err);
+        });
+        return deferred.promise;
       }
     };
   });

@@ -7,9 +7,6 @@ angular.module('www2App')
       'title': 'Home',
       'link': '/'
     }, {
-      'title': 'Pricing',
-      'link': '/pricing'
-    }, {
       'title': 'Contact',
       'link': '/contact'
     }];
@@ -26,6 +23,7 @@ angular.module('www2App')
     $scope.isLoggedIn = Auth.isLoggedIn;
     $scope.isAdmin = Auth.isAdmin;
     $scope.getCurrentUser = Auth.getCurrentUser;
+    $scope.showTab = Auth.showPricingTab;
 
     $scope.logout = function() {
       Auth.logout();
