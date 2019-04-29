@@ -24,7 +24,6 @@ function segregatePlans(plans) {
             addOns.push(element);
         }
     });
-    console.log(basePlans.length);
 }
 
 //create base subscription plan with addons to iterate over the template
@@ -36,10 +35,10 @@ function createSubscriptionPlans(baseplans, addOns) {
             }
         });
     });
+    // Sorting the base plans based on the amount
     basePlans.sort(function (a, b) {
         return a.amount - b.amount;
     });
-    console.log(basePlans.length);
 }
 
 

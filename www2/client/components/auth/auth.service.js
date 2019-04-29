@@ -3,6 +3,7 @@
 angular.module('www2App')
   .factory('Auth', function Auth($location, $rootScope, $http, User, $cookieStore, $q, $log) {
     var currentUser = {};
+    var showTab = null;
     if($cookieStore.get('token')) {
       currentUser = User.get();
     }
@@ -161,16 +162,22 @@ angular.module('www2App')
 
       showPricingTab: function () {
         // Not showing the pricing tab in prod mode
-        $http.get("/api/pricing/showPricingTab").
-        success(function(data) {
-          console.log(data);
-          deferred.resolve(data);
-          return data.showTab;
-        }).error(function(err){
-          console.log(err);
-          deferred.reject(err);
-        });
-        return deferred.promise;
+        if(showTab === null){
+          var deferred = $q.defer();
+          $http.get("/api/pricing/showPricingTab").
+          success(function(data) {
+            showTab = data.showTab;
+            deferred.resolve(data);
+            return data.showTab;
+          }).
+          error(function(err){
+            deferred.reject(err);
+          });
+          return deferred.promise;
+        }
+        else{
+          return showTab;
+        }
       }
     };
   });
