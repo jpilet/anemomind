@@ -69,8 +69,9 @@ assert(makePerformancePackets);
 var subscriptions = null;
 var fieldSubscriptions = [
   {fields: trueWindFields, makePackets: makeWindPackets},
-  {fields: performanceFields, makePackets: makePerformancePackets},
-  {fields: courseFields, makePackets: makeCoursePackets}
+  {fields: ['awa', 'aws'], makePackets: makeApparentWindPacket},
+  //{fields: performanceFields, makePackets: makePerformancePackets},
+  //{fields: courseFields, makePackets: makeCoursePackets}
 ];
 
 
@@ -82,7 +83,7 @@ function configOrDefault(obj, key1, key2, def) {
   return obj[key1][key2];
 }
 
-function instantiateNmea2000(cfg) {
+function instantiateNmea2000(cfg, options) {
   boxId.getAnemoId(function(boxid) {
     fs.readFile(n2kConfigFile, function(err, data) {
       if (err) {
@@ -91,7 +92,7 @@ function instantiateNmea2000(cfg) {
       } else {
         cfg.n2k = JSON.parse(data);
       }
-      instantiateNmea2000Real(boxid, cfg);
+      instantiateNmea2000Real(boxid, cfg, options);
     });
   });
 }
@@ -103,7 +104,7 @@ function updateFromConfig(cfg) {
   setSendState(sendEnabled);
 }
 
-function instantiateNmea2000Real(boxid, fullCfg) {
+function instantiateNmea2000Real(boxid, fullCfg, options) {
   var cfg = fullCfg.n2k;
 
   updateFromConfig(fullCfg);
@@ -114,8 +115,8 @@ function instantiateNmea2000Real(boxid, fullCfg) {
     (parseInt(boxid, 16) & ((1 << 21 + 1 - virtDevBits) - 1)) << virtDevBits;
 
   var serials = [ boxid + '-0', boxid + '-1' ];
-  nmea2000 = new anemonode.NMEA2000([
-    {
+  var devices = [];
+  devices.push({
       // product:
         serialCode: serials[0],
         productCode: 140,
@@ -131,7 +132,9 @@ function instantiateNmea2000Real(boxid, fullCfg) {
         deviceFunction: 190, // Navigation management
         deviceClass: 60,  // Navigation
         address: configOrDefault(cfg, serials[0], 'address', 10)
-    }, {
+    });
+  if (options.withSendN2kGps) {
+    devices.push({
       // product:
         serialCode: serials[1],
         productCode: 141,
@@ -148,7 +151,10 @@ function instantiateNmea2000Real(boxid, fullCfg) {
         deviceClass: 60,  // Navigation
         transmitPgn: [ pgntable.gnssPositionData ],
         address: configOrDefault(cfg, serials[1], 'address', 11)
-    }]);
+    });
+  }
+
+  nmea2000 = new anemonode.NMEA2000(devices);
 
   nmea2000.onDeviceConfigChange(function() {
     var cfg = nmea2000.getDeviceConfig();
@@ -223,13 +229,13 @@ function logRawPacket(msg) {
   }
 }
 
-function startNmea2000(cfg) {
+function startNmea2000(cfg, options) {
   if (!channel) {
     try {
       channel = can.createRawChannel("can0", true /* ask for timestamps */);
       channel.start();
       channel.addListener("onMessage", canPacketReceived);
-      instantiateNmea2000(cfg);
+      instantiateNmea2000(cfg, options);
     } catch (e) {
       console.log("Failed to start NMEA2000");
       console.log(e);
@@ -330,6 +336,34 @@ function makeWindPackets() {
       });
       lastSentTimestamps[wa] = now;
     }
+  }
+  return packetsToSend;
+}
+
+function makeApparentWindPacket() {
+  var now = anemonode.currentTime();
+  var packetsToSend = [];
+  
+  // The wind reference codes for the NMEA2000 WindData sentence
+  
+  // Collect the packets for the different kinds of 
+  // wind angle references.
+  var lastSent = lastSentTimestamps.awa || (now - 1000);
+  var data2send = tryGetIfFresh(["awa", "aws"], null, lastSent, now);
+  if (data2send) {
+    // AWA has to be transmitted as a positive angle
+    if (data2send.awa[0] < 0) {
+      data2send.awa[0] += 360;
+    }
+    packetsToSend.push({
+      deviceIndex: 0,
+      pgn: pgntable.windData,
+      sid: nextSid('awa'),
+      windSpeed: data2send.aws,
+      windAngle: data2send.awa,
+      reference: 2, // 
+    });
+    lastSentTimestamps.awa = now;
   }
   return packetsToSend;
 }

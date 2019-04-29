@@ -25,7 +25,7 @@ var withFakeReplay = process.env['FAKE_REPLAY'];
 var withCalypsoUltrasonic = true;
 var withNmea0183Perf = true;
 
-var withSendN2kGps = true;
+var withSendN2kGps = false;
 
 var spiBugDetected = false;
 
@@ -222,7 +222,7 @@ if (withNMEA2000) {
     }
   });
   config.get(function(err, cfg) {
-    nmea2000.startNmea2000(cfg);
+    nmea2000.startNmea2000(cfg, { withSendN2kGps: withSendN2kGps });
   });
   config.getAndListen(function(err, cfg) {
     if (err) {
