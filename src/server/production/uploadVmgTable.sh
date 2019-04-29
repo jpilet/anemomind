@@ -1,14 +1,9 @@
 #!/bin/bash
 set -e
 
-#BIN="/home/anemomind/bin"
-#PROCESSED_DIR="/home/anemomind/processed"
-#SCRIPT="/tmp/update-vmgtable-$$"
-
-BIN="/anemomind/bin"
-PROCESSED_DIR="/anemomind/processed"
+BIN="/home/anemomind/bin"
+PROCESSED_DIR="/home/anemomind/processed"
 SCRIPT="/tmp/update-vmgtable-$$"
-MONGO_URL="mongodb://anemomongo:27017/anemomind-dev"
 
 echo > $SCRIPT
 
@@ -17,11 +12,9 @@ for boatdir in "$PROCESSED_DIR/"*; do
   id="$(basename "${boatdir}"| sed 's/boat//')"
 
   [ -r $file ] && \
-    "${BIN}/nautical_catTargetSpeed" --id "${id}" "$file" >> $SCRIPT
-    # "${BIN}/catTargetSpeed" --id "${id}" "$file" >> $SCRIPT
+    "${BIN}/catTargetSpeed" --id "${id}" "$file" >> $SCRIPT
 done
   
 cat $SCRIPT | mongo \
-      ${MONGO_URL}
-      # -u anemomindprod -p ${MONGO_PASSWORD} anemolab1,anemolab2,arbiter/anemomind 
+      -u anemomindprod -p ${MONGO_PASSWORD} anemolab1,anemolab2,arbiter/anemomind 
 rm $SCRIPT

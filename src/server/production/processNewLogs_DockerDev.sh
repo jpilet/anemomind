@@ -1,22 +1,8 @@
 #!/bin/bash
-#set -e
-
-# This script can be run from crontab with:
-#   */5 *  *   *   *   ps aux | grep -v grep | grep processNewLogs || /home/anemomind/bin/processNewLogs.sh
-
-#export BIN="/home/anemomind/bin"
-#export LOG_DIR="/home/anemomind/userlogs/anemologs"
-#export PROCESSED_DIR="/home/anemomind/processed"
-#export SRC_ROOT="/home/jpilet/anemomind/anemomind"
-#export BUILD_ROOT=${SRC_ROOT}/build
-
-
 
 export BIN="/anemomind/bin"
 export LOG_DIR="/anemomind/boat_logs"
-#export LOG_DIR="/anemolab/src"
 export PROCESSED_DIR="/anemomind/processed"
-#export MONGO_URL="mongodb://anemomongo:27017/anemomind-dev"
 
 ulimit -c unlimited
 
@@ -125,6 +111,5 @@ export SHELL=/bin/bash
 
 # citation for parallel 
 #echo "will cite" | parallel --citation 2>> /dev/null
-#parallel -j 1 processBoat ::: "${LOG_DIR}/"*
 processBoat "${LOG_DIR}"/*
 safeRun "${BIN}"/uploadVmgTable_DockerDev.sh

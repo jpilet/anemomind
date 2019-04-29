@@ -1,4 +1,4 @@
-
+These docker configs are for development only, not for prod. (for now).
 
 Following modules have been containerized in docker  
   1. C++ log processing server named as anemomind_anemocppserver_1  

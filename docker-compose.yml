@@ -1,3 +1,6 @@
+# Please refer the DockerREADME.md file 
+# for the details regarding this docker-compose file
+
 version: "3"
 
 services:
@@ -5,6 +8,8 @@ services:
     build:
       context: .
       dockerfile: ./src/server/Dockerfile
+      args:
+        MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
     volumes:
       - "shared_lib:/anemomind/lib"
       - "shared_bin:/anemomind/bin"  
@@ -13,8 +18,9 @@ services:
       - back-tier
     restart: unless-stopped
     environment:
-      - MONGO_URL=mongodb://anemomongo:27017/anemomind-dev
       - WAIT_HOSTS=anemomongo:27017
+    
+
     links:
       - anemomongo
     depends_on:
@@ -24,7 +30,9 @@ services:
     build:
       context: .
       dockerfile: ./www2/Dockerfile
-    command: grunt serve:dev --force
+      args:
+        MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
+    command: grunt server:docker-dev --force
     ports:
       - "9000:9000"
     volumes: 
@@ -36,9 +44,9 @@ services:
       - back-tier
     restart: unless-stopped
     environment:
-      - MONGO_URL=mongodb://anemomongo:27017/anemomind-dev
       - WAIT_HOSTS=anemomongo:27017
-      - CLIENT=client
+      - VHOST=client
+    
     links:
       - anemomongo
     depends_on:

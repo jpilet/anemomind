@@ -168,6 +168,6 @@ TODO
 ```
 brew install suite-sparse
 ```
-## Dockerized anemomind
 
-[link](src/server/DockerREADME.md)
+## Dockerized anemomind
+[DokcerREADME.md](DockerREADME.md)
