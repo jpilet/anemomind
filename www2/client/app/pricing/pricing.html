@@ -8,7 +8,7 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-4">
-                <div class="card panel panel-default">
+                <div class="card card-custom panel panel-default">
                     <div class="panel-body">
                         <div class="text-center">
                             <label class="red-text">DISCOVERY</label>
@@ -47,9 +47,9 @@
                 </div>
             </div>
 
-            <div data-ng-repeat="plan in plans">
+            <div ng-repeat="plan in plans">
                 <div class="col-lg-4">
-                    <div class="card panel panel-default">
+                    <div class="card card-custom panel panel-default">
                         <div class="panel-body">
                             <div class="text-center">
                                 <label class="red-text">{{plan.nickname}}</label>
@@ -80,7 +80,7 @@
                                         <span class="span-optional bold-font">ADD ON(Optional)</span>
                                     </div>
                                 </div>
-                                <div data-ng-repeat="addon in plan.addOns">
+                                <div ng-repeat="addon in plan.addOns">
                                     <label class="bold-font">{{addon.nickname}}</label>
                                     <ul>
                                         <li class="li-text">
