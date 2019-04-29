@@ -43,6 +43,16 @@
 	  id="calypsoUltrasonic" 
           name="calypsoUltrasonic"/></dd>
       </dl>
+      <dl class="dl-horizontal">
+        <dt>NMEA0183 performance output</dt>
+        <dd>
+          <select id="nmea0183PerfOutFormat" class="form-control">
+            <option value="disabled">Disabled</option>
+            <option value="NKE">NKE</option>
+            <option value="TackTick">TackTick/Raymarine Micronet</option>
+          </select>
+        </dd>
+      </dl>
     </div>
     <p class="body-link"><a href="/">Input data</a></p>
     <p class="body-link"><a href="/allSources.html">Detailed input data</a></p>
@@ -94,6 +104,9 @@
 	  initializeCheckbox("outputNmea2000", data.boxConfig.outputNmea2000);
 	  initializeCheckbox("calypsoUltrasonic", data.boxConfig.calypsoUltrasonic);
 	  	
+          $('#nmea0183PerfOutFormat option[value=' 
+            + (data.boxConfig.nmea0183PerfOutFormat || 'disabled') + ']')
+            .prop('selected', true);
 	  
           var table = $('#dataTable');
           table.html('');
@@ -156,6 +169,10 @@
       });
       $("#calypsoUltrasonic").change(function(e) {
         changeBoxConfig("calypsoUltrasonic", this.checked);
+      });
+      $("#nmea0183PerfOutFormat").change(function(e){
+        var newValue = $("#nmea0183PerfOutFormat option:selected").val();
+        changeBoxConfig('nmea0183PerfOutFormat', newValue);
       });
     });
   </script>
