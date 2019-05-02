@@ -93,7 +93,7 @@ ENV LD_LIBRARY_PATH="/anemomind/lib/"
 WORKDIR /anemomind/bin 
 
 RUN env > /etc/cron.d/anemo-cron && \
-    echo "* *  *   *   * bash /anemomind/bin/processNewLogs_DockerDev.sh >> /var/log/cron.log" >> /etc/cron.d/anemo-cron && \
+    echo "* *  *   *   * flock -n /tmp/process_logs.lock /anemomind/bin/processNewLogs_DockerDev.sh >> /var/log/cron.log" >> /etc/cron.d/anemo-cron && \
     echo >>/etc/cron.d/anemo-cron && \
     chmod 0644 /etc/cron.d/anemo-cron && \
     chmod -R 755 .

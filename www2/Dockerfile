@@ -30,9 +30,8 @@ WORKDIR /anemomind/www2
 
 COPY www2/package*.json ./
 
-RUN  npm install --unsafe-perm=true --allow-root ../nodemodules/endpoint/
-
-RUN  npm install --unsafe-perm=true --allow-root
+RUN  npm install --unsafe-perm=true --allow-root ../nodemodules/endpoint/ && \
+     npm install --unsafe-perm=true --allow-root
 
 COPY www2/. .
 
