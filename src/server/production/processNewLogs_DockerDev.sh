@@ -109,7 +109,9 @@ export -f safeRun
 
 export SHELL=/bin/bash
 
-# citation for parallel 
-#echo "will cite" | parallel --citation 2>> /dev/null
-processBoat "${LOG_DIR}"/*
-safeRun "${BIN}"/uploadVmgTable_DockerDev.sh
+# process each boat 
+for boatDir in "${LOG_DIR}"/*/ ; do
+  processBoat "${boatDir}"
+  safeRun "${BIN}"/uploadVmgTable_DockerDev.sh
+done
+
