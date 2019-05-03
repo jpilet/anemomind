@@ -13,9 +13,5 @@ router.get('/getAllPlans',
 router.get('/clearPlans',
             auth.maybeAuthenticated(),
             controller.clearPlans);
-
-router.get('/showPricingTab',
-            auth.maybeAuthenticated(),
-            controller.showPricingTab);
-
+            
 module.exports = router;

@@ -2,19 +2,24 @@
 // Ensure NODE_ENV is defined.
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 var env = require('../../config/environment');
+
+// To check if the stripe key is present or not
+var isStripeKeyPresent = env.stripeSecretKey ? true : false;
 const stripe = require("stripe")(env.stripeSecretKey);
 
-// this will be the cache obect o
-var cachedSubscriptionPlans = [];
-var basePlans = [];
-var addOns = [];
+// this will be the cache obect of subscription
+const cachedSubscriptionPlans = {};
 
+// Check if the object is empty or not
 function isEmptyObject(obj) {
-    return !Object.keys(obj).length;
+    console.log("priniting the value here : " + Object.keys(obj).length);
+    return Object.keys(obj).length;
 }
 
 //Filter the base plan and addons from stripe
 function segregatePlans(plans) {
+    var basePlans = [];
+    var addOns = [];
     plans.forEach(element => {
         if (!!element.metadata.availableAddOns) {
             element.addOns = [];
@@ -24,6 +29,8 @@ function segregatePlans(plans) {
             addOns.push(element);
         }
     });
+    var plans = createSubscriptionPlans(basePlans, addOns);
+    return plans;
 }
 
 //create base subscription plan with addons to iterate over the template
@@ -36,38 +43,40 @@ function createSubscriptionPlans(baseplans, addOns) {
         });
     });
     // Sorting the base plans based on the amount
-    basePlans.sort(function (a, b) {
+    baseplans.sort(function (a, b) {
         return a.amount - b.amount;
     });
+    cachedSubscriptionPlans.basePlans = baseplans;
+    cachedSubscriptionPlans.addOns = addOns;
+    return cachedSubscriptionPlans;
 }
 
 
 // Get list of plans
 exports.getAllPlans = function (req, res) {
-    if (isEmptyObject(cachedSubscriptionPlans)) {
-        stripe.plans.list(function (err, plans) {
-            if (plans) {
-                segregatePlans(plans.data);
-                createSubscriptionPlans(basePlans, addOns);
-                cachedSubscriptionPlans = basePlans;
-                res.status(200).json(plans.data);
-            } else {
-                res.status(400);
-            }
-        });
+    if (isStripeKeyPresent) {
+        if (!isEmptyObject(cachedSubscriptionPlans)) {
+            stripe.plans.list(function (err, plans) {
+                if (plans) {
+                    var subscrptions = segregatePlans(plans.data);
+                    res.status(200).json(subscrptions);
+                } else {
+                    res.status(400);
+                }
+            });
+        }
+        else {
+            res.status(200).json(cachedSubscriptionPlans);
+        }
     }
     else {
-        res.status(200).json(cachedSubscriptionPlans);
+        res.status(500).json({ error: "Stripe-key unavailable" });
     }
 };
 
 // Clear the cached plans 
 exports.clearPlans = function (req, res) {
-    cachedSubscriptionPlans = {};
-    res.status(200).json({});
-};
-
-// To display the tab or not
-exports.showPricingTab = function (req, res) {
-    res.status(200).json({ 'showTab': env.showPricingTab });
+    delete cachedSubscriptionPlans.basePlans;
+    delete cachedSubscriptionPlans.addOns;
+    res.status(200).json(cachedSubscriptionPlans);
 };

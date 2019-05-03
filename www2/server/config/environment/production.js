@@ -28,9 +28,7 @@ module.exports = {
   tryLoadBin: "/home/jpilet/bin/logimport_try_load",
 
   //TO DO : Add the live mode key here (dev and prod shud have diff keys)
-  //Stripe secret key test mode
-  stripeSecretKey: 'sk_test_7m1Svu34PK6d75QUKvcBoHYC00Trdg2J0g',
+  //Stripe secret key coming from the env variable 
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || null
 
-  //pricing tab
-  showPricingTab : false
 };
