@@ -23,7 +23,7 @@ angular.module('www2App')
     $scope.isLoggedIn = Auth.isLoggedIn;
     $scope.isAdmin = Auth.isAdmin;
     $scope.getCurrentUser = Auth.getCurrentUser;
-    $scope.showTab = showTab;
+    $scope.showTab = showPricingTab;
 
     $scope.logout = function() {
       Auth.logout();

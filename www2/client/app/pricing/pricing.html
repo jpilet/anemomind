@@ -8,7 +8,7 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-4">
-                <div class="card card-custom panel panel-default">
+                <div class="card card-custom panel panel-default-custom">
                     <div class="panel-body">
                         <div class="text-center">
                             <label class="red-text">DISCOVERY</label>
@@ -19,7 +19,7 @@
                                         class="heading-text"> 0 / year</span></span>
                             </span>
                         </div>
-                        <hr>
+                        <hr-custom>
 
                         <ul><label class="label-text">Available History:</label>
                             <li class="li-text">The last two navigations.</li>
@@ -30,7 +30,7 @@
                             <li class="li-text">1 point per minite.</li>
 
                         </ul>
-                        <hr>
+                        <hr-custom>
                         <div class="div-discovery"></div>
                         <div class="">
                             <button type="button" class="btn btn-red btn-block">
@@ -49,7 +49,7 @@
 
             <div ng-repeat="plan in plans">
                 <div class="col-lg-4">
-                    <div class="card card-custom panel panel-default">
+                    <div class="card card-custom panel panel-default-custom">
                         <div class="panel-body">
                             <div class="text-center">
                                 <label class="red-text">{{plan.nickname}}</label>
@@ -62,7 +62,7 @@
                                     <p>-per boat</p>
                                 </span>
                             </div>
-                            <hr>
+                            <hr-custom>
 
                             <ul> <label class="label-text">Available History:</label>
                                 <li class="li-text">All Navigation.</li>
@@ -71,7 +71,7 @@
                             <ul><label class="label-text">Sampling Frequancy:</label>
                                 <li class="li-text">1 point per {{plan.metadata.samplingFrequency}}.</li>
                             </ul>
-                            <hr>
+                            <hr-custom>
 
 
                             <div class="div-height">

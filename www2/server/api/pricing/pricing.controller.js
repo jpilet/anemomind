@@ -1,10 +1,10 @@
 'use strict';
 // Ensure NODE_ENV is defined.
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-var env = require('../../config/environment');
+const env = require('../../config/environment');
 
 // To check if the stripe key is present or not
-var isStripeKeyPresent = env.stripeSecretKey ? true : false;
+const isStripeKeyPresent = env.stripeSecretKey ? true : false;
 const stripe = require("stripe")(env.stripeSecretKey);
 
 // this will be the cache obect of subscription

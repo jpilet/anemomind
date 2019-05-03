@@ -16,13 +16,13 @@
     box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2) !important;
 }
 
-.panel-default {
+.panel-default-custom {
     border: red 1.5px solid !important;
     width : 100%;
     border-radius: 10px!important;
 }
 
-hr {
+hr-custom {
     border-top   : 1px solid rgb(114, 112, 112)!important;
 }
 
