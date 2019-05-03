@@ -261,7 +261,7 @@ if (withNmea0183Perf) {
     if (cfg) {
       nmea0183perf.activateNmea0183PerfOutput(
          function(s) { nmea0183port.emitNmea0183Sentence(s); },
-         'NKE' /* cfg.nmea0183PerfOutFormat */);
+         cfg.nmea0183PerfOutFormat);
     }
   });
 }

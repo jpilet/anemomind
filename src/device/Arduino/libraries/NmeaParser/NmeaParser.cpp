@@ -141,7 +141,7 @@ NmeaParser::NmeaParser() {
   gpsBearing_ = INVALID_DATA_SHORT;
   hour_ = INVALID_DATA_CHAR;
   min_ = INVALID_DATA_CHAR;
-  sec_ = INVALID_DATA_CHAR;
+  sec_ = INVALID_SECOND_DATA;
   day_ = month_ = year_ = INVALID_DATA_CHAR;
 
   awa_ = INVALID_DATA_SHORT;
@@ -371,6 +371,9 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
 
   PARSE_AND_CHECK(argv_[1], hour_, 0, 23)
   PARSE_AND_CHECK(argv_[1]+2, min_, 0, 59)
+  if (!parseDouble(argv_[1]+4, &sec_) || sec_ > 60 || sec_ < 0) {
+    return NMEA_NONE;
+  }
   PARSE_AND_CHECK(argv_[1]+4, sec_, 0, 59)
   PARSE_AND_CHECK(argv_[9], day_, 0, 31)
   PARSE_AND_CHECK(argv_[9]+2, month_, 0, 12)
@@ -579,7 +582,10 @@ NmeaParser::NmeaSentence NmeaParser::processGLL() {
   if (strlen(argv_[5]) >= 6) {
     char hour = parse2c(argv_[5]);
     char min = parse2c(argv_[5]+2);
-    char sec = parse2c(argv_[5]+4);
+    double sec;
+    if (!parseDouble(argv_[5]+4, &sec)) {
+      return NMEA_NONE;
+    }
     if (hour > 23 || hour < 0
         || min > 59 || min < 0
         || sec > 59 || sec < 0) {
@@ -626,7 +632,12 @@ NmeaParser::NmeaSentence NmeaParser::processZDA() {
   if (strlen(argv_[1]) < 6) return NMEA_NONE;
   hour_ = parse2c(argv_[1]);
   min_ = parse2c(argv_[1]+2);
-  sec_ = parse2c(argv_[1]+4);
+  double sec;
+  if (!parseDouble(argv_[1]+4, &sec)
+    || sec > 60 || sec < 0) {
+    return NMEA_NONE;
+  }
+  sec_ = sec;
 
   int yearLen = strlen(argv_[4]);
   if (yearLen != 2 && yearLen != 4) {

@@ -11,6 +11,17 @@ var updateInterval;
 var lastSentTime;
 var lastEmptySent;
 
+var lastActionTime = {};
+
+function rateLimitedAction(name, dt_ms) {
+  var now = anemonode.currentTime().getTime();
+  if (!lastActionTime[name] || (now - lastActionTime[name]) > dt_ms) {
+    lastActionTime[name] = now;
+    return true;
+  }
+  return false;
+}
+
 function getPerf() {
   var now = anemonode.currentTime();
 
@@ -83,27 +94,61 @@ function nkePerfSentences(perf, targetVmg) {
           'VMG Target', 'Nds'));
 }
 
+
+function tacktickCustomPage(pageno, header, footer) {
+  if ((pageno < 1) || (pageno > 4)) {
+    throw new Error("tacktick page out of range");
+  }
+
+  return nmeaPacket("PTAK,FFP" + pageno + "," + header + "," + footer);
+}
+
+function tacktickPageData(pageno, data) {
+  return nmeaPacket("PTAK,FFD" + pageno + "," + data);
+}
+
+function tacktickWindCorrect(twaDeltaDeg, twsDeltaKnots) {
+  return nmeaPacket("PTAK,TWC,"
+   + twsDeltaKnots.toFixed(1) + ","
+   + twaDeltaDeg.toFixed(0));
+}
+
 function update() {
   var perf = getPerf();
-  var nmea;
+  var nmea = "";
+  var perfPercent = 0;
+
+  if (perf && Math.abs(perf.targetVmg) > 0) {
+    perfPercent = 100 * perf.vmg / perf.targetVmg;
+  }
+
   if (outputFormat == 'NKE') {
-    if (perf) {
-      nmea = nkePerfSentences(perf.vmg / perf.targetVmg, perf.targetVmg)
-    } else {
-      var now = anemonode.currentTime().getTime();
-      if (lastEmptySent == undefined || ((now - lastEmptySent) > 990)) {
+    if (rateLimitedAction('sendNKE', 990)) {
+      if (perf) {
+        nmea = nkePerfSentences(perfPercent, perf.targetVmg)
+      } else {
         nmea = nkePerfSentences(0, 0);
-        lastEmptySent = now;
       }
     }
-    if (nmea) {
-      callback(nmea);
+  } else if (outputFormat == 'TackTick') {
+    if (perf && rateLimitedAction('sendTackTickData', 1000)) {
+      nmea += tacktickPageData(1, perfPercent.toFixed(0));
+      nmea += tacktickPageData(2, perf.targetVmg.toFixed(1));
     }
+    if (rateLimitedAction('sendCustomPage', 20000)) {
+        nmea += tacktickCustomPage(1, "VMGPRF", "PERCENT") +
+          tacktickCustomPage(2, "VMGTGT", "KNOTS");
+    }
+  }
+  if (nmea) {
+    callback(nmea);
   }
 }
 
+var acceptedFormats = { NKE: true, TackTick: true };
+
 function activateNmea0183PerfOutput(nmea0183cb, format) {
-  if (format != 'NKE') {
+  if (!acceptedFormats[format]) {
     nmea0183cb = undefined;
   }
 
@@ -125,6 +170,7 @@ function activateNmea0183PerfOutput(nmea0183cb, format) {
     if (subscriptions != undefined) {
       anemonode.dispatcher.values.vmg.unsubscribe(subscriptions.vmg);
       anemonode.dispatcher.values.targetVmg.unsubscribe(subscriptions.targetVmg);
+      subscriptions = undefined;
     }
     if (updateInterval != undefined) {
       clearInterval(updateInterval);

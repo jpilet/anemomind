@@ -20,7 +20,7 @@
 namespace sail {
 
 Optional<AstraHeader> tryParseAstraHeader(const std::string& s) {
-  static std::regex re("----* (.*) -*----");
+  static std::regex re("----* *(.*) *-*----");
   std::smatch match;
   if (std::regex_search(s, match, re) && match.size() > 1) {
     return AstraHeader{match.str(1)};
@@ -227,9 +227,9 @@ LogFileHeaderSpec regataLogFileSpec{
 
   // Wind
   {"WindType", AstraValueParser()},
-  {"AWA", AstraValueParser()},
-  {"AWS", AstraValueParser()},
-  {"TWA", AstraValueParser()},
+  {"AWA", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(AWA)))},
+  {"AWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(AWS)))},
+  {"TWA", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWA)))},
   {"TWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(TWS)))},// <-- See message2.txt
   {"TWD", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWD)))},// <-- See message2.txt
   {"GWS", AstraValueParser(inUnit(1.0_kn, FIELD_ACCESS(GWS)))},// <-- See message2.txt
@@ -304,6 +304,8 @@ LogFileHeaderSpec regataLogFileSpec{
   {"Heading", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(magHdg)))},
   {"LeewayAng",AstraValueParser()},
   {"LeewayMod",AstraValueParser()},
+  {"Leeway_Ang",AstraValueParser()},
+  {"Leeway_Mod",AstraValueParser()},
   {"TWA_target",AstraValueParser()},
   {"TW_Dir", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWD)))},
   {"TW_angle", AstraValueParser(inUnit(1.0_deg, FIELD_ACCESS(TWA)))},

@@ -95,33 +95,34 @@ var listChannelsWithSources = function(boat, zoom, firstTile, lastTile, cb) {
   });
 };
 
-
-var listColumns = function(boat, zoom, firstTile, lastTile, cb) {
-  ChartTile.aggregate([
-    {
-      $match: {
-        boat: ObjectId(boat),
-        zoom: zoom,
-        tileno: { $gte: firstTile, $lte: lastTile }
-      },
-    }, {
-      $group: {
-        _id: { what: "$what", source: "$source" },
+var listColumns = function(boat, zoom, firstTile, lastTile) {
+  return new Promise((resolve, reject) => {
+    ChartTile.aggregate([
+      {
+        $match: {
+          boat: ObjectId(boat),
+          zoom: zoom,
+          tileno: { $gte: firstTile, $lte: lastTile }
+        },
+      }, {
+        $group: {
+          _id: { what: "$what", source: "$source" },
+        }
+      }, {
+        $sort: { _id: 1 }
       }
-    }, {
-      $sort: { _id: 1 }
-    }
-  ]).exec(function(err, res) {
-    if (err) {
-      cb(err);
-    } else {
-      cb(undefined, res.map(function(e) {
-        return {
-          source: e._id.source,
-          type: e._id.what
-        };
-      }));
-    }
+    ]).exec(function(err, res) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res.map(function(e) {
+          return {
+            source: e._id.source,
+            type: e._id.what
+          };
+        }));
+      }
+    });
   });
 };
 
@@ -155,6 +156,9 @@ function sendWithColumns(
   outputFormat.sendHeader(res, columns, boat);
 
   var columnNames = columns.map((x) => outputFormat.columnString(x, chartSources));
+
+  // Realteam D35 has a problem and needs data to be filled
+  const maxFillHolesSec = (boat == "5992fcc6035eb352cf36d594" ? 5 : 0);
 
   // The query bypasses mongoose.
   ChartTile.collection
@@ -199,13 +203,27 @@ function sendWithColumns(
       columnType[colno] = tile.what;
 
       for (var i = 0; i < samplesPerTile; ++i) {
-        if (tile.count && tile.count[i] > 0) {
-          var time = firstTimeSec + i * increment;
-          if (time > startTimeSec && time < endTimeSec) {
+        var time = firstTimeSec + i * increment;
+        if (time < startTimeSec || time > endTimeSec) {
+          continue;
+        }
 
-            // Populate the table row
-            var row = getRow(table, time);
+        // Populate the table row
+        let row = getRow(table, time);
+
+        if (tile.count && tile.count[i] > 0) {
             row[colno] = tile.mean[i];
+        }
+
+        // Fill holes with neighbor values if needed.
+        for (let j = 1; row[colno] == undefined && j < maxFillHolesSec; ++j) {
+          const before = i - j;
+          const after = i + j;
+          if (after < tile.mean.length && tile.count[after] > 0) {
+            row[colno] = tile.mean[after];
+          }
+          if (row[colno] == undefined && before >= 0 && tile.count[before] > 0) {
+            row[colno] = tile.mean[before];
           }
         }
       }
@@ -228,6 +246,8 @@ function sendWithColumns(
     });
 }
 
+const AlinghiGC32 = "56a3a9912333f1aba9ed24ff";
+const AlinghiD35 = "55dc89e6838caff0240960a9";
 
 function exportInFormat(format, req, res, next) {
   console.log('Export in format: ', format);
@@ -254,30 +274,33 @@ function exportInFormat(format, req, res, next) {
   var firstTile = tileNo(start, 'floor');
   var lastTile = tileNo(end, 'ceil');
 
-  ChartSource.findById(boat, function(err, chartSources) {
+  ChartSource.findById(boat, async (err, chartSources) => {
     if (err) {
       console.warn(err);
       res.status(404).send();
     } else {
 
-      console.log('Chart sources: %j', chartSources);
+      try {
+        let columns = await listColumns(boat, zoom, firstTile, lastTile);
 
-      listColumns(
-        boat, zoom, firstTile, lastTile,
-        function(err, columns) {
-          if (err) {
-            console.warn(err);
-            res.status(500).send();
-          } else if (columns.length == 0) {
+        // Alinghi does not want "mix" sources.
+        if (boat == AlinghiGC32 || boat == AlinghiD35) {
+          columns = columns.filter((x) => !x.source.match(/^mix/));
+        }
+
+        if (columns.length == 0) {
             res.status(404).send();
-          } else {
-            sendWithColumns(
-              format,
-              chartSources,
-              start, end, boat, zoom, firstTile, lastTile,
-              columns, res, timeRange);
-          }
-        });
+        } else {
+          sendWithColumns(
+            format,
+            chartSources,
+            start, end, boat, zoom, firstTile, lastTile,
+            columns, res, timeRange);
+        }
+      } catch(err) {
+        console.warn(err);
+        res.status(500).send();
+      }
     }
   });
 };
