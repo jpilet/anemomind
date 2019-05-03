@@ -216,11 +216,13 @@ function sendWithColumns(
 
         // Fill holes with neighbor values if needed.
         for (let j = 1; row[colno] == undefined && j < maxFillHolesSec; ++j) {
-          if ((i + j) < tile.mean.length && tile.count[i+j] > 0) {
-            row[colno] = tile.mean[i + j];
+          const before = i - j;
+          const after = i + j;
+          if (after < tile.mean.length && tile.count[after] > 0) {
+            row[colno] = tile.mean[after];
           }
-          if (row[colno] == undefined && (i - j) >= 0 && tile.count[i-j] > 0) {
-            row[colno] = tile.mean[i - j];
+          if (row[colno] == undefined && before >= 0 && tile.count[before] > 0) {
+            row[colno] = tile.mean[before];
           }
         }
       }
