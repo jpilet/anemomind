@@ -157,6 +157,9 @@ function sendWithColumns(
 
   var columnNames = columns.map((x) => outputFormat.columnString(x, chartSources));
 
+  // Realteam D35 has a problem and needs data to be filled
+  const maxFillHolesSec = (boat == "5992fcc6035eb352cf36d594" ? 5 : 0);
+
   // The query bypasses mongoose.
   ChartTile.collection
     .find(query)
@@ -200,13 +203,27 @@ function sendWithColumns(
       columnType[colno] = tile.what;
 
       for (var i = 0; i < samplesPerTile; ++i) {
-        if (tile.count && tile.count[i] > 0) {
-          var time = firstTimeSec + i * increment;
-          if (time > startTimeSec && time < endTimeSec) {
+        var time = firstTimeSec + i * increment;
+        if (time < startTimeSec || time > endTimeSec) {
+          continue;
+        }
 
-            // Populate the table row
-            var row = getRow(table, time);
+        // Populate the table row
+        let row = getRow(table, time);
+
+        if (tile.count && tile.count[i] > 0) {
             row[colno] = tile.mean[i];
+        }
+
+        // Fill holes with neighbor values if needed.
+        for (let j = 1; row[colno] == undefined && j < maxFillHolesSec; ++j) {
+          const before = i - j;
+          const after = i + j;
+          if (after < tile.mean.length && tile.count[after] > 0) {
+            row[colno] = tile.mean[after];
+          }
+          if (row[colno] == undefined && before >= 0 && tile.count[before] > 0) {
+            row[colno] = tile.mean[before];
           }
         }
       }
