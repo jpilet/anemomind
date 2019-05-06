@@ -85,7 +85,7 @@ function parseDateParam(obj, name, req, res) {
   return undefined;
 }
 
-function overlapingQuery(boatId, start, end) {
+function overlappingQuery(boatId, start, end) {
   return {
     boat: mongoose.Types.ObjectId(boatId),
     start: {"$lt": end},
@@ -93,15 +93,15 @@ function overlapingQuery(boatId, start, end) {
   };
 }
 
-function findOneOverlaping(boatId, start, end) {
+function findOneOverlapping(boatId, start, end) {
   return promisify((cb) =>
                    PerfStat
-                   .findOne(overlapingQuery(boatId, start, end))
+                   .findOne(overlappingQuery(boatId, start, end))
                    .sort({created: -1})
                    .exec(cb))();
 }
 
-module.exports.findOverlaping = async (req, res, next) => {
+module.exports.findOverlapping = async (req, res, next) => {
   const start = parseRequestDate(req.params,'start', req, res);
   if (!start) {
     return;
@@ -119,7 +119,7 @@ module.exports.findOverlaping = async (req, res, next) => {
   }
 
   try {
-    let data = await findOneOverlaping(req.params.boatId, start, end);
+    let data = await findOneOverlapping(req.params.boatId, start, end);
 
     if (data
         && data.type == 'ESA Server'
@@ -138,7 +138,7 @@ module.exports.findOverlaping = async (req, res, next) => {
 
 async function createEsa(req, res, start, end) {
   try {
-    let data = await findOneOverlaping(req.params.boatId, start, end);
+    let data = await findOneOverlapping(req.params.boatId, start, end);
 
     if (data) {
       if (data.status == 'ready') {

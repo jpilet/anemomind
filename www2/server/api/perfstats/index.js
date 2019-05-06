@@ -18,7 +18,7 @@ router.get('/:boatId/:name',
 router.get('/:boatId/:start/:end',
            auth.maybeAuthenticated(),
            access.boatReadAccess,
-           controller.findOverlaping);
+           controller.findOverlapping);
 
 router.post('/:boatId/',
             auth.isAuthenticated(),
