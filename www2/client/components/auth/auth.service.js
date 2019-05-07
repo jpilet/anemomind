@@ -3,6 +3,7 @@
 angular.module('www2App')
   .factory('Auth', function Auth($location, $rootScope, $http, User, $cookieStore, $q, $log) {
     var currentUser = {};
+    var showTab = null;
     if($cookieStore.get('token')) {
       currentUser = User.get();
     }
@@ -158,5 +159,6 @@ angular.module('www2App')
       getToken: function() {
         return $cookieStore.get('token');
       }
+      
     };
   });

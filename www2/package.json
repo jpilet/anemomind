@@ -49,6 +49,7 @@
     "socketio-jwt": "^4.2.0",
     "sqlite3": "^4.0.0",
     "sqlite3-transactions": "0.0.5",
+    "stripe": "^6.28.0",
     "winston": "^2.4.2"
   },
   "devDependencies": {
