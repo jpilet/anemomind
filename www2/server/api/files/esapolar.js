@@ -3,6 +3,7 @@ const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
 const PerfStatSchema = require('../perfstats/perfstats.model');
+const urlFriendlyForm = require('../perfstats/perfstats.controller').urlFriendlyForm;
 
 function readEsaPolar(file) {
   return new Promise((resolve, reject) => {
@@ -153,15 +154,20 @@ function uploadEsaPolar(boat, esaPolar) {
     try {
       const id = mongoose.Types.ObjectId(boat);
 
-      // uniqueness of (boat, name) tuple is ensured by the index
-      PerfStatSchema.create({
+      // uniqueness of (boat, urlName) tuple is ensured by the index
+      // The following will overwrite if urlName already exists.
+      const urlName = urlFriendlyForm(esaPolar.filename);
+      PerfStatSchema.findOneAndUpdate({ urlName: urlName },
+      {
         boat: id,
         name: esaPolar.filename,
+        urlName: urlName,
         type: 'ESA Polar',
         esaDataRegime: esaPolar.regime,
         esaVmgPoints: esaPolar.vmgPoints,
         polar: esaPolar.polare
-      }, (err, createdPerfStats) => {
+      }, { upsert: true },
+      (err, createdPerfStats) => {
         if (err) {
           reject(err);
         } else {

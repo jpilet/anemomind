@@ -71,13 +71,13 @@ angular.module('www2App')
 
 
   $scope.boatId=$stateParams.boatId;
-  $scope.name=$stateParams.name;
+  $scope.urlName=$stateParams.urlName;
 
   boatList.boat($stateParams.boatId)
     .then(function (boat) { $scope.boat = boat; });
 
   $http.get('/api/perfstat/' + $stateParams.boatId
-            + '/' + $stateParams.name)
+            + '/' + $stateParams.urlName)
     .success(function(data, status, headers, config) {
       $scope.perfstat = data;
       $scope.vmgPointsUp = [];
