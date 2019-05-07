@@ -12,14 +12,13 @@ const cachedSubscriptionPlans = {};
 
 // Check if the object is empty or not
 function isEmptyObject(obj) {
-    console.log("priniting the value here : " + Object.keys(obj).length);
     return Object.keys(obj).length;
 }
 
 //Filter the base plan and addons from stripe
 function segregatePlans(plans) {
-    var basePlans = [];
-    var addOns = [];
+    const basePlans = [];
+    const addOns = [];
     plans.forEach(element => {
         if (!!element.metadata.availableAddOns) {
             element.addOns = [];
@@ -29,7 +28,7 @@ function segregatePlans(plans) {
             addOns.push(element);
         }
     });
-    var plans = createSubscriptionPlans(basePlans, addOns);
+    plans = createSubscriptionPlans(basePlans, addOns);
     return plans;
 }
 
@@ -58,7 +57,7 @@ exports.getAllPlans = function (req, res) {
         if (!isEmptyObject(cachedSubscriptionPlans)) {
             stripe.plans.list(function (err, plans) {
                 if (plans) {
-                    var subscrptions = segregatePlans(plans.data);
+                    const subscrptions = segregatePlans(plans.data);
                     res.status(200).json(subscrptions);
                 } else {
                     res.status(400);
