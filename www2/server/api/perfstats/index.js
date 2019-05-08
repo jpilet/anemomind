@@ -15,4 +15,14 @@ router.get('/:boatId/:name',
            access.boatReadAccess,
            controller.show);
 
+router.get('/:boatId/:start/:end',
+           auth.maybeAuthenticated(),
+           access.boatReadAccess,
+           controller.findOverlapping);
+
+router.post('/:boatId/',
+            auth.isAuthenticated(),
+            access.boatWriteAccess,
+            controller.create);
+
 module.exports = router;

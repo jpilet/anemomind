@@ -62,6 +62,7 @@
       <link rel="stylesheet" href="components/footer/footer.css">
       <link rel="stylesheet" href="components/modal/modal.css">
       <link rel="stylesheet" href="components/navbar/navbar.css">
+      <link rel="stylesheet" href="app/pricing/pricing.css">
       <!-- endinjector -->
     <!-- endbuild -->
   </head>
@@ -90,6 +91,9 @@
 
       ga('create', 'UA-XXXXX-X');
       ga('send', 'pageview');
+
+      // Added a temporary variable to show/hide Pricing tab. default value for now : false
+      const showPricingTab = false;
     </script>
 
     <!--[if lt IE 9]>
@@ -194,6 +198,8 @@
           <script src="app/wheelIndicator/wheelIndicator.js"></script>
           <script src="app/wheelSmallIndicator/wheelSmallIndicator.directive.js"></script>
           <script src="app/wheelSmallIndicator/wheelSmallIndicator.js"></script>
+          <script src="app/pricing/pricing.controller.js"></script>
+          <script src="app/pricing/pricing.js"></script>
           <script src="components/auth/auth.service.js"></script>
           <script src="components/auth/user.service.js"></script>
           <script src="components/modal/modal.service.js"></script>

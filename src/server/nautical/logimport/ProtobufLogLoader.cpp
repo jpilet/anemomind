@@ -15,6 +15,16 @@
 namespace sail {
 namespace ProtobufLogLoader {
 
+namespace {
+
+// For all sort of strange reasons, we receive weird dates.
+// we refuse recording older than 2014.
+const TimeStamp kMinValidTime = TimeStamp::UTC(2014, 1, 1, 0, 0, 0);
+// We refuse recording in the future.
+const TimeStamp kMaxValidTime = TimeStamp::now() + Duration<>::hours(24);
+
+}  // namespace
+
 /**
  * Log file loading coded in our format (using protobuf)
  */
@@ -153,7 +163,9 @@ namespace {
     if (times.size() == extTimes.size()) {
       int n = times.size();
       for (int j = 0; j < n; j++) {
-	if (extTimes[j].defined() && times[j].defined()) {
+	if (extTimes[j].defined() && times[j].defined()
+            && extTimes[j] > kMinValidTime
+            && extTimes[j] < kMaxValidTime) {
 	  diffs.push_back(extTimes[j] - times[j]);
 	}
       }

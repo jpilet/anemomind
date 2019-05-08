@@ -10,7 +10,8 @@ module.exports = {
   },
 
   backupWithRsync: false, 
-  endpointDir:'/tmp/endpoints'
+  endpointDir:'/tmp/endpoints',
+
+  //Stripe secret key test mode
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || null
 };
-
-
