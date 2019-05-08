@@ -1,0 +1,75 @@
+# Please refer the DockerREADME.md file 
+# for the details regarding this docker-compose file
+
+version: "3"
+
+services:
+  anemocppserver:
+    build:
+      context: .
+      dockerfile: ./src/server/Dockerfile
+      args:
+        MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
+    volumes:
+      - "shared_lib:/anemomind/lib"
+      - "shared_bin:/anemomind/bin"  
+      - "boat_logs:/anemomind/boat_logs"  
+    networks:
+      - back-tier
+    restart: unless-stopped
+    environment:
+      - WAIT_HOSTS=anemomongo:27017
+    
+
+    links:
+      - anemomongo
+    depends_on:
+      - anemomongo
+
+  anemowebapp:
+    build:
+      context: .
+      dockerfile: ./www2/Dockerfile
+      args:
+        MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
+    command: grunt server:docker-dev --force
+    ports:
+      - "9000:9000"
+    volumes: 
+      - "shared_lib:/anemomind/lib"
+      - "shared_bin:/anemomind/build/src/server/nautical/logimport/"  
+      - "boat_logs:/anemomind/www2/uploads/anemologs"
+    networks:
+      - front-tier
+      - back-tier
+    restart: unless-stopped
+    environment:
+      - WAIT_HOSTS=anemomongo:27017
+      - VHOST=client
+    
+    links:
+      - anemomongo
+    depends_on:
+      - anemomongo
+      - anemocppserver
+
+  anemomongo:
+    image: mvertes/alpine-mongo
+    container_name: anemomongo
+    volumes:
+      - "db-data:/db/data"
+    ports:
+      - "27017:27017"
+    networks:
+      - back-tier
+    restart: unless-stopped
+
+volumes:
+    shared_lib:
+    shared_bin:        
+    boat_logs:
+    db-data:
+
+networks:
+  front-tier:
+  back-tier:

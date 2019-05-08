@@ -2,6 +2,10 @@ var exec = require('child_process').exec;
 var config = require('../../config/environment');
 
 function runRsync(args, cb) {
+
+  if (!config.backupWithRsync) {
+      return cb(null);
+  }
   var baseArgs = [
       'rsync',
       '-e ssh',

@@ -21,31 +21,33 @@ BIN_DIR="@CMAKE_BINARY_DIR@"
 datasetsDir="${SRC_DIR}/datasets"
 boats="AlinghiGC32 Irene psaros33_Banque_Sturdza"
 
+MONGO_URL=${MONGO_URL:=mongodb://localhost:27017/anemomind-dev}
+
 # Insert (or get) test user
 
 set +e
-testUserId=$(mongo --quiet anemomind-dev --eval "print(db.users.find({email:'test@anemomind.com'})[0]._id + '')")
+testUserId=$(mongo --quiet ${MONGO_URL} --eval "print(db.users.find({email:'test@anemomind.com'})[0]._id + '')")
 R=$?
 set -e
 
 if [ $R -ne 0 ]; then
-  mongo --quiet anemomind-dev --eval "db.users.insert({name:'Test User','provider' : 'local', 'name' : 'test', 'email' : 'test@anemomind.com', 'hashedPassword' : 'bj0zHvlC/YIzEFOU7nKwr+OHEzSzfdFA9PMmsPGnWITGHp1zlL+29oa049o6FvuR2ofd8wOx2nBc5e2n2FIIsg==', 'salt' : 'bGwuseqg/L/do6vLH2sPVA==', 'role' : 'user' });"
-  testUserId=$(mongo --quiet anemomind-dev --eval "print(db.users.find({email:'test@anemomind.com'})[0]._id + '')")
+  mongo --quiet ${MONGO_URL} --eval "db.users.insert({name:'Test User','provider' : 'local', 'name' : 'test', 'email' : 'test@anemomind.com', 'hashedPassword' : 'bj0zHvlC/YIzEFOU7nKwr+OHEzSzfdFA9PMmsPGnWITGHp1zlL+29oa049o6FvuR2ofd8wOx2nBc5e2n2FIIsg==', 'salt' : 'bGwuseqg/L/do6vLH2sPVA==', 'role' : 'user' });"
+  testUserId=$(mongo --quiet ${MONGO_URL} --eval "print(db.users.find({email:'test@anemomind.com'})[0]._id + '')")
 fi
 
-mongo --quiet anemomind-dev --eval "db.users.insert({name:'Test Admin','provider' : 'local', 'name' : 'test admin', 'email' : 'admin@anemomind.com', 'hashedPassword' : 'bj0zHvlC/YIzEFOU7nKwr+OHEzSzfdFA9PMmsPGnWITGHp1zlL+29oa049o6FvuR2ofd8wOx2nBc5e2n2FIIsg==', 'salt' : 'bGwuseqg/L/do6vLH2sPVA==', 'role' : 'admin' });" || true
+mongo --quiet ${MONGO_URL} --eval "db.users.insert({name:'Test Admin','provider' : 'local', 'name' : 'test admin', 'email' : 'admin@anemomind.com', 'hashedPassword' : 'bj0zHvlC/YIzEFOU7nKwr+OHEzSzfdFA9PMmsPGnWITGHp1zlL+29oa049o6FvuR2ofd8wOx2nBc5e2n2FIIsg==', 'salt' : 'bGwuseqg/L/do6vLH2sPVA==', 'role' : 'admin' });" || true
 
-adminUserId=$(mongo --quiet anemomind-dev --eval "print(db.users.find({email:'admin@anemomind.com'})[0]._id + '')")
+adminUserId=$(mongo --quiet ${MONGO_URL} --eval "print(db.users.find({email:'admin@anemomind.com'})[0]._id + '')")
 
 for i in ${boats}; do
   echo Searching boat: $i
   set +e
-  boatid=$(mongo --quiet anemomind-dev --eval "print(db.boats.find({name:'${i}'})[0]._id + '')")
+  boatid=$(mongo --quiet ${MONGO_URL} --eval "print(db.boats.find({name:'${i}'})[0]._id + '')")
   R=$?
   set -e
   if [ $R -ne 0 ]; then
-    mongo --quiet anemomind-dev --eval "db.boats.insert({name:'${i}','admins' : [ObjectId('${testUserId}')]})"
-    boatid=$(mongo --quiet anemomind-dev --eval "print(db.boats.find({name:'${i}'})[0]._id + '')")
+    mongo --quiet ${MONGO_URL} --eval "db.boats.insert({name:'${i}','admins' : [ObjectId('${testUserId}')]})"
+    boatid=$(mongo --quiet ${MONGO_URL} --eval "print(db.boats.find({name:'${i}'})[0]._id + '')")
   fi
 
   if test -d "${datasetsDir}/$i/logs"; then
@@ -67,6 +69,6 @@ for i in ${boats}; do
     -t -c \
     || true
 
-  "${BIN_DIR}/src/server/nautical/nautical_catTargetSpeed" --id "${boatid}" "${boatdir}/processed/boat.dat" | mongo anemomind-dev
+  "${BIN_DIR}/src/server/nautical/nautical_catTargetSpeed" --id "${boatid}" "${boatdir}/processed/boat.dat" | mongo ${MONGO_URL}
 
 done
