@@ -175,9 +175,10 @@ function getLogFilesEntry(boatId, name) {
 }
 function getLogFilesEntries(boatId) {
   return new Promise((resolve, reject) => {
-    LogFile.find({
-      boat: mongoose.Types.ObjectId(boatId),
-    }, nodeStyleCallback(resolve, reject));
+    LogFile
+      .find({ boat: mongoose.Types.ObjectId(boatId) })
+      .sort({uploadDate: -1})
+      .exec(nodeStyleCallback(resolve, reject));
   });
 }
 
