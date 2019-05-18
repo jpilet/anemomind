@@ -7,11 +7,15 @@ const auth = require('../../auth/auth.service');
 const router = express.Router();
 
 router.get('/getAllPlans',
-            auth.maybeAuthenticated(),
-            controller.getAllPlans);
+    auth.maybeAuthenticated(),
+    controller.getAllPlans);
 
 router.get('/clearPlans',
-            auth.maybeAuthenticated(),
-            controller.clearPlans);
-            
+    auth.maybeAuthenticated(),
+    controller.clearPlans);
+
+router.post('/subscribe',
+    auth.isAuthenticated(),
+    controller.createSubscription);
+
 module.exports = router;

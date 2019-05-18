@@ -22,7 +22,13 @@ var BoatSchema = new Schema({
 
   // if set, no authentication is required to read this boat data.
   // everybody is a reader.
-  publicAccess: Boolean
+  publicAccess: Boolean,
+
+  // Boat will contain the following subscription details.
+  subscriptionId: String,
+  plan:String,
+  susbcriptionStatus :String,
+  subscriptionOwner: Schema.ObjectId
 });
 
 

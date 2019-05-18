@@ -1,12 +1,20 @@
-
 <div ng-include="'components/navbar/navbar.html'"></div>
 
 <div class="container-fluid">
-    <div class="text-center" >
+    <div class="text-center">
         <h1>Choose a plan to register your boat</h1>
     </div>
     <div class="container">
         <div class="row">
+            <div ng-if="isLoggedIn()">
+                <label for="boat">Select Boat</label>:
+                <select id="boat" ng-model="selectedBoat" name="boat" ng-options="boat.name for boat in boats"
+                    ng-change="changeBoat(boat)">
+                </select>
+                <div ng-if="boatNotSelected">
+                    <label>Please select a boat to register for a plan</label>
+                </div>
+            </div>
             <div class="col-lg-4">
                 <div class="card card-custom panel panel-default-custom">
                     <div class="panel-body">
@@ -19,7 +27,7 @@
                                         class="heading-text"> 0 / year</span></span>
                             </span>
                         </div>
-                        <hr-custom>
+                        <div class="hr-custom"></div>
 
                         <ul><label class="label-text">Available History:</label>
                             <li class="li-text">The last two navigations.</li>
@@ -30,7 +38,7 @@
                             <li class="li-text">1 point per minite.</li>
 
                         </ul>
-                        <hr-custom>
+                        <div class="hr-custom"></div>
                         <div class="div-discovery"></div>
                         <div class="">
                             <button type="button" class="btn btn-red btn-block">
@@ -62,7 +70,7 @@
                                     <p>-per boat</p>
                                 </span>
                             </div>
-                            <hr-custom>
+                            <div class="hr-custom"></div>
 
                             <ul> <label class="label-text">Available History:</label>
                                 <li class="li-text">All Navigation.</li>
@@ -71,7 +79,7 @@
                             <ul><label class="label-text">Sampling Frequancy:</label>
                                 <li class="li-text">1 point per {{plan.metadata.samplingFrequency}}.</li>
                             </ul>
-                            <hr-custom>
+                            <div class="hr-custom"></div>
 
 
                             <div class="div-height">
@@ -100,7 +108,7 @@
                             </div>
 
                             <div class="">
-                                <button type="button" class="btn btn-red btn-block">
+                                <button type="button" class="btn btn-red btn-block" ng-click="subscribe(plan.id)">
                                     <span class="span-padding">Register</span>
                                 </button>
                                 <div class="margin-top">

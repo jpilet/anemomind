@@ -19,7 +19,8 @@ var UserSchema = new Schema({
   facebook: {},
   twitter: {},
   google: {},
-  github: {}
+  github: {},
+  stripuserId:String
 });
 
 /**

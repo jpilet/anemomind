@@ -79,3 +79,67 @@ exports.clearPlans = function (req, res) {
     delete cachedSubscriptionPlans.addOns;
     res.status(200).json(cachedSubscriptionPlans);
 };
+
+
+// Create a subscription for new user.
+exports.createSubscription = function (req, res) {
+    console.log("creating the customer now");
+    const subscription = createStripeUser(req.body.plan, req.body.stripeSource, req.body.email);
+    res.status(200).json(subscription);
+}
+
+
+function createStripeUser(plan, sourceStripeToken, email) {
+    stripe.customers.create(
+        {
+            description: "Creating customer with card details" + email.toString(),
+            email: email
+        },
+        function (err, customer) {
+            if (customer) {
+                console.log("Customer created successfully !! ");
+                //Function to append the stripe Customer id to boat
+                const customerId = customer.id;
+                //once the customer is created then create the source 
+                return createSourceCard(sourceStripeToken, customerId, plan);
+            }
+            else { return err; }
+        }
+    );
+}
+
+
+function createSourceCard(sourceStripeToken, customerId, plan) {
+    console.log("Creating the card object for user");
+    stripe.customers.createSource(
+        customerId,
+        { source: sourceStripeToken },
+        function (err, card) {
+            if (card) {
+                console.log("card object created successully");
+                return subscribetoPlan(customerId, plan);
+            }
+            else { return err; }
+        }
+    );
+}
+
+function subscribetoPlan(customerId, plan) {
+    console.log("Subscribe the user to a plan");
+    stripe.subscriptions.create(
+        {
+            customer: customerId,
+            items: [
+                { plan: plan }
+            ]
+        },
+        function (err, subscription) {
+            if (subscription) {
+                console.log("Customer subscribed successfully !!");
+                return subscription;
+            }
+            else { return err; }
+
+        }
+    );
+}

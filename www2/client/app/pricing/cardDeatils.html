@@ -1,0 +1,45 @@
+<form action="http://192.168.1.109:9000/api/pricing/subscribe" method="post" id="payment-form-broken">
+    <div class="form-row">
+
+        <div class="form-group">
+            <label for="cardNumber"> Card Number </label>
+            <div id="cardNumber" class="form-control">
+                <!-- a stripe element will be inserted here  -->
+            </div>
+            <div id="cardNumber-errors"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="cardExpiry"> Expiry </label>
+            <div id="cardExpiry" class="form-control">
+                <!-- a stripe element will be inserted here  -->
+            </div>
+            <div id="cardExpiry-errors"></div>
+        </div>
+        <div class="form-group">
+            <label for="cardCvc"> CVC </label>
+            <div id="cardCvc" class="form-control">
+                <!-- a stripe element will be inserted here  -->
+            </div>
+            <div id="cardCvc-errors"></div>
+        </div>
+        <div class="form-group">
+            <label for="postalCode"> Zip/Postal Code </label>
+            <div id="postalCode" class="form-control">
+                <!-- a stripe element will be inserted here  -->
+            </div>
+            <div id="postalCode-errors"></div>
+        </div>
+        <label for="email"> Email Address </label>
+        <div>
+            <input id="email" name="email" type="text" class="control">
+        </div>
+
+        <label for="plan"> Plan </label>
+        <div>
+            <input id="plan" name="plan" type="text" class="control">
+        </div>
+    </div>
+
+    <button class="btn btn-primary btn-block">Subscribe</button>
+</form>
