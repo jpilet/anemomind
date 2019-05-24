@@ -123,11 +123,11 @@ dispatcher.setSourcePriority("NMEA2000/0", -10);
 
 // Internal GPS with output to NMEA0183
 var gps = (withGps ?  require('./components/gps') : {readGps:function(){}});
-var rmcExpr = /\$GNRMC(,[^*]*)*\*[A-Z0-9]{2}/g;
+var rmcExpr = /\$GN((RMC)|(VTG))(,[^*]*)*\*[A-Z0-9]{2}/g;
 
 function gpsData(data) {
   if (echoGpsOnNmea) {
-    var s = (data + '').match(rmcExpr).join('\r\n')+'\r\n';
+    var s = (data.toString('ascii')).match(rmcExpr).join('\r\n')+'\r\n';
     nmea0183port.emitNmea0183Sentence(s);
   }
   if (withLogger && logInternalGpsNmea) {
