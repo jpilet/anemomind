@@ -44,7 +44,7 @@ COPY ./CMakeLists.txt /anemomind/CMakeLists.txt
 #    && make -j1 nautical_processBoatLogs logimport_summary anemobox_logcat logimport_try_load nautical_catTargetSpeed
 
 WORKDIR /anemomind/src/server
-RUN mkdir -p /anemomind/build && chmod 755 build.sh && ./build.sh
+RUN mkdir -p /anemomind/build && chmod 755 build.sh && ./build.sh /anemomind/build
 
 WORKDIR /anemomind/build
 RUN mkdir -p /temp/lib \

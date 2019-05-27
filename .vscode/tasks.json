@@ -11,7 +11,7 @@
 	      "root@localhost",
 	      "-p",
 	      "7188",
-	      "/anemomind/src/server/build.sh"
+	      "/anemomind/src/server/build.sh /anemomind/build"
 	    ],
 	    "problemMatcher": [
                 "$gcc"
