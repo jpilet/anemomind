@@ -77,6 +77,7 @@ void Nmea2000Source::HandleMsg(
 
 bool Nmea2000Source::apply(const tN2kMsg &c, const PgnClasses::VesselHeading& packet) {
   if (!packet.hasSomeData()
+      || !packet.reference.defined()
       || !packet.heading.defined()) { return false; }
 
   _dispatcher->publishValue(
@@ -171,7 +172,8 @@ bool Nmea2000Source::apply(const tN2kMsg &c, const PgnClasses::CogSogRapidUpdate
     if (packet.sog.defined()) {
       _dispatcher->publishValue(GPS_SPEED, _lastSourceName, packet.sog.get());
     }
-    if (packet.cog.defined() && packet.cogReference.get() == CogSogRapidUpdate::CogReference::True) {
+    if (packet.cog.defined() && packet.cogReference.defined()
+        && packet.cogReference.get() == CogSogRapidUpdate::CogReference::True) {
       _dispatcher->publishValue(GPS_BEARING, _lastSourceName, packet.cog.get());
     }
     return true;
@@ -203,7 +205,7 @@ bool Nmea2000Source::apply(const tN2kMsg& src, const SystemTime& packet) {
 
 bool Nmea2000Source::apply(const tN2kMsg &c, const PgnClasses::DirectionData& packet) {
   if (packet.hasSomeData()) {
-    if (packet.cog.defined()) {
+    if (packet.cog.defined() && packet.cogReference.defined()) {
       auto cog = packet.cog.get();
       if (packet.cogReference.get() == PgnClasses::DirectionData::CogReference::True) {
         _dispatcher->publishValue(GPS_BEARING, _lastSourceName, cog);
@@ -278,7 +280,7 @@ bool Nmea2000Source::apply(
     const tN2kMsg &c, const PgnClasses::EngineParametersRapidUpdate& packet) {
   if (packet.engineSpeed.defined()) {
     std::string source = _lastSourceName;
-    if (packet.engineInstance.get() ==
+    if (packet.engineInstance.defined() && packet.engineInstance.get() ==
         EngineParametersRapidUpdate::EngineInstance::Dual_Engine_Starboard) {
       source += " starboard";
     }
