@@ -15,13 +15,9 @@ router.get('/clearPlans',
     auth.maybeAuthenticated(),
     controller.clearPlans);
 
-router.post('/subscribe/:boatId',
+router.post('/subscribe',
     auth.isAuthenticated(),
     //access.boatWriteAccess,
     controller.createSubscription);
-
-router.get('/test',
-    //auth.isAuthenticated, 
-    controller.testRequest);
 
 module.exports = router;

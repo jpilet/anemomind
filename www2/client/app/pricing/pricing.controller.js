@@ -2,10 +2,15 @@ angular.module('www2App')
   .controller('PricingCtrl', function ($scope, $http, Auth, boatList) {
     $scope.isLoggedIn = Auth.isLoggedIn;
     $scope.plans = [];
+    $scope.selectedPlan = "";
     $scope.plansLoaded = false;
-    $scope.selectedBoat = "";
+    $scope.selectedBoat = {
+      model: null,
+      boats: []
+    };
     $scope.boatNotSelected = false;
     $scope.isPlanSelected = false;
+    $scope.processingRequest = false;
 
     // Get all the plans
     $http.get("/api/pricing/getAllPlans")
@@ -16,12 +21,11 @@ angular.module('www2App')
 
     // Get the list of boats for the current user
     // Will work only in case of the user is logged in
-    if ($scope.isLoggedIn()) {
-      boatList.boats().then(function (boats) {
-        $scope.boats = boats;
-        console.log(boats);
-      });
-    }
+
+    boatList.boats().then(function (boats) {
+      $scope.selectedBoat.boats = boats;
+      console.log(boats);
+    });
 
     // Need this just in case if the  user does not select any boat.
     $scope.changeBoat = function (boat) {
@@ -32,12 +36,13 @@ angular.module('www2App')
     // Subscribe the user to a plans
     $scope.subscribe = function (id) {
       console.log($scope.selectedBoat);
-      if (!!$scope.selectedBoat) {
-        alert("Redirecting to the new page shortly")
-      }
-      else {
-        $scope.boatNotSelected = true;
-      }
+      // if (!!$scope.selectedBoat) {
+      //   alert("Redirecting to the new page shortly")
+      // }
+      // else {
+      //   $scope.boatNotSelected = true;
+      // }
+      $scope.selectedPlan = id;
       $scope.getUserDetails();
     }
 
@@ -50,7 +55,6 @@ angular.module('www2App')
     $scope.cancel = function () {
       $scope.isPlanSelected = false;
     }
-
 
     // Create a Stripe client
     $scope.stripe = Stripe("pk_test_pBkRxSoJGZwe2JWkKmxVbz9M");
@@ -167,17 +171,32 @@ angular.module('www2App')
       data.stripeSource = source.id;
       data.email = document.getElementById("email").value;
       data.country = document.getElementById("country").value;
-      data.plan = "navigation_memories_base_plan_chf";
-
+      data.plan = $scope.selectedPlan;
+      data.boatId = $scope.selectedBoat.model;
       // Submit the form
       $scope.subscribeUser(data);
     }
 
     $scope.subscribeUser = function (data) {
+      $scope.processingRequest = true;
       $http.post("/api/pricing/subscribe", data)
         .then(function (response) {
           console.log(response);
+          if (response.data.latest_invoice.payment_intent.status === 'requires_action') {
+            $scope.stripe.handleCardPayment(response.data.latest_invoice.payment_intent.client_secret).then(function (result) {
+              if (result.error) {
+                $scope.processingRequest = true;
+                alert(result.error)
+              } else {
+                $scope.processingRequest = true;
+                alert("Success");
+              }
+            });
+          }
+          else if (response.data.latest_invoice.payment_intent.status === 'succeeded') {
+            $scope.processingRequest = true;
+            alert("Success");
+          }
         });
     }
-
   });

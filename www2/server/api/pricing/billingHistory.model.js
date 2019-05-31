@@ -1,10 +1,11 @@
+
 'use strict';
 
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-var BillingSchema = new Schema({
-  subscriptionId: String,
+var BillingHistorySchema = new Schema({
+  subscriptionId: String, // subscriptionId + plan
   plan: String,
   susbcriptionStatus: String,
   subscriptionOwner: Schema.ObjectId,
@@ -16,4 +17,4 @@ var BillingSchema = new Schema({
   hostedInvoiceLink: String
 });
 
-module.exports = mongoose.model('Billing', BillingSchema);
+module.exports = mongoose.model('BillingHistory', BillingHistorySchema);

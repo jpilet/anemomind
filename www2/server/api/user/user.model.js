@@ -20,7 +20,7 @@ var UserSchema = new Schema({
   twitter: {},
   google: {},
   github: {},
-  stripuserId:String
+  stripeUserId:String
 });
 
 /**
