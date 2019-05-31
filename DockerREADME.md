@@ -101,6 +101,13 @@ Steps to build Cpp Server on **_anemomind_anemocppserver_1_** container:
    ```
    b. In anemomind_anemocppserver_1 container type: ```passwd```  
 
+   NOTE: user can also use key-based authentication by copying security keys to container as:  
+
+   ```
+   ssh-copy-id -p 7188 root@localhost
+   ```
+
+
 2. On host machine:  
    a. Open anemomind project in VS Code IDE, make required changes on cpp server code and save the changes.  
    b. Press ```ctrl+shift+B```, a popup with name ```build``` will appear, click on the popup.  
