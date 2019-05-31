@@ -65,6 +65,7 @@ function nmeaPacket(data) {
   if (hexsum.length == 1) {
     hexsum = "0" + hexsum;
   }
+  hexsum = hexsum.toUpperCase();
 
   return "$" + data + "*" + hexsum + "\r\n";
 }
@@ -136,8 +137,8 @@ function update() {
       nmea += tacktickPageData(2, perf.targetVmg.toFixed(1));
     }
     if (rateLimitedAction('sendCustomPage', 20000)) {
-        nmea += tacktickCustomPage(1, "VMGPRF", "PERCENT") +
-          tacktickCustomPage(2, "VMGTGT", "KNOTS");
+      nmea += tacktickCustomPage(1, "VMGPRF", "PERCENT") +
+        tacktickCustomPage(2, "VMGTGT", "KNOTS");
     }
   }
   if (nmea) {
