@@ -48,6 +48,3 @@ RUN chmod +x /wait && \
 mkdir -p uploads
 
 EXPOSE 9000
-
-
-# CMD [ "npm", "start" ]
