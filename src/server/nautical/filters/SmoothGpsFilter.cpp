@@ -16,8 +16,12 @@
 #include <server/common/Span.h>
 #include <server/common/DOMUtils.h>
 #include <server/nautical/WGS84.h>
+
+#ifdef WITH_CAIRO
 #include <server/plot/PlotUtils.h>
 #include <server/plot/CairoUtils.h>
+#endif
+
 #include <server/math/Curve2dFilter.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/indexed.h>
@@ -216,6 +220,7 @@ void visualizeRawLocalGaps(
     const Array<TimedValue<Length<double>>>& gaps,
     const Array<TimedValue<Length<double>>>& filteredGaps,
     DOM::Node* dst) {
+#ifdef WITH_CAIRO
   if (dst->defined()) {
     auto subpage = DOM::linkToSubPage(dst, "Gap plot");
     Poco::Path p = DOM::makeGeneratedImageNode(&subpage, ".svg");
@@ -229,6 +234,7 @@ void visualizeRawLocalGaps(
     }, "Index", "Gap (meters)", setup.cr.get());
     std::cout << "Done rendering" << std::endl;
   }
+#endif
 }
 
 struct LargeGap {
@@ -544,6 +550,7 @@ Array<Eigen::Vector2d> toV2(
 void outputLocalResults(
     const LocalGpsFilterResults& r,
     DOM::Node *dst) {
+#ifdef WITH_CAIRO
   auto page = DOM::linkToSubPage(dst, "Trajectory");
   auto imageFilename = DOM::makeGeneratedImageNode(
       &page, ".svg").toString();
@@ -561,6 +568,7 @@ void outputLocalResults(
       Cairo::plotLineStrip(cr, pts);
     }
   }, "X", "Y", setup.cr.get());
+#endif
 }
 
 template <typename T>

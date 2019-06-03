@@ -4,9 +4,11 @@
 # or (on edison)
 # mkdir build; cd build; cmake -DFULL_BUILD=OFF ..
 #
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.9)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+set(Protobuf_USE_STATIC_LIBS ON)
 
 include("cmake/FindCXXFeatures.cmake")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_COMPILER_FLAGS} -march=native")
@@ -84,6 +86,16 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_BINARY_DIR}/src)
 
 add_definitions("-DON_SERVER")
+
+if (STATIC_LINK)
+  link_libraries("-static")
+
+  # We can't use boost static without static linking
+  set(Boost_USE_STATIC_LIBS   ON)
+  set(WITH_CAIRO OFF)
+else (STATIC_LINK)
+  set(WITH_CAIRO ON)
+endif (STATIC_LINK)
 
 add_subdirectory(src)
 

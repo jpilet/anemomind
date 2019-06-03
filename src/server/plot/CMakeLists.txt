@@ -1,5 +1,3 @@
-if (CAIRO_LIBRARIES)
-
 add_library(plot_gnuplot
   extra.h
   extra.cpp
@@ -7,6 +5,8 @@ add_library(plot_gnuplot
   gnuplot_i.cpp)
 
 target_link_libraries(plot_gnuplot common_string)
+
+if (WITH_CAIRO)
 
 #################################################################
 ### GnuplotExample

@@ -58,8 +58,10 @@ ExternalProject_Add_Step(mongo_ext after_install
     DEPENDEES install
 )
 
+ExternalProject_Add_StepTargets(mongo_ext after_install)
+
 function(target_depends_on_mongoc target)
-    add_dependencies(${target} mongo_ext)
+    add_dependencies(${target} mongo_ext mongo_ext-after_install)
 endfunction()
 
 endif (MONGO_C_BUILD_STATUS MATCHES "MONGO_C_BUILT")

@@ -340,6 +340,7 @@ cxx_test(common_PositiveModTest
          PositiveModTest.cpp
          gtest_main
         )
+target_depends_on_ceres(common_PositiveModTest)
 
 cxx_test(common_MultiMergeTest
          MultiMergeTest.cpp

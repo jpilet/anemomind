@@ -1,14 +1,14 @@
 include(ExternalProject)
 
 ExternalProject_Add(poco_ext
-        URL "http://pocoproject.org/releases/poco-1.6.0/poco-1.6.0-all.tar.gz"
+        URL "https://pocoproject.org/releases/poco-1.9.0/poco-1.9.0.tar.gz"
         BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/poco-build-src"
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/poco-build-src"
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/poco-install"
         CONFIGURE_COMMAND "${CMAKE_BINARY_DIR}/third-party/poco-build-src/configure"
             "--prefix=${CMAKE_BINARY_DIR}/third-party/poco-install"
             "--omit=Data/MySQL,Data/ODBC,NetSSL_OpenSSL,Crypto"
-            "--no-tests" "--no-samples"
+            "--no-tests" "--no-samples" "--static"
         UPDATE_COMMAND ""
         INSTALL_COMMAND make install
         )
@@ -26,9 +26,12 @@ else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 endif ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 
 
+find_package (Threads)
+
 function(target_depends_on_poco_json target)
     add_dependencies(${target} poco_ext)
-    target_link_libraries(${target} PocoJSON${POCO_SUFFIX} PocoFoundation${POCO_SUFFIX})
+    target_link_libraries(${target}
+      PocoJSON${POCO_SUFFIX} PocoFoundation${POCO_SUFFIX} ${CMAKE_THREAD_LIBS_INIT})
     set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
                  "${CMAKE_BINARY_DIR}/third-party/poco-install/include")
     set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
@@ -37,7 +40,7 @@ endfunction()
 
 function(target_depends_on_poco_foundation target)
     add_dependencies(${target} poco_ext)
-    target_link_libraries(${target} PocoFoundation${POCO_SUFFIX})
+    target_link_libraries(${target} PocoFoundation${POCO_SUFFIX} ${CMAKE_THREAD_LIBS_INIT})
     set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
                  "${CMAKE_BINARY_DIR}/third-party/poco-install/include")
     set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
@@ -46,7 +49,7 @@ endfunction()
 
 function(target_depends_on_poco_util target)
     add_dependencies(${target} poco_ext)
-    target_link_libraries(${target} PocoUtil${POCO_SUFFIX})
+    target_link_libraries(${target} PocoUtil${POCO_SUFFIX} ${CMAKE_THREAD_LIBS_INIT})
     set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
                  "${CMAKE_BINARY_DIR}/third-party/poco-install/include")
     set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
@@ -55,7 +58,7 @@ endfunction()
 
 function(target_depends_on_poco_xml target)
     add_dependencies(${target} poco_ext)
-    target_link_libraries(${target} PocoXML${POCO_SUFFIX})
+    target_link_libraries(${target} PocoXML${POCO_SUFFIX} ${CMAKE_THREAD_LIBS_INIT})
     set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
                  "${CMAKE_BINARY_DIR}/third-party/poco-install/include")
     set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
