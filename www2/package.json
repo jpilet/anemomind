@@ -51,7 +51,9 @@
     "sqlite3": "^4.0.0",
     "sqlite3-transactions": "0.0.5",
     "stripe": "^6.28.0",
-    "winston": "^2.4.2"
+    "winston": "^2.4.2",
+    "country-list": "^2.1.1",
+    "enum": "^2.5.0"
   },
   "devDependencies": {
     "connect-livereload": "^0.6.0",

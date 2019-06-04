@@ -1,5 +1,5 @@
 angular.module('www2App')
-  .controller('PricingCtrl', function ($scope, $http, Auth, boatList) {
+  .controller('PricingCtrl', function ($scope, $http, $location, Auth, boatList) {
     $scope.isLoggedIn = Auth.isLoggedIn;
     $scope.plans = [];
     $scope.selectedPlan = "";
@@ -7,6 +7,11 @@ angular.module('www2App')
     $scope.selectedBoat = {
       model: null,
       boats: []
+    }
+    // Model and country list
+    $scope.countries = {
+      selectedCountry: null,
+      countries: []
     };
     $scope.boatNotSelected = false;
     $scope.isPlanSelected = false;
@@ -19,36 +24,51 @@ angular.module('www2App')
         $scope.plansLoaded = true;
       });
 
-    // Get the list of boats for the current user
-    // Will work only in case of the user is logged in
+    // get the list of countries
+    $http.get("/api/pricing/getCountries")
+      .then(function (response) {
+        console.log(response);
+        $scope.countries.countries = response.data;
+      });
 
+    if ($scope.isLoggedIn()) {
+      var user = Auth.getCurrentUser();
+      $scope.name = user.name;
+      $scope.email = user.email;
+    }
+
+    // if the $location.$$search.boatId is undefined the model value will be set as null
+    if (!!$location.search) {
+      $scope.selectedBoat.model = $location.$$search.boatId;
+    }
+
+    // Get the list of boats for the current user
     boatList.boats().then(function (boats) {
       $scope.selectedBoat.boats = boats;
       console.log(boats);
     });
 
-    // Need this just in case if the  user does not select any boat.
-    $scope.changeBoat = function (boat) {
-      $scope.selectedBoat = boat;
+    // Change the value in url on boat selection
+    $scope.changeBoat = function () {
+      $location.search("boatId", $scope.selectedBoat.model);
       $scope.boatNotSelected = false;
+      $scope.selectedBoat.boats.forEach(function (element) {
+        if (element._id === $scope.selectedBoat.model) {
+          $scope.boatName = element.name;
+        }
+      });
     }
 
     // Subscribe the user to a plans
     $scope.subscribe = function (id) {
       console.log($scope.selectedBoat);
-      // if (!!$scope.selectedBoat) {
-      //   alert("Redirecting to the new page shortly")
-      // }
-      // else {
-      //   $scope.boatNotSelected = true;
-      // }
       $scope.selectedPlan = id;
-      $scope.getUserDetails();
-    }
-
-    // Navigate the user to details page only if he is logged in 
-    $scope.getUserDetails = function () {
-      $scope.isPlanSelected = true;
+      if ($scope.selectedBoat.model !== 'undefined' && $scope.selectedBoat.model !== null) {
+        $scope.isPlanSelected = true;
+      }
+      else {
+        $scope.boatNotSelected = true;
+      }
     }
 
     // Take the user back to the plans page.
@@ -200,3 +220,4 @@ angular.module('www2App')
         });
     }
   });
+  

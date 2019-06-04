@@ -8,7 +8,7 @@ var access = require('../boat/access');
 const router = express.Router();
 
 router.get('/getAllPlans',
-    auth.isAuthenticated(),
+    auth.maybeAuthenticated(),
     controller.getAllPlans);
 
 router.get('/clearPlans',
@@ -19,5 +19,9 @@ router.post('/subscribe',
     auth.isAuthenticated(),
     //access.boatWriteAccess,
     controller.createSubscription);
+
+router.get('/getCountries',
+    auth.maybeAuthenticated(),
+    controller.getCountries);
 
 module.exports = router;

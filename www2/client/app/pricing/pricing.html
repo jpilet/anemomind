@@ -1,16 +1,21 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
 <div class="container-fluid">
-    <div class="text-center">
-        <h1>Choose a plan to register your boat</h1>
+    <div class="text-center" ng-if="!isPlanSelected && !processingRequest">
+        <h1>Choose a plan to register {{boatName}} boat</h1>
+    </div>
+    <div class="text-center" ng-if="isPlanSelected && !processingRequest">
+        <h1>Subscribing plan for {{boatName}}</h1>
     </div>
     <div class="container">
         <div class="row">
             <div ng-if="isLoggedIn()">
-                <label for="boat">Select Boat</label>:
-                <select name="boat" id="boat" ng-model="selectedBoat.model">
-                    <option ng-repeat="option in selectedBoat.boats" value="{{option._id}}">{{option.name}}</option>
-                  </select>
+                <div ng-if="!isPlanSelected">
+                    <label for="boat">Select Boat</label>:
+                    <select name="boat" id="boat" ng-model="selectedBoat.model" ng-change="changeBoat()">
+                        <option ng-repeat="option in selectedBoat.boats" value="{{option._id}}">{{option.name}}</option>
+                    </select>
+                </div>
 
                 <div ng-show="boatNotSelected">
                     <label>Please select a boat to register for a plan</label>
@@ -126,7 +131,36 @@
             <div ng-show="isPlanSelected && !processingRequest">
                 <form id="payment-form-broken">
                     <div class="form-row">
-                        <div class="col-sm-6">
+                        <div class="col-sm-6 btn-margin">
+                            <label for="name"> Name </label>
+                            <div class="form-group">
+                                <input id="name" ng-model="name" name="name" class="form-control" type="text"
+                                    class="control">
+                            </div>
+
+                            <label for="email"> Email </label>
+                            <div class="form-group">
+                                <input id="email" name="email" ng-model="email" class="form-control" type="text"
+                                    class="control">
+                            </div>
+
+                            <label for="address"> Address </label>
+                            <div class="form-group">
+                                <input id="address" name="address" class="form-control" type="text" class="control">
+                            </div>
+
+                            <label for="pincode"> Pincode </label>
+                            <div class="form-group">
+                                <input id="pincode" name="pincode" class="form-control" type="text" class="control">
+                            </div>
+
+                            <label class="label-margin" for="country"> Country </label>
+                            <select name="country" id="country" ng-model="countries.selectedCountry">
+                                <option value="">Select a Country </option>
+                                <option ng-repeat="option in countries.countries" value="{{option.name}}">
+                                    {{option.name}}</option>
+                            </select>
+
                             <div class="form-group">
                                 <label for="cardNumber"> Card Number </label>
                                 <div id="cardNumber" class="form-control">
@@ -155,15 +189,6 @@
                                     <!-- a stripe element will be inserted here  -->
                                 </div>
                                 <div id="postalCode-errors"></div>
-                            </div>
-                            <label for="email"> Email Address </label>
-                            <div>
-                                <input id="email" name="email" type="text" class="control">
-                            </div>
-
-                            <label for="country"> Country </label>
-                            <div>
-                                <input id="country" name="country" type="text" class="control">
                             </div>
                         </div>
                     </div>

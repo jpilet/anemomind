@@ -8,8 +8,13 @@ const mongoose = require('mongoose');
 const User = require('./../user/user.model');
 // get boat schema to upadte object
 const boat = require('./../boat/boat.model');
-
+// update the billingHistory model after listening from webhook
 const Billing = require('./billingHistory.model');
+// get the list of countries
+const { getData } = require('country-list');
+
+// Subscription status enum
+const status = require('./subscriptionStatusEnum')
 
 // To check if the stripe key is present or not
 const isStripeKeyPresent = env.stripeSecretKey ? true : false;
@@ -61,8 +66,6 @@ function createSubscriptionPlans(baseplans, addOns) {
 
 // Get list of plans
 exports.getAllPlans = function (req, res) {
-    // console.log(req.user);
-    // saveUserDetails(req, res);
     if (isStripeKeyPresent) {
         if (!isEmptyObject(cachedSubscriptionPlans)) {
             stripe.plans.list(function (err, plans) {
@@ -96,7 +99,7 @@ exports.createSubscription = function (req, res) {
     console.log("creating the customer now");
     let user = req.user;
     let details = req.body;
-    console.log(details)
+    // check if the customer has a stripe account or not already
     if (!!user.stripeUserId) {
         subscribetoPlan(user.stripeUserId, req.body.plan, res, req, user, req.body.boatId);
     }
@@ -105,15 +108,10 @@ exports.createSubscription = function (req, res) {
     }
 }
 
-// async function createSubscription(req, res) {
-//     console.log("creating the customer now");
-//     let paymentIntentObject = req.body.clientSecret;
-//     let user = await createStripeUser(req.body.plan, req.body.stripeSource, req.body.email, req, res);
-//     //let source = createSourceCard(req.body.stripeSource, user.id, "navigation_memories_base_plan_chf", res);
-//     let subscription = await (user.id, "navigation_memories_base_plan_chf", res);
-//     res.status(200).json(subscription);
-// }
-
+// list of countries.
+exports.getCountries = function (req, res) {
+    res.status(200).json(getData());
+}
 
 async function createStripeUser(plan, sourceStripeToken, email, res, req, user, boatId) {
     stripe.customers.create(
@@ -127,7 +125,6 @@ async function createStripeUser(plan, sourceStripeToken, email, res, req, user, 
                 //Function to append the stripe Customer id to boat
                 const customerId = customer.id;
                 //once the customer is created then create the source 
-                //return customer;
                 return createSourceCard(sourceStripeToken, customerId, plan, res, req, user, boatId);
             }
             else { res.status(500).json(err); }
@@ -165,7 +162,7 @@ async function subscribetoPlan(customerId, plan, res, req, user, boatId) {
             if (subscription) {
                 console.log("Customer subscribed successfully !!");
 
-                return updateUser(subscription, res, req, user, boatId);
+                return updateUser(subscription, res, req, boatId);
             }
             else { res.status(500).json(err); }
         }
@@ -173,11 +170,7 @@ async function subscribetoPlan(customerId, plan, res, req, user, boatId) {
 }
 
 
-exports.testRequest = function (req, res) {
-    saveUserDetails(req, res);
-}
-
-async function updateUser(subscription, res, req, user, boatId) {
+async function updateUser(subscription, res, req, boatId) {
     try {
         User.findById(req.user._id, function (err, user) {
             if (err) {
@@ -199,7 +192,7 @@ async function updateUser(subscription, res, req, user, boatId) {
                         });
                     }
                     console.log("User details update succefully " + user.name);
-                    return updateBoat(subscription, req, res, boatId, user);
+                    return updateBoat(subscription, res, boatId, user);
                 });
             }
         });
@@ -209,7 +202,7 @@ async function updateUser(subscription, res, req, user, boatId) {
     }
 }
 
-async function updateBoat(subscription, req, res, boatId, user) {
+async function updateBoat(subscription, res, boatId, user) {
     boat.findById(boatId, function (err, boat) {
         if (err) {
             console.log("Boat not found");
@@ -223,7 +216,7 @@ async function updateBoat(subscription, req, res, boatId, user) {
             boat.stripeUserId = subscription.customer;
             boat.subscriptionId = subscription.id;
             boat.plan = subscription.items.data[0].plan.id;
-            boat.susbcriptionStatus = "open";
+            boat.susbcriptionStatus = status.statusEnum.getValue("OPEN");
             boat.subscriptionOwner = user._id;
             boat.save(function (err) {
                 if (err) {
