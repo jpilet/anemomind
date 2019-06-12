@@ -32,7 +32,7 @@ services:
       dockerfile: ./www2/Dockerfile
       args:
         MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
-    command: grunt server:docker-dev --force
+    command: grunt serve:docker-dev --force
     ports:
       - "9000:9000"
     volumes: 
