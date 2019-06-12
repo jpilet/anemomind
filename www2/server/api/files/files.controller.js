@@ -86,7 +86,7 @@ function getDetailsForFiles(dir, files) {
 function addFileCacheEntry(dir, filename, boatId, size, date, user) {
   return new Promise(async (resolve, reject) => {
     try {
-      const logFile = new LogFile();
+      const logFile = {};
       logFile.name = filename;
       logFile.size = size;
       logFile.boat = new mongoose.Types.ObjectId(boatId);
@@ -119,17 +119,23 @@ function addFileCacheEntry(dir, filename, boatId, size, date, user) {
           logFile.duration_sec = details[0].duration_sec;
         }
       }
-      delete logFile._id;
 
-      // Update or insert the document. When trying to use
-      // "findOneAndUpdate", I get:
-      // MongoError: Performing an update on the path '_id' would modify the immutable field '_id'
-      // So... delete first.
       await new Promise((resolve) => {
-        LogFile.deleteOne({name: filename, boat: logFile.boat}, resolve);
+        LogFile.findOneAndUpdate(
+          { name: logFile.name, boat: logFile.boat },
+          { $set: logFile },
+          { upsert: true, returnNewDocument: true },
+          function (err, doc) {
+            if (err){
+              console.log(err);
+              reject(err);
+            }
+            else
+              console.log(doc);
+      });
       });
 
-      logFile.save(nodeStyleCallback(resolve, reject));
+      
     } catch(err) {
       reject(err);
     }
