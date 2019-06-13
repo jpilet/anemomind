@@ -50,6 +50,10 @@
           <th>Duration</th>
           <td>{{ file.duration_sec | timeSpan }}</td>
         </tr>
+        <tr ng-show="file.uploadDate">
+          <th>Upload date</th>
+          <td>{{ file.uploadDate | date:'medium' }}</td>
+        </tr>
         <tr ng-repeat="w in warnings">
           <th><i class="glyphicon glyphicon-warning-sign orange"></i></th>
           <td>{{ w }}</td>
