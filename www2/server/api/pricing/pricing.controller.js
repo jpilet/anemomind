@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 // get user schema to upadte object  
 const User = require('./../user/user.model');
 // get boat schema to upadte object
-const boat = require('./../boat/boat.model');
+const Boat = require('./../boat/boat.model');
 // update the billingHistory model after listening from webhook
 const Billing = require('./billingHistory.model');
 // get the list of countries
@@ -95,16 +95,37 @@ exports.clearPlans = function (req, res) {
 
 
 // Create a subscription for new user.
-exports.createSubscription = function (req, res) {
+exports.createSubscription = async function (req, res) {
     console.log("creating the customer now");
     let user = req.user;
     let details = req.body;
     // check if the customer has a stripe account or not already
     if (!!user.stripeUserId) {
         subscribetoPlan(user.stripeUserId, req.body.plan, res, req, user, req.body.boatId);
-    }
+    } 
     else {
-        createStripeUser(req.body.plan, req.body.stripeSource, req.body.email, res, req, user, req.body.boatId);
+        let result =  await createStripeUser(req.body.email);
+        // check if customer created successfully or not 
+        if (!!customer.id) {
+            // create card object now - need this if the user updates the plan, need to charge him immidiately
+            let sourceCard = await createSourceCard(customer.id, req.body.plan);
+            if (!!sourceCard.id) {
+                // now make the customer subscribe to plan/s based on selection on UI
+                let subscription =  await  subscribetoPlan(customer.id, req.body.plan);
+                if (!!subscription.id) {
+                    // make call to update user and customer.
+                }
+                else {
+                    res.status(500).json({ "message": "Error during subscribing to plan", "error": subscription });
+                }
+            }
+            else {
+                res.status(500).json({ "message": "Error during creating source", "error": sourceCard });
+            }
+        }
+        else {
+            res.status(500).json({ "message": "Error during creating customer", "error": result });
+        }
     }
 }
 
@@ -113,88 +134,88 @@ exports.getCountries = function (req, res) {
     res.status(200).json(getData());
 }
 
-async function createStripeUser(plan, sourceStripeToken, email, res, req, user, boatId) {
-    stripe.customers.create(
-        {
-            description: "Creating customer with card details" + email.toString(),
-            email: email
-        },
-        function (err, customer) {
-            if (customer) {
-                console.log("Customer created successfully !! ");
-                //Function to append the stripe Customer id to boat
-                const customerId = customer.id;
-                //once the customer is created then create the source 
-                return createSourceCard(sourceStripeToken, customerId, plan, res, req, user, boatId);
+function createStripeUser(email) {
+    return new Promise((resolve, reject) => {
+        stripe.customers.create(
+            {
+                description: "Creating customer with card details" + email.toString(),
+                email: email
+            },
+            function (err, customer) {
+                if (customer) {
+                    console.log("Customer created successfully !! ");
+                    resolve(customer);
+                }
+                else {
+                    console.log(err);
+                    reject(err);
+                }
             }
-            else { res.status(500).json(err); }
-        }
-    );
+        );
+    });
 }
 
 
-async function createSourceCard(sourceStripeToken, customerId, plan, res, req, user, boatId) {
+function createSourceCard(sourceStripeToken, customerId) {
     console.log("Creating the card object for user");
-    stripe.customers.createSource(
-        customerId,
-        { source: sourceStripeToken },
-        function (err, card) {
-            if (card) {
-                console.log("card object created successully");
-                return subscribetoPlan(customerId, plan, res, req, user, boatId);
+    return new Promise((resolve, reject) => {
+        stripe.customers.createSource(
+            customerId,
+            { source: sourceStripeToken },
+            function (err, card) {
+                if (card) {
+                    console.log("card object created successully");
+                    resolve(card);
+                }
+                else {
+                    console.log(err);
+                    reject(err);
+                }
             }
-            else { res.status(500).json(err); }
-        }
-    );
+        );
+    });
 }
 
-async function subscribetoPlan(customerId, plan, res, req, user, boatId) {
-    console.log("Subscribe the user to a plan");
-    stripe.subscriptions.create(
-        {
-            customer: customerId,
-            items: [
-                { plan: plan }
-            ],
-            expand: ['latest_invoice.payment_intent']
-        },
-        function (err, subscription) {
-            if (subscription) {
-                console.log("Customer subscribed successfully !!");
-
-                return updateUser(subscription, res, req, boatId);
+function subscribetoPlan(customerId, plan) {
+    return new Promise((resolve, reject) => {
+        console.log("Subscribe the user to a plan");
+        stripe.subscriptions.create(
+            {
+                customer: customerId,
+                items: [
+                    { plan: plan }
+                ],
+                expand: ['latest_invoice.payment_intent']
+            },
+            function (err, subscription) {
+                if (subscription) {
+                    console.log("Customer subscribed successfully !!");
+                    resolve(subscription);
+                }
+                else {
+                    console.log(err);
+                    reject(err);
+                }
             }
-            else { res.status(500).json(err); }
-        }
-    );
+        );
+    });
 }
 
 
-async function updateUser(subscription, res, req, boatId) {
+function updateUser(subscription, res, req, boatId) {
     try {
-        User.findById(req.user._id, function (err, user) {
+        let user = req.user;
+        user.stripeUserId = subscription.customer;
+        user.save(function (err) {
             if (err) {
-                console.log("User not found");
                 console.log(err);
-                return res.status(404).json({
-                    message: 'User not Found',
+                return res.status(400).json({
+                    message: 'Error while updating user details',
                     err: err
                 });
             }
-            else if (user) {
-                user.stripeUserId = subscription.customer;
-                user.save(function (err) {
-                    if (err) {
-                        console.log(err);
-                        return res.status(400).json({
-                            message: 'Error while updating user details',
-                            err: err
-                        });
-                    }
-                    console.log("User details update succefully " + user.name);
-                    return updateBoat(subscription, res, boatId, user);
-                });
-            }
+            console.log("User details update succefully " + user.name);
+            return updateBoat(subscription, res, boatId, user);
         });
     }
     catch (e) {
@@ -202,8 +223,8 @@ async function updateUser(subscription, res, req, boatId) {
     }
 }
 
-async function updateBoat(subscription, res, boatId, user) {
-    boat.findById(boatId, function (err, boat) {
+function updateBoat(subscription, res, boatId, user) {
+    Boat.findById(boatId, function (err, boat) {
         if (err) {
             console.log("Boat not found");
             console.log(err);
@@ -215,8 +236,9 @@ async function updateBoat(subscription, res, boatId, user) {
         else if (boat) {
             boat.stripeUserId = subscription.customer;
             boat.subscriptionId = subscription.id;
+            // need to write a function to get the plans names from the suscription object
             boat.plan = subscription.items.data[0].plan.id;
-            boat.susbcriptionStatus = status.statusEnum.getValue("OPEN");
+            boat.susbcriptionStatus = status.statusEnum.OPEN;
             boat.subscriptionOwner = user._id;
             boat.save(function (err) {
                 if (err) {

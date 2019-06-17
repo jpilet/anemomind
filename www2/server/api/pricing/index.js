@@ -3,7 +3,7 @@
 const express = require('express');
 const controller = require('./pricing.controller');
 const auth = require('../../auth/auth.service');
-var access = require('../boat/access');
+const access = require('../boat/access');
 
 const router = express.Router();
 

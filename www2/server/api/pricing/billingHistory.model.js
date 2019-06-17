@@ -1,10 +1,10 @@
 
 'use strict';
 
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-var BillingHistorySchema = new Schema({
+const BillingHistorySchema = new Schema({
   subscriptionId: String, // subscriptionId + plan
   plan: String,
   susbcriptionStatus: String,
@@ -14,7 +14,8 @@ var BillingHistorySchema = new Schema({
   date: Date,
   amount: Number,
   currency: String,
-  hostedInvoiceLink: String
+  hostedInvoiceLink: String,
+  boaatId: Schema.ObjectId
 });
 
 module.exports = mongoose.model('BillingHistory', BillingHistorySchema);
