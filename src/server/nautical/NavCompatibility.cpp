@@ -12,6 +12,7 @@
 #include <server/common/Functional.h>
 #include <server/common/LineKM.h>
 #include <server/common/Span.h>
+#include <server/common/logging.h>
 #include <server/nautical/NavCompatibility.h>
 #include <server/nautical/WGS84.h>
 #include <server/plot/extra.h>
@@ -222,6 +223,11 @@ bool isValidNavBoundaryIndex(const NavDataset &ds, int i) {
   return 0 <= i && i <= getNavSize(ds);
 }
 
+void checkIsValidNavBoundaryIndex(const NavDataset &ds, int i) {
+  CHECK_LE(0, i);
+  CHECK_LT(i, getNavSize(ds));
+}
+
 const Nav getNav(const NavDataset &ds, int i) {
   assert(isValidNavIndex(ds, i));
   const auto &samples = getGpsPositions(ds);
@@ -262,9 +268,9 @@ const Nav getNav(const NavDataset &ds, int i) {
 }
 
 NavDataset slice(const NavDataset &ds, int from, int to) {
-  assert(isValidNavBoundaryIndex(ds, from));
-  assert(isValidNavBoundaryIndex(ds, to));
-  assert(from <= to);
+  checkIsValidNavBoundaryIndex(ds, from);
+  checkIsValidNavBoundaryIndex(ds, to);
+  CHECK_LE(from, to);
   if (to == 0) {
     return NavDataset();
   }
