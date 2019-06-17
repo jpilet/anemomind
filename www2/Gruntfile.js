@@ -36,7 +36,7 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
     shell: {
       mongo: {
-        command: 'mongod -bind_ip 127.0.0.1 -dbpath ../www/db',
+        command: 'mongod -bind_ip 127.0.0.1 -dbpath  ../www/db',
         options: {
           async: true
         }
@@ -565,6 +565,22 @@ module.exports = function (grunt) {
         //'concurrent:debug'
       ]);
     }
+
+    if (target === 'docker-dev') {
+
+    return grunt.task.run([
+      'clean:server',
+      'env:all',
+      'concurrent:server',
+      'injector',
+      'wiredep',
+      'autoprefixer',
+      'express:dev',
+      'wait',
+      'open',
+      'watch'
+    ]);
+  }
 
     grunt.task.run([
       'shell',

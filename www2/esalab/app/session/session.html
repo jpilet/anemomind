@@ -1,0 +1,39 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<div class="container">
+
+  <ol class="breadcrumb">
+    <li><a href="/boats">Boats</a></li>
+    <li><a href="/boats/{{::boatId}}">{{ boat.name }}</a></li>
+    <li class="active">{{ session.startTime }}</li>
+  </ol>
+
+    <div style="float:right;" class="single-map-image">
+      <a ng-href="/map/{{boatId}}?c={{session._id}}&t={{timeToInt(session.maxSpeedOverGroundTime)}}">
+        <div class="" thumbnailspng="{{session._id}}" boat-id="{{boatId}}"></div>
+      </a>
+    </div>
+
+      <div class="card-content">
+        <h2>{{session.startTime | date: 'd.M.yyyy'}}</h2>
+        <p>
+          max {{session.maxSpeedOverGround | number: 1}} kn, {{ session.trajectoryLength | number : 1 }} nm<br/>
+          <div class="block">
+            <b>{{ twdirToCardinal(session.avgWindDir) }}</b> {{ knotsToBeaufort(session.avgWindSpeed) }} bf, max: {{ session.strongestWindSpeed | number: 1 }} kn
+          </div>
+        </p>                  
+        <div class="card-content-bottom">
+          <i class="fa fa-picture-o red" ng-show="session.hasPhoto"></i>
+          <i class="fa fa-comment-o red" ng-show="session.hasComment"></i>
+          <i class="fa fa-flag red hide"></i>
+        </div>
+      </div>
+    </div>
+
+  <button ng-show="esaStatus == 'not-computed'" class="btn btn-action btn-block" type="submit" ng-click="computeEsa()">Compute ESA performance</button>
+
+  <a ng-href="/polar/{{ boatId }}/{{ perfNameForSession() | urlFriendlyForm }}" ng-show="esaStatus == 'ready'">ESA performance report</a>
+
+  <p ng-show="esaStatus == 'in-progress'">ESA performance computation in progress.</p>
+  <div ng-show="error" class="alert alert-danger" role="alert">{{ error }}</div>
+</div>

@@ -3,12 +3,16 @@
 const { execFile } = require('child_process');
 const backup = require('../../components/backup');
 const esaPolar = require('./esapolar');
+const LogFile = require('./logfile.model');
+const mongoose = require('mongoose');
+const util = require('util');
 
 var multer  = require('multer');
 var fs = require('fs');
 var config = require('../../config/environment');
 var mkdirp = require('mkdirp');
 
+const fstat = util.promisify(fs.stat);
 
 var uploadPath = fs.realpathSync(config.uploadDir) + '/anemologs/boat';
 console.log('Uploading log files to: ' + uploadPath);
@@ -22,12 +26,20 @@ function isFileNameOk(filename) {
   return !!filename.match(regexp);
 }
 
-function fileDir(req) {
+function relativeFileDir(req) {
   if (req.params.boatId && req.params.boatId.match(/^[0-9a-zA-Z_-]+$/)) {
+    return req.params.boatId + '/files';
+  }
+  return undefined;
+}
+
+function fileDir(req) {
+  const relative = relativeFileDir(req);
+  if (relative) {
     // There must be no '/' between uploadPath and boatid, because the folder
     // name looks like: /path/boat12345/files for boat id 12345. Adding a slash
     // would lead to /path/boat/12345/files instead.
-    return uploadPath + req.params.boatId + '/files';
+    return uploadPath + relative;
   }
   return undefined;
 }
@@ -52,7 +64,7 @@ function getDetailsForFiles(dir, files) {
     if (logfiles.length == 0) {
       return resolve(esaFiles);
     } else {
-      execFile(config.tryLoadBin, [ '-C', dir ].concat(logfiles),
+      execFile(config.tryLoadBin, (dir ? [ '-C', dir ] : []).concat(logfiles),
                (error, stdout, stderr) => {
         if (stderr) {
           console.log(config.tryLoadBin, ': ', stderr);
@@ -71,7 +83,66 @@ function getDetailsForFiles(dir, files) {
   });
 }
 
-exports.getSingle = function(req, res, next) {
+function addFileCacheEntry(dir, filename, boatId, size, date, user) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const logFile = {};
+      logFile.name = filename;
+      logFile.size = size;
+      logFile.boat = new mongoose.Types.ObjectId(boatId);
+      logFile.uploadedBy = user;
+      logFile.uploadDate = date;
+      logFile.type = 'unknown';
+      logFile.processed = null;
+
+      const details = await getDetailsForFiles(dir, [filename]);
+      if (details.length != 1) {
+        logFile.error = "internal error";
+      } else if (details[0].error) {
+        logFile.error = details[0].error;
+      } else {
+        if (details[0].type) {
+          logFile.type = details[0].type;
+        }
+        if (details[0].data) {
+          logFile.data = details[0].data;
+          logFile.type = 'log';
+        }
+        if (details[0].start) {
+          logFile.start = new Date(details[0].start);
+          if (details[0].duration_sec) {
+            logFile.end = new Date(
+                  logFile.start.getTime() + 1000 * details[0].duration_sec);
+          }
+        }
+        if (details[0].duration_sec) {
+          logFile.duration_sec = details[0].duration_sec;
+        }
+      }
+
+      await new Promise((resolve) => {
+        LogFile.findOneAndUpdate(
+          { name: logFile.name, boat: logFile.boat },
+          { $set: logFile },
+          { upsert: true, returnNewDocument: true },
+          function (err, doc) {
+            if (err){
+              console.log(err);
+              reject(err);
+            }
+            else
+              console.log(doc);
+      });
+      });
+
+      
+    } catch(err) {
+      reject(err);
+    }
+  });
+}
+
+exports.getSingle = async function(req, res, next) {
   const dir = fileDir(req);
   const name = fileName(req);
   if (!dir || !name) {
@@ -79,44 +150,93 @@ exports.getSingle = function(req, res, next) {
     return;
   }
 
-  getDetailsForFiles(dir, [name])
-  .then((details) => {
-    res.status(200).json(details[0]);
-  })
-  .catch((err) => {
+  try {
+    const result = await getLogFilesEntry(req.params.boatId, name);
+    res.status(200).json(result);
+  } catch(err) {
+    console.warn(err);
     res.status(404).send();
-  });
+  }
 };
 
-exports.listFiles = function(req, res, next) {
+function nodeStyleCallback(resolve, reject) {
+  return (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(result);
+    };
+}
+
+function getLogFilesEntry(boatId, name) {
+  return new Promise((resolve, reject) => {
+    if (!name || !boatId) {
+      return reject(new Error('Bad arguments.'));
+    }
+    LogFile.findOne({
+      boat: mongoose.Types.ObjectId(boatId),
+      name: name,
+    }, nodeStyleCallback(resolve, reject));
+  });
+}
+function getLogFilesEntries(boatId) {
+  return new Promise((resolve, reject) => {
+    LogFile
+      .find({ boat: mongoose.Types.ObjectId(boatId) })
+      .sort({uploadDate: -1})
+      .exec(nodeStyleCallback(resolve, reject));
+  });
+}
+
+exports.listFiles = async function(req, res, next) {
+  const boatId = req.params.boatId;
+
+  const promiseLogFiles = getLogFilesEntries(boatId);
+
   var dir = fileDir(req);
   console.log('fetching file list in ' + dir);
   if (!dir) {
     req.status(400).send();
   } else {
+    // let's make sure all the files in 'dir' are in the cache.
     const p = new Promise((resolve, reject) => {
       fs.readdir(dir, function(err, files) {
         if (err) {
-          reject(err);
+          if (err.code == 'ENOENT') {
+            // The 'files' folder has not been created. It means there
+            // are no file, it is not an error.
+            resolve([]);
+          } else {
+            reject(err);
+          }
         } else {
           resolve(files);
         }
       });
-    })
-    .then((files) => { return getDetailsForFiles(dir, files); })
-    .then((data) => {
-      res.json(data);
-    })
-    .catch((err) => {
-      if (err.code == 'ENOENT') {
-        // The 'files' folder has not been created. It means there
-        // are no file, it is not an error.
-        res.json([]);
-      } else {
-        console.warn(err);
-        res.status(500).send(err);
-      }
     });
+
+    try {
+      const logFiles = await promiseLogFiles;
+      const files = await p;
+      const dict = { };
+      for (let log of logFiles) {
+        dict[log.name] = log;
+      }
+      for (let f of files) {
+        if (!(f in dict)) {
+          console.log(f, ': not in cache. Adding it.');
+          const stat = await fstat(dir + '/' + f);
+          const newLogFileEntry = await addFileCacheEntry(
+            dir, f, boatId, stat.size, new Date(stat.birthtimeMs), req.user);
+          logFiles.push(newLogFileEntry);
+        }
+      }
+
+      res.json(logFiles);
+    } catch(err) {
+      console.warn(err);
+      res.status(500).send(err);
+    }
   }
 };
 
@@ -151,7 +271,7 @@ exports.postFile = multer({storage: multer.diskStorage({
   }
 })}).any();
 
-exports.handleUploadedFile = function(req, res, next) {
+exports.handleUploadedFile = async (req, res, next) => {
   const dir = fileDir(req);
   if (req.files.length == 0) {
     res.status(400).json({error:'please attach at least one file'});
@@ -162,10 +282,22 @@ exports.handleUploadedFile = function(req, res, next) {
     res.status(500); // should be caught by previous stage
     return;
   }
+  if (!req.user) {
+    return res.status(401).send();
+  }
+
+  const relative = relativeFileDir(req);
   const result = [];
   for (let i of req.files) {
     console.log(dir + '/' + i.newname
                 + ' uploaded, size: ' + i.size);
+    try {
+      const logFile = await addFileCacheEntry(
+        dir, i.newname, req.params.boatId, i.size, new Date(), req.user);
+    } catch(err) {
+      console.warn('Failed to add cache entry for file: ' + dir + '/' + i.newname);
+      console.warn(err);
+    }
     result.push(i.newname);
   }
   res.status(201).json({ result: 'OK', files: result });
@@ -182,13 +314,22 @@ exports.handleUploadedFile = function(req, res, next) {
   });
 };
 
-exports.delete = function(req, res, next) {
+exports.delete = async function(req, res, next) {
   const dir = fileDir(req);
   const name = fileName(req);
   if (!dir || !name) {
     res.status(400).send();
     return;
   }
+
+  const err = await new Promise((resolve) => {
+    LogFile.deleteOne({
+      name: name,
+      boat: mongoose.Types.ObjectId(req.params.boatId)
+    }, resolve);
+  });
+  if (err) { console.warn(err); }
+
   fs.unlink(dir + '/' + name, function(err) {
     if (err) {
       console.warn(err);

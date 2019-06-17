@@ -9,7 +9,7 @@ angular.module('www2App')
         controller: 'PolarIndexCtrl'
       })
       .state('polar', {
-        url: '/polar/:boatId/:name',
+        url: '/polar/:boatId/:urlName',
         templateUrl: 'app/polar/polar.html',
         controller: 'PolarCtrl'
       });

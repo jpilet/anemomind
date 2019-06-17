@@ -67,7 +67,7 @@
 <div class="session-container">
   <div class="card card-horizontal cursor-pointer" 
        ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |limitTo:pageSize" >
-    <a ng-href="/map/{{boatId}}?c={{session._id}}&t={{timeToInt(session.maxSpeedOverGroundTime)}}">
+    <a ng-href="/session/{{session._id}}">
     <div class="card-image">
       <div class="" thumbnailspng="{{session._id}}" boat-id="{{boatId}}"></div>
     </div>

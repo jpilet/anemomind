@@ -25,5 +25,10 @@ module.exports = {
   endpointDir: '/db/mail2',
   backupDestination: 'anemomind@vtiger.anemomind.com:userlogs',
 
-  tryLoadBin: "/home/jpilet/bin/logimport_try_load"
+  tryLoadBin: "/home/jpilet/bin/logimport_try_load",
+
+  //TO DO : Add the live mode key here (dev and prod shud have diff keys)
+  //Stripe secret key coming from the env variable 
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || null
+
 };
