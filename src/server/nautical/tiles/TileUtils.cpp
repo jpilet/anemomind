@@ -112,21 +112,21 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
   }
 
   if (description == treeDescription(tree, grammar)) {
-    int left = tree->left();
-    int right = tree->right();
+    int tleft = tree->left();
+    int tright = tree->right();
     int limit = rawNavs.samples<GPS_POS>().size();
-    if (left < 0 || left >= limit || right < || right > left) {
-      LOG(ERROR) << "Invalid tree! left: " << left << ", right: " << right
-        << ", limit: " << limit << ". Trying to fix.".
-      left = std::max(0, std::min(limit - 1, left));
-      right = std::max(0, std::min(limit - 1, right));
-      if (left > right) {
-        std::swap(left, right);
+    if (tleft < 0 || tleft >= limit || tright < 0 || tright > tleft) {
+      LOG(ERROR) << "Invalid tree! left: " << tleft << ", right: " << tright
+        << ", limit: " << limit << ". Trying to fix.";
+      tleft = std::max(0, std::min(limit - 1, tleft));
+      tright = std::max(0, std::min(limit - 1, tright));
+      if (tleft > tright) {
+        std::swap(tleft, tright);
       }
     }
-    if (left < 0 || left >= limit || right < || right > left) {
-      LOG(ERROR) << "Invalid tree after fix attempt! left: " << left << ", right: " << right
-        << ", limit: " << limit << ". Ignoring subtree.".
+    if (tleft < 0 || tleft >= limit || tright < 0 || tright > tleft) {
+      LOG(ERROR) << "Invalid tree after fix attempt! left: " << tleft << ", right: " << tright
+        << ", limit: " << limit << ". Ignoring subtree.";
         return Array<NavDataset>();
     }
 
