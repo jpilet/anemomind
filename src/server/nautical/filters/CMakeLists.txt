@@ -59,15 +59,19 @@ add_library(filters_SmoothGpsFilter
             SmoothGpsFilter.cpp
            )
 
+if (WITH_CAIRO)
+  set(PLOT_LIBS plot_CairoUtils plot_PlotUtils)
+  target_compile_definitions(filters_SmoothGpsFilter PRIVATE WITH_CAIRO)
+endif(WITH_CAIRO)
+
 target_link_libraries(filters_SmoothGpsFilter
                       filters_GpsUtils
                       math_SampleUtils
                       common_Progress
                       common_DOMUtils
-                      plot_CairoUtils
-                      plot_PlotUtils
                       common_BBox
                       math_Curve2dFilter
+                      ${PLOT_LIBS}
                      )
 
 cxx_test(filters_SmoothGpsFilterTest

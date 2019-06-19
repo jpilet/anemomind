@@ -45,8 +45,10 @@ ExternalProject_Add(ceres_ext
         # Using the full glog library causes compilation issues with gcc 5.2,
         # so use this minimal replacement instead.
         "-DMINIGLOG=ON"
+        "-DLIB_EXT=.a"
         "-DBUILD_EXAMPLES=OFF"
         "-DBUILD_TESTING=OFF"
+        "-DBUILD_SHARED_LIBS=OFF"
         "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
         "-DCMAKE_CXX_FLAGS=-Wall"
         )
@@ -65,8 +67,11 @@ ExternalProject_Add_Step(ceres_ext after_install
     DEPENDEES install
 )
 
+ExternalProject_Add_StepTargets(ceres_ext after_install)
+
     function(target_depends_on_ceres target)
-        add_dependencies(${target} ceres_ext)
+        add_dependencies(${target} ceres_ext ceres_ext-after_install)
     endfunction()
+
 endif (CERES_BUILD_STATUS MATCHES "CERES_BUILT")
 

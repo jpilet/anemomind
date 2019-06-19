@@ -4,7 +4,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS logger.proto)
 
 add_library(anemobox_Logger Logger.h Logger.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(anemobox_Logger anemobox_Dispatcher ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES})
+target_link_libraries(anemobox_Logger anemobox_Dispatcher ${PROTOBUF_LIBRARY} Boost::iostreams)
 
 cxx_test(anemobox_LoggerTest LoggerTest.cpp anemobox_Logger gtest_main)
 
