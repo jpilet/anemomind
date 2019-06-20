@@ -5,9 +5,9 @@
 #   */5 *  *   *   *   ps aux | grep -v grep | grep processNewLogs || /home/anemomind/bin/processNewLogs.sh
 
 export BIN="/home/anemomind/bin"
-export LOG_DIR="/home/anemomind/userlogs/anemologs"
+export LOG_DIR="/db/anemologs/anemologs"
 export PROCESSED_DIR="/home/anemomind/processed"
-export SRC_ROOT="/home/jpilet/anemomind/anemomind"
+export SRC_ROOT="/home/jpilet/anemomind"
 export BUILD_ROOT=${SRC_ROOT}/build
 
 ulimit -c unlimited
@@ -68,21 +68,22 @@ processBoat() {
     local processed="${boatprocessdir}/processed"
     test -d "${processed}" || mkdir "${processed}"
 
+    [ "${boatid}" == "5ca376093732e93fb87c8cf2" ] && GPS_FILTER="--no-gps-filter"
     
     if safeRun "${BUILD_ROOT}"/src/server/nautical/nautical_processBoatLogs \
-        ${NOINFO} \
+        ${NOINFO} ${GPS_FILTER} \
         --dir "${boatprocessdir}" \
         --dst "${processed}" \
         --boatid "${boatid}" \
         --save-default-calib \
         -t --clean -c \
-        --mongo-uri "mongodb://anemomindprod:${MONGO_PASSWORD}@anemolab1,anemolab2,arbiter/anemomind" \
+	--mongo-uri "mongodb://anemomindprod:$MONGO_PASSWORD@anemolab1,anemolab2,compute3,arbiter/anemomind?replicaSet=rs0" \
 	--scale 20 ; then
 
       if [ -f "${boatdat}" ] ; then
         # If a boat.dat file has been generated, mail it to the anemobox.
         cat "${boatdat}" | ssh anemomind@anemolab1 NODE_ENV=production \
-          MONGOLAB_URI=mongodb://anemomindprod:${MONGO_PASSWORD}@anemolab1,anemolab2,arbiter/anemomind \
+	  MONGOLAB_URI="mongodb://anemomindprod:$MONGO_PASSWORD@anemolab1,anemolab2,compute3,arbiter/anemomind?replicaSet=rs0" \
           node /home/jpilet/anemomind/www2/utilities/SendBoatData.js \
           "${boatid}" /dev/stdin /home/anemobox/boat.dat || true
           #node /home/xa4/anemomind/www2/utilities/SendBoatData.js \
@@ -93,8 +94,7 @@ processBoat() {
 
       # Update data associated with events
       safeRun mongo --quiet \
-        -u anemomindprod -p "${MONGO_PASSWORD}" \
-        anemolab1,anemolab2,arbiter/anemomind \
+	      "mongodb://anemomindprod:$MONGO_PASSWORD@anemolab1,anemolab2,compute3,arbiter/anemomind?replicaSet=rs0" \
         --eval "boatid='${boatid}';onlynew=false;" \
         "${SRC_ROOT}"/src/server/production/extendEvents.js
     else
@@ -111,6 +111,6 @@ export -f loginfo
 export -f safeRun
 
 export SHELL=/bin/bash
-parallel -j 1 processBoat ::: "${LOG_DIR}/"*
+parallel  -j 2 processBoat ::: "${LOG_DIR}/"*
 
 safeRun "${BIN}"/uploadVmgTable.sh
