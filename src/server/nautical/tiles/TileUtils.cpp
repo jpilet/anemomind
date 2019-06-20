@@ -112,7 +112,25 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
   }
 
   if (description == treeDescription(tree, grammar)) {
-    NavDataset navSpan = slice(rawNavs, tree->left(), tree->right());
+    int tleft = tree->left();
+    int tright = tree->right();
+    int limit = rawNavs.samples<GPS_POS>().size();
+    if (tleft < 0 || tleft >= limit || tright < 0 || tright < tleft) {
+      LOG(ERROR) << "Invalid tree! left: " << tleft << ", right: " << tright
+        << ", limit: " << limit << ". Trying to fix.";
+      tleft = std::max(0, std::min(limit - 1, tleft));
+      tright = std::max(0, std::min(limit - 1, tright));
+      if (tleft > tright) {
+        std::swap(tleft, tright);
+      }
+    }
+    if (tleft < 0 || tleft >= limit || tright < 0 || tright < tleft) {
+      LOG(ERROR) << "Invalid tree after fix attempt! left: " << tleft << ", right: " << tright
+        << ", limit: " << limit << ". Ignoring subtree.";
+        return Array<NavDataset>();
+    }
+
+    NavDataset navSpan = slice(rawNavs, tleft, tright);
     return Array<NavDataset>{navSpan};
   }
 
