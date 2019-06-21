@@ -62,7 +62,7 @@ public interface SubProcessPipelineOptions extends PipelineOptions {
 
   void setSubProcessConfiguration(SubProcessConfiguration configuration);
 
-  @Description("MongoDB hostname/ip")
+ /* @Description("MongoDB hostname/ip")
   @Default.String("localhost")
   String getMongoHost();
 
@@ -79,7 +79,14 @@ public interface SubProcessPipelineOptions extends PipelineOptions {
   @Default.String("27017")
   String getMongoPort();
 
-  void setMongoPort(String mongoPort);
+  void setMongoPort(String mongoPort); */
+
+  @Description("mongodb uri for anemomind")
+  @Default.String("mongodb://localhost:27017/anemomind-dev")
+  String getMongoDbUri();
+
+  void setMongoDbUri(String mongoDbUri);
+
 
   @Description("PubSub topic name for boat data")
   @Default.String("projects/anemomind/topics/anemomind_log_topic")
@@ -120,9 +127,10 @@ public interface SubProcessPipelineOptions extends PipelineOptions {
       configuration.setWaitTime(subProcessPipelineOptions.getWaitTime());
       configuration.setOnlyUpLoadLogsOnError(subProcessPipelineOptions.getOnlyUpLoadLogsOnError());
       configuration.concurrency = subProcessPipelineOptions.getConcurrency();
-      configuration.setMongoHost(subProcessPipelineOptions.getMongoHost());
+    /*  configuration.setMongoHost(subProcessPipelineOptions.getMongoHost());
       configuration.setMongoDB(subProcessPipelineOptions.getMongoDB());
-      configuration.setMongoPort(subProcessPipelineOptions.getMongoPort());
+      configuration.setMongoPort(subProcessPipelineOptions.getMongoPort()); */
+      configuration.setMongoDbUri(subProcessPipelineOptions.getMongoDbUri());
       configuration.setTopic(subProcessPipelineOptions.getTopic());
       configuration.setBucketName(subProcessPipelineOptions.getBucketName());
       configuration.setSoBucket(subProcessPipelineOptions.getSoBucket());

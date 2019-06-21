@@ -50,6 +50,10 @@ public class SubProcessConfiguration implements Serializable {
   // mongodb port
   public String mongoPort;
 
+
+  // mongodb uri
+  String mongoDbUri;
+
   // bucket name where boat directories resides
   String bucketName;
 
@@ -99,7 +103,7 @@ public class SubProcessConfiguration implements Serializable {
     this.concurrency = concurrency;
   }
 
-  public String getMongoHost(){ return mongoHost;}
+ /* public String getMongoHost(){ return mongoHost;}
 
   public void setMongoHost(String mongoHost){this.mongoHost = mongoHost;}
 
@@ -109,7 +113,11 @@ public class SubProcessConfiguration implements Serializable {
 
   public String getMongoPort(){return mongoPort;}
 
-  public void setMongoPort(String mongoPort){this.mongoPort = mongoPort;}
+  public void setMongoPort(String mongoPort){this.mongoPort = mongoPort;} */
+
+  public String getMongoDbUri(){return mongoDbUri;}
+
+  public void setMongoDbUri(String mongoDbUri){this.mongoDbUri = mongoDbUri;}
 
   public String getBucketName(){return bucketName;}
 
