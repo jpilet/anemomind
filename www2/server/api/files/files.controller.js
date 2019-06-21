@@ -7,18 +7,23 @@ const LogFile = require('./logfile.model');
 const mongoose = require('mongoose');
 const util = require('util');
 
-var multer  = require('multer');
+
+var multer = require('multer');
 var fs = require('fs');
 var config = require('../../config/environment');
 var mkdirp = require('mkdirp');
 
 const fstat = util.promisify(fs.stat);
 
+
+// Imports the Google Cloud client library
+const { Storage } = require('@google-cloud/storage');
+
 var uploadPath = fs.realpathSync(config.uploadDir) + '/anemologs/boat';
 console.log('Uploading log files to: ' + uploadPath);
 
 function isFileNameOk(filename) {
-  if (!filename || typeof(filename) != 'string') {
+  if (!filename || typeof (filename) != 'string') {
     return false;
   }
 
@@ -64,21 +69,21 @@ function getDetailsForFiles(dir, files) {
     if (logfiles.length == 0) {
       return resolve(esaFiles);
     } else {
-      execFile(config.tryLoadBin, (dir ? [ '-C', dir ] : []).concat(logfiles),
-               (error, stdout, stderr) => {
-        if (stderr) {
-          console.log(config.tryLoadBin, ': ', stderr);
-        }
-        if (error) {
-          reject(error);
-        }
-        try {
-          resolve(JSON.parse(stdout).concat(esaFiles));
-        } catch(err) {
-          console.warn(err);
-          resolve(logfiles.map((f) => { return { name: f }; }).concat(esaFiles));
-        }
-      });
+      execFile(config.tryLoadBin, (dir ? ['-C', dir] : []).concat(logfiles),
+        (error, stdout, stderr) => {
+          if (stderr) {
+            console.log(config.tryLoadBin, ': ', stderr);
+          }
+          if (error) {
+            reject(error);
+          }
+          try {
+            resolve(JSON.parse(stdout).concat(esaFiles));
+          } catch (err) {
+            console.warn(err);
+            resolve(logfiles.map((f) => { return { name: f }; }).concat(esaFiles));
+          }
+        });
     }
   });
 }
@@ -112,7 +117,7 @@ function addFileCacheEntry(dir, filename, boatId, size, date, user) {
           logFile.start = new Date(details[0].start);
           if (details[0].duration_sec) {
             logFile.end = new Date(
-                  logFile.start.getTime() + 1000 * details[0].duration_sec);
+              logFile.start.getTime() + 1000 * details[0].duration_sec);
           }
         }
         if (details[0].duration_sec) {
@@ -126,23 +131,23 @@ function addFileCacheEntry(dir, filename, boatId, size, date, user) {
           { $set: logFile },
           { upsert: true, returnNewDocument: true },
           function (err, doc) {
-            if (err){
+            if (err) {
               console.log(err);
               reject(err);
             }
             else
               console.log(doc);
-      });
+          });
       });
 
-      
-    } catch(err) {
+
+    } catch (err) {
       reject(err);
     }
   });
 }
 
-exports.getSingle = async function(req, res, next) {
+exports.getSingle = async function (req, res, next) {
   const dir = fileDir(req);
   const name = fileName(req);
   if (!dir || !name) {
@@ -153,7 +158,7 @@ exports.getSingle = async function(req, res, next) {
   try {
     const result = await getLogFilesEntry(req.params.boatId, name);
     res.status(200).json(result);
-  } catch(err) {
+  } catch (err) {
     console.warn(err);
     res.status(404).send();
   }
@@ -161,11 +166,11 @@ exports.getSingle = async function(req, res, next) {
 
 function nodeStyleCallback(resolve, reject) {
   return (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve(result);
-    };
+    if (err) {
+      return reject(err);
+    }
+    resolve(result);
+  };
 }
 
 function getLogFilesEntry(boatId, name) {
@@ -183,12 +188,12 @@ function getLogFilesEntries(boatId) {
   return new Promise((resolve, reject) => {
     LogFile
       .find({ boat: mongoose.Types.ObjectId(boatId) })
-      .sort({uploadDate: -1})
+      .sort({ uploadDate: -1 })
       .exec(nodeStyleCallback(resolve, reject));
   });
 }
 
-exports.listFiles = async function(req, res, next) {
+exports.listFiles = async function (req, res, next) {
   const boatId = req.params.boatId;
 
   const promiseLogFiles = getLogFilesEntries(boatId);
@@ -200,7 +205,7 @@ exports.listFiles = async function(req, res, next) {
   } else {
     // let's make sure all the files in 'dir' are in the cache.
     const p = new Promise((resolve, reject) => {
-      fs.readdir(dir, function(err, files) {
+      fs.readdir(dir, function (err, files) {
         if (err) {
           if (err.code == 'ENOENT') {
             // The 'files' folder has not been created. It means there
@@ -218,7 +223,7 @@ exports.listFiles = async function(req, res, next) {
     try {
       const logFiles = await promiseLogFiles;
       const files = await p;
-      const dict = { };
+      const dict = {};
       for (let log of logFiles) {
         dict[log.name] = log;
       }
@@ -233,7 +238,7 @@ exports.listFiles = async function(req, res, next) {
       }
 
       res.json(logFiles);
-    } catch(err) {
+    } catch (err) {
       console.warn(err);
       res.status(500).send(err);
     }
@@ -242,39 +247,43 @@ exports.listFiles = async function(req, res, next) {
 
 // This handler can assume that the user is authentified, it has write access,
 // and the upload folder for the boat has been created.
-exports.postFile = multer({storage: multer.diskStorage({
-  destination: function(req, file, cb) {
-    var dir = fileDir(req);
-    if (dir) {
-      mkdirp(dir, () => { cb(null, dir); });
-    } else {
-      return cb('no boatId', undefined);
-    }
-  },
+exports.postFile = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      var dir = fileDir(req);
+      if (dir) {
+        mkdirp(dir, () => { cb(null, dir); });
+      } else {
+        return cb('no boatId', undefined);
+      }
+    },
 
-  filename: function (req, file, cb) {
-    var filename = file.originalname
-      .replace(/[^a-z0-9_.-]/gi, '_')
-      .replace(/^[.]/, '_'); // initial dot is not allowed
+    filename: function (req, file, cb) {
+      var filename = file.originalname
+        .replace(/[^a-z0-9_.-]/gi, '_')
+        .replace(/^[.]/, '_'); // initial dot is not allowed
 
-    // For paranoia, let's check the result.
-    if (isFileNameOk(filename)) {
-      console.log('file handler: accepting file: ' + file.originalname
-        + ' as: ' + filename);
-      file.newname = filename;
-      cb(null, filename);
-    } else {
-      console.log('file handler: rejecting bad filename: '
-                  + file.originalname);
-      cb('Bad filename', undefined);
+      // For paranoia, let's check the result.
+      if (isFileNameOk(filename)) {
+        console.log('file handler: accepting file: ' + file.originalname
+          + ' as: ' + filename);
+        file.newname = filename;
+        cb(null, filename);
+      } else {
+        console.log('file handler: rejecting bad filename: '
+          + file.originalname);
+        cb('Bad filename', undefined);
+      }
     }
-  }
-})}).any();
+  })
+}).any();
+
+
 
 exports.handleUploadedFile = async (req, res, next) => {
   const dir = fileDir(req);
   if (req.files.length == 0) {
-    res.status(400).json({error:'please attach at least one file'});
+    res.status(400).json({ error: 'please attach at least one file' });
     return;
   }
   if (!dir) {
@@ -290,11 +299,11 @@ exports.handleUploadedFile = async (req, res, next) => {
   const result = [];
   for (let i of req.files) {
     console.log(dir + '/' + i.newname
-                + ' uploaded, size: ' + i.size);
+      + ' uploaded, size: ' + i.size);
     try {
       const logFile = await addFileCacheEntry(
         dir, i.newname, req.params.boatId, i.size, new Date(), req.user);
-    } catch(err) {
+    } catch (err) {
       console.warn('Failed to add cache entry for file: ' + dir + '/' + i.newname);
       console.warn(err);
     }
@@ -306,15 +315,15 @@ exports.handleUploadedFile = async (req, res, next) => {
   result.forEach((f) => {
     if (f.match(/ESA$/)) {
       esaPolar.readEsaPolar(dir + '/' + f)
-      .then((data) => { return esaPolar.uploadEsaPolar(req.params.boatId, data); })
-      .catch((err) => {
-        console.warn('ESA polar error for file: ', f, ': ', err);
-      });
+        .then((data) => { return esaPolar.uploadEsaPolar(req.params.boatId, data); })
+        .catch((err) => {
+          console.warn('ESA polar error for file: ', f, ': ', err);
+        });
     }
   });
 };
 
-exports.delete = async function(req, res, next) {
+exports.delete = async function (req, res, next) {
   const dir = fileDir(req);
   const name = fileName(req);
   if (!dir || !name) {
@@ -330,7 +339,7 @@ exports.delete = async function(req, res, next) {
   });
   if (err) { console.warn(err); }
 
-  fs.unlink(dir + '/' + name, function(err) {
+  fs.unlink(dir + '/' + name, function (err) {
     if (err) {
       console.warn(err);
       res.status(500).send(err);
@@ -340,3 +349,62 @@ exports.delete = async function(req, res, next) {
   });
 };
 
+
+// uploading file in gcp 
+function getGSUrls (filename) {
+  return `https://storage.googleapis.com/boat_logs/${filename}`;
+}
+
+
+exports.multerGcp = multer({
+ storage: multer.MemoryStorage
+}).any();
+
+exports.fileToGcp = async (req, res, next) =>  {
+   // Creates a client
+  const storage = new Storage({
+    projectId: 'anemomind',
+    keyFilename: '/anemomind/www2/anemomind-9b757e3fbacb.json'
+  });
+  
+  const bucket = storage.bucket('boat_logs');
+  
+// boat directory will store all uploaded files
+// of the respective boat in boat_logs bucket.
+  let boatDir = 'boat' + req.params.boatId + '/';
+
+  for (let f of req.files) {
+    try {
+
+      const gcsname = f.originalname;
+      const file = bucket.file(boatDir + gcsname);
+      
+      const stream = file.createWriteStream({
+        metadata: {
+          contentType: f.mimetype
+        },
+        resumable: false
+      });      
+  
+      stream.on('error', (err) => {
+        f.cloudStorageError = err;
+	    console.log("err: ", err);
+        next(err);
+      });
+    
+      stream.on('finish', () => {
+        f.cloudStorageObject =  boatDir + gcsname;
+        file.makePublic().then(() => {
+          f.cloudStoragePublicUrl = getGSUrls(boatDir + gcsname);
+          next();
+        });
+      });
+      stream.end(f.buffer);
+     
+    } catch (err) {
+      console.warn('Failed to upload file: ' + f.originalname);
+      console.warn(err);
+    }
+    break;
+  }
+}

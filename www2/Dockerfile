@@ -4,10 +4,10 @@ ARG MONGO_URL
 ENV MONGO_URL ${MONGO_URL}
 
 RUN apt-get update && \
-	apt-get install --no-install-recommends -y curl tar xz-utils ca-certificates sudo \
-            git python bash less wget bzip2 gzip iproute2 && \
-	apt-get clean && \
-	apt-get autoclean
+    apt-get install --no-install-recommends -y curl tar xz-utils ca-certificates sudo \
+    git python bash less wget bzip2 gzip iproute2 && \
+    apt-get clean && \
+    apt-get autoclean
 
 RUN curl -O https://nodejs.org/download/release/v8.11.3/node-v8.11.3-linux-x64.tar.xz 
 
@@ -20,7 +20,10 @@ RUN /bin/bash && \
     . ~/.profile
 
 ENV PATH=/usr/local/lib/nodejs/node-v8.11.3-linux-x64/bin:$PATH \
-    LD_LIBRARY_PATH="/anemomind/lib/"
+    LD_LIBRARY_PATH="/anemomind/lib/" \
+    GCS_BUCKET='boat_logs' \
+    GCLOUD_PROJECT='anemomind' \
+    GCS_KEYFILE='/anemomind/www2/anemomind-9b757e3fbacb.json'
 
 WORKDIR /anemomind/nodemodules
 
@@ -29,9 +32,10 @@ COPY nodemodules .
 WORKDIR /anemomind/www2
 
 COPY www2/package*.json ./
+COPY www2/anemomind-9b757e3fbacb.json ./
 
 RUN  npm install --unsafe-perm=true --allow-root ../nodemodules/endpoint/ && \
-     npm install --unsafe-perm=true --allow-root
+    npm install --unsafe-perm=true --allow-root
 
 COPY www2/. .
 
@@ -45,6 +49,6 @@ RUN bower install --allow-root
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.5.0/wait /wait
 
 RUN chmod +x /wait && \
-mkdir -p uploads
+    mkdir -p uploads
 
 EXPOSE 9000

@@ -18,11 +18,20 @@ router.get('/:boatId/:file',
             access.boatWriteAccess,
             controller.getSingle);
 
+// router.post('/:boatId',
+//            auth.isAuthenticated(),
+//            access.boatWriteAccess,
+//            controller.postFile,
+//            controller.fileToGcp,
+//            controller.handleUploadedFile);
+
+
 router.post('/:boatId',
-            auth.isAuthenticated(),
-            access.boatWriteAccess,
-            controller.postFile,
-            controller.handleUploadedFile);
+           auth.isAuthenticated(),
+           access.boatWriteAccess,
+           controller.multerGcp,
+           controller.fileToGcp);
+
 
 router.delete('/:boatId/:file',
             auth.isAuthenticated(),
