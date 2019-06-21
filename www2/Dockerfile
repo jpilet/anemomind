@@ -20,11 +20,7 @@ RUN /bin/bash && \
     . ~/.profile
 
 ENV PATH=/usr/local/lib/nodejs/node-v8.11.3-linux-x64/bin:$PATH \
-    LD_LIBRARY_PATH="/anemomind/lib/" \
-    GCS_BUCKET='boat_logs' \
-    GCLOUD_PROJECT='anemomind' \
-    GCS_KEYFILE='/anemomind/www2/anemomind-9b757e3fbacb.json'
-
+    LD_LIBRARY_PATH="/anemomind/lib/"
 WORKDIR /anemomind/nodemodules
 
 COPY nodemodules .
