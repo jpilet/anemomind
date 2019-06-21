@@ -1,44 +1,15 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 <div class="container-fluid">
-    <div class="text-center" ng-if="!isPlanSelected && !processingRequest">
-        <h1>Choose a plan to register {{boatName}} boat</h1>
-    </div>
-    <div class="text-center" ng-if="isPlanSelected && !processingRequest">
-        <h1>Subscribing plan for {{boatName}}</h1>
+    <div class="text-center" >
+        <h1>Subscribing plan for {{boat.name}}</h1>
     </div>
     <div class="container">
         <div class="row">
             <form id="payment-form-broken">
                 <div class="form-row">
                     <div class="col-sm-6 btn-margin">
-                        <label for="name"> Name </label>
-                        <div class="form-group">
-                            <input id="name" ng-model="name" name="name" class="form-control" type="text"
-                                class="control">
-                        </div>
 
-                        <label for="email"> Email </label>
-                        <div class="form-group">
-                            <input id="email" name="email" ng-model="email" class="form-control" type="text"
-                                class="control">
-                        </div>
-
-                        <label for="address"> Address </label>
-                        <div class="form-group">
-                            <input id="address" name="address" class="form-control" type="text" class="control">
-                        </div>
-
-                        <label for="pincode"> Pincode </label>
-                        <div class="form-group">
-                            <input id="pincode" name="pincode" class="form-control" type="text" class="control">
-                        </div>
-
-                        <label class="label-margin" for="country"> Country </label>
-                        <select name="country" id="country" ng-model="countries.selectedCountry">
-                            <option value="">Select a Country </option>
-                            <option ng-repeat="option in countries.countries" value="{{option.name}}">
-                                {{option.name}}</option>
-                        </select>
+                        <User-details></User-details>
 
                         <div class="form-group">
                             <label for="cardNumber"> Card Number </label>
@@ -69,10 +40,9 @@
                             </div>
                             <div id="postalCode-errors"></div>
                         </div>
+                        <button class="btn btn-primary btn-block">Subscribe</button>
                     </div>
                 </div>
-
-                <button class="btn btn-primary btn-block">Subscribe</button>
             </form>
         </div>
     </div>

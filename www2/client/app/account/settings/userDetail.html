@@ -1,0 +1,33 @@
+<label for="name"> Name </label>
+<div class="form-group">
+    <input id="name" ng-model="user.name" name="name" class="form-control" type="text" class="control">
+</div>
+
+<label for="email"> Email </label>
+<div class="form-group">
+    <input id="email" ng-model="user.email" name="email" ng-model="email" class="form-control" type="text" class="control">
+</div>
+
+<label for="address"> Address : </label>
+</br>
+<label for="address"> Street </label>
+<div class="form-group">
+    <input id="address" ng-model="user.address.line1" name="address" class="form-control" type="text" class="control">
+</div>
+
+<label for="address"> City </label>
+<div class="form-group">
+    <input id="address" ng-model="user.address.city" name="address" class="form-control" type="text" class="control">
+</div>
+
+<label for="pincode"> Pincode </label>
+<div class="form-group">
+    <input id="pincode" ng-model="user.address.pincode" name="pincode" class="form-control" type="text" class="control">
+</div>
+
+<label class="label-margin" for="country"> Country </label>
+<select name="country" id="country" ng-model="user.address.country">
+    <option value="">Select a Country </option>
+    <option ng-repeat="option in countries" value="{{option.name}}">
+        {{option.name}}</option>
+</select>

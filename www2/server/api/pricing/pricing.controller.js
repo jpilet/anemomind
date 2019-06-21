@@ -102,30 +102,34 @@ exports.createSubscription = async function (req, res) {
     // check if the customer has a stripe account or not already
     if (!!user.stripeUserId) {
         subscribetoPlan(user.stripeUserId, req.body.plan, res, req, user, req.body.boatId);
-    } 
+    }
     else {
-        let result =  await createStripeUser(req.body.email);
+        let result = await createStripeUser(req.body.email);
         // check if customer created successfully or not 
         if (!!customer.id) {
             // create card object now - need this if the user updates the plan, need to charge him immidiately
             let sourceCard = await createSourceCard(customer.id, req.body.plan);
             if (!!sourceCard.id) {
                 // now make the customer subscribe to plan/s based on selection on UI
-                let subscription =  await  subscribetoPlan(customer.id, req.body.plan);
+                let subscription = await subscribetoPlan(customer.id, req.body.plan);
                 if (!!subscription.id) {
-                    // make call to update user and customer.
+                    // make call to update user.
+                    let savedUser = await updateUser(subscription, req);
+                    if (!!savedUser._id) {
+                        // make call to update customer.
+                        let boat = await updateBoat(subscription, req.boatId, savedUser);
+                        if (!!boat._id) {
+                            res.status(200).json(subscription);
+                        }
+                        res.status(500).json({ "message": "Error during updating boat details", "error": boat });
+                    }
+                    res.status(500).json({ "message": "Error during updating user details", "error": user });
                 }
-                else {
-                    res.status(500).json({ "message": "Error during subscribing to plan", "error": subscription });
-                }
+                res.status(500).json({ "message": "Error during subscribing to plan", "error": subscription });
             }
-            else {
-                res.status(500).json({ "message": "Error during creating source", "error": sourceCard });
-            }
+            res.status(500).json({ "message": "Error during creating source", "error": sourceCard });
         }
-        else {
-            res.status(500).json({ "message": "Error during creating customer", "error": result });
-        }
+        res.status(500).json({ "message": "Error during creating customer", "error": result });
     }
 }
 
@@ -202,55 +206,46 @@ function subscribetoPlan(customerId, plan) {
 }
 
 
-function updateUser(subscription, res, req, boatId) {
-    try {
-        let user = req.user;
-        user.stripeUserId = subscription.customer;
-        user.save(function (err) {
-            if (err) {
-                console.log(err);
-                return res.status(400).json({
-                    message: 'Error while updating user details',
-                    err: err
-                });
-            }
-            console.log("User details update succefully " + user.name);
-            return updateBoat(subscription, res, boatId, user);
-        });
-    }
-    catch (e) {
-        console.log(e)
-    }
+function updateUser(subscription, req) {
+    return new Promise((resolve, reject) => {
+        try {
+            let user = req.user;
+            user.stripeUserId = subscription.customer;
+            user.save(function (err) {
+                if (err) {
+                    console.log("Error while updating user details ", err);
+                    reject(err);
+                }
+                console.log("User details update succefully ");
+                resolve(user);
+            });
+        }
+        catch (e) {
+            console.log(e)
+            reject(e);
+        }
+    });
 }
 
-function updateBoat(subscription, res, boatId, user) {
+function updateBoat(subscription, boatId, user) {
     Boat.findById(boatId, function (err, boat) {
         if (err) {
-            console.log("Boat not found");
-            console.log(err);
-            return res.status(404).json({
-                message: 'Boat not Found',
-                err: err
-            });
+            console.log("Boat not Found", err);
+            reject(err);
         }
-        else if (boat) {
-            boat.stripeUserId = subscription.customer;
-            boat.subscriptionId = subscription.id;
-            // need to write a function to get the plans names from the suscription object
-            boat.plan = subscription.items.data[0].plan.id;
-            boat.susbcriptionStatus = status.statusEnum.OPEN;
-            boat.subscriptionOwner = user._id;
-            boat.save(function (err) {
-                if (err) {
-                    console.log(err);
-                    return res.status(400).json({
-                        message: 'Error while updating boat details',
-                        err: err
-                    });
-                }
-                console.log("Boat details update succefully " + boatId);
-                return res.status(200).json(subscription);
-            });
-        }
+        boat.stripeUserId = subscription.customer;
+        boat.subscriptionId = subscription.id;
+        // need to write a function to get the plans names from the suscription object
+        boat.plan = subscription.items.data[0].plan.id;
+        boat.susbcriptionStatus = status.statusEnum.OPEN;
+        boat.subscriptionOwner = user._id;
+        boat.save(function (err) {
+            if (err) {
+                console.log("Error while updating boat details ", err);
+                reject(err);
+            }
+            console.log("Boat details update succefully");
+            resolve(boat);
+        });
     });
 }

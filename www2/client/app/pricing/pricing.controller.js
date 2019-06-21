@@ -25,9 +25,13 @@ angular.module('www2App')
 
     // Get the list of boats for the current user
     boatList.boats().then(function (boats) {
-      $scope.selectedBoat.boats = boats.filter(function(boat) {
+      $scope.selectedBoat.boats = boats.filter(function (boat) {
         return boat.admins.indexOf(Auth.getCurrentUser() > -1);
-     });
+      });
+      // if the list has only one item, it should be preselected.
+      if ($scope.selectedBoat.boats.length === 1) {
+        $scope.selectedBoat.model = $scope.selectedBoat.boats[0]._id
+      }
     });
 
     // Change the value in url on boat selection

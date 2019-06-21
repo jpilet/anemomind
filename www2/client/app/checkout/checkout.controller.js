@@ -1,6 +1,8 @@
 angular.module('www2App')
   .controller('CheckoutCtrl', function ($scope, $http, Auth, Checkout) {
 
+    $scope.boat = Checkout.getBoat();
+
     $scope.isLoggedIn = Auth.isLoggedIn;
     if ($scope.isLoggedIn()) {
       var user = Auth.getCurrentUser();
@@ -17,10 +19,9 @@ angular.module('www2App')
     // get the list of countries
     $http.get("/api/pricing/getCountries")
       .then(function (response) {
-        console.log(response);
         $scope.countries.countries = response.data;
       });
-     
+
     // Create a Stripe client
     $scope.stripe = Stripe("pk_test_pBkRxSoJGZwe2JWkKmxVbz9M");
 
@@ -28,7 +29,6 @@ angular.module('www2App')
     $scope.elements = $scope.stripe.elements();
 
     // Custom styling can be passed to options when creating an Element.
-    // (Note that this demo uses a wider set of styles than the guide below.)
     $scope.style = {
       base: {
         color: "#32325d",
@@ -104,19 +104,20 @@ angular.module('www2App')
 
     $scope.form = document.getElementById("payment-form-broken");
     var email = document.getElementById("email");
-    $scope.ownerInfo = {
-      owner: {
-        name: "Jenny Rosen",
-        address: {
-          line1: "Nollendorfstraße 27",
-          city: "Berlin",
-          postal_code: "10777",
-          country: "DE"
-        }
-      }
-    };
+
     $scope.form.addEventListener("submit", function (event) {
       event.preventDefault();
+      $scope.ownerInfo = {
+        owner: {
+          name: "Jenny Rosen",
+          address: {
+            line1: "Nollendorfstraße 27",
+            city: "Berlin",
+            postal_code: "10777",
+            country: "DE"
+          }
+        }
+      };
 
       $scope.stripe.createSource($scope.cardNumber, $scope.ownerInfo).then(function (result) {
         if (result.error) {
@@ -124,7 +125,7 @@ angular.module('www2App')
           var errorElement = document.getElementById("card-errors");
           errorElement.textContent = result.error.message;
         } else {
-          // Send the source to your server
+          // Send the source to server
           stripeSourceHandler(result.source);
         }
       });
@@ -137,7 +138,7 @@ angular.module('www2App')
       data.email = document.getElementById("email").value;
       data.country = document.getElementById("country").value;
       data.plan = Checkout.getSelectedPlan();
-      data.boatId = Checkout.getBoat()._id;
+      data.boatId = $scope.boat._id;
       // Submit the form
       $scope.subscribeUser(data);
     }
