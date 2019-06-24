@@ -22,6 +22,12 @@ TEST(TestAstraLoader, RegexTest) {
   EXPECT_EQ(
       tryParseAstraHeader("-------- abc ------").get().value,
       "abc");
+  EXPECT_EQ(
+      tryParseAstraHeader("--------abc------").get().value,
+      "abc");
+  EXPECT_EQ(
+      tryParseAstraHeader("--------   abc   ------").get().value,
+      "abc");
   EXPECT_FALSE(
       tryParseAstraHeader("-------- abc ").defined());
 
