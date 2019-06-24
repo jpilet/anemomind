@@ -24,7 +24,7 @@ TEST(MongoNavDatasetLoader, TestIt) {
   }
   LOG(INFO) << "Successfully connected";
 
-  std::string boatId = "k4ttsk1t";
+  std::string boatId = "58c2d60d481c472292864b05";
   {
     auto collection = UNIQUE_MONGO_PTR(
           mongoc_collection,

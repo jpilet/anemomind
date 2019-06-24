@@ -143,6 +143,8 @@ NavDataset loadEvents(
     result = result.addChannel<BinaryEdge>(
         SPLIT_SESSION, "anemolab", splitEdges);
   }
+
+  return result;
 }
 
 
