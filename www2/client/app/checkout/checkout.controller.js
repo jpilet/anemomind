@@ -1,7 +1,8 @@
 angular.module('www2App')
-  .controller('CheckoutCtrl', function ($scope, $http, Auth, Checkout) {
+  .controller('CheckoutCtrl', function ($scope, $stateParams, $http, Auth, Checkout) {
 
     $scope.boat = Checkout.getBoat();
+    $scope.boatId = $stateParams;
 
     $scope.isLoggedIn = Auth.isLoggedIn;
     if ($scope.isLoggedIn()) {

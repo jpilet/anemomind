@@ -104,32 +104,38 @@ exports.createSubscription = async function (req, res) {
         subscribetoPlan(user.stripeUserId, req.body.plan, res, req, user, req.body.boatId);
     }
     else {
-        let result = await createStripeUser(req.body.email);
+        let customer = await createStripeUser(req.body.email);
         // check if customer created successfully or not 
-        if (!!customer.id) {
-            // create card object now - need this if the user updates the plan, need to charge him immidiately
-            let sourceCard = await createSourceCard(customer.id, req.body.plan);
-            if (!!sourceCard.id) {
-                // now make the customer subscribe to plan/s based on selection on UI
-                let subscription = await subscribetoPlan(customer.id, req.body.plan);
-                if (!!subscription.id) {
-                    // make call to update user.
-                    let savedUser = await updateUser(subscription, req);
-                    if (!!savedUser._id) {
-                        // make call to update customer.
-                        let boat = await updateBoat(subscription, req.boatId, savedUser);
-                        if (!!boat._id) {
-                            res.status(200).json(subscription);
-                        }
-                        res.status(500).json({ "message": "Error during updating boat details", "error": boat });
-                    }
-                    res.status(500).json({ "message": "Error during updating user details", "error": user });
-                }
-                res.status(500).json({ "message": "Error during subscribing to plan", "error": subscription });
-            }
-            res.status(500).json({ "message": "Error during creating source", "error": sourceCard });
+        if (!customer.id) {
+            return res.status(500).json({ "message": "Error during creating customer", "error": result });
         }
-        res.status(500).json({ "message": "Error during creating customer", "error": result });
+
+        // create card object now - need this if the user updates the plan, need to charge him immidiately
+        let sourceCard = await createSourceCard(customer.id, req.body.plan);
+        if (!sourceCard.id) {
+            return res.status(500).json({ "message": "Error during creating source", "error": sourceCard });
+        }
+
+        // now make the customer subscribe to plan/s based on selection on UI
+        let subscription = await subscribetoPlan(customer.id, req.body.plan);
+        if (!subscription.id) {
+            return res.status(500).json({ "message": "Error during subscribing to plan", "error": subscription });
+        }
+
+        // make call to update user.
+        let savedUser = await updateUser(subscription, req);
+        if (!savedUser._id) {
+            return res.status(500).json({ "message": "Error during updating user details", "error": user });
+        }
+
+        // make call to update customer.
+        let boat = await updateBoat(subscription, req.boatId, savedUser);
+        if (!boat._id) {
+            return res.status(500).json({ "message": "Error during updating boat details", "error": boat });
+        }
+
+        // updating the details of the user
+        return res.status(200).json(subscription);
     }
 }
 
