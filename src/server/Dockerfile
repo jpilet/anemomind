@@ -89,11 +89,27 @@ COPY --from=cppbuilder /temp/bin/* /anemomind/bin/
 
 ENV LD_LIBRARY_PATH="/anemomind/lib/"
 
+# Install GCSFuse - this layer is kept separate as it is temporary - till components start using unified storage api
+ENV GCSFUSE_REPO gcsfuse-stretch
+
+RUN apt-get update && apt-get install --yes --no-install-recommends \
+    ca-certificates \
+    curl \
+    gnupg \
+  && echo "deb http://packages.cloud.google.com/apt $GCSFUSE_REPO main" \
+    | tee /etc/apt/sources.list.d/gcsfuse.list \
+  && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
+  && apt-get update \
+  && apt-get install --yes gcsfuse \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# configure boat logs & gcsfuse
+RUN mkdir -p /anemomind/boat_logs
+
 
 WORKDIR /anemomind/bin 
 
-RUN env > /etc/cron.d/anemo-cron && \
-    echo "* *  *   *   * flock -n /tmp/process_logs.lock /anemomind/bin/processNewLogs_DockerDev.sh >> /var/log/cron.log" >> /etc/cron.d/anemo-cron && \
+RUN echo "* *  *   *   * flock -n /tmp/process_logs.lock /anemomind/bin/processNewLogs_DockerDev.sh >> /var/log/cron.log" >> /etc/cron.d/anemo-cron && \
     echo >>/etc/cron.d/anemo-cron && \
     chmod 0644 /etc/cron.d/anemo-cron && \
     chmod -R 755 .
@@ -105,5 +121,7 @@ RUN crontab /etc/cron.d/anemo-cron
 RUN touch /var/log/cron.log
 
 # Run the command on container startup
-CMD cron && tail -f /var/log/cron.log
+# CMD cron && tail -f /var/log/cron.log
+# ENTRYPOINT ["./run-cron.sh"]
+CMD ./run-cron.sh && tail -f /var/log/cron.log
 

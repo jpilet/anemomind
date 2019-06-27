@@ -12,6 +12,7 @@ module.exports = {
   backupWithRsync: false, 
   endpointDir:'/tmp/endpoints',
 
-  //Stripe secret key test mode
-  stripeSecretKey: process.env.STRIPE_SECRET_KEY || null
+  tryLoadBin: process.env.LOAD_BIN_PATH || '/anemomind/bin/logimport_try_load'
 };
+
+

@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    name: anemowebapp
+  name: anemowebapp
+spec:
+  ports:
+  - name: "9000"
+    port: 9000
+    targetPort: 9000
+  type: LoadBalancer
+  selector:
+    name: anemowebapp
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    name: anemowebapp
+  name: anemowebapp
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: anemowebapp
+    spec:
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: gcs-key
+      containers:
+      - args:
+        - grunt
+        - serve:docker-dev
+        - --force
+        image: gcr.io/${PROJECT_NAME}/${WEB_DOCKER_IMAGE}
+        name: anemowebapp
+        ports:
+        - containerPort: 9000
+        securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+        lifecycle:
+            postStart:
+              exec:
+                command: ["gcsfuse", "-o", "nonempty", "${BUCKET_NAME}", "/anemomind/www2/uploads/anemologs"]
+            preStop:
+              exec:
+                command: ["fusermount", "-u", "/anemomind/www2/uploads/anemologs"]
+        resources: {}
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/key.json
+        - name: MONGO_URL
+          value: mongodb://main_admin:${MONGO_PWD}@mongod-0.mongodb-service:27017,mongod-1.mongodb-service:27017,mongod-2.mongodb-service:27017/anemomind-dev?replicaSet=MainRepSet&authSource=admin
+        - name: LOAD_BIN_PATH
+          value: /anemomind/bin/logimport_try_load 
+      restartPolicy: Always
+status: {}
