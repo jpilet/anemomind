@@ -65,17 +65,17 @@ Followings are the list of all available configuration parameters for dataflow-p
   - usage ```--mongoHost=<mongodb_uri>```
 
 
-9.Topic:
+7.Topic:
   - Pubsub topic name where all boat messages published
   - optional with default value=projects/anemomind/topics/anemomind_log_topic
   - usage ```--topic=projects/<projectname>/topics/<topicName>```
 
-10.BucketName:
+8.BucketName:
    - Bucket name that contains all boat directories.
    - optional with default value=boat_logs
    - usage ```--bucketName=<bucketname>```
 
-11.SoBucket:
+9.SoBucket:
    - Bucket name that contains directory for all Shared object files of c++ binaries.
    - optional with default value=boat_binaries.
    - This is a temporary parameter, will be removed once static binaries are used.
