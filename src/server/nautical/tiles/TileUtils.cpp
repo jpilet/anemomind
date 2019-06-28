@@ -79,15 +79,19 @@ NavDataset filterNavs(
     .addAndSelectChannel<GeographicPosition<double> >(
       GPS_POS,
       makeFilteredGpsName<GPS_POS>(navs),
-      results.positions)
-    .addAndSelectChannel<Velocity<double> >(
+      results.positions);
+  if (navs.hasActiveChannel(GPS_SPEED)) {
+    cleanGps = cleanGps.addAndSelectChannel<Velocity<double> >(
       GPS_SPEED,
       makeFilteredGpsName<GPS_SPEED>(navs),
-      gpsSpeeds)
-    .addAndSelectChannel<Angle<double> >(
+      gpsSpeeds);
+  }
+  if (navs.hasActiveChannel(GPS_BEARING)) {
+    cleanGps = cleanGps.addAndSelectChannel<Angle<double> >(
       GPS_BEARING,
       makeFilteredGpsName<GPS_BEARING>(navs),
       gpsBearings);
+  }
 
   return cleanGps;
 }
