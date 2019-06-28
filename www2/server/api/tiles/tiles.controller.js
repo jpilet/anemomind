@@ -39,13 +39,48 @@ function fetchTiles(boatId, scale, x, y, startsAfter, endsBefore, callback) {
 }
 module.exports.fetchTiles = fetchTiles;
 
+function parseDateParam(obj, name, req, res) {
+  const reportError = (description) => {
+    res.status(400).send('Field: ' + name + ': ' + description);
+  };
+
+  let dateStr= obj[name];
+  if (!dateStr || !typeof(dateStr) == 'string') {
+    reportError('Missing or wrong type');
+    return;
+  }
+  if (dateStr.match(/^[c-z][0-9a-z]{7}$/)) {
+    return new Date(parseInt(dateStr, 36));
+  }
+  const match = dateStr.match(/^20[0-9]{2}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]*)?(Z)?$/);
+
+  if (match) {
+    if (!match[2]) {
+      dateStr = dateStr + 'Z';
+    }
+    return new Date(dateStr);
+  }
+
+  reportError('Unrecognized date format. Please use: 2019-12-31T10:41:00'
+  + ' or: new Date().getTime().toString(36)');
+  return undefined;
+}
+
 exports.retrieveRaw = function(req, res, next) {
+  var startsAfter = parseDateParam(req.params, 'startsAfter', req, res);
+  if (!startsAfter) {
+    return;
+  }
+  var endsBefore = parseDateParam(req.params, 'endsBefore', req, res);
+  if (!startsAfter) {
+    return;
+  }
   fetchTiles(req.params.boat,
              req.params.scale,
              req.params.x,
              req.params.y,
-             req.params.startsAfter,
-             req.params.endsBefore,
+             startsAfter,
+             endsBefore,
              function(err, tiles) {
     if (err) {
       return next(err);
@@ -58,14 +93,21 @@ exports.retrieveRaw = function(req, res, next) {
 };
 
 exports.retrieveGeoJson = function(req, res, next) {
+  var startsAfter = parseDateParam(req.params, 'startsAfter', req, res);
+  if (!startsAfter) {
+    return;
+  }
+  var endsBefore = parseDateParam(req.params, 'endsBefore', req, res);
+  if (!startsAfter) {
+    return;
+  }
   var query = makeQuery(req.params.boat,
                         req.params.scale,
                         req.params.x,
                         req.params.y,
-                        req.params.startsAfter,
-                        req.params.endsBefore);
+                        startsAfter,
+                        endsBefore);
 
-  console.log('get tile: ' + query.key);
   Tiles.find(query, function(err, tiles) {
     if (err) {
       return next(err);
