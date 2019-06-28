@@ -44,12 +44,12 @@ public class ProcessNewLogs {
 
         // pipeline with all transformations
         p.apply("ReadBoatIdPubSub", PubsubIO.readStrings().fromTopic(TOPIC))
-                .apply("ProcessBoatLogs", ParDo.of(new LogPubSub(configuration, "nautical_processBoatLogs", bucketName)))
+                .apply("ProcessBoatLogs", ParDo.of(new CopyAndProcessLogFiles(configuration, "nautical_processBoatLogs", bucketName)))
                 .apply("UploadVMGTable", ParDo.of(new UploadvmgTable(configuration, "nautical_catTargetSpeed")));
         p.run().waitUntilFinish();
     }
 
-    public static class LogPubSub extends DoFn<String, String> {
+    public static class CopyAndProcessLogFiles extends DoFn<String, String> {
 
         String boatid;
         String bucketName;
@@ -57,7 +57,7 @@ public class ProcessNewLogs {
         private String binaryName;
         private String[] directories = new String[2];
 
-        public LogPubSub(SubProcessConfiguration configuration, String binary, String bucketName) {
+        public CopyAndProcessLogFiles(SubProcessConfiguration configuration, String binary, String bucketName) {
 
             this.configuration = configuration;
             this.binaryName = binary;
