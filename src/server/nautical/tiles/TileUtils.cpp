@@ -79,15 +79,19 @@ NavDataset filterNavs(
     .addAndSelectChannel<GeographicPosition<double> >(
       GPS_POS,
       makeFilteredGpsName<GPS_POS>(navs),
-      results.positions)
-    .addAndSelectChannel<Velocity<double> >(
+      results.positions);
+  if (navs.hasActiveChannel(GPS_SPEED)) {
+    cleanGps = cleanGps.addAndSelectChannel<Velocity<double> >(
       GPS_SPEED,
       makeFilteredGpsName<GPS_SPEED>(navs),
-      gpsSpeeds)
-    .addAndSelectChannel<Angle<double> >(
+      gpsSpeeds);
+  }
+  if (navs.hasActiveChannel(GPS_BEARING)) {
+    cleanGps = cleanGps.addAndSelectChannel<Angle<double> >(
       GPS_BEARING,
       makeFilteredGpsName<GPS_BEARING>(navs),
       gpsBearings);
+  }
 
   return cleanGps;
 }
@@ -115,7 +119,7 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
     int tleft = tree->left();
     int tright = tree->right();
     int limit = rawNavs.samples<GPS_POS>().size();
-    if (tleft < 0 || tleft >= limit || tright < 0 || tright < tleft || tright >= limit) {
+    if (!(0 <= tleft && tleft <= tright && tright < limit)) {
       LOG(ERROR) << "Invalid tree! left: " << tleft << ", right: " << tright
         << ", limit: " << limit << ". Trying to fix.";
       tleft = std::max(0, std::min(limit - 1, tleft));
@@ -124,7 +128,7 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
         std::swap(tleft, tright);
       }
     }
-    if (tleft < 0 || tleft >= limit || tright < 0 || tright < tleft || tright >= limit) {
+    if (!(0 <= tleft && tleft <= tright && tright < limit)) {
       LOG(ERROR) << "Invalid tree after fix attempt! left: " << tleft << ", right: " << tright
         << ", limit: " << limit << ". Ignoring subtree.";
         return Array<NavDataset>();
