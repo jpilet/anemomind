@@ -1,20 +1,4 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 package com.anemomind.subprocess;
 
 import com.anemomind.subprocess.configuration.SubProcessConfiguration;
@@ -62,25 +46,6 @@ public interface SubProcessPipelineOptions extends PipelineOptions {
 
   void setSubProcessConfiguration(SubProcessConfiguration configuration);
 
- /* @Description("MongoDB hostname/ip")
-  @Default.String("localhost")
-  String getMongoHost();
-
-  void setMongoHost(String mongoHost);
-
-  @Description("Mongodb Database name for anemomind")
-  @Default.String("anemomind-dev")
-  String getMongoDB();
-
-  void setMongoDB(String mongoDB);
-
-
-  @Description("Mongodb Database port for anemomind")
-  @Default.String("27017")
-  String getMongoPort();
-
-  void setMongoPort(String mongoPort); */
-
   @Description("mongodb uri for anemomind")
   @Default.String("mongodb://localhost:27017/anemomind-dev")
   String getMongoDbUri();
@@ -119,7 +84,7 @@ public interface SubProcessPipelineOptions extends PipelineOptions {
         throw new IllegalStateException("Source path must be set");
       }
       if (subProcessPipelineOptions.getConcurrency() == null
-          || subProcessPipelineOptions.getConcurrency() == 0) {
+              || subProcessPipelineOptions.getConcurrency() == 0) {
         throw new IllegalStateException("Concurrency must be set and be > 0");
       }
       configuration.setSourcePath(subProcessPipelineOptions.getSourcePath());
@@ -127,9 +92,6 @@ public interface SubProcessPipelineOptions extends PipelineOptions {
       configuration.setWaitTime(subProcessPipelineOptions.getWaitTime());
       configuration.setOnlyUpLoadLogsOnError(subProcessPipelineOptions.getOnlyUpLoadLogsOnError());
       configuration.concurrency = subProcessPipelineOptions.getConcurrency();
-    /*  configuration.setMongoHost(subProcessPipelineOptions.getMongoHost());
-      configuration.setMongoDB(subProcessPipelineOptions.getMongoDB());
-      configuration.setMongoPort(subProcessPipelineOptions.getMongoPort()); */
       configuration.setMongoDbUri(subProcessPipelineOptions.getMongoDbUri());
       configuration.setTopic(subProcessPipelineOptions.getTopic());
       configuration.setBucketName(subProcessPipelineOptions.getBucketName());

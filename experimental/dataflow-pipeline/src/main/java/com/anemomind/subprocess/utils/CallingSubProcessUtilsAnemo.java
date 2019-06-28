@@ -1,32 +1,19 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.anemomind.subprocess.utils;
 
 import com.google.api.gax.paging.Page;
 import com.google.cloud.storage.*;
 import com.anemomind.subprocess.configuration.SubProcessConfiguration;
 import org.apache.beam.vendor.guava.v20_0.com.google.common.collect.Sets;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,13 +56,16 @@ public class CallingSubProcessUtilsAnemo {
         }
     }
 
-    public static String[] boatGcpToLocal(SubProcessConfiguration configuration, String bucketName, String boatName) {
+    public static String[] boatGcpToLocal(SubProcessConfiguration configuration, String bucketName, String pubsbumessage) {
 
         // Instantiates a client
         Storage storage = StorageOptions.getDefaultInstance().getService();
-        String directoryName = boatName;
         String directoryPath = null;
         String processedDir = null;
+
+        JSONObject jsonObject = new JSONObject(pubsbumessage);
+
+        String directoryName = jsonObject.getString("boatDirectory");
 
         Page<Bucket> buckets = storage.list(Storage.BucketListOption.pageSize(100));
 
@@ -84,22 +74,22 @@ public class CallingSubProcessUtilsAnemo {
             if (bucket.getName().equals(bucketName)) {
 
                 // listing all elements of given bucket.
-                Page<Blob> blobs = bucket.list();
+                List<String> blobNames = new LinkedList<String>();
+                JSONArray jsonArray = jsonObject.getJSONArray("files");
+                for (int i = 0; i<jsonArray.length();i++){
+                    blobNames.add(directoryName + "/" +jsonArray.getString(i));
+                }
 
-                for (Blob blob : blobs.iterateAll()) {
+                List<Blob> blobs = bucket.get(blobNames);
+                for(Blob blob : blobs){
 
-                    // All uploaded boat files resides in respective boat directory
-                    // of the given bucket.
-                    if (blob.getName().contains(boatName + "/")) {
-
+                    if(blob != null){
                         if (blob.getName().split("/").length == 2) {
 
                             directoryPath = configuration.getWorkerPath() + directoryName;
                             processedDir = directoryPath + "/" + "processed";
                             File directory = new File(directoryPath);
                             File processDirectory = new File(processedDir);
-
-
                             // creating boat directory on worker node where all uploaded files gets downloaded.
                             if (!directory.exists())
                                 directory.mkdir();
@@ -112,7 +102,6 @@ public class CallingSubProcessUtilsAnemo {
                             else
                                 LOG.info("Directory " + processedDir + " already exists...!");
 
-
                             String fileToDwnld = blob.getName().split("/")[1];
                             String localPath = configuration.getWorkerPath() + directoryName + "/" + fileToDwnld;
 
@@ -120,14 +109,11 @@ public class CallingSubProcessUtilsAnemo {
 
                             Blob blobDwnl = storage.get(BlobId.of(bucket.getName(), blob.getName()));
 
-                            if (blobDwnl != null) {
-
-                                System.out.println("Downloading file: " + fileToDwnld);
-                                blobDwnl.downloadTo(destpath);
-
-                            } else
-                                LOG.error("Given path " + blob.getName() + " is not available");
+                            System.out.println("Downloading file: " + fileToDwnld);
+                            blobDwnl.downloadTo(destpath);
                         }
+                    }else {
+                        LOG.error("Given path " + blob.getName() + " is not available");
                     }
                 }
             }

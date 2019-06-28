@@ -2,16 +2,21 @@ package com.anemomind;
 
 import com.anemomind.subprocess.SubProcessPipelineOptions;
 import com.anemomind.subprocess.utils.CallingSubProcessUtilsAnemo;
-import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.anemomind.subprocess.configuration.SubProcessConfiguration;
 import com.anemomind.subprocess.kernel.SubProcessCommandLineArgs;
 import com.anemomind.subprocess.kernel.SubProcessKernel;
+import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +42,7 @@ public class ProcessNewLogs {
         // bucket name that contains all boat directories in google storage
         String bucketName = configuration.getBucketName();
 
-       // pipeline with all transformations
+        // pipeline with all transformations
         p.apply("ReadBoatIdPubSub", PubsubIO.readStrings().fromTopic(TOPIC))
                 .apply("ProcessBoatLogs", ParDo.of(new LogPubSub(configuration, "nautical_processBoatLogs", bucketName)))
                 .apply("UploadVMGTable", ParDo.of(new UploadvmgTable(configuration, "nautical_catTargetSpeed")));
@@ -81,9 +86,12 @@ public class ProcessNewLogs {
                     // download boat files
                     directories = CallingSubProcessUtilsAnemo.boatGcpToLocal(configuration, bucketName, pubsubMessage);
 
-                    boatid = pubsubMessage.substring(4);
+                    JSONObject jsonObject = new JSONObject(pubsubMessage);
 
-                    String mongoURI = "mongodb://"+configuration.getMongoHost() +":"+configuration.getMongoPort() +"/"+configuration.getMongoDB();
+                    String boatName = jsonObject.getString("boatDirectory");
+
+                    boatid = boatName.substring(4);
+                    String mongoURI = configuration.getMongoDbUri();
 
                     String params = "--dir " + directories[0] +
                             " --dst " + directories[1] +
@@ -145,10 +153,14 @@ public class ProcessNewLogs {
 
                 if (!msg.isEmpty()) {
 
-                    boatid = msg.substring(4);
+                    JSONObject jsonObject = new JSONObject(msg);
+
+                    String boatName = jsonObject.getString("boatDirectory");
+
+                    boatid = boatName.substring(4);
 
                     String params = "--id " + boatid +
-                            " " + configuration.getWorkerPath() + msg + "/processed/boat.dat";
+                            " " + configuration.getWorkerPath() + boatName + "/processed/boat.dat";
                     String[] paramsArr = params.split(" ");
 
                     System.out.println("Processing boat id: " + boatid);
@@ -171,10 +183,25 @@ public class ProcessNewLogs {
                     // processing query return by upload vmg table c++ binary
 
                     System.out.println("Query return by upload vmg table binary: " + query);
-                    MongoClient mongo = new MongoClient(configuration.getMongoHost(), Integer.parseInt(configuration.getMongoPort()));
-                    DB db = mongo.getDB(configuration.getMongoDB());
-                    db.eval(query);
+                    if(!query.isEmpty()) {
+                        MongoClientURI uri = new MongoClientURI(configuration.getMongoDbUri());
+                        MongoClient mongoClient = new MongoClient(uri);
+                        MongoDatabase db = mongoClient.getDatabase(uri.getDatabase());
 
+                        String mainParams = query.substring(query.indexOf("(") + 1, query.lastIndexOf(")"));
+                        String conditionalQuery = mainParams.substring(mainParams.indexOf("{"), mainParams.indexOf("}") + 1);
+
+
+                        String subQuery = mainParams.substring(mainParams.indexOf("}", mainParams.indexOf("}" + 1)) + 2);
+                        String updateFields = subQuery.substring(0, subQuery.lastIndexOf(","));
+
+                        Bson filter = Document.parse(conditionalQuery);
+                        Bson query_option = Document.parse(updateFields);
+
+                        db.getCollection("boatstats").replaceOne(filter, (Document) query_option, new UpdateOptions().upsert(true));
+                    }else{
+                        System.out.println("Query return by upload vmg table is empty..!");
+                    }
 
                 } else {
                     LOG.error("message is empty");

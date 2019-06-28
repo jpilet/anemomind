@@ -59,20 +59,11 @@ Followings are the list of all available configuration parameters for dataflow-p
   - It is optional with default value=true. 
   - usage ```--onlyUpLoadLogsOnError=<true/false>```
 
-6.MongoHost:  
-  - Mongodb server hostname/Ip 
-  - optional with default value=localhost
-  - usage ```--mongoHost=<hostname/ip>```  
-    
-7.MongoDB:
-  - It is a database name.
-  - optional with default value=anemomind-dev
-  - usage ```--mongoDB=<databasename>```
+6.MongoDbUri:
+  - Mongodb URI for anemomind
+  - optional with default value=mongodb://localhost:27017/anemomind-dev
+  - usage ```--mongoHost=<mongodb_uri>```
 
-8.MongoPort:
-  - It is a database server port.
-  - optional with default value=27017
-  - usage ```--mongoPort=<port>```
 
 9.Topic:
   - Pubsub topic name where all boat messages published
