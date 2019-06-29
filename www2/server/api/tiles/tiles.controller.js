@@ -39,14 +39,8 @@ function fetchTiles(boatId, scale, x, y, startsAfter, endsBefore, callback) {
 }
 module.exports.fetchTiles = fetchTiles;
 
-function parseDateParam(obj, name, req, res) {
-  const reportError = (description) => {
-    res.status(400).send('Field: ' + name + ': ' + description);
-  };
-
-  let dateStr= obj[name];
+function parseDate(dateStr) {
   if (!dateStr || !typeof(dateStr) == 'string') {
-    reportError('Missing or wrong type');
     return;
   }
   if (dateStr.match(/^[c-z][0-9a-z]{7}$/)) {
@@ -61,26 +55,35 @@ function parseDateParam(obj, name, req, res) {
     return new Date(dateStr);
   }
 
-  reportError('Unrecognized date format. Please use: 2019-12-31T10:41:00'
-  + ' or: new Date().getTime().toString(36)');
   return undefined;
 }
 
-exports.retrieveRaw = function(req, res, next) {
-  var startsAfter = parseDateParam(req.params, 'startsAfter', req, res);
-  if (!startsAfter) {
-    return;
+function parseQueryDates(req, res) {
+  var result = { };
+  var keys = ['startsAfter', 'endsBefore'];
+  for (var i = 0; i < keys.length; ++i) {
+    var key = keys[i];
+    var param = req.params[key];
+    result[key] = parseDate(param);
+    if (param && !result[key]) {
+      res.status(400).send("Can't parse date: " + param);
+      return;
+    }
   }
-  var endsBefore = parseDateParam(req.params, 'endsBefore', req, res);
-  if (!startsAfter) {
+  return result;
+}
+
+exports.retrieveRaw = function(req, res, next) {
+  var dates = parseQueryDates(req, res);
+  if (!dates) {
     return;
   }
   fetchTiles(req.params.boat,
              req.params.scale,
              req.params.x,
              req.params.y,
-             startsAfter,
-             endsBefore,
+             dates.startsAfter,
+             dates.endsBefore,
              function(err, tiles) {
     if (err) {
       return next(err);
@@ -93,20 +96,16 @@ exports.retrieveRaw = function(req, res, next) {
 };
 
 exports.retrieveGeoJson = function(req, res, next) {
-  var startsAfter = parseDateParam(req.params, 'startsAfter', req, res);
-  if (!startsAfter) {
-    return;
-  }
-  var endsBefore = parseDateParam(req.params, 'endsBefore', req, res);
-  if (!startsAfter) {
+  var dates = parseQueryDates(req, res);
+  if (!dates) {
     return;
   }
   var query = makeQuery(req.params.boat,
                         req.params.scale,
                         req.params.x,
                         req.params.y,
-                        startsAfter,
-                        endsBefore);
+                        dates.startsAfter,
+                        dates.endsBefore);
 
   Tiles.find(query, function(err, tiles) {
     if (err) {
