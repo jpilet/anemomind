@@ -1,7 +1,15 @@
 FROM debian:9.8-slim
 
 ARG MONGO_URL
+ARG GCLOUD_PROJECT
+ARG GCS_KEYFILE
+ARG GCS_BUCKET
+ARG PUBSUB_TOPIC_NAME
 ENV MONGO_URL ${MONGO_URL}
+ENV GCLOUD_PROJECT ${GCLOUD_PROJECT}
+ENV GCS_KEYFILE ${GCS_KEYFILE}
+ENV GCS_BUCKET ${GCS_BUCKET}
+ENV PUBSUB_TOPIC_NAME ${PUBSUB_TOPIC_NAME}
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y curl tar xz-utils ca-certificates sudo \

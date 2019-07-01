@@ -6,6 +6,7 @@ const esaPolar = require('./esapolar');
 const LogFile = require('./logfile.model');
 const mongoose = require('mongoose');
 const util = require('util');
+const multerGoogleStorage = require("multer-google-storage");
 
 
 var multer = require('multer');
@@ -18,6 +19,7 @@ const fstat = util.promisify(fs.stat);
 
 // Imports the Google Cloud client library
 const { Storage } = require('@google-cloud/storage');
+const PubSub = require('@google-cloud/pubsub');
 
 var uploadPath = fs.realpathSync(config.uploadDir) + '/anemologs/boat';
 console.log('Uploading log files to: ' + uploadPath);
@@ -351,60 +353,100 @@ exports.delete = async function (req, res, next) {
 
 
 // uploading file in gcp 
-function getGSUrls (filename) {
-  return `https://storage.googleapis.com/boat_logs/${filename}`;
+function getGSUrls(bucket, filename) {
+  return `https://storage.googleapis.com/${bucket}/${filename}`;
 }
 
 
 exports.multerGcp = multer({
- storage: multer.MemoryStorage
+  storage: multer.MemoryStorage
+  //storage: multerGoogleStorage.storageEngine()
 }).any();
 
-exports.fileToGcp = async (req, res, next) =>  {
-   // Creates a client
-  const storage = new Storage({
-    projectId: 'anemomind',
-    keyFilename: '/anemomind/www2/anemomind-9b757e3fbacb.json'
+const pubsub = new PubSub({
+  projectId: config.projectName,
+  keyFilename: config.keyFile
+});
+
+
+function messageToPubSub(message) {
+  const topicName = config.pubSubTopicName;
+
+  const publisher = pubsub.topic(topicName).publisher();
+  publisher.publish(Buffer.from(JSON.stringify(message)), (err) => {
+    if (err) {
+      console.log('Error occurred while queuing background task', err);
+    } else {
+      console.log(`Boat data sent to pubsub for boat log processing`);
+    }
   });
-  
-  const bucket = storage.bucket('boat_logs');
-  
-// boat directory will store all uploaded files
-// of the respective boat in boat_logs bucket.
+
+}
+
+exports.fileToGcp = async (req, res, next) => {
+
+  const dir = fileDir(req);
+  if (req.files.length == 0) {
+    res.status(400).json({ error: 'please attach at least one file' });
+    return;
+  }
+  if (!dir) {
+    console.warn('UploadedFile: no dir');
+    res.status(500); // should be caught by previous stage
+    return;
+  }
+  if (!req.user) {
+    return res.status(401).send();
+  }
+
+
+  // Creates a client
+  const storage = new Storage({
+    projectId: config.projectName,
+    keyFilename: config.keyFile
+  });
+
+  const bucket = storage.bucket(config.bucket);
+  const message = {}
+  message.files = new Array();
+  message.boatDirectory = 'boat' + req.params.boatId;
+
+  let isUploadSucess = true;
+
+  // boat directory will store all uploaded files
+  // of the respective boat in boat_logs bucket.
   let boatDir = 'boat' + req.params.boatId + '/';
 
   for (let f of req.files) {
     try {
 
-      const gcsname = f.originalname;
-      const file = bucket.file(boatDir + gcsname);
-      
-      const stream = file.createWriteStream({
-        metadata: {
-          contentType: f.mimetype
-        },
-        resumable: false
-      });      
-  
-      stream.on('error', (err) => {
-        f.cloudStorageError = err;
-	    console.log("err: ", err);
-        next(err);
+      const gcsname = f.newname;
+
+      await bucket.upload(dir + '/' + gcsname, {
+        destination: boatDir + gcsname
       });
-    
-      stream.on('finish', () => {
-        f.cloudStorageObject =  boatDir + gcsname;
-        file.makePublic().then(() => {
-          f.cloudStoragePublicUrl = getGSUrls(boatDir + gcsname);
-          next();
-        });
-      });
-      stream.end(f.buffer);
-     
+
+      message.files.push(gcsname);
+
     } catch (err) {
-      console.warn('Failed to upload file: ' + f.originalname);
+      console.warn('Failed to upload file: ' + f.newname);
+      console.warn(err);
+      isUploadSucess = false;
+    }
+
+    if (isUploadSucess) {
+      // send message to google pubsub topic
+      messageToPubSub(message);
+    }
+    try {
+      const logFile = await addFileCacheEntry(
+        dir, f.newname, req.params.boatId, f.size, new Date(), req.user);
+      res.status(200).json(logFile);
+    } catch (err) {
+      console.warn('Failed to add cache entry for file: ' + f.newname);
       console.warn(err);
     }
-    break;
+
+
   }
 }

@@ -13,5 +13,14 @@ module.exports = {
   endpointDir:'/tmp/endpoints',
 
   //Stripe secret key test mode
-  stripeSecretKey: process.env.STRIPE_SECRET_KEY || null
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || null,
+  // projectName : process.env.PROJECT_NAME || "anemomind", 
+  // keyFile : process.env.KEYFILE || "/anemomind/www2/anemomind-9b757e3fbacb.json", 
+  // bucket : process.env.BUCKET || "boat_logs", 
+  // pubSubTopicName: process.env.PUBSUB_TOPIC_NAME || "anemomind_log_topic",
+  projectName : process.env.GCLOUD_PROJECT || "anemomind", 
+  keyFile : process.env.GCS_KEYFILE || "/anemomind/www2/anemomind-9b757e3fbacb.json", 
+  bucket : process.env.GCS_BUCKET || "boat_logs", 
+  pubSubTopicName: process.env.PUBSUB_TOPIC_NAME || "anemomind_log_topic",
+  useGoogleStorage : false
 };
