@@ -85,7 +85,7 @@ EXPOSE 9000
 # 3. Staging image for CPP binaries - because docker does not support ARG/ENV variables in COPY --from 
 ###
 
-FROM ${CPP_DOCKER_IMAGE} as cppbinaries
+# FROM ${CPP_DOCKER_IMAGE} as cppbinaries
 
 
 ###
@@ -97,29 +97,14 @@ FROM node-base
 WORKDIR /anemomind
 
 COPY --from=webbuilder /anemomind .
-RUN echo "copying cpp binaries from ${CPP_DOCKER_IMAGE}"
+#RUN echo "copying cpp binaries from ${CPP_DOCKER_IMAGE}"
 
 # Final runtime image doesn't make any shared libs assumptions - just copy from the appropriate CPP image
-COPY --from=cppbinaries /anemomind/lib/* /anemomind/lib/
-COPY --from=cppbinaries /anemomind/bin/* /anemomind/bin/
+#COPY --from=cppbinaries /anemomind/lib/* /anemomind/lib/
+#COPY --from=cppbinaries /anemomind/bin/* /anemomind/bin/
 
 ENV PATH="/anemomind/www2/node_modules/.bin:${PATH}" \
           LD_LIBRARY_PATH="/anemomind/lib/"
-
-
-# Install GCSFuse - this layer is kept separate as it is temporary - till components start using unified storage api
-ENV GCSFUSE_REPO gcsfuse-stretch
-
-RUN apt-get update && apt-get install --yes --no-install-recommends \
-    ca-certificates \
-    curl \
-    gnupg \
-  && echo "deb http://packages.cloud.google.com/apt $GCSFUSE_REPO main" \
-    | tee /etc/apt/sources.list.d/gcsfuse.list \
-  && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
-  && apt-get update \
-  && apt-get install --yes gcsfuse \
-  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # configure boat logs 
 RUN mkdir -p /anemomind/www2/uploads/anemologs
