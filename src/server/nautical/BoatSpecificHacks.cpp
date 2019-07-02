@@ -16,6 +16,7 @@ std::string gBoatId;
 
 const char kRealTeamD35[] = "5992fcc6035eb352cf36d594";
 const char kRealTeamGC32[] = "5a6b312270d7bf3fce86b6ad";
+const char kDentuso4[] = "57b18c02613e181e220a78ef";
 }
 
 bool forceDateForGLL = false;
@@ -47,6 +48,9 @@ void SelectSources(NavDataset *dataset) {
   } else if (gBoatId == kRealTeamGC32) {
     // Take apparent wind from the processor, not the sensor (rotating mast).
     dataset->dispatcher()->setSourcePriority("NMEA2000/c078be002fb01596", 20);
+  } else if (gBoatId == kDentuso4) {
+    // Take apparent wind from the processor, not the sensor (rotating mast).
+    dataset->dispatcher()->setSourcePriority("NMEA2000/c078be002fb01665", 20);
   }
 }
 
