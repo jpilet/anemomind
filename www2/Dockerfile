@@ -1,13 +1,21 @@
 FROM debian:9.8-slim
 
 ARG MONGO_URL
+ARG GCLOUD_PROJECT
+ARG GCS_KEYFILE
+ARG GCS_BUCKET
+ARG PUBSUB_TOPIC_NAME
 ENV MONGO_URL ${MONGO_URL}
+ENV GCLOUD_PROJECT ${GCLOUD_PROJECT}
+ENV GCS_KEYFILE ${GCS_KEYFILE}
+ENV GCS_BUCKET ${GCS_BUCKET}
+ENV PUBSUB_TOPIC_NAME ${PUBSUB_TOPIC_NAME}
 
 RUN apt-get update && \
-	apt-get install --no-install-recommends -y curl tar xz-utils ca-certificates sudo \
-            git python bash less wget bzip2 gzip iproute2 && \
-	apt-get clean && \
-	apt-get autoclean
+    apt-get install --no-install-recommends -y curl tar xz-utils ca-certificates sudo \
+    git python bash less wget bzip2 gzip iproute2 && \
+    apt-get clean && \
+    apt-get autoclean
 
 RUN curl -O https://nodejs.org/download/release/v8.11.3/node-v8.11.3-linux-x64.tar.xz 
 
@@ -21,7 +29,6 @@ RUN /bin/bash && \
 
 ENV PATH=/usr/local/lib/nodejs/node-v8.11.3-linux-x64/bin:$PATH \
     LD_LIBRARY_PATH="/anemomind/lib/"
-
 WORKDIR /anemomind/nodemodules
 
 COPY nodemodules .
@@ -29,9 +36,10 @@ COPY nodemodules .
 WORKDIR /anemomind/www2
 
 COPY www2/package*.json ./
+COPY www2/anemomind-9b757e3fbacb.json ./
 
 RUN  npm install --unsafe-perm=true --allow-root ../nodemodules/endpoint/ && \
-     npm install --unsafe-perm=true --allow-root
+    npm install --unsafe-perm=true --allow-root
 
 COPY www2/. .
 
@@ -45,6 +53,6 @@ RUN bower install --allow-root
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.5.0/wait /wait
 
 RUN chmod +x /wait && \
-mkdir -p uploads
+    mkdir -p uploads
 
 EXPOSE 9000

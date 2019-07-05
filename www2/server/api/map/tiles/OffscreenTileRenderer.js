@@ -30,11 +30,6 @@ var vm = require('vm');
 var request = require('request');
 var cachedRequest = require('cached-request')(request)
 
-// These are necessary to fake the browser
-window = { setTimeout: setTimeout };
-document = { createElement: function() { return {}; } };
-addWheelListener = function() { };
-
 var sources = [
   "utils.js",
   "affinetransform.js",
@@ -60,6 +55,7 @@ function OffscreenTileRenderer(params) {
   params.maxSimultaneousLoads = 500;
   params.downgradeIfSlowerFPS = .0001;
   params.maxUpLevels = 1;
+  params.disabledZoom = true;
 
   CanvasTilesRenderer.call(this, params);
 
