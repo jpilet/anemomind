@@ -1,5 +1,5 @@
 .red-text {
-    color: red;
+    color: #ff7800;
     font-weight: bold;
 }
 
@@ -17,7 +17,7 @@
 }
 
 .panel-default-custom {
-    border: red 1.5px solid !important;
+    border: #ff7800 1.5px solid !important;
     width : 100%;
     border-radius: 10px!important;
 }
@@ -38,8 +38,8 @@ hr-custom {
 
 .btn-red {
     color           : #fff;
-    background-color: red;
-    border-color    : red;
+    background-color: #ff7800;
+    border-color    : #ff7800;
 }
 
 .span-padding {
@@ -138,11 +138,11 @@ hr-custom {
 }
 
 input:checked+.slider {
-    background-color: red;
+    background-color: #ff7800;
 }
 
 input:focus+.slider {
-    box-shadow: 0 0 1px red;
+    box-shadow: 0 0 1px #ff7800;
 }
 
 input:checked+.slider:before {
