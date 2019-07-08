@@ -18,10 +18,17 @@ namespace ProtobufLogLoader {
 namespace {
 
 // For all sort of strange reasons, we receive weird dates.
-// we refuse recording older than 2014.
-const TimeStamp kMinValidTime = TimeStamp::UTC(2014, 1, 1, 0, 0, 0);
+// We'll assume that everything before the 1st GPS Week Number Rollover
+// in 1999 is invalid.
+// We'll assume that anything between 1999 and 2014 is 1024 weeks too old.
+// (see FixGpsBug below)
+const TimeStamp kMinValidTime = TimeStamp::UTC(1999, 8, 21, 0, 0, 0);
 // We refuse recording in the future.
 const TimeStamp kMaxValidTime = TimeStamp::now() + Duration<>::hours(24);
+
+const TimeStamp kGpsBugStart = TimeStamp::fromMilliSecondsSince1970(0)
+      + Duration<double>::weeks(1024);
+const TimeStamp kGpsBugEnd = TimeStamp::UTC(2014, 1, 1, 0, 0, 0.0);
 
 }  // namespace
 
@@ -92,6 +99,15 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
 }
 
 namespace {
+
+  TimeStamp FixGpsBug(TimeStamp maybeBugged) {
+    TimeStamp result = maybeBugged;
+    if (maybeBugged > kGpsBugStart && maybeBugged < kGpsBugEnd) {
+       result += Duration<double>::weeks(1024);
+    }
+    return result;
+  }
+
   struct OffsetWithFitnessError {
     static const int initPriority = (-std::numeric_limits<int>::max());
     static constexpr double initError = std::numeric_limits<double>::infinity();
@@ -166,7 +182,7 @@ namespace {
 	if (extTimes[j].defined() && times[j].defined()
             && extTimes[j] > kMinValidTime
             && extTimes[j] < kMaxValidTime) {
-	  diffs.push_back(extTimes[j] - times[j]);
+	  diffs.push_back(FixGpsBug(extTimes[j]) - times[j]);
 	}
       }
     } else {
