@@ -3,8 +3,8 @@ kind: Service
 metadata:
   creationTimestamp: null
   labels:
-    name: anemowebapp
-  name: anemowebapp
+    name: esalabwebapp
+  name: esalabwebapp
 spec:
   ports:
   - name: "9000"
@@ -12,7 +12,7 @@ spec:
     targetPort: 9000
   type: LoadBalancer
   selector:
-    name: anemowebapp
+    name: esalabwebapp
 status:
   loadBalancer: {}
 
@@ -23,8 +23,8 @@ kind: Deployment
 metadata:
   creationTimestamp: null
   labels:
-    name: anemowebapp
-  name: anemowebapp
+    name: esalabwebapp
+  name: esalabwebapp
 spec:
   replicas: 1
   strategy:
@@ -33,7 +33,7 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        name: anemowebapp
+        name: esalabwebapp
     spec:
       volumes:
       - name: google-cloud-key
@@ -44,8 +44,8 @@ spec:
         - grunt
         - serve:docker-dev
         - --force
-        image: gcr.io/${PROJECT_NAME}/${WEB_DOCKER_IMAGE}
-        name: anemowebapp
+        image: gcr.io/anemomind/esalabwebapp:latest
+        name: esalabwebapp
         ports:
         - containerPort: 9000
         securityContext:
@@ -61,8 +61,12 @@ spec:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/secrets/google/key.json
         - name: MONGO_URL
-          value: mongodb://main_admin:${MONGO_PWD}@mongod-0.mongodb-service:27017,mongod-1.mongodb-service:27017,mongod-2.mongodb-service:27017/anemomind-dev?replicaSet=MainRepSet&authSource=admin
+          value: mongodb://main_admin:anemo123@10.0.0.62:27017,10.0.0.61:27017,10.0.0.60:27017/anemomind-dev?replicaSet=MainRepSet&authSource=admin
         - name: LOAD_BIN_PATH
-          value: /anemomind/bin/logimport_try_load 
+          value: /anemomind/bin/logimport_try_load
+        - name: VHOST
+          value: esalab
+        - name: STRIPE_SECRET_KEY
+          value: sk_test_VbBYlclpCZOdkawrD8e4X2nB 
       restartPolicy: Always
 status: {}
