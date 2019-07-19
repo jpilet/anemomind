@@ -28,6 +28,16 @@ function isEmptyObject(obj) {
     return Object.keys(obj).length;
 }
 
+
+const planAbbreiviations = [
+    { code: "D", planName: "discovery_base_plan_chf", price: 0 },
+    { code: "N", planName: "navigation_memories_base_plan_chf", price: 18 },
+    { code: "L", planName: "log_book_base_plan_chf", price: 30 },
+    { code: "P", planName: "private_data_option_addon_chf", price: 30 },
+    { code: "O", planName: "optimised_true_wind_computation_option_addon_chf", price: 30 },
+    { code: "V", planName: "vmg_performance_analysis_option_addon_chf", price: 30 },
+]
+
 //Filter the base plan and addons from stripe
 function segregatePlans(plans) {
     const basePlans = [];
@@ -60,6 +70,7 @@ function createSubscriptionPlans(baseplans, addOns) {
     });
     cachedSubscriptionPlans.basePlans = baseplans;
     cachedSubscriptionPlans.addOns = addOns;
+    cachedSubscriptionPlans.planAbbreiviations = planAbbreiviations;
     return cachedSubscriptionPlans;
 }
 
@@ -73,7 +84,7 @@ exports.getAllPlans = function (req, res) {
                     const subscrptions = segregatePlans(plans.data);
                     res.status(200).json(subscrptions);
                 } else {
-                    res.status(400);
+                    res.status(400).json({ err: err });
                 }
             });
         }
@@ -93,6 +104,21 @@ exports.clearPlans = function (req, res) {
     res.status(200).json(cachedSubscriptionPlans);
 };
 
+function composePlans(plan) {
+    let plans = plan.split(".");
+    let selectedPlans = []
+    plans.forEach(function (p) {
+        planAbbreiviations.forEach(function (abbr) {
+            if (abbr.code === p) {
+                if (abbr.code !== "D") {
+                    selectedPlans.push({ plan: abbr.planName });
+                }
+            }
+        });
+    });
+    console.log(selectedPlans);
+    return selectedPlans;
+}
 
 // Create a subscription for new user.
 exports.createSubscription = async function (req, res) {
@@ -111,13 +137,15 @@ exports.createSubscription = async function (req, res) {
         }
 
         // create card object now - need this if the user updates the plan, need to charge him immidiately
-        let sourceCard = await createSourceCard(customer.id, req.body.plan);
+        let sourceCard = await createSourceCard(req.body.stripeSource, customer.id);
         if (!sourceCard.id) {
             return res.status(500).json({ "message": "Error during creating source", "error": sourceCard });
         }
 
+        console.log(req.body);
+        let plan = composePlans(req.body.plan);
         // now make the customer subscribe to plan/s based on selection on UI
-        let subscription = await subscribetoPlan(customer.id, req.body.plan);
+        let subscription = await subscribetoPlan(customer.id, plan);
         if (!subscription.id) {
             return res.status(500).json({ "message": "Error during subscribing to plan", "error": subscription });
         }
@@ -129,7 +157,7 @@ exports.createSubscription = async function (req, res) {
         }
 
         // make call to update customer.
-        let boat = await updateBoat(subscription, req.boatId, savedUser);
+        let boat = await updateBoat(subscription, req.body.boatId, savedUser);
         if (!boat._id) {
             return res.status(500).json({ "message": "Error during updating boat details", "error": boat });
         }
@@ -189,12 +217,11 @@ function createSourceCard(sourceStripeToken, customerId) {
 function subscribetoPlan(customerId, plan) {
     return new Promise((resolve, reject) => {
         console.log("Subscribe the user to a plan");
+        console.log(plan);
         stripe.subscriptions.create(
             {
                 customer: customerId,
-                items: [
-                    { plan: plan }
-                ],
+                items: plan,
                 expand: ['latest_invoice.payment_intent']
             },
             function (err, subscription) {
@@ -233,25 +260,28 @@ function updateUser(subscription, req) {
     });
 }
 
-function updateBoat(subscription, boatId, user) {
-    Boat.findById(boatId, function (err, boat) {
-        if (err) {
-            console.log("Boat not Found", err);
-            reject(err);
-        }
-        boat.stripeUserId = subscription.customer;
-        boat.subscriptionId = subscription.id;
-        // need to write a function to get the plans names from the suscription object
-        boat.plan = subscription.items.data[0].plan.id;
-        boat.susbcriptionStatus = status.statusEnum.OPEN;
-        boat.subscriptionOwner = user._id;
-        boat.save(function (err) {
+function updateBoat(subscription, boatId) {
+    return new Promise((resolve, reject) => {
+        Boat.findById(boatId, function (err, boat) {
             if (err) {
-                console.log("Error while updating boat details ", err);
+                console.log("Boat not Found", err);
                 reject(err);
             }
-            console.log("Boat details update succefully");
-            resolve(boat);
+            console.log(boat);
+            boat.stripeUserId = subscription.customer;
+            boat.subscriptionId = subscription.id;
+            // need to write a function to get the plans names from the suscription object
+            boat.plan = subscription.items.data[0].plan.id;
+            boat.susbcriptionStatus = status.statusEnum.OPEN;
+            boat.subscriptionOwner = subscription.customer;
+            boat.save(function (err) {
+                if (err) {
+                    console.log("Error while updating boat details ", err);
+                    reject(err);
+                }
+                console.log("Boat details update succefully");
+                resolve(boat);
+            });
         });
     });
 }
