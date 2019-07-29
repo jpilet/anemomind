@@ -122,6 +122,10 @@ exports.create = function(req, res) {
     }
   }
 
+  //Setting the default plan as Discovery 
+  //Making use of the plan nicknames -- as plan id have the currency as well 
+  boat.plan = "Discovery";
+
   Boat.create(boat, function(err, createdBoat) {
     if (err) {
       if (err.code == 11000) {

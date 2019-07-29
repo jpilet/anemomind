@@ -28,15 +28,20 @@ function isEmptyObject(obj) {
     return Object.keys(obj).length;
 }
 
+const planAbbreiviations = [];
 
-const planAbbreiviations = [
-    { code: "D", planName: "discovery_base_plan_chf", price: 0 },
-    { code: "N", planName: "navigation_memories_base_plan_chf", price: 18 },
-    { code: "L", planName: "log_book_base_plan_chf", price: 30 },
-    { code: "P", planName: "private_data_option_addon_chf", price: 30 },
-    { code: "O", planName: "optimised_true_wind_computation_option_addon_chf", price: 30 },
-    { code: "V", planName: "vmg_performance_analysis_option_addon_chf", price: 30 },
-]
+function checkIfPlanAdded(name) {
+    let planPresent = false;
+    // making use of for loop instead of foreach as we cannot have break in foreach
+    // https://www.codepunker.com/blog/3-javascript-loop-gotchas
+    for (i = 0; i < planAbbreiviations.length; i++) {
+        if (planAbbreiviations[i].planName === name) {
+            planPresent = true;
+            break;
+        }
+    }
+    return planPresent;
+}
 
 //Filter the base plan and addons from stripe
 function segregatePlans(plans) {
@@ -46,10 +51,45 @@ function segregatePlans(plans) {
         if (!!element.metadata.availableAddOns) {
             element.addOns = [];
             basePlans.push(element);
+            if (planAbbreiviations.length == 0) {
+                planAbbreiviations.push({
+                    code: element.nickname.charAt(0).toLocaleUpperCase(),
+                    planName: element.nickname
+                });
+            }
+            else {
+                if (!checkIfPlanAdded(element.nickname)) {
+                    planAbbreiviations.push({
+                        code: element.nickname.charAt(0).toLocaleUpperCase(),
+                        planName: element.nickname
+                    });
+                }
+            }
         }
         else {
             addOns.push(element);
+            // the first element to be pushed in case plan abbreiviation is empty
+            if (planAbbreiviations.length == 0) {
+                planAbbreiviations.push({
+                    code: element.nickname.charAt(0).toLocaleUpperCase(),
+                    planName: element.nickname
+                });
+            }
+            else {
+                if (!checkIfPlanAdded(element.nickname)) {
+                    planAbbreiviations.push({
+                        code: element.nickname.charAt(0).toLocaleUpperCase(),
+                        planName: element.nickname
+                    });
+                }
+            }
         }
+    });
+
+    // Pushing the base plan with no value here.
+    planAbbreiviations.push({
+        code: "D",
+        planName: "Discovery"
     });
     plans = createSubscriptionPlans(basePlans, addOns);
     return plans;
@@ -70,7 +110,7 @@ function createSubscriptionPlans(baseplans, addOns) {
     });
     cachedSubscriptionPlans.basePlans = baseplans;
     cachedSubscriptionPlans.addOns = addOns;
-    cachedSubscriptionPlans.planAbbreiviations = planAbbreiviations;
+    cachedSubscriptionPlans.planAbbreiviations = composeAbbrieviations(cachedSubscriptionPlans);
     return cachedSubscriptionPlans;
 }
 
@@ -84,6 +124,7 @@ exports.getAllPlans = function (req, res) {
                     const subscrptions = segregatePlans(plans.data);
                     res.status(200).json(subscrptions);
                 } else {
+                    console.log(err);
                     res.status(400).json({ err: err });
                 }
             });
@@ -270,8 +311,8 @@ function updateBoat(subscription, boatId) {
             console.log(boat);
             boat.stripeUserId = subscription.customer;
             boat.subscriptionId = subscription.id;
-            // need to write a function to get the plans names from the suscription object
-            boat.plan = subscription.items.data[0].plan.id;
+            // Function that will get the plan names from the subscription object.
+            boat.plan = getSubscribedPlanNames(subscription);
             boat.susbcriptionStatus = status.statusEnum.OPEN;
             boat.subscriptionOwner = subscription.customer;
             boat.save(function (err) {
@@ -282,6 +323,56 @@ function updateBoat(subscription, boatId) {
                 console.log("Boat details update succefully");
                 resolve(boat);
             });
+        });
+    });
+}
+
+
+function getSubscribedPlanNames(subscription) {
+    let subscribedPlans = "";
+    subscription.items.data.forEach(function (plan) {
+        subscribedPlans = subscribedPlans + plan.nickname;
+    });
+    return subscribedPlans;
+}
+
+// upgrade the existing subscription.
+function updateSubscription(subscription) {
+    return new Promise((resolve, reject) => {
+        console.log("Upgrading the existing plan");
+        stripe.subscriptionItems.update(
+            'si_FTIVEvLBdElXQM', // subscriptionItemId -- to be updated
+            //{ metadata: { order_id: '6735' } },
+            function (err, subscriptionItem) {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
+                else {
+                    console.log("The subscription was updated successfully");
+                    resolve(subscriptionItem);
+                }
+            }
+        );
+    });
+}
+
+
+// immidiately charge the customer to pay for the plan upgrade
+function chargeOnSubscriptionUpdate(subscription) {
+    return new Promise((resolve, reject) => {
+        // asynchronously called
+        stripe.invoices.create({
+            // this will have the stripe customer id to charge him immidiately 
+            // This is WIP .
+            customer: "cus_FWUioTPJ6oSS08"
+        }, function (err, invoice) {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve(invoice);
+            }
         });
     });
 }
