@@ -6,6 +6,7 @@ var controller = require('./files.controller');
 var auth = require('../../auth/auth.service');
 var access = require('../boat/access');
 var config = require('../../config/environment');
+var toBoolean = require('to-boolean');
 
 var router = express.Router();
 
@@ -19,14 +20,8 @@ router.get('/:boatId/:file',
     access.boatWriteAccess,
     controller.getSingle);
 
-// set flag use GoogleStorage
-// to true if files supposed to
-// be uploaded in google storage
-// by default this flag is
-// set to false.
-config.useGoogleStorage=true; 
-
-if (!config.useGoogleStorage) {
+// check whether use google storage or not
+if (! toBoolean(config.useGoogleStorage)) {
     router.post('/:boatId',
         auth.isAuthenticated(),
         access.boatWriteAccess,

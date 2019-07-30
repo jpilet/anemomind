@@ -35,6 +35,7 @@ services:
         GCS_KEYFILE: /anemomind/www2/anemomind-9b757e3fbacb.json
         GCS_BUCKET: boat_logs
         PUBSUB_TOPIC_NAME: anemomind_log_topic
+        USE_GS: "true"
     command: grunt serve:docker-dev --force
     ports:
       - "9000:9000"
