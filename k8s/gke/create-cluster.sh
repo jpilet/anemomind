@@ -23,7 +23,9 @@ gcloud config set project $PROJECT_NAME
 gcloud config set compute/zone $ZONE
 
 echo 'Creating kubernetes cluster ...'
-gcloud container clusters create ${CLUSTER_NAME} --image-type=$IMAGE_TYPE --machine-type=$MACHINE_TYPE --preemptible
+#gcloud container clusters create ${CLUSTER_NAME} --image-type=$IMAGE_TYPE --machine-type=$MACHINE_TYPE --preemptible --node-pool anemopool --num-nodes 3
+
+gcloud container --project "anemomind" clusters create "anemo-dev" --zone "europe-west1-b" --no-enable-basic-auth --cluster-version "1.12.8-gke.10" --machine-type "n1-standard-2" --image-type "Ubuntu" --num-nodes "3" --enable-stackdriver-kubernetes --enable-private-nodes --master-ipv4-cidr "172.16.0.0/28" --enable-ip-alias --network "projects/anemomind/global/networks/anemovpc" --subnetwork "projects/anemomind/regions/europe-west1/subnetworks/anemovpc-sn-europe-west1b" --default-max-pods-per-node "110" --enable-master-authorized-networks --master-authorized-networks 0.0.0.0/0 --addons HorizontalPodAutoscaling,HttpLoadBalancing --enable-autoupgrade --enable-autorepair
 
 echo 'checking cluster ...'
 gcloud container clusters get-credentials ${CLUSTER_NAME}
@@ -36,25 +38,25 @@ kubectl apply -f ${KUBE_RESOURCES_PATH}/mongo-hostvm-node-configurer-daemonset.y
 # Define storage class for dynamically generated persistent volumes
 # NOT USED IN THIS EXAMPLE AS EXPLICITLY CREATING DISKS FOR USE BY PERSISTENT
 # VOLUMES, HENCE COMMENTED OUT BELOW
-#kubectl apply -f ../../resources/mongo-gce-ssd-storageclass.yaml
+kubectl apply -f ./resources/mongo-gce-ssd-storageclass.yaml
 
 # Register GCE Fast SSD persistent disks and then create the persistent disks 
-echo "Creating GCE disks"
-for i in 1 2 3
-do
-    gcloud --quiet compute disks create --zone $ZONE --size 10GB --type pd-ssd pd-ssd-disk-$i
-done
-sleep 3
+# echo "Creating GCE disks"
+# for i in 1 2 3
+# do
+#     gcloud --quiet compute disks create --zone $ZONE --size 10GB --type pd-ssd pd-ssd-disk-$i
+# done
+# sleep 3
 
 # Create persistent volumes using disks created above
-echo "Creating GKE Persistent Volumes"
-for i in 1 2 3
-do
-    sed -e "s/INST/${i}/g" ${KUBE_RESOURCES_PATH}/mongo-xfs-gce-ssd-persistentvolume.yaml > /tmp/mongo-xfs-gce-ssd-persistentvolume.yaml
-    kubectl apply -f /tmp/mongo-xfs-gce-ssd-persistentvolume.yaml
-done
-rm /tmp/mongo-xfs-gce-ssd-persistentvolume.yaml
-sleep 3
+# echo "Creating GKE Persistent Volumes"
+# for i in 1 2 3
+# do
+#     sed -e "s/INST/${i}/g" ${KUBE_RESOURCES_PATH}/mongo-xfs-gce-ssd-persistentvolume.yaml > /tmp/mongo-xfs-gce-ssd-persistentvolume.yaml
+#     kubectl apply -f /tmp/mongo-xfs-gce-ssd-persistentvolume.yaml
+# done
+# rm /tmp/mongo-xfs-gce-ssd-persistentvolume.yaml
+# sleep 3
 
 # Create keyfile for the MongoD cluster as a Kubernetes shared secret
 TMPFILE=$(mktemp)
@@ -87,11 +89,11 @@ echo "mapping gcloud key as Kubernetes secret ..."
 # create gcloud service account credentials
 kubectl create secret generic gcs-key --from-file=key.json=$GCLOUD_CREDS_KEY
 
-echo "deploying cppserver ..."
-# Create cppserver deployment
-envsubst < ${KUBE_RESOURCES_PATH}/anemocpp.yaml > /tmp/anemocpp.yaml
-kubectl apply -f /tmp/anemocpp.yaml
-echo
+# echo "deploying cppserver ..."
+# # Create cppserver deployment
+# envsubst < ${KUBE_RESOURCES_PATH}/anemocpp.yaml > /tmp/anemocpp.yaml
+# kubectl apply -f /tmp/anemocpp.yaml
+# echo
 
 echo "deploying anemo web application ..."
 # Create node web app deployment
