@@ -22,13 +22,24 @@ gcloud auth activate-service-account --key-file=$GCLOUD_CREDS_KEY
 gcloud config set project $PROJECT_NAME
 gcloud config set compute/zone $ZONE
 
+# setting vpc and subnet
+echo 'Creating VPC...'
+gcloud compute --project=${PROJECT_NAME} networks create ${ANEMO_VPC} --subnet-mode=custom && \
+gcloud compute --project=${PROJECT_NAME} networks subnets create ${SUBNET} --network=${ANEMO_VPC} --region=${REGION} \
+--range=10.0.0.0/9
+
+echo 'Creating router'
+gcloud compute --project=${PROJECT_NAME} routers create ${ROUTER} --asn=65534 --network=${ANEMO_VPC} --region=${REGION}
+
+echo 'Creating subnet...'
+gcloud compute firewall-rules create ${SN_RULE1} --network ${ANEMO_VPC} --allow tcp,udp,icmp \
+--source-ranges 10.0.0.0/24 && \
+gcloud compute firewall-rules create ${SN_RULE2} --network ${ANEMO_VPC} --allow tcp:22,tcp:3389,icmp
+
 echo 'Creating kubernetes cluster ...'
-#gcloud container clusters create ${CLUSTER_NAME} --image-type=$IMAGE_TYPE --machine-type=$MACHINE_TYPE --preemptible --node-pool anemopool --num-nodes 3
-
-gcloud container --project "anemomind" clusters create "anemo-dev" --zone "europe-west1-b" --no-enable-basic-auth --cluster-version "1.12.8-gke.10" --machine-type "n1-standard-2" --image-type "Ubuntu" --num-nodes "3" --enable-stackdriver-kubernetes --enable-private-nodes --master-ipv4-cidr "172.16.0.0/28" --enable-ip-alias --network "projects/anemomind/global/networks/anemovpc" --subnetwork "projects/anemomind/regions/europe-west1/subnetworks/anemovpc-sn-europe-west1b" --default-max-pods-per-node "110" --enable-master-authorized-networks --master-authorized-networks 0.0.0.0/0 --addons HorizontalPodAutoscaling,HttpLoadBalancing --enable-autoupgrade --enable-autorepair
-
+gcloud beta container --project ${PROJECT_NAME} clusters create ${CLUSTER_NAME} --zone $ZONE --no-enable-basic-auth --cluster-version "1.12.8-gke.10" --machine-type=$MACHINE_TYPE --image-type=$IMAGE_TYPE --num-nodes "3" --enable-stackdriver-kubernetes --enable-private-nodes --master-ipv4-cidr "172.16.0.0/28" --enable-ip-alias --network ${ANEMO_VPC} --subnetwork ${SUBNET} --default-max-pods-per-node "110" --enable-master-authorized-networks --master-authorized-networks 0.0.0.0/0 --addons HorizontalPodAutoscaling,HttpLoadBalancing --enable-autoupgrade --enable-autorepair
 echo 'checking cluster ...'
-gcloud container clusters get-credentials ${CLUSTER_NAME}
+gcloud beta container clusters get-credentials ${CLUSTER_NAME}
 
 
 echo 'configuring daemonset on the cluster nodes ...'
@@ -95,9 +106,29 @@ kubectl create secret generic gcs-key --from-file=key.json=$GCLOUD_CREDS_KEY
 # kubectl apply -f /tmp/anemocpp.yaml
 # echo
 
+sleep 30
+
+# retriving ips of each mongo container
+>temp.txt
+for i in mongod-0 mongod-1 mongod-2
+	do 
+		a=`kubectl describe services $i | grep "10.0.*" | cut -d ":" -f2`
+		if [ $i != "mongod-2" ]; then 
+			echo -n "$a:27017,">>temp.txt 
+		else 
+			echo -n "$a:27017">>temp.txt 
+		fi 
+	done
+mongo_ips=`cat temp.txt | tr -d ' '`
+rm -f temp.txt
+
 echo "deploying anemo web application ..."
 # Create node web app deployment
 envsubst < ${KUBE_RESOURCES_PATH}/anemoweb.yaml > /tmp/anemoweb.yaml
+
+# Replace existing MONGO_URI with new IPs
+sed -i "s/@[a-z]*-[0-9]*.*anemomind-dev/@$mongo_ips\/anemomind-dev/g" /tmp/anemoweb.yaml
+
 kubectl apply -f /tmp/anemoweb.yaml
 echo
 
@@ -107,4 +138,3 @@ sleep 30
 kubectl get persistentvolumes
 echo
 kubectl get all 
-

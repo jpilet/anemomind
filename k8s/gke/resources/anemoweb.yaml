@@ -66,3 +66,4 @@ spec:
           value: /anemomind/bin/logimport_try_load 
       restartPolicy: Always
 status: {}
+  

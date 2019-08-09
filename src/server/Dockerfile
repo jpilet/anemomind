@@ -94,17 +94,17 @@ ENV LD_LIBRARY_PATH="/anemomind/lib/"
 
 #WORKDIR /anemomind/bin 
 
-RUN env > /etc/cron.d/anemo-cron && \
-    echo "* *  *   *   * flock -n /tmp/process_logs.lock /anemomind/bin/processNewLogs_DockerDev.sh >> /var/log/cron.log" >> /etc/cron.d/anemo-cron && \
-    echo >>/etc/cron.d/anemo-cron && \
-    chmod 0644 /etc/cron.d/anemo-cron && \
-    chmod -R 755 .
+# RUN env > /etc/cron.d/anemo-cron && \
+#     echo "* *  *   *   * flock -n /tmp/process_logs.lock /anemomind/bin/processNewLogs_DockerDev.sh >> /var/log/cron.log" >> /etc/cron.d/anemo-cron && \
+#     echo >>/etc/cron.d/anemo-cron && \
+#     chmod 0644 /etc/cron.d/anemo-cron && \
+#     chmod -R 755 .
 
-# Apply cron job
-RUN crontab /etc/cron.d/anemo-cron
+# # Apply cron job
+# RUN crontab /etc/cron.d/anemo-cron
 
-# Create the log file to be able to run tail
-RUN touch /var/log/cron.log
+# # Create the log file to be able to run tail
+# RUN touch /var/log/cron.log
 
-# Run the command on container startup
-CMD cron && tail -f /var/log/cron.log
+# # Run the command on container startup
+# CMD cron && tail -f /var/log/cron.log

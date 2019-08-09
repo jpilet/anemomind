@@ -11,9 +11,9 @@ Build docker images
 
 For GKE - tag the images with appropriate project name. Note that the project name is unique across google cloud
 
-docker build -t gcr.io/$PROJECT_NAME/anemoweb:latest -f src/server/Dockerfile .
+docker build -t gcr.io/$PROJECT_NAME/anemomind_anemocppserver:latest -f src/server/Dockerfile .
 
-docker build -t gcr.io/$PROJECT_NAME/anemoweb:latest -f www2/Dockerfile --build-arg CPP_DOCKER_IMAGE=gcr.io/$PROJECT_NAME/anemocpp:latest .
+docker build -t gcr.io/$PROJECT_NAME/anemomind_anemowebapp:latest -f www2/Dockerfile --build-arg CPP_DOCKER_IMAGE=gcr.io/$PROJECT_NAME/anemomind_anemocppserver:latest .
 
 For GKE 
 
