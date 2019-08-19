@@ -39,13 +39,51 @@ function fetchTiles(boatId, scale, x, y, startsAfter, endsBefore, callback) {
 }
 module.exports.fetchTiles = fetchTiles;
 
+function parseDate(dateStr) {
+  if (!dateStr || !typeof(dateStr) == 'string') {
+    return;
+  }
+  if (dateStr.match(/^[c-z][0-9a-z]{7}$/)) {
+    return new Date(parseInt(dateStr, 36));
+  }
+  const match = dateStr.match(/^20[0-9]{2}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]*)?(Z)?$/);
+
+  if (match) {
+    if (!match[2]) {
+      dateStr = dateStr + 'Z';
+    }
+    return new Date(dateStr);
+  }
+
+  return undefined;
+}
+
+function parseQueryDates(req, res) {
+  var result = { };
+  var keys = ['startsAfter', 'endsBefore'];
+  for (var i = 0; i < keys.length; ++i) {
+    var key = keys[i];
+    var param = req.params[key];
+    result[key] = parseDate(param);
+    if (param && !result[key]) {
+      res.status(400).send("Can't parse date: " + param);
+      return;
+    }
+  }
+  return result;
+}
+
 exports.retrieveRaw = function(req, res, next) {
+  var dates = parseQueryDates(req, res);
+  if (!dates) {
+    return;
+  }
   fetchTiles(req.params.boat,
              req.params.scale,
              req.params.x,
              req.params.y,
-             req.params.startsAfter,
-             req.params.endsBefore,
+             dates.startsAfter,
+             dates.endsBefore,
              function(err, tiles) {
     if (err) {
       return next(err);
@@ -58,14 +96,17 @@ exports.retrieveRaw = function(req, res, next) {
 };
 
 exports.retrieveGeoJson = function(req, res, next) {
+  var dates = parseQueryDates(req, res);
+  if (!dates) {
+    return;
+  }
   var query = makeQuery(req.params.boat,
                         req.params.scale,
                         req.params.x,
                         req.params.y,
-                        req.params.startsAfter,
-                        req.params.endsBefore);
+                        dates.startsAfter,
+                        dates.endsBefore);
 
-  console.log('get tile: ' + query.key);
   Tiles.find(query, function(err, tiles) {
     if (err) {
       return next(err);
