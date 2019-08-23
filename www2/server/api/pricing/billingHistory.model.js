@@ -8,7 +8,7 @@ const BillingHistorySchema = new Schema({
   subscriptionId: String, // subscriptionId + plan
   plan: String,
   susbcriptionStatus: String,
-  subscriptionOwner: String,
+  subscriptionOwner: Schema.ObjectId,
   invoiceId: String,
   stripeUserId: String,
   date: Date,
