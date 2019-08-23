@@ -52,28 +52,30 @@ angular.module('www2App')
     // Navigate the users to checkout page
     $scope.subscribe = function (plan) {
       let addons = plan.addOns;
-      var selectedPlan = "";
+      var selectedPlan =[];
 
       // Will populate plan and addons together if selected
       addons.forEach(function (element) {
+        // The convetion used to identify if the add on checked is
+        // baseplan.id_addon.id so if we have multiple base plans with add ons
+        // the one that will get seleted are those whose base plan is selected.
         var isAddOnSelected = document.getElementById(plan.id + '-' + element.id).checked;
         if (isAddOnSelected) {
           $scope.plansAbbreviation.forEach(function (p) {
             if (p.planName === element.id) {
-              if (selectedPlan === "") {
-                selectedPlan = p.code;
+              if (selectedPlan.length === 0) {
+                selectedPlan.push(p.code);
               }
               else {
-                selectedPlan = selectedPlan + "." + p.code;
+                selectedPlan.push(p.code);
               }
             }
             if (plan.id === p.planName) {
-              if (selectedPlan === "") {
-                selectedPlan = p.code
+              if (selectedPlan.length === 0) {
+                selectedPlan.push(p.code);
               }
               else {
-                selectedPlan.
-                selectedPlan = p.code + "." + selectedPlan
+                selectedPlan.push(p.code);
               }
             }
           });
@@ -81,24 +83,28 @@ angular.module('www2App')
       });
 
       // Will populate the plan only if base plan selected
-      if(selectedPlan === ""){
+      // This means that no add on was selected and the user has selected the base plan only
+      if(selectedPlan.length === 0){
         $scope.plansAbbreviation.forEach(function (p) {
           if (plan.id === p.planName) {
-            if (selectedPlan === "") {
-              selectedPlan = p.code
+            if (selectedPlan.length === 0) {
+              selectedPlan.push(p.code);
             }
             else {
-              selectedPlan = p.code + "." + selectedPlan
+              selectedPlan.push(p.code);
             }
           }
         });
       }
 
+      // convert selectedPlan to a string
+      var planStr = selectedPlan.join('.');
+
       if ($scope.selectedBoat.boatId !== 'undefined' && $scope.selectedBoat.boatId !== null) {
         $scope.isPlanSelected = true;
         // set the value of the selected plan
-        Checkout.setSelectedPlan($scope.selectedPlan);
-        $location.path('/checkout/' + $scope.selectedBoat.boatId).search({ plan: selectedPlan });
+        Checkout.setSelectedPlan(planStr);
+        $location.path('/checkout/' + $scope.selectedBoat.boatId).search({ plan: planStr });
       }
       else {
         $scope.boatNotSelected = true;

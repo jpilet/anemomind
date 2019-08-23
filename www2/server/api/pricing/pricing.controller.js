@@ -28,19 +28,16 @@ function isEmptyObject(obj) {
     return Object.keys(obj).length;
 }
 
-const planAbbreiviations = [];
+const planAbbreviations = [];
 
 function checkIfPlanAdded(name) {
-    let planPresent = false;
-    // making use of for loop instead of foreach as we cannot have break in foreach
-    // https://www.codepunker.com/blog/3-javascript-loop-gotchas
-    for (i = 0; i < planAbbreiviations.length; i++) {
-        if (planAbbreiviations[i].planName === name) {
-            planPresent = true;
-            break;
+    // making use of for loop instead of foreach as we cannot break the look when 
+    // we find the matched plan name
+    for (var i = 0; i < planAbbreviations.length; i++) {
+        if (planAbbreviations[i].planName === name) {
+            return true;
         }
     }
-    return planPresent;
 }
 
 //Filter the base plan and addons from stripe
@@ -51,15 +48,18 @@ function segregatePlans(plans) {
         if (!!element.metadata.availableAddOns) {
             element.addOns = [];
             basePlans.push(element);
-            if (planAbbreiviations.length == 0) {
-                planAbbreiviations.push({
+            // This is to insert the item at the very first time 
+            // the plan abbreviations object will be empty and so any plan that is iterated at this 
+            // will have to be added by default and as the first plan.
+            if (planAbbreviations.length == 0) {
+                planAbbreviations.push({
                     code: element.nickname.charAt(0).toLocaleUpperCase(),
                     planName: element.nickname
                 });
             }
             else {
-                if (!checkIfPlanAdded(element.nickname)) {
-                    planAbbreiviations.push({
+                if (!!checkIfPlanAdded && !checkIfPlanAdded(element.nickname)) {
+                    planAbbreviations.push({
                         code: element.nickname.charAt(0).toLocaleUpperCase(),
                         planName: element.nickname
                     });
@@ -69,15 +69,15 @@ function segregatePlans(plans) {
         else {
             addOns.push(element);
             // the first element to be pushed in case plan abbreiviation is empty
-            if (planAbbreiviations.length == 0) {
-                planAbbreiviations.push({
+            if (planAbbreviations.length == 0) {
+                planAbbreviations.push({
                     code: element.nickname.charAt(0).toLocaleUpperCase(),
                     planName: element.nickname
                 });
             }
             else {
-                if (!checkIfPlanAdded(element.nickname)) {
-                    planAbbreiviations.push({
+                if (!!checkIfPlanAdded && !checkIfPlanAdded(element.nickname)) {
+                    planAbbreviations.push({
                         code: element.nickname.charAt(0).toLocaleUpperCase(),
                         planName: element.nickname
                     });
@@ -87,7 +87,7 @@ function segregatePlans(plans) {
     });
 
     // Pushing the base plan with no value here.
-    planAbbreiviations.push({
+    planAbbreviations.push({
         code: "D",
         planName: "Discovery"
     });
@@ -110,7 +110,7 @@ function createSubscriptionPlans(baseplans, addOns) {
     });
     cachedSubscriptionPlans.basePlans = baseplans;
     cachedSubscriptionPlans.addOns = addOns;
-    cachedSubscriptionPlans.planAbbreiviations = composeAbbrieviations(cachedSubscriptionPlans);
+    cachedSubscriptionPlans.planAbbreviations = composeAbbrieviations(cachedSubscriptionPlans);
     return cachedSubscriptionPlans;
 }
 
@@ -149,7 +149,7 @@ function composePlans(plan) {
     let plans = plan.split(".");
     let selectedPlans = []
     plans.forEach(function (p) {
-        planAbbreiviations.forEach(function (abbr) {
+        planAbbreviations.forEach(function (abbr) {
             if (abbr.code === p) {
                 if (abbr.code !== "D") {
                     selectedPlans.push({ plan: abbr.planName });

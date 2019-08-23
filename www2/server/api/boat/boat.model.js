@@ -28,7 +28,7 @@ var BoatSchema = new Schema({
   subscriptionId: String,
   plan:String,
   susbcriptionStatus :String, //make it string enum.
-  subscriptionOwner: String,
+  subscriptionOwner: Schema.ObjectId,
   subscriptionExpiryDate : Date
 });
 
