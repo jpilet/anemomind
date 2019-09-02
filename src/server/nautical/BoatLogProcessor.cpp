@@ -297,9 +297,10 @@ void outputSessionSummary(const NavDataset &ds, DOM::Node *dst) {
   Optional<TimedValue<Velocity<>>> instant = computeInstantMaxSpeed(ds);
   Optional<TimedValue<Velocity<>>> period = computeMaxSpeedOverPeriod(ds);
   DOM::addSubTextNode(dst, "li",
-      stringFormat("Max speed instant: %.3g knots, over period: %.3g",
-          instant.defined()? instant.get().value.knots() : 0.0,
-          period.defined()? period.get().value.knots() : 0.0));
+      ds.lowerBound().toString() + " - " + ds.upperBound().toString() + ": "
+      + stringFormat("Max speed instant: %.3g knots, over period: %.3g",
+                     instant.defined()? instant.get().value.knots() : 0.0,
+                     period.defined()? period.get().value.knots() : 0.0));
 }
 
 void outputInfoPerSession(
@@ -364,9 +365,11 @@ bool BoatLogProcessor::process(ArgMap* amap) {
   hack::SelectSources(&current);
   current = current.createMergedChannels(
       std::set<DataCode>{AWA, AWS, MAG_HEADING}, Duration<>::seconds(.3));
+
   std::shared_ptr<HTree> fulltree = _grammar.parse(
       current.stripSource("Anemomind estimator") // avoid "loop back" effects
       );
+  std::shared_ptr<DispatchData> treeBaseChannel = current.activeChannel(GPS_POS);
 
   if (!fulltree) {
     LOG(WARNING) << "grammar parsing failed. No data? boat: " << _boatid;
@@ -423,10 +426,20 @@ bool BoatLogProcessor::process(ArgMap* amap) {
     visualizeBoatDat(_dstPath);
   }
 
-  current = current.createMergedChannels(current.unmergedChannels());
+  auto unmerged = current.unmergedChannels();
+
+  // Merging of GPS data has been done at filtering time, or before.
+  // No need to redo it now.
+  unmerged.erase(GPS_POS);
+  unmerged.erase(GPS_BEARING);
+  unmerged.erase(GPS_SPEED);
+  current = current.createMergedChannels(unmerged);
 
   HTML_DISPLAY(_generateTiles, &_htmlReport);
   if (_generateTiles) {
+    // Make sure the GPS_POS source is the one used to create fulltree
+    // otherwise, the indices it contains will be invalid.
+    current.selectSource(GPS_POS, treeBaseChannel->source());
     Array<NavDataset> sessions =
       extractAll("Sailing", current, _grammar.grammar, fulltree);
     outputInfoPerSession(sessions, &_htmlReport);

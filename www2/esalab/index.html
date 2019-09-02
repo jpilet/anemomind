@@ -89,6 +89,7 @@
       <link rel="stylesheet" href="components/footer/footer.css">
       <link rel="stylesheet" href="components/modal/modal.css">
       <link rel="stylesheet" href="components/navbar/navbar.css">
+      <link rel="stylesheet" href="app/pricing/pricing.css">
       <!-- endinjector -->
     <!-- endbuild -->
   </head>
@@ -108,6 +109,7 @@
     <!-- Add your site or application content here -->
     <div ui-view="" class="main-view"></div>
 
+    
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -126,6 +128,9 @@
     <![endif]-->
     <!-- build:js({esalab,node_modules}) app/vendor.js -->
       <!-- bower:js -->
+      <script>
+        const showPricingTab = false;
+      </script>
       <script src="bower_components/jquery/dist/jquery.js"></script>
       <script src="bower_components/angular/angular.js"></script>
       <script src="bower_components/angular-resource/angular-resource.js"></script>
@@ -226,6 +231,8 @@
           <script src="app/wheelIndicator/wheelIndicator.js"></script>
           <script src="app/wheelSmallIndicator/wheelSmallIndicator.directive.js"></script>
           <script src="app/wheelSmallIndicator/wheelSmallIndicator.js"></script>
+          <script src="app/pricing/pricing.controller.js"></script>
+          <script src="app/pricing/pricing.js"></script>
           <script src="components/auth/auth.service.js"></script>
           <script src="components/auth/user.service.js"></script>
           <script src="components/modal/modal.service.js"></script>
