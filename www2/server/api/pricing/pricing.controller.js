@@ -33,11 +33,7 @@ const planAbbreviations = [];
 function checkIfPlanAdded(name) {
     // making use of for loop instead of foreach as we cannot break the look when 
     // we find the matched plan name
-    for (var i = 0; i < planAbbreviations.length; i++) {
-        if (planAbbreviations[i].planName === name) {
-            return true;
-        }
-    }
+    return planAbbreviations.map((x) => x.planName).indexOf(name) >= 0;
 }
 
 //Filter the base plan and addons from stripe
