@@ -52,7 +52,7 @@ angular.module('www2App')
     // Navigate the users to checkout page
     $scope.subscribe = function (plan) {
       let addons = plan.addOns;
-      var selectedPlan =[];
+      var selectedPlan = [];
 
       // Will populate plan and addons together if selected
       addons.forEach(function (element) {
@@ -63,20 +63,7 @@ angular.module('www2App')
         if (isAddOnSelected) {
           $scope.plansAbbreviation.forEach(function (p) {
             if (p.planName === element.id) {
-              if (selectedPlan.length === 0) {
-                selectedPlan.push(p.code);
-              }
-              else {
-                selectedPlan.push(p.code);
-              }
-            }
-            if (plan.id === p.planName) {
-              if (selectedPlan.length === 0) {
-                selectedPlan.push(p.code);
-              }
-              else {
-                selectedPlan.push(p.code);
-              }
+              selectedPlan.push(p.code);
             }
           });
         }
@@ -84,15 +71,10 @@ angular.module('www2App')
 
       // Will populate the plan only if base plan selected
       // This means that no add on was selected and the user has selected the base plan only
-      if(selectedPlan.length === 0){
+      if (selectedPlan.length === 0) {
         $scope.plansAbbreviation.forEach(function (p) {
           if (plan.id === p.planName) {
-            if (selectedPlan.length === 0) {
-              selectedPlan.push(p.code);
-            }
-            else {
-              selectedPlan.push(p.code);
-            }
+            selectedPlan.push(p.code);
           }
         });
       }

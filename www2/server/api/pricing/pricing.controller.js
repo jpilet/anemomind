@@ -53,14 +53,14 @@ function segregatePlans(plans) {
             // will have to be added by default and as the first plan.
             if (planAbbreviations.length == 0) {
                 planAbbreviations.push({
-                    code: element.nickname.charAt(0).toLocaleUpperCase(),
+                    code: element.nickname.substring(0, 2).toLocaleUpperCase() + Math.floor(Math.random() * 10),
                     planName: element.nickname
                 });
             }
             else {
                 if (!!checkIfPlanAdded && !checkIfPlanAdded(element.nickname)) {
                     planAbbreviations.push({
-                        code: element.nickname.charAt(0).toLocaleUpperCase(),
+                        code: element.nickname.substring(0, 2).toLocaleUpperCase() + Math.floor(Math.random() * 10),
                         planName: element.nickname
                     });
                 }
@@ -71,14 +71,14 @@ function segregatePlans(plans) {
             // the first element to be pushed in case plan abbreiviation is empty
             if (planAbbreviations.length == 0) {
                 planAbbreviations.push({
-                    code: element.nickname.charAt(0).toLocaleUpperCase(),
+                    code: element.nickname.substring(0, 2).toLocaleUpperCase() + Math.floor(Math.random() * 10),
                     planName: element.nickname
                 });
             }
             else {
                 if (!!checkIfPlanAdded && !checkIfPlanAdded(element.nickname)) {
                     planAbbreviations.push({
-                        code: element.nickname.charAt(0).toLocaleUpperCase(),
+                        code: element.nickname.substring(0, 2).toLocaleUpperCase() + Math.floor(Math.random() * 10),
                         planName: element.nickname
                     });
                 }
@@ -88,7 +88,7 @@ function segregatePlans(plans) {
 
     // Pushing the base plan with no value here.
     planAbbreviations.push({
-        code: "D",
+        code: "DI" + + Math.floor(Math.random() * 10),
         planName: "Discovery"
     });
     plans = createSubscriptionPlans(basePlans, addOns);
@@ -110,7 +110,7 @@ function createSubscriptionPlans(baseplans, addOns) {
     });
     cachedSubscriptionPlans.basePlans = baseplans;
     cachedSubscriptionPlans.addOns = addOns;
-    cachedSubscriptionPlans.planAbbreviations = composeAbbrieviations(cachedSubscriptionPlans);
+    cachedSubscriptionPlans.planAbbreviations = planAbbreviations;
     return cachedSubscriptionPlans;
 }
 
@@ -151,7 +151,7 @@ function composePlans(plan) {
     plans.forEach(function (p) {
         planAbbreviations.forEach(function (abbr) {
             if (abbr.code === p) {
-                if (abbr.code !== "D") {
+                if (abbr.code.substring(0, 2) !== "DI") {
                     selectedPlans.push({ plan: abbr.planName });
                 }
             }
@@ -233,7 +233,6 @@ function createStripeUser(email) {
         );
     });
 }
-
 
 function createSourceCard(sourceStripeToken, customerId) {
     console.log("Creating the card object for user");
@@ -329,11 +328,7 @@ function updateBoat(subscription, boatId) {
 
 
 function getSubscribedPlanNames(subscription) {
-    let subscribedPlans = "";
-    subscription.items.data.forEach(function (plan) {
-        subscribedPlans = subscribedPlans + plan.nickname;
-    });
-    return subscribedPlans;
+    return subscription.items.data.map(function (plan) { return plan.nickname; }).join('.');
 }
 
 // upgrade the existing subscription.
