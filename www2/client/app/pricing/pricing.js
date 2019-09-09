@@ -9,7 +9,7 @@ angular.module('www2App')
         controller: 'PricingCtrl'
       })
       .state('pricing-boat', {
-	      url: '/pricing?:boatId',
+	      url: '/pricing/:boatId',
         templateUrl: 'app/pricing/pricing.html',
         controller: 'PricingCtrl'
       })

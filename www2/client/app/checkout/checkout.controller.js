@@ -2,7 +2,8 @@ angular.module('www2App')
   .controller('CheckoutCtrl', function ($scope, $stateParams, $http, Auth, Checkout) {
 
     $scope.boat = Checkout.getBoat();
-    $scope.boatId = $stateParams;
+    $scope.boatId = $stateParams.boatId;
+    $scope.plan = $stateParams.plan;
 
     $scope.isLoggedIn = Auth.isLoggedIn;
     if ($scope.isLoggedIn()) {
@@ -138,8 +139,8 @@ angular.module('www2App')
       data.stripeSource = source.id;
       data.email = document.getElementById("email").value;
       data.country = document.getElementById("country").value;
-      data.plan = Checkout.getSelectedPlan();
-      data.boatId = $scope.boat._id;
+      data.plan = $scope.plan;
+      data.boatId = $scope.boatId;
       // Submit the form
       $scope.subscribeUser(data);
     }

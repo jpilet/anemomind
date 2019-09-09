@@ -12,7 +12,7 @@
             <div ng-if="isLoggedIn()">
                 <div ng-if="!isPlanSelected">
                     <label for="boat">Select Boat</label>:
-                    <select name="boat" id="boat" ng-model="selectedBoat.model" ng-change="changeBoat()">
+                    <select name="boat" id="boat" ng-model="selectedBoat.boatId" ng-change="changeBoat()">
                         <option ng-repeat="option in selectedBoat.boats" value="{{option._id}}">{{option.name}}</option>
                     </select>
                 </div>
@@ -104,7 +104,7 @@
                                                 <span class="pull-right">
 
                                                     <label class="switch">
-                                                        <input type="checkbox">
+                                                        <input id="{{plan.id}}-{{addon.id}}" type="checkbox">
                                                         <span class="slider round"></span>
                                                     </label>
                                                 </span>
@@ -115,7 +115,7 @@
                                 </div>
 
                                 <div class="">
-                                    <button type="button" class="btn btn-red btn-block" ng-click="subscribe(plan.id)">
+                                    <button type="button" class="btn btn-red btn-block" ng-click="subscribe(plan)">
                                         <span class="span-padding">Register</span>
                                     </button>
                                     <div class="margin-top">
