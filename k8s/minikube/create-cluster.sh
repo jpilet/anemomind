@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ##
 # Script to deploy anemomind Kubernetes cluster  with the following [To be replaced with Terraform/Skaffold in later releases]
 #  => 3 Node GKE cluster backed up by GCE nodes specified by --machine-type and --image-type for given project name/id
@@ -11,7 +11,9 @@
 ##
 
 # Load up .env
-export $(egrep -v '^#' .env | xargs)
+BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+KUBE_RESOURCES_PATH="${BASEDIR}/resources"
+
 
 TMPFILE=$(mktemp)
 /usr/bin/openssl rand -base64 741 > $TMPFILE
@@ -21,7 +23,7 @@ rm $TMPFILE
 
 # Create mongodb service with mongod stateful-set
 # TODO: Temporarily added no-valudate due to k8s 1.8 bug: https://github.com/kubernetes/kubernetes/issues/53309
-kubectl apply -f $KUBE_RESOURCES_PATH/mongodb-minikube-service.yaml --validate=false
+kubectl apply -f $KUBE_RESOURCES_PATH/mongodb-minikube.yaml --validate=false
 sleep 5
 
 echo "deploying cppserver ..."
