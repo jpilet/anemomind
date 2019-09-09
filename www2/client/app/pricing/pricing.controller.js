@@ -56,7 +56,7 @@ angular.module('www2App')
 
       // Will populate plan and addons together if selected
       addons.forEach(function (element) {
-        // The convetion used to identify if the add on checked is
+        // The convention used to identify if the add on checked is
         // baseplan.id_addon.id so if we have multiple base plans with add ons
         // the one that will get seleted are those whose base plan is selected.
         var isAddOnSelected = document.getElementById(plan.id + '-' + element.id).checked;

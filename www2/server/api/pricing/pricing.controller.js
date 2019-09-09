@@ -31,8 +31,6 @@ function isEmptyObject(obj) {
 const planAbbreviations = [];
 
 function checkIfPlanAdded(name) {
-    // making use of for loop instead of foreach as we cannot break the look when 
-    // we find the matched plan name
     return planAbbreviations.map((x) => x.planName).indexOf(name) >= 0;
 }
 
@@ -41,24 +39,18 @@ function segregatePlans(plans) {
     const basePlans = [];
     const addOns = [];
     plans.forEach(element => {
-        if (!!element.metadata.availableAddOns) {
+        if ('availableAddOns' in element.metadata) {
             element.addOns = [];
             basePlans.push(element);
             // This is to insert the item at the very first time 
             // the plan abbreviations object will be empty and so any plan that is iterated at this 
             // will have to be added by default and as the first plan.
             if (planAbbreviations.length == 0) {
-                planAbbreviations.push({
-                    code: element.nickname.substring(0, 2).toLocaleUpperCase() + Math.floor(Math.random() * 10),
-                    planName: element.nickname
-                });
+                addAbbreviation(planAbbreviations, element)
             }
             else {
                 if (!!checkIfPlanAdded && !checkIfPlanAdded(element.nickname)) {
-                    planAbbreviations.push({
-                        code: element.nickname.substring(0, 2).toLocaleUpperCase() + Math.floor(Math.random() * 10),
-                        planName: element.nickname
-                    });
+                    addAbbreviation(planAbbreviations, element)
                 }
             }
         }
@@ -66,17 +58,11 @@ function segregatePlans(plans) {
             addOns.push(element);
             // the first element to be pushed in case plan abbreiviation is empty
             if (planAbbreviations.length == 0) {
-                planAbbreviations.push({
-                    code: element.nickname.substring(0, 2).toLocaleUpperCase() + Math.floor(Math.random() * 10),
-                    planName: element.nickname
-                });
+                addAbbreviation(planAbbreviations, element)
             }
             else {
                 if (!!checkIfPlanAdded && !checkIfPlanAdded(element.nickname)) {
-                    planAbbreviations.push({
-                        code: element.nickname.substring(0, 2).toLocaleUpperCase() + Math.floor(Math.random() * 10),
-                        planName: element.nickname
-                    });
+                    addAbbreviation(planAbbreviations, element)
                 }
             }
         }
@@ -90,6 +76,15 @@ function segregatePlans(plans) {
     plans = createSubscriptionPlans(basePlans, addOns);
     return plans;
 }
+
+
+function addAbbreviation(planAbbreviations, element) {
+    // Adding the abbreviations to the abbreviationsList page
+    planAbbreviations.push({
+        code: element.nickname.substring(0, 2).toLocaleUpperCase() + Math.floor(Math.random() * 10),
+        planName: element.nickname
+    });
+ }
 
 //create base subscription plan with addons to iterate over the template
 function createSubscriptionPlans(baseplans, addOns) {
