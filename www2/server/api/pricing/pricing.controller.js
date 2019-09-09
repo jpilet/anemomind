@@ -23,9 +23,6 @@ const stripe = require("stripe")(env.stripeSecretKey);
 // this will be the cache obect of subscription
 const cachedSubscriptionPlans = {};
 
-// constant to be added to plan if abbreviation gets dupliacted
-const abbrConst = "A"
-
 // Check if the object is empty or not
 function isEmptyObject(obj) {
     return Object.keys(obj).length;
@@ -91,7 +88,6 @@ function addAbbreviation(planAbbreviations, element) {
         });
     }
     else {
-        // recursively add the const till the abbreviation is unique
         throw new Error("Duplicate abbreviation generated for plan :" + code + "-" + element.nickname);
     }
 }
