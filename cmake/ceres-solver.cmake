@@ -49,6 +49,7 @@ ExternalProject_Add(ceres_ext
         "-DBUILD_EXAMPLES=OFF"
         "-DBUILD_TESTING=OFF"
         "-DBUILD_SHARED_LIBS=OFF"
+        "-DEIGEN3_INCLUDE_DIR=${EIGEN3_INCLUDE_DIR}"
         "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
         "-DCMAKE_CXX_FLAGS=-Wall"
         )
