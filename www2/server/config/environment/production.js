@@ -33,6 +33,6 @@ module.exports = {
   keyFile : process.env.GCS_KEYFILE || "/anemomind/www2/anemomind-9b757e3fbacb.json", 
   bucket : process.env.GCS_BUCKET || "boat_logs", 
   pubSubTopicName: process.env.PUBSUB_TOPIC_NAME || "anemomind_log_topic",
-  useGoogleStorage : process.env.USE_GS || "false"
+  useGoogleStorage : process.env.USE_GS || false
 
 };

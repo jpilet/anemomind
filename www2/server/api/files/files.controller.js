@@ -348,6 +348,37 @@ exports.delete = async function (req, res, next) {
 };
 
 
+exports.deleteFileFromGcp = async function (req, res, next) {
+
+  let boatDir = 'boat' + req.params.boatId + '/';
+  const name = fileName(req);
+
+  // Creates a client
+  const storage = new Storage({
+    projectId: config.projectName,
+    keyFilename: config.keyFile
+  });
+
+  const bucket = storage.bucket(config.bucket);
+
+  const err = await new Promise((resolve) => {
+    LogFile.deleteOne({
+      name: name,
+      boat: mongoose.Types.ObjectId(req.params.boatId)
+    }, resolve);
+  });
+  if (err) { console.warn(err); }
+
+
+  // Deletes the file from the bucket
+  await storage
+    .bucket(bucket)
+    .file(boatDir + name)
+    .delete();
+  res.status(204).send();
+
+}
+
 // uploading file in gcp 
 function getGSUrls(bucket, filename) {
   return `https://storage.googleapis.com/${bucket}/${filename}`;

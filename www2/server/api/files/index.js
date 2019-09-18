@@ -27,6 +27,11 @@ if (! toBoolean(config.useGoogleStorage)) {
         access.boatWriteAccess,
         controller.postFile,
         controller.handleUploadedFile);
+
+    router.delete('/:boatId/:file',
+        auth.isAuthenticated(),
+        access.boatWriteAccess,
+        controller.delete);
 }
 else {
     router.post('/:boatId',
@@ -34,11 +39,11 @@ else {
         access.boatWriteAccess,
         controller.postFile,
         controller.fileToGcp);
-}
 
-router.delete('/:boatId/:file',
-    auth.isAuthenticated(),
-    access.boatWriteAccess,
-    controller.delete);
+    router.delete('/:boatId/:file',
+        auth.isAuthenticated(),
+        access.boatWriteAccess,
+        controller.deleteFileFromGcp);
+}
 
 module.exports = router;

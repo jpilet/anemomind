@@ -38,8 +38,8 @@ elif [ ${ENVIRONMENT=} == "dev" ]; then
   # creating container as anemomind_anemocppserver_1 with bind mount and named volume
   
   docker build --target cppbuilder -t anemomind_anemocppserver -f src/server/Dockerfile . && \  
-  docker volume create myvol && \
-  docker run -d -v "$(pwd)"/src:/anemomind/src -v myvol:/anemomind/build -p 7188:22 --name anemomind_anemocppserver_1 -it anemomind_anemocppserver
+  docker volume create shared_lib && \
+  docker run -d -v "$(pwd)"/src:/anemomind/src -v shared_lib:/anemomind/build -p 7188:22 --name anemomind_anemocppserver_1 -it anemomind_anemocppserver
 
 
 else
