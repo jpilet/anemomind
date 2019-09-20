@@ -21,29 +21,28 @@ router.get('/:boatId/:file',
     controller.getSingle);
 
 // check whether use google storage or not
-if (! toBoolean(config.useGoogleStorage)) {
-    router.post('/:boatId',
-        auth.isAuthenticated(),
-        access.boatWriteAccess,
-        controller.postFile,
-        controller.handleUploadedFile);
+const filehandlers = (toBoolean(config.useGoogleStorage) ?
+    {
+        handleUploadedFile: controller.fileToGcp,
+        delete: controller.deleteFileFromGcp,
+    }
+    :
+    {
+        handleUploadedFile: controller.handleUploadedFile,
+        delete: controller.delete,
+    });
 
-    router.delete('/:boatId/:file',
-        auth.isAuthenticated(),
-        access.boatWriteAccess,
-        controller.delete);
-}
-else {
-    router.post('/:boatId',
-        auth.isAuthenticated(),
-        access.boatWriteAccess,
-        controller.postFile,
-        controller.fileToGcp);
 
-    router.delete('/:boatId/:file',
-        auth.isAuthenticated(),
-        access.boatWriteAccess,
-        controller.deleteFileFromGcp);
-}
+router.post('/:boatId',
+    auth.isAuthenticated(),
+    access.boatWriteAccess,
+    controller.postFile,
+    filehandlers.handleUploadedFile);
+
+router.delete('/:boatId/:file',
+    auth.isAuthenticated(),
+    access.boatWriteAccess,
+    filehandlers.delete);
+
 
 module.exports = router;

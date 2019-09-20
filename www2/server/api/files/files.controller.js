@@ -59,6 +59,15 @@ function fileName(req) {
   return file;
 }
 
+function clientStorage() {
+  // Creates a client
+  const storage = new Storage({
+    projectId: config.projectName,
+    keyFilename: config.keyFile
+  });
+  return storage;
+}
+
 function getDetailsForFiles(dir, files) {
   const regex = /ESA$/;
   let esaFiles = files.filter((f) => f.match(regex))
@@ -354,10 +363,7 @@ exports.deleteFileFromGcp = async function (req, res, next) {
   const name = fileName(req);
 
   // Creates a client
-  const storage = new Storage({
-    projectId: config.projectName,
-    keyFilename: config.keyFile
-  });
+  const storage = clientStorage();
 
   const bucket = storage.bucket(config.bucket);
 
@@ -367,16 +373,22 @@ exports.deleteFileFromGcp = async function (req, res, next) {
       boat: mongoose.Types.ObjectId(req.params.boatId)
     }, resolve);
   });
-  if (err) { console.warn(err); }
+  if (err) {
+    console.warn(err);
+    res.status(404).send()
+  }
 
 
   // Deletes the file from the bucket
-  await storage
-    .bucket(bucket)
-    .file(boatDir + name)
-    .delete();
-  res.status(204).send();
-
+  try {
+    await storage
+      .bucket(bucket)
+      .file(boatDir + name)
+      .delete();
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).send()
+  }
 }
 
 // uploading file in gcp 
@@ -426,15 +438,13 @@ exports.fileToGcp = async (req, res, next) => {
     return;
   }
   if (!req.user) {
-    return res.status(401).send();
+    console.warn("No User");
+    return;
   }
 
 
   // Creates a client
-  const storage = new Storage({
-    projectId: config.projectName,
-    keyFilename: config.keyFile
-  });
+  const storage = clientStorage();
 
   const bucket = storage.bucket(config.bucket);
   const message = {}
@@ -474,5 +484,5 @@ exports.fileToGcp = async (req, res, next) => {
     }
 
   }
-  messageToPubSub(message,uploadStatus);
+  messageToPubSub(message, uploadStatus);
 }
