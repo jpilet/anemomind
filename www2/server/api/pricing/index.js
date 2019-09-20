@@ -15,9 +15,9 @@ router.get('/clearPlans',
     auth.maybeAuthenticated(),
     controller.clearPlans);
 
-router.post('/subscribe',
+router.post('/subscribe/:boatId',
     auth.isAuthenticated(),
-    //access.boatWriteAccess,
+    access.boatWriteAccess,
     controller.createSubscription);
 
 router.get('/getCountries',

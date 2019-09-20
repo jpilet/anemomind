@@ -147,7 +147,7 @@ angular.module('www2App')
 
     $scope.subscribeUser = function (data) {
       $scope.processingRequest = true;
-      $http.post("/api/pricing/subscribe", data)
+      $http.post("/api/pricing/subscribe/" + $scope.boatId, data)
         .then(function (response) {
           console.log(response);
           if (response.data.latest_invoice.payment_intent.status === 'requires_action') {

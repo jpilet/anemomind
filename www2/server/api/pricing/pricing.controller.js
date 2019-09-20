@@ -165,7 +165,7 @@ exports.createSubscription = async function (req, res) {
     let details = req.body;
     // check if the customer has a stripe account or not already
     if (!!user.stripeUserId) {
-        subscribetoPlan(user.stripeUserId, req.body.plan, res, req, user, req.body.boatId);
+        subscribetoPlan(user.stripeUserId, req.body.plan, res, req, user, req.params.boatId);
     }
     else {
         let customer = await createStripeUser(req.body.email);
@@ -195,7 +195,7 @@ exports.createSubscription = async function (req, res) {
         }
 
         // make call to update customer.
-        let boat = await updateBoat(subscription, req.body.boatId, savedUser);
+        let boat = await updateBoat(subscription, req.params.boatId, savedUser);
         if (!boat._id) {
             return res.status(500).json({ "message": "Error during updating boat details", "error": boat });
         }
