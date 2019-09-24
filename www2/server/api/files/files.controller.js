@@ -366,21 +366,20 @@ exports.deleteFileFromGcp = async function (req, res, next) {
   const storage = clientStorage();
 
   const bucket = storage.bucket(config.bucket);
+  try {
 
   const err = await new Promise((resolve) => {
-    LogFile.deleteOne({
+    const result = LogFile.deleteOne({
       name: name,
       boat: mongoose.Types.ObjectId(req.params.boatId)
     }, resolve);
+    if (result.deletedCount != 1) {
+      res.status(404).send()
+    }
   });
-  if (err) {
-    console.warn(err);
-    res.status(404).send()
-  }
-
-
+  
   // Deletes the file from the bucket
-  try {
+ 
     await storage
       .bucket(bucket)
       .file(boatDir + name)
@@ -438,8 +437,7 @@ exports.fileToGcp = async (req, res, next) => {
     return;
   }
   if (!req.user) {
-    console.warn("No User");
-    return;
+    throw new Error("No user");
   }
 
 
