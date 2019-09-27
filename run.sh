@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Make bash exit if a command fails
+set -e
+
 ########################################################################
 # This scripts will create docker container(s) either in production
 # envrironment or in devlopement environment.
@@ -37,10 +40,9 @@ elif [ ${ENVIRONMENT=} == "dev" ]; then
   # creating named volume for container
   # creating container as anemomind_anemocppserver_1 with bind mount and named volume
   
-  docker build --target cppbuilder -t anemomind_anemocppserver -f src/server/Dockerfile . && \  
-  docker volume create myvol && \
+  docker build --target cppbuilder -t anemomind_anemocppserver -f src/server/Dockerfile .
+  docker volume create --name myvol
   docker run -d -v "$(pwd)"/src:/anemomind/src -v myvol:/anemomind/build -p 7188:22 --name anemomind_anemocppserver_1 -it anemomind_anemocppserver
-
 
 else
   

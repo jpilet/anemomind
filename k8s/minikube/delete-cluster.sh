@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ##
 # Script to remove/undepoy all project resources from GKE & GCE.
 ##
