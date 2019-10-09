@@ -368,25 +368,26 @@ exports.deleteFileFromGcp = async function (req, res, next) {
   const bucket = storage.bucket(config.bucket);
   try {
 
-  const err = await new Promise((resolve) => {
-    const result = LogFile.deleteOne({
-      name: name,
-      boat: mongoose.Types.ObjectId(req.params.boatId)
-    }, resolve);
-    if (result.deletedCount != 1) {
-      res.status(404).send()
-    }
-  });
-  
-  // Deletes the file from the bucket
- 
+    const err = await new Promise((resolve) => {
+      const result = LogFile.deleteOne({
+        name: name,
+        boat: mongoose.Types.ObjectId(req.params.boatId)
+      }, resolve);
+      if (result.deletedCount != 1) {
+        res.status(404).send();
+        return;
+      }
+    });
+
+    // Deletes the file from the bucket
+
     await storage
       .bucket(bucket)
       .file(boatDir + name)
       .delete();
     res.status(204).send();
   } catch (err) {
-    res.status(500).send()
+    res.status(500).send();
   }
 }
 
@@ -406,22 +407,29 @@ const pubsub = new PubSub({
   keyFilename: config.keyFile
 });
 
-
-function messageToPubSub(message, uploadStatus) {
+async function messageToPubSub(message, uploadStatus) {
+  
   const topicName = config.pubSubTopicName;
-
   const publisher = pubsub.topic(topicName).publisher();
-  if (uploadStatus != 0) {
-    console.log("Failed to send PubSub message because, file(s) not uploaded to google storage.");
-  } else {
-    publisher.publish(Buffer.from(JSON.stringify(message)), (err) => {
-      if (err) {
-        console.log('Error occurred while queuing background task', err);
-      } else {
-        console.log(`Boat data sent to pubsub for boat log processing`);
-      }
-    });
-  }
+  
+  const err = await new Promise((resolve, reject) => {
+
+    if (uploadStatus != 0) {
+      console.log("Failed to send PubSub message because, file(s) not uploaded to google storage.");
+      reject;
+    } else {
+      publisher.publish(Buffer.from(JSON.stringify(message)), (err) => {
+        if (err) {
+          console.log('Error occurred while queuing background task', err);
+          reject;
+        } else {
+          console.log(`Boat data sent to pubsub for boat log processing`);
+          resolve;
+        }
+      });
+    }
+
+  });
 }
 
 exports.fileToGcp = async (req, res, next) => {
