@@ -411,28 +411,24 @@ function messageToPubSub(message, uploadStatus) {
 
   const topicName = config.pubSubTopicName;
   const publisher = pubsub.topic(topicName).publisher();
-  try {
-    return new Promise((resolve, reject) => {
 
-      if (uploadStatus != 0) {
-        console.log("Failed to send PubSub message because, file(s) not uploaded to google storage.");
-        reject('bad error.');
-      } else {
-        publisher.publish(Buffer.from(JSON.stringify(message)), (err) => {
-          if (err) {
-            console.log('Error occurred while queuing background task', err);
-            reject(err);
-          } else {
-            console.log(`Boat data sent to pubsub for boat log processing`);
-            resolve();
-          }
-        });
-      }
+  return new Promise((resolve, reject) => {
 
-    });
-  } catch (err) {
-    throw new Error(err);
-  }
+    if (uploadStatus != 0) {
+      reject("Failed to send PubSub message because, file(s) not uploaded to google storage.");
+    } else {
+      publisher.publish(Buffer.from(JSON.stringify(message)), (err) => {
+        if (err) {
+          console.log('Error occurred while queuing background task', err);
+          reject(err);
+        } else {
+          console.log(`Boat data sent to pubsub for boat log processing`);
+          resolve();
+        }
+      });
+    }
+
+  });
 }
 
 exports.fileToGcp = async (req, res, next) => {
