@@ -407,29 +407,32 @@ const pubsub = new PubSub({
   keyFilename: config.keyFile
 });
 
-async function messageToPubSub(message, uploadStatus) {
-  
+function messageToPubSub(message, uploadStatus) {
+
   const topicName = config.pubSubTopicName;
   const publisher = pubsub.topic(topicName).publisher();
-  
-  const err = await new Promise((resolve, reject) => {
+  try {
+    return new Promise((resolve, reject) => {
 
-    if (uploadStatus != 0) {
-      console.log("Failed to send PubSub message because, file(s) not uploaded to google storage.");
-      reject;
-    } else {
-      publisher.publish(Buffer.from(JSON.stringify(message)), (err) => {
-        if (err) {
-          console.log('Error occurred while queuing background task', err);
-          reject;
-        } else {
-          console.log(`Boat data sent to pubsub for boat log processing`);
-          resolve;
-        }
-      });
-    }
+      if (uploadStatus != 0) {
+        console.log("Failed to send PubSub message because, file(s) not uploaded to google storage.");
+        reject('bad error.');
+      } else {
+        publisher.publish(Buffer.from(JSON.stringify(message)), (err) => {
+          if (err) {
+            console.log('Error occurred while queuing background task', err);
+            reject(err);
+          } else {
+            console.log(`Boat data sent to pubsub for boat log processing`);
+            resolve();
+          }
+        });
+      }
 
-  });
+    });
+  } catch (err) {
+    throw new Error(err);
+  }
 }
 
 exports.fileToGcp = async (req, res, next) => {
