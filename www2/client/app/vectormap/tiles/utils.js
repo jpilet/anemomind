@@ -124,17 +124,20 @@ this.Utils = {
 };
 
 // shim layer with setTimeout fallback
-window.requestAnimFrame = (function(){
-  return  window.requestAnimationFrame       ||
-          window.webkitRequestAnimationFrame ||
-          window.mozRequestAnimationFrame    ||
-          function( callback ){
-            window.setTimeout(callback, 1000 / 60);
-          };
-})();
+if (this.window) {
+  window.requestAnimFrame = (function(){
+    return  window.requestAnimationFrame       ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            function( callback ){
+              window.setTimeout(callback, 1000 / 60);
+            };
+  })();
+}
 
 // creates a global "addWheelListener" method
 // example: addWheelListener( elem, function( e ) { console.log( e.deltaY ); e.preventDefault(); } );
+if (this.window && this.document)
 (function(window,document) {
    if (!document) {
      return;
@@ -209,7 +212,7 @@ window.requestAnimFrame = (function(){
  * Provides requestAnimationFrame in a cross browser way.
  * @author paulirish / http://paulirish.com/
  */
-if ( !window.requestAnimationFrame ) {
+if (this.window && !window.requestAnimationFrame ) {
     window.requestAnimationFrame = ( function() {
 
         return window.webkitRequestAnimationFrame ||
