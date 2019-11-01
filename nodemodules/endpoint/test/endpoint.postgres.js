@@ -15,7 +15,7 @@ function insertPackets(db, packets, cb) {
   } else {
     var p = packets[0];
     const packetValues = [p[0], p[1], p[2], p[3], p[4]]
-    db.query("INSERT INTO packets VALUES ($1, $2, $3, $4, $5)",
+    db.db.query("INSERT INTO packets VALUES ($1, $2, $3, $4, $5)",
            packetValues,
            function(err) {
              if (err) {
@@ -337,7 +337,7 @@ sqlite>
           // put the table in a corrupt state, because the lowest packet number
           // is greater than the value in the lower bound table.
           insertPackets(
-            ep,
+            ep.db,
             [["boat553910775bfc1709601c6aa9",
               "boxfcc2de3178ef", "0000014e1b4b8d6e", 129,
               new Buffer(0)],

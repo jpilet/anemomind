@@ -19,7 +19,7 @@ const pg_database = process.env.DATABASE;
 const pg_port = process.env.PORT;
 const pg_user = process.env.USER;
 
-const connectionString = 'postgresql://' + pg_user+':'+pg_password+'@'+pg_host+':'+pg_port+'/'+pg_database;
+const connectionString = 'postgresql://' + pg_user + ':' + pg_password + '@' + pg_host + ':' + pg_port + '/' + pg_database;
 
 function isSrcDstPair(x) {
     if (typeof x == 'object') {
@@ -113,13 +113,13 @@ function srcDstPairDifference(A, B) {
     return result;
 }
 
-var fullschema = "CREATE TABLE IF NOT EXISTS packets (src TEXT, dst TEXT, \
-    seqNumber TEXT, label INT, data BYTEA, PRIMARY KEY(src, dst, seqNumber)); \
-    CREATE TABLE IF NOT EXISTS lowerBounds (src TEXT, dst TEXT, lowerBound TEXT, PRIMARY KEY(src, dst));";
+var fullschema = "CREATE TABLE IF NOT EXISTS packets (boxId TEXT, src TEXT, dst TEXT, \
+    seqNumber TEXT, label INT, data BYTEA, PRIMARY KEY(boxId, src, dst, seqNumber)); \
+    CREATE TABLE IF NOT EXISTS lowerBounds (boxId TEXT, src TEXT, dst TEXT, lowerBound TEXT, PRIMARY KEY(boxId, src, dst));";
 
 function beginTransaction(db, cb) {
 
-    db.query('BEGIN', (err) => {
+    db.db.query('BEGIN', (err) => {
         if (err) {
             cb(err, null);
         } else {
@@ -130,7 +130,7 @@ function beginTransaction(db, cb) {
 
 
 function commit(db, cb) {
-    db.query('COMMIT', (err) => {
+    db.db.query('COMMIT', (err) => {
         if (err) {
             cb(err, null);
         } else {
@@ -140,7 +140,7 @@ function commit(db, cb) {
 }
 
 function rollback(db, cb) {
-    db.query('ROLLBACK', (err) => {
+    db.db.query('ROLLBACK', (err) => {
         if (err) {
             cb(err, null);
         } else {
@@ -181,7 +181,7 @@ function withTransaction(db, cbTransaction, cbDone) {
 }
 
 function createAllTables(db, cb) {
-    db.query(fullschema, cb);
+    db.db.query(fullschema, cb);
 }
 
 function dropTables(db, cb) {
@@ -189,19 +189,23 @@ function dropTables(db, cb) {
     var stmnt = '';
     for (var i = 0; i < names.length; i++) {
         stmnt += 'DROP TABLE IF EXISTS ' + names[i] + ';';
+
+        // delete from tablename where boxid = db.boxId
     }
-    db.query(stmnt, cb);
+    db.db.query(stmnt, cb);
 }
 
 
 function getUniqueSrcDstPairs(db, tableName, cb) {
-    db.query('SELECT DISTINCT src,dst FROM ' + tableName + ' ORDER BY src, dst', cb);
+    db.db.query('SELECT DISTINCT src,dst FROM ' + tableName + ' ORDER BY src, dst', cb);
 }
 
 function openDBWithFilename(dbFilename, cb) {
-    var db = new Pool({
-        connectionString: connectionString,
-    })
+    var db = {
+        db: new Pool({
+            connectionString: connectionString,
+        }), boxId: dbFilename
+    };
     createAllTables(db, function (err) {
         if (err) {
             console.log("openWithFilename err: ", err)
@@ -277,9 +281,9 @@ function tryMakeAndResetEndpoint(filename, name, cb) {
 }
 
 function getLowerBoundFromTable(db, src, dst, cb) {
-    const selValues = [src, dst]
-    db.query(
-        'SELECT lowerBound FROM lowerBounds WHERE src = $1 AND dst = $2',
+    const selValues = [db.boxId, src, dst];
+    db.db.query(
+        'SELECT lowerBound FROM lowerBounds WHERE boxID = $1 AND src = $2 AND dst = $3',
         selValues, function (err, res) {
             if (err) {
                 console.log("getLowerBoundFromTable err: ", err);
@@ -296,9 +300,9 @@ function getLowerBoundFromTable(db, src, dst, cb) {
 }
 
 function getFirstPacketIndex(db, src, dst, cb) {
-    const selValues = [src, dst]
-    db.query(
-        'SELECT seqNumber FROM packets WHERE src = $1 AND dst = $2 ORDER BY seqNumber',
+    const selValues = [db.boxId, src, dst]
+    db.db.query(
+        'SELECT seqNumber FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqNumber',
         selValues,
         function (err, res) {
             if (err) {
@@ -307,7 +311,7 @@ function getFirstPacketIndex(db, src, dst, cb) {
             } else {
                 if (res.rows[0]) {
                     console.log("getFirstPacketIndex err: ", res);
-                    cb(null, res.rows[0].seqNumber);
+                    cb(null, res.rows[0].seqnumber);
                 } else {
                     cb();
                 }
@@ -359,9 +363,9 @@ Endpoint.prototype.getLowerBound = function (src, dst, cb) {
 }
 
 function getPacket(db, src, dst, seqNumber, cb) {
-    const selValues = [src, dst, seqNumber]
-    db.query(
-        'SELECT * FROM packets WHERE src = $1 AND dst = $2 AND seqNumber = $3',
+    const selValues = [db.boxId, src, dst, seqNumber]
+    db.db.query(
+        'SELECT * FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 AND seqNumber = $4',
         selValues, function (err, res) {
             if (err) {
                 console.log("getPacket err: ", err);
@@ -380,22 +384,22 @@ Endpoint.prototype.getPacket = function (src, dst, seqNumber, cb) {
 
 
 function getLastPacket(db, src, dst, cb) {
-    const selValues = [src, dst]
-    db.query('SELECT * FROM packets WHERE src = $1 AND dst = $2 ORDER BY seqNumber DESC',
+    const selValues = [db.boxId, src, dst]
+    db.db.query('SELECT * FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqNumber DESC',
         selValues, cb);
 }
 
 
 function getUpperBound(db, src, dst, cb) {
-    const selValues = [src, dst]
-    db.query('SELECT seqNumber FROM packets WHERE src = $1 AND dst = $2 ORDER BY seqNumber DESC',
+    const selValues = [db.boxId, src, dst]
+    db.db.query('SELECT seqNumber as seqnumber FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqNumber DESC',
         selValues, function (err, res) {
             if (err) {
                 console.log("getUpperBound err: ", err);
                 cb(err);
             } else if (res.rows[0]) {
                 console.log("getUpperBound res: ", res);
-                cb(null, bigint.inc(res.rows[0].seqNumber));
+                cb(null, bigint.inc(res.rows[0].seqnumber));
             } else {
                 getLowerBound(db, src, dst, cb);
             }
@@ -442,9 +446,9 @@ function ensureNumberOr0(x) {
 
 
 function getSizeOfRange(db, src, dst, lower, upper, cb) {
-    const selValues = [src, dst, lower, upper]
-    db.query(
-        'SELECT sum(length(data)) AS size FROM packets WHERE src=$1 AND dst=$2 AND $3 <= seqNumber AND seqNumber < $4',
+    const selValues = [db.boxId, src, dst, lower, upper]
+    db.db.query(
+        'SELECT sum(length(data)) AS size FROM packets WHERE boxId = $1 AND src=$2 AND dst=$3 AND $4 <= seqNumber AND seqNumber < $5',
         selValues, function (err, res) {
             if (err) {
                 console.log("getSizeOfRange err: ", err);
@@ -515,10 +519,10 @@ Endpoint.prototype.getNextSeqNumber = function (src, dst, cb) {
 
 
 function storePacket(db, packet, cb) {
-    const packetValues = [packet.src, packet.dst, packet.seqNumber,
+    const packetValues = [db.boxId, packet.src, packet.dst, packet.seqNumber,
     packet.label, packet.data]
-    db.query(
-        'INSERT INTO packets VALUES ($1, $2, $3, $4, $5)',
+    db.db.query(
+        'INSERT INTO packets VALUES ($1, $2, $3, $4, $5, $6)',
         packetValues, cb);
 }
 
@@ -644,13 +648,13 @@ Endpoint.prototype.sendPacket = function (dst, label, data, cb) {
 }
 
 function setLowerBoundInTable(db, src, dst, lowerBound, cb) {
-    const insValues = [src, dst, lowerBound]
-    db.query(
-        'INSERT INTO lowerBounds VALUES ($1, $2, $3) \
-         ON CONFLICT(src, dst) \
+    const insValues = [db.boxId, src, dst, lowerBound]
+    db.db.query(
+        'INSERT INTO lowerBounds VALUES ($1, $2, $3, $4) \
+         ON CONFLICT(boxId, src, dst) \
          DO \
          UPDATE \
-         SET lowerBound = $3',
+         SET lowerBound = $4',
         insValues, cb);
 }
 
@@ -664,9 +668,9 @@ var protectPacketSqlCmd = packetsToKeep
 
 
 function removeObsoletePackets(ep, db, src, dst, lowerBound, cb) {
-    const delValues = [src, dst, lowerBound]
-    db.query(
-        'DELETE FROM packets WHERE src = $1 AND dst = $2 AND seqNumber < $3'
+    const delValues = [db.boxId, src, dst, lowerBound]
+    db.db.query(
+        'DELETE FROM packets WHERE boxId AND src = $1 AND dst = $2 AND seqNumber < $3'
         + (ep.name == dst ? protectPacketSqlCmd : ''),
         delValues, cb);
 }
@@ -674,12 +678,12 @@ function removeObsoletePackets(ep, db, src, dst, lowerBound, cb) {
 
 Endpoint.prototype.getTotalPacketCount = function (cb) {
     var stmnt = 'SELECT count(*) AS cnt FROM packets';
-    this.db.query(
+    this.db.db.query(
         stmnt, function (err, res) {
             console.log("getTotalPacketCount err: ", err);
             if (err == undefined) {
                 console.log("getTotalPacketCount res: ", res);
-                cb(err, res.rows[0]);
+                cb(err, res.rows[0].cnt);
             } else {
                 cb(err);
             }
@@ -841,7 +845,7 @@ Endpoint.prototype.putPacket = function (packet, cb) {
 }
 
 function getAllFromTable(db, tableName, cb) {
-    db.query('SELECT * FROM ' + tableName + ';', cb);
+    db.db.query('SELECT * FROM ' + tableName + ';', cb);
 }
 
 Endpoint.prototype.disp = function (cb) {
