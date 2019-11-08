@@ -8,6 +8,7 @@ var schema = require('./endpoint-schema.js');
 var Q = require('q');
 var largepacket = require('./largepacket.js');
 var Path = require('path');
+var util = require('util');
 const { Pool, Client } = require('pg');
 
 const dotenv = require('dotenv');
@@ -19,7 +20,7 @@ const pg_database = process.env.DATABASE;
 const pg_port = process.env.PORT;
 const pg_user = process.env.USER;
 
-const connectionString = 'postgresql://' + pg_user + ':' + pg_password + '@' + pg_host + ':' + pg_port + '/' + pg_database;
+const connectionString = process.env.DATABASE_URL || 'postgresql://' + pg_user + ':' + pg_password + '@' + pg_host + ':' + pg_port + '/' + pg_database;
 
 function isSrcDstPair(x) {
     if (typeof x == 'object') {
@@ -185,30 +186,39 @@ function createAllTables(db, cb) {
 }
 
 function dropTables(db, cb) {
-    var names = ['packets', 'lowerBounds'];
-    var stmnt = '';
-    for (var i = 0; i < names.length; i++) {
-        stmnt += 'DROP TABLE IF EXISTS ' + names[i] + ';';
-
-        // delete from tablename where boxid = db.boxId
-    }
-    db.db.query(stmnt, cb);
+    db.db.query("DELETE FROM packets WHERE boxId = $1;", [db.boxId], 
+      function(err) {
+        if (err) {
+          cb(err);
+          return;
+        }
+        db.db.query("DELETE FROM lowerBounds WHERE boxId = $1;", [db.boxId], cb);
+      }
+    );
 }
 
 
 function getUniqueSrcDstPairs(db, tableName, cb) {
-    db.db.query('SELECT DISTINCT src,dst FROM ' + tableName + ' ORDER BY src, dst', cb);
+    db.db.query('SELECT DISTINCT src,dst FROM ' + tableName + ' WHERE boxId=$1 ORDER BY src, dst', [db.boxId],
+   (err, res) => {
+       if (err) { cb(err); }
+       else { cb(null, res.rows); }
+   });
 }
 
+let dbPool;
 function openDBWithFilename(dbFilename, cb) {
-    var db = {
-        db: new Pool({
+    if (!dbPool) {
+        dbPool = new Pool({
             connectionString: connectionString,
-        }), boxId: dbFilename
+        });
+    }
+    const db = {
+        db: dbPool, boxId: dbFilename
     };
     createAllTables(db, function (err) {
         if (err) {
-            console.log("openWithFilename err: ", err)
+            console.warn("openWithFilename err: ", err)
             cb(err);
         } else {
             cb(undefined, db);
@@ -253,10 +263,8 @@ Endpoint.prototype.reset = function (cb) {
                 if (err) {
                     cb(err);
                 } else {
-                    createAllTables(T, function (err) {
-                        commit(T, function (err2) {
-                            cb(err || err2);
-                        });
+                    commit(T, function (err2) {
+                        cb(err || err2);
                     });
                 }
             });
@@ -283,14 +291,12 @@ function tryMakeAndResetEndpoint(filename, name, cb) {
 function getLowerBoundFromTable(db, src, dst, cb) {
     const selValues = [db.boxId, src, dst];
     db.db.query(
-        'SELECT lowerBound FROM lowerBounds WHERE boxID = $1 AND src = $2 AND dst = $3',
+        'SELECT lowerbound as "lowerBound" FROM lowerBounds WHERE boxID = $1 AND src = $2 AND dst = $3',
         selValues, function (err, res) {
             if (err) {
-                console.log("getLowerBoundFromTable err: ", err);
                 cb(err);
             } else {
                 if (res.rows[0]) {
-                    console.log("getLowerBoundFromTable res: ", res);
                     cb(null, res.rows[0].lowerBound);
                 } else {
                     cb();
@@ -302,16 +308,14 @@ function getLowerBoundFromTable(db, src, dst, cb) {
 function getFirstPacketIndex(db, src, dst, cb) {
     const selValues = [db.boxId, src, dst]
     db.db.query(
-        'SELECT seqNumber FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqNumber',
+        'SELECT seqnumber as "seqNumber" FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqnumber',
         selValues,
         function (err, res) {
             if (err) {
-                console.log("getFirstPacketIndex err: ", err);
                 cb(err);
             } else {
                 if (res.rows[0]) {
-                    console.log("getFirstPacketIndex err: ", res);
-                    cb(null, res.rows[0].seqnumber);
+                    cb(null, res.rows[0].seqNumber);
                 } else {
                     cb();
                 }
@@ -346,7 +350,8 @@ function getLowerBound(T, src, dst, cb) {
                     if (err) {
                         cb(err);
                     } else {
-                        cb(null, computeTheLowerBound(lowerBound0, lowerBound1));
+                        const lb = computeTheLowerBound(lowerBound0, lowerBound1);
+                        cb(null, lb);
                     }
                 });
             }
@@ -365,13 +370,11 @@ Endpoint.prototype.getLowerBound = function (src, dst, cb) {
 function getPacket(db, src, dst, seqNumber, cb) {
     const selValues = [db.boxId, src, dst, seqNumber]
     db.db.query(
-        'SELECT * FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 AND seqNumber = $4',
+        'SELECT src, dst, seqnumber as "seqNumber", label, data FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 AND seqNumber = $4 LIMIT 1',
         selValues, function (err, res) {
             if (err) {
-                console.log("getPacket err: ", err);
                 cb(err);
             } else {
-                console.log("getPacket: ", res);
                 cb(null, res.rows[0]);
             }
         });
@@ -383,23 +386,23 @@ Endpoint.prototype.getPacket = function (src, dst, seqNumber, cb) {
 }
 
 
+/*
 function getLastPacket(db, src, dst, cb) {
     const selValues = [db.boxId, src, dst]
-    db.db.query('SELECT * FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqNumber DESC',
-        selValues, cb);
+    db.db.query('SELECT src, dst, seqnumber, label, data FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqNumber DESC',
+        selValues, (err, res);
 }
+*/
 
 
 function getUpperBound(db, src, dst, cb) {
     const selValues = [db.boxId, src, dst]
-    db.db.query('SELECT seqNumber as seqnumber FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqNumber DESC',
+    db.db.query('SELECT seqnumber as "seqNumber" FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqNumber DESC',
         selValues, function (err, res) {
             if (err) {
-                console.log("getUpperBound err: ", err);
                 cb(err);
             } else if (res.rows[0]) {
-                console.log("getUpperBound res: ", res);
-                cb(null, bigint.inc(res.rows[0].seqnumber));
+                cb(null, bigint.inc(res.rows[0].seqNumber));
             } else {
                 getLowerBound(db, src, dst, cb);
             }
@@ -422,7 +425,6 @@ Endpoint.prototype.getPacketBounds = function (src, dst, cb) {
             if (err) {
                 cb(err);
             } else if (!lb) {
-                console.log("NO LOWER");
                 cb();
             } else {
                 getUpperBound(T, src, dst, function (err, ub) {
@@ -430,7 +432,6 @@ Endpoint.prototype.getPacketBounds = function (src, dst, cb) {
                         cb(err);
                     } else if (!ub) {
                         cb();
-                        console.log("NO UPPER");
                     } else {
                         cb(null, { lower: lb, upper: ub });
                     }
@@ -448,16 +449,13 @@ function ensureNumberOr0(x) {
 function getSizeOfRange(db, src, dst, lower, upper, cb) {
     const selValues = [db.boxId, src, dst, lower, upper]
     db.db.query(
-        'SELECT sum(length(data)) AS size FROM packets WHERE boxId = $1 AND src=$2 AND dst=$3 AND $4 <= seqNumber AND seqNumber < $5',
+        'SELECT sum(length(data)) AS size FROM packets WHERE boxId = $1 AND src=$2 AND dst=$3 AND $4 <= seqnumber AND seqnumber < $5',
         selValues, function (err, res) {
             if (err) {
-                console.log("getSizeOfRange err: ", err);
                 cb(err);
             } else if (res.rows == null) {
-                console.log("getSizeOfRange res: ", res);
                 cb(null, 0);
             } else {
-                console.log("getSizeOfRange res: ", res);
                 cb(null, ensureNumberOr0(res.rows[0].size));
             }
         });
@@ -522,7 +520,7 @@ function storePacket(db, packet, cb) {
     const packetValues = [db.boxId, packet.src, packet.dst, packet.seqNumber,
     packet.label, packet.data]
     db.db.query(
-        'INSERT INTO packets VALUES ($1, $2, $3, $4, $5, $6)',
+        'INSERT INTO packets (boxId, src, dst, seqNumber, label, data) VALUES ($1, $2, $3, $4, $5, $6)',
         packetValues, cb);
 }
 
@@ -650,11 +648,9 @@ Endpoint.prototype.sendPacket = function (dst, label, data, cb) {
 function setLowerBoundInTable(db, src, dst, lowerBound, cb) {
     const insValues = [db.boxId, src, dst, lowerBound]
     db.db.query(
-        'INSERT INTO lowerBounds VALUES ($1, $2, $3, $4) \
-         ON CONFLICT(boxId, src, dst) \
-         DO \
-         UPDATE \
-         SET lowerBound = $4',
+        `INSERT INTO lowerBounds (boxId, src, dst, lowerBound) VALUES ($1, $2, $3, $4)
+         ON CONFLICT(boxId, src, dst)
+         DO UPDATE SET lowerBound = $4`,
         insValues, cb);
 }
 
@@ -670,19 +666,17 @@ var protectPacketSqlCmd = packetsToKeep
 function removeObsoletePackets(ep, db, src, dst, lowerBound, cb) {
     const delValues = [db.boxId, src, dst, lowerBound]
     db.db.query(
-        'DELETE FROM packets WHERE boxId AND src = $1 AND dst = $2 AND seqNumber < $3'
+        'DELETE FROM packets WHERE boxId=$1 AND src = $2 AND dst = $3 AND seqNumber < $4'
         + (ep.name == dst ? protectPacketSqlCmd : ''),
         delValues, cb);
 }
 
 
 Endpoint.prototype.getTotalPacketCount = function (cb) {
-    var stmnt = 'SELECT count(*) AS cnt FROM packets';
+    var stmnt = 'SELECT count(*) AS cnt FROM packets WHERE boxId=$1';
     this.db.db.query(
-        stmnt, function (err, res) {
-            console.log("getTotalPacketCount err: ", err);
+        stmnt, [this.db.boxId], function (err, res) {
             if (err == undefined) {
-                console.log("getTotalPacketCount res: ", res);
                 cb(err, res.rows[0].cnt);
             } else {
                 cb(err);
@@ -764,14 +758,26 @@ Endpoint.prototype.getLowerBounds = function (pairs, cb) {
 }
 
 Endpoint.prototype.updateLowerBounds = function (pairs, cb) {
-    var self = this;
-    Q.all(pairs.map(function (pair) {
-        return Q.ninvoke(self, "updateLowerBound", pair.src, pair.dst, pair.lb);
-    })).then(function (lbs) {
-        cb(null, lbs);
-    }).fail(function (err) {
-        cb(err);
-    });
+    const updateLowerBoundP = (p) => {
+        return new Promise((resolve, reject) => {
+            this.updateLowerBound(p.src, p.dst, p.lb, (err, newlb) => {
+                if (err) reject(err);
+                else resolve(newlb);
+            });
+        });
+    };
+
+    (async () => {
+        try {
+            const lbs = [];
+            for (let p of pairs) {
+                lbs.push(await updateLowerBoundP(p));
+            }
+            cb(null, lbs);
+        } catch(err) {
+            cb(err);
+        }
+    })();
 }
 
 Endpoint.prototype.getUpperBounds = function (pairs, cb) {
@@ -831,6 +837,7 @@ Endpoint.prototype.putPacket = function (packet, cb) {
                                 if (eq(packet, packet2)) {
                                     cb();
                                 } else {
+                                    console.warn('Packet 1:', packet, ', packet2:', packet2);
                                     cb(new Error('A different packet has already been delivered'));
                                 }
                             } else {
@@ -844,9 +851,7 @@ Endpoint.prototype.putPacket = function (packet, cb) {
     }, cb);
 }
 
-function getAllFromTable(db, tableName, cb) {
-    db.db.query('SELECT * FROM ' + tableName + ';', cb);
-}
+//function getAllFromTable(db, tableName, cb) { db.db.query('SELECT * FROM ' + tableName + ';', cb); }
 
 Endpoint.prototype.disp = function (cb) {
     var self = this;
@@ -930,7 +935,7 @@ function withEP(ep, epOperation, done) {
     });
 }
 
-module.exports.getAllFromTable = getAllFromTable;
+//module.exports.getAllFromTable = getAllFromTable;
 module.exports.Endpoint = Endpoint;
 module.exports.isEndpoint = isEndpoint;
 module.exports.tryMakeEndpoint = tryMakeEndpoint;

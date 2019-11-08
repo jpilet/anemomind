@@ -4,6 +4,13 @@ var bigint = require('../bigint.js');
 var eq = require('deep-equal-ident');
 var schema = require('../endpoint-schema.js');
 
+function checkNull(err) {
+  if (err) {
+    console.warn(err);
+  }
+  assert(!err);
+}
+
 function makeTestEP(cb) {
   endpoint.tryMakeAndResetEndpoint('ep', 'ep', cb);
 }
@@ -14,8 +21,9 @@ function insertPackets(db, packets, cb) {
     cb(null);
   } else {
     var p = packets[0];
-    const packetValues = [p[0], p[1], p[2], p[3], p[4]]
-    db.db.query("INSERT INTO packets VALUES ($1, $2, $3, $4, $5)",
+    const packetValues = [db.boxId, p[0], p[1], p[2], p[3], p[4]];
+    db.db.query("INSERT INTO packets (boxId, src, dst, seqNumber, label, data) "
+                + "VALUES ($1, $2, $3, $4, $5, $6)",
            packetValues,
            function(err) {
              if (err) {
@@ -38,7 +46,7 @@ describe('Endpoint', function() {
   
   it('Should instantiate a new end point without problems', function(done) {
     endpoint.tryMakeEndpoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
-      assert(!err);
+      checkNull(err);
       assert(ep instanceof endpoint.Endpoint);
       assert.equal(ep.name, "newendpt");
       done();
@@ -47,7 +55,7 @@ describe('Endpoint', function() {
   
   it('Should instantiate a new end point without problems, and reset it', function(done) {
     endpoint.tryMakeAndResetEndpoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
-      assert(!err);
+      checkNull(err);
       assert(ep instanceof endpoint.Endpoint);
       assert.equal(ep.name, "newendpt");
       done();
@@ -57,7 +65,7 @@ describe('Endpoint', function() {
   it('Should get the lower bound of an empty end point', function(done) {
     makeTestEP(function(err, ep) {
       ep.getLowerBound('a', 'b', function(err, lb) {
-        assert(!err);
+        checkNull(err);
         assert.equal(lb, bigint.zero());
         done();
       });
@@ -67,7 +75,7 @@ describe('Endpoint', function() {
   it('Try to get a packet from an empty db', function(done) {
     makeTestEP(function(err, ep) {
       ep.getPacket('a', 'b', '000', function(err, packet) {
-        assert(!err);
+        checkNull(err);
         assert(!packet);
         done();
       });
@@ -77,7 +85,7 @@ describe('Endpoint', function() {
   it('Get the upper bound from an empty db', function(done) {
     makeTestEP(function(err, ep) {
       ep.getUpperBound('a', 'b', function(err, ub) {
-        assert(!err);
+        checkNull(err);
         assert.equal(ub, bigint.zero());
         done();
       });
@@ -87,29 +95,29 @@ describe('Endpoint', function() {
   it('Send a packet, get lower and upper bounds, set lower bound', function(done) {
     makeTestEP(function(err, ep) {
       ep.sendPacketAndReturn('b', 119, new Buffer(3), function(err, packet) {
-        assert(!err);
+        checkNull(err);
         assert.equal(packet.src, ep.name);
         assert.equal(packet.label, 119);
         assert(bigint.zero() < packet.seqNumber);
         assert(packet.data instanceof Buffer);
         ep.getUpperBound('ep', 'b', function(err, ub) {
-          assert(!err);
+          checkNull(err);
           assert.equal(ub, bigint.inc(packet.seqNumber));
           ep.getLowerBound('ep', 'b', function(err, lb) {
-            assert(!err);
+            checkNull(err);
             assert.equal(lb, packet.seqNumber);
             ep.updateLowerBound('ep', 'b', packet.seqNumber, function(err) {
-              assert(!err);
+              checkNull(err);
               ep.getLowerBound('ep', 'b', function(err, lb) {
-                assert(!err);
+                checkNull(err);
                 assert.equal(lb, packet.seqNumber);
                 ep.getTotalPacketCount(function(err, count) {
-                  assert(!err);
+                  checkNull(err);
                   assert(count == 1);
                   ep.updateLowerBound('ep', 'b', bigint.inc(packet.seqNumber), function(err) {
-                    assert(!err);
+                    checkNull(err);
                     ep.getTotalPacketCount(function(err, count) {
-                      assert(!err);
+                      checkNull(err);
                       assert(count == 0);
                       done();
                     });
@@ -126,21 +134,21 @@ describe('Endpoint', function() {
   it('Send a two packets, set the lower bound for one of them', function(done) {
     makeTestEP(function(err, ep) {
       ep.sendPacketAndReturn('a', 119, new Buffer(0), function(err, pa) {
-        assert(!err);
+        checkNull(err);
         ep.sendPacketAndReturn('b', 119, new Buffer(0), function(err, pb) {
-          assert(!err);
+          checkNull(err);
           ep.getTotalPacketCount(function(err, count) {
-            assert(!err);
+            checkNull(err);
             assert.equal(count, 2);
             ep.updateLowerBound('ep', 'b', bigint.inc(pb.seqNumber), function() {
               ep.getTotalPacketCount(function(err, count) {
-                assert(!err);
+                checkNull(err);
                 assert.equal(count, 1);
                 ep.getPacket('ep', 'a', pa.seqNumber, function(err, pa2) {
-                  assert(!err);
+                  checkNull(err);
                   assert(eq(pa, pa2));
                   ep.getPacket('ep', 'b', pb.seqNumber, function(err, pb2) {
-                    assert(!err);
+                    checkNull(err);
                     assert(!pb2);
                     done();
                   });
@@ -187,16 +195,16 @@ describe('Endpoint', function() {
   it('Send a two packets, get the sorted src,dst pairs', function(done) {
     makeTestEP(function(err, ep) {
       ep.sendPacketAndReturn('b', 119, new Buffer(0), function(err, pa) {
-        assert(!err);
+        checkNull(err);
         ep.sendPacketAndReturn('a', 119, new Buffer(0), function(err, pb) {
-          assert(!err);
+          checkNull(err);
           ep.getSrcDstPairs(function(err, pairs) {
-            assert(!err);
+            checkNull(err);
             assert(eq(pairs, [{src:'ep', dst:'a'}, {src:'ep', dst:'b'}]));
             ep.updateLowerBound('a', 'ep', bigint.inc(bigint.zero()), function(err) {
-              assert(!err);
+              checkNull(err);
               ep.getSrcDstPairs(function(err, pairs) {
-                assert(!err);
+                checkNull(err);
                 assert(eq(pairs, [{src:'ep', dst:'a'}, {src:'ep', dst:'b'}]));
                 done();
               });
@@ -246,18 +254,18 @@ describe('Endpoint', function() {
         handledPacket = packet;
       });
       ep.putPacket(p, function(err) {
-        assert(!err);
+        checkNull(err);
         ep.getTotalPacketCount(function(err, count) {
           assert.equal(count, 1);
           ep.putPacket(p, function(err) {
-            assert(!err);
+            checkNull(err);
             p.label = 130;
             ep.putPacket(p, function(err) {
               assert(err)
               ep.getTotalPacketCount(function(err, count) {
                 assert.equal(count, 1);
                 ep.putPacket(q, function(err) {
-                  assert(!err);
+                  checkNull(err);
                   ep.getTotalPacketCount(function(err, count) {
                     assert.equal(count, 2);
                     assert(!handledPacket);
@@ -294,18 +302,19 @@ describe('Endpoint', function() {
 
   it('updatelowerbounds', function(done) {
     makeTestEP(function(err, ep) {
-      assert(!err);
+      checkNull(err);
       ep.updateLowerBounds([
         {src:"a", dst:"b", lb:"0004"},
         {src:"a", dst:"c", lb:"0005"}
       ], function(err, lbs) {
-        assert(!err);
+        checkNull(err);
         assert(eq(lbs, ["0004", "0005"]));
         ep.updateLowerBounds([
           {src:"a", dst:"b", lb:"0003"},
           {src:"a", dst:"c", lb:"0006"}
         ], function(err, lbs) {
-          assert(!err);
+          checkNull(err);
+          console.log('updatelowerbounds: lbs=', lbs);
           assert(eq(lbs, ["0004", "0006"]));
           done();
         });
@@ -351,7 +360,7 @@ sqlite>
               "boxfcc2de3178ef", "0000014e1b4b8d71", 129,
               new Buffer(0)]],
             function(err) {
-              assert(!err);
+              checkNull(err);
               ep.getLowerBound("boat553910775bfc1709601c6aa9",
                                "boxfcc2de3178ef", function(err, lb) {
                 var lb0 = "0000014e1b4b8d6e";
@@ -365,7 +374,7 @@ sqlite>
                    "dst":"boat553910775bfc1709601c6aa9","lb":"0000014e1ad6b2b2"}
                 ], function(err, lbs) {
                   assert(lbs[0] == lb0);
-                  assert(!err);
+                  checkNull(err);
                   console.log('LBS = ');
                   console.log(lbs);
                   done();
@@ -381,11 +390,12 @@ sqlite>
       ep.updateLowerBound(
         "boat553910775bfc1709601c6aa9", "boxfcc2de3178ef",
         "0000000000000001", function(err) {
-          assert(!err);
+          checkNull(err);
           ep.getNextSeqNumber(
             "boat553910775bfc1709601c6aa9",
             "boxfcc2de3178ef", function(err, sn) {
-              assert(!err);
+              checkNull(err);
+                console.log('sn = ', sn, ' err: ', err);
               assert(sn == "0000000000000001");
               done();
             });
@@ -396,12 +406,12 @@ sqlite>
   it('should send a packet', function(done) {
     endpoint.tryMakeAndResetEndpoint(
       'duma', 'duma', function(err, ep) {
-        assert(!err);
+        checkNull(err);
         ep.sendPacket('ccc', 89, new Buffer(4), function(err, nothing) {
           assert(nothing == null);
-          assert(!err);
+          checkNull(err);
           ep.getTotalPacketCount(function(err, n) {
-            assert(!err);
+            checkNull(err);
             assert(n == 1);
             done();
           });
@@ -418,13 +428,13 @@ sqlite>
               ep.getSizeOfRange(
                 'mjao', 'c', bds.lower, bds.upper, 
                 function(err, s) {
-                  assert(!err);
+                  checkNull(err);
                   assert(s == 11);
 
                   ep.getSizeOfRange(
                     'mjao', 'c', bigint.inc(bds.lower), bds.upper,
                     function(err, s) {
-                      assert(!err);
+                      checkNull(err);
                       assert(s == 4);
                       done();
                     });
