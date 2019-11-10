@@ -24,4 +24,13 @@ router.get('/getCountries',
     auth.maybeAuthenticated(),
     controller.getCountries);
 
+router.get('/getProrations/:subId',
+    auth.maybeAuthenticated(),
+    controller.getProrationRates);
+
+router.post('/updateSubscription/:boatId',
+    auth.isAuthenticated(),
+    access.boatWriteAccess,
+    controller.updateSubscription)
+
 module.exports = router;
