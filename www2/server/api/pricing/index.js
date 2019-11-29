@@ -25,7 +25,6 @@ router.get('/getCountries',
     controller.getCountries);
 
 router.get('/getProrations/:subId',
-    auth.maybeAuthenticated(),
     controller.getProrationRates);
 
 router.post('/updateSubscription/:boatId',
