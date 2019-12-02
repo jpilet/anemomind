@@ -1,4 +1,3 @@
-// var mb = require('endpoint/endpoint.sqlite.js');
 var mb = require('endpoint/endpoint.postgres.js');
 var packetCallbacks = require('./packet-callbacks.js');
 var common = require('endpoint/common.js');

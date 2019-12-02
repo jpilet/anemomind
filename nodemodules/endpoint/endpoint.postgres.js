@@ -170,10 +170,8 @@ function withTransaction(db, cbTransaction, cbDone) {
                 };
 
                 if (err) {
-                    //T.rollback(onFinish);
                     rollback(db, onFinish);
                 } else {
-                    //T.commit(onFinish);
                     commit(db, onFinish);
                 }
             });
@@ -245,7 +243,7 @@ function tryMakeEndpoint(filename, name, cb) {
     } else {
         openDBWithFilename(filename, function (err, db) {
             if (err) {
-                console.log(filename + ': error: ' + err);
+                console.warn(filename + ': error: ' + err);
                 cb(err);
             } else {
                 cb(null, new Endpoint(filename, name, db));
@@ -384,15 +382,6 @@ function getPacket(db, src, dst, seqNumber, cb) {
 Endpoint.prototype.getPacket = function (src, dst, seqNumber, cb) {
     getPacket(this.db, src, dst, seqNumber, cb);
 }
-
-
-/*
-function getLastPacket(db, src, dst, cb) {
-    const selValues = [db.boxId, src, dst]
-    db.db.query('SELECT src, dst, seqnumber, label, data FROM packets WHERE boxId = $1 AND src = $2 AND dst = $3 ORDER BY seqNumber DESC',
-        selValues, (err, res);
-}
-*/
 
 
 function getUpperBound(db, src, dst, cb) {
@@ -850,8 +839,6 @@ Endpoint.prototype.putPacket = function (packet, cb) {
         });
     }, cb);
 }
-
-//function getAllFromTable(db, tableName, cb) { db.db.query('SELECT * FROM ' + tableName + ';', cb); }
 
 Endpoint.prototype.disp = function (cb) {
     var self = this;
