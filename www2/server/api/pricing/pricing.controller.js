@@ -257,8 +257,9 @@ exports.getProrationRates = async function (req, res) {
         let prorationRates = []
         for (var i = 0; i < planAbbreviations.length; i++) {
             if (planAbbreviations[i].price > 0) {
-                if ((subscription.current_period_end - subscription.current_period_end) > 0) {
-                    let prorateCost = (subscription.current_period_end - prorationDate) / (subscription.current_period_end - subscription.current_period_end) * 1 * planAbbreviations[i].price;
+                let durationLeft = subscription.current_period_end - subscription.current_period_end;
+                if (durationLeft > 0) {
+                    let prorateCost = (subscription.current_period_end - prorationDate) / (durationLeft) * 1 * planAbbreviations[i].price;
 
                     // Add the proration rate for the plans in an array and return the same to the user
                     prorationRates.push({
