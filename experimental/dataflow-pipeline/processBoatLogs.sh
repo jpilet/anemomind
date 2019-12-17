@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-#!/usr/bin/env bash
-
 # Load up .env
 export $(egrep -v '^#' .env | xargs)
 echo "Fetching mongo db's ip for dataflow."
