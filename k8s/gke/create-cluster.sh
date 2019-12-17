@@ -37,7 +37,7 @@ gcloud compute firewall-rules create ${SN_RULE1} --network ${ANEMO_VPC} --allow 
 gcloud compute firewall-rules create ${SN_RULE2} --network ${ANEMO_VPC} --allow tcp:22,tcp:3389,icmp
 
 echo 'Creating kubernetes cluster ...'
-gcloud beta container --project ${PROJECT_NAME} clusters create ${CLUSTER_NAME} --zone $ZONE --no-enable-basic-auth --cluster-version "1.12.8-gke.10" --machine-type=$MACHINE_TYPE --image-type=$IMAGE_TYPE --num-nodes "3" --enable-stackdriver-kubernetes --enable-private-nodes --master-ipv4-cidr "172.16.0.0/28" --enable-ip-alias --network ${ANEMO_VPC} --subnetwork ${SUBNET} --default-max-pods-per-node "110" --enable-master-authorized-networks --master-authorized-networks 0.0.0.0/0 --addons HorizontalPodAutoscaling,HttpLoadBalancing --enable-autoupgrade --enable-autorepair
+gcloud beta container --project ${PROJECT_NAME} clusters create ${CLUSTER_NAME} --zone $ZONE --no-enable-basic-auth --cluster-version "1.13.11-gke.14" --machine-type=$MACHINE_TYPE --image-type=$IMAGE_TYPE --num-nodes "3" --enable-stackdriver-kubernetes --enable-private-nodes --master-ipv4-cidr "172.16.0.0/28" --enable-ip-alias --network ${ANEMO_VPC} --subnetwork ${SUBNET} --default-max-pods-per-node "110" --enable-master-authorized-networks --master-authorized-networks 0.0.0.0/0 --addons HorizontalPodAutoscaling,HttpLoadBalancing --enable-autoupgrade --enable-autorepair
 echo 'checking cluster ...'
 gcloud beta container clusters get-credentials ${CLUSTER_NAME}
 
@@ -51,23 +51,6 @@ kubectl apply -f ${KUBE_RESOURCES_PATH}/mongo-hostvm-node-configurer-daemonset.y
 # VOLUMES, HENCE COMMENTED OUT BELOW
 kubectl apply -f ./resources/mongo-gce-ssd-storageclass.yaml
 
-# Register GCE Fast SSD persistent disks and then create the persistent disks 
-# echo "Creating GCE disks"
-# for i in 1 2 3
-# do
-#     gcloud --quiet compute disks create --zone $ZONE --size 10GB --type pd-ssd pd-ssd-disk-$i
-# done
-# sleep 3
-
-# Create persistent volumes using disks created above
-# echo "Creating GKE Persistent Volumes"
-# for i in 1 2 3
-# do
-#     sed -e "s/INST/${i}/g" ${KUBE_RESOURCES_PATH}/mongo-xfs-gce-ssd-persistentvolume.yaml > /tmp/mongo-xfs-gce-ssd-persistentvolume.yaml
-#     kubectl apply -f /tmp/mongo-xfs-gce-ssd-persistentvolume.yaml
-# done
-# rm /tmp/mongo-xfs-gce-ssd-persistentvolume.yaml
-# sleep 3
 
 # Create keyfile for the MongoD cluster as a Kubernetes shared secret
 TMPFILE=$(mktemp)
@@ -91,22 +74,7 @@ done
 echo "...mongod containers are now running (`date`)"
 echo
 
-# Configure mongo users 
-# Load default anemoming users 
-echo "loading default data into mongodb ..."
-/bin/sh load-mongo.sh $MONGO_PWD;
-
-echo "mapping gcloud key as Kubernetes secret ..."
-# create gcloud service account credentials
-kubectl create secret generic gcs-key --from-file=key.json=$GCLOUD_CREDS_KEY
-
-# echo "deploying cppserver ..."
-# # Create cppserver deployment
-# envsubst < ${KUBE_RESOURCES_PATH}/anemocpp.yaml > /tmp/anemocpp.yaml
-# kubectl apply -f /tmp/anemocpp.yaml
-# echo
-
-sleep 30
+sleep 100
 
 # retriving ips of each mongo container
 >temp.txt
@@ -121,6 +89,17 @@ for i in mongod-0 mongod-1 mongod-2
 	done
 mongo_ips=`cat temp.txt | tr -d ' '`
 rm -f temp.txt
+
+# Configure mongo users 
+# Load default anemoming users 
+echo "loading default data into mongodb ..."
+/bin/sh load-mongo.sh $MONGO_PWD ${mongo_ips};
+
+echo "mapping gcloud key as Kubernetes secret ..."
+# create gcloud service account credentials
+kubectl create secret generic gcs-key --from-file=key.json=$GCLOUD_CREDS_KEY
+
+sleep 30
 
 echo "deploying anemo web application ..."
 # Create node web app deployment

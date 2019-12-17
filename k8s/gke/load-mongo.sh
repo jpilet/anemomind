@@ -8,16 +8,21 @@
 ##
 
 # Check for password argument
-if [[ $# -eq 0 ]] ; then
+if [ $# -eq 0 ]; then
     echo 'You must provide one argument for the password of the "main_admin" user to be created'
-    echo '  Usage:  load-mongo.sh yourpwd'
+    echo '  Usage:  load-mongo.sh yourpwd mongodb_ips'
     echo
     exit 1
 fi
 
+# retriving IPs of each mongodb node
+m0=`echo ${2} | cut -d "," -f1`
+m1=`echo ${2} | cut -d "," -f2`
+m2=`echo ${2} | cut -d "," -f3`
+
 # Initiate MongoDB Replica Set configuration
 echo "Configuring the MongoDB Replica Set"
-kubectl exec mongod-0 -c mongod-container -- mongo --eval 'rs.initiate({_id: "MainRepSet", version: 1, members: [ {_id: 0, host: "mongod-0.mongodb-service.default.svc.cluster.local:27017"}, {_id: 1, host: "mongod-1.mongodb-service.default.svc.cluster.local:27017"}, {_id: 2, host: "mongod-2.mongodb-service.default.svc.cluster.local:27017"} ]});'
+kubectl exec mongod-0 -c mongod-container -- mongo --eval 'rs.initiate({_id: "MainRepSet", version: 1, members: [ {_id: 0, host: "'"${m0}"'"}, {_id: 1, host: "'"${m1}"'"}, {_id: 2, host: "'"${m2}"'"} ]});'
 echo
 
 # Wait for the MongoDB Replica Set to have a primary ready

@@ -76,9 +76,9 @@ RUN echo "copying cpp binaries from ${CPP_DOCKER_IMAGE}"
 COPY --from=cppbinaries /anemomind/lib/* /anemomind/lib/
 COPY --from=cppbinaries /anemomind/bin/* /anemomind/bin/
 
-
-EXPOSE 9000
-
 WORKDIR /anemomind/www2
 
 CMD ["node","server/app.js"]
+
+EXPOSE 9000
+
