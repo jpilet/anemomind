@@ -243,7 +243,7 @@ exports.getProrationRates = async function (req, res) {
     //proration cost = (period end - API request time) / (period end - period start) * quantity * plan price
     let subscription = await getSubscriptionDetails(req.params.subId);
     if (!subscription.id) {
-        console.log(subscrption);
+        console.log(subscription);
         return res.status(400).json({ "message": "Invalid subscription id", "error": subscription });
     }
     else {
