@@ -71,7 +71,8 @@ function segregatePlans(plans) {
     // Pushing the base plan with no value here.
     planAbbreviations.push({
         code: "DI" + abbrConst,
-        planName: "Discovery"
+        planName: "Discovery",
+        price: 0
     });
     plans = createSubscriptionPlans(basePlans, addOns);
     return plans;
@@ -84,7 +85,8 @@ function addAbbreviation(planAbbreviations, element) {
     if (!planAbbreviations.map((x) => x.code).indexOf(code) >= 0) {
         planAbbreviations.push({
             code: code,
-            planName: element.nickname
+            planName: element.nickname,
+            price: element.amount / 1000
         });
     }
     else {
@@ -204,6 +206,75 @@ exports.createSubscription = async function (req, res) {
         return res.status(200).json(subscription);
     }
 }
+
+
+// update the subscription and update the users and boat details as well 
+exports.updateSubscription = async function (req, res) {
+    try {
+        // make call to stripe to update the subscription.
+        let subscription = await updateStripeSubscription(req.body.subId, req.body.plans)
+        if (!subscription.id) {
+            return res.status(500).json({ "message": "Error during subscribing to plan", "error": subscription });
+        }
+
+        // make call to update user.
+        let savedUser = await updateUser(subscription, req);
+        if (!savedUser._id) {
+            return res.status(500).json({ "message": "Error during updating user details", "error": user });
+        }
+
+        // make call to update customer.
+        let boat = await updateBoat(subscription, req.params.boatId, savedUser);
+        if (!boat._id) {
+            return res.status(500).json({ "message": "failed to updateBoat in updateSubscription()", "error": boat });
+        }
+
+        // updating the details of the user
+        return res.status(200).json(subscription);
+    }
+    catch (ex) {
+        console.warn(ex);
+        return res.status(500).json(ex);
+    }
+}
+
+// update the subscription and update the users and boat details as well 
+exports.getProrationRates = async function (req, res) {
+    //proration cost = (period end - API request time) / (period end - period start) * quantity * plan price
+    let subscription = await getSubscriptionDetails(req.params.subId);
+    if (!subscription.id) {
+        console.log(subscription);
+        return res.status(400).json({ "message": "Invalid subscription id", "error": subscription });
+    }
+    else {
+        // This will take the server time 
+        let currentDate = new Date();
+        // Doing this as the same can be used as proration date to consider pricing in invoice
+        currentDate.setHours(0);
+        currentDate.setMinutes(0);
+        currentDate.setSeconds(0);
+
+        const prorationDate = Math.floor(currentDate.getTime() / 1000);
+        let prorationRates = []
+        for (var i = 0; i < planAbbreviations.length; i++) {
+            if (planAbbreviations[i].price > 0) {
+                let durationLeft = subscription.current_period_end - prorationDate;
+                if (durationLeft > 0) {
+                    let totalDuration = subscription.current_period_end - subscription.current_period_start;
+                    let prorateCost = (durationLeft) / (totalDuration) * 1 * planAbbreviations[i].price;
+
+                    // Add the proration rate for the plans in an array and return the same to the user
+                    prorationRates.push({
+                        price: prorateCost,
+                        planName: planAbbreviations[i].planName
+                    });
+                }
+            }
+        }
+        res.status(200).json(prorationRates);
+    }
+}
+
 
 // list of countries.
 exports.getCountries = function (req, res) {
@@ -329,20 +400,41 @@ function getSubscribedPlanNames(subscription) {
 }
 
 // upgrade the existing subscription.
-function updateSubscription(subscription) {
+function updateStripeSubscription(subId, plans) {
     return new Promise((resolve, reject) => {
         console.log("Upgrading the existing plan");
-        stripe.subscriptionItems.update(
-            'si_FTIVEvLBdElXQM', // subscriptionItemId -- to be updated
-            //{ metadata: { order_id: '6735' } },
-            function (err, subscriptionItem) {
+        stripe.subscriptions.update(
+            subId,
+            {
+                items: plans,
+            },
+            function (err, subscription) {
                 if (err) {
-                    console.log(err);
+                    console.log("Error while updating subcription from stripe ", err);
                     reject(err);
                 }
                 else {
-                    console.log("The subscription was updated successfully");
-                    resolve(subscriptionItem);
+                    console.log("Stripe subscription updated successfully");
+                    resolve(subscription)
+                }
+            }
+        );
+    });
+}
+
+
+// Get the details of the subscription by id
+function getSubscriptionDetails(subId) {
+    return new Promise((resolve, reject) => {
+        stripe.subscriptions.retrieve(
+            subId,
+            function (err, subscription) {
+                if (err) {
+                    console.log("Error while getting subscription details from Stipe", err);
+                    reject(err);
+                }
+                else {
+                    resolve(subscription);
                 }
             }
         );
