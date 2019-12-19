@@ -226,13 +226,14 @@ exports.updateSubscription = async function (req, res) {
         // make call to update customer.
         let boat = await updateBoat(subscription, req.params.boatId, savedUser);
         if (!boat._id) {
-            return res.status(500).json({ "message": "Error during updating boat details", "error": boat });
+            return res.status(500).json({ "message": "failed to updateBoat in updateSubscription()", "error": boat });
         }
 
         // updating the details of the user
         return res.status(200).json(subscription);
     }
     catch (ex) {
+        console.warn(ex);
         return res.status(500).json(ex);
     }
 }
@@ -257,9 +258,10 @@ exports.getProrationRates = async function (req, res) {
         let prorationRates = []
         for (var i = 0; i < planAbbreviations.length; i++) {
             if (planAbbreviations[i].price > 0) {
-                let durationLeft = subscription.current_period_end - subscription.current_period_end;
+                let durationLeft = subscription.current_period_end - prorationDate;
                 if (durationLeft > 0) {
-                    let prorateCost = (subscription.current_period_end - prorationDate) / (durationLeft) * 1 * planAbbreviations[i].price;
+                    let totalDuration = subscription.current_period_end - subscription.current_period_start;
+                    let prorateCost = (durationLeft) / (totalDuration) * 1 * planAbbreviations[i].price;
 
                     // Add the proration rate for the plans in an array and return the same to the user
                     prorationRates.push({
