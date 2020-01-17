@@ -16,5 +16,5 @@ for boatdir in "$PROCESSED_DIR/"*; do
 done
   
 cat $SCRIPT | mongo \
-      -u anemomindprod -p ${MONGO_PASSWORD} anemolab1,anemolab2,arbiter/anemomind 
+	"mongodb://anemomindprod:$MONGO_PASSWORD@anemolab1,anemolab2,compute3,arbiter/anemomind?replicaSet=rs0"
 rm $SCRIPT

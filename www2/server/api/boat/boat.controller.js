@@ -13,6 +13,8 @@ var winston = require('winston');
 var mailer = require('../../components/mailer');
 var transporter = mailer.transporter;
 
+const vhostForReq = require('../../components/vhost').vhostForReq;
+
 var validateBoatForUser = function(user, boat) {
   // Make sure the following arrays contain unique values.
   var fields = ['admins', 'readers', 'invited'];
@@ -239,7 +241,7 @@ exports.inviteUser = function(req, res) {
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
 
-          sendInvitationEmail(req.user, req.body.email, boat, false, host(req));
+          sendInvitationEmail(req.user, req.body.email, boat, false, vhostForReq(req));
 
           return res.status(200).json({
              message: 'user invited at address: ' + req.body.email,

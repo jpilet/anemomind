@@ -6,6 +6,7 @@ var controller = require('./files.controller');
 var auth = require('../../auth/auth.service');
 var access = require('../boat/access');
 var config = require('../../config/environment');
+var toBoolean = require('to-boolean');
 
 var router = express.Router();
 
@@ -19,31 +20,29 @@ router.get('/:boatId/:file',
     access.boatWriteAccess,
     controller.getSingle);
 
-// set flag use GoogleStorage
-// to true if files supposed to
-// be uploaded in google storage
-// by default this flag is
-// set to false.
-config.useGoogleStorage=true; 
+// check whether use google storage or not
+const filehandlers = (toBoolean(config.useGoogleStorage) ?
+    {
+        handleUploadedFile: controller.fileToGcp,
+        delete: controller.deleteFileFromGcp,
+    }
+    :
+    {
+        handleUploadedFile: controller.handleUploadedFile,
+        delete: controller.delete,
+    });
 
-if (!config.useGoogleStorage) {
-    router.post('/:boatId',
-        auth.isAuthenticated(),
-        access.boatWriteAccess,
-        controller.postFile,
-        controller.handleUploadedFile);
-}
-else {
-    router.post('/:boatId',
-        auth.isAuthenticated(),
-        access.boatWriteAccess,
-        controller.postFile,
-        controller.fileToGcp);
-}
+
+router.post('/:boatId',
+    auth.isAuthenticated(),
+    access.boatWriteAccess,
+    controller.postFile,
+    filehandlers.handleUploadedFile);
 
 router.delete('/:boatId/:file',
     auth.isAuthenticated(),
     access.boatWriteAccess,
-    controller.delete);
+    filehandlers.delete);
+
 
 module.exports = router;

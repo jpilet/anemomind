@@ -20,7 +20,7 @@
 namespace sail {
 
 Optional<AstraHeader> tryParseAstraHeader(const std::string& s) {
-  static std::regex re("----* *(.*) *-*----");
+  static std::regex re("----* *(.*[^\\s-]) *-*----");
   std::smatch match;
   if (std::regex_search(s, match, re) && match.size() > 1) {
     return AstraHeader{match.str(1)};

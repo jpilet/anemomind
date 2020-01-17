@@ -137,7 +137,7 @@ if (this.window) {
 
 // creates a global "addWheelListener" method
 // example: addWheelListener( elem, function( e ) { console.log( e.deltaY ); e.preventDefault(); } );
-if (this.window && document)
+if (this.window && this.document)
 (function(window,document) {
    if (!document) {
      return;

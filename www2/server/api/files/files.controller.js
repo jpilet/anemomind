@@ -59,6 +59,15 @@ function fileName(req) {
   return file;
 }
 
+function clientStorage() {
+  // Creates a client
+  const storage = new Storage({
+    projectId: config.projectName,
+    keyFilename: config.keyFile
+  });
+  return storage;
+}
+
 function getDetailsForFiles(dir, files) {
   const regex = /ESA$/;
   let esaFiles = files.filter((f) => f.match(regex))
@@ -71,7 +80,9 @@ function getDetailsForFiles(dir, files) {
     if (logfiles.length == 0) {
       return resolve(esaFiles);
     } else {
-      execFile(config.tryLoadBin, (dir ? ['-C', dir] : []).concat(logfiles),
+
+      const args = (dir ? ['-C', dir] : []).concat(logfiles)
+      execFile(config.tryLoadBin, args,
         (error, stdout, stderr) => {
           if (stderr) {
             console.log(config.tryLoadBin, ': ', stderr);
@@ -90,63 +101,57 @@ function getDetailsForFiles(dir, files) {
   });
 }
 
-function addFileCacheEntry(dir, filename, boatId, size, date, user) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const logFile = {};
-      logFile.name = filename;
-      logFile.size = size;
-      logFile.boat = new mongoose.Types.ObjectId(boatId);
-      logFile.uploadedBy = user;
-      logFile.uploadDate = date;
-      logFile.type = 'unknown';
-      logFile.processed = null;
+async function addFileCacheEntry(dir, filename, boatId, size, date, user) {
+  const logFile = {};
+  logFile.name = filename;
+  logFile.size = size;
+  logFile.boat = new mongoose.Types.ObjectId(boatId);
+  logFile.uploadedBy = user;
+  logFile.uploadDate = date;
+  logFile.type = 'unknown';
+  logFile.processed = null;
 
-      const details = await getDetailsForFiles(dir, [filename]);
-      if (details.length != 1) {
-        logFile.error = "internal error";
-      } else if (details[0].error) {
-        logFile.error = details[0].error;
-      } else {
-        if (details[0].type) {
-          logFile.type = details[0].type;
-        }
-        if (details[0].data) {
-          logFile.data = details[0].data;
-          logFile.type = 'log';
-        }
-        if (details[0].start) {
-          logFile.start = new Date(details[0].start);
-          if (details[0].duration_sec) {
-            logFile.end = new Date(
-              logFile.start.getTime() + 1000 * details[0].duration_sec);
-          }
-        }
-        if (details[0].duration_sec) {
-          logFile.duration_sec = details[0].duration_sec;
-        }
-      }
-
-      await new Promise((resolve) => {
-        LogFile.findOneAndUpdate(
-          { name: logFile.name, boat: logFile.boat },
-          { $set: logFile },
-          { upsert: true, returnNewDocument: true },
-          function (err, doc) {
-            if (err) {
-              console.log(err);
-              reject(err);
-            }
-            else
-              console.log(doc);
-          });
-      });
-
-
-    } catch (err) {
-      reject(err);
+  const details = await getDetailsForFiles(dir, [filename]);
+  if (details.length != 1) {
+    logFile.error = "internal error";
+  } else if (details[0].error) {
+    logFile.error = details[0].error;
+  } else {
+    if (details[0].type) {
+      logFile.type = details[0].type;
     }
+    if (details[0].data) {
+      logFile.data = details[0].data;
+      logFile.type = 'log';
+    }
+    if (details[0].start) {
+      logFile.start = new Date(details[0].start);
+      if (details[0].duration_sec) {
+        logFile.end = new Date(
+          logFile.start.getTime() + 1000 * details[0].duration_sec);
+      }
+    }
+    if (details[0].duration_sec) {
+      logFile.duration_sec = details[0].duration_sec;
+    }
+  }
+
+  await new Promise((resolve, reject) => {
+    LogFile.findOneAndUpdate(
+      { name: logFile.name, boat: logFile.boat },
+      { $set: logFile },
+      { upsert: true, returnNewDocument: true },
+      function (err, doc) {
+        if (err) {
+          console.log(err);
+          reject(err);
+        }
+        else
+          console.log(doc);
+        resolve(doc);
+      });
   });
+
 }
 
 exports.getSingle = async function (req, res, next) {
@@ -352,6 +357,40 @@ exports.delete = async function (req, res, next) {
 };
 
 
+exports.deleteFileFromGcp = async function (req, res, next) {
+
+  let boatDir = 'boat' + req.params.boatId + '/';
+  const name = fileName(req);
+
+  // Creates a client
+  const storage = clientStorage();
+
+  const bucket = storage.bucket(config.bucket);
+  try {
+
+    const err = await new Promise((resolve) => {
+      const result = LogFile.deleteOne({
+        name: name,
+        boat: mongoose.Types.ObjectId(req.params.boatId)
+      }, resolve);
+      if (result.deletedCount != 1) {
+        res.status(404).send();
+        return;
+      }
+    });
+
+    // Deletes the file from the bucket
+
+    await storage
+      .bucket(bucket)
+      .file(boatDir + name)
+      .delete();
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).send();
+  }
+}
+
 // uploading file in gcp 
 function getGSUrls(bucket, filename) {
   return `https://storage.googleapis.com/${bucket}/${filename}`;
@@ -368,19 +407,28 @@ const pubsub = new PubSub({
   keyFilename: config.keyFile
 });
 
+function messageToPubSub(message, uploadStatus) {
 
-function messageToPubSub(message) {
   const topicName = config.pubSubTopicName;
-
   const publisher = pubsub.topic(topicName).publisher();
-  publisher.publish(Buffer.from(JSON.stringify(message)), (err) => {
-    if (err) {
-      console.log('Error occurred while queuing background task', err);
-    } else {
-      console.log(`Boat data sent to pubsub for boat log processing`);
-    }
-  });
 
+  return new Promise((resolve, reject) => {
+
+    if (uploadStatus != 0) {
+      reject("Failed to send PubSub message because, file(s) not uploaded to google storage.");
+    } else {
+      publisher.publish(Buffer.from(JSON.stringify(message)), (err) => {
+        if (err) {
+          console.log('Error occurred while queuing background task', err);
+          reject(err);
+        } else {
+          console.log(`Boat data sent to pubsub for boat log processing`);
+          resolve();
+        }
+      });
+    }
+
+  });
 }
 
 exports.fileToGcp = async (req, res, next) => {
@@ -396,22 +444,19 @@ exports.fileToGcp = async (req, res, next) => {
     return;
   }
   if (!req.user) {
-    return res.status(401).send();
+    throw new Error("No user");
   }
 
 
   // Creates a client
-  const storage = new Storage({
-    projectId: config.projectName,
-    keyFilename: config.keyFile
-  });
+  const storage = clientStorage();
 
   const bucket = storage.bucket(config.bucket);
   const message = {}
   message.files = new Array();
   message.boatDirectory = 'boat' + req.params.boatId;
 
-  let isUploadSucess = true;
+  let uploadStatus = 0;
 
   // boat directory will store all uploaded files
   // of the respective boat in boat_logs bucket.
@@ -431,22 +476,18 @@ exports.fileToGcp = async (req, res, next) => {
     } catch (err) {
       console.warn('Failed to upload file: ' + f.newname);
       console.warn(err);
-      isUploadSucess = false;
+      uploadStatus = 1;
     }
 
-    if (isUploadSucess) {
-      // send message to google pubsub topic
-      messageToPubSub(message);
-    }
     try {
       const logFile = await addFileCacheEntry(
         dir, f.newname, req.params.boatId, f.size, new Date(), req.user);
-      res.status(200).json(logFile);
+      //  res.status(200).json(logFile);
     } catch (err) {
       console.warn('Failed to add cache entry for file: ' + f.newname);
       console.warn(err);
     }
 
-
   }
+  messageToPubSub(message, uploadStatus);
 }
