@@ -20,7 +20,6 @@ services:
     environment:
       - WAIT_HOSTS=anemomongo:27017
     
-
     links:
       - anemomongo
     depends_on:
@@ -32,6 +31,11 @@ services:
       dockerfile: ./www2/Dockerfile
       args:
         MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
+        GCLOUD_PROJECT: anemomind
+        GCS_KEYFILE: /anemomind/www2/anemomind-9b757e3fbacb.json
+        GCS_BUCKET: boat_logs
+        PUBSUB_TOPIC_NAME: anemomind_log_topic
+        USE_GS: "true"
     command: grunt serve:docker-dev --force
     ports:
       - "9000:9000"

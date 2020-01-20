@@ -34,13 +34,12 @@ elif [ ${ENVIRONMENT=} == "dev" ]; then
   echo "creating cpp server container for devlopment environment"
   
   # building docker image for cppserver as anemomind_anemocppserver
-  docker build --target cppbuilder -t anemomind_anemocppserver -f src/server/Dockerfile .
-
   # creating named volume for container
-  docker volume create myvol
-
   # creating container as anemomind_anemocppserver_1 with bind mount and named volume
-  docker run -d -v "$(pwd)"/src:/anemomind/src -v myvol:/anemomind/build -p 7188:22 --name anemomind_anemocppserver_1 -it anemomind_anemocppserver
+  
+  docker build --target cppbuilder -t anemomind_anemocppserver -f src/server/Dockerfile . && \  
+  docker volume create shared_lib && \
+  docker run -d -v "$(pwd)"/src:/anemomind/src -v shared_lib:/anemomind/build -p 7188:22 --name anemomind_anemocppserver_1 -it anemomind_anemocppserver
 
 
 else
