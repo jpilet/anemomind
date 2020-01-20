@@ -1,7 +1,7 @@
 include(ExternalProject)
 
 ExternalProject_Add(poco_ext
-        URL "https://pocoproject.org/releases/poco-1.9.0/poco-1.9.0.tar.gz"
+        URL "https://pocoproject.org/releases/poco-1.9.4/poco-1.9.4.tar.gz"
         BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/poco-build-src"
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/poco-build-src"
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/poco-install"
