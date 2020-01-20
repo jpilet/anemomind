@@ -79,6 +79,7 @@ target_link_libraries(logimport_CsvLoader
                       common_string
                       logimport_SourceGroup
                      )           
+target_depends_on_poco_foundation(logimport_CsvLoader)
 
 add_library(logimport_iwatch iwatch.h iwatch.cpp)
 target_link_libraries(logimport_iwatch

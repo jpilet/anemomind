@@ -11,7 +11,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(Protobuf_USE_STATIC_LIBS ON)
 
 include("cmake/FindCXXFeatures.cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_COMPILER_FLAGS} -march=native")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_COMPILER_FLAGS} ")
 
 include("cmake/GTest.cmake")
 

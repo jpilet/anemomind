@@ -30,7 +30,7 @@ TEST(PocoTest, PocoJsonStackoverflow) {
   arr = object->getArray("test1");
   result = arr->get(0);
   EXPECT_TRUE(result.isInteger());
-  EXPECT_EQ(result.extract<int>(), 1);
+  EXPECT_EQ(result.extract<int64_t>(), 1);
 }
 
 

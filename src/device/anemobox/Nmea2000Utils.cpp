@@ -5,7 +5,6 @@
  *      Author: jonas
  */
 
-#include <device/anemobox/Nmea2000Utils.h>
 #include <chrono>
 #include <thread>
 

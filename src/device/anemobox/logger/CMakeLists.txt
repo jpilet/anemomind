@@ -6,7 +6,11 @@ PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS logger.proto)
 add_library(anemobox_Logger Logger.h Logger.cpp ${PROTO_SRCS} ${PROTO_HDRS})
 target_link_libraries(anemobox_Logger anemobox_Dispatcher ${PROTOBUF_LIBRARY} Boost::iostreams)
 
-cxx_test(anemobox_LoggerTest LoggerTest.cpp anemobox_Logger gtest_main)
+cxx_test(anemobox_LoggerTest LoggerTest.cpp
+         anemobox_Logger
+         gtest_main
+         ${Boost_FILESYSTEM_LIBRARY}
+         ${Boost_SYSTEM_LIBRARY})
 
 add_executable(anemobox_logcat logcat.cpp)
 target_link_libraries(anemobox_logcat
