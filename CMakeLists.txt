@@ -6,6 +6,8 @@
 #
 cmake_minimum_required(VERSION 3.9)
 
+project(anemomind)
+
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(Protobuf_USE_STATIC_LIBS ON)
