@@ -56,7 +56,7 @@ cxx_test(anemobox_Nmea2000SourceTest
          anemobox_Nmea2000Source
          gtest_main
          nmea2000all
-         anemobox_Nmea2000Utils
+         #anemobox_Nmea2000Utils
          common_Env
          anemobox_millis
          )
@@ -169,6 +169,6 @@ cxx_test(anemobox_LazyReplayDispatchDataTest
 
 add_library(anemobox_millis Nmea2000Utils.cpp)
 
-add_library(anemobox_Nmea2000Utils Nmea2000Utils.h)
-target_link_libraries(anemobox_Nmea2000Utils nmea2000)
+#add_library(anemobox_Nmea2000Utils Nmea2000Utils.h)
+#target_link_libraries(anemobox_Nmea2000Utils nmea2000)
   

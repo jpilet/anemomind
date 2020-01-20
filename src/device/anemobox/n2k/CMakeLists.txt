@@ -34,7 +34,7 @@ target_link_libraries(n2k_PgnClasses
 
 cxx_test(n2k_PgnClassesTest
          PgnClassesTest.cpp
-         anemobox_Nmea2000Utils
+         anemobox_millis
          n2k_PgnClasses
          gtest_main
         )
