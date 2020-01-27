@@ -4,7 +4,7 @@
   "dependencies": {
     "express": "~3.4.3",
     "lodash": "~2.4.1",
-    "mongoose": "~3.8.8",
+    "mongoose": "~5.8.9",
     "connect-mongo": "~0.4.0",
     "passport": "~0.2.0",
     "passport-local": "~0.1.6",
