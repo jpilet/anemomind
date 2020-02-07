@@ -1,11 +1,11 @@
 'use strict';
 
-var should = require('should');
-var app = require('../../app');
-var request = require('supertest');
+const should = require('should');
+const app = require('../../app');
+const request = require('supertest');
 const controller = require('./pricing.controller');
-var testUtils = require('../testUtils.spec');
-var Q = require('q');
+const testUtils = require('../testUtils.spec');
+const Q = require('q');
 
 describe('Pricing  /api/pricing', function () {
 
@@ -75,8 +75,9 @@ describe('Pricing  /api/pricing', function () {
         request(app)
             .post('/api/pricing/subscribe/' + boatid)
             .set('Authorization', 'Bearer ' + token)
-            // the name does not match, anemobox is missing. The test should fail.
             .send({
+                // to get the string we need to login to strip dashboard and select any of the
+                // existing user and go to the source(card details) ang use the id attribute
                 stripeSource = "src_1FGs7eKcpwNgG6BNWXw6vaNf",
                 email = testUser.email,
                 country = "CHF",
