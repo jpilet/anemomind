@@ -278,7 +278,11 @@ exports.getProrationRates = async function (req, res) {
 
 // list of countries.
 exports.getCountries = function (req, res) {
-    res.status(200).json(getData());
+    res.status(200).json(getCountriesData());
+}
+
+exports.getCountriesData = function () {
+    return getData();
 }
 
 function createStripeUser(email) {
