@@ -44,9 +44,9 @@ COPY ./src /anemomind/src
 # compile link and copy the bin with dependencies to /tmp/
 # we need to do it as one RUN command since the products of the workdir are temp
 # for this intermediate container (layer)
-# Use of J1 can be an arg ? 
+# Use of J1 can be an arg ?
 
-#RUN cmake .. -DCMAKE_BUILD_TYPE=RelWidthDebInfo \ 
+#RUN cmake .. -DCMAKE_BUILD_TYPE=RelWidthDebInfo \
 #    && make -j1 nautical_processBoatLogs logimport_summary anemobox_logcat logimport_try_load nautical_catTargetSpeed
 
 RUN make rebuild_cache && make -j4 nautical_processBoatLogs logimport_summary anemobox_logcat logimport_try_load nautical_catTargetSpeed
@@ -75,8 +75,8 @@ RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && \
     echo 'PermitEmptyPasswords yes' >> /etc/ssh/sshd_config && \
     echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config && \
     ssh-keygen -A
- 
-EXPOSE 22 
+
+EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
 
 # now start from a lean image and copy all the needed bin/libs only
@@ -92,7 +92,7 @@ ADD https://www.mongodb.org/static/pgp/server-4.2.asc mongo.asc
 RUN apt-key add mongo.asc && rm mongo.asc
 RUN echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" > /etc/apt/sources.list.d/mongodb-org-4.2.list && \
     apt-get update && \
-    apt-get install -y mongodb-org-shell && apt-get autoclean && apt-get clean 
+    apt-get install -y mongodb-org-shell && apt-get autoclean && apt-get clean
 
 
 # app
@@ -101,7 +101,7 @@ COPY --from=cppbuilder /temp/bin/* /anemomind/bin/
 
 ENV LD_LIBRARY_PATH="/anemomind/lib/"
 
-#WORKDIR /anemomind/bin 
+#WORKDIR /anemomind/bin
 
 RUN env | grep -v "=$" | grep -v "_=" > /etc/cron.d/anemo-cron && \
     echo "*/3    *    *   *   *    flock -n /tmp/process_logs.lock /anemomind/bin/processNewLogs_DockerDev.sh >> /var/log/cron.log 2>&1" >> /etc/cron.d/anemo-cron && \
