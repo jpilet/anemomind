@@ -39,7 +39,7 @@ WORKDIR /anemomind/build
 RUN cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo /anemomind
 
 # build prod dependencies only
-RUN make -j$(nproc) poco_ext gtest_ext ceres_ext mongo_ext
+RUN make -j$(nproc) poco_ext gtest_ext ceres_ext mongo_ext adolc_ext
 
 #copy all the code related to C++ : use .dockerignore for unwanted files
 RUN rm -rf /anemomind/src
