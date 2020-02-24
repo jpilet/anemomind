@@ -6,6 +6,13 @@ This repository holds the code for
 
 In ```anemomind-ios```, you will find the code for iOS devices.
 
+# Using docker for development
+
+The following command will build a docker image and compile all the c++ code.
+```
+./src/compile_in_docker.sh
+```
+
 # Using the Vagrant box for development
 ```
 vagrant up
