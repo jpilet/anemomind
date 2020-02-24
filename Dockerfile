@@ -1,6 +1,6 @@
 
 # C++ Anemomind server MULTI STAGE BUILD
-FROM debian:10-slim as build_env
+FROM debian:bullseye-slim as build_env
 
 ARG LOAD_MONGO_DB
 ARG MONGO_URL
@@ -16,7 +16,7 @@ RUN apt-get update && \
     libblas-dev libblocksruntime-dev libboost-dev libboost-filesystem-dev libboost-iostreams-dev \
     libboost-regex-dev libboost-system-dev libboost-thread-dev libbsd-dev libcairo2-dev \
     libcurl4-openssl-dev libcxsparse3 libedit-dev libffi6 libgmp10 libgnutls30 \
-    libhogweed4 libicu-dev libicu63 libidn11 libidn2-0 liblapack-dev libncurses5-dev libnettle6 \
+    libicu-dev libicu63 libidn11 libidn2-0 liblapack-dev libncurses5-dev \
     libnss-myhostname libp11-kit0 libprotobuf-dev libpsl5 libsqlite3-dev libssl-dev libsuitesparse-dev \
     libsystemd0 libtasn1-6 libudev1 libunistring2 libxml2-dev locales locate lsb-release lsof make \
     net-tools netcat ninja-build pkg-config protobuf-compiler pstack rsync rsyslog \
