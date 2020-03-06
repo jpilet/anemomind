@@ -31,7 +31,11 @@ TEST(TransducerTest, SumTest) {
       src,
       trIdentity(),
       intoReduction<double>([](double sum, int x) {
-        return sum + x;
+        std::cout << "gcc COMPILER BUG!"
+         " if this message is removed, the unit test "
+         " in " __FILE__ ":" <<  __LINE__ << " fails. Sum: "
+         << sum << "\n";
+        return sum + double(x);
       }, 1000));
   EXPECT_NEAR(result, 1000 + 21, 1.0e-6);
 }

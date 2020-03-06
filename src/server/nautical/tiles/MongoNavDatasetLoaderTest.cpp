@@ -17,12 +17,11 @@ TEST(MongoNavDatasetLoader, TestIt) {
       mongoc_uri,
       mongoc_uri_new(MongoDBConnection::defaultMongoUri())));
 
-  if (!db.defined()) {
+  if (!db.connected()) {
     LOG(WARNING) << "The Mongo database does not seem to be running";
     // If the Mongo server is not running, it is not a bug in our code.
     return;
   }
-  LOG(INFO) << "Successfully connected";
 
   std::string boatId = "58c2d60d481c472292864b05";
   {
@@ -46,7 +45,13 @@ TEST(MongoNavDatasetLoader, TestIt) {
           &toRemove,
           nullptr,
           &removeError)) {
-        LOG(WARNING) << "Failed to remove because: " << removeError.message;
+        if (removeError.code == 13053) {
+          LOG(WARNING) <<" mongo serveur not running. Skipping mongo tests.";
+          return;
+        } else {
+          LOG(WARNING) << "Failed to remove because: " << removeError.message
+            << "(" << removeError.code << ")\n";
+        }
       }
     }
     for (int i = 0; i < 9; i++) {
