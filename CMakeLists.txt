@@ -4,7 +4,9 @@
 # or (on edison)
 # mkdir build; cd build; cmake -DFULL_BUILD=OFF ..
 #
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.13)
+
+project(anemomind)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -15,6 +17,9 @@ include("cmake/GTest.cmake")
 
 set(FULL_BUILD ON CACHE BOOL "enables full build or restrict to minimum")
 set(WITH_SAILROOT ON CACHE BOOL "Build the sailroot shared object to load in ROOT")
+if (WITH_SAILROOT)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif(WITH_SAILROOT)
 
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
