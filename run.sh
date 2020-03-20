@@ -40,9 +40,9 @@ elif [ ${ENVIRONMENT=} == "dev" ]; then
   # creating named volume for container
   # creating container as anemomind_anemocppserver_1 with bind mount and named volume
   
-  docker build --target cppbuilder -t anemomind_anemocppserver -f src/server/Dockerfile .
+  docker build --target cppbuilder -t anemomind_anemocppserver .
   docker volume create --name myvol
-  docker run -d -v "$(pwd)"/src:/anemomind/src -v myvol:/anemomind/build -p 7188:22 --name anemomind_anemocppserver_1 -it anemomind_anemocppserver
+  docker run -d -v "$(pwd)/src:/anemomind/src" -v myvol:/anemomind/build -p 7188:22 --name anemomind_anemocppserver_1 -it anemomind_anemocppserver
 
 else
   
