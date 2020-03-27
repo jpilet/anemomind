@@ -5,11 +5,7 @@ version: "3"
 
 services:
   anemocppserver:
-    build:
-      context: .
-      dockerfile: ./src/server/Dockerfile
-      args:
-        MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
+    image: gcr.io/${PROJECT_NAME}/anemomind_anemocppserver:${TAG}
     volumes:
       - "shared_lib:/anemomind/lib"
       - "shared_bin:/anemomind/bin"  
@@ -26,16 +22,7 @@ services:
       - anemomongo
 
   anemowebapp:
-    build:
-      context: .
-      dockerfile: ./www2/Dockerfile
-      args:
-        MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
-        GCLOUD_PROJECT: anemomind
-        GCS_KEYFILE: /anemomind/www2/anemomind-9b757e3fbacb.json
-        GCS_BUCKET: boat_logs
-        PUBSUB_TOPIC_NAME: anemomind_log_topic
-        USE_GS: "true"
+    image: gcr.io/${PROJECT_NAME}/anemomind_anemowebapp:${TAG}
     command: grunt serve:docker-dev --force
     ports:
       - "9000:9000"
