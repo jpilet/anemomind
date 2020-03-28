@@ -75,8 +75,7 @@ WORKDIR /anemomind
 RUN echo "copying cpp binaries from ${CPP_DOCKER_IMAGE}"
 
 # Final runtime image doesn't make any shared libs assumptions - just copy from the appropriate CPP image
-COPY --from=cppbinaries /anemomind/lib/* /anemomind/lib/
-COPY --from=cppbinaries /anemomind/bin/* /anemomind/bin/
+COPY bin lib /anemomind/
 
 WORKDIR /anemomind/www2
 
