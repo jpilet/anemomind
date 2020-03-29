@@ -7,9 +7,7 @@ services:
   anemocppserver:
     image: gcr.io/${PROJECT_NAME}/anemomind_anemocppserver:${TAG}
     volumes:
-      - "shared_lib:/anemomind/lib"
-      - "shared_bin:/anemomind/bin"  
-      - "boat_logs:/anemomind/boat_logs"  
+      - "uploads:/uploads"
     networks:
       - back-tier
     restart: unless-stopped
@@ -27,9 +25,7 @@ services:
     ports:
       - "9000:9000"
     volumes: 
-      - "shared_lib:/anemomind/lib"
-      - "shared_bin:/anemomind/build/src/server/nautical/logimport/"  
-      - "boat_logs:/anemomind/www2/uploads/anemologs"
+      - "uploads:/uploads"
     networks:
       - front-tier
       - back-tier

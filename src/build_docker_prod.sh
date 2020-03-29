@@ -14,7 +14,7 @@ docker build -f Dockerfile.prod -t gcr.io/$PROJECT_NAME/anemomind_anemocppserver
 
 docker build -t gcr.io/$PROJECT_NAME/anemomind_anemowebapp:${TAG} -f www2/Dockerfile \
          --build-arg MONGO_URL=mongodb://anemomongo:27017/anemomind-dev \
-         --build-arg GCLOUD_PROJECT=anemomind\
+         --build-arg GCLOUD_PROJECT=${PROJECT}\
          --build-arg GCS_KEYFILE=/anemomind/www2/anemomind-9b757e3fbacb.json\
          --build-arg GCS_BUCKET=boat_logs\
          --build-arg USE_GS="true" \
