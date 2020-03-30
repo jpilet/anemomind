@@ -10,9 +10,9 @@ PROJECT_NAME=$1
 TAG=${2:latest}
 
 # TODO: add -t option with the appropriate image name and tag.
-docker build -f Dockerfile.prod -t gcr.io/$PROJECT_NAME/anemomind_anemocppserver:$TAG .
+docker build -f Dockerfile.prod -t anemomind_anemocppserver:$TAG .
 
-docker build -t gcr.io/$PROJECT_NAME/anemomind_anemowebapp:${TAG} -f www2/Dockerfile \
+docker build -t anemomind_anemowebapp:${TAG} -f www2/Dockerfile \
          --build-arg MONGO_URL=mongodb://anemomongo:27017/anemomind-dev \
          --build-arg GCLOUD_PROJECT=${PROJECT}\
          --build-arg GCS_KEYFILE=/anemomind/www2/anemomind-9b757e3fbacb.json\

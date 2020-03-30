@@ -21,9 +21,8 @@ services:
 
   anemowebapp:
     image: gcr.io/${PROJECT_NAME}/anemomind_anemowebapp:${TAG}
-    command: grunt serve:docker-dev --force
     ports:
-      - "9000:9000"
+      - "9000:80"
     volumes: 
       - "uploads:/uploads"
     networks:
@@ -32,7 +31,6 @@ services:
     restart: unless-stopped
     environment:
       - WAIT_HOSTS=anemomongo:27017
-      - VHOST=client
     
     links:
       - anemomongo

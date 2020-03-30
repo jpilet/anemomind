@@ -3,7 +3,7 @@ ARG CPP_DOCKER_IMAGE=anemomind_anemocppserver:latest
 #
 # Image used for building only
 #
-FROM debian:stretch-slim as node-base
+FROM debian:bullseye-slim as node-base
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y curl tar xz-utils ca-certificates sudo \
@@ -46,13 +46,19 @@ FROM node-base as www2
 COPY --from=grunt-build /anemomind/www2/dist /app
 
 # Final runtime image doesn't make any shared libs assumptions - just copy from the appropriate CPP image
-COPY bin /anemomind/bin/
+COPY bin/logimport_try_load bin/nautical_catTargetSpeed /anemomind/bin/
 COPY lib /anemomind/lib/
+
+# Those file are present on the image already and cause code dumps
+# if present.
+RUN cd /anemomind/lib && rm -f \
+        ld-linux-x86-64.so.2 libc.so.6 libdl.so.2 libgcc_s.so.1 \
+        libm.so.6 libpthread.so.0 libstdc++.so.6 linux-vdso.so.1
 ENV LD_LIBRARY_PATH="/anemomind/lib/:${LD_LIBRARY_PATH}"
+RUN ldconfig
 
 ## Wait for solution
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait /wait
-RUN /bin/ls -l /wait
 RUN /bin/chmod -v a+x /wait
 
 ENV PATH=${PATH}:/usr/bin:/anemomind/bin \
