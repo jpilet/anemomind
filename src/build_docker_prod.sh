@@ -5,19 +5,22 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 "${DIR}/docker_run.sh" -i ../src/compile_and_cp_bin.sh
 
-PROJECT_NAME=$1
+PROJECT=$1
+export REGISTRY=anemomind/
+#REGISTRY=gcr.io/${PROJECT}/
 
 TAG=${2:latest}
 
 # TODO: add -t option with the appropriate image name and tag.
-docker build -f Dockerfile.prod -t anemomind_anemocppserver:$TAG .
+docker build -f Dockerfile.prod -t ${REGISTRY}anemomind_anemocppserver:${TAG} "${DIR}/.."
 
-docker build -t anemomind_anemowebapp:${TAG} -f www2/Dockerfile \
+docker build -t ${REGISTRY}anemomind_anemowebapp:${TAG} -f www2/Dockerfile \
          --build-arg MONGO_URL=mongodb://anemomongo:27017/anemomind-dev \
          --build-arg GCLOUD_PROJECT=${PROJECT}\
          --build-arg GCS_KEYFILE=/anemomind/www2/anemomind-9b757e3fbacb.json\
          --build-arg GCS_BUCKET=boat_logs\
          --build-arg USE_GS="true" \
          --build-arg PUBSUB_TOPIC_NAME=anemomind_log_topic \
-         --build-arg CPP_DOCKER_IMAGE=gcr.io/$PROJECT_NAME/anemomind_anemocppserver:$TAG .
+         --build-arg CPP_DOCKER_IMAGE=gcr.io/$PROJECT/anemomind_anemocppserver:$TAG \
+         "${DIR}/.."
 

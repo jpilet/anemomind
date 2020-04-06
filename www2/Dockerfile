@@ -79,10 +79,10 @@ ENV MONGO_URL=${MONGO_URL} \
 
 # Those have to be set when running the container
 # ENV JWT_SECRET REPLACE_WITH_SECRET_HERE 
-# ENV MONGOLAB_URI mongodb://anemomindprod:EHvZtKXu48vwhCm0IClQ@anemolab1,anemolab2,compute3/anemomind?replicaSet=rs0
+# ENV MONGOLAB_URI mongodb://anemomindprod:XXX@anemolab1,anemolab2,compute3/anemomind?replicaSet=rs0
 # ENV SMTP_PASSWORD password
 
 EXPOSE 80
 
-CMD /wait && node /app/server.js
+CMD /wait && mkdir -p /db/uploads && node /app/server/app.js
 
