@@ -1,8 +1,8 @@
 #!/bin/bash
 
 export BIN="/anemomind/bin"
-export LOG_DIR="/anemomind/boat_logs"
-export PROCESSED_DIR="/anemomind/processed"
+export LOG_DIR="/db/anemologs/anemologs"
+export PROCESSED_DIR="/db/processed"
 
 ulimit -c unlimited
 

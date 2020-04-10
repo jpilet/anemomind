@@ -15,23 +15,19 @@ RUN echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" > 
     apt-get install -y mongodb-org-shell && apt-get autoclean && apt-get clean
 
 # app
-COPY lib /anemomind/
-COPY bin /anemomind/
+COPY lib /anemomind/lib/
+
+# Those file are present on the image already and cause code dumps
+# if present.
+RUN cd /anemomind/lib && rm -f \
+        ld-linux-x86-64.so.2 libc.so.6 libdl.so.2 libgcc_s.so.1 \
+        libm.so.6 libpthread.so.0 libstdc++.so.6 linux-vdso.so.1
+
+COPY bin/* /anemomind/bin/
+COPY src/server/production/*sh /anemomind/bin/
 
 ENV LD_LIBRARY_PATH="/anemomind/lib/"
 
 #WORKDIR /anemomind/bin
 
-#RUN env | grep -v "=$" | grep -v "_=" > /etc/cron.d/anemo-cron && \
-#    echo "*/3    *    *   *   *    flock -n /tmp/process_logs.lock /anemomind/bin/processNewLogs_DockerDev.sh >> /var/log/cron.log 2>&1" >> /etc/cron.d/anemo-cron && \
-#    chmod 0644 /etc/cron.d/anemo-cron
-
-# Apply cron job
-#RUN crontab /etc/cron.d/anemo-cron
-
-# Create the log file to be able to run tail
-#RUN touch /var/log/cron.log
-
-# Run the command on container startup
-#CMD cron && tail -f /var/log/cron.log
-
+# No command is executed by default, it is not the same on GCP and in docker-compose.

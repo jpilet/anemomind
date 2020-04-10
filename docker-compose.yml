@@ -14,6 +14,7 @@ services:
     environment:
       - WAIT_HOSTS=anemomongo:27017
     
+    command: /anemomind/bin/run_from_cron.sh
     links:
       - anemomongo
     depends_on:
@@ -22,7 +23,7 @@ services:
   anemowebapp:
     image: anemomind/anemomind_anemowebapp:${TAG:-latest}
     ports:
-      - "9000:80"
+      - "9000:9000"
     volumes: 
       - "file-db:/db"
     networks:
@@ -30,9 +31,11 @@ services:
       - back-tier
     restart: unless-stopped
     environment:
+      - PORT=9000
       - WAIT_HOSTS=anemomongo:27017
       - MONGOLAB_URI=mongodb://anemomongo/anemomind
       - JWT_SECRET=${JWT_SECRET:-NOT_SECURE_AT_ALL_123}
+      - USE_GS=false  # store on filesystem
     
     links:
       - anemomongo
