@@ -23,7 +23,7 @@ module.exports = {
 
   uploadDir: '/db/uploads',
   endpointDir: '/db/mail2',
-  backupDestination: 'anemomind@vtiger.anemomind.com:userlogs',
+  backupDestination: process.env.RSYNC_BACKUP_DESTINATION, 
 
   tryLoadBin: "/home/jpilet/bin/logimport_try_load",
 

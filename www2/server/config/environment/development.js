@@ -12,6 +12,7 @@ module.exports = {
   backupWithRsync: false, 
   endpointDir:'/tmp/endpoints',
 
+  tryLoadBin: process.env.LOAD_BIN_PATH || '/anemomind/bin/logimport_try_load',
   //Stripe secret key test mode
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || null,
 
@@ -22,3 +23,5 @@ module.exports = {
   pubSubTopicName: process.env.PUBSUB_TOPIC_NAME || "anemomind_log_topic",
   useGoogleStorage : process.env.USE_GS || false
 };
+
+

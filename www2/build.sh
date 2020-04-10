@@ -12,7 +12,7 @@ if [[ "$1" != "-n" ]] ; then
   # dist/package.json file that contains the list of packages required for
   # production.
 
-  bower install --config.directory=$VHOST/bower_components
+  bower install --allow-root --config.directory=$VHOST/bower_components
 fi
 
 grunt build:dist
@@ -21,7 +21,7 @@ rm -fR dist/node_modules/mail || true
 sed 's#file:../nodemodules#file:../../nodemodules#' < package.json > dist/package.json
 
 # npm install in dist folder
-NODE_ENV=production npm install --production --prefix=dist
+NODE_ENV=production npm install --production --prefix=dist --unsafe-perm=true --allow-root
 
 # replace symlink with hard copy
 # 

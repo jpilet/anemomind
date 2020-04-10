@@ -3,6 +3,10 @@
 !CMakeLists.txt
 !cmake
 !src
+!lib
+!bin
+!nodemodules
+!www2
 
 **/node_modules
 src/device/anemobox/anemonode/build

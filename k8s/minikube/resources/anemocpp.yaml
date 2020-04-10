@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    name: anemocppserver
+  name: anemocppserver
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: anemocppserver
+    spec:
+      containers:
+      - image: ${CPP_DOCKER_IMAGE}
+        name: anemocppserver
+        resources: {}
+        env:
+        - name: MONGO_URL
+          value: mongodb://main_admin:${MONGO_PWD}@mongod-0.mongodb-service:27017,mongod-1.mongodb-service:27017,mongod-2.mongodb-service:27017/anemomind-dev?replicaSet=MainRepSet&authSource=admin
+      restartPolicy: Always
+status: {}

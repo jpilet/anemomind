@@ -1,8 +1,8 @@
 #!/bin/bash
 
 export BIN="/anemomind/bin"
-export LOG_DIR="/anemomind/boat_logs"
-export PROCESSED_DIR="/anemomind/processed"
+export LOG_DIR="/db/uploads/anemologs/"
+export PROCESSED_DIR="/db/processed"
 
 ulimit -c unlimited
 
@@ -110,7 +110,7 @@ export -f safeRun
 export SHELL=/bin/bash
 
 # process each boat 
-for boatDir in "${LOG_DIR}"/*/ ; do
+for boatDir in "${LOG_DIR}"/* ; do
   processBoat "${boatDir}"
   safeRun "${BIN}"/uploadVmgTable_DockerDev.sh
 done

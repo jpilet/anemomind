@@ -1,0 +1,33 @@
+# now start from a lean image and copy all the needed bin/libs only
+# build with docker build --target=anemomind_prod
+FROM debian:bullseye-slim as anemomind_prod
+
+ARG MONGO_URL
+ENV MONGO_URL ${MONGO_URL}
+
+WORKDIR /anemomind
+
+RUN apt-get update && apt-get install  --no-install-recommends -y cron gnupg
+ADD https://www.mongodb.org/static/pgp/server-4.2.asc mongo.asc
+RUN apt-key add mongo.asc && rm mongo.asc
+RUN echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" > /etc/apt/sources.list.d/mongodb-org-4.2.list && \
+    apt-get update && \
+    apt-get install -y mongodb-org-shell && apt-get autoclean && apt-get clean
+
+# app
+COPY lib /anemomind/lib/
+
+# Those file are present on the image already and cause code dumps
+# if present.
+RUN cd /anemomind/lib && rm -f \
+        ld-linux-x86-64.so.2 libc.so.6 libdl.so.2 libgcc_s.so.1 \
+        libm.so.6 libpthread.so.0 libstdc++.so.6 linux-vdso.so.1
+
+COPY bin/* /anemomind/bin/
+COPY src/server/production/*sh /anemomind/bin/
+
+ENV LD_LIBRARY_PATH="/anemomind/lib/"
+
+#WORKDIR /anemomind/bin
+
+# No command is executed by default, it is not the same on GCP and in docker-compose.

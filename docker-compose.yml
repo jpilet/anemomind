@@ -1,55 +1,42 @@
 # Please refer the DockerREADME.md file 
 # for the details regarding this docker-compose file
 
-version: "3"
+version: "3.3"
 
 services:
   anemocppserver:
-    build:
-      context: .
-      dockerfile: ./src/server/Dockerfile
-      args:
-        MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
+    image: anemomind/anemomind_anemocppserver:${TAG:-latest}
     volumes:
-      - "shared_lib:/anemomind/lib"
-      - "shared_bin:/anemomind/bin"  
-      - "boat_logs:/anemomind/boat_logs"  
+      - "file-db:/db"
     networks:
       - back-tier
     restart: unless-stopped
     environment:
       - WAIT_HOSTS=anemomongo:27017
+      - MONGO_URL=mongodb://anemomongo/anemomind
     
+    command: /anemomind/bin/run_from_cron.sh
     links:
       - anemomongo
     depends_on:
       - anemomongo
 
   anemowebapp:
-    build:
-      context: .
-      dockerfile: ./www2/Dockerfile
-      args:
-        MONGO_URL: mongodb://anemomongo:27017/anemomind-dev
-        GCLOUD_PROJECT: anemomind
-        GCS_KEYFILE: /anemomind/www2/anemomind-9b757e3fbacb.json
-        GCS_BUCKET: boat_logs
-        PUBSUB_TOPIC_NAME: anemomind_log_topic
-        USE_GS: "true"
-    command: grunt serve:docker-dev --force
+    image: anemomind/anemomind_anemowebapp:${TAG:-latest}
     ports:
       - "9000:9000"
     volumes: 
-      - "shared_lib:/anemomind/lib"
-      - "shared_bin:/anemomind/build/src/server/nautical/logimport/"  
-      - "boat_logs:/anemomind/www2/uploads/anemologs"
+      - "file-db:/db"
     networks:
       - front-tier
       - back-tier
     restart: unless-stopped
     environment:
+      - PORT=9000
       - WAIT_HOSTS=anemomongo:27017
-      - VHOST=client
+      - MONGOLAB_URI=mongodb://anemomongo/anemomind
+      - JWT_SECRET=${JWT_SECRET:-NOT_SECURE_AT_ALL_123}
+      - USE_GS=false  # store on filesystem
     
     links:
       - anemomongo
@@ -58,10 +45,10 @@ services:
       - anemocppserver
 
   anemomongo:
-    image: mvertes/alpine-mongo
+    image: mongo:4.2.5-bionic
     container_name: anemomongo
     volumes:
-      - "db-data:/db/data"
+      - "db-data:/data/db"
     ports:
       - "27017:27017"
     networks:
@@ -69,11 +56,11 @@ services:
     restart: unless-stopped
 
 volumes:
-    shared_lib:
-    shared_bin:        
     boat_logs:
     db-data:
+    file-db:
 
 networks:
   front-tier:
   back-tier:
+    attachable: true
