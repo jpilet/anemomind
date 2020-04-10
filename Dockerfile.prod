@@ -1,6 +1,6 @@
 # now start from a lean image and copy all the needed bin/libs only
 # build with docker build --target=anemomind_prod
-FROM debian:10-slim as anemomind_prod
+FROM debian:bullseye-slim as anemomind_prod
 
 ARG MONGO_URL
 ENV MONGO_URL ${MONGO_URL}

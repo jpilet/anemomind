@@ -13,6 +13,7 @@ services:
     restart: unless-stopped
     environment:
       - WAIT_HOSTS=anemomongo:27017
+      - MONGO_URL=mongodb://anemomongo/anemomind
     
     command: /anemomind/bin/run_from_cron.sh
     links:
