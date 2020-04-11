@@ -41,3 +41,5 @@ src/device/anemobox/canutils/iproute2
 datasets/*/processed
 datasets/*/logs/processed
 
+lib/
+bin/

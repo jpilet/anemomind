@@ -1,17 +1,72 @@
-# main anemomind repository
-This repository holds the code for 
-  * The anemobox
-  * The web interface
-  * The computational backend
+![Anemomind logo](https://www.anemomind.com/wp-content/uploads/2017/05/logo-rouge-fond-transparent-300x181.png)
 
-In ```anemomind-ios```, you will find the code for iOS devices.
+Anemomind: a sailing data recording, visualization and analysis solution.
 
-# Using docker for development
+## Components:
+
+  * a web server (visible on [anemolab](https://anemolab.com) and [Regatta Polar](https://regattapolar.it/));
+  * an optional onboard computer system (called 'anemobox')
+  * c++ code to compute performance statistics and predictions
+  * an iOS app.
+
+The solution is described [there](http://www.anemomind.com/).
+
+## Features:
+
+  * visualize sailing logs, including wind data on a web page.
+  * works on mobile.
+  * automatic true-wind calibration based on uploaded logs.
+  * Supports NMEA0183, NMEA 2000, and other formats.
+
+![Anemolab screenshot](./docs/anemolab.jpg)
+
+# How can I test it?
+
+The easiest is to test it on [anemolab](https://anemolab.com/). Simply create
+an account, create a boat, and upload some data.
+
+If you want to test it on your local machine, the easiest is to use docker-compose, see below.
+
+# Where to start reading the sources?
+
+  *  For the C++ processing code, start by reading the
+     [main processing function](https://github.com/jpilet/anemomind/blob/master/src/server/nautical/BoatLogProcessor.cpp#L326).
+  *  For the anemobox (the embedded device), see the [nodejs entry point](https://github.com/jpilet/anemomind/blob/master/src/device/anemobox/anemonode/main.js).
+  *  The web server is [there](https://github.com/jpilet/anemomind/tree/master/src/server)
+  *  The angular js web client code is [here for anemolab](https://github.com/jpilet/anemomind/tree/master/www2/client)
+     and [there for Regatta Polar](https://github.com/jpilet/anemomind/tree/master/www2/esalab).
+  *  The iOS app is not is this repo. I will publish its code soon.
+
+You can also contact me at julien@anemomind.com and send questions.
+
+# Running with docker-compose
+
+The following process use existing docker images to start running the web server.
+
+1. Install docker.
+2. Install docker-compose.
+3. ``` git clone https://github.com/jpilet/anemomind.git ```
+4. Run ``` ./src/bootstrap-docker-compose.sh ``` from the anemomind directory.
+5. Wait a bit, and browse to [http://localhost:9000/](http://localhost:9000/).
+
+To build the docker images, use ```./src/build_docker_prod.sh <tag>```
+
+# Using docker for c++  development
 
 The following command will build a docker image and compile all the c++ code.
 ```
 ./src/compile_in_docker.sh
 ```
+
+You can run any command in the development environment with:
+```
+./src/docker_run.sh <docker flags> <command>
+```
+For example:
+```
+./src/docker_run.sh -it bash
+```
+will open a shell in which you can type ```make -j8 && make test```.
 
 # Using the Vagrant box for development
 ```
@@ -132,7 +187,7 @@ The following steps cover building and testing all the code:
   21. ```mocha```
 
 ## Additional tests
-Some things are difficult to test with unit tests. The pipeline that 
+Some things are difficult to test with unit tests. The pipeline that
 processes logs and upload tiles can be run, by first ensuring a that
 a clean mongo server is running either
 ```
@@ -148,7 +203,7 @@ grunt serve:dev
 ```
 
 Then perform a build of the C++ code in your build directory (e.g. ```build```),
-and run 
+and run
 ```
 build/src/server/nautical/tiles$ sh generateDevDB.sh
 ```
