@@ -75,15 +75,15 @@ vagrant provsion (should be done first time only or if you make any changes in v
 vagrant ssh
 ```
 
-# Quick dev setup guide
+# Development without Docker setup guide
+
 To build the cpp code in release mode:
 ```
 mkdir build_release
 cd build_release
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
-make -j 4
+make -j$(nproc)
 ```
-You can replace 4 by the actual number of cores your CPU has.
 *If you get a compilation error*, you can try to call ```make -j 4``` again until everything builds with no errors.
 Instead of ```RelWidthDebInfo```, it is possible to use or ```Debug``` (removes optimisations).
 
@@ -221,15 +221,6 @@ Then got to the build folder and type:
 To check that it worked, you can type:
 ```NavDataset().outputSummary(&std::cout)```
 
-## Platform specific notes
-
-### Mac OSX
-
-TODO
-
-```
-brew install suite-sparse
-```
 
 ## Dockerized anemomind
 [DokcerREADME.md](DockerREADME.md)
