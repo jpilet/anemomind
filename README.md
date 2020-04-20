@@ -112,7 +112,9 @@ bower install
 ```
 CLIENT=client grunt serve:dev
 ```
-Note that you can replace ```CLIENT=client``` with ```CLIENT=esalab```.
+Note that you can replace ```CLIENT=client``` with ```CLIENT=esalab```. The
+code name 'client' corresponds to anemolab.com site, and 'esalab' corresponds to
+regattapolar.it.
 
 ## Reference platform
 The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
