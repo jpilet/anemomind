@@ -4,7 +4,7 @@ Anemomind: a sailing data recording, visualization and analysis solution.
 
 ## Components:
 
-  * a web server (visible on [anemolab](https://anemolab.com) and [Regatta Polar](https://regattapolar.it/));
+  * a web server (visible on [anemolab](https://anemolab.com) and [Regatta Polar](https://regattapolar.it/))
   * an optional onboard computer system (called 'anemobox')
   * c++ code to compute performance statistics and predictions
   * an iOS app.
@@ -16,7 +16,8 @@ The solution is described [there](http://www.anemomind.com/).
   * visualize sailing logs, including wind data on a web page.
   * works on mobile.
   * automatic true-wind calibration based on uploaded logs.
-  * Supports NMEA0183, NMEA 2000, and other formats.
+  * computes VMG performance estimations based on logged data.
+  * supports NMEA0183, NMEA 2000, and other formats.
 
 ![Anemolab screenshot](./docs/anemolab.jpg)
 
@@ -35,9 +36,9 @@ If you want to test it on your local machine, the easiest is to use docker-compo
   *  The web server is [there](https://github.com/jpilet/anemomind/tree/master/src/server)
   *  The angular js web client code is [here for anemolab](https://github.com/jpilet/anemomind/tree/master/www2/client)
      and [there for Regatta Polar](https://github.com/jpilet/anemomind/tree/master/www2/esalab).
-  *  The iOS app is not is this repo. I will publish its code soon.
+  *  The iOS app is not is this repo. The code will be published soon.
 
-You can also contact me at julien@anemomind.com and send questions.
+You can contact me at julien@anemomind.com and send questions.
 
 # Running with docker-compose
 
