@@ -9,7 +9,7 @@ Anemomind: a sailing data recording, visualization and analysis solution.
   * c++ code to compute performance statistics and predictions
   * an iOS app.
 
-The solution is described [there](http://www.anemomind.com/).
+The solution is described [on Anemomind web site](http://www.anemomind.com/).
 
 ## Features:
 
