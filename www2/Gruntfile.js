@@ -7,6 +7,14 @@ console.log('Building for: ' + appPath)
 var fs = require('fs');
 fs.writeFile(".bowerrc", JSON.stringify({ "directory": appPath + "/bower_components" }), console.warn);
 
+function shouldStartMongo() {
+  return !process.env['MONGO_URL'];
+}
+
+function shouldOpen() {
+  return !process.env['SKIP_OPEN_BROWSER'];
+}
+
 module.exports = function (grunt) {
   var localConfig;
   try {
@@ -36,7 +44,7 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
     shell: {
       mongo: {
-        command: 'mongod -bind_ip 127.0.0.1 -dbpath  ../www/db',
+        command: 'mkdir -p ../www/db && mongod -bind_ip 127.0.0.1 -dbpath  ../www/db',
         options: {
           async: true
         }
@@ -549,7 +557,10 @@ module.exports = function (grunt) {
 
   grunt.registerTask('serve', function (target) {
     if (target === 'dist') {
-      return grunt.task.run(['shell', 'build', 'env:all',
+      return grunt.task.run([
+        ...(shouldStartMongo() ? ['shell'] : []),
+        'build',
+        'env:all',
         //'env:prod',
         'express:prod', 'wait', 'open', 'express-keepalive']);
     }
@@ -566,24 +577,8 @@ module.exports = function (grunt) {
       ]);
     }
 
-    if (target === 'docker-dev') {
-
-    return grunt.task.run([
-      'clean:server',
-      'env:all',
-      'concurrent:server',
-      'injector',
-      'wiredep',
-      'autoprefixer',
-      'express:dev',
-      'wait',
-      'open',
-      'watch'
-    ]);
-  }
-
     grunt.task.run([
-      'shell',
+      ...(shouldStartMongo() ? ['shell'] : []),
       'clean:server',
       'env:all',
       'concurrent:server',
@@ -592,7 +587,7 @@ module.exports = function (grunt) {
       'autoprefixer',
       'express:dev',
       'wait',
-      'open',
+      ...(shouldOpen() ? ['open']: []),
       'watch'
     ]);
   });
@@ -607,7 +602,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test', function(target) {
     if (target === 'server') {
       return grunt.task.run([
-        'shell',
+        ...(shouldStartMongo() ? ['shell'] : []),
         'env:all',
         'env:test',
         'mochaTest'

@@ -14,8 +14,8 @@ TAG=${1:-latest}
 # TODO: add -t option with the appropriate image name and tag.
 docker build -f Dockerfile.prod -t ${REGISTRY}anemomind_anemocppserver:${TAG} "${DIR}/.."
 
-docker build -t anemomind/web_dev:${TAG} -f www2/Dockerfile \
-    --target grunt-build "${DIR}/.."
+docker build -t ${REGISTRY}web_dev:${TAG} -f www2/Dockerfile \
+    --target web-dev "${DIR}/.."
 
 docker build -t ${REGISTRY}anemomind_anemowebapp:${TAG} -f www2/Dockerfile \
          --build-arg MONGO_URL=mongodb://anemomongo:27017/anemomind-dev \

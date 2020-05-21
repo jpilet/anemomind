@@ -7,7 +7,7 @@ FROM debian:bullseye-slim as node-base
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y curl tar xz-utils ca-certificates sudo \
-    git bash less wget bzip2 gzip iproute2 && \
+    git bash less wget bzip2 gzip iproute2 rsync ssh && \
     apt-get clean && \
     apt-get autoclean
 
@@ -36,6 +36,22 @@ RUN  npm install --unsafe-perm=true --allow-root ../nodemodules/endpoint/ && \
 ARG VHOST=client
 COPY www2 /anemomind/www2/
 RUN /anemomind/www2/build.sh
+
+FROM grunt-build as web-dev
+
+# Final runtime image doesn't make any shared libs assumptions - just copy from the appropriate CPP image
+COPY bin/logimport_try_load bin/nautical_catTargetSpeed /anemomind/bin/
+COPY lib /anemomind/lib/
+
+# Those file are present on the image already and cause code dumps
+# if present.
+RUN cd /anemomind/lib && rm -f \
+        ld-linux-x86-64.so.2 libc.so.6 libdl.so.2 libgcc_s.so.1 \
+        libm.so.6 libpthread.so.0 libstdc++.so.6 linux-vdso.so.1
+ENV LD_LIBRARY_PATH="/anemomind/lib/:${LD_LIBRARY_PATH}"
+RUN ldconfig
+
+CMD grunt serve:dev
 
 #
 # Image used for production

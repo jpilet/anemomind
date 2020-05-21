@@ -8,7 +8,7 @@ const testUtils = require('../testUtils.spec');
 const esaPolarLoader = require('../files/esapolar');
 const mongoose = require('mongoose');
 
-const filename = 'polarESA20170708_1629.ESA';
+const filename = 'polarESA20170708_1244.ESA';
 const esaPolarFile = __dirname + '/../../../../datasets/astradata/Regata/polarESA20170708_1244.ESA';
 describe('ESA Polar', () => {
   let boatid;
@@ -64,8 +64,6 @@ describe('ESA Polar', () => {
         res.body.should.have.length(1);
         res.body[0].should.have.property('name');
         res.body[0].name.should.equal(filename);
-        res.body[0].should.have.property('boat');
-        res.body[0].boat.should.equal(boatid);
         done();
       });
   });

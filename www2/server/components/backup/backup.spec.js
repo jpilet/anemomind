@@ -7,6 +7,9 @@ var config = require('../../config/environment');
 
 describe('backupPhotos', function() {
   before(function(done) {
+    config.backupWithRsync = true;
+    config.backupDestination = "/tmp"
+
     fs.writeFile(config.uploadDir + '/photos/test_photo', "test",
       function(err) {
         if (err) {

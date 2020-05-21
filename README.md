@@ -104,17 +104,17 @@ If you dont find any data in the mongo db after the UI is up and running plase r
 ```
 cd www2
 mkdir uploads
-npm install
-bower install
 ```
-4. Kill mongodb (this is necessary because grunt will start a new instance) ```killall mongod```
+4. Kill mongodb, if it is running (this is necessary because grunt will start a new instance) ```killall mongod```
 5. start the dev server:
 ```
-CLIENT=client grunt serve:dev
+CLIENT=client ./grunt.sh serve:dev
 ```
 Note that you can replace ```CLIENT=client``` with ```CLIENT=esalab```. The
 code name 'client' corresponds to anemolab.com site, and 'esalab' corresponds to
 regattapolar.it.
+
+The first time grunt.sh runs, it will install all dependencies, it may take a while. Subsequent runs are much faster.
 
 ## Reference platform
 The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.

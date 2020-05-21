@@ -58,7 +58,7 @@ var all = {
   },
 
   // Would it make sense to have absolute paths here to?
-  uploadDir: 'uploads',
+  uploadDir: process.env.UPLOAD_DIR || 'uploads',
   endpointDir: '/tmp/mail2',
   backupDestination: '/tmp/anemobackup',
 

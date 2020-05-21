@@ -3,50 +3,35 @@
 # Make bash exit if a command fails
 set -e
 
-########################################################################
-# This scripts will create docker container(s) either in production
-# envrironment or in devlopement environment.
-# 
-# In production following containers will be created:
-#  anemomind_anemowebapp_1
-#  anemomind_anemocppserver_1
-#  anemomongo
-#
-# In developement anemomind_anemocppserver_1 container will be created. 
-#
-# input: environment [prod/dev]
-# output: container(s) in eigther production or devlopement. 
-########################################################################
-
-if [ "$#" -ne 1 ]; then
-    echo "USAGE: ./run.sh <environment>"
-    echo "EXAPLE: ./run.sh prod"
-    exit
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 [prod|dev] <docker compose args>"
+    echo "Start anemolab service using existing docker images."
+    echo "Example:"
+    echo "   $0 dev up"
+    exit 1
 fi
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 ENVIRONMENT=$1
+shift
 
 if [ ${ENVIRONMENT} == "prod" ]; then
-  
-  echo "Execution started for production environment"
-  # creating all containers using docker compose
-  docker-compose up
+  echo "Starting in prod mode. Changes in the www2 folder will be ignored."
+  echo "http://localhost:9000/ will come up soon."
+  docker-compose -f "${DIR}/docker-compose.yml" $*
 
 elif [ ${ENVIRONMENT=} == "dev" ]; then
-  
-  echo "creating cpp server container for devlopment environment"
-  
-  # building docker image for cppserver as anemomind_anemocppserver
-  # creating named volume for container
-  # creating container as anemomind_anemocppserver_1 with bind mount and named volume
-  
-  docker build --target cppbuilder -t anemomind_anemocppserver .
-  docker volume create --name myvol
-  docker run -d -v "$(pwd)/src:/anemomind/src" -v myvol:/anemomind/build -p 7188:22 --name anemomind_anemocppserver_1 -it anemomind_anemocppserver
+  echo "Starting in dev mode. Will live-reload any changes in the www2 folder."
+  echo "http://localhost:9001/ will come up soon."
+  FILE="docker-compose-dev.yml"
+  PORT=9001
+  mkdir -p /tmp/home
+  USER_ID=$(id -u):$(id -g) docker-compose -f "${DIR}/${FILE}" ${*:-up}
 
 else
   
   echo "Invalid option for run.sh please provide either 'prod' or 'dev'"
-  exit
-
+  exit 1
 fi
+

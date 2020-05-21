@@ -12,13 +12,13 @@ services:
   anemocppserver:
     image: anemomind/anemomind_anemocppserver:${TAG:-latest}
     volumes:
-      - "file-db:/db"
+      - "./www2/uploads:/db/uploads"
     networks:
       - back-tier
     restart: unless-stopped
     environment:
       - WAIT_HOSTS=anemomongo:27017
-      - MONGO_URL=mongodb://anemomongo/anemomind
+      - MONGO_URL=mongodb://anemomongo/anemomind-dev
     
     command: /anemomind/bin/run_from_cron.sh
     links:
@@ -27,22 +27,31 @@ services:
       - anemomongo
 
   anemowebapp:
-    image: anemomind/anemomind_anemowebapp:${TAG:-latest}
+    image: anemomind/web_dev:${TAG:-latest}
     ports:
-      - "9000:9000"
+      - "9001:9001"
+      - "35729:35729"
     volumes: 
-      - "file-db:/db"
+      - "./nodemodules:/anemomind/nodemodules"
+      - "./www2:/anemomind/www2"
+      - "./datasets:/anemomind/datasets"
+      - "/tmp/home:/home"
     networks:
       - front-tier
       - back-tier
     restart: unless-stopped
+    command: ./grunt.sh serve:dev
     environment:
-      - PORT=9000
+      - PORT=9001
       - WAIT_HOSTS=anemomongo:27017
-      - MONGOLAB_URI=mongodb://anemomongo/anemomind
+      - MONGO_URL=mongodb://anemomongo/anemomind-dev
       - JWT_SECRET=${JWT_SECRET:-NOT_SECURE_AT_ALL_123}
       - USE_GS=false  # store on filesystem
-    
+      - SKIP_OPEN_BROWSER=1
+      - HOME=/home
+      - LD_LIBRARY_PATH=/anemomind/lib
+
+    user: ${USER_ID}
     links:
       - anemomongo
     depends_on:
@@ -63,7 +72,6 @@ services:
 volumes:
     boat_logs:
     db-data:
-    file-db:
 
 networks:
   front-tier:

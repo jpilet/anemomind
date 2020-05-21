@@ -8,7 +8,7 @@ var Boat = require('./boat.model');
 var testUtils = require('../testUtils.spec');
 var Q = require('q');
 
-window.location = {};
+let window = {location: {}};
 
 describe('GET /api/boats', function() {
 
