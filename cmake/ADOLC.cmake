@@ -4,7 +4,8 @@
 include(ExternalProject)
 
 ExternalProject_Add(adolc_ext
-        URL "http://www.coin-or.org/download/source/ADOL-C/ADOL-C-2.4.1.zip"
+        URL "https://www.coin-or.org/download/source/ADOL-C/ADOL-C-2.4.1.tgz"
+        TLS_VERIFY ON
         BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/adolc-build"
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/adolc-src"
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/adolc-install"

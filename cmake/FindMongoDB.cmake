@@ -37,12 +37,19 @@ add_definitions(-DMONGOC_STATIC -DBSON_STATIC)
 else (MONGO_C_BUILD_STATUS MATCHES "MONGO_C_BUILT") 
 
 ExternalProject_Add(mongo_ext
-  URL "https://github.com/mongodb/mongo-c-driver/releases/download/1.7.0/mongo-c-driver-1.7.0.tar.gz"
+  URL "https://github.com/mongodb/mongo-c-driver/releases/download/1.16.0/mongo-c-driver-1.16.0.tar.gz"
   BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-build"
   SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-src"
   INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/mongo-c-install"
-  CONFIGURE_COMMAND "${CMAKE_BINARY_DIR}/third-party/mongo-c-src/configure" "--prefix=${CMAKE_BINARY_DIR}/third-party/mongo-c-install" "--disable-automatic-init-and-cleanup"
-"--enable-static" "--disable-shared" "--enable-debug"
+  CMAKE_ARGS 
+          "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+          "-DENABLE_STATIC=ON"
+          "-DENABLE_TESTS=OFF"
+          "-DENABLE_EXAMPLES=OFF"
+          "-DENABLE_SRV=OFF"
+          "-DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF"
+          "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/third-party/mongo-c-install"
+          "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
   UPDATE_COMMAND ""
   INSTALL_COMMAND make install
 )

@@ -73,6 +73,7 @@ add_library(logimport_CsvLoader
             CsvLoader.h
             CsvLoader.cpp
            )
+target_depends_on_poco_foundation(logimport_CsvLoader)
            
 target_link_libraries(logimport_CsvLoader
                       common_CsvParser
