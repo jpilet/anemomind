@@ -317,6 +317,7 @@ function makeWindPackets() {
     var data2send = tryGetIfFresh([wa, "tws"], source, lastSent, now);
     if (data2send) {
       // TWA has to be transmitted as a positive angle
+      data2send[wa][0] = data2send[wa][0] % 360;
       if (data2send[wa][0] < 0) {
         data2send[wa][0] += 360;
       }

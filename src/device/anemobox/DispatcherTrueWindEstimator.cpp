@@ -73,7 +73,7 @@ void DispatcherTrueWindEstimator::compute(const std::string &srcName) const {
     _dispatcher->publishValue(TWS, srcName, tws);
 
     // Todo: compute TWA with TrueWindEstimator.
-    twa = (twdir - _filter.gpsBearing());
+    twa = (twdir - _filter.gpsBearing()).positiveMinAngle();
     _dispatcher->publishValue(TWA, srcName, twa);
   } else {
     if (!_dispatcher->get<TWA>()->dispatcher()->hasFreshValue(freshLimit)
