@@ -1,5 +1,5 @@
 module.exports = {
   major: 2,
-  minor: 9,
-  string: "2.9"
+  minor: 10,
+  string: "2.10"
 };
