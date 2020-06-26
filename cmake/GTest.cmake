@@ -4,11 +4,11 @@
 include(ExternalProject)
 
 ExternalProject_Add(gtest_ext
-        URL "https://github.com/google/googletest/archive/release-1.8.0.zip"
+        URL "https://github.com/google/googletest/archive/release-1.8.0.tar.gz"
         BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/gmock-build"
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/gmock-src"
         CMAKE_ARGS "${gtest_cmake_args}"
-          "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+        "-DCMAKE_BUILD_TYPE=Release"
         INSTALL_COMMAND ""
             )
 set(GTEST_INCLUDE_DIRS
@@ -34,7 +34,7 @@ endfunction()
 
 function(cxx_test name sources)
     add_executable(${name} ${sources})
-    target_link_libraries(${name} ${ARGN} gtest ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(${name} ${ARGN} gmock ${CMAKE_THREAD_LIBS_INIT})
     set_property(TARGET ${name} APPEND PROPERTY INCLUDE_DIRECTORIES
                  ${GTEST_INCLUDE_DIRS}
                  )

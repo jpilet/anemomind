@@ -20,7 +20,7 @@ RUN apt-get update && \
     libsystemd0 libtasn1-6 libudev1 libunistring2 libxml2-dev locales locate lsb-release lsof make \
     net-tools netcat ninja-build pkg-config protobuf-compiler rsync rsyslog \
     ssh sysstat systemd-sysv systemtap-sdt-dev tinc tmux traceroute \
-    tzdata unattended-upgrades uuid-dev uuid-runtime wget whiptail xfsprogs libeigen3-dev && \
+    tzdata unattended-upgrades uuid-dev uuid-runtime wget whiptail xfsprogs libeigen3-dev libsnappy-dev && \
     apt-get clean autoclean && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

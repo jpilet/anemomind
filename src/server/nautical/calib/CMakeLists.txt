@@ -60,6 +60,7 @@ target_link_libraries(calib_CurrentCalib
                       nautical_NavDataset
                       filters_TimedAngleIntegrator
                      )
+target_depends_on_ceres(calib_CurrentCalib)
 
 cxx_test(calib_CurrentCalibTest
    CurrentCalibTest.cpp
