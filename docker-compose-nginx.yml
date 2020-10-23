@@ -1,0 +1,33 @@
+version: "3.3"
+
+services:
+  nginx:
+    image: nginx:1.19-alpine
+    restart: unless-stopped
+    volumes:
+      - ./reverse-proxy/nginx:/etc/nginx/
+      - ./reverse-proxy/letsencrypt:/etc/letsencrypt
+      - nginx-well-known:/var/www/letsencrypt
+      - nginx-cache:/var/cache/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    networks:
+      - front-tier
+
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./reverse-proxy/letsencrypt:/etc/letsencrypt
+      - nginx-well-known:/var/www/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+
+volumes:
+    nginx-cache:
+    nginx-well-known:
+
+networks:
+  front-tier:

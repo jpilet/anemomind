@@ -43,3 +43,5 @@ datasets/*/logs/processed
 
 lib/
 bin/
+
+.jwt_secret

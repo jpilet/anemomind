@@ -3,11 +3,6 @@
 
 version: "3.3"
 
-networks:
-  default:
-    driver: overlay
-    attachable: true
-
 services:
   anemocppserver:
     image: anemomind/anemomind_anemocppserver:${TAG:-latest}
@@ -49,16 +44,41 @@ services:
       - anemomongo
       - anemocppserver
 
+
+  # This can be scaled. Nginx, started with docker-compose-nginx.yml,
+  # will take care of https and load balancing.
+  anemowebapp_repl:
+    image: anemomind/anemomind_anemowebapp:${TAG:-latest}
+    volumes: 
+      - "file-db:/db"
+    networks:
+      - front-tier
+      - back-tier
+    restart: unless-stopped
+    environment:
+      - PORT=9001
+      - WAIT_HOSTS=anemomongo:27017
+      - MONGOLAB_URI=mongodb://anemomongo/anemomind
+      - JWT_SECRET=${JWT_SECRET:-NOT_SECURE_AT_ALL_123}
+      - USE_GS=false  # store on filesystem
+    
+    links:
+      - anemomongo
+    depends_on:
+      - anemomongo
+      - anemocppserver
+
   anemomongo:
     image: mongo:4.2.5-bionic
     container_name: anemomongo
     volumes:
       - "db-data:/data/db"
-    ports:
-      - "27017:27017"
+    #ports:
+    #  - "27017:27017"
     networks:
       - back-tier
     restart: unless-stopped
+    command: --wiredTigerCacheSizeGB 4
 
 volumes:
     boat_logs:
@@ -67,5 +87,6 @@ volumes:
 
 networks:
   front-tier:
+    attachable: true
   back-tier:
     attachable: true

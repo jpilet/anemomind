@@ -7,7 +7,7 @@ FROM debian:bullseye-slim as node-base
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y curl tar xz-utils ca-certificates sudo \
-    git bash less wget bzip2 gzip iproute2 rsync ssh && \
+    git bash less wget bzip2 gzip iproute2 rsync ssh graphicsmagick graphicsmagick-imagemagick-compat && \
     apt-get clean && \
     apt-get autoclean
 

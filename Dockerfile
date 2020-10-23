@@ -15,7 +15,7 @@ RUN apt-get update && \
     libblas-dev libblocksruntime-dev libboost-dev libboost-filesystem-dev libboost-iostreams-dev \
     libboost-regex-dev libboost-system-dev libboost-thread-dev libbsd-dev libcairo2-dev \
     libcurl4-openssl-dev libcxsparse3 libedit-dev libgmp10 libgnutls30 \
-    libicu-dev libicu63 libidn11 libidn2-0 liblapack-dev libncurses5-dev \
+    libicu-dev libidn11 libidn2-0 liblapack-dev libncurses5-dev \
     libnss-myhostname libp11-kit0 libprotobuf-dev libpsl5 libsqlite3-dev libssl-dev libsuitesparse-dev \
     libsystemd0 libtasn1-6 libudev1 libunistring2 libxml2-dev locales locate lsb-release lsof make \
     net-tools netcat ninja-build pkg-config protobuf-compiler rsync rsyslog \
