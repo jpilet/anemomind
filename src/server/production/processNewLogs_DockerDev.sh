@@ -74,15 +74,10 @@ processBoat() {
 	--scale 20 ; then
 
     
-    #  if [ -f "${boatdat}" ] ; then
-    #    # If a boat.dat file has been generated, mail it to the anemobox.
-    #    cat "${boatdat}" | ssh anemomind@anemolab1 NODE_ENV=production \
-    #      # MONGOLAB_URI=mongodb://anemomindprod:${MONGO_PASSWORD}@anemolab1,anemolab2,arbiter/anemomind \
-    #      ${MONGO_URL} \
-    #      node /home/jpilet/anemomind/www2/utilities/SendBoatData.js \
-    #      "${boatid}" /dev/stdin /home/anemobox/boat.dat || true
-    #     #node /home/xa4/anemomind/www2/utilities/SendBoatData.js \
-    #  fi
+      if [ -f "${boatdat}" ] ; then
+        # If a boat.dat file has been generated, mail it to the anemobox.
+        date > "${processed}/boat.dat-ready-to-send"
+      fi
 
       # Recompute worked. Update the checksum.
       echo "${new_md5}" > "${lastprocess}"
@@ -112,6 +107,6 @@ export SHELL=/bin/bash
 # process each boat 
 for boatDir in "${LOG_DIR}"/* ; do
   processBoat "${boatDir}"
-  safeRun "${BIN}"/uploadVmgTable_DockerDev.sh
 done
+safeRun "${BIN}"/uploadVmgTable_DockerDev.sh
 

@@ -6,7 +6,7 @@ set -e
 #SCRIPT="/tmp/update-vmgtable-$$"
 
 BIN="/anemomind/bin"
-PROCESSED_DIR="/anemomind/processed"
+PROCESSED_DIR="/db/processed"
 SCRIPT="/tmp/update-vmgtable-$$"
 
 echo > $SCRIPT
