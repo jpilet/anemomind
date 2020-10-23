@@ -61,7 +61,7 @@ FROM node-base as www2
 
 COPY --from=grunt-build /anemomind/www2/dist /app
 COPY www2/utilities /app/utilities
-COPY src/server/production/sendBoatDat.sh /anemomind/bin
+COPY src/server/production/sendBoatDat.sh /anemomind/bin/
 
 # Final runtime image doesn't make any shared libs assumptions - just copy from the appropriate CPP image
 COPY bin/logimport_try_load bin/nautical_catTargetSpeed /anemomind/bin/

@@ -8,7 +8,7 @@ ENV MONGO_URL ${MONGO_URL}
 WORKDIR /anemomind
 
 RUN apt-get update && apt-get install  --no-install-recommends -y cron gnupg \
-        bzip2 xz-utils
+        bzip2 xz-utils catdoc
 
 ADD https://www.mongodb.org/static/pgp/server-4.2.asc mongo.asc
 RUN apt-key add mongo.asc && rm mongo.asc
