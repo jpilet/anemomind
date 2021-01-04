@@ -16,6 +16,12 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ENVIRONMENT=$1
 shift
 
+
+if ! [ -f .jwt_secret ] ; then
+    openssl rand -base64 18 > .jwt_secret
+fi
+export JWT_SECRET=$(cat .jwt_secret)
+
 if [ ${ENVIRONMENT} == "prod" ]; then
   echo "Starting in prod mode. Changes in the www2 folder will be ignored."
   echo "http://localhost:9000/ will come up soon."

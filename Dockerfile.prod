@@ -7,7 +7,9 @@ ENV MONGO_URL ${MONGO_URL}
 
 WORKDIR /anemomind
 
-RUN apt-get update && apt-get install  --no-install-recommends -y cron gnupg
+RUN apt-get update && apt-get install  --no-install-recommends -y cron gnupg \
+        bzip2 xz-utils catdoc
+
 ADD https://www.mongodb.org/static/pgp/server-4.2.asc mongo.asc
 RUN apt-key add mongo.asc && rm mongo.asc
 RUN echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" > /etc/apt/sources.list.d/mongodb-org-4.2.list && \
