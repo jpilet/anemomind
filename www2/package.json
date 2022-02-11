@@ -94,7 +94,7 @@
     "imagemin-gifsicle": "^5.2.0",
     "jit-grunt": "^0.10.0",
     "jshint-stylish": "~2.2.1",
-    "karma": "~2.0.2",
+    "karma": "~6.3.14",
     "karma-chrome-launcher": "~2.2.0",
     "karma-coffee-preprocessor": "~1.0.1",
     "karma-firefox-launcher": "~1.1.0",
