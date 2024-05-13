@@ -23,8 +23,8 @@ services:
 
   anemowebapp:
     image: anemomind/anemomind_anemowebapp:${TAG:-latest}
-    ports:
-      - "9000:9000"
+    #ports:
+    #- "9000:9000"
     volumes: 
       - "file-db:/db"
     networks:
@@ -43,7 +43,14 @@ services:
     depends_on:
       - anemomongo
       - anemocppserver
-
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.anemowebapp.rule=Host(`anemolab.com`) || Host(`www.anemolab.com`)
+      #- traefik.http.routers.anemowebapp.service=anemowebapp
+      - traefik.http.routers.anemowebapp.entrypoints=websecure
+      - traefik.http.routers.anemowebapp.tls.certresolver=le
+      - traefik.http.services.anemowebapp.loadbalancer.server.port=9000
+      - traefik.docker.network=anemolab_net
 
   # This can be scaled. Nginx, started with docker-compose-nginx.yml,
   # will take care of https and load balancing.
@@ -67,6 +74,13 @@ services:
     depends_on:
       - anemomongo
       - anemocppserver
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=anemolab_net
+      - traefik.http.routers.anemowebapp_repl.rule=(Host(`anemolab.com`) || Host(`www.anemolab.com`)) && PathPrefix(`/api/{path:(map)|(tiles)|(export)}`)
+      - traefik.http.routers.anemowebapp_repl.entrypoints=websecure
+      - traefik.http.routers.anemowebapp_repl.tls.certresolver=le
+      - traefik.http.services.anemowebapp_repl.loadbalancer.server.port=9001
 
   anemomongo:
     image: mongo:4.2.5-bionic
@@ -87,6 +101,7 @@ volumes:
 
 networks:
   front-tier:
-    attachable: true
+    external: true
+    name: anemolab_net
   back-tier:
     attachable: true
