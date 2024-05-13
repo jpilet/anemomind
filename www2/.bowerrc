@@ -1,1 +1,4 @@
-{"directory":"client/bower_components"}
+{
+  "strict-ssl": false,
+  "directory":"client/bower_components"
+}

@@ -22,9 +22,12 @@ angular.module('www2App')
             canvas: element.children()[0],
             token: Auth.getToken(),
             url: function(scale, x, y) { 
+              /*
               var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
               return "//stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
                 + scale + "/" + x + "/" + y + ".png";
+                */
+              return "https://tile.openstreetmap.org/" + scale + "/" + x + "/" + y + ".png";
 	      /*
               return "http://a.tiles.wmflabs.org/bw-mapnik/"
                 + scale + "/" + x + "/" + y + ".png";

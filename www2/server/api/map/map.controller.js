@@ -67,9 +67,7 @@ function getCanvas(width, height, name, cb) {
       canvas: canvas,
       forceDevicePixelRatio: 1,
       url: function(scale, x, y) { 
-        var s = [ 'a', 'b', 'c' ][(scale + x + y) % 3];
-        return "http://stamen-tiles-" + s + ".a.ssl.fastly.net/toner-lite/"
-          + scale + "/" + x + "/" + y + ".png";
+        return "https://tile.openstreetmap.org/" + scale + "/" + x + "/" + y + ".png";
       },
 
       // Allow direct disc access instead of going through a http call
