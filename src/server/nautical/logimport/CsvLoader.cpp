@@ -25,9 +25,10 @@ template <typename T>
 std::function<void(std::string)> makeSetter(T unit, T *dst) {
   return [=](const std::string &s) {
     double x = 0;
-    if (tryParseDouble(s, &x)) {
-      *dst = x*unit;
+    if (!tryParseDouble(s, &x)) {
+      x = std::numeric_limits<double>::signaling_NaN();
     }
+    *dst = x*unit;
   };
 }
 
@@ -102,7 +103,7 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   m["sog_kts"] = makeSetter(knots, &_gpsSpeed);
   m["cog"] = makeSetter(degrees, &_gpsBearing);
   m["hdg_true"] = makeSetter(degrees, &_magHdg);
-  m["awa_dgrees"] = makeSetter(degrees, &_awa);
+  m["awa_degrees"] = makeSetter(degrees, &_awa);
   m["roll"] = makeSetter(degrees, &_roll);
   m["pitch"] = makeSetter(degrees, &_pitch);
 
