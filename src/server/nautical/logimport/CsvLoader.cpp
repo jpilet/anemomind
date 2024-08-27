@@ -95,6 +95,17 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   m["LAT"] = makeSetter(degrees, &_lat);
   m["LON"] = makeSetter(degrees, &_lon);
 
+  // Vakaros format
+  m["latitude"] = makeSetter(degrees, &_lat);
+  m["longitude"] = makeSetter(degrees, &_lon);
+  m["timestamp"] = makeTimeSetter(&_time);
+  m["sog_kts"] = makeSetter(knots, &_gpsSpeed);
+  m["cog"] = makeSetter(degrees, &_gpsBearing);
+  m["hdg_true"] = makeSetter(degrees, &_magHdg);
+  m["awa_dgrees"] = makeSetter(degrees, &_awa);
+  m["roll"] = makeSetter(degrees, &_roll);
+  m["pitch"] = makeSetter(degrees, &_pitch);
+
   // Support for Calypso XLS recording
   m["Id"] = doNothing;
   m["Lat"] = makeSetter(degrees, &_lat);
