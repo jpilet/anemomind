@@ -66,6 +66,8 @@ class TimeStamp {
   bool operator== (const TimeStamp &other) const {
     return _time == other._time;
   }
+
+  static TimeStamp parseFromRegex(const std::string& s);
  private:
   TimeStamp(int year, int mon, int day, int hour, int min, double seconds);
 
