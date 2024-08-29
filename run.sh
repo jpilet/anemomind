@@ -33,7 +33,7 @@ elif [ ${ENVIRONMENT=} == "dev" ]; then
   FILE="docker-compose-dev.yml"
   PORT=9001
   mkdir -p /tmp/home
-  USER_ID=$(id -u):$(id -g) docker-compose -f "${DIR}/${FILE}" ${*:-up}
+  USER_ID=$(id -u):$(id -g) docker compose -f "${DIR}/${FILE}" ${*:-up}
 
 else
   
