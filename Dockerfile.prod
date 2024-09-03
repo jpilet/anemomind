@@ -1,6 +1,6 @@
 # now start from a lean image and copy all the needed bin/libs only
 # build with docker build --target=anemomind_prod
-FROM debian:bullseye-slim as anemomind_prod
+FROM debian:12 as anemomind_prod
 
 ARG MONGO_URL
 ENV MONGO_URL ${MONGO_URL}
@@ -10,11 +10,11 @@ WORKDIR /anemomind
 RUN apt-get update && apt-get install  --no-install-recommends -y cron gnupg \
         bzip2 xz-utils catdoc
 
-ADD https://www.mongodb.org/static/pgp/server-4.2.asc mongo.asc
+ADD https://www.mongodb.org/static/pgp/server-4.4.asc mongo.asc
 RUN apt-key add mongo.asc && rm mongo.asc
-RUN echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" > /etc/apt/sources.list.d/mongodb-org-4.2.list && \
+RUN echo "deb http://repo.mongodb.org/apt/debian bookworm/mongodb-org/4.4 main" > /etc/apt/sources.list.d/mongodb-org-4.4.list && \
     apt-get update && \
-    apt-get install -y mongodb-org-shell && apt-get autoclean && apt-get clean
+    apt-get install -y mongodb-mongosh  && apt-get autoclean && apt-get clean
 
 # app
 COPY lib /anemomind/lib/

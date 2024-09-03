@@ -62,7 +62,7 @@ services:
       - anemocppserver
 
   anemomongo:
-    image: mongo:4.2.5-bionic
+    image: mongo:4.4.29
     container_name: anemomongo
     volumes:
       - "db-data:/data/db"

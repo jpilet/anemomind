@@ -35,7 +35,7 @@ ExternalProject_Add(gflags_ext
         )
 
 ExternalProject_Add(ceres_ext
-        URL "http://ceres-solver.org/ceres-solver-1.12.0.tar.gz"
+        URL "http://ceres-solver.org/ceres-solver-1.14.0.tar.gz"
         BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-build"
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-src"
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-install"

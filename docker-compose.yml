@@ -83,7 +83,7 @@ services:
       - traefik.http.services.anemowebapp_repl.loadbalancer.server.port=9001
 
   anemomongo:
-    image: mongo:4.2.5-bionic
+    image: mongo:4.4.29
     container_name: anemomongo
     volumes:
       - "db-data:/data/db"

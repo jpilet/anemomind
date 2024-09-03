@@ -220,8 +220,8 @@ bool Logger::read(const std::string& filename, LogFile *dst) {
     // If we save the full boat history in a single protobuf, it will
     // easily exceed this size. Of course, we should split it into
     // multiple smaller files... but for now we simply increase the limit
-    // to 500MB, with a warning at 400.
-    decoder.SetTotalBytesLimit(500 * 1024 * 1024, 400 * 1024 * 1024);
+    // to 500MB.
+    decoder.SetTotalBytesLimit(500 * 1024 * 1024);
     return dst->ParseFromCodedStream(&decoder) && dst->stream_size() > 0;
 }
 
