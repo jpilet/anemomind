@@ -25,7 +25,7 @@ module.exports = {
   endpointDir: '/db/mail2',
   backupDestination: process.env.RSYNC_BACKUP_DESTINATION, 
 
-  tryLoadBin: "/home/jpilet/bin/logimport_try_load",
+  tryLoadBin: "logimport_try_load",
 
   // environment for GCP
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || null,

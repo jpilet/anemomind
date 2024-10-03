@@ -36,9 +36,9 @@ function CanvasTilesRenderer(params) {
 
   this.pixelRatio = params.forceDevicePixelRatio || 1;
 
-  this.layers = [
-    new TileLayer(params, this)
-  ];
+  this.layers = [];
+  if ('clearColor' in this.params) { this.layers.push(new ClearLayer({color: params.clearColor})); }
+  if (this.params.url) { this.layers.push(new TileLayer(params, this)); }
 
   this.canvasWidth = -1;
   this.canvasHeight = -1;
