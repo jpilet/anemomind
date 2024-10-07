@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <regex>
 
 #ifdef HAVE_CLOCK_GETTIME
 #include <time.h>
@@ -121,11 +122,44 @@ std::string removeFractionalParts(std::string s) {
   }
 }
 
-TimeStamp tryParseTime(const char *fmt, std::string s) {
+TimeStamp TimeStamp::parseFromRegex(const std::string& s)
+{
+  static std::regex expr(R"-((\d\d\d\d)[/-](\d\d?)[/-](\d\d?)[ T](\d\d?):(\d\d?):(\d\d?(\.\d+)?)Z?)-");
+
+  std::smatch match;
+  if (!std::regex_match(s, match, expr))
+  {
+    return {};
+  }
+
+  if (match.size() < 7) { return {}; }
+  int year;
+  if (!tryParseInt(match[1], &year)) { return {}; }
+
+  int month;
+  if (!tryParseInt(match[2], &month)) { return {}; }
+
+  int day;
+  if (!tryParseInt(match[3], &day)) { return {}; }
+
+  int hour;
+  if (!tryParseInt(match[4], &hour)) { return {}; }
+
+  int minutes;
+  if (!tryParseInt(match[5], &minutes)) { return {}; }
+
+  double sec = 0;
+  if (!tryParseDouble(match[6], &sec)) { return {}; }
+
+  return UTC(year, month, day, hour, minutes, sec);
+}
+
+TimeStamp tryParseTime(const char *fmt, const std::string& s) {
   struct tm tm = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nullptr};
 
+  char *ret = nullptr;
   // http://man7.org/linux/man-pages/man3/strptime.3.html
-  auto ret = strptime(s.c_str(), fmt, &tm);
+  ret = strptime(s.c_str(), fmt, &tm);
 
   if (ret == nullptr) {
     return TimeStamp();
@@ -135,9 +169,14 @@ TimeStamp tryParseTime(const char *fmt, std::string s) {
   return TimeStamp();
 }
 
+
 #define TRY_PARSE_TIME(FMT, X) {auto res = tryParseTime(FMT, X); if (res.defined()) {return res;}}
 
 TimeStamp TimeStamp::parse(const std::string &x0) {
+  TimeStamp result = TimeStamp::parseFromRegex(x0);
+  if (result.defined()) {
+    return result;
+  }
 
   // TODO: Rewrite this parsing, so that we can also
   // parse fractions of seconds.

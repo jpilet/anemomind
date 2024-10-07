@@ -25,9 +25,10 @@ template <typename T>
 std::function<void(std::string)> makeSetter(T unit, T *dst) {
   return [=](const std::string &s) {
     double x = 0;
-    if (tryParseDouble(s, &x)) {
-      *dst = x*unit;
+    if (!tryParseDouble(s, &x)) {
+      x = std::numeric_limits<double>::signaling_NaN();
     }
+    *dst = x*unit;
   };
 }
 
@@ -94,6 +95,17 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
 
   m["LAT"] = makeSetter(degrees, &_lat);
   m["LON"] = makeSetter(degrees, &_lon);
+
+  // Vakaros format
+  m["latitude"] = makeSetter(degrees, &_lat);
+  m["longitude"] = makeSetter(degrees, &_lon);
+  m["timestamp"] = makeTimeSetter(&_time);
+  m["sog_kts"] = makeSetter(knots, &_gpsSpeed);
+  m["cog"] = makeSetter(degrees, &_gpsBearing);
+  m["hdg_true"] = makeSetter(degrees, &_magHdg);
+  m["awa_degrees"] = makeSetter(degrees, &_awa);
+  m["roll"] = makeSetter(degrees, &_roll);
+  m["pitch"] = makeSetter(degrees, &_pitch);
 
   // Support for Calypso XLS recording
   m["Id"] = doNothing;
