@@ -23,6 +23,7 @@
 #include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/nautical/logimport/ProtobufLogLoader.h>
 #include <server/nautical/logimport/astra/AstraLoader.h>
+#include <server/nautical/logimport/vakaros_import.h>
 
 namespace sail {
 
@@ -85,6 +86,8 @@ bool LogLoader::loadFile(const std::string &filename) {
                         "Imported from Weather4D VDR", &_acc);
   } else if (hasExtension(filename, "db")) {
     r = sailmonDbLoad(filename, &_acc);
+  } else if (hasExtension(filename, "vkx")) {
+    r = readVakaros(filename, &_acc);
   } else {
     r =
       parseIwatch(filename, &_acc)
@@ -122,7 +125,8 @@ bool LogLoader::acceptFile(const std::string& filename) {
   return ext == "txt" || ext == "csv" || ext == "xls" || ext == "vdr"
         || ext == "log" || ext == "db" || ext == "ast"
         || ext == "gz" || ext == "bz2" || ext == "xz"
-        || ext == "json" || ext == "" || ext == "nmea";
+        || ext == "json" || ext == "" || ext == "nmea"
+        || ext == "vkx";
 }
 
 bool LogLoader::load(const Poco::Path &name) {
