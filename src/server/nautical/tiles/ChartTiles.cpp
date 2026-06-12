@@ -395,6 +395,9 @@ class UploadChartTilesVisitor : public DispatchDataVisitor {
   virtual void run(DispatchAngularVelocityData *av) {
     makeTilesFromDispatcher(av);
   }
+  virtual void run(DispatchForceData *force) {
+    makeTilesFromDispatcher(force);
+  }
 
   bool result() const { return _result; }
 

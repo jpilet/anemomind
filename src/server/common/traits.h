@@ -9,6 +9,7 @@
 #define SERVER_COMMON_TRAITS_H_
 
 #include <functional>
+#include <string>
 
 namespace sail {
 

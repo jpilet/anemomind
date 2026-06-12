@@ -118,6 +118,76 @@ var all = [{
     "Resolution": 0.0001,
     "Description": "Each bit is 0.0001 radians, unsigned 2 bytes"
   }])
-}];
+},
+{
+  "PGN": 65293,
+  "Id": "DiverseYachtServicesLoadCell",
+  "Description": "Diverse Yacht Services: Load Cell",
+  "Complete": false,
+  "Priority": 2,
+  "Frames": "Single",
+  "Length": 8,
+  "RepeatingFields": 0,
+  "Fields": wrapFields([{
+    "Order": 1,
+    "Id": "manufacturerCode",
+    "Name": "Manufacturer Code",
+    "Description": "641: Diverse Yacht Services",
+    "BitLength": 11,
+    "BitOffset": 0,
+    "BitStart": 0,
+    "Signed": false,
+    "Match": 641,
+    "Type": "Manufacturer code"
+  }, {
+    "Order": 2,
+    "Id": "reserved1",
+    "Name": "Reserved",
+    "BitLength": 2,
+    "BitOffset": 11,
+    "BitStart": 0,
+    "Signed": false,
+    "Type": "Reserved"
+  }, {
+    "Order": 3,
+    "Id": "industryCode",
+    "Name": "Industry Code",
+    "Description": "4: Marine Industry",
+    "BitLength": 3,
+    "BitOffset": 13,
+    "BitStart": 0,
+    "Signed": false,
+    "Match": 4,
+    "Type": "Industry code"
+  }, {
+    "Order": 4,
+    "Id": "instance",
+    "Name": "Instance",
+    "BitLength": 8,
+    "BitOffset": 16,
+    "BitStart": 0,
+    "Signed": false,
+    "Type": "Integer"
+  }, {
+    "Order": 5,
+    "Id": "reserved2",
+    "Name": "Reserved",
+    "BitLength": 8,
+    "BitOffset": 24,
+    "BitStart": 0,
+    "Signed": false,
+    "Type": "Reserved"
+  }, {
+    "Order": 6,
+    "Id": "loadCell",
+    "Name": "Load Cell",
+    "BitLength": 32,
+    "BitOffset": 32,
+    "BitStart": 0,
+    "Signed": false,
+    "Type": "Integer"
+  }])
+}
+];
 
 module.exports = all;

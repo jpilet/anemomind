@@ -20,4 +20,5 @@ module.exports = {
   windData: 130306,
   directionData: 130577,
   BandGVmgPerformance: 65330,
+  DiverseYachtServicesLoadCell: 65293,
 };

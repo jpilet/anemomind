@@ -105,7 +105,7 @@ function getPgnCode(x) {
 function filterPgnsOfInterest(pgns) {
   return pgns.filter(function(x) {
     var pgn = getPgnCode(x);
-    return inSet(pgn, pgnsOfInterest);
+    return inSet(pgn, pgnsOfInterest) && x.Id != 'simnetLgc2000Configuration';
   });
 }
 

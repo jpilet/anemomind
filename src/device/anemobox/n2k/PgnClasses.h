@@ -1,6 +1,6 @@
-/** Generated on Fri Apr 20 2018 16:50:01 GMT+0200 (CEST) using 
+/** Generated on Fri Jun 12 2026 09:44:52 GMT+0200 (Central European Summer Time) using 
  *
- *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
+ *     /usr/bin/node /home/jpilet/anemomind/anemomind/src/device/anemobox/n2k/codegen/index.js ../../../../../../canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -209,12 +209,14 @@ namespace PgnClasses {
   };
   
   struct VesselHeading: public PgnBaseClass { // Vessel Heading
-    // Minimum size: 58 bits = 7 bytes + 2 bits. 
+    // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 127250;
     int code() const override {return 127250;}
     enum class Reference {
       True = 0, 
-      Magnetic = 1
+      Magnetic = 1, 
+      Error = 2, 
+      Null = 3
     };
 
     VesselHeading();
@@ -229,6 +231,7 @@ namespace PgnClasses {
     Optional<sail::Angle<double> > deviation; //  at 24 bits = 3 bytes
     Optional<sail::Angle<double> > variation; //  at 40 bits = 5 bytes
     Optional<Reference > reference; //  at 56 bits = 7 bytes
+    // Skip field 'Reserved' of length 6 at 58 bits = 7 bytes + 2 bits: Reserved field
   };
   
   struct RateOfTurn: public PgnBaseClass { // Rate of Turn
@@ -266,10 +269,10 @@ namespace PgnClasses {
   };
   
   struct EngineParametersRapidUpdate: public PgnBaseClass { // Engine Parameters, Rapid Update
-    // Minimum size: 48 bits = 6 bytes. 
+    // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 127488;
     int code() const override {return 127488;}
-    enum class EngineInstance {
+    enum class Instance {
       Single_Engine_or_Dual_Engine_Port = 0, 
       Dual_Engine_Starboard = 1
     };
@@ -281,14 +284,15 @@ namespace PgnClasses {
     bool valid() const;
     std::vector<uint8_t> encode() const override;
     
-    Optional<EngineInstance > engineInstance; //  at 0 bits = 0 bytes
-    Optional<sail::AngularVelocity<double> > engineSpeed; //  at 8 bits = 1 bytes
-    Optional<uint64_t > engineBoostPressure; //  at 24 bits = 3 bytes
-    Optional<int64_t > engineTiltTrim; //  at 40 bits = 5 bytes
+    Optional<Instance > instance; //  at 0 bits = 0 bytes
+    Optional<sail::AngularVelocity<double> > speed; //  at 8 bits = 1 bytes
+    Optional<uint64_t > boostPressure; //  at 24 bits = 3 bytes
+    Optional<int64_t > tiltTrim; //  at 40 bits = 5 bytes
+    // Skip field 'Reserved' of length 16 at 48 bits = 6 bytes: Reserved field
   };
   
   struct Speed: public PgnBaseClass { // Speed
-    // Minimum size: 52 bits = 6 bytes + 4 bits. 
+    // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 128259;
     int code() const override {return 128259;}
     enum class SpeedWaterReferencedType {
@@ -311,6 +315,7 @@ namespace PgnClasses {
     Optional<sail::Velocity<double> > speedGroundReferenced; //  at 24 bits = 3 bytes
     Optional<SpeedWaterReferencedType > speedWaterReferencedType; //  at 40 bits = 5 bytes
     Optional<uint64_t > speedDirection; //  at 48 bits = 6 bytes
+    // Skip field 'Reserved' of length 12 at 52 bits = 6 bytes + 4 bits: Reserved field
   };
   
   struct PositionRapidUpdate: public PgnBaseClass { // Position, Rapid Update
@@ -335,7 +340,9 @@ namespace PgnClasses {
     int code() const override {return 129026;}
     enum class CogReference {
       True = 0, 
-      Magnetic = 1
+      Magnetic = 1, 
+      Error = 2, 
+      Null = 3
     };
 
     CogSogRapidUpdate();
@@ -450,7 +457,7 @@ namespace PgnClasses {
   };
   
   struct WindData: public PgnBaseClass { // Wind Data
-    // Minimum size: 43 bits = 5 bytes + 3 bits. 
+    // Minimum size: 64 bits = 8 bytes. 
     static const int ThisPgn = 130306;
     int code() const override {return 130306;}
     enum class Reference {
@@ -472,6 +479,7 @@ namespace PgnClasses {
     Optional<sail::Velocity<double> > windSpeed; //  at 8 bits = 1 bytes
     Optional<sail::Angle<double> > windAngle; //  at 24 bits = 3 bytes
     Optional<Reference > reference; //  at 40 bits = 5 bytes
+    // Skip field 'Reserved' of length 21 at 43 bits = 5 bytes + 3 bits: Reserved field
   };
   
   struct DirectionData: public PgnBaseClass { // Direction Data
@@ -487,7 +495,9 @@ namespace PgnClasses {
     };
     enum class CogReference {
       True = 0, 
-      Magnetic = 1
+      Magnetic = 1, 
+      Error = 2, 
+      Null = 3
     };
 
     DirectionData();
@@ -532,6 +542,26 @@ namespace PgnClasses {
     /* Related to dataId --> */Optional<sail::Angle<double> > course; // Each bit is 0.0001 radians, unsigned 2 bytes at 32 bits = 4 bytes
   };
   
+  struct DiverseYachtServicesLoadCell: public PgnBaseClass { // Diverse Yacht Services: Load Cell
+    // Minimum size: 64 bits = 8 bytes. 
+    static const int ThisPgn = 65293;
+    int code() const override {return 65293;}
+
+    DiverseYachtServicesLoadCell();
+    DiverseYachtServicesLoadCell(const uint8_t *data, int lengthBytes);
+    bool hasSomeData() const;
+    bool hasAllData() const;
+    bool valid() const;
+    std::vector<uint8_t> encode() const override;
+    
+    Optional<uint64_t > manufacturerCode = 641; // 641: Diverse Yacht Services at 0 bits = 0 bytes
+    Optional<uint64_t > reserved1; //  at 11 bits = 1 bytes + 3 bits
+    Optional<uint64_t > industryCode = 4; // 4: Marine Industry at 13 bits = 1 bytes + 5 bits
+    Optional<uint64_t > instance; //  at 16 bits = 2 bytes
+    Optional<uint64_t > reserved2; //  at 24 bits = 3 bytes
+    Optional<uint64_t > loadCell; //  at 32 bits = 4 bytes
+  };
+  
 
 
   class PgnVisitor {
@@ -561,6 +591,7 @@ namespace PgnClasses {
     virtual bool apply(const tN2kMsg& src, const WindData& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const DirectionData& packet) { return false; }
     virtual bool apply(const tN2kMsg& src, const BandGVmgPerformance& packet) { return false; }
+    virtual bool apply(const tN2kMsg& src, const DiverseYachtServicesLoadCell& packet) { return false; }
   };
 }
 

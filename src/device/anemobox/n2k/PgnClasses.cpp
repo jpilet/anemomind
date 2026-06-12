@@ -1,6 +1,6 @@
-/** Generated on Fri Apr 20 2018 16:50:01 GMT+0200 (CEST) using 
+/** Generated on Fri Jun 12 2026 09:44:52 GMT+0200 (Central European Summer Time) using 
  *
- *     /usr/local/bin/node /Users/jonas/prog/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/jonas/prog/canboat/analyzer/pgns.xml
+ *     /usr/bin/node /home/jpilet/anemomind/anemomind/src/device/anemobox/n2k/codegen/index.js ../../../../../../canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -420,12 +420,14 @@ namespace PgnClasses {
 
   VesselHeading::VesselHeading(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (58 <= src.remainingBits()) {
+    if (64 <= src.remainingBits()) {
       sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       heading = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
       deviation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
       variation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      reference = src.getUnsignedInSet(2, {0, 1}).cast<Reference>();
+      reference = src.getUnsignedInSet(2, {0, 1, 2, 3}).cast<Reference>();
+        // Skipping reserved
+        src.advanceBits(6);
     // No repeating fields.
     }
   }
@@ -462,6 +464,7 @@ namespace PgnClasses {
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, deviation);
       dst.pushPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, variation);
       dst.pushUnsigned(2, reference.cast<uint64_t>());
+      dst.fillBits(6, true); // TODO: Can we safely do this? The field name is 'Reserved'
     dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
@@ -557,28 +560,30 @@ namespace PgnClasses {
 
   EngineParametersRapidUpdate::EngineParametersRapidUpdate(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (48 <= src.remainingBits()) {
-      engineInstance = src.getUnsignedInSet(8, {0, 1}).cast<EngineInstance>();
-      engineSpeed = src.getPhysicalQuantity(false, 0.25, (sail::Angle<double>::degrees(360)/sail::Duration<double>::minutes(1.0)), 16, 0);
-      engineBoostPressure = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
-      engineTiltTrim = src.getSigned(8, 0, N2kField::Definedness::AlwaysDefined);
+    if (64 <= src.remainingBits()) {
+      instance = src.getUnsignedInSet(8, {0, 1}).cast<Instance>();
+      speed = src.getPhysicalQuantity(false, 0.25, (sail::Angle<double>::degrees(360)/sail::Duration<double>::minutes(1.0)), 16, 0);
+      boostPressure = src.getUnsigned(16, N2kField::Definedness::MaybeUndefined);
+      tiltTrim = src.getSigned(8, 0, N2kField::Definedness::AlwaysDefined);
+        // Skipping reserved
+        src.advanceBits(16);
     // No repeating fields.
     }
   }
   bool EngineParametersRapidUpdate::hasSomeData() const {
     return 
-         engineInstance.defined()
-      || engineSpeed.defined()
-      || engineBoostPressure.defined()
-      || engineTiltTrim.defined()
+         instance.defined()
+      || speed.defined()
+      || boostPressure.defined()
+      || tiltTrim.defined()
     ;
   }
   bool EngineParametersRapidUpdate::hasAllData() const {
     return 
-         engineInstance.defined()
-      && engineSpeed.defined()
-      && engineBoostPressure.defined()
-      && engineTiltTrim.defined()
+         instance.defined()
+      && speed.defined()
+      && boostPressure.defined()
+      && tiltTrim.defined()
     ;
   }
   bool EngineParametersRapidUpdate::valid() const {
@@ -591,10 +596,11 @@ namespace PgnClasses {
       std::cerr << "Cannot encode EngineParametersRapidUpdate";
       return {};
     }
-      dst.pushUnsigned(8, engineInstance.cast<uint64_t>());
-      dst.pushPhysicalQuantity(false, 0.25, (sail::Angle<double>::degrees(360)/sail::Duration<double>::minutes(1.0)), 16, 0, engineSpeed);
-      dst.pushUnsigned(16, engineBoostPressure);
-      dst.pushSigned(8, 0, engineTiltTrim);
+      dst.pushUnsigned(8, instance.cast<uint64_t>());
+      dst.pushPhysicalQuantity(false, 0.25, (sail::Angle<double>::degrees(360)/sail::Duration<double>::minutes(1.0)), 16, 0, speed);
+      dst.pushUnsigned(16, boostPressure);
+      dst.pushSigned(8, 0, tiltTrim);
+      dst.fillBits(16, true); // TODO: Can we safely do this? The field name is 'Reserved'
     dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
@@ -604,12 +610,14 @@ namespace PgnClasses {
 
   Speed::Speed(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (52 <= src.remainingBits()) {
+    if (64 <= src.remainingBits()) {
       sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       speedWaterReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
       speedGroundReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
       speedWaterReferencedType = src.getUnsignedInSet(8, {0, 1, 2, 3, 4}).cast<SpeedWaterReferencedType>();
       speedDirection = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
+        // Skipping reserved
+        src.advanceBits(12);
     // No repeating fields.
     }
   }
@@ -646,6 +654,7 @@ namespace PgnClasses {
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, speedGroundReferenced);
       dst.pushUnsigned(8, speedWaterReferencedType.cast<uint64_t>());
       dst.pushUnsigned(4, speedDirection);
+      dst.fillBits(12, true); // TODO: Can we safely do this? The field name is 'Reserved'
     dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
@@ -696,7 +705,7 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (64 <= src.remainingBits()) {
       sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      cogReference = src.getUnsignedInSet(2, {0, 1}).cast<CogReference>();
+      cogReference = src.getUnsignedInSet(2, {0, 1, 2, 3}).cast<CogReference>();
         // Skipping reserved
         src.advanceBits(6);
       cog = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
@@ -890,11 +899,13 @@ namespace PgnClasses {
 
   WindData::WindData(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (43 <= src.remainingBits()) {
+    if (64 <= src.remainingBits()) {
       sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       windSpeed = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
       windAngle = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
       reference = src.getUnsignedInSet(3, {0, 1, 2, 3, 4}).cast<Reference>();
+        // Skipping reserved
+        src.advanceBits(21);
     // No repeating fields.
     }
   }
@@ -928,6 +939,7 @@ namespace PgnClasses {
       dst.pushPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0, windSpeed);
       dst.pushPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0, windAngle);
       dst.pushUnsigned(3, reference.cast<uint64_t>());
+      dst.fillBits(21, true); // TODO: Can we safely do this? The field name is 'Reserved'
     dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }
@@ -939,7 +951,7 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (112 <= src.remainingBits()) {
       dataMode = src.getUnsignedInSet(4, {0, 1, 2, 3, 4}).cast<DataMode>();
-      cogReference = src.getUnsignedInSet(2, {0, 1}).cast<CogReference>();
+      cogReference = src.getUnsignedInSet(2, {0, 1, 2, 3}).cast<CogReference>();
         // Skipping reserved
         src.advanceBits(2);
       sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
@@ -1060,6 +1072,63 @@ namespace PgnClasses {
     return dst.moveData();
   }
 
+  DiverseYachtServicesLoadCell::DiverseYachtServicesLoadCell() {
+  }
+
+  DiverseYachtServicesLoadCell::DiverseYachtServicesLoadCell(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      manufacturerCode = src.getUnsigned(11, N2kField::Definedness::MaybeUndefined);
+      reserved1 = src.getUnsigned(2, N2kField::Definedness::AlwaysDefined);
+      industryCode = src.getUnsigned(3, N2kField::Definedness::AlwaysDefined);
+      instance = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      reserved2 = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      loadCell = src.getUnsigned(32, N2kField::Definedness::MaybeUndefined);
+    // No repeating fields.
+    }
+  }
+  bool DiverseYachtServicesLoadCell::hasSomeData() const {
+    return 
+         manufacturerCode.defined()
+      || reserved1.defined()
+      || industryCode.defined()
+      || instance.defined()
+      || reserved2.defined()
+      || loadCell.defined()
+    ;
+  }
+  bool DiverseYachtServicesLoadCell::hasAllData() const {
+    return 
+         manufacturerCode.defined()
+      && reserved1.defined()
+      && industryCode.defined()
+      && instance.defined()
+      && reserved2.defined()
+      && loadCell.defined()
+    ;
+  }
+  bool DiverseYachtServicesLoadCell::valid() const {
+    return true
+       && manufacturerCode.defined() && manufacturerCode.get() == 641
+       && industryCode.defined() && industryCode.get() == 4
+    ;
+  }
+  std::vector<uint8_t> DiverseYachtServicesLoadCell::encode() const {
+    N2kField::N2kFieldOutputStream dst;
+    if (!valid()) {
+      std::cerr << "Cannot encode DiverseYachtServicesLoadCell";
+      return {};
+    }
+      dst.pushUnsigned(11, manufacturerCode);
+      dst.pushUnsigned(2, reserved1);
+      dst.pushUnsigned(3, industryCode);
+      dst.pushUnsigned(8, instance);
+      dst.pushUnsigned(8, reserved2);
+      dst.pushUnsigned(32, loadCell);
+    dst.fillUpToLength(8*8, true);
+    return dst.moveData();
+  }
+
 bool isFastPacket(int pgn) {
   return (pgn == 129029); // TODO: This is just temporary.
 }
@@ -1080,6 +1149,7 @@ bool PgnVisitor::visit(const tN2kMsg &packet) {
       };
       break;
     }
+    case 65293: return apply(packet, DiverseYachtServicesLoadCell(packet.Data, packet.DataLen));
     case 65330: return apply(packet, BandGVmgPerformance(packet.Data, packet.DataLen));
     case 126992: return apply(packet, SystemTime(packet.Data, packet.DataLen));
     case 127245: return apply(packet, Rudder(packet.Data, packet.DataLen));

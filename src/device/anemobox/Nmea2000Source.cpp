@@ -278,13 +278,23 @@ bool Nmea2000Source::apply(const tN2kMsg &c,
 
 bool Nmea2000Source::apply(
     const tN2kMsg &c, const PgnClasses::EngineParametersRapidUpdate& packet) {
-  if (packet.engineSpeed.defined()) {
+  if (packet.speed.defined()) {
     std::string source = _lastSourceName;
-    if (packet.engineInstance.defined() && packet.engineInstance.get() ==
-        EngineParametersRapidUpdate::EngineInstance::Dual_Engine_Starboard) {
+    if (packet.instance.defined() && packet.instance.get() ==
+        EngineParametersRapidUpdate::Instance::Dual_Engine_Starboard) {
       source += " starboard";
     }
-    _dispatcher->publishValue(ENGINE_RPM, source, packet.engineSpeed.get());
+    _dispatcher->publishValue(ENGINE_RPM, source, packet.speed.get());
+    return true;
+  }
+  return false;
+}
+
+bool Nmea2000Source::apply(const tN2kMsg &c, const PgnClasses::DiverseYachtServicesLoadCell& packet) {
+  if (packet.loadCell.defined()) {
+    // Assuming the loadCell value is in 1/100 Newtons, but we would need calibration
+    // to get proper units.
+    _dispatcher->publishValue(LOAD_CELL, _lastSourceName, Force<>::newtons(packet.loadCell.get() / 100.0));
     return true;
   }
   return false;

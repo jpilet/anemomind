@@ -791,6 +791,7 @@ class DispatchDataMerger : public DispatchDataVisitor {
   virtual void run(DispatchAbsoluteOrientationData *d) { addStream(d); }
   virtual void run(DispatchBinaryEdge *d) { addStream(d); }
   virtual void run(DispatchAngularVelocityData *d) { addStream(d); }
+  virtual void run(DispatchForceData *d) { addStream(d); }
 
   void merge() {
     MultiMerge<TimeStamp> merger;

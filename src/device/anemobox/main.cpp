@@ -43,6 +43,10 @@ void print(const AbsoluteOrientationDispatcher &orientDisp) {
     << ")";
 }
 
+void print(const ForceDispatcher &force) {
+  std::cout << stringFormat("%.1f N", force.lastValue().newtons());
+}
+
 template <class T>
 class PrintListener : public Listener<T> {
  public:
@@ -112,6 +116,13 @@ class PrintUpdates : public DispatchDataVisitor {
   virtual void run(DispatchAngularVelocityData *value) {
   }
 
+  virtual void run(DispatchForceData *value) {
+    std::shared_ptr<PrintListener<Force<double>>> valuePrinter(
+        new PrintListener<Force<double>>(value->description()));
+    value->dispatcher()->subscribe(valuePrinter.get());
+    _forcePrinters.push_back(valuePrinter);
+  }
+
  private:
   std::vector<std::shared_ptr<PrintListener<Angle<double>>>> _anglePrinters;
   std::vector<std::shared_ptr<PrintListener<Velocity<double>>>> _velocityPrinters;
@@ -120,6 +131,7 @@ class PrintUpdates : public DispatchDataVisitor {
   std::vector<std::shared_ptr<PrintListener<TimeStamp>>> _timeStampPrinters;
   std::vector<std::shared_ptr<PrintListener<AbsoluteOrientation>>> _orientPrinters;
   std::vector<std::shared_ptr<PrintListener<BinaryEdge>>> _binPrinters;
+  std::vector<std::shared_ptr<PrintListener<Force<double>>>> _forcePrinters;
 };
 
 }  // namespace

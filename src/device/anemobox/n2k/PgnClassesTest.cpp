@@ -241,4 +241,27 @@ TEST(PgnClassesTest, BAndGPerfCourse) {
   EXPECT_TRUE(perf2.valid());
 }
 
+TEST(PgnClassesTest, DiverseYachtServicesLoadCell) {
+  std::vector<uint8_t> data{0x81, 0x9A, 0x00, 0xFF, 0xD2, 0x04, 0x00, 0x00};
+
+  PgnClasses::DiverseYachtServicesLoadCell packet(data.data(), data.size());
+
+  EXPECT_TRUE(packet.valid());
+  EXPECT_TRUE(packet.hasAllData());
+
+  EXPECT_EQ(packet.manufacturerCode.get(), 641);
+  EXPECT_EQ(packet.reserved1.get(), 3);
+  EXPECT_EQ(packet.industryCode.get(), 4);
+  EXPECT_EQ(packet.instance.get(), 0);
+  EXPECT_EQ(packet.reserved2.get(), 255);
+  EXPECT_EQ(packet.loadCell.get(), 1234);
+
+  auto encoded = packet.encode();
+  EXPECT_EQ(data, encoded);
+
+  auto recoded = recode(packet);
+  EXPECT_EQ(recoded.loadCell.get(), 1234);
+}
+
+
 

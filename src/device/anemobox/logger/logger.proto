@@ -50,6 +50,11 @@ message BinaryEdgeValueSet {
   repeated bool edges = 1 [packed = true];
 }
 
+message ForceValueSet {
+  // Unit: 1/100 Newton
+  repeated int32 delta = 1 [packed = true];
+}
+
 message ValueSet {
   // shortName is one of:
   //
@@ -94,6 +99,7 @@ message ValueSet {
   optional AbsOrientValueSet orient = 10;
   optional BinaryEdgeValueSet binary = 13;
   optional AngularVelocityValueSet angularvelocity = 14;
+  optional ForceValueSet force = 15;
 
   // Time given by an external source, as milliseconds since 1970.1.1
   repeated int64 exttimes = 11 [packed = true];

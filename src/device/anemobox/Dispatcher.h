@@ -64,7 +64,8 @@ namespace sail {
   X(ROLL, 23, "roll", Angle<>, "Roll") \
   X(USER_DEF_SESSION, 24, "userDefSession", BinaryEdge, "User defined session") \
   X(MERGED_SESSION, 25, "mergeSession", BinaryEdge, "Merged/unbreakable sessions") \
-  X(SPLIT_SESSION, 26, "splitSession", BinaryEdge, "Force session splits")
+  X(SPLIT_SESSION, 26, "splitSession", BinaryEdge, "Force session splits") \
+  X(LOAD_CELL, 27, "loadCell", Force<>, "Load cell")
 
 enum DataCode {
 #define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
@@ -178,6 +179,7 @@ typedef TypedDispatchData<TimeStamp> DispatchTimeStampData;
 typedef TypedDispatchData<AbsoluteOrientation> DispatchAbsoluteOrientationData;
 typedef TypedDispatchData<BinaryEdge> DispatchBinaryEdge;
 typedef TypedDispatchData<AngularVelocity<double>> DispatchAngularVelocityData;
+typedef TypedDispatchData<Force<double>> DispatchForceData;
 
 template <typename T>
 class DispatchDataProxy : public TypedDispatchData<T> {
@@ -216,6 +218,7 @@ class DispatchDataVisitor {
   virtual void run(DispatchAbsoluteOrientationData *orient) = 0;
   virtual void run(DispatchBinaryEdge *data) = 0;
   virtual void run(DispatchAngularVelocityData *data) = 0;
+  virtual void run(DispatchForceData *data) = 0;
   virtual ~DispatchDataVisitor() {}
 };
 
@@ -482,6 +485,10 @@ class SubscribeVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchAngularVelocityData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchForceData *data) {
     data->dispatcher()->subscribe(listener_);
   }
 

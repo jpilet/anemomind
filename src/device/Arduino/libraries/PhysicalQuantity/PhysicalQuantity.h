@@ -81,6 +81,12 @@ namespace sail {
   OP(AngularVelocity, degreesPerSecond, M_PI/180.0) \
   OP(AngularVelocity, rpm, M_PI / 30.0) // 1 rpm = M_PI rad in 30 sec.
 
+#define FOREACH_FORCE_UNIT(OP) \
+  OP(Force, newtons, 1.0) \
+  OP(Force, kilonewtons, 1000.0) \
+  OP(Force, kilogramsForce, 9.80665) \
+  OP(Force, tonsForce, 9806.65) 
+
 #define FOREACH_UNIT(OP) \
   FOREACH_TIME_UNIT(OP) \
   FOREACH_LENGTH_UNIT(OP) \
@@ -88,7 +94,8 @@ namespace sail {
   FOREACH_VELOCITY_UNIT(OP) \
   FOREACH_ACCELERATION_UNIT(OP) \
   FOREACH_MASS_UNIT(OP) \
-  FOREACH_ANGULAR_VELOCITY_UNIT(OP)
+  FOREACH_ANGULAR_VELOCITY_UNIT(OP) \
+  FOREACH_FORCE_UNIT(OP)
 
 #define FOREACH_QUANTITY(OP) \
   OP(Time, seconds, 1, 0, 0, 0) \
@@ -97,7 +104,8 @@ namespace sail {
   OP(AngularVelocity, radiansPerSecond, -1, 0, 1, 0) \
   OP(Mass, kilograms, 0, 0, 0, 1) \
   OP(Velocity, metersPerSecond, -1, 1, 0, 0) \
-  OP(Acceleration, metersPerSecondSquared, -2, 1, 0, 0)
+  OP(Acceleration, metersPerSecondSquared, -2, 1, 0, 0) \
+  OP(Force, newtons, -2, 1, 0, 1)
 
 enum class Quantity {
   // Any quantity that has not been declared maps to this one.
@@ -502,6 +510,9 @@ using Angle = PhysicalQuantity<T, System, 0, 0, 1, 0>;
 
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
 using Mass = PhysicalQuantity<T, System, 0, 0, 0, 1>;
+
+template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
+using Force = PhysicalQuantity<T, System, -2, 1, 0, 1>;
 
 template <typename A, typename B>
 using Per = decltype((std::declval<A>())/(std::declval<B>()));

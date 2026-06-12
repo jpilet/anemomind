@@ -50,6 +50,7 @@ class Nmea2000Source :
   bool apply(const tN2kMsg &c, const PgnClasses::RateOfTurn& packet) override;
   bool apply(const tN2kMsg &c,
              const PgnClasses::EngineParametersRapidUpdate& packet) override; 
+  bool apply(const tN2kMsg &c, const PgnClasses::DiverseYachtServicesLoadCell& packet) override;
  private:
   std::unique_ptr<tN2kDeviceList> _deviceList;
   std::string _lastSourceName;

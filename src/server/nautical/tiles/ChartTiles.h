@@ -54,6 +54,7 @@ template <typename T> struct Statistics {
   static double unit(Velocity<> x) { return x.knots(); }
   static double unit(Length<> x) { return x.meters(); }
   static double unit(AngularVelocity<> x) { return x.degreesPerSecond(); }
+  static double unit(Force<> x) { return x.newtons(); }
 
   void appendToArrays(const string& /*what*/, StatArrays* arrays) const {
     if (stats.count() > 0) {

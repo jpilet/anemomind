@@ -208,3 +208,7 @@ TEST(PhysQuantTest, AngularVelocity) {
   EXPECT_NEAR(4 * 180 / M_PI, base.degreesPerSecond(), 1e-5);
 }
 
+TEST(PhysQuantTest, Force) {
+  Force<> f = Mass<>::kilograms(50.0) * Acceleration<>::metersPerSecondSquared(9.80665);
+  EXPECT_NEAR(f.kilogramsForce(), 50, 1e-5);
+}

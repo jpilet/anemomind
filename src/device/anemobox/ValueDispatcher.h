@@ -153,6 +153,8 @@ typedef ValueDispatcher<GeographicPosition<double>> GeoPosDispatcher;
 typedef ValueDispatcher<TimeStamp> TimeStampDispatcher;
 typedef ValueDispatcher<AbsoluteOrientation> AbsoluteOrientationDispatcher;
 typedef ValueDispatcher<BinaryEdge> BinaryEdgeDispatcher;
+typedef ValueDispatcher<AngularVelocity<double>> AngularVelocityDispatcher;
+typedef ValueDispatcher<Force<double>> ForceDispatcher;
 
 template <typename T>
 class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {

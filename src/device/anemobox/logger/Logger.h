@@ -35,7 +35,8 @@ class LoggerValueListener:
   public Listener<TimeStamp>,
   public Listener<AbsoluteOrientation>,
   public Listener<BinaryEdge>,
-  public Listener<AngularVelocity<double>> {
+  public Listener<AngularVelocity<double>>,
+  public Listener<Force<double>> {
 public:
   LoggerValueListener(const std::string& shortName,
                       const std::string& sourceName)
@@ -148,6 +149,18 @@ public:
     intBase = value;
   }
 
+  virtual void onNewValue(const ValueDispatcher<Force<double>> &v) {
+    addTimestamp(v.lastTimeStamp());
+
+    int value = int(v.lastValue().newtons() * 100.0); // let's do 100 as well
+    int delta = value;
+    if (_valueSet.force().delta_size() > 0) {
+      delta -= intBase;
+    }
+    _valueSet.mutable_force()->add_delta(delta);
+    intBase = value;
+  }
+
   void addText(TimeStamp t, const std::string& text) {
     addTimestamp(t);
     _valueSet.add_text(text);
@@ -227,6 +240,9 @@ class Logger {
 
   static void unpack(const AngularVelocityValueSet& values,
                      std::vector<AngularVelocity<double>>* result);
+
+  static void unpack(const ForceValueSet& values,
+                     std::vector<Force<double>>* result);
 
   static void unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
                       std::vector<TimeStamp>* result);
@@ -308,6 +324,13 @@ template <>
 struct ValueSetToTypedVector<AngularVelocity<double> > {
   static void extract(const ValueSet &x, std::vector<AngularVelocity<double> > *dst) {
     Logger::unpack(x.angularvelocity(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<Force<double> > {
+  static void extract(const ValueSet &x, std::vector<Force<double> > *dst) {
+    Logger::unpack(x.force(), dst);
   }
 };
 
