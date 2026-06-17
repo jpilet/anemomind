@@ -1,4 +1,4 @@
-/** Generated on Fri Jun 12 2026 09:44:52 GMT+0200 (Central European Summer Time) using 
+/** Generated on Wed Jun 17 2026 14:53:14 GMT+0200 (Central European Summer Time) using 
  *
  *     /usr/bin/node /home/jpilet/anemomind/anemomind/src/device/anemobox/n2k/codegen/index.js ../../../../../../canboat/analyzer/pgns.xml
  *
@@ -559,7 +559,7 @@ namespace PgnClasses {
     Optional<uint64_t > industryCode = 4; // 4: Marine Industry at 13 bits = 1 bytes + 5 bits
     Optional<uint64_t > instance; //  at 16 bits = 2 bytes
     Optional<uint64_t > reserved2; //  at 24 bits = 3 bytes
-    Optional<uint64_t > loadCell; //  at 32 bits = 4 bytes
+    Optional<int64_t > loadCell; //  at 32 bits = 4 bytes
   };
   
 

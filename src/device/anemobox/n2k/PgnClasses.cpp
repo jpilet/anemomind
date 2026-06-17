@@ -1,4 +1,4 @@
-/** Generated on Fri Jun 12 2026 09:44:52 GMT+0200 (Central European Summer Time) using 
+/** Generated on Wed Jun 17 2026 14:53:14 GMT+0200 (Central European Summer Time) using 
  *
  *     /usr/bin/node /home/jpilet/anemomind/anemomind/src/device/anemobox/n2k/codegen/index.js ../../../../../../canboat/analyzer/pgns.xml
  *
@@ -1083,7 +1083,7 @@ namespace PgnClasses {
       industryCode = src.getUnsigned(3, N2kField::Definedness::AlwaysDefined);
       instance = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       reserved2 = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      loadCell = src.getUnsigned(32, N2kField::Definedness::MaybeUndefined);
+      loadCell = src.getSigned(32, 0, N2kField::Definedness::MaybeUndefined);
     // No repeating fields.
     }
   }
@@ -1124,7 +1124,7 @@ namespace PgnClasses {
       dst.pushUnsigned(3, industryCode);
       dst.pushUnsigned(8, instance);
       dst.pushUnsigned(8, reserved2);
-      dst.pushUnsigned(32, loadCell);
+      dst.pushSigned(32, 0, loadCell);
     dst.fillUpToLength(8*8, true);
     return dst.moveData();
   }

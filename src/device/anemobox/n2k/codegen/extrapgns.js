@@ -184,7 +184,7 @@ var all = [{
     "BitLength": 32,
     "BitOffset": 32,
     "BitStart": 0,
-    "Signed": false,
+    "Signed": true,
     "Type": "Integer"
   }])
 }
