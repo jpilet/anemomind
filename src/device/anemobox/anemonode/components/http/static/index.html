@@ -31,7 +31,8 @@
         dateTime: "GPS date and time (local time)",
         targetVmg: "Target VMG",
         vmg: "VMG",
-        orient: "anemobox orientation"
+        orient: "anemobox orientation",
+        loadCell: "Load cell"
       };
       return (entry in labels ? labels[entry] : entry);
     }
@@ -44,6 +45,9 @@
     }
     function formatLength(value) {
       return value.toFixed(2) + ' nm';
+    }
+    function formatForce(value) {
+      return (value / 9.81).toFixed(1) + ' kg';
     }
     function formatDate(date) {
       var d = new Date(date);
@@ -66,7 +70,8 @@
         dateTime: formatDate,
         targetVmg: formatSpeed,
         vmg: formatSpeed,
-        orient: JSON.stringify
+        orient: JSON.stringify,
+        loadCell: formatForce
       };
       if (entry in fmt) {
         return fmt[entry](data[entry].v)
