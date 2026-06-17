@@ -4,9 +4,9 @@ set -e
 # TODO: get the IP from the command line
 # 2.1
 HOST=192.168.2.1
-DEST=root@${HOST}:/anemonode
+#DEST=root@${HOST}:/anemonode
 
-#DEST=/mnt/anemonode
+DEST=/home/jpilet/anemomind/anemobox
 
 # avoid rebuilding, because rebuilding will make npm updates the dependencies
 # in node_modules, which in turn will lead to a large patch
@@ -32,7 +32,7 @@ EXCLUDE='--exclude=*.log --exclude=.*.sw[po] --include=src/*.js --exclude=src/*.
 
 git rev-parse HEAD > commit
 
-ssh root@${HOST} rm -fR "/anemonode/*"
+#ssh root@${HOST} rm -fR "/anemonode/*"
 rsync -ar ${EXCLUDE} . ${DEST}
 
 echo "Installed. After testing, please validate the release files with: "
