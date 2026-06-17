@@ -47,6 +47,15 @@ class GetValueVisitor : public DispatchDataVisitor {
       timestamp_ = val.time;
     }
   }
+  virtual void run(DispatchForceData *force) {
+    const auto& values = force->dispatcher()->values();
+    valid_ = values.size() > index_;
+    if (valid_) {
+      auto val = values.back(index_);
+      value_ = Nan::New(val.value.newtons());
+      timestamp_ = val.time;
+    }
+  }
   virtual void run(DispatchLengthData *velocity) {
     const auto& values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
@@ -143,6 +152,9 @@ class CountValuesVisitor : public DispatchDataVisitor {
   virtual void run(DispatchBinaryEdge *v) {
     count_ = v->dispatcher()->values().size();
   }
+  virtual void run(DispatchForceData *v) {
+    count_ = v->dispatcher()->values().size();
+  }
   int numValues() const { return count_; }
 
  private:
@@ -176,6 +188,14 @@ class SetValueVisitor : public DispatchDataVisitor {
           velocity->dataCode(),
           source_.c_str(),
           AngularVelocity<double>::degreesPerSecond(value_->ToNumber()->Value()));
+    }
+  }
+  virtual void run(DispatchForceData *force) {
+    if (checkNumberAndSetSuccess()) {
+      dispatcher_->publishValue(
+          force->dataCode(),
+          source_.c_str(),
+          Force<double>::newtons(value_->ToNumber()->Value()));
     }
   }
   virtual void run(DispatchLengthData *velocity) {
@@ -273,7 +293,8 @@ class JsListener:
   public Listener<BinaryEdge>,
   public Listener<GeographicPosition<double>>,
   public Listener<TimeStamp>,
-  public Listener<AbsoluteOrientation> {
+  public Listener<AbsoluteOrientation>,
+  public Listener<Force<double>> {
  public:
   JsListener(std::shared_ptr<DispatchData> dispatchData,
              Local<Function> callback,
@@ -293,6 +314,7 @@ class JsListener:
   virtual void onNewValue(const ValueDispatcher<TimeStamp> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<AbsoluteOrientation> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<BinaryEdge> &) { valueChanged(); }
+  virtual void onNewValue(const ValueDispatcher<Force<double>> &) { valueChanged(); }
 
   void valueChanged() {
     GetValueVisitor getValue(0);
@@ -343,6 +365,10 @@ class GetTypeAndUnitVisitor : public DispatchDataVisitor {
   virtual void run(DispatchBinaryEdge *) {
     type_ = "binary signal";
     unit_ = "boolean";
+  }
+  virtual void run(DispatchForceData *) {
+    type_ = "force";
+    unit_ = "newtons";
   }
 
   const std::string& type() const { return type_; }
