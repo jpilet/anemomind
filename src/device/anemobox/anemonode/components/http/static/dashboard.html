@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Dashboard</title>
+  <script src="raphael.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #ffffff;
+      color: #000000;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .dash {
+      display: flex;
+      flex-direction: row;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .panel {
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    /* Wind direction tunnel: left half (landscape) / top half (portrait) */
+    #windPanel {
+      flex: 1 1 50%;
+      border-right: 3px solid #000;
+    }
+
+    /* Portrait: stack vertically, wind view takes the top 50%. */
+    @media (orientation: portrait) {
+      .dash {
+        flex-direction: column;
+      }
+      #windPanel {
+        border-right: none;
+        border-bottom: 3px solid #000;
+      }
+    }
+    #holder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Right column */
+    #rightPanel {
+      flex: 1 1 50%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #speedPanel {
+      flex: 1 1 auto;
+      border-bottom: 3px solid #000;
+    }
+    #speedCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #loadPanel {
+      flex: 0 0 32%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .readout-label {
+      font-size: 3.5vh;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #000;
+    }
+    #loadValue {
+      font-size: 18vh;
+      font-weight: 800;
+      line-height: 1;
+      color: #000;
+      font-variant-numeric: tabular-nums;
+    }
+    #loadUnit {
+      font-size: 4vh;
+      font-weight: 700;
+      color: #000;
+    }
+
+    /* Speed readouts overlaid on the speed chart */
+    .speed-readouts {
+      position: absolute;
+      top: 1vh;
+      left: 1.5vw;
+      pointer-events: none;
+    }
+    .speed-readout {
+      font-weight: 800;
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums;
+    }
+    .speed-readout .num { font-size: 8vh; }
+    .speed-readout .lbl { font-size: 3vh; font-weight: 700; }
+    .gps { color: #B00000; }
+    .wat { color: #006400; }
+
+    /* Disconnected banner */
+    #status {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      background: #c00000;
+      color: #fff;
+      font-size: 4vh;
+      font-weight: 800;
+      padding: 1vh 0;
+      display: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">NO DATA</div>
+  <div class="dash">
+    <div id="windPanel" class="panel">
+      <div id="holder"></div>
+    </div>
+    <div id="rightPanel">
+      <div id="speedPanel" class="panel">
+        <canvas id="speedCanvas"></canvas>
+        <div class="speed-readouts">
+          <div class="speed-readout gps">
+            <span class="num" id="gpsSpeedNum">--</span><span class="lbl"> kn GPS</span>
+          </div>
+          <div class="speed-readout wat">
+            <span class="num" id="watSpeedNum">--</span><span class="lbl"> kn WATER</span>
+          </div>
+        </div>
+      </div>
+      <div id="loadPanel" class="panel">
+        <div class="readout-label">Load cell</div>
+        <div><span id="loadValue">--</span><span id="loadUnit"> kg</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  'use strict';
+
+  // ---- Configuration ----------------------------------------------------
+  var POLL_MS = 500;             // poll period (2 Hz)
+  var TUNNEL_RANGE_S = 30 * 60;  // wind tunnel time span (seconds)
+  var SPEED_WINDOW_S = 5 * 60;   // speed chart window (seconds)
+  var STALE_MS = 5000;           // mark "no data" if nothing newer than this
+
+  var GPS_COLOR = '#B00000';     // GPS / heading -> red
+  var WAT_COLOR = '#006400';     // water speed   -> green
+  var WIND_COLOR = '#0000C0';    // true wind dir -> blue
+
+  // ---- History (accumulated client-side from the live poll) --------------
+  // Each is an array of {t: ms, v: number}
+  var hist = {
+    twdir: [],
+    gpsBearing: [],
+    gpsSpeed: [],
+    watSpeed: []
+  };
+  var lastDataMs = 0;
+
+  function pushSample(key, value, t) {
+    if (typeof value !== 'number' || isNaN(value)) return;
+    var arr = hist[key];
+    arr.push({ t: t, v: value });
+    // Trim anything older than the longest window we display.
+    var cutoff = t - TUNNEL_RANGE_S * 1000 - 5000;
+    var i = 0;
+    while (i < arr.length && arr[i].t < cutoff) i++;
+    if (i > 0) arr.splice(0, i);
+  }
+
+  // ======================================================================
+  // Wind direction tunnel (polar) - adapted from the windview prototype.
+  // Time maps to radius (now at the outer edge, past towards the centre),
+  // direction maps to angle.
+  // ======================================================================
+  function dist(a, b) {
+    var dx = a.x - b.x, dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function WindGraph(container, size) {
+    this.svg = Raphael(container, size, size);
+    this.center = { x: size / 2, y: size / 2 };
+    var margin = Math.max(40, size * 0.12);
+    this.radius = (size - margin) / 2;
+    this.time_range = TUNNEL_RANGE_S;
+    this.last_time = Date.now();
+
+    var gridAttr = { stroke: '#000', 'stroke-width': 1 };
+
+    var numCircles = 6;
+    for (var i = 0; i <= numCircles; ++i) {
+      var a = this.proj(this.last_time - (this.time_range * i / numCircles) * 1000, 0);
+      var rad = dist(a, this.center);
+      this.svg.circle(this.center.x, this.center.y, rad).attr(gridAttr);
+    }
+
+    var numBars = 360 / 5;
+    for (var b = 0; b < numBars; ++b) {
+      var angle = (b / numBars) * 360;
+      var attr = { stroke: '#000', 'stroke-width': 0.3 };
+      if ((b % 9) === 0) { attr['stroke-width'] = 2; }
+      else if ((b % 3) === 0) { attr['stroke-width'] = 1; }
+      var p1 = this.proj(this.last_time, angle);
+      var p2 = this.proj(this.last_time - this.time_range * 1000, angle);
+      this.svg.path('M' + p1.x + ',' + p1.y + 'L' + p2.x + ',' + p2.y).attr(attr);
+
+      // Cardinal / 30-degree labels on the outer ring.
+      if ((b % 6) === 0) {
+        var lp = this.proj(this.last_time + 40 * 1000, angle);
+        this.svg.text(lp.x, lp.y, String(angle))
+          .attr({ 'font-size': Math.max(11, size * 0.022), 'font-weight': 'bold', fill: '#000' });
+      }
+    }
+
+    this.plots = {};
+  }
+
+  WindGraph.prototype.proj = function(timeMs, angleDeg) {
+    var t = (this.last_time - timeMs) / 1000;
+    var b = this.time_range / 4;
+    var a = b * this.radius;
+    var r = a / (b + t);
+    var angle = (angleDeg - 90) * Math.PI / 180;
+    return {
+      x: Math.cos(angle) * r + this.center.x,
+      y: Math.sin(angle) * r + this.center.y
+    };
+  };
+
+  WindGraph.prototype.plotKey = function(data, key, params) {
+    if (!this.plots[key]) this.plots[key] = {};
+    var slot = this.plots[key];
+
+    var path = '';
+    var prev = undefined;
+    for (var i = 0; i < data.length; ++i) {
+      var p = this.proj(data[i].t, data[i].v);
+      var skip = path === '' || (prev && dist(prev, p) > 20);
+      path += (skip ? 'M' : 'L') + p.x + ',' + p.y;
+      prev = p;
+    }
+    if (slot.curve) {
+      slot.curve.attr('path', path);
+    } else {
+      slot.curve = this.svg.path(path).attr(params);
+    }
+
+    var last = data[data.length - 1];
+    var projLast = this.proj(last.t + 50 * 1000, last.v);
+    var label = key + ' ' + Math.round(last.v) + '\u00B0';
+    if (slot.text) {
+      slot.text.attr({ text: label, x: projLast.x, y: projLast.y });
+    } else {
+      slot.text = this.svg.text(projLast.x, projLast.y, label)
+        .attr({ 'font-size': Math.max(14, this.radius * 0.07), fill: params.stroke, 'font-weight': 'bold' });
+    }
+  };
+
+  WindGraph.prototype.update = function() {
+    var twdir = hist.twdir;
+    var heading = hist.gpsBearing;
+    if (twdir.length === 0 && heading.length === 0) return;
+    this.last_time = Date.now();
+    if (heading.length) {
+      this.plotKey(heading, 'HDG', { stroke: GPS_COLOR, 'stroke-width': 4 });
+    }
+    if (twdir.length) {
+      this.plotKey(twdir, 'TWD', { stroke: WIND_COLOR, 'stroke-width': 4 });
+    }
+  };
+
+  var windGraph = null;
+  function buildWindGraph() {
+    var panel = document.getElementById('windPanel');
+    var holder = document.getElementById('holder');
+    holder.innerHTML = '';
+    var size = Math.max(100, Math.min(panel.clientWidth, panel.clientHeight) - 6);
+    windGraph = new WindGraph('holder', size);
+  }
+
+  // ======================================================================
+  // Speed chart (canvas): GPS + water speed over the last SPEED_WINDOW_S,
+  // each with a dashed average line.
+  // ======================================================================
+  var speedCanvas = document.getElementById('speedCanvas');
+  var sctx = speedCanvas.getContext('2d');
+
+  function sizeSpeedCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    var w = speedCanvas.clientWidth, h = speedCanvas.clientHeight;
+    speedCanvas.width = Math.round(w * dpr);
+    speedCanvas.height = Math.round(h * dpr);
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function windowSlice(arr, fromMs) {
+    var out = [];
+    for (var i = 0; i < arr.length; ++i) if (arr[i].t >= fromMs) out.push(arr[i]);
+    return out;
+  }
+  function average(arr) {
+    if (!arr.length) return null;
+    var s = 0;
+    for (var i = 0; i < arr.length; ++i) s += arr[i].v;
+    return s / arr.length;
+  }
+
+  function drawSpeed() {
+    var w = speedCanvas.clientWidth, h = speedCanvas.clientHeight;
+    sctx.clearRect(0, 0, w, h);
+
+    var now = Date.now();
+    var from = now - SPEED_WINDOW_S * 1000;
+    var gps = windowSlice(hist.gpsSpeed, from);
+    var wat = windowSlice(hist.watSpeed, from);
+
+    var margin = { l: Math.max(40, w * 0.06), r: 12, t: 12, b: Math.max(24, h * 0.08) };
+    var plotW = w - margin.l - margin.r;
+    var plotH = h - margin.t - margin.b;
+
+    // y-scale: at least 0..10 kn, grows with data.
+    var maxV = 6;
+    for (var i = 0; i < gps.length; ++i) maxV = Math.max(maxV, gps[i].v);
+    for (var j = 0; j < wat.length; ++j) maxV = Math.max(maxV, wat[j].v);
+    var yMax = Math.ceil(maxV * 1.15);
+
+    function xOf(t) { return margin.l + ((t - from) / (now - from)) * plotW; }
+    function yOf(v) { return margin.t + plotH - (v / yMax) * plotH; }
+
+    // Grid + axis labels
+    sctx.strokeStyle = '#000';
+    sctx.fillStyle = '#000';
+    sctx.lineWidth = 1;
+    sctx.font = '700 ' + Math.max(11, h * 0.035) + 'px Helvetica, Arial, sans-serif';
+    sctx.textBaseline = 'middle';
+
+    var ySteps = 5;
+    for (var s = 0; s <= ySteps; ++s) {
+      var v = (yMax / ySteps) * s;
+      var y = yOf(v);
+      sctx.globalAlpha = (s === 0) ? 1 : 0.18;
+      sctx.beginPath();
+      sctx.moveTo(margin.l, y);
+      sctx.lineTo(w - margin.r, y);
+      sctx.stroke();
+      sctx.globalAlpha = 1;
+      sctx.textAlign = 'right';
+      sctx.fillText(String(Math.round(v)), margin.l - 6, y);
+    }
+
+    // x time ticks every minute
+    sctx.textAlign = 'center';
+    sctx.textBaseline = 'top';
+    for (var m = 0; m <= SPEED_WINDOW_S / 60; ++m) {
+      var tt = now - m * 60 * 1000;
+      var x = xOf(tt);
+      sctx.globalAlpha = 0.18;
+      sctx.beginPath();
+      sctx.moveTo(x, margin.t);
+      sctx.lineTo(x, margin.t + plotH);
+      sctx.stroke();
+      sctx.globalAlpha = 1;
+      sctx.fillText(m === 0 ? 'now' : ('-' + m + 'm'), x, margin.t + plotH + 4);
+    }
+
+    function plotLine(data, color) {
+      if (data.length < 1) return;
+      sctx.strokeStyle = color;
+      sctx.lineWidth = 3;
+      sctx.lineJoin = 'round';
+      sctx.beginPath();
+      for (var i = 0; i < data.length; ++i) {
+        var px = xOf(data[i].t), py = yOf(data[i].v);
+        if (i === 0) sctx.moveTo(px, py); else sctx.lineTo(px, py);
+      }
+      sctx.stroke();
+    }
+
+    function plotAvg(data, color, labelText) {
+      var avg = average(data);
+      if (avg === null) return;
+      var y = yOf(avg);
+      sctx.strokeStyle = color;
+      sctx.lineWidth = 2;
+      sctx.setLineDash([10, 7]);
+      sctx.beginPath();
+      sctx.moveTo(margin.l, y);
+      sctx.lineTo(w - margin.r, y);
+      sctx.stroke();
+      sctx.setLineDash([]);
+      sctx.fillStyle = color;
+      sctx.textAlign = 'left';
+      sctx.textBaseline = 'bottom';
+      sctx.fillText(labelText + ' avg ' + avg.toFixed(1), margin.l + 4, y - 3);
+    }
+
+    plotAvg(gps, GPS_COLOR, 'GPS');
+    plotAvg(wat, WAT_COLOR, 'WAT');
+    plotLine(gps, GPS_COLOR);
+    plotLine(wat, WAT_COLOR);
+  }
+
+  // ======================================================================
+  // Numeric readouts
+  // ======================================================================
+  function last(arr) { return arr.length ? arr[arr.length - 1].v : null; }
+
+  function updateReadouts(loadCellN) {
+    var gps = last(hist.gpsSpeed);
+    var wat = last(hist.watSpeed);
+    document.getElementById('gpsSpeedNum').textContent = (gps === null) ? '--' : gps.toFixed(1);
+    document.getElementById('watSpeedNum').textContent = (wat === null) ? '--' : wat.toFixed(1);
+    var loadEl = document.getElementById('loadValue');
+    if (typeof loadCellN === 'number' && !isNaN(loadCellN)) {
+      loadEl.textContent = (loadCellN / 9.81).toFixed(1);
+    }
+  }
+
+  // ======================================================================
+  // Polling
+  // ======================================================================
+  function num(data, key) {
+    return (data && data[key] && typeof data[key].v === 'number') ? data[key].v : undefined;
+  }
+
+  // Bootstrap the history arrays from the server so the page is not empty
+  // on load. Server timestamps are corrected to the local clock via `now`.
+  function loadHistory(cb) {
+    var xhr = new XMLHttpRequest();
+    var wanted = Object.keys(hist).join(',');
+    var url = 'api/live/history?channels=' + encodeURIComponent(wanted)
+      + '&duration=' + TUNNEL_RANGE_S;
+    xhr.open('GET', url, true);
+    xhr.timeout = 5000;
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          var offset = Date.now() - data.now;
+          var channels = data.channels || {};
+          var got = false;
+          for (var key in hist) {
+            var arr = channels[key];
+            if (!arr) continue;
+            for (var i = 0; i < arr.length; ++i) {
+              hist[key].push({ t: arr[i].t + offset, v: arr[i].v });
+              got = true;
+            }
+          }
+          if (got) lastDataMs = Date.now();
+        } catch (e) { /* ignore */ }
+      }
+      if (cb) cb();
+    };
+    xhr.onerror = xhr.ontimeout = function() { if (cb) cb(); };
+    xhr.send();
+  }
+
+  function poll() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'api/live', true);
+    xhr.timeout = POLL_MS - 100;
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          var t = Date.now();
+          pushSample('twdir', num(data, 'twdir'), t);
+          pushSample('gpsBearing', num(data, 'gpsBearing'), t);
+          pushSample('gpsSpeed', num(data, 'gpsSpeed'), t);
+          pushSample('watSpeed', num(data, 'watSpeed'), t);
+          lastDataMs = t;
+          updateReadouts(num(data, 'loadCell'));
+        } catch (e) { /* ignore malformed responses */ }
+      }
+    };
+    xhr.send();
+  }
+
+  function render() {
+    if (windGraph) windGraph.update();
+    drawSpeed();
+    var stale = (Date.now() - lastDataMs) > STALE_MS;
+    document.getElementById('status').style.display = stale ? 'block' : 'none';
+  }
+
+  function layout() {
+    buildWindGraph();
+    sizeSpeedCanvas();
+    drawSpeed();
+  }
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function() {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(layout, 200);
+  });
+
+  window.addEventListener('orientationchange', function() {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(layout, 200);
+  });
+
+  window.onload = function() {
+    layout();
+    loadHistory(function() {
+      render();
+      poll();
+      setInterval(poll, POLL_MS);
+      setInterval(render, 500);
+    });
+  };
+  </script>
+</body>
+</html>

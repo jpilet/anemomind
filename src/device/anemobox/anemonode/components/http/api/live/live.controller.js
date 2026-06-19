@@ -8,6 +8,71 @@ var pendingCallPackets = [];
 
 var lastFetch;
 
+var HISTORY_MAX_MS = 30 * 60 * 1000;  // window returned by the history endpoint
+
+// Return per-channel history read directly from the dispatcher's ring buffer.
+// The dispatcher keeps a 30-minute window per channel in RAM.
+// Index 0 is the most recent sample, increasing indices go further back.
+// Timestamps are in the monotonic clock; `now` lets the client correct for
+// any clock skew between the box and the browser.
+//
+// Optional query parameters:
+//   channels=a,b,c   only return these channels (default: all numeric ones)
+//   duration=<sec>   only return samples newer than <sec> seconds ago
+//                    (default and maximum: the 30-minute buffer window)
+exports.history = function(req, res) {
+  var now = anemonode.currentTime().getTime();
+
+  var maxAgeMs = HISTORY_MAX_MS;
+  if (req.query.duration != undefined) {
+    var durSec = parseFloat(req.query.duration);
+    if (!isNaN(durSec) && durSec > 0) {
+      maxAgeMs = Math.min(HISTORY_MAX_MS, durSec * 1000);
+    }
+  }
+
+  var wanted = null;
+  if (req.query.channels != undefined) {
+    wanted = {};
+    req.query.channels.split(',').forEach(function(c) {
+      c = c.trim();
+      if (c) {
+        wanted[c] = true;
+      }
+    });
+  }
+
+  var channels = {};
+  for (var i in anemonode.dispatcher.values) {
+    if (wanted && !wanted[i]) {
+      continue;
+    }
+    var val = anemonode.dispatcher.values[i];
+    var n = val.length();
+    if (n === 0) {
+      continue;
+    }
+    var samples = [];
+    for (var k = 0; k < n; ++k) {
+      var v = val.value(k);
+      // Only numeric channels are charted; skip pos/orient/date/binary.
+      if (typeof v !== 'number' || isNaN(v)) {
+        break;
+      }
+      var t = val.time(k).getTime();
+      if (now - t > maxAgeMs) {
+        break;  // samples are ordered newest-first, so we can stop here
+      }
+      samples.push({ t: t, v: v });
+    }
+    if (samples.length > 0) {
+      samples.reverse();  // oldest first
+      channels[i] = samples;
+    }
+  }
+  res.json({ now: now, channels: channels });
+};
+
 // Get list of values, only from the best source per channel
 exports.index = function(req, res) {
   var response = {};
