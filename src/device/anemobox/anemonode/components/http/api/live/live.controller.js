@@ -20,6 +20,9 @@ var HISTORY_MAX_MS = 30 * 60 * 1000;  // window returned by the history endpoint
 //   channels=a,b,c   only return these channels (default: all numeric ones)
 //   duration=<sec>   only return samples newer than <sec> seconds ago
 //                    (default and maximum: the 30-minute buffer window)
+//   maxPoints=<n>    decimate each channel to at most <n> samples (evenly,
+//                    keeping the most recent one). Keeps payloads small for
+//                    slow clients. 0/absent: no decimation.
 exports.history = function(req, res) {
   var now = anemonode.currentTime().getTime();
 
@@ -28,6 +31,14 @@ exports.history = function(req, res) {
     var durSec = parseFloat(req.query.duration);
     if (!isNaN(durSec) && durSec > 0) {
       maxAgeMs = Math.min(HISTORY_MAX_MS, durSec * 1000);
+    }
+  }
+
+  var maxPoints = 0;
+  if (req.query.maxPoints != undefined) {
+    var mp = parseInt(req.query.maxPoints, 10);
+    if (!isNaN(mp) && mp > 0) {
+      maxPoints = mp;
     }
   }
 
@@ -67,11 +78,28 @@ exports.history = function(req, res) {
     }
     if (samples.length > 0) {
       samples.reverse();  // oldest first
+      if (maxPoints > 0 && samples.length > maxPoints) {
+        samples = decimate(samples, maxPoints);
+      }
       channels[i] = samples;
     }
   }
   res.json({ now: now, channels: channels });
 };
+
+// Evenly pick at most maxPoints samples, always keeping the most recent one.
+function decimate(samples, maxPoints) {
+  var step = samples.length / maxPoints;
+  var out = [];
+  for (var i = 0; i < maxPoints; ++i) {
+    out.push(samples[Math.floor(i * step)]);
+  }
+  var lastSample = samples[samples.length - 1];
+  if (out[out.length - 1] !== lastSample) {
+    out.push(lastSample);
+  }
+  return out;
+}
 
 // Get list of values, only from the best source per channel
 exports.index = function(req, res) {
