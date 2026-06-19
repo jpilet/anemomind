@@ -37,15 +37,55 @@
       border-right: 3px solid #000;
     }
 
-    /* Portrait: stack vertically, wind view takes the top 50%. */
-    @media (orientation: portrait) {
-      .dash {
-        flex-direction: column;
-      }
-      #windPanel {
-        border-right: none;
-        border-bottom: 3px solid #000;
-      }
+    /* Portrait (taller than wide): wind view on top (50%), bottom half split
+       left/right into boat speed (left) and load cell (right). The .portrait
+       class is toggled from JS based on the actual width/height, not on the
+       CSS orientation media query. */
+    .dash.portrait {
+      flex-direction: column;
+    }
+    /* Wind graph: top 0-50% (full width). */
+    .dash.portrait #windPanel {
+      border-right: none;
+      border-bottom: 3px solid #000;
+    }
+    /* Bottom half stacked: speed band on top, load band below. */
+    .dash.portrait #rightPanel {
+      flex-direction: column;
+    }
+    /* Speed band: 50-75%. Split horizontally: 60% graph, 40% text. */
+    .dash.portrait #speedPanel {
+      flex: 1 1 50%;
+      border-bottom: 3px solid #000;
+      border-right: none;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+    }
+    .dash.portrait #speedCanvas {
+      flex: 0 0 60%;
+      width: 60%;
+      height: 100%;
+    }
+    /* In portrait the readouts sit beside the graph (40%). */
+    .dash.portrait .speed-readouts {
+      flex: 0 0 40%;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0 1vw 0 2vw;
+    }
+    .dash.portrait .speed-readout {
+      margin: 1vh 0 0 0;
+    }
+    /* Label smaller and on its own line, below the number. */
+    .dash.portrait .speed-readout .lbl {
+      display: block;
+      font-size: 2vh;
+    }
+    /* Load cell: 75-100%. */
+    .dash.portrait #loadPanel {
+      flex: 1 1 50%;
     }
     #holder {
       position: absolute;
@@ -64,11 +104,14 @@
     #speedPanel {
       flex: 1 1 auto;
       border-bottom: 3px solid #000;
+      display: flex;
+      flex-direction: column;
     }
     #speedCanvas {
       display: block;
       width: 100%;
-      height: 100%;
+      flex: 1 1 auto;
+      min-height: 0;  /* allow the canvas to shrink so the text fits below */
     }
 
     #loadPanel {
@@ -77,6 +120,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
 
     .readout-label {
@@ -86,33 +130,44 @@
       text-transform: uppercase;
       color: #000;
     }
-    #loadValue {
+    /* The value+unit scale together; JS shrinks font-size to avoid overflow. */
+    #loadLine {
       font-size: 18vh;
+      line-height: 1;
+      white-space: nowrap;
+      font-weight: 800;
+      color: #000;
+      font-variant-numeric: tabular-nums;
+    }
+    #loadValue {
+      font-size: 1em;
       font-weight: 800;
       line-height: 1;
       color: #000;
       font-variant-numeric: tabular-nums;
     }
     #loadUnit {
-      font-size: 4vh;
+      font-size: 0.22em;
       font-weight: 700;
       color: #000;
     }
 
-    /* Speed readouts overlaid on the speed chart */
+    /* Speed readouts: a row below the graph (landscape). */
     .speed-readouts {
-      position: absolute;
-      top: 1vh;
-      left: 1.5vw;
-      pointer-events: none;
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      padding: 0.4vh 1.5vw 0.8vh;
     }
     .speed-readout {
       font-weight: 800;
       line-height: 1.05;
       font-variant-numeric: tabular-nums;
+      margin-right: 4vw;
     }
-    .speed-readout .num { font-size: 8vh; }
-    .speed-readout .lbl { font-size: 3vh; font-weight: 700; }
+    .speed-readout .num { font-size: 6vh; }
+    .speed-readout .lbl { font-size: 2.4vh; font-weight: 700; }
     .gps { color: #B00000; }
     .wat { color: #006400; }
 
@@ -153,7 +208,7 @@
       </div>
       <div id="loadPanel" class="panel">
         <div class="readout-label">Load cell</div>
-        <div><span id="loadValue">--</span><span id="loadUnit"> kg</span></div>
+        <div id="loadLine"><span id="loadValue">--</span><span id="loadUnit"> kg</span></div>
       </div>
     </div>
   </div>
@@ -298,8 +353,16 @@
   function buildWindGraph() {
     var panel = document.getElementById('windPanel');
     var holder = document.getElementById('holder');
+    // Drop the old paper. We clear the holder's DOM directly instead of
+    // Raphael's paper.remove(), which throws ("removed is not defined")
+    // in Raphael 2.0.
+    windGraph = null;
     holder.innerHTML = '';
-    var size = Math.max(100, Math.min(panel.clientWidth, panel.clientHeight) - 6);
+    var w = panel.clientWidth, h = panel.clientHeight;
+    if (w <= 0 || h <= 0) {
+      return;  // panel not laid out yet; will retry on next render()
+    }
+    var size = Math.max(100, Math.min(w, h) - 6);
     windGraph = new WindGraph('holder', size);
   }
 
@@ -343,14 +406,26 @@
     var plotW = w - margin.l - margin.r;
     var plotH = h - margin.t - margin.b;
 
-    // y-scale: at least 0..10 kn, grows with data.
-    var maxV = 6;
-    for (var i = 0; i < gps.length; ++i) maxV = Math.max(maxV, gps[i].v);
-    for (var j = 0; j < wat.length; ++j) maxV = Math.max(maxV, wat[j].v);
-    var yMax = Math.ceil(maxV * 1.15);
+    // y-scale: fit to the actual min/max of the visible data (not from 0),
+    // with a little padding so the lines don't touch the edges.
+    var minV = Infinity, maxV = -Infinity;
+    for (var i = 0; i < gps.length; ++i) {
+      if (gps[i].v < minV) minV = gps[i].v;
+      if (gps[i].v > maxV) maxV = gps[i].v;
+    }
+    for (var j = 0; j < wat.length; ++j) {
+      if (wat[j].v < minV) minV = wat[j].v;
+      if (wat[j].v > maxV) maxV = wat[j].v;
+    }
+    if (!isFinite(minV)) { minV = 0; maxV = 6; }  // no data yet
+    var span = maxV - minV;
+    if (span < 1) { span = 1; }  // avoid a degenerate flat range
+    var pad = span * 0.1;
+    var yMin = minV - pad;
+    var yMax = maxV + pad;
 
     function xOf(t) { return margin.l + ((t - from) / (now - from)) * plotW; }
-    function yOf(v) { return margin.t + plotH - (v / yMax) * plotH; }
+    function yOf(v) { return margin.t + plotH - ((v - yMin) / (yMax - yMin)) * plotH; }
 
     // Grid + axis labels
     sctx.strokeStyle = '#000';
@@ -361,7 +436,7 @@
 
     var ySteps = 5;
     for (var s = 0; s <= ySteps; ++s) {
-      var v = (yMax / ySteps) * s;
+      var v = yMin + ((yMax - yMin) / ySteps) * s;
       var y = yOf(v);
       sctx.globalAlpha = (s === 0) ? 1 : 0.18;
       sctx.beginPath();
@@ -370,7 +445,7 @@
       sctx.stroke();
       sctx.globalAlpha = 1;
       sctx.textAlign = 'right';
-      sctx.fillText(String(Math.round(v)), margin.l - 6, y);
+      sctx.fillText(v.toFixed(1), margin.l - 6, y);
     }
 
     // x time ticks every minute
@@ -430,6 +505,20 @@
   // ======================================================================
   function last(arr) { return arr.length ? arr[arr.length - 1].v : null; }
 
+  // Shrink the load-cell text so a large or negative value never overflows
+  // its panel. Resets to the CSS base size first, then scales down to fit.
+  function fitLoadValue() {
+    var panel = document.getElementById('loadPanel');
+    var line = document.getElementById('loadLine');
+    line.style.fontSize = '';  // back to CSS base (18vh)
+    var avail = panel.clientWidth * 0.92;
+    var needed = line.scrollWidth;
+    if (needed > 0 && needed > avail) {
+      var base = parseFloat(getComputedStyle(line).fontSize);
+      line.style.fontSize = (base * avail / needed) + 'px';
+    }
+  }
+
   function updateReadouts(loadCellN) {
     var gps = last(hist.gpsSpeed);
     var wat = last(hist.watSpeed);
@@ -439,6 +528,7 @@
     if (typeof loadCellN === 'number' && !isNaN(loadCellN)) {
       loadEl.textContent = (loadCellN / 9.81).toFixed(1);
     }
+    fitLoadValue();
   }
 
   // ======================================================================
@@ -502,32 +592,51 @@
     xhr.send();
   }
 
+  function applyOrientation() {
+    // Decide layout from the actual available area, not a CSS media query.
+    var dash = document.querySelector('.dash');
+    var portrait = window.innerHeight > window.innerWidth;
+    dash.classList.toggle('portrait', portrait);
+  }
+
+  // Rebuild the wind graph / resize the canvas only when a panel's measured
+  // size actually changed. Called from render() (every 500ms), so resizing
+  // is picked up without relying on resize events or observers.
+  var sizeState = { ww: 0, wh: 0, sw: 0, sh: 0 };
+  function checkResize() {
+    applyOrientation();
+    var wp = document.getElementById('windPanel');
+    var sp = document.getElementById('speedPanel');
+    var ww = wp.clientWidth, wh = wp.clientHeight;
+    var sw = sp.clientWidth, sh = sp.clientHeight;
+    if (ww !== sizeState.ww || wh !== sizeState.wh) {
+      buildWindGraph();
+    }
+    if (sw !== sizeState.sw || sh !== sizeState.sh) {
+      sizeSpeedCanvas();
+    }
+    sizeState.ww = ww; sizeState.wh = wh; sizeState.sw = sw; sizeState.sh = sh;
+  }
+
   function render() {
+    checkResize();
     if (windGraph) windGraph.update();
     drawSpeed();
+    fitLoadValue();  // keep the load value fitted on resize / orientation change
     var stale = (Date.now() - lastDataMs) > STALE_MS;
     document.getElementById('status').style.display = stale ? 'block' : 'none';
   }
 
-  function layout() {
-    buildWindGraph();
+  // Cheap immediate refit so the canvas doesn't stretch while dragging;
+  // the full rebuild is handled by checkResize() in render().
+  window.addEventListener('resize', function() {
+    applyOrientation();
     sizeSpeedCanvas();
     drawSpeed();
-  }
-
-  var resizeTimer = null;
-  window.addEventListener('resize', function() {
-    if (resizeTimer) clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(layout, 200);
-  });
-
-  window.addEventListener('orientationchange', function() {
-    if (resizeTimer) clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(layout, 200);
   });
 
   window.onload = function() {
-    layout();
+    render();
     loadHistory(function() {
       render();
       poll();
