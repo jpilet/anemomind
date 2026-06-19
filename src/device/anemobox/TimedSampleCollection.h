@@ -17,7 +17,8 @@ class TimedSampleCollection : public SampledSignal<T> {
    typedef std::deque<TimedValue<T>> TimedVector;
 
    TimedSampleCollection(int maxBufferLength = 0)
-     : _maxBufferLength(maxBufferLength) { }
+     : _maxBufferLength(maxBufferLength),
+       _maxBufferDuration(Duration<double>::seconds(0)) { }
 
    TimedSampleCollection(const TimedVector& entries) :
 
@@ -25,7 +26,8 @@ class TimedSampleCollection : public SampledSignal<T> {
     *  This limit is chosen so that the BatchInsert test passes. But a natural
     *  choice might also be entries.size()
     */
-     _maxBufferLength(std::numeric_limits<int>::max()) {
+     _maxBufferLength(std::numeric_limits<int>::max()),
+     _maxBufferDuration(Duration<double>::seconds(0)) {
 
      insert(entries);
    }
@@ -64,6 +66,15 @@ class TimedSampleCollection : public SampledSignal<T> {
      trim();
    }
 
+   // If <= 0: no time-based limit.
+   // Otherwise: only samples within <_maxBufferDuration> of the most recent
+   // sample are kept. This bounds the buffer by wall-clock time rather than
+   // by sample count, regardless of the channel's update rate.
+   void setMaxBufferDuration(Duration<double> maxBufferDuration) {
+     _maxBufferDuration = maxBufferDuration;
+     trim();
+   }
+
    size_t size() const override { return _samples.size(); }
 
    TimedValue<T> operator[](int i) const override {
@@ -78,9 +89,11 @@ class TimedSampleCollection : public SampledSignal<T> {
 
  private:
   void trim();
+  void trimByDuration();
   TimedVector _samples;
 
   int _maxBufferLength;
+  Duration<double> _maxBufferDuration;
 };
 
 template <typename T>
@@ -98,6 +111,7 @@ void TimedSampleCollection<T>::append(const TimedValue<T>& x) {
     _samples.pop_front();
   }
   _samples.push_back(x);
+  trimByDuration();
 }
 
 template <typename T>
@@ -158,7 +172,25 @@ Optional<T> TimedSampleCollection<T>::nearest(TimeStamp t) const {
 
 template <typename T>
 void TimedSampleCollection<T>::trim() {
-  int toRemove = _samples.size() - _maxBufferLength;
+  if (_maxBufferLength > 0) {
+    int toRemove = _samples.size() - _maxBufferLength;
+    if (toRemove > 0) {
+      _samples.erase(_samples.begin(), _samples.begin() + toRemove);
+    }
+  }
+  trimByDuration();
+}
+
+template <typename T>
+void TimedSampleCollection<T>::trimByDuration() {
+  if (_maxBufferDuration <= Duration<double>::seconds(0) || _samples.empty()) {
+    return;
+  }
+  TimeStamp oldestToKeep = _samples.back().time - _maxBufferDuration;
+  size_t toRemove = 0;
+  while (toRemove < _samples.size() && _samples[toRemove].time < oldestToKeep) {
+    ++toRemove;
+  }
   if (toRemove > 0) {
     _samples.erase(_samples.begin(), _samples.begin() + toRemove);
   }

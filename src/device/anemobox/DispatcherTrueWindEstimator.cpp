@@ -8,9 +8,15 @@ namespace sail {
 
 DispatcherTrueWindEstimator::DispatcherTrueWindEstimator(Dispatcher* dispatcher)
     : _dispatcher(dispatcher),
-    _validParameters(false), 
+    _validParameters(true),
+    _calibrated(false),
     _validTargetSpeedTable(false),
     _filter(dispatcher, DispatcherFilterParams()) {
+  // Start with default parameters so that we can already produce a true wind
+  // estimate before any calibration has been loaded, for example the first
+  // time we go sailing. With these defaults, computeTrueWind() returns the raw
+  // geometric true wind, without offset or bias corrections.
+  TrueWindEstimator::initializeParameters(_parameters.params);
 }
 
 bool DispatcherTrueWindEstimator::loadCalibration(const std::string& path) {
@@ -38,11 +44,14 @@ bool DispatcherTrueWindEstimator::loadCalibration(std::istream& file) {
     for (int i = 0; i < TrueWindEstimator::NUM_PARAMS; ++i) {
       _parameters.params[i] = calibration.params[i];
     }
+    _validParameters = true;
+    _calibrated = true;
   }
-  _validParameters = targets[0].success;
+  // If loading failed, we keep the default parameters set up in the
+  // constructor so that we still produce a true wind estimate.
 
   _validTargetSpeedTable = targets[1].success;
-  return _validParameters || _validTargetSpeedTable;
+  return _calibrated || _validTargetSpeedTable;
 }
 
 void DispatcherTrueWindEstimator::compute() const {
@@ -106,7 +115,7 @@ std::string DispatcherTrueWindEstimator::info() const {
   std::string result;
 
   result += "Calibration parameters: ";
-  result += (_validParameters ? "valid" : "invalid");
+  result += (_calibrated ? "loaded from file" : "default (uncalibrated)");
   result += "\nTarge speed table: ";
   result += (_validTargetSpeedTable ? "valid" : "invalid");
   result += "\n"; 

@@ -36,6 +36,13 @@ namespace {
 class MonotonicClockDispatcher : public Dispatcher {
   public:
     virtual TimeStamp currentTime() { return MonotonicClock::now(); }
+
+    // Keep 30 minutes of history per channel in RAM. The buffer is bounded
+    // by time rather than by sample count, so the count limit is disabled.
+    virtual int maxBufferLength() const { return 0; }
+    virtual Duration<double> maxBufferDuration() const {
+      return Duration<double>::minutes(30);
+    }
 };
 
 NAN_METHOD(adjTime) {

@@ -30,7 +30,14 @@ class DispatcherTrueWindEstimator {
  private:
   Dispatcher* _dispatcher;
   TrueWindEstimator::Parameters<double> _parameters;
+
+  // True as soon as _parameters can be used to compute true wind. This is the
+  // case right from construction, because we start with default parameters.
   bool _validParameters;
+
+  // True only once a calibration has actually been loaded from a file. When
+  // false, _parameters holds the default (uncalibrated) values.
+  bool _calibrated;
 
   TargetSpeedTable _targetSpeedTable;
   bool _validTargetSpeedTable;

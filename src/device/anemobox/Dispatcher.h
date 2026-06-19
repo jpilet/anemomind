@@ -257,6 +257,13 @@ class Dispatcher : public Clock {
 
   virtual int maxBufferLength() const {return defaultDispatcherBufferLength;}
 
+  // Time-based limit for each channel's ring buffer. If <= 0 (the default),
+  // only the count-based maxBufferLength() applies. Subclasses can override
+  // this to keep a fixed wall-clock window of history regardless of rate.
+  virtual Duration<double> maxBufferDuration() const {
+    return Duration<double>::seconds(0);
+  }
+
   // Return or create a DispatchData for the given source.
   template <typename T>
   TypedDispatchData<T>* createDispatchDataForSource(
@@ -505,6 +512,8 @@ TypedDispatchData<T>* Dispatcher::createDispatchDataForSource(
   TypedDispatchData<T>* dispatchData;
   if (!ptr) {
     dispatchData = createNewTypedDispatchData<T>(code, source, size);
+    dispatchData->dispatcher()->mutableValues()
+        ->setMaxBufferDuration(maxBufferDuration());
     _data[code][source] = std::shared_ptr<DispatchData>(dispatchData);
     newDispatchData(dispatchData);
   } else {
