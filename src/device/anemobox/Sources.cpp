@@ -27,6 +27,7 @@ const char externalRegex[] =
   "|(^CUPS$)"
   "|(^CSV imported$)"
   "|(^Astra regata.*)"
+  "|(^Vakaros.*)"
   ;
 
 }  // namespace

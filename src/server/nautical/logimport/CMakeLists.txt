@@ -49,6 +49,7 @@ target_link_libraries(logimport_LogLoader
                       logimport_Nmea0183Loader
                       logimport_ProtobufLogLoader
                       logimport_SailmonDbLoader
+                      logimport_vakaros_import 
                       nautical_BoatSpecificHacks
                       nautical_NavDataset
                       astra_AstraLoader
@@ -206,3 +207,13 @@ target_link_libraries(logimport_try_load
                       logimport_LogLoader
                       nautical_NavDataset
                      )
+
+add_library(logimport_vakaros vakaros.h vakaros.cpp)
+add_executable(vakaros_print vakaros_print.cpp)
+target_link_libraries(vakaros_print logimport_vakaros)
+
+add_library(logimport_vakaros_import vakaros_import.h vakaros_import.cpp)
+target_link_libraries(logimport_vakaros_import
+  common_TimeStamp
+  logimport_vakaros
+  logimport_SourceGroup)

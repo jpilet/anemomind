@@ -82,3 +82,17 @@ TEST(TimeStampTest, MonotonicClock) {
   EXPECT_NEAR((after - before).seconds(), .1, .01);
 }
 #endif
+
+TEST(TimeStampTest, ParseSubSec)
+{
+  TimeStamp ts = TimeStamp::parse("2024-08-27T14:05:12.731");
+  TimeStamp ts2 = TimeStamp::UTC(2024, 8, 27, 14, 5, 12.731);
+  EXPECT_EQ(ts.toMilliSecondsSince1970(), ts2.toMilliSecondsSince1970());
+}
+
+TEST(TimeStampTest, ParseSubSec2)
+{
+  TimeStamp ts = TimeStamp::parse("2024/08/27 14:05:12.731Z");
+  TimeStamp ts2 = TimeStamp::UTC(2024, 8, 27, 14, 5, 12.731);
+  EXPECT_EQ(ts, ts2);
+}

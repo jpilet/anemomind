@@ -13,8 +13,19 @@ function csvEscape(s) {
 }
 
 function sendCsvHeader(res, columns) {
-  var row = [ "DATE/TIME(UTC)" ].concat(columns.map(columnString)).map(csvEscape);
+  var row = [ "DATE/TIME(UTC)", "OADate" ].concat(columns.map(columnString)).map(csvEscape);
   res.write(row.join(',') + '\n');
+}
+
+// From https://stackoverflow.com/questions/15549823/oadate-to-milliseconds-timestamp-in-javascript
+function dateToOADate(date) {
+  let temp = new Date(date);
+  const msPerDay = 8.64e7;
+  // Set temp to start of day and get whole days between dates,
+  const days = Math.round((temp.setHours(0,0,0,0) - new Date(1899, 11, 30)) / 8.64e7);
+  // Get decimal part of day, OADate always assumes 24 hours in day
+  var partDay = (Math.abs((date - temp) % msPerDay) / 8.64e7);
+  return days + partDay;
 }
 
 function formatTime(date) {
@@ -65,7 +76,7 @@ function formatColumnEntry(type, entry) {
 }
 
 function sendCsvChunk(res, columns, table, columnType) {
-  var numCols = 1 + columns.length;
+  var numCols = 2 + columns.length;
 
   var times = Object.keys(table);
   times.sort(function(a, b) { return parseInt(a) - parseInt(b); });
@@ -77,9 +88,10 @@ function sendCsvChunk(res, columns, table, columnType) {
 
     row = [];
     row[0] = formatTime(rowDate);
+    row[1] = dateToOADate(rowDate).toFixed(8);
     var tableRow = table[t];
     for (var i = 0; i < numCols; ++i) {
-      row[i + 1] = formatColumnEntry(columnType[i], tableRow[i]); 
+      row[i + 2] = formatColumnEntry(columnType[i], tableRow[i]); 
     }
     res.write(row.join(', ') + '\n');
   }
